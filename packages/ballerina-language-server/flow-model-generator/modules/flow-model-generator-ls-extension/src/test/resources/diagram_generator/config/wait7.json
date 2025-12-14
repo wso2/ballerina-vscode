@@ -90,7 +90,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "WA",
@@ -119,7 +120,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "int",
@@ -167,11 +169,13 @@
                     "types": [
                       {
                         "fieldType": "NUMBER",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": false
                       }
                     ],
                     "value": "1",
@@ -218,7 +222,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "42",
@@ -259,7 +264,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "WB",
@@ -288,7 +294,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "string",
@@ -336,11 +343,13 @@
                     "types": [
                       {
                         "fieldType": "NUMBER",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": false
                       }
                     ],
                     "value": "2",
@@ -387,7 +396,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"Hello\"",
@@ -428,7 +438,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "WC",
@@ -457,7 +468,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "boolean",
@@ -505,11 +517,13 @@
                     "types": [
                       {
                         "fieldType": "NUMBER",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": false
                       }
                     ],
                     "value": "1",
@@ -556,7 +570,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "true",
@@ -603,7 +618,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -619,7 +635,8 @@
             },
             "types": [
               {
-                "fieldType": "REPEATABLE_PROPERTY"
+                "fieldType": "REPEATABLE_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -630,7 +647,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY"
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
                 "value": {
@@ -641,7 +659,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "a",
@@ -660,7 +679,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "WA",
@@ -682,7 +702,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY"
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
                 "value": {
@@ -693,7 +714,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "b",
@@ -712,7 +734,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "WB",
@@ -734,7 +757,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY"
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
                 "value": {
@@ -745,7 +769,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "c",
@@ -764,7 +789,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "WC",
@@ -792,7 +818,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "mapResult",
@@ -821,7 +848,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "MixedResult",
@@ -865,7 +893,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "mapResult",

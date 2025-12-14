@@ -75,7 +75,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "from Order 'order in check getOrdersFromRecords(records)\n            where 'order.status == SUCCESS\n            do {\n                log:printInfo(\"Sending successful order to \" + ORDERS_TOPIC + \" \" + 'order.toString());\n                check kafkaProducer->send({topic: ORDERS_TOPIC, value: 'order.toString().toBytes()});\n            }",
@@ -91,7 +92,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "err",
@@ -120,7 +122,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "()",
@@ -185,7 +188,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "err is error ",
@@ -234,11 +238,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string|log:PrintableRawTemplate"
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": true
                       }
                     ],
                     "value": "\"Unknown error occured\"",
@@ -260,7 +266,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error?"
+                        "ballerinaType": "error?",
+                        "selected": true
                       }
                     ],
                     "value": "err",
@@ -283,11 +290,13 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]"
+                        "ballerinaType": "error:StackFrame[]",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error:StackFrame[]?"
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": false
                       }
                     ],
                     "placeholder": "()",
@@ -308,7 +317,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET"
+                        "fieldType": "MAPPING_EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [],
@@ -368,15 +378,18 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "string[]"
+                "ballerinaType": "string[]",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string|string[]"
+                "ballerinaType": "string|string[]",
+                "selected": true
               }
             ],
             "value": "\"localhost:9092\"",
@@ -402,11 +415,13 @@
                   "all",
                   "0",
                   "1"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:ProducerAcks"
+                "ballerinaType": "kafka:ProducerAcks",
+                "selected": false
               }
             ],
             "placeholder": "\"all\"",
@@ -434,11 +449,13 @@
                   "snappy",
                   "lz4",
                   "zstd"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:CompressionType"
+                "ballerinaType": "kafka:CompressionType",
+                "selected": false
               }
             ],
             "placeholder": "\"none\"",
@@ -460,11 +477,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -486,11 +505,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -512,11 +533,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -538,11 +561,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -564,11 +589,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -590,11 +617,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -616,11 +645,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -642,11 +673,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -668,11 +701,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -694,11 +729,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -720,11 +757,13 @@
             "types": [
               {
                 "fieldType": "MAPPING_EXPRESSION_SET",
-                "ballerinaType": "map<anydata>"
+                "ballerinaType": "map<anydata>",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<anydata>"
+                "ballerinaType": "map<anydata>",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -749,11 +788,13 @@
                 "options": [
                   "SER_AVRO",
                   "SER_BYTE_ARRAY"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:SerializerType"
+                "ballerinaType": "kafka:SerializerType",
+                "selected": false
               }
             ],
             "placeholder": "\"SER_AVRO\"",
@@ -778,11 +819,13 @@
                 "options": [
                   "SER_AVRO",
                   "SER_BYTE_ARRAY"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:SerializerType"
+                "ballerinaType": "kafka:SerializerType",
+                "selected": false
               }
             ],
             "placeholder": "\"SER_AVRO\"",
@@ -804,11 +847,13 @@
             "types": [
               {
                 "fieldType": "MAPPING_EXPRESSION_SET",
-                "ballerinaType": "map<string>"
+                "ballerinaType": "map<string>",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<string>"
+                "ballerinaType": "map<string>",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -830,11 +875,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -856,11 +903,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -882,11 +931,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -908,11 +959,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -934,11 +987,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -960,11 +1015,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -986,11 +1043,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -1012,11 +1071,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1038,11 +1099,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1064,11 +1127,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1090,11 +1155,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1116,11 +1183,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1142,11 +1211,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1168,11 +1239,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1194,11 +1267,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -1220,11 +1295,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -1246,11 +1323,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1272,11 +1351,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1298,11 +1379,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -1333,11 +1416,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:SecureSocket"
+                "ballerinaType": "kafka:SecureSocket",
+                "selected": false
               }
             ],
             "placeholder": "{cert: {path: \"\", password: \"\"}}",
@@ -1368,11 +1453,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:AuthenticationConfiguration"
+                "ballerinaType": "kafka:AuthenticationConfiguration",
+                "selected": false
               }
             ],
             "placeholder": "{username: \"\", password: \"\"}",
@@ -1399,11 +1486,13 @@
                   "SASL_PLAINTEXT",
                   "SASL_SSL",
                   "SSL"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "kafka:SecurityProtocol"
+                "ballerinaType": "kafka:SecurityProtocol",
+                "selected": false
               }
             ],
             "placeholder": "\"PLAINTEXT\"",
@@ -1424,7 +1513,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1440,7 +1530,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1456,7 +1547,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "kafkaProducer",
@@ -1485,7 +1577,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "kafka:Producer",

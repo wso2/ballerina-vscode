@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Define local variables for input parameters",
@@ -112,7 +113,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"John Doe\"",
@@ -128,7 +130,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "name",
@@ -157,7 +160,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -201,7 +205,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"john.doe@example.com\"",
@@ -217,7 +222,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "email",
@@ -246,7 +252,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -290,7 +297,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "{\n        houseNo: \"123\",\n        line1: \"Main Street\",\n        line2: \"Apartment 4B\",\n        city: \"New York\",\n        country: \"USA\"\n    }",
@@ -306,7 +314,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "address",
@@ -335,7 +344,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Address",
@@ -379,7 +389,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Transform to Person",
@@ -426,7 +437,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -452,11 +464,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "name",
@@ -477,11 +491,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "email",
@@ -509,13 +525,15 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Address"
+                "ballerinaType": "Address",
+                "selected": true
               }
             ],
             "value": "address",
@@ -536,7 +554,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "person",
@@ -565,7 +584,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Person",
@@ -609,7 +629,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "{\n        empId: \"EMP001\",\n        admissionDate: \"2024-08-15\"\n    }",
@@ -625,7 +646,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "admission",
@@ -654,7 +676,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Admission",
@@ -698,7 +721,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Transform to Employee",
@@ -745,7 +769,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -778,13 +803,15 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Person"
+                "ballerinaType": "Person",
+                "selected": true
               }
             ],
             "value": "person",
@@ -812,13 +839,15 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Admission"
+                "ballerinaType": "Admission",
+                "selected": true
               }
             ],
             "value": "admission",
@@ -839,7 +868,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "employee",
@@ -868,7 +898,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Employee",
@@ -917,7 +948,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -950,13 +982,15 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Employee"
+                "ballerinaType": "Employee",
+                "selected": true
               }
             ],
             "value": "employee",
@@ -1011,11 +1045,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"http://localhost:9090\"",
@@ -1041,11 +1077,13 @@
                   "2.0",
                   "1.1",
                   "1.0"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:HttpVersion"
+                "ballerinaType": "http:HttpVersion",
+                "selected": false
               }
             ],
             "placeholder": "\"2.0\"",
@@ -1076,11 +1114,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp1Settings"
+                "ballerinaType": "http:ClientHttp1Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1111,11 +1151,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp2Settings"
+                "ballerinaType": "http:ClientHttp2Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1137,11 +1179,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -1163,11 +1207,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -1198,11 +1244,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:FollowRedirects?"
+                "ballerinaType": "http:FollowRedirects?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1233,11 +1281,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:PoolConfiguration?"
+                "ballerinaType": "http:PoolConfiguration?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1268,11 +1318,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CacheConfig"
+                "ballerinaType": "http:CacheConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1298,11 +1350,13 @@
                   "AUTO",
                   "ALWAYS",
                   "NEVER"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:Compression"
+                "ballerinaType": "http:Compression",
+                "selected": false
               }
             ],
             "placeholder": "\"AUTO\"",
@@ -1375,11 +1429,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientAuthConfig?"
+                "ballerinaType": "http:ClientAuthConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1410,11 +1466,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CircuitBreakerConfig?"
+                "ballerinaType": "http:CircuitBreakerConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1445,11 +1503,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:RetryConfig?"
+                "ballerinaType": "http:RetryConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1480,11 +1540,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CookieConfig?"
+                "ballerinaType": "http:CookieConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1515,11 +1577,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ResponseLimitConfigs"
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1550,11 +1614,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ProxyConfig?"
+                "ballerinaType": "http:ProxyConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1576,11 +1642,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -1611,11 +1679,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSocketConfig"
+                "ballerinaType": "http:ClientSocketConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1637,11 +1707,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -1672,11 +1744,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSecureSocket?"
+                "ballerinaType": "http:ClientSecureSocket?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1697,7 +1771,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1713,7 +1788,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1729,7 +1805,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "cl",
@@ -1758,7 +1835,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "http:Client",

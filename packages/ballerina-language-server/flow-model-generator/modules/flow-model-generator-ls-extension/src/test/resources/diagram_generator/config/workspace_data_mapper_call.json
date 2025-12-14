@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "{\n        id: \"CUST200\",\n        name: \"Foo Bar\",\n        email: \"foo@example.com\",\n        phoneNumber: \"+1122334455\",\n        address: \"Foo St\"\n    }",
@@ -86,7 +87,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "customer",
@@ -115,7 +117,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:Customer",
@@ -165,7 +168,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -198,13 +202,15 @@
                     "packageInfo": "wso2:pkgB:0.1.0",
                     "packageName": "pkgB",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "pkgB:Customer"
+                "ballerinaType": "pkgB:Customer",
+                "selected": true
               }
             ],
             "value": "customer",
@@ -225,7 +231,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "externalCustomer",
@@ -254,7 +261,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:ExternalCustomer",
@@ -304,7 +312,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET"
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": [

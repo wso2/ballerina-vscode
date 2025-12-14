@@ -74,7 +74,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"John\"",
@@ -90,7 +91,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -119,7 +121,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -168,7 +171,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -201,13 +205,15 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Source"
+                "ballerinaType": "Source",
+                "selected": false
               }
             ],
             "value": "{firstName: \"John\", lastName: \"Doe\", age: 30}",
@@ -228,7 +234,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -266,7 +273,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Target",
@@ -318,7 +326,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -353,11 +362,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Source"
+                "ballerinaType": "Source",
+                "selected": false
               }
             ],
             "value": "{firstName: \"John\", age: 30}",
@@ -387,7 +398,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var2",
@@ -416,7 +428,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Target",
@@ -468,7 +481,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -494,11 +508,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "value": "10",
@@ -519,7 +535,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -557,7 +574,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -611,7 +629,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "json"
+                "ballerinaType": "json",
+                "selected": false
               }
             ],
             "value": "{name: \"John\", age: 30}",
@@ -633,11 +652,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -658,7 +679,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -696,7 +718,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",

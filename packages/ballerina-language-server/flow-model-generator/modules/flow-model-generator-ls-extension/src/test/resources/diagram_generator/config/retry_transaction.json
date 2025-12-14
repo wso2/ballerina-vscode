@@ -90,7 +90,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "VIEW"
+                        "fieldType": "VIEW",
+                        "selected": true
                       }
                     ],
                     "value": {
@@ -116,7 +117,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": true,
@@ -163,7 +165,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "3",
@@ -253,7 +257,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "VIEW"
+                        "fieldType": "VIEW",
+                        "selected": true
                       }
                     ],
                     "value": {
@@ -279,7 +284,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": true,
@@ -344,7 +350,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -360,7 +367,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "err ",
@@ -377,7 +385,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -419,7 +428,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "check err;",
@@ -442,7 +452,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "3",
@@ -532,7 +544,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "VIEW"
+                        "fieldType": "VIEW",
+                        "selected": true
                       }
                     ],
                     "value": {
@@ -558,7 +571,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": true,
@@ -623,7 +637,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -639,7 +654,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "err ",
@@ -656,7 +672,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -698,7 +715,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "check err;",
@@ -721,7 +739,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "4",
@@ -827,7 +847,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "true ",
@@ -899,7 +920,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error"
+                        "ballerinaType": "error",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"failed retry\")",
@@ -940,7 +962,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -956,7 +979,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "err ",
@@ -973,7 +997,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -1015,7 +1040,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "check err;",
@@ -1038,7 +1064,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "4",
@@ -1144,7 +1172,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "true ",
@@ -1216,7 +1245,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error"
+                        "ballerinaType": "error",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"failed retry\")",
@@ -1257,7 +1287,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -1273,7 +1304,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "err ",
@@ -1290,7 +1322,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -1332,7 +1365,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "check err;",
@@ -1355,7 +1389,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "4",

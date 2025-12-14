@@ -74,7 +74,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "",
@@ -90,7 +91,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "msg",
@@ -119,7 +121,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string|()",
@@ -163,7 +166,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "0",
@@ -179,7 +183,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "i",
@@ -208,7 +213,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -303,7 +309,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "foodClient",
@@ -320,11 +327,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": true
                       }
                     ],
                     "value": "\"/food/apples\"",
@@ -346,11 +355,13 @@
                     "types": [
                       {
                         "fieldType": "MAPPING_EXPRESSION_SET",
-                        "ballerinaType": "map<string|string[]>"
+                        "ballerinaType": "map<string|string[]>",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "map<string|string[]>?"
+                        "ballerinaType": "map<string|string[]>?",
+                        "selected": false
                       }
                     ],
                     "placeholder": "()",
@@ -372,7 +383,8 @@
                     "types": [
                       {
                         "fieldType": "TYPE",
-                        "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+                        "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                        "selected": false
                       }
                     ],
                     "value": "json|http:ClientError",
@@ -394,7 +406,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "response",
@@ -423,7 +436,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "json",
@@ -488,7 +502,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "(response is json) ",
@@ -530,7 +545,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"Response received from food service: \" + response.toString()",
@@ -546,7 +562,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "LV_EXPRESSION"
+                                "fieldType": "LV_EXPRESSION",
+                                "selected": false
                               }
                             ],
                             "value": "msg",
@@ -610,7 +627,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"Error occurred while invoking food service: \" + response.message()",
@@ -626,7 +644,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "LV_EXPRESSION"
+                                "fieldType": "LV_EXPRESSION",
+                                "selected": false
                               }
                             ],
                             "value": "msg",
@@ -673,7 +692,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "i + 1",
@@ -689,7 +709,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "i",
@@ -713,7 +734,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": true
               }
             ],
             "value": "i < count ",
@@ -764,11 +786,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"http://localhost:9090\"",
@@ -794,11 +818,13 @@
                   "2.0",
                   "1.1",
                   "1.0"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:HttpVersion"
+                "ballerinaType": "http:HttpVersion",
+                "selected": false
               }
             ],
             "placeholder": "\"2.0\"",
@@ -829,11 +855,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp1Settings"
+                "ballerinaType": "http:ClientHttp1Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -864,11 +892,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp2Settings"
+                "ballerinaType": "http:ClientHttp2Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -890,11 +920,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -916,11 +948,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -951,11 +985,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:FollowRedirects?"
+                "ballerinaType": "http:FollowRedirects?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -986,11 +1022,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:PoolConfiguration?"
+                "ballerinaType": "http:PoolConfiguration?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1021,11 +1059,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CacheConfig"
+                "ballerinaType": "http:CacheConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1051,11 +1091,13 @@
                   "AUTO",
                   "ALWAYS",
                   "NEVER"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:Compression"
+                "ballerinaType": "http:Compression",
+                "selected": false
               }
             ],
             "placeholder": "\"AUTO\"",
@@ -1128,11 +1170,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientAuthConfig?"
+                "ballerinaType": "http:ClientAuthConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1163,11 +1207,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CircuitBreakerConfig?"
+                "ballerinaType": "http:CircuitBreakerConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1198,11 +1244,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:RetryConfig?"
+                "ballerinaType": "http:RetryConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1233,11 +1281,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CookieConfig?"
+                "ballerinaType": "http:CookieConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1268,11 +1318,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ResponseLimitConfigs"
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1303,11 +1355,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ProxyConfig?"
+                "ballerinaType": "http:ProxyConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1329,11 +1383,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -1364,11 +1420,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSocketConfig"
+                "ballerinaType": "http:ClientSocketConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -1390,11 +1448,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -1425,11 +1485,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSecureSocket?"
+                "ballerinaType": "http:ClientSecureSocket?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -1450,7 +1512,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1466,7 +1529,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1482,7 +1546,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "foodClient",
@@ -1511,7 +1576,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "http:Client",

@@ -77,7 +77,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "error handler",
@@ -162,7 +163,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "new data",
@@ -204,7 +206,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "'from + \"-\" + to",
@@ -220,7 +223,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "key",
@@ -249,7 +253,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "string",
@@ -293,7 +298,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "action call - redis get call",
@@ -342,7 +348,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "redisClient",
@@ -359,11 +366,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": true
                       }
                     ],
                     "value": "key",
@@ -384,7 +393,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": true,
@@ -400,7 +410,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "cacheValue",
@@ -429,7 +440,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "string|()",
@@ -473,7 +485,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "if node",
@@ -536,7 +549,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "cacheValue is string ",
@@ -578,7 +592,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "new data",
@@ -620,7 +635,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "{\n                    value: check calculate(amount, cacheValue)\n                }",
@@ -636,7 +652,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "newData",
@@ -665,7 +682,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TYPE"
+                                "fieldType": "TYPE",
+                                "selected": true
                               }
                             ],
                             "value": "json",
@@ -709,7 +727,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "return",
@@ -751,7 +770,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "newData",
@@ -815,7 +835,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "action call - http get call",
@@ -865,7 +886,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "currencyClient",
@@ -882,11 +904,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "\"/latest?base=\" + 'from + \"&to=\" + to",
@@ -908,11 +932,13 @@
                             "types": [
                               {
                                 "fieldType": "MAPPING_EXPRESSION_SET",
-                                "ballerinaType": "map<string|string[]>"
+                                "ballerinaType": "map<string|string[]>",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "map<string|string[]>?"
+                                "ballerinaType": "map<string|string[]>?",
+                                "selected": false
                               }
                             ],
                             "placeholder": "()",
@@ -933,7 +959,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "FLAG"
+                                "fieldType": "FLAG",
+                                "selected": true
                               }
                             ],
                             "value": true,
@@ -950,7 +977,8 @@
                             "types": [
                               {
                                 "fieldType": "TYPE",
-                                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+                                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                                "selected": false
                               }
                             ],
                             "value": "json",
@@ -972,7 +1000,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "response",
@@ -1001,7 +1030,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TYPE"
+                                "fieldType": "TYPE",
+                                "selected": true
                               }
                             ],
                             "value": "json",
@@ -1045,7 +1075,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "new data",
@@ -1087,7 +1118,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "check response.value",
@@ -1103,7 +1135,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "value",
@@ -1132,7 +1165,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TYPE"
+                                "fieldType": "TYPE",
+                                "selected": true
                               }
                             ],
                             "value": "decimal",
@@ -1176,7 +1210,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "function call",
@@ -1223,7 +1258,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "VIEW"
+                                "fieldType": "VIEW",
+                                "selected": true
                               }
                             ],
                             "value": {
@@ -1249,11 +1285,13 @@
                             "types": [
                               {
                                 "fieldType": "NUMBER",
-                                "ballerinaType": "decimal"
+                                "ballerinaType": "decimal",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "decimal"
+                                "ballerinaType": "decimal",
+                                "selected": true
                               }
                             ],
                             "value": "amount",
@@ -1274,11 +1312,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "value.toString()",
@@ -1299,7 +1339,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "FLAG"
+                                "fieldType": "FLAG",
+                                "selected": true
                               }
                             ],
                             "value": true,
@@ -1315,7 +1356,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "convertedAmount",
@@ -1344,7 +1386,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TYPE"
+                                "fieldType": "TYPE",
+                                "selected": true
                               }
                             ],
                             "value": "decimal",
@@ -1388,7 +1431,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "action call - redis set call",
@@ -1437,7 +1481,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "redisClient",
@@ -1454,11 +1499,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "key",
@@ -1480,11 +1527,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "convertedAmount.toString()",
@@ -1505,7 +1554,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "FLAG"
+                                "fieldType": "FLAG",
+                                "selected": true
                               }
                             ],
                             "value": true,
@@ -1547,7 +1597,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "new data",
@@ -1589,7 +1640,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "{\n                    value\n                }",
@@ -1605,7 +1657,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "newData",
@@ -1634,7 +1687,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TYPE"
+                                "fieldType": "TYPE",
+                                "selected": true
                               }
                             ],
                             "value": "json",
@@ -1678,7 +1732,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "TEXT"
+                                "fieldType": "TEXT",
+                                "selected": true
                               }
                             ],
                             "value": "return",
@@ -1720,7 +1775,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "newData",
@@ -1766,7 +1822,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -1782,7 +1839,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "e ",
@@ -1799,7 +1857,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "redis:error|error|http:error|error",
@@ -1841,7 +1900,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "library call - log error",
@@ -1890,11 +1950,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string|log:PrintableRawTemplate"
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": true
                       }
                     ],
                     "value": "\"error occured\"",
@@ -1916,7 +1978,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error?"
+                        "ballerinaType": "error?",
+                        "selected": true
                       }
                     ],
                     "value": "e",
@@ -1939,11 +2002,13 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]"
+                        "ballerinaType": "error:StackFrame[]",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error:StackFrame[]?"
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": false
                       }
                     ],
                     "placeholder": "()",
@@ -1964,7 +2029,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET"
+                        "fieldType": "MAPPING_EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [],
@@ -2011,7 +2077,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "return ",
@@ -2053,7 +2120,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "http:INTERNAL_SERVER_ERROR",
@@ -2108,11 +2176,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"https://api.exchangeratesapi.io/latest\"",
@@ -2138,11 +2208,13 @@
                   "2.0",
                   "1.1",
                   "1.0"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:HttpVersion"
+                "ballerinaType": "http:HttpVersion",
+                "selected": false
               }
             ],
             "placeholder": "\"2.0\"",
@@ -2173,11 +2245,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp1Settings"
+                "ballerinaType": "http:ClientHttp1Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -2208,11 +2282,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientHttp2Settings"
+                "ballerinaType": "http:ClientHttp2Settings",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -2234,11 +2310,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "placeholder": "0.0d",
@@ -2260,11 +2338,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -2295,11 +2375,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:FollowRedirects?"
+                "ballerinaType": "http:FollowRedirects?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2330,11 +2412,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:PoolConfiguration?"
+                "ballerinaType": "http:PoolConfiguration?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2365,11 +2449,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CacheConfig"
+                "ballerinaType": "http:CacheConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -2395,11 +2481,13 @@
                   "AUTO",
                   "ALWAYS",
                   "NEVER"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:Compression"
+                "ballerinaType": "http:Compression",
+                "selected": false
               }
             ],
             "placeholder": "\"AUTO\"",
@@ -2472,11 +2560,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientAuthConfig?"
+                "ballerinaType": "http:ClientAuthConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2507,11 +2597,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CircuitBreakerConfig?"
+                "ballerinaType": "http:CircuitBreakerConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2542,11 +2634,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:RetryConfig?"
+                "ballerinaType": "http:RetryConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2577,11 +2671,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:CookieConfig?"
+                "ballerinaType": "http:CookieConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2612,11 +2708,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ResponseLimitConfigs"
+                "ballerinaType": "http:ResponseLimitConfigs",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -2647,11 +2745,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ProxyConfig?"
+                "ballerinaType": "http:ProxyConfig?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2673,11 +2773,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -2708,11 +2810,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSocketConfig"
+                "ballerinaType": "http:ClientSocketConfig",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -2734,11 +2838,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -2769,11 +2875,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientSecureSocket?"
+                "ballerinaType": "http:ClientSecureSocket?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -2794,7 +2902,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -2810,7 +2919,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -2826,7 +2936,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "currencyClient",
@@ -2855,7 +2966,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "http:Client",
@@ -2905,7 +3017,8 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "redis:ConnectionUri"
+                "ballerinaType": "redis:ConnectionUri",
+                "selected": false
               },
               {
                 "fieldType": "RECORD_MAP_EXPRESSION",
@@ -2916,13 +3029,15 @@
                     "packageInfo": "ballerinax:redis:3.1.0",
                     "packageName": "redis",
                     "kind": "RECORD_TYPE",
-                    "selected": true
+                    "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams"
+                "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams",
+                "selected": false
               }
             ],
             "value": "{\n    host: \"localhost\",\n    port: 6379\n}",
@@ -2945,11 +3060,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -2971,11 +3088,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -3006,11 +3125,13 @@
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "redis:SecureSocket"
+                "ballerinaType": "redis:SecureSocket",
+                "selected": false
               }
             ],
             "placeholder": "{}",
@@ -3031,7 +3152,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -3047,7 +3169,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -3063,7 +3186,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "redisClient",
@@ -3092,7 +3216,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "redis:Client",

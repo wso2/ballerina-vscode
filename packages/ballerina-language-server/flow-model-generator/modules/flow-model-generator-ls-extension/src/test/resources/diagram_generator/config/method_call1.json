@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Create an instance of Calculator class",
@@ -112,7 +113,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "new Calculator(10)",
@@ -128,7 +130,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "calc",
@@ -157,7 +160,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Calculator",
@@ -201,7 +205,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Method call examples",
@@ -249,7 +254,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -275,7 +281,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "calc",
@@ -291,11 +298,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "value": "5",
@@ -316,7 +325,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "result1",
@@ -345,7 +355,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -395,7 +406,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -421,7 +433,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "calc",
@@ -437,11 +450,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "value": "2",
@@ -462,7 +477,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "result2",
@@ -491,7 +507,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -541,7 +558,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -567,7 +585,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "calc",
@@ -583,7 +602,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "total",
@@ -612,7 +632,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -662,7 +683,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -688,7 +710,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "    calc",

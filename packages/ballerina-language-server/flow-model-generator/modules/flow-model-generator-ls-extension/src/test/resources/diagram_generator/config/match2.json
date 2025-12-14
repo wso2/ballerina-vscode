@@ -95,7 +95,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -106,7 +107,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "1",
@@ -154,7 +156,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"unripe\"",
@@ -195,7 +198,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -206,7 +210,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "2",
@@ -254,7 +259,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"ripe\"",
@@ -295,7 +301,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -306,7 +313,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "3",
@@ -354,7 +362,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"overripe\"",
@@ -395,7 +404,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -406,7 +416,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var r",
@@ -429,7 +440,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "r > 3 ",
@@ -470,7 +482,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"spoiled\"",
@@ -511,7 +524,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -522,7 +536,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "_",
@@ -570,7 +585,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"invalid ripeness level\"",
@@ -594,7 +610,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "any|error"
+                "ballerinaType": "any|error",
+                "selected": true
               }
             ],
             "value": "ripeness ",

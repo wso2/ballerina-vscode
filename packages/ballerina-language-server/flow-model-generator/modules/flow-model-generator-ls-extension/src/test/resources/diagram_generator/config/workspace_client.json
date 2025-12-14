@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Create new CustomerApiClient connection",
@@ -118,11 +119,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"https://api.example.com\"",
@@ -143,7 +146,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -159,7 +163,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Local",
@@ -175,7 +180,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "apiClient",
@@ -204,7 +210,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:CustomerApiClient",
@@ -248,7 +255,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Make remote call to get customer",
@@ -297,7 +305,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "apiClient",
@@ -313,11 +322,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"CUST001\"",
@@ -338,7 +349,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "existingCustomer",
@@ -367,7 +379,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:ExternalCustomer",
@@ -432,7 +445,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "existingCustomer is pkgB:ExternalCustomer ",
@@ -480,7 +494,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET"
+                        "fieldType": "EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [
@@ -534,7 +549,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Make resource call to get customer",
@@ -584,7 +600,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_PATH"
+                "fieldType": "ACTION_PATH",
+                "selected": false
               }
             ],
             "value": "/customers/[id]",
@@ -603,11 +620,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"CUST002\"",
@@ -627,7 +646,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "apiClient",
@@ -643,7 +663,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "customerViaResource",
@@ -672,7 +693,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:ExternalCustomer",
@@ -737,7 +759,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "customerViaResource is pkgB:ExternalCustomer ",
@@ -785,7 +808,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET"
+                        "fieldType": "EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [
