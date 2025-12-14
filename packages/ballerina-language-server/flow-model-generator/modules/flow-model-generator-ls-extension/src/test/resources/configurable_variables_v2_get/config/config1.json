@@ -33,7 +33,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "intVar",
@@ -49,7 +50,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "int",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "int",
@@ -57,16 +68,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "int",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -75,7 +77,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "42",
@@ -92,7 +95,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "100",
@@ -109,7 +113,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with integer value.",
@@ -152,7 +157,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "floatVar",
@@ -168,7 +174,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "float",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "float",
@@ -176,16 +192,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "float",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -194,7 +201,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "3.5",
@@ -211,7 +219,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -228,7 +237,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -271,7 +281,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "stringVar",
@@ -287,7 +298,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "string",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "string",
@@ -295,16 +316,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "string",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -313,7 +325,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"foo\"",
@@ -330,7 +343,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"test string\"",
@@ -347,7 +361,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -390,7 +405,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "booleanVar",
@@ -406,7 +422,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "boolean",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "boolean",
@@ -414,16 +440,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "boolean",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -432,7 +449,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "true",
@@ -449,7 +467,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -466,7 +485,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -509,7 +529,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "stringArrayVar",
@@ -525,7 +546,9 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [],
+                  "selected": false
                 }
               ],
               "value": "string[]",
@@ -533,8 +556,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": []
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -543,7 +565,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "[\"bar\", \"baz\"]",
@@ -560,7 +583,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "[\"apple\", \"banana\", \"cherry\"]",
@@ -577,7 +601,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with array value.",
@@ -620,7 +645,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "recordVar1",
@@ -636,7 +662,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "Student",
+                      "packageInfo": "config_tests:simpleconfigs:0.1.0",
+                      "packageName": "simpleconfigs",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "Student",
@@ -644,16 +680,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "Student",
-                  "packageInfo": "config_tests:simpleconfigs:0.1.0",
-                  "packageName": "simpleconfigs",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -662,7 +689,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "{\n    name: \"John Doe\",\n    age: 20,\n    grade: \"A\"\n}",
@@ -679,7 +707,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "{name: \"Jane Smith\", age: 22, grade: \"A\"}",
@@ -696,7 +725,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with record value.",
@@ -739,7 +769,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "recordVar2",
@@ -755,7 +786,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "Student",
+                      "packageInfo": "config_tests:simpleconfigs:0.1.0",
+                      "packageName": "simpleconfigs",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "Student",
@@ -763,16 +804,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "Student",
-                  "packageInfo": "config_tests:simpleconfigs:0.1.0",
-                  "packageName": "simpleconfigs",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -781,7 +813,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -798,7 +831,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "{name: \"John Doe\", age: 30, grade: \"B\"}",
@@ -815,7 +849,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
