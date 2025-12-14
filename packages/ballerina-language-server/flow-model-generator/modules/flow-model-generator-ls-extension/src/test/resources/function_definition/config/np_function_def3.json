@@ -35,7 +35,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "summarizeBlog",
@@ -64,7 +65,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "Summary|error",
@@ -88,7 +90,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -99,7 +102,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -115,7 +119,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -131,7 +136,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -145,7 +151,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {
@@ -156,7 +163,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -167,7 +175,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "Blog",
@@ -183,7 +192,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "blog",
@@ -212,7 +222,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -240,7 +251,8 @@
         },
         "types": [
           {
-            "fieldType": "RAW_TEMPLATE"
+            "fieldType": "RAW_TEMPLATE",
+            "selected": false
           }
         ],
         "value": "    Think yourself as a blog reviewer and summarize the following blog\n\n    **title**\n    ${blog.title}\n\n    **content**\n    ${blog.content}",
@@ -266,7 +278,8 @@
       "modelProviderAsParameter": {
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": false
           }
         ],
         "value": true,

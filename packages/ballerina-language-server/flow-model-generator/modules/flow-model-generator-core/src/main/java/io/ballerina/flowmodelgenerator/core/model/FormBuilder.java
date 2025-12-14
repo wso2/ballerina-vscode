@@ -20,20 +20,14 @@ package io.ballerina.flowmodelgenerator.core.model;
 
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.ParameterKind;
-import io.ballerina.compiler.api.symbols.ParameterSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.MarkdownDocumentationNode;
 import io.ballerina.compiler.syntax.tree.MatchClauseNode;
-import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeList;
-import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
-import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
@@ -52,14 +46,11 @@ import org.ballerinalang.langserver.common.utils.NameUtil;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -67,12 +58,6 @@ import java.util.StringJoiner;
 import static io.ballerina.flowmodelgenerator.core.Constants.COLLECTION_TYPE_CONSTRAINT;
 import static io.ballerina.flowmodelgenerator.core.Constants.CONDITION_TYPE_CONSTRAINT;
 import static io.ballerina.flowmodelgenerator.core.Constants.MATCH_TARGET_TYPE_CONSTRAINT;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_DOC;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_KEY;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.INPUTS_LABEL;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.OUTPUT_DOC;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.OUTPUT_KEY;
-import static io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder.OUTPUT_LABEL;
 
 /**
  * Represents a builder for the form of a flow node.

@@ -35,7 +35,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "suggestMovieName",
@@ -64,7 +65,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string|error",
@@ -88,7 +90,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -99,7 +102,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -115,7 +119,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -131,7 +136,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -145,7 +151,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {
@@ -156,7 +163,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -167,7 +175,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "string",
@@ -183,7 +192,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "genre",
@@ -212,7 +222,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -234,7 +245,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -245,7 +257,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "int",
@@ -261,7 +274,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "n",
@@ -290,7 +304,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -318,7 +333,8 @@
         },
         "types": [
           {
-            "fieldType": "RAW_TEMPLATE"
+            "fieldType": "RAW_TEMPLATE",
+            "selected": false
           }
         ],
         "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Suggest a movie name matching to the genre given:\n    ${genre}",
@@ -353,7 +369,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Wso2ModelProvider"
+            "ballerinaType": "Wso2ModelProvider",
+            "selected": false
           }
         ],
         "value": "_suggestMovieNameModel",
@@ -368,7 +385,8 @@
       "modelProviderAsParameter": {
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": false
           }
         ],
         "value": false,
