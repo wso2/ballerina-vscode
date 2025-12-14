@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { CoreMessage, ModelMessage, generateObject } from "ai";
+import { ModelMessage, generateObject } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
 import {
     DatamapperResponse,
@@ -53,7 +53,6 @@ import { writeBallerinaFileDidOpenTemp } from "../../../utils/modification";
 import { getTempProject, cleanupTempProject } from "../utils/project/temp-project";
 import { integrateCodeToWorkspace } from "../agent/utils";
 import { createExecutionContextFromStateMachine } from "../agent";
-import { sendAgentDidOpen } from "../utils/project/ls-schema-notifications";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION

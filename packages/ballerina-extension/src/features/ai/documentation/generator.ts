@@ -20,6 +20,7 @@ import { DocGenerationRequest } from '@wso2/ballerina-core';
 import { generateDocumentation, DocumentationGenerationRequest } from './index';
 import { getOpenAPISpecification, getProjectSource } from '../utils';
 import { getCurrentProjectRoot } from '../../../utils/project-utils';
+import { getServiceDeclaration } from './utils';
 
 // Main documentation generator function that handles all the logic
 export async function generateDocumentationForService(params: DocGenerationRequest): Promise<void> {
@@ -34,8 +35,8 @@ export async function generateDocumentationForService(params: DocGenerationReque
         }
 
         // Find the service declaration and get OpenAPI spec
-        // const { serviceDocFilePath } = await getServiceDeclaration(projectPath, params.serviceName);
-        const openApiSpec = await getOpenAPISpecification("serviceDocFilePath");
+        const { serviceDocFilePath } = await getServiceDeclaration(projectPath, params.serviceName);
+        const openApiSpec = await getOpenAPISpecification(serviceDocFilePath);
 
         // Create the documentation generation request
         const docRequest: DocumentationGenerationRequest = {

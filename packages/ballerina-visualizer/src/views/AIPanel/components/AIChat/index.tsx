@@ -1053,6 +1053,16 @@ const AIChat: React.FC = () => {
         filePaths?: SourceFile[]
     ) => {
         console.log("Add to integration called. Command: ", command);
+        const fileChanges: FileChanges[] = [];
+        for (let { segmentText, filePath } of codeSegments) {
+            fileChanges.push({
+                filePath: filePath,
+                content: segmentText,
+            });
+        }
+        await rpcClient.getAiPanelRpcClient().addFilesToProject({
+            fileChanges: fileChanges,
+        })
         setIsAddingToWorkspace(true);
     };
 
