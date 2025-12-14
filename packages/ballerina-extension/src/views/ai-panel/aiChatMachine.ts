@@ -18,6 +18,7 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import { createMachine, assign, interpret } from 'xstate';
+import { workspace } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { AIChatMachineContext, AIChatMachineEventType, AIChatMachineSendableEvent, AIChatMachineStateValue, TaskStatus, Checkpoint } from '@wso2/ballerina-core/lib/state-machine-types';
 import { GenerateAgentCodeRequest, SourceFile } from '@wso2/ballerina-core/lib/rpc-types/ai-panel/interfaces';
@@ -139,9 +140,9 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     chatHistory: (ctx, event) => addUserMessage(ctx.chatHistory, event.payload.prompt),
                     errorMessage: (_ctx) => undefined,
                     isPlanMode: (_ctx, event) => {
-                        const isExperimentalEnabled = extension.ballerinaExtInstance?.enabledExperimentalFeatures() ?? false;
-                        if (event.payload.isPlanMode && !isExperimentalEnabled) {
-                            console.log('[AIChatMachine] Plan mode requested but experimental features are disabled. Setting isPlanMode to false.');
+                        const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
+                        if (event.payload.isPlanMode && !isPlanModeEnabled) {
+                            console.log('[AIChatMachine] Plan mode requested but ballerina.ai.planMode configuration is disabled. Setting isPlanMode to false.');
                             return false;
                         }
                         return event.payload.isPlanMode;
@@ -200,6 +201,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     errorMessage: (_ctx) => undefined,
                     sessionId: (_ctx) => undefined,
                     checkpoints: (_ctx) => [],
+                    isPlanMode: (_ctx) => false,
                 }),
             ],
         },
@@ -596,7 +598,7 @@ const startAgentGenerationService = async (context: AIChatMachineContext): Promi
         operationType: "CODE_GENERATION",
         fileAttachmentContents: [],
         messageId: messageId,
-        isPlanMode: context.isPlanMode ?? true,
+        isPlanMode: context.isPlanMode ?? false,
         codeContext: context.codeContext,
     };
 

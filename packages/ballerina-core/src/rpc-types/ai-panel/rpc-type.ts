@@ -78,3 +78,4 @@ export const getGeneratedDocumentation: NotificationType<DocGenerationRequest> =
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
 export const openAIPanel: NotificationType<AIPanelPrompt> = { method: `${_preFix}/openAIPanel` };
+export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };

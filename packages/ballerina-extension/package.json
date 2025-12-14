@@ -213,6 +213,11 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
+                "ballerina.ai.planMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the option for the Plan mode in Copilot."
+                },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,

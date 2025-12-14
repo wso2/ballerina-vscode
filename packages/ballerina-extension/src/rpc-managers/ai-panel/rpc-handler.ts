@@ -71,6 +71,7 @@ import {
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
+    isPlanModeFeatureEnabled,
     isRequirementsSpecificationFileExist,
     isUserAuthenticated,
     markAlertShown,
@@ -160,4 +161,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onNotification(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
+    messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
 }

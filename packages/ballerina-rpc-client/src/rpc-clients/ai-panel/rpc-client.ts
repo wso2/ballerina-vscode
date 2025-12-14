@@ -93,6 +93,7 @@ import {
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
+    isPlanModeFeatureEnabled,
     isRequirementsSpecificationFileExist,
     isUserAuthenticated,
     markAlertShown,
@@ -340,5 +341,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     openAIPanel(params: AIPanelPrompt): Promise<void> {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
+    }
+
+    isPlanModeFeatureEnabled(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
     }
 }
