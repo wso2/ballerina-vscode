@@ -155,13 +155,14 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
 
             // Apply all changes atomically
             const success = await vscode.workspace.applyEdit(workspaceEdit);
+            await vscode.workspace.saveAll();
             if (!success) {
                 throw new Error('Failed to apply workspace edit');
             }
 
             progress.report({ message: 'Checkpoint restored successfully!' });
+            await renderDatamapper();
         });
-        await renderDatamapper();
 
         // Wait for artifact update notification if any .bal files were restored
         await new Promise<void>((resolve, reject) => {
