@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "User",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "User record type\nSimple record type with docs, anonymous field types (union, record)",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -147,7 +152,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FLAG"
+                  "fieldType": "FLAG",
+                  "selected": true
                 }
               ],
               "value": "false",
@@ -163,7 +169,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -231,7 +238,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FLAG"
+                  "fieldType": "FLAG",
+                  "selected": true
                 }
               ],
               "value": "false",
@@ -247,7 +255,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -285,7 +294,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": "false",
@@ -301,7 +311,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "",
@@ -380,7 +391,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "UserAddress",
@@ -396,7 +408,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -412,7 +425,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "Record type with a rest field",
@@ -428,7 +442,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -444,7 +459,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -471,7 +487,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG"
+                    "fieldType": "FLAG",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -487,7 +504,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -603,7 +621,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "City",
@@ -619,7 +638,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -635,7 +655,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -651,7 +672,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -667,7 +689,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
