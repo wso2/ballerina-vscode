@@ -634,6 +634,7 @@ export async function generateMappingCodeCore(
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
+            eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
 
         eventHandler({ type: "stop", command: Command.DataMap });
@@ -965,6 +966,7 @@ export async function generateInlineMappingCodeCore(
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
+            eventHandler({ type: "content_block", content: "\n\nData mapping is complete! You can now review the generated mappings in your workspace." });
         }
 
         eventHandler({ type: "stop", command: Command.DataMap });
@@ -1050,6 +1052,7 @@ export async function generateContextTypesCore(
             const modifiedFilesSet = new Set(modifiedFiles);
             await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
             console.log(`[DataMapper] Integrated ${modifiedFiles.length} file(s) to workspace`);
+            eventHandler({ type: "content_block", content: "\n\nType generation is complete! The generated types have been added to your workspace." });
         }
 
         eventHandler({ type: "stop", command: Command.TypeCreator });
