@@ -1790,7 +1790,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         const projectComponents = await this.getProjectComponents();
 
-        // Extracting all record names
+        // Extracting all record names and type names
         const recordNames: string[] = [];
 
         if (projectComponents?.components?.packages) {
@@ -1799,6 +1799,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     if (module.records) {
                         for (const record of module.records) {
                             recordNames.push(record.name);
+                        }
+                    }
+                    if (module.types) {
+                        for (const type of module.types) {
+                            recordNames.push(type.name);
                         }
                     }
                 }

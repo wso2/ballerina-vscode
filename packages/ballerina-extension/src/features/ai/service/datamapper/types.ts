@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { DataMappingRecord, EnumType, IORoot, Mapping, RecordType, SourceFile } from "@wso2/ballerina-core";
+import { DataMapperModelRequest, DataMappingRecord, DMModel, EnumType, IORoot, Mapping, RecordType } from "@wso2/ballerina-core";
 
 // =============================================================================
 // DATA MAPPING REQUEST/RESPONSE
@@ -49,13 +49,18 @@ export interface DatamapperResponse {
 // DATAMAPPER CODE REPAIR
 // =============================================================================
 
-export interface RepairedFiles {
-    repairedFiles: SourceFile[];
+export interface RepairedMapping {
+    output: string;     
+    expression: string;
 }
 
-export interface CodeRepairResult {
-    finalContent: string;
-    customFunctionsContent: string;
+export interface RepairedMappings {
+    repairedMappings: RepairedMapping[];
+}
+
+export interface DMModelDiagnosticsResult {
+    dataMapperMetadata: DataMapperModelRequest;
+    dmModel: DMModel;
 }
 
 // =============================================================================
