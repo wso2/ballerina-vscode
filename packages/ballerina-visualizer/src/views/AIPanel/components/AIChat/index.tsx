@@ -157,7 +157,7 @@ const AIChat: React.FC = () => {
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
-    const [isExperimentalEnabled, setIsExperimentalEnabled] = useState(false);
+    const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -273,17 +273,17 @@ const AIChat: React.FC = () => {
     }, [rpcClient]);
 
     useEffect(() => {
-        const checkExperimentalEnabled = async () => {
+        const checkPlanModeFeatureEnabled = async () => {
             try {
-                const enabled = await rpcClient.getCommonRpcClient().experimentalEnabled();
-                setIsExperimentalEnabled(enabled);
+                const enabled = await rpcClient.getAiPanelRpcClient().isPlanModeFeatureEnabled();
+                setIsPlanModeFeatureEnabled(enabled);
             } catch (error) {
-                console.error("[AIChat] Failed to check experimental enabled status:", error);
-                setIsExperimentalEnabled(false);
+                console.error("[AIChat] Failed to check plan mode feature enabled status:", error);
+                setIsPlanModeFeatureEnabled(false);
             }
         };
 
-        checkExperimentalEnabled();
+        checkPlanModeFeatureEnabled();
     }, [rpcClient]);
 
     /**
@@ -1490,9 +1490,9 @@ const AIChat: React.FC = () => {
                             <br />
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
-                        <div>State: {aiChatStateMachineState}</div>
+                        {isPlanModeFeatureEnabled && <div>State: {aiChatStateMachineState}</div>}
                         <HeaderButtons>
-                            {isExperimentalEnabled && (
+                            {isPlanModeFeatureEnabled && (
                                 <Button
                                     appearance="icon"
                                     onClick={handleTogglePlanMode}
@@ -1502,7 +1502,7 @@ const AIChat: React.FC = () => {
                                     &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
                                 </Button>
                             )}
-                            {isExperimentalEnabled && (
+                            {isPlanModeFeatureEnabled && (
                                 <Button
                                     appearance="icon"
                                     onClick={handleToggleAutoApprove}

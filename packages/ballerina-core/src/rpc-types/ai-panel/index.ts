@@ -83,4 +83,5 @@ export interface AIPanelAPI {
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
+    isPlanModeFeatureEnabled: () => Promise<boolean>;
 }

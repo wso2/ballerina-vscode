@@ -56,7 +56,7 @@ import {
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest
+    TestPlanGenerationRequest,
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -768,6 +768,11 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async openAIPanel(params: AIPanelPrompt): Promise<void> {
         openAIPanelWithPrompt(params);
+    }
+
+    async isPlanModeFeatureEnabled(): Promise<boolean> {
+        const config = workspace.getConfiguration('ballerina');
+        return config.get<boolean>('ai.planMode', false);
     }
 }
 
