@@ -565,6 +565,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 <TextField
                                     id="database-name"
                                     label="Database Name"
+                                    placeholder="Database name"
                                     value={credentials.databaseName}
                                     onTextChange={(value) => handleCredentialsChange("databaseName", value)}
                                 />
@@ -619,7 +620,11 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     <TableCheckbox
                                         type="checkbox"
                                         checked={table.selected}
-                                        onChange={() => handleTableToggle(index)}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            handleTableToggle(index);
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
                                     />
                                     <TableName variant="body1">{table.name}</TableName>
                                 </TableCard>
