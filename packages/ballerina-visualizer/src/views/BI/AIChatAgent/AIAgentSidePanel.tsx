@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { NodeList, Category as PanelCategory, FormField, FormValues } from "@wso2/ballerina-side-panel";
 import {
@@ -40,12 +40,14 @@ import {
     Property,
     ToolParameterItem,
     NodeProperties,
+    Diagnostic,
 } from "@wso2/ballerina-core";
 
 import {
     convertBICategoriesToSidePanelCategories,
     convertConfig,
     convertFunctionCategoriesToSidePanelCategories,
+    filterToolInputSymbolDiagnostics,
 } from "../../../utils/bi";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { RelativeLoader } from "../../../components/RelativeLoader";
@@ -100,7 +102,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [selectedNodeCodeData, setSelectedNodeCodeData] = useState<CodeData>(undefined);
     const [toolNodeId, setToolNodeId] = useState<string>(undefined);
-    const [injectedComponentIndex, setInjectedComponentIndex] = useState<number>(3);
 
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
@@ -140,6 +141,17 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const selectedNodeRef = useRef<AvailableNode>(undefined);
     const agentFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "agents.bal").fsPath);
     const functionFilePath = useRef<string>(Utils.joinPath(URI.file(projectPath), "functions.bal").fsPath);
+    const parameterFieldsRef = useRef<ToolParameterItem[]>([]);
+
+    // Create custom diagnostic filter for Tool Input parameters
+    const customDiagnosticFilter = useCallback((diagnostics: Diagnostic[]) => {
+        if (!parameterFieldsRef.current || parameterFieldsRef.current.length === 0) {
+            return diagnostics;
+        }
+        const toolInputs = parameterFieldsRef.current.map(param => ({ type: param.formValues.type, variable: param.formValues.variable }));
+        return filterToolInputSymbolDiagnostics(diagnostics, toolInputs);
+    }, []);
+
     useEffect(() => {
         fetchNodes();
     }, []);
@@ -322,7 +334,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 if (functionNodeResponse.functionDefinition.properties) {
                     toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
                 }
-                setInjectedComponentIndex(2 + toolInputFields.length);
                 console.log(">>> Tool input fields", { toolInputFields });
 
                 const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
@@ -377,7 +388,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     field.advanced = false;
                     // hack: remove headers and additionalValues from the tool inputs and set default value to ()
                     if (["headers", "additionalValues"].includes(field.key)) {
-                        field.value = "()";
+                        field.value = "{}";
                         return;
                     }
                     includedKeys.push(field.key);
@@ -386,7 +397,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
                 const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
                 toolInputFields = createToolInputFields(filteredNodeParameterFields);
-                setInjectedComponentIndex(2 + toolInputFields.length);
 
                 console.log(">>> Tool input fields", { toolInputFields });
 
@@ -599,6 +609,13 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     concertRequired={concertRequired}
                     description={description}
                     helperPaneSide="left"
+                    customDiagnosticFilter={customDiagnosticFilter}
+                    onChange={(fieldKey, value) => {
+                        if (fieldKey === "parameters") {
+                            parameterFieldsRef.current = value as ToolParameterItem[];
+                            return;
+                        }
+                    }}
                     injectedComponents={[
                         {
                             component: (
@@ -609,7 +626,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                     </ImplementationInfo>
                                 </div>
                             ),
-                            index: injectedComponentIndex,
+                            index: 3,
                         },
                     ]}
                 />
