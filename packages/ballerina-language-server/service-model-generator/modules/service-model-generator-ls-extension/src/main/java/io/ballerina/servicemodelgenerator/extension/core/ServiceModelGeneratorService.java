@@ -324,6 +324,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @param request Service model request
      * @return {@link ServiceModelResponse} of the service model response
      */
+    @Deprecated
     @JsonRequest
     public CompletableFuture<ServiceModelResponse> getServiceModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
