@@ -32,10 +32,11 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
+import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 
 export interface ExpressionField {
     field: FormField;
@@ -104,7 +105,6 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
 export const ExpressionField: React.FC<ExpressionField> = ({
     inputMode,
     field,
-    primaryMode,
     name,
     value,
     completions,
@@ -115,22 +115,15 @@ export const ExpressionField: React.FC<ExpressionField> = ({
     targetLineRange,
     onChange,
     extractArgsFromFunction,
-    onCompletionSelect,
     onFocus,
     onBlur,
     onSave,
     onCancel,
     onRemove,
-    isHelperPaneOpen,
-    changeHelperPaneState,
     getHelperPane,
-    helperPaneHeight,
-    helperPaneWidth,
     growRange,
-    helperPaneZIndex,
     exprRef,
     anchorRef,
-    onToggleHelperPane,
     sanitizedExpression,
     rawExpression,
     onOpenExpandedMode,
@@ -285,7 +278,7 @@ export const ExpressionField: React.FC<ExpressionField> = ({
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={new PrimaryModeChipExpressionEditorConfig(primaryMode)}
+            configuration={new ChipExpressionEditorDefaultConfiguration()}
         />
     );
 };
