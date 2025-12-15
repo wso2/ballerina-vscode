@@ -94,7 +94,8 @@
         "typeName": "RecType",
         "kind": "record",
         "focusExpression": "arr3Item",
-        "ref": "-788289410"
+        "ref": "-788289410",
+        "isIterableVariable": true
       }
     ],
     "output": {

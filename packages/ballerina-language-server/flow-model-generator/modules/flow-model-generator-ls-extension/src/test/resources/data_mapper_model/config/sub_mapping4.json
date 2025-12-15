@@ -54,7 +54,8 @@
         "typeName": "UserInfo",
         "kind": "record",
         "focusExpression": "userInfo",
-        "ref": "1889977605"
+        "ref": "1889977605",
+        "isIterableVariable": true
       }
     ],
     "output": {

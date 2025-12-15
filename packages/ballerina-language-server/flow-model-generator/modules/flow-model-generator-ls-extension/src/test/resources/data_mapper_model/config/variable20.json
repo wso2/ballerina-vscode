@@ -80,7 +80,8 @@
         "typeName": "UserInfo",
         "kind": "record",
         "focusExpression": "bank.userInfo",
-        "ref": "1889977605"
+        "ref": "1889977605",
+        "isIterableVariable": true
       }
     ],
     "output": {

@@ -48,7 +48,8 @@
         "typeName": "Person",
         "kind": "record",
         "focusExpression": "input.people",
-        "ref": "887620673"
+        "ref": "887620673",
+        "isIterableVariable": true
       }
     ],
     "output": {
