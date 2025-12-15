@@ -1042,13 +1042,13 @@ export async function generateContextTypesCore(
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
+        eventHandler({ type: "content_block", content: "\n\nAnalyzing your provided data to generate Ballerina record types.\n\n" });
         eventHandler({ type: "content_block", content: "\n\n<progress>Generating types...</progress>" });
 
         // Generate types from context with validation
         const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
             projectComponents,
-            langClient,
             tempProjectPath
         );
 
