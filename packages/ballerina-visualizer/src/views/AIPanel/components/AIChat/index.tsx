@@ -876,8 +876,7 @@ const AIChat: React.FC = () => {
                             break;
                         case "generate-code-from-following-requirements":
                             await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
-                                filepath: "chatLocation",
-                                content: parsedInput.placeholderValues.requirements,
+                                content: parsedInput.placeholderValues.requirements
                             });
                             setIsReqFileExists(true);
 
@@ -887,7 +886,7 @@ const AIChat: React.FC = () => {
                             );
                             break;
                         case "generate-test-from-requirements":
-                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists("chatLocation");
+                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists();
 
                             useCase = getTemplateTextById(
                                 commandTemplates,
@@ -1487,10 +1486,7 @@ const AIChat: React.FC = () => {
     };
 
     async function processLLMDiagnostics(attachments: Attachment[], message: string) {
-        let response: LLMDiagnostics =
-            rpcClient == null
-                ? { statusCode: 500, diags: DRIFT_CHECK_ERROR }
-                : await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents("");
+        let response: LLMDiagnostics = await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents();
 
         const responseStatus = response.statusCode;
         const invalidResponse = response == null || response.statusCode == null;

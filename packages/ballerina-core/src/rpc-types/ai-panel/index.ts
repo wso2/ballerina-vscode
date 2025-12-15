@@ -58,14 +58,14 @@ export interface AIPanelAPI {
     markAlertShown: () => void;
     getFromDocumentation: (params: string) => Promise<string>;
     isRequirementsSpecificationFileExist:(params: string) => Promise<boolean>;
-    getDriftDiagnosticContents:(params: string) => Promise<LLMDiagnostics>;
+    getDriftDiagnosticContents:() => Promise<LLMDiagnostics>;
     addChatSummary:(params: AIChatSummary) => Promise<boolean>;
     handleChatSummaryError:(params: string) => void;
     isNaturalProgrammingDirectoryExists:(params: string) => Promise<boolean>;
     readDeveloperMdFile:(params: string) => Promise<string>;
     updateDevelopmentDocument:(params: DeveloperDocument) => void;
     updateRequirementSpecification:(params: RequirementSpecification) => void;
-    createTestDirecoryIfNotExists:(params: string) => void;
+    createTestDirecoryIfNotExists:() => void;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
     getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
