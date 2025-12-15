@@ -246,11 +246,23 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const [filterType, setFilterType] = useState<"All" | "Standard" | "Organization">("All");
     const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | null>(null);
     const [selectedConnector, setSelectedConnector] = useState<AvailableNode | null>(null);
+    const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
 
     useEffect(() => {
         setIsSearching(true);
         fetchConnectors();
     }, []);
+
+    useEffect(() => {
+        rpcClient
+            ?.getCommonRpcClient()
+            .experimentalEnabled()
+            .then((enabled) => setExperimentalEnabled(enabled))
+            .catch((err) => {
+                console.error(">>> error checking experimental flag", err);
+                setExperimentalEnabled(false);
+            });
+    }, [rpcClient]);
 
     useEffect(() => {
         setIsSearching(true);
@@ -508,8 +520,8 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
     const getConnectorCreationOptions = () => {
         if (!searchText || searchText.trim() === "") {
-            // No search - show both options
-            return { showApiSpec: true, showDatabase: true };
+            // No search - show both options (database only if experimental)
+            return { showApiSpec: true, showDatabase: experimentalEnabled };
         }
 
         const lowerSearchText = searchText.toLowerCase().trim();
@@ -533,7 +545,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
         // If search matches database keywords, show only database option
         if (isDatabaseSearch && !isApiSearch) {
-            return { showApiSpec: false, showDatabase: true };
+            return { showApiSpec: false, showDatabase: experimentalEnabled };
         }
         
         // If search matches API keywords, show only API spec option
@@ -542,7 +554,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         }
 
         // If both or neither match, show both options
-        return { showApiSpec: true, showDatabase: true };
+        return { showApiSpec: true, showDatabase: experimentalEnabled };
     };
 
     const connectorOptions = getConnectorCreationOptions();
@@ -559,10 +571,21 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 </PopupHeader>
                 <PopupContent>
                     <IntroText>
-                        To establish your connection, first define a connector. You may create a custom connector using
-                        an API specification or by introspecting a database. Alternatively, you can select one of the
-                        pre-built connectors below. You will then be guided to provide the required details to complete
-                        the connection setup.
+                        {experimentalEnabled ? (
+                            <>
+                                To establish your connection, first define a connector. You may create a custom connector using
+                                an API specification or by introspecting a database. Alternatively, you can select one of the
+                                pre-built connectors below. You will then be guided to provide the required details to complete
+                                the connection setup.
+                            </>
+                        ) : (
+                            <> 
+                            To establish your connection, first define a connector. You may create a custom connector using
+                            an API specification. Alternatively, you can select one of the pre-built connectors below. You will then be guided to provide the required details to complete
+                            the connection setup.
+                             </>
+                        )}
+                        
                     </IntroText>
 
                     <SearchContainer>
