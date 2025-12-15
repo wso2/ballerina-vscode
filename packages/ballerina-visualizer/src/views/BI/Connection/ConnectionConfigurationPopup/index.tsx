@@ -233,7 +233,6 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
     const [pullingStatus, setPullingStatus] = useState<PullingStatus | undefined>(undefined);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus | undefined>(undefined);
     const selectedNodeRef = useRef<FlowNode>();
-    const [subPanel, setSubPanel] = useState<SubPanel>({ view: SubPanelView.UNDEFINED });
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
 
     useEffect(() => {
@@ -364,38 +363,16 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                         console.error(">>> Error updating source code", response);
                         setSavingFormStatus(SavingFormStatus.ERROR);
                     }
+                })
+                .catch((error) => {
+                    console.error(">>> Error updating source code", error);
+                    setSavingFormStatus(SavingFormStatus.ERROR);
                 });
         }
     };
 
-    const handleSubPanel = (subPanel: SubPanel) => {
-        setSubPanel(subPanel);
-    };
-
-    const updateExpressionField = (data: ExpressionFormField) => {
-        setUpdatedExpressionField(data);
-    };
-
     const handleResetUpdatedExpressionField = () => {
         setUpdatedExpressionField(undefined);
-    };
-
-    const findSubPanelComponent = (subPanel: SubPanel) => {
-        switch (subPanel.view) {
-            case SubPanelView.HELPER_PANEL:
-                return (
-                    <HelperView
-                        filePath={subPanel.props.sidePanelData.filePath}
-                        position={subPanel.props.sidePanelData.range}
-                        updateFormField={updateExpressionField}
-                        editorKey={subPanel.props.sidePanelData.editorKey}
-                        onClosePanel={handleSubPanel}
-                        configurePanelData={subPanel.props.sidePanelData?.configurePanelData}
-                    />
-                );
-            default:
-                return null;
-        }
     };
 
     const getConnectorTag = () => {
@@ -520,7 +497,6 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                                         onSubmit={handleOnFormSubmit}
                                         updatedExpressionField={updatedExpressionField}
                                         resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                                        openSubPanel={handleSubPanel}
                                         isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
                                         footerActionButton={true}
                                     />

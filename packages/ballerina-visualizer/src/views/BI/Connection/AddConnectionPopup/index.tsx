@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -202,11 +202,6 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
 
     useEffect(() => {
-        setIsSearching(true);
-        fetchConnectors();
-    }, []);
-
-    useEffect(() => {
         rpcClient
             ?.getCommonRpcClient()
             .experimentalEnabled()
@@ -217,26 +212,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             });
     }, [rpcClient]);
 
-    useEffect(() => {
-        setIsSearching(true);
-        debouncedSearch(searchText);
-        return () => debouncedSearch.cancel();
-    }, [searchText]);
-
-    useEffect(() => {
-        if (filterType !== "All") {
-            setIsSearching(true);
-            fetchConnectors();
-        }
-    }, [filterType]);
-
-    rpcClient?.onProjectContentUpdated((state: boolean) => {
-        if (state) {
-            fetchConnectors();
-        }
-    });
-
-    const fetchConnectors = (filter?: boolean) => {
+    const fetchConnectors = useCallback((filter?: boolean) => {
         setFetchingInfo(true);
         const defaultPosition: LinePosition = { line: 0, offset: 0 };
         const position = target || defaultPosition;
@@ -263,9 +239,14 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 setIsSearching(false);
                 setFetchingInfo(false);
             });
-    };
+    }, [rpcClient, target, fileName, filterType]);
 
-    const handleSearch = (text: string) => {
+    useEffect(() => {
+        setIsSearching(true);
+        fetchConnectors();
+    }, []);
+
+    const handleSearch = useCallback((text: string) => {
         const defaultPosition: LinePosition = { line: 0, offset: 0 };
         const position = target || defaultPosition;
         rpcClient
@@ -315,9 +296,31 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             .finally(() => {
                 setIsSearching(false);
             });
-    };
+    }, [rpcClient, target, fileName, filterType]);
 
-    const debouncedSearch = debounce(handleSearch, 1100);
+    const debouncedSearch = useMemo(
+        () => debounce(handleSearch, 1100),
+        [handleSearch]
+    );
+
+    useEffect(() => {
+        setIsSearching(true);
+        debouncedSearch(searchText);
+        return () => debouncedSearch.cancel();
+    }, [searchText, debouncedSearch]);
+
+    useEffect(() => {
+        setIsSearching(true);
+        fetchConnectors();
+    }, [filterType, fetchConnectors]);
+
+    useEffect(() => {
+        rpcClient?.onProjectContentUpdated((state: boolean) => {
+            if (state) {
+                fetchConnectors();
+            }
+        });
+    }, [rpcClient, fetchConnectors]);
 
     const handleOnSearch = (text: string) => {
         setSearchText(text);

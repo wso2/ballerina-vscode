@@ -136,7 +136,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
         };
 
         fetchConnection();
-    }, [connectionName, rpcClient, onClose]);
+    }, [connectionName, rpcClient]);
 
     const handleClosePopup = () => {
         if (onClose) {

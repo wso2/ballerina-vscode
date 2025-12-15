@@ -363,12 +363,6 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         }
     };
 
-    const handleTableToggle = (index: number) => {
-        const updatedTables = [...tables];
-        updatedTables[index].selected = !updatedTables[index].selected;
-        setTables(updatedTables);
-    };
-
     const handleTableToggleByName = (name: string) => {
         setTables((prev) =>
             prev.map((t) =>
