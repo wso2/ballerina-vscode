@@ -348,14 +348,19 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     };
 
     const handleCloseWizard = (parent?: ParentPopupData) => {
-        setWizardStep(null);
-        setSelectedConnector(null);
+        // If a parent payload is provided, we are done with the entire flow.
+        // Close this popup (and navigate back) without resetting internal state first,
         if (parent) {
             onClose?.(parent);
             if (onNavigateToOverview) {
                 onNavigateToOverview();
             }
+            return;
         }
+
+        // Otherwise, just close the inner wizard and go back to the connector list.
+        setWizardStep(null);
+        setSelectedConnector(null);
     };
 
     const filterItems = (items: Item[]): Item[] => {
