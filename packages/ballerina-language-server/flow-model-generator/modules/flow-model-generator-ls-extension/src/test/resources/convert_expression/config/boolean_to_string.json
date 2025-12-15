@@ -1,0 +1,8 @@
+{
+  "description": "Convert boolean to string using toString()",
+  "output": "output.stringField",
+  "outputType": "string",
+  "expression": "input.boolField",
+  "expressionType": "boolean",
+  "convertedExpression": "input.boolField.toString()"
+}
