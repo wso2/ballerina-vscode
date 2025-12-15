@@ -81,7 +81,7 @@ const BackArrow = styled.div`
 
 const StyledModalContent = styled(ModalContent)`
     .mcp-stepper {
-        margin: 8px 0;
+        margin: 12px 0;
     }
 `;
 
@@ -314,6 +314,7 @@ export const DiscoverToolsModal: React.FC<DiscoverToolsModalProps> = ({
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAuthToken(e.target.value)}
                                         disabled={loadingDiscovery}
                                         description="Enter your bearer token for authentication"
+                                        type="password"
                                     />
                                 )}
                             </FormSection>
