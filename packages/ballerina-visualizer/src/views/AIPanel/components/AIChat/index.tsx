@@ -90,12 +90,6 @@ import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 
-enum CodeGenerationType {
-    CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
-    TESTS_FOR_USER_REQUIREMENT = "TESTS_FOR_USER_REQUIREMENT",
-    CODE_GENERATION = "CODE_GENERATION",
-}
-
 // var projectUuid = "";
 // var chatLocation = "";
 
@@ -871,40 +865,38 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processAgentGeneration(parsedInput.text, inputText);
+            await processAgentGeneration(parsedInput.text, []);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
                     let useCase = "";
                     switch (parsedInput.templateId) {
                         case "code-doc-drift-check":
-                            // await processLLMDiagnostics(attachments, inputText);
+                            await processLLMDiagnostics(attachments, inputText);
                             break;
                         case "generate-code-from-following-requirements":
-                            // await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
-                            //     filepath: chatLocation,
-                            //     content: parsedInput.placeholderValues.requirements,
-                            // });
-                            // setIsReqFileExists(true);
+                            await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
+                                filepath: "chatLocation",
+                                content: parsedInput.placeholderValues.requirements,
+                            });
+                            setIsReqFileExists(true);
 
-                            // useCase = parsedInput.placeholderValues.requirements;
-                            // await processCodeGeneration(
-                            //     [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                            //     inputText
-                            // );
+                            useCase = parsedInput.placeholderValues.requirements;
+                            await processAgentGeneration(
+                                useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
+                            );
                             break;
                         case "generate-test-from-requirements":
-                            // rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
+                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists("chatLocation");
 
-                            // useCase = getTemplateTextById(
-                            //     commandTemplates,
-                            //     Command.NaturalProgramming,
-                            //     "generate-test-from-requirements"
-                            // );
-                            // await processCodeGeneration(
-                            //     [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
-                            //     inputText
-                            // );
+                            useCase = getTemplateTextById(
+                                commandTemplates,
+                                Command.NaturalProgramming,
+                                "generate-test-from-requirements"
+                            );
+                            await processAgentGeneration(
+                                useCase, attachments, "TESTS_FOR_USER_REQUIREMENT"
+                            );
                             break;
                         case "generate-code-from-requirements":
                             useCase = getTemplateTextById(
@@ -912,9 +904,8 @@ const AIChat: React.FC = () => {
                                 Command.NaturalProgramming,
                                 "generate-code-from-requirements"
                             );
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                                inputText
+                            await processAgentGeneration(
+                                useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
                             );
                             break;
                     }
@@ -1199,15 +1190,15 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processHealthcareCodeGeneration(useCase: string, message: string) {
-        const requestBody: GenerateCodeRequest = {
-            usecase: useCase,
-            chatHistory: [],
-            fileAttachmentContents: [],
-            operationType: CodeGenerationType.CODE_GENERATION,
-        };
-        await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody);
-    }
+    // async function processHealthcareCodeGeneration(useCase: string, message: string) {
+    //     const requestBody: GenerateCodeRequest = {
+    //         usecase: useCase,
+    //         chatHistory: [],
+    //         fileAttachmentContents: [],
+    //         operationType: CodeGenerationType.CODE_GENERATION,
+    //     };
+    //     await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody);
+    // }
 
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
         const requestBody: any = {
@@ -1218,10 +1209,16 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
     }
 
-    async function processAgentGeneration(useCase: string, message: string) {
+    async function processAgentGeneration(useCase: string, attachments: Attachment[], operationType?: OperationType) {
+        const fileAttatchments = attachments.map((file) => ({
+            fileName: file.name,
+            content: file.content,
+        }));
+
+        //TODO: Send attatchments
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType }
         });
     }
 
@@ -1489,7 +1486,39 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
+    async function processLLMDiagnostics(attachments: Attachment[], message: string) {
+        let response: LLMDiagnostics =
+            rpcClient == null
+                ? { statusCode: 500, diags: DRIFT_CHECK_ERROR }
+                : await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents("");
 
+        const responseStatus = response.statusCode;
+        const invalidResponse = response == null || response.statusCode == null;
+
+        if (invalidResponse) {
+            throw new Error(DRIFT_CHECK_ERROR);
+        }
+
+        if (!(responseStatus >= 200 && responseStatus < 300)) {
+            throw new Error(DRIFT_CHECK_ERROR);
+        }
+
+        if (response.diags == null || response.diags == "") {
+            response.diags = NO_DRIFT_FOUND;
+        }
+
+        setIsLoading(false);
+
+        // const userMessage = getUserMessage([message, attachments]);
+        setMessages((prevMessages) => {
+            const newMessage = [...prevMessages];
+            newMessage[newMessage.length - 1].content = response.diags;
+            return newMessage;
+        });
+        // addChatEntry("user", userMessage);
+        // addChatEntry("assistant", response.diags);
+        // setIsSyntaxError(false);
+    }
     return (
         <>
             {!showSettings && (
@@ -1841,3 +1870,5 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
+
+

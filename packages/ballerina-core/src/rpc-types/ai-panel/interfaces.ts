@@ -21,7 +21,7 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, OperationType } from "../..";
 
 // ==================================
 // General Interfaces
@@ -386,8 +386,6 @@ export interface FileAttatchment {
     content: string;
 }
 
-export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
-
 export type CodeContext =
     | { type: 'addition'; position: LinePosition, filePath: string }
     | { type: 'selection'; startPosition: LinePosition; endPosition: LinePosition, filePath: string };
@@ -403,7 +401,7 @@ export interface GenerateCodeRequest {
 export interface GenerateAgentCodeRequest {
     usecase: string;
     chatHistory: any[];
-    operationType: OperationType;
+    operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     messageId: string;
     isPlanMode: boolean;

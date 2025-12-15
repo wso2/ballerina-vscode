@@ -109,8 +109,6 @@ const restoreCheckpointAction = (context: AIChatMachineContext, event: any) => {
     });
 };
 
-// integrateAndCleanupAction removed - integration and cleanup now handled by services
-
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
     /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AogB5jkCuNBUAIragLaoADkJwBiCAHt8YOgQBukgNaywLdjTC8aA4aOwBtAAwBdRKCGTYuTtPMgmiACwBmABx0jXrwE4jfgEYAdgCAJgA2ABoQAE9EAFYjDwCjcLcncL8jYPiAX1zotEwcAmJSCmp6ZlYOLm1dEXEcbElsOiF0WgAzVv46NRrNesFGw1N7S2tbfHtHBFcPb19-bJCI6LiEcIi6cNS3UODgo1cA-IKQfEkIOHsirDxCEjIqWgmrG1w7JAdEIijYn9wvlChgHqVnhVaHQAJIQLDvKZfGY-OYBPZ0eKhFyuIKZeIBAI4pwbRBhNzxOhOHw0txuFwBLERYEXe4lJ7lV70ADiYBk2FoXAACp0URYPtNZs5QqStuEAp5vEEnAEnEEfKE3CzQcVHmUXpU6CLUPgAEpgeS4MAAd0Rn2+oDRDN2LnCQVCiRxbndPhJgIQbgV1JpPjcRiCWviPhcoRBIDZeshXLoAEERC15JBjWKQJN7TmnQrwq73Z6nN7Qr7ZQFvYqvEdi3iDi44wmIZzDdUNFwACqoWBKO2S1Fk53Ft0eoxen1+zaE+IuOghnxu8JOUJBTduVtg9n6qFVdS1fA8PgjfRD5FS+ZOOhBeIRnFeLcxlyyz2YpVOFV+HzxJw7rq7YGtCfYDualo2peDq-AgRJFiWk7TpWs6IJWoSfl4rqhOW3ruoB4IciB9BpkIGaQGBg4-Hmw6OqOCETmWFZVv6vqLksAR-iu7jBARe5Joa5oAFasJoECUdBBb0S6jFTuWM6yi4oZ1kY8QLi4Slat+fGJh20IAMKSPwHRgGJknXm6Cp-gyEQRFGOSytSi7xPSThJPZlYMjpwEHkaqDYJwYIxIZxlYGZ1ESleI5wWOiFMQp-opOWVIhuWal4pk3lEb5ADqpCcCeABirSGfgMjkDQrQAMqiOQ5nRYSQR0MEK4aiq5ZeASsr0k1iRLASYTukEWX7smDDYC02D1XRWwhEuC5hNs4T2fesrbJSSRPm6MYRmu5y5EAA */
     id: "ballerina-ai-chat",
@@ -130,6 +128,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         currentSpec: undefined,
         isPlanMode: false,
         checkpoints: [],
+        operationType: undefined,
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_AGENT_PROMPT]: {
@@ -148,6 +147,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         return event.payload.isPlanMode;
                     },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
+                    operationType: (_ctx, event) => event.payload.operationType,
                 }),
                 "captureCheckpoint",
             ],
@@ -202,6 +202,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     sessionId: (_ctx) => undefined,
                     checkpoints: (_ctx) => [],
                     isPlanMode: (_ctx) => false,
+                    operationType : undefined,
                 }),
             ],
         },
@@ -218,6 +219,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 checkpoints: (_ctx, event) => event.payload.state.checkpoints || [],
                 isPlanMode: (_ctx, event) => event.payload.state.isPlanMode || false,
                 autoApproveEnabled: (_ctx, event) => event.payload.state.autoApproveEnabled || false,
+                operationType: (_ctx, event) => event.payload.state.operationType || undefined,
             }),
         },
         [AIChatMachineEventType.RESTORE_CHECKPOINT]: {
@@ -599,7 +601,7 @@ const startAgentGenerationService = async (context: AIChatMachineContext): Promi
     const requestBody: GenerateAgentCodeRequest = {
         usecase: usecase,
         chatHistory: convertChatHistoryToModelMessages(previousHistory),
-        operationType: "CODE_GENERATION",
+        operationType: context.operationType,
         fileAttachmentContents: [],
         messageId: messageId,
         isPlanMode: context.isPlanMode ?? false,

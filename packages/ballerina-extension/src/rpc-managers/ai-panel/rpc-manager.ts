@@ -534,7 +534,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async updateRequirementSpecification(requirementsSpecification: RequirementSpecification) {
-        const naturalProgrammingDir = path.join(requirementsSpecification.filepath, 'natural-programming');
+        const naturalProgrammingDir = path.join(StateMachine.context().projectPath, 'natural-programming');
         const requirementsFilePath = path.join(naturalProgrammingDir, 'requirements.txt');
 
         // Create the 'natural-programming' directory if it doesn't exist
@@ -547,7 +547,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getDriftDiagnosticContents(projectPath: string): Promise<LLMDiagnostics> {
-        const result = await getLLMDiagnosticArrayAsString(projectPath);
+        const result = await getLLMDiagnosticArrayAsString(StateMachine.context().projectPath);
         if (isNumber(result)) {
             return {
                 statusCode: result,
@@ -562,7 +562,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async createTestDirecoryIfNotExists(directoryPath: string) {
-        const testDirName = path.join(directoryPath, TEST_DIR_NAME);
+        const testDirName = path.join(StateMachine.context().projectPath, TEST_DIR_NAME);
         if (!fs.existsSync(testDirName)) {
             fs.mkdirSync(testDirName, { recursive: true }); // Add recursive: true
         }

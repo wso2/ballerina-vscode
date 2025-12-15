@@ -240,7 +240,7 @@ async function getCurrentProjectSource(
         }
     }
 
-    if (requestType != "CODE_GENERATION") {
+    if (requestType) {
         const naturalProgrammingDirectory = targetProjectPath + `/${NATURAL_PROGRAMMING_DIR_NAME}`;
         if (fs.existsSync(naturalProgrammingDirectory)) {
             const reqFiles = fs.readdirSync(naturalProgrammingDirectory);
