@@ -383,12 +383,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.new.module",
-                "title": "Add Module",
-                "category": "Ballerina",
-                "icon": "$(distro-new-module)"
-            },
-            {
                 "command": "ballerina.refreshPackageTree",
                 "title": "Refresh",
                 "icon": "$(distro-refresh)"
@@ -582,11 +576,6 @@
                     "dark": "./resources/images/icons/debug-inverse.svg",
                     "light": "./resources/images/icons/debug.svg"
                 },
-                "category": "BI"
-            },
-            {
-                "command": "BI.project-explorer.refresh",
-                "title": "Refresh Ballerina",
                 "category": "BI"
             },
             {
@@ -928,10 +917,6 @@
             ],
             "commandPalette": [
                 {
-                    "command": "ballerina.new.module",
-                    "when": "editorLangId != ballerina && !isBallerinaDiagram"
-                },
-                {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
@@ -1215,7 +1200,6 @@
         "portfinder": "^1.0.32",
         "protobufjs": "^7.2.5",
         "source-map-support": "^0.5.21",
-        "toml": "^3.0.0",
         "unzipper": "~0.12.3",
         "uuid": "^11.1.0",
         "vscode-debugadapter": "^1.51.0",

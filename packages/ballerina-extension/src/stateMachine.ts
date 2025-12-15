@@ -101,7 +101,7 @@ const stateMachine = createMachine<MachineContext>(
                             commands.executeCommand("BI.project-explorer.refresh");
                             console.log('Notifying current webview');
                             // Check if the current view is Service desginer and if so don't notify the webview
-                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner) {
+                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
                                 notifyCurrentWebview();
                             }
                         });

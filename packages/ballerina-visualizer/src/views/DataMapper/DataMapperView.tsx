@@ -68,9 +68,12 @@ interface ModelSignature {
     refs: string;
 }
 
-export function DataMapperView(props: DataMapperProps) {
-    const { filePath, codedata, name, projectPath, position, reusable, onClose } = props;
+export interface DataMapperViewProps extends DataMapperProps {
+    goToSource: () => void;
+}
 
+export function DataMapperView(props: DataMapperViewProps) {
+    const { filePath, codedata, name, projectPath, position, reusable, onClose, goToSource } = props;
     const [isFileUpdateError, setIsFileUpdateError] = useState(false);
     const [modelState, setModelState] = useState<ModelState>({
         model: null,
@@ -246,20 +249,15 @@ export function DataMapperView(props: DataMapperProps) {
 
     const handleView = async (viewId: string, isSubMapping?: boolean) => {
         if (isSubMapping) {
-            if (viewState.subMappingName) {
-                // If the view is a sub mapping, we can reuse the codedata of the parent view
-                setViewState({ viewId, codedata: viewState.codedata, subMappingName: viewState.subMappingName });
-            } else {
-                const resp = await rpcClient
-                    .getDataMapperRpcClient()
-                    .getSubMappingCodedata({
-                        filePath,
-                        codedata: viewState.codedata,
-                        view: viewId
-                    });
-                console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
-                setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
-            }
+            const resp = await rpcClient
+                .getDataMapperRpcClient()
+                .getSubMappingCodedata({
+                    filePath,
+                    codedata: viewState.codedata,
+                    view: viewId
+                });
+            console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
+            setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
         } else {
             if (viewState.subMappingName) {
                 // If the view is a sub mapping, we need to get the codedata of the parent mapping
@@ -278,6 +276,7 @@ export function DataMapperView(props: DataMapperProps) {
                 }));
             }
         }
+        rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
 
     const generateForm = (formProps: DMFormProps) => {
@@ -512,7 +511,7 @@ export function DataMapperView(props: DataMapperProps) {
             .openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri, position } });
     };
 
-    const goToSource = async (outputId: string, viewId: string) => {
+    const goToFieldSource = async (outputId: string, viewId: string) => {
         const { property } = await rpcClient.getDataMapperRpcClient().getFieldProperty({
             filePath,
             codedata: viewState.codedata,
@@ -617,7 +616,7 @@ export function DataMapperView(props: DataMapperProps) {
         } else if (isFileUpdateError) {
             throw new Error("Error while updating file content");
         }
-    }, [isError]);
+    }, [isError, isFileUpdateError]);
 
     const retrieveCompeletions = useCallback(
         debounce(async (outputId: string, viewId: string, value: string, cursorPosition?: number) => {
@@ -743,6 +742,7 @@ export function DataMapperView(props: DataMapperProps) {
                             enrichChildFields={enrichChildFields}
                             genUniqueName={genUniqueName}
                             undoRedoGroup={undoRedoGroup}
+                            goToSource={goToSource}
                             expressionBar={{
                                 completions: filteredCompletions,
                                 isUpdatingSource,
@@ -750,7 +750,7 @@ export function DataMapperView(props: DataMapperProps) {
                                 onCompletionSelect: handleCompletionSelect,
                                 onSave: updateExprFromExprBar,
                                 onCancel: handleExpressionCancel,
-                                goToSource: goToSource
+                                goToSource: goToFieldSource
                             }}
                         />
                     )}

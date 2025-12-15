@@ -231,7 +231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params) });
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
                         resolve({ artifacts });
                     }
                 })
@@ -1785,7 +1785,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         const projectComponents = await this.getProjectComponents();
 
-        // Extracting all record names
+        // Extracting all record names and type names
         const recordNames: string[] = [];
 
         if (projectComponents?.components?.packages) {
@@ -1794,6 +1794,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     if (module.records) {
                         for (const record of module.records) {
                             recordNames.push(record.name);
+                        }
+                    }
+                    if (module.types) {
+                        for (const type of module.types) {
+                            recordNames.push(type.name);
                         }
                     }
                 }
