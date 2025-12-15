@@ -22,8 +22,9 @@ import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo
 import { PanelContainer } from "@wso2/ballerina-side-panel";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
+import { AvailableNode } from "@wso2/ballerina-core";
 
-export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: (connName: string) => void; onCreate: (connName: string) => void }> = ({
+export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: () => void; onCreate: (params: { connectionName?: string; connectionNode?: AvailableNode }) => void }> = ({
     selectedItem,
     onCreate,
     onClose,
@@ -37,7 +38,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                 <PanelContainer
                     show={true}
                     title="Create New Devant Connection"
-                    onClose={() => onClose("")}
+                    onClose={() => onClose()}
                     subPanelWidth={600}
                     subPanel={
                         showInfo && (
@@ -51,7 +52,7 @@ export const DevantConnectorPanel: FC<{ selectedItem: MarketplaceItem; onClose: 
                 >
                     <DevantConnectorCreateForm
                         item={selectedItem}
-                        onCreate={(connName) => onCreate(connName)}
+                        onCreate={(params) => onCreate(params)}
                         project={platformExtState?.selectedContext?.project}
                         onShowInfo={() => setShowInfo(true)}
                         isShowingInfo={showInfo}

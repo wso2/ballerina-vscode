@@ -31,15 +31,14 @@ import React, { ReactNode, useEffect, useState, type FC } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Button, Typography, Codicon, LinkButton, ThemeColors, CheckBox } from "@wso2/ui-toolkit";
-import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
-import { S } from "@wso2/ballerina-side-panel";
+import { AvailableNode } from "@wso2/ballerina-core";
 
 interface Props {
     item: MarketplaceItem;
     project: Project;
-    onCreate: (connName: string) => void;
+    onCreate: (params: { connectionName?: string; connectionNode?: AvailableNode }) => void;
     onShowInfo: () => void;
     isShowingInfo: boolean;
 }
@@ -177,7 +176,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
                     isProjectLevel: data.isProjectLevel,
                 },
             }),
-        onSuccess: (data) => onCreate(data?.connectionName),
+        onSuccess: (data) => onCreate(data),
     });
 
     const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);

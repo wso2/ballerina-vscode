@@ -671,7 +671,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             StateMachine.setReadyMode();
             this.refreshConnectionList();
-            return { connectionName: resp.connectionName };
+            return resp;
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to import Devant connection");
@@ -749,7 +749,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             StateMachine.setReadyMode();
             this.refreshConnectionList();
-            return { connectionName: resp.connectionName };
+            return resp;
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");

@@ -1,4 +1,4 @@
-import { SyntaxTree, PackageTomlValues } from "@wso2/ballerina-core";
+import { SyntaxTree, PackageTomlValues, AvailableNode } from "@wso2/ballerina-core";
 import { ModulePart, STKindChecker, CaptureBindingPattern, TypeDefinition, RecordField } from "@wso2/syntax-tree";
 import * as vscode from "vscode";
 import * as fs from "fs";
@@ -314,7 +314,7 @@ export const initializeDevantConnection = async (params: {
     marketplaceItem: MarketplaceItem;
     configurations: ConnectionConfigurations;
     platformExt: IWso2PlatformExtensionAPI;
-}): Promise<{ connectionName: string }> => {
+}): Promise<{ connectionName?: string; connectionNode?: AvailableNode }> => {
     const projectPath = StateMachine.context().projectPath;
 
     await params.platformExt?.createConnectionConfig({
@@ -441,6 +441,23 @@ export const initializeDevantConnection = async (params: {
 
     if (requireProxy) {
         await addProxyConfigurable(configFileUri);
+    }
+
+    if (params.marketplaceItem?.isThirdParty){
+        // find the connector node, if its a 3rd party connector
+        const connectors = await diagram.search({
+            filePath: StateMachine.context().documentUri,
+            queryMap: { limit: 60 },
+            searchKind: "CONNECTOR"
+        })
+
+        const localCategory = connectors?.categories?.find(item=>item.metadata?.label === "Local");
+        if(localCategory){
+            const matchingLocalConnector = localCategory?.items?.find(item=>(item as AvailableNode)?.codedata?.module === moduleName)
+            if(matchingLocalConnector){
+                return { connectionNode: matchingLocalConnector as AvailableNode };
+            }
+        }
     }
 
     const resp = await addConnection(params.name, moduleName, params.securityType, requireProxy, {
