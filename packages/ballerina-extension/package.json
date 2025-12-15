@@ -1001,21 +1001,21 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16e"
+                    "fontCharacter": "\\f19e"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f11a"
+                    "fontCharacter": "\\f214"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f171"
+                    "fontCharacter": "\\f199"
                 }
             },
             "distro-source-view": {
@@ -1029,7 +1029,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f133"
+                    "fontCharacter": "\\f1ef"
                 }
             },
             "distro-cached-rounded": {
@@ -1169,7 +1169,7 @@
         "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
-        "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
+        "postbuild": "node -e \"const { execSync } = require('child_process'); const pre = String(process.env.isPreRelease).toLowerCase() === 'true'; execSync(pre ? 'pnpm run download-ls:prerelease' : 'pnpm run download-ls', { stdio: 'inherit' }); execSync('pnpm run copyFonts', { stdio: 'inherit' }); execSync('pnpm run copyJSLibs', { stdio: 'inherit' }); execSync('pnpm run package', { stdio: 'inherit' }); execSync('pnpm run copyVSIX', { stdio: 'inherit' });\"",
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
