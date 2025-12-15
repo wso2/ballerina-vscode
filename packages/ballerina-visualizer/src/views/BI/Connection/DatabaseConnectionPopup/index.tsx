@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, ThemeColors, Typography, Overlay, TextField, Dropdown, OptionProps, Icon } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors, Typography, Overlay, TextField, Dropdown, OptionProps, Icon, SearchBox } from "@wso2/ui-toolkit";
 import { Stepper } from "@wso2/ui-toolkit";
 import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -209,7 +209,6 @@ const TableName = styled(Typography)`
 `;
 
 const SelectAllButton = styled(Button)`
-    margin-top: 16px;
     align-self: flex-end;
 `;
 
@@ -217,6 +216,13 @@ const SelectionInfo = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+`;
+
+const SearchRow = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
 `;
 
 const ActionButtonsContainer = styled.div`
@@ -349,6 +355,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const [connectionName, setConnectionName] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [connectionError, setConnectionError] = useState<string | null>(null);
+    const [tableSearch, setTableSearch] = useState("");
 
     const steps = ["Introspect Database", "Select Tables", "Create Connection"];
 
@@ -429,6 +436,14 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         setTables(updatedTables);
     };
 
+    const handleTableToggleByName = (name: string) => {
+        setTables((prev) =>
+            prev.map((t) =>
+                t.name === name ? { ...t, selected: !t.selected } : t
+            )
+        );
+    };
+
     const handleSelectAll = () => {
         const allSelected = tables.every((table) => table.selected);
         setTables(tables.map((table) => ({ ...table, selected: !allSelected })));
@@ -507,6 +522,13 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
     const selectedTablesCount = tables.filter((t) => t.selected).length;
     const totalTablesCount = tables.length;
+    const filteredTables = useMemo(
+        () =>
+            tables.filter((t) =>
+                t.name.toLowerCase().includes(tableSearch.trim().toLowerCase())
+            ),
+        [tables, tableSearch]
+    );
 
     const renderErrorDisplay = () => {
         if (!connectionError) return null;
@@ -617,22 +639,30 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 {selectedTablesCount} of {totalTablesCount} selected
                             </Typography>
                         </SelectionInfo>
-                        <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                            Select All
-                        </SelectAllButton>
+                        <SearchRow>
+                            <SearchBox
+                                value={tableSearch}
+                                placeholder="Search tables..."
+                                onChange={setTableSearch}
+                                sx={{ width: "87%" }}
+                            />
+                            <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
+                                Select All
+                            </SelectAllButton>
+                        </SearchRow>
                         <TablesGrid>
-                            {tables.map((table, index) => (
+                            {filteredTables.map((table) => (
                                 <TableCard
                                     key={table.name}
                                     selected={table.selected}
-                                    onClick={() => handleTableToggle(index)}
+                                    onClick={() => handleTableToggleByName(table.name)}
                                 >
                                     <TableCheckbox
                                         type="checkbox"
                                         checked={table.selected}
                                         onChange={(e) => {
                                             e.stopPropagation();
-                                            handleTableToggle(index);
+                                            handleTableToggleByName(table.name);
                                         }}
                                         onClick={(e) => e.stopPropagation()}
                                     />
