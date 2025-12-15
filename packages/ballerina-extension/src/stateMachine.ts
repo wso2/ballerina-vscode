@@ -48,6 +48,7 @@ import {
     UndoRedoManager,
     getOrgAndPackageName
 } from './utils';
+import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
 import { buildOutputChannel } from './utils/logger';
@@ -66,6 +67,7 @@ interface MachineContext extends VisualizerLocation {
     isBISupported: boolean;
     errorCode: string | null;
     dependenciesResolved?: boolean;
+    isInDevant: boolean;
 }
 
 export let history: History;
@@ -83,7 +85,8 @@ const stateMachine = createMachine<MachineContext>(
             errorCode: null,
             isBISupported: false,
             view: MACHINE_VIEW.PackageOverview,
-            dependenciesResolved: false
+            dependenciesResolved: false,
+            isInDevant: !!process.env.CLOUD_STS_TOKEN
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -461,6 +464,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!ls.biSupported) {
                         commands.executeCommand('setContext', 'BI.status', 'updateNeed');
                     }
+                    activateDevantFeatures(ls);
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);
