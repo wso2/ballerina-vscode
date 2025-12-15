@@ -481,7 +481,7 @@ export function enrichFormTemplatePropertiesWithValues(
             ) {
                 // Copy the value from formProperties to formTemplateProperties
                 enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
-                
+
                 if (formProperty.hasOwnProperty('editable')) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].editable = formProperty.editable;
                     enrichedFormTemplateProperties[key as NodePropertyKey].codedata = formProperty?.codedata;
@@ -489,7 +489,7 @@ export function enrichFormTemplatePropertiesWithValues(
 
                 if (formProperty.diagnostics) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
-               }
+                }
             }
         }
     }
@@ -752,7 +752,7 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
 
 export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     const label = type?.name ?? "";
-    const value = label; 
+    const value = label;
     const kind = "struct";
     const description = type?.metadata?.description;
     const labelDetails = (() => {
@@ -1039,6 +1039,38 @@ export function getImportsForFormFields(formFields: FormField[]): FormImports {
 export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
     return diagnostics.filter((diagnostic) => {
         return !diagnostic.message.startsWith('unknown type') && !diagnostic.message.startsWith('undefined module');
+    });
+}
+
+/**
+ * Filter out "undefined symbol" diagnostics when the symbol is a known Tool Input parameter
+ * @param diagnostics - Array of diagnostics to filter
+ * @param toolInputParameterNames - Array of Tool Input parameter names to exclude from diagnostics
+ * @returns Filtered diagnostics array
+ */
+export function filterToolInputSymbolDiagnostics(
+    diagnostics: Diagnostic[],
+    toolInputs?: { type: string, variable: string }[]
+): Diagnostic[] {
+    if (!toolInputs || toolInputs.length === 0) {
+        return diagnostics;
+    }
+
+    return diagnostics.filter((diagnostic) => {
+        // Only filter "undefined symbol" diagnostics
+        if (!diagnostic.message.includes('undefined symbol')) {
+            return true;
+        }
+
+        // Extract symbol name from message like "undefined symbol 'code'"
+        const match = diagnostic.message.match(/['"`]([^'"`]+)['"`]/);
+        if (!match) {
+            return true; // Keep diagnostic if we can't parse it
+        }
+
+        const symbolName = match[1];
+        // Filter out if symbol is a Tool Input parameter
+        return !toolInputs.some(input => input.variable === symbolName);
     });
 }
 

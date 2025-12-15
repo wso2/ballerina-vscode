@@ -288,6 +288,7 @@ const MainPanel = () => {
                         setViewComponent(
                             <PackageOverview
                                 projectPath={value.projectPath}
+                                isInDevant={value.isInDevant}
                             />
                         );
                         break;
