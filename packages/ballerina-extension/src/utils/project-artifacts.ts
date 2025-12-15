@@ -478,6 +478,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-mcp";
         case "solace":
             return "bi-solace";
+        case "cdc-mssql":
+            return "bi-mssql";
         default:
             return "bi-globe";
     }
