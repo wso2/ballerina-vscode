@@ -104,7 +104,9 @@ public class Value {
         RAW_TEMPLATE,
         SINGLE_SELECT_LISTENER,
         MULTIPLE_SELECT_LISTENER,
-        FILE_SELECT
+        FILE_SELECT,
+        OPTIONAL_IDENTIFIER,
+        ACTION_TYPE
     }
 
     public MetaData getMetadata() {
