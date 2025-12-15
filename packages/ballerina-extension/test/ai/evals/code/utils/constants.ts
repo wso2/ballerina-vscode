@@ -75,5 +75,5 @@ observabilityIncluded = true
 export const VSCODE_COMMANDS = {
     CLOSE_ALL_EDITORS: "workbench.action.closeAllEditors",
     OPEN: "vscode.open",
-    AI_GENERATE_DESIGN_FOR_TEST: "ballerina.test.ai.generateDesignForTest"
+    AI_GENERATE_AGENT_FOR_TEST: "ballerina.test.ai.generateAgentForTest"
 } as const;

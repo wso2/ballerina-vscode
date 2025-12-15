@@ -21,7 +21,7 @@ import {
     VSCODE_COMMANDS,
     transformLibraryToGetFunctionResponse,
 } from "./test-helpers";
-import { GenerationType } from "../../../../src/features/ai/service/libs/libs";
+import { GenerationType } from "../../../features/ai/utils/libs/libraries";
 
 suite("Library Integration Tests", () => {
     suiteSetup(async function (): Promise<void> {

@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.6.2",
+    "version": "5.6.3",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -213,6 +213,11 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
+                "ballerina.ai.planMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the option for the Plan mode in Copilot."
+                },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,
@@ -410,12 +415,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.new.module",
-                "title": "Add Module",
-                "category": "Ballerina",
-                "icon": "$(distro-new-module)"
-            },
-            {
                 "command": "ballerina.refreshPackageTree",
                 "title": "Refresh",
                 "icon": "$(distro-refresh)"
@@ -443,7 +442,7 @@
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
@@ -455,7 +454,7 @@
             {
                 "command": "ballerina.test.edit.case",
                 "title": "Edit test case",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
@@ -612,14 +611,9 @@
                 "category": "BI"
             },
             {
-                "command": "BI.project-explorer.refresh",
-                "title": "Refresh Ballerina",
-                "category": "BI"
-            },
-            {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "BI"
             },
             {
@@ -676,7 +670,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -697,7 +691,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -712,7 +706,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -955,10 +949,6 @@
             ],
             "commandPalette": [
                 {
-                    "command": "ballerina.new.module",
-                    "when": "editorLangId != ballerina && !isBallerinaDiagram"
-                },
-                {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
@@ -1039,8 +1029,8 @@
                     "fontCharacter": "\\f114"
                 }
             },
-            "distro-design-view": {
-                "description": "design-view",
+            "distro-agent-view": {
+                "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f16e"
@@ -1164,6 +1154,13 @@
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea77"
                 }
+            },
+            "distro-design-view": {
+                "description": "design-view",
+                "default": {
+                    "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
+                    "fontCharacter": "\\f16e"
+                }
             }
         },
         "uriHandler": {
@@ -1219,6 +1216,7 @@
         "@ai-sdk/anthropic": "^2.0.45",
         "@opentelemetry/auto-instrumentations-node": "^0.67.0",
         "@opentelemetry/sdk-node": "^0.208.0",
+        "@iarna/toml": "^2.2.5",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.7.0",
@@ -1244,7 +1242,6 @@
         "portfinder": "^1.0.32",
         "protobufjs": "^7.2.5",
         "source-map-support": "^0.5.21",
-        "toml": "^3.0.0",
         "unzipper": "~0.12.3",
         "uuid": "^11.1.0",
         "vscode-debugadapter": "^1.51.0",
@@ -1275,7 +1272,7 @@
         "copyfiles": "^2.4.1",
         "cross-env": "^7.0.3",
         "decache": "^4.6.2",
-        "express": "^4.18.2",
+        "express": "^4.22.1",
         "istanbul": "^0.4.5",
         "js-yaml": "^4.1.1",
         "jwt-decode": "^3.1.2",

@@ -32,14 +32,14 @@ export type PlaceholderTagMap = {
 
 // NOTE: if the placeholders are known at compiletime, define here, otherwise inject at runtime.
 export const placeholderTags: PlaceholderTagMap = {
-    [Command.Tests]: {
-        'tests-for-service': {
-            servicename: [],
-        },
-        'tests-for-function': {
-            methodPath: [],
-        },
-    },
+    // [Command.Tests]: {
+    //     'tests-for-service': {
+    //         servicename: [],
+    //     },
+    //     'tests-for-function': {
+    //         methodPath: [],
+    //     },
+    // },
     [Command.DataMap]: {
         'mappings-for-records': {
             inputRecords: [],
@@ -54,9 +54,9 @@ export const placeholderTags: PlaceholderTagMap = {
     [Command.TypeCreator]: {
         'types-for-attached': {}
     },
-    [Command.Healthcare]: {
-        'wildcard': {},
-    },
+    // [Command.Healthcare]: {
+    //     'wildcard': {},
+    // },
     [Command.Ask]: {
         'wildcard': {},
     },
@@ -65,8 +65,8 @@ export const placeholderTags: PlaceholderTagMap = {
     [Command.OpenAPI]: {
         'wildcard': {},
     },
-    [Command.Design]: {
-        // Internal use only - design is the default behavior when no command is specified
+    [Command.Agent]: {
+        // Internal use only - agent is the default behavior when no command is specified
     },
     [Command.Doc]: {
         'generate-user-doc': {

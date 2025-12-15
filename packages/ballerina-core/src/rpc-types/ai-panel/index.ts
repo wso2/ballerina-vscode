@@ -15,9 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DataMapperModelResponse } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -31,7 +30,6 @@ export interface AIPanelAPI {
     getDefaultPrompt: () => Promise<AIPanelPrompt>;
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
     fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    addToProject: (params: AddToProjectRequest) => Promise<boolean>;
     getFromFile: (params: GetFromFileRequest) => Promise<string>;
     getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
     deleteFromProject: (params: DeleteFromProjectRequest) => void;
@@ -72,7 +70,7 @@ export interface AIPanelAPI {
     getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateCode: (params: GenerateCodeRequest) => void;
-    generateDesign: (params: GenerateAgentCodeRequest) => Promise<boolean>;
+    generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
     repairGeneratedCode: (params: RepairParams) => void;
     generateTestPlan: (params: TestPlanGenerationRequest) => void;
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
@@ -85,4 +83,5 @@ export interface AIPanelAPI {
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
+    isPlanModeFeatureEnabled: () => Promise<boolean>;
 }

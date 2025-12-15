@@ -845,6 +845,7 @@ export interface BISourceCodeRequest {
     flowNode: FlowNode | FunctionNode;
     isConnector?: boolean;
     isFunctionNodeUpdate?: boolean;
+    isHelperPaneChange?: boolean;
 }
 
 export type BISourceCodeResponse = {
