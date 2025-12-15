@@ -328,7 +328,7 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.default_value, ");
                 sql2.append("sip.placeholder, ");
                 sql2.append("sip.types, ");
-                sql2.append("sip.source_kind as sourceKind, ");
+                sql2.append("sip.source_kind as sourceKind ");
                 sql2.append("FROM ServiceInitializerProperty sip ");
                 sql2.append("WHERE sip.package_id = ?");
 

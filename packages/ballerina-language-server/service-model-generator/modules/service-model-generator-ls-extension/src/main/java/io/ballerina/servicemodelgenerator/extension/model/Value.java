@@ -316,6 +316,10 @@ public class Value {
 
         public ValueBuilder types(List<PropertyType> types) {
             this.types = types;
+            boolean hasSelected = types.stream().anyMatch(PropertyType::selected);
+            if (!hasSelected) {
+                this.types.getFirst().selected(true);
+            }
             return this;
         }
 
