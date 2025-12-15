@@ -4,6 +4,13 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [5.6.4](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.3...ballerina-integrator-1.5.4) - 2025-12-05
+
+### Fixed
+
+- **Data Mapper** — Fixed the issue with focusing into inner array queries.
+- **Security** — Updated dependencies to address security vulnerabilities (`CVE-2024-51999`).
+
 ## [5.6.3](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.2...ballerina-integrator-1.5.3) - 2025-12-01
 
 ### Changed
