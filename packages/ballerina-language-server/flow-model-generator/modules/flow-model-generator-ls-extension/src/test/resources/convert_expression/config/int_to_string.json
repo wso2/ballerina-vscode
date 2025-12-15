@@ -1,0 +1,8 @@
+{
+  "description": "Convert int to string using toString()",
+  "output": "output.stringField",
+  "outputType": "string",
+  "expression": "input.intField",
+  "expressionType": "int",
+  "convertedExpression": "input.intField.toString()"
+}
