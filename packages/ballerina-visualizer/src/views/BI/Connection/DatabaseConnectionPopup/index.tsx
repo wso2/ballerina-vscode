@@ -247,7 +247,7 @@ type DatabaseType = "PostgreSQL" | "MySQL" | "MSSQL";
 interface DatabaseCredentials {
     databaseType: DatabaseType;
     host: string;
-    port: string;
+    port: number;
     databaseName: string;
     username: string;
     password: string;
@@ -264,10 +264,10 @@ const DATABASE_TYPES: OptionProps[] = [
     { id: "mssql", value: "MSSQL", content: "MSSQL" },
 ];
 
-const DEFAULT_PORTS: Record<DatabaseType, string> = {
-    PostgreSQL: "5432",
-    MySQL: "3306",
-    MSSQL: "1433",
+const DEFAULT_PORTS: Record<DatabaseType, number> = {
+    PostgreSQL: 5432,
+    MySQL: 3306,
+    MSSQL: 1433,
 };
 
 export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
@@ -278,7 +278,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const [credentials, setCredentials] = useState<DatabaseCredentials>({
         databaseType: "MySQL",
         host: "",
-        port: "3306",
+        port: 3306,
         databaseName: "",
         username: "",
         password: "",
@@ -304,7 +304,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const handleCredentialsChange = (field: keyof DatabaseCredentials, value: string) => {
         setCredentials({
             ...credentials,
-            [field]: value,
+            [field]: field === "port" ? Number(value) : value,
         });
         // Clear error when user modifies credentials
         if (connectionError) {
@@ -410,7 +410,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 name: connectionName,
                 dbSystem: dbSystemMap[credentials.databaseType],
                 host: credentials.host,
-                port: parseInt(credentials.port, 10),
+                port: credentials.port,
                 user: credentials.username,
                 password: credentials.password,
                 database: credentials.databaseName,
@@ -522,7 +522,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                     id="port"
                                     label="Port"
                                     placeholder="Database port"
-                                    value={credentials.port}
+                                    value={String(credentials.port)}
                                     onTextChange={(value) => handleCredentialsChange("port", value)}
                                 />
                             </FormField>
