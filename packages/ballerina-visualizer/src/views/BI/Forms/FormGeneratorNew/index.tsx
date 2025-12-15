@@ -667,7 +667,7 @@ export function FormGeneratorNew(props: FormProps) {
             },
             250
         ),
-        [rpcClient, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, customDiagnosticFilter]
     );
 
     const handleGetHelperPane = (
