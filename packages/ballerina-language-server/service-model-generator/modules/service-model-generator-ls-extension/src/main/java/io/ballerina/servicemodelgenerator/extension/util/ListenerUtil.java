@@ -100,7 +100,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEF
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
 /**

@@ -65,6 +65,10 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).build();
     }
 
+    public static PropertyType types(Value.FieldType fieldType, List<Object> options) {
+        return new Builder().fieldType(fieldType).options(options).build();
+    }
+
     public static PropertyType types(Value.FieldType fieldType, String ballerinaType) {
         return new Builder().fieldType(fieldType).ballerinaType(ballerinaType).build();
     }

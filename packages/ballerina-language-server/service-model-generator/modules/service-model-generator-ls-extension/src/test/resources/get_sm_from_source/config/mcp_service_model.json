@@ -28,8 +28,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -45,13 +49,8 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT_LISTENER",
-        "valueTypeConstraint": "mcp:Listener",
         "value": "mcpListener",
         "values": [],
-        "items": [
-          "mcpListener"
-        ],
         "properties": {
           "mcpListener": {
             "codedata": {
@@ -73,6 +72,15 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "mcpListener"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -87,12 +95,16 @@
           "type": "SERVICE_TYPE"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
         "value": "Service",
-        "items": [
-          "",
-          "Service"
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "",
+              "Service"
+            ],
+            "selected": true
+          }
         ],
         "enabled": false,
         "editable": false,
@@ -108,10 +120,14 @@
           "type": "SERVICE_BASE_PATH"
         },
         "placeholder": "/mcp",
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
         "value": "/mcp",
         "values": [],
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -122,8 +138,13 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {},
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -139,15 +160,20 @@
           "originalName": "ServiceConfig"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "mcp:ServiceConfiguration",
         "value": "{\n    info: {\n        name: \"MCP Weather Server\",\n        version: \"1.0.0\"\n    },\n    sessionMode: mcp:AUTO\n}",
         "values": [],
-        "typeMembers": [
+        "types": [
           {
-            "type": "ServiceConfiguration",
-            "packageInfo": "ballerina:mcp:1.0.0",
-            "kind": "RECORD_TYPE",
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "mcp:ServiceConfiguration",
+            "typeMembers": [
+              {
+                "type": "ServiceConfiguration",
+                "packageInfo": "ballerina:mcp:1.0.0",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
             "selected": true
           }
         ],
@@ -185,7 +211,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -196,8 +227,13 @@
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "valueType": "IDENTIFIER",
           "value": "getCurrentWeather",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -215,8 +251,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "string",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -227,8 +268,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "city",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -239,7 +285,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -250,7 +301,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -271,7 +327,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -282,7 +343,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -293,7 +359,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -304,7 +375,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -325,8 +401,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "valueType": "TYPE",
           "value": "Weather|error",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -379,7 +460,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -390,16 +476,26 @@
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "valueType": "IDENTIFIER",
           "value": "getWeatherForecast",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
           "advanced": false
         },
         "documentation": {
-          "valueType": "STRING",
           "value": "Get weather forecast for upcoming days",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -417,8 +513,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "string",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -429,8 +530,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "location",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -441,7 +547,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -452,8 +563,13 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
               "value": "City name or coordinates (e.g., \"London\", \"40.7128,-74.0060\")",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -477,8 +593,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "int",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -489,8 +610,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "days",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -501,7 +627,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -512,8 +643,13 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
               "value": "Number of days to forecast (1-7)",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -534,7 +670,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -545,7 +686,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -556,7 +702,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -567,7 +718,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -588,8 +744,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "valueType": "TYPE",
           "value": "WeatherForecast|error",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,

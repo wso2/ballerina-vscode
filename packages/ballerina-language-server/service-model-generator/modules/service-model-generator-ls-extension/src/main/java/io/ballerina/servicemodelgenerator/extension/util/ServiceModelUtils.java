@@ -379,8 +379,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData(template.typeDescriptorLabel(), template.typeDescriptorDescription()))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .setItems(items)
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, items)))
                 .setPlaceholder(template.typeDescriptorDefaultValue())
                 .enabled(template.optionalTypeDescriptor() == 0)
                 .editable(true);
@@ -394,8 +393,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData("Service Type", "The type of the service"))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .setItems(List.of(value))
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, List.of(value))))
                 .enabled(true);
 
         return valueBuilder.build();
@@ -508,7 +506,7 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("LISTENER"))
                 .value("")
                 .setValues(new ArrayList<>())
-                .types(List.of(PropertyType.types(kind, protocol + ":" + "Listener")))
+                .types(List.of(PropertyType.types(kind, new ArrayList<>())))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true);
@@ -573,7 +571,7 @@ public class ServiceModelUtils {
         }
         Value listener = serviceModel.getListener();
         if (!listeners.isEmpty()) {
-            listener.setItems(listeners.stream().map(l -> (Object) l).toList());
+            listener.getTypes().getFirst().options().addAll(listeners.stream().map(l -> (Object) l).toList());
         }
     }
 

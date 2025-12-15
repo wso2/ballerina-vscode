@@ -246,9 +246,9 @@ public class Value {
         return items.stream().map(Object::toString).toList();
     }
 
-    public void setItems(List<Object> items) {
-        this.items = items;
-    }
+//    public void setItems(List<Object> items) {
+//        this.items = items;
+//    }
 
     public Codedata getCodedata() {
         return codedata;
@@ -343,10 +343,10 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder setItems(List<Object> items) {
-            this.items = items;
-            return this;
-        }
+//        public ValueBuilder setItems(List<Object> items) {
+//            this.items = items;
+//            return this;
+//        }
 
         public ValueBuilder setCodedata(Codedata codedata) {
             this.codedata = codedata;

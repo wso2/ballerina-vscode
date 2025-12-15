@@ -27,8 +27,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -44,21 +48,12 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT_LISTENER",
-        "valueTypeConstraint": "http:Listener",
         "value": "",
         "values": [
           "default:globalListener",
           "new http:Listener(port = 8080)",
           "httpListener",
           "githubListener"
-        ],
-        "items": [
-          "httpListener",
-          "githubListener",
-          "(+) Create and use the default HTTP listener (port: 9090)",
-          "default:globalListener",
-          "new http:Listener(port = 8080)"
         ],
         "properties": {
           "default:globalListener": {
@@ -138,6 +133,19 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "httpListener",
+              "githubListener",
+              "(+) Create and use the default HTTP listener (port: 9090)",
+              "default:globalListener",
+              "new http:Listener(port = 8080)"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -152,9 +160,14 @@
           "type": "SERVICE_BASEPATH"
         },
         "placeholder": "",
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
         "value": "/api/test",
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "ballerinaType": "string",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -170,14 +183,19 @@
           "originalName": "ServiceConfig"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:HttpServiceConfig",
         "value": "",
-        "typeMembers": [
+        "types": [
           {
-            "type": "HttpServiceConfig",
-            "packageInfo": "ballerina:http:2.14.0",
-            "kind": "RECORD_TYPE",
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "http:HttpServiceConfig",
+            "typeMembers": [
+              {
+                "type": "HttpServiceConfig",
+                "packageInfo": "ballerina:http:2.14.0",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
             "selected": true
           }
         ],
@@ -191,12 +209,17 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Base Path": [
             "/api/test"
           ]
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,

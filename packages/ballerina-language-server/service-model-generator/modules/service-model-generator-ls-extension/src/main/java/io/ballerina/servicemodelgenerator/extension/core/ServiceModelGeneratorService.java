@@ -346,7 +346,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 Set<String> listenersList = ListenerUtil.getCompatibleListeners(request.moduleName(), semanticModel,
                         project);
-                serviceModel.getListener().setItems(listenersList.stream().map(l -> (Object) l).toList());
+                serviceModel.getListener().getTypes().getFirst().options()
+                        .addAll(listenersList.stream().map(l -> (Object) l).toList());
                 return new ServiceModelResponse(serviceModel);
             } catch (Throwable e) {
                 return new ServiceModelResponse(e);
