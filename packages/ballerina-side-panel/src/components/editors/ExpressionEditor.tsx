@@ -443,7 +443,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        let newInputMode = getInputModeFromTypes(getPrimaryInputType(field.types))
+        let selectedInputType = field?.types.find(type => type.selected) || field?.types[0];
+
+        let newInputMode = getInputModeFromTypes(selectedInputType);
         if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
