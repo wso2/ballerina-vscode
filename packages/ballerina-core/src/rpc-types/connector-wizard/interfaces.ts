@@ -47,7 +47,7 @@ export interface IntrospectDatabaseRequest {
     projectPath: string;
     dbSystem: string;
     host: string;
-    port: string;
+    port: number;
     database: string;
     user: string;
     password: string;
