@@ -882,10 +882,10 @@ export async function generateInlineMappingCodeCore(
 
     const langClient = StateMachine.langClient();
     const context = StateMachine.context();
-    const projectRoot = tempProjectPath;
+    // const projectRoot = tempProjectPath;
 
     const inlineMappingsResult: InlineMappingsSourceResult =
-        await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler);
+        await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler, tempProjectPath);
 
     await updateSourceCode({ textEdits: inlineMappingsResult.sourceResponse.textEdits, skipPayloadCheck: true });
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -894,7 +894,7 @@ export async function generateInlineMappingCodeCore(
     let customFunctionsFileName: string | undefined;
 
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
-        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, targetFileName);
+        const absoluteCustomFunctionsPath = determineCustomFunctionsPath(tempProjectPath, targetFileName);
         customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
 
         // For workspace projects, make path relative to workspace root
@@ -903,7 +903,7 @@ export async function generateInlineMappingCodeCore(
             customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
         } else {
             // Normal project: use relative path from project root
-            customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+            customFunctionsTargetPath = path.relative(tempProjectPath, absoluteCustomFunctionsPath);
         }
     }
 
@@ -934,7 +934,7 @@ export async function generateInlineMappingCodeCore(
     // Repair check expression errors (BCE3032)
     await repairCheckErrors(
         langClient,
-        projectRoot,
+        tempProjectPath,
         mainFilePath,
         inlineMappingsResult.allMappingsRequest,
         inlineMappingsResult.tempDir,
@@ -955,16 +955,18 @@ export async function generateInlineMappingCodeCore(
     if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath && !isSameFile) {
         updatedCustomContent = fs.readFileSync(inlineMappingsResult.allMappingsRequest.customFunctionsFilePath, 'utf8');
     }
+    
+    let targetFilePath = path.relative(tempProjectPath, mainFilePath);
 
-    const generatedSourceFiles = buildMappingFileArray(
-        context.documentUri,
+    const generatedSourceFiles: SourceFile[] = buildMappingFileArray(
+        targetFilePath,
         updatedMainContent,
         customFunctionsTargetPath,
         updatedCustomContent,
     );
 
-        // Extract modified file paths
-        const modifiedFiles = generatedSourceFiles.map(file => file.filePath);
+    // Extract modified file paths
+    const modifiedFiles = generatedSourceFiles.map(file => file.filePath);
 
         // Integrate code to workspace automatically
         if (modifiedFiles.length > 0) {
@@ -1042,13 +1044,13 @@ export async function generateContextTypesCore(
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
+        eventHandler({ type: "content_block", content: "\n\nAnalyzing your provided data to generate Ballerina record types.\n\n" });
         eventHandler({ type: "content_block", content: "\n\n<progress>Generating types...</progress>" });
 
         // Generate types from context with validation
         const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
             projectComponents,
-            langClient,
             tempProjectPath
         );
 
