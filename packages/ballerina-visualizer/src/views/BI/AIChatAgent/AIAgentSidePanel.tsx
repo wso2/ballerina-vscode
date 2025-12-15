@@ -102,7 +102,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
     const [categories, setCategories] = useState<PanelCategory[]>([]);
     const [selectedNodeCodeData, setSelectedNodeCodeData] = useState<CodeData>(undefined);
     const [toolNodeId, setToolNodeId] = useState<string>(undefined);
-    const [injectedComponentIndex, setInjectedComponentIndex] = useState<number>(3);
 
     const functionNode = useRef<FunctionNode>(null);
     const flowNode = useRef<FlowNode>(null);
@@ -335,7 +334,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                 if (functionNodeResponse.functionDefinition.properties) {
                     toolInputFields = convertConfig(functionNodeResponse.functionDefinition.properties);
                 }
-                setInjectedComponentIndex(2 + toolInputFields.length);
                 console.log(">>> Tool input fields", { toolInputFields });
 
                 const functionNodeTemplate = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
@@ -390,7 +388,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                     field.advanced = false;
                     // hack: remove headers and additionalValues from the tool inputs and set default value to ()
                     if (["headers", "additionalValues"].includes(field.key)) {
-                        field.value = "()";
+                        field.value = "{}";
                         return;
                     }
                     includedKeys.push(field.key);
@@ -399,7 +397,6 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
 
                 const filteredNodeParameterFields = nodeParameterFields.filter(field => includedKeys.includes(field.key));
                 toolInputFields = createToolInputFields(filteredNodeParameterFields);
-                setInjectedComponentIndex(2 + toolInputFields.length);
 
                 console.log(">>> Tool input fields", { toolInputFields });
 
@@ -629,7 +626,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
                                     </ImplementationInfo>
                                 </div>
                             ),
-                            index: injectedComponentIndex,
+                            index: 3,
                         },
                     ]}
                 />
