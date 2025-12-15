@@ -112,7 +112,7 @@ export async function generateAgentCore(
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPrompt(),
+            content: getSystemPrompt(projects, params.operationType),
             providerOptions: cacheOptions,
         },
         ...historyMessages,
