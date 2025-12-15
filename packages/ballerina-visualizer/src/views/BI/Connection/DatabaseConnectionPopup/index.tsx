@@ -144,6 +144,17 @@ const FormField = styled.div`
     gap: 8px;
 `;
 
+const ReadonlyValue = styled.div`
+    padding: 5px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+    border-radius: 2px;
+    background: ${ThemeColors.SURFACE_CONTAINER};
+    color: ${ThemeColors.ON_SURFACE};
+    font-size: 14px;
+    line-height: 20px;
+    user-select: text;
+`;
+
 const ActionButton = styled(Button)`
     width: 100% !important;
     min-width: 0 !important;
@@ -206,7 +217,6 @@ const SelectionInfo = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
 `;
 
 const ActionButtonsContainer = styled.div`
@@ -595,7 +605,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             case 1:
                 return (
-                    <StepContent fillHeight={true}>
+                    <StepContent fillHeight={true} style={{ gap: "16px" }}>
                         <SelectionInfo>
                             <div>
                                 <SectionTitle variant="h3">Select Tables</SectionTitle>
@@ -655,43 +665,35 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         </FormSection>
                         <ConfigurablesPanel>
                             <div style={{ gap: "4px" }}>
-                            <SectionTitle variant="h3">Connection Configurables</SectionTitle>
-                                <ConfigurablesDescription variant="body2">
-                                    Host, port, username, password, and database name will be created as configurables. Define their default values below.
+                            <SectionTitle variant="h4">Connection Configurables</SectionTitle>
+                                <ConfigurablesDescription>
+                                Configurables will be generated for the connection host, port, username, password, and database name, with default values specified below.
                                 </ConfigurablesDescription>
                             </div>
                             <FormSection>
                                 <FormField>
-                                    <TextField
-                                        id="configurable-host"
-                                        label="Host"
-                                        value={credentials.host}
-                                        onTextChange={(value) => handleCredentialsChange("host", value)}
-                                    />
+                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                        Host
+                                    </Typography>
+                                    <ReadonlyValue>{credentials.host}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
-                                    <TextField
-                                        id="configurable-port"
-                                        label="Port"
-                                        value={credentials.port}
-                                        onTextChange={(value) => handleCredentialsChange("port", value)}
-                                    />
+                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                        Port
+                                    </Typography>
+                                    <ReadonlyValue>{credentials.port}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
-                                    <TextField
-                                        id="configurable-username"
-                                        label="Username"
-                                        value={credentials.username}
-                                        onTextChange={(value) => handleCredentialsChange("username", value)}
-                                    />
+                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                        Username
+                                    </Typography>
+                                    <ReadonlyValue>{credentials.username}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
-                                    <TextField
-                                        id="configurable-database-name"
-                                        label="Database Name"
-                                        value={credentials.databaseName}
-                                        onTextChange={(value) => handleCredentialsChange("databaseName", value)}
-                                    />
+                                    <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                        Database Name
+                                    </Typography>
+                                    <ReadonlyValue>{credentials.databaseName}</ReadonlyValue>
                                 </FormField>
                             </FormSection>
                         </ConfigurablesPanel>
