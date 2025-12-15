@@ -21,7 +21,7 @@ import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
 import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, ImportStatements, Project } from "../..";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements } from "../..";
 
 // ==================================
 // General Interfaces
@@ -88,12 +88,6 @@ export interface DiagnosticEntry {
     line?: number;
     message: string;
     code?: string;
-}
-
-export interface AddToProjectRequest {
-    filePath: string;
-    content: string;
-    isTestCode: boolean;
 }
 
 export interface AddFilesToProjectRequest {
@@ -225,10 +219,18 @@ export interface RepairCodeParams {
     tempDir?: string;
 }
 
+export interface RepairedMapping {
+    output: string;       
+    expression: string; 
+}
+
 export interface repairCodeRequest {
-    sourceFiles: SourceFile[];
-    diagnostics: DiagnosticList;
+    dmModel: DMModel;
     imports: ImportInfo[];
+}
+
+export interface RepairCodeResponse {
+    repairedMappings: RepairedMapping[];
 }
 
 // Test-generator related interfaces
