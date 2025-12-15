@@ -16,20 +16,20 @@
  * under the License.
  */
 
-import { AllDataMapperSourceRequest, Attachment, CodeData, ComponentInfo, createFunctionSignature, CreateTempFileRequest, DataMapperMetadata, DatamapperModelContext, DataMapperModelResponse, DataMappingRecord, DiagnosticList, DMModel, EnumType, ExistingFunctionMatchResult, ExtendedDataMapperMetadata, ExtractMappingDetailsRequest, ExtractMappingDetailsResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, getSource, ImportInfo, ImportStatements, InlineMappingsSourceResult, IORoot, IOTypeField, LinePosition, Mapping, MappingParameters, MetadataWithAttachments, ModuleSummary, PackageSummary, ProjectComponentsResponse, ProjectSource, RecordType, RepairCodeParams, repairCodeRequest, SourceFile, SyntaxTree, TempDirectoryPath } from "@wso2/ballerina-core";
+import { AllDataMapperSourceRequest, Attachment, CodeData, ComponentInfo, createFunctionSignature, CreateTempFileRequest, DataMapperMetadata, DatamapperModelContext, DataMapperModelResponse, DataMappingRecord, DiagnosticList, DMModel, EnumType, ExistingFunctionMatchResult, ExtendedDataMapperMetadata, ExtractMappingDetailsRequest, ExtractMappingDetailsResponse, GenerateTypesFromRecordRequest, GenerateTypesFromRecordResponse, getSource, ImportInfo, ImportStatements, InlineMappingsSourceResult, IORoot, IOTypeField, keywords, LinePosition, Mapping, MappingParameters, MetadataWithAttachments, ModuleSummary, PackageSummary, ProjectComponentsResponse, RecordType, RepairCodeParams, SourceFile, SyntaxTree, TempDirectoryPath } from "@wso2/ballerina-core";
 import { camelCase } from "lodash";
 import path from "path";
 import * as fs from 'fs';
 import * as os from 'os';
 import { Uri } from "vscode";
-import { extractRecordTypeDefinitionsFromFile, generateMappingExpressionsFromModel, repairSourceFilesWithAI } from "../../rpc-managers/ai-panel/utils";
+import { extractRecordTypeDefinitionsFromFile, generateMappingExpressionsFromModel } from "../../rpc-managers/ai-panel/utils";
 import { writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { ExtendedLangClient, NOT_SUPPORTED } from "../../core";
 import { DefaultableParam, FunctionDefinition, IncludedRecordParam, ModulePart, RequiredParam, RestParam, STKindChecker, STNode } from "@wso2/syntax-tree";
 import { addMissingRequiredFields, attemptRepairProject, checkProjectDiagnostics } from "../../../src/rpc-managers/ai-panel/repair-utils";
-import { NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "./constants";
+import { ErrorType, NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "./constants";
 import { INVALID_RECORD_REFERENCE } from "../../../src/views/ai-panel/errorCodes";
-import { CodeRepairResult, PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
+import { PackageInfo, TypesGenerationResult } from "./service/datamapper/types";
 import { URI } from "vscode-uri";
 import { getAllDataMapperSource } from "./service/datamapper/datamapper";
 import { StateMachine } from "../../stateMachine";
@@ -67,8 +67,12 @@ const isPrimitiveArrayType = (type: string): boolean => {
   return false;
 };
 
+const isErrorType = (type: string): boolean => {
+  return Object.values(ErrorType).includes(type as ErrorType);
+};
+
 const isAnyPrimitiveType = (type: string): boolean => {
-  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type);
+  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type) || isErrorType(type);
 };
 
 // ================================================================================================
@@ -220,32 +224,6 @@ export async function createTempBallerinaDir(): Promise<string> {
   return tempDir;
 }
 
-export async function repairCodeWithLLM(codeRepairRequest: repairCodeRequest): Promise<ProjectSource> {
-  if (!codeRepairRequest) {
-    throw new Error("Code repair request is required");
-  }
-
-  if (!codeRepairRequest.sourceFiles || codeRepairRequest.sourceFiles.length === 0) {
-    throw new Error("Source files are required for code repair");
-  }
-
-  const repairedSourceFiles = await repairSourceFilesWithAI(codeRepairRequest);
-
-  for (const repairedFile of repairedSourceFiles) {
-    try {
-      writeBallerinaFileDidOpenTemp(
-        repairedFile.filePath,
-        repairedFile.content
-      );
-    } catch (error) {
-      console.error(`Error processing file ${repairedFile.filePath}:`, error);
-    }
-  }
-
-  const projectSourceResponse = { sourceFiles: repairedSourceFiles, projectName: "", packagePath: "", isActive: true };
-  return projectSourceResponse;
-}
-
 export function createDataMappingFunctionSource(
   inputParams: DataMappingRecord[],
   outputParam: DataMappingRecord,
@@ -297,7 +275,9 @@ function getDefaultParamName(type: string, isArray: boolean): string {
     case PrimitiveType.BOOLEAN:
       return isArray ? "flagArr" : "flag";
     default:
-      return camelCase(processedType);
+      const camelCaseName = camelCase(processedType);
+      // Check if the camelCase name is a reserved keyword
+      return keywords.includes(camelCaseName) ? `'${camelCaseName}` : camelCaseName;
   }
 }
 
@@ -514,7 +494,7 @@ export async function generateMappings(
 // ================================================================================================
 // DMModel Optimization - Functions for processing and optimizing data mapper models
 // ================================================================================================
-function ensureUnionRefs(model: DMModel): DMModel {
+export function ensureUnionRefs(model: DMModel): DMModel {
   const processedModel = JSON.parse(JSON.stringify(model));
   const unionRefs = new Map<string, any>();
 
@@ -1316,45 +1296,6 @@ function prepareSourceFilesForRepair(
   return sourceFiles;
 }
 
-// Repair code and get updated content
-export async function repairCodeAndGetUpdatedContent(
-  params: RepairCodeParams,
-  langClient: ExtendedLangClient,
-  projectRoot: string
-): Promise<CodeRepairResult> {
-  
-  // Read main file content
-  let finalContent = fs.readFileSync(params.tempFileMetadata.codeData.lineRange.fileName, 'utf8');
-  
-  // Read custom functions content (only if path is provided)
-  let customFunctionsContent = params.customFunctionsFilePath 
-    ? await getCustomFunctionsContent(params.customFunctionsFilePath)
-    : '';
-
-  // Check and repair diagnostics
-  const diagnostics = await checkAndRepairDiagnostics(
-    params,
-    langClient,
-    projectRoot
-  );
-
-  // Repair with LLM if needed
-  if (diagnostics.diagnosticsList && diagnostics.diagnosticsList.length > 0) {
-    const result = await repairWithLLM(
-      params.tempFileMetadata,
-      finalContent,
-      params.customFunctionsFilePath,
-      customFunctionsContent,
-      diagnostics,
-      params.imports
-    );
-    finalContent = result.finalContent;
-    customFunctionsContent = result.customFunctionsContent;
-  }
-
-  return { finalContent, customFunctionsContent };
-}
-
 // Get custom functions content if file exists
 export async function getCustomFunctionsContent(
   customFunctionsFilePath: string | undefined,
@@ -1382,34 +1323,6 @@ async function checkAndRepairDiagnostics(
   return await repairAndCheckDiagnostics(langClient, projectRoot, diagnosticsParams);
 }
 
-// Repair code using LLM
-async function repairWithLLM(
-  tempFileMetadata: ExtendedDataMapperMetadata,
-  mainContent: string,
-  customFunctionsFilePath: string | undefined,
-  customFunctionsContent: string,
-  diagnostics: DiagnosticList,
-  imports: ImportInfo[]
-): Promise<{ finalContent: string; customFunctionsContent: string }> {
-  const sourceFiles = prepareSourceFilesForRepair(
-    tempFileMetadata.codeData.lineRange.fileName,
-    mainContent,
-    customFunctionsFilePath,
-    customFunctionsContent
-  );
-
-  await repairCodeWithLLM({sourceFiles, diagnostics, imports});
-
-  // Get updated content after repair
-  const finalContent = fs.readFileSync(tempFileMetadata.codeData.lineRange.fileName, 'utf8');
-  const updatedCustomFunctionsContent = await getCustomFunctionsContent(customFunctionsFilePath);
-
-  return {
-    finalContent,
-    customFunctionsContent: updatedCustomFunctionsContent
-  };
-}
-
 // ================================================================================================
 // processMappingParameters - Functions for processing mapping parameters
 // ================================================================================================
@@ -1432,6 +1345,11 @@ export function buildRecordMap(
       mod.records.forEach((rec: ComponentInfo) => {
         const recFilePath = filepath + rec.filePath;
         recordMap.set(rec.name, { type: rec.name, isArray: false, filePath: recFilePath });
+      });
+
+      mod.types.forEach((type: ComponentInfo) => {
+        const typeFilePath = filepath + type.filePath;
+        recordMap.set(type.name, { type: type.name, isArray: false, filePath: typeFilePath });
       });
     }
   }
