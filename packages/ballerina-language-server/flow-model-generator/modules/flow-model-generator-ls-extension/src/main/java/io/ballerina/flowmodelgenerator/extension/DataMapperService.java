@@ -324,7 +324,7 @@ public class DataMapperService implements ExtendedLanguageServerService {
                 }
                 DataMapManager dataMapManager = new DataMapManager(document.get());
                 response.setProperty(dataMapManager.getFieldPosition(semanticModel.get(), request.codedata(),
-                        request.targetField(), request.portId()));
+                        request.targetField(), request.fieldId()));
             } catch (Throwable e) {
                 response.setError(e);
             }
