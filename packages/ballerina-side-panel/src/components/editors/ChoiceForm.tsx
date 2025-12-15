@@ -58,15 +58,16 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const [selectedOption, setSelectedOption] = useState<number>(1);
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
-
+    const [dynamicRecordTypeFields, setDynamicRecordTypeFields] = useState<RecordTypeField[]>([]);
 
     // Add useEffect to set initial values
     useEffect(() => {
         const realValue = selectedOption - 1;
         const property = field.choices[realValue];
-        const choiceProperty = convertConfig(property);
-        setDynamicFields(choiceProperty);
-        if (choiceProperty.length > 0) {
+        const { formFields, recordTypeFieldsForChoice } = convertConfig(property);
+        setDynamicFields(formFields);
+        setDynamicRecordTypeFields(recordTypeFieldsForChoice);
+        if (formFields.length > 0) {
             Object.entries(property.properties).forEach(([propKey, propValue]) => {
                 if (propValue.value !== undefined) {
                     setValue(propKey, propValue.value);
@@ -75,10 +76,21 @@ export function ChoiceForm(props: ChoiceFormProps) {
         }
     }, [selectedOption]);
 
-    const convertConfig = (model: PropertyModel): FormField[] => {
+    const convertConfig = (model: PropertyModel): { formFields: FormField[], recordTypeFieldsForChoice: RecordTypeField[] } => {
         const formFields: FormField[] = [];
+        const recordTypeFieldsForChoice: RecordTypeField[] = [];
+
         for (const key in model.properties) {
             const expression = model.properties[key];
+
+            console.log(`>>> Processing property: ${key}`, {
+                valueType: expression.valueType,
+                valueTypeConstraint: expression.valueTypeConstraint,
+                hasTypeMembers: !!expression.typeMembers,
+                typeMembersLength: expression.typeMembers?.length || 0,
+                typeMembers: expression.typeMembers
+            });
+
             let items = undefined;
             if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
                 items = expression.items;
@@ -101,9 +113,29 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 defaultValue: expression.defaultValue as string
             }
             formFields.push(formField);
+
+            // If this property has typeMembers, create a RecordTypeField for it
+            if (expression.typeMembers && expression.typeMembers.length > 0) {
+
+                const recordTypeField: RecordTypeField = {
+                    key: key,
+                    property: {
+                        metadata: expression.metadata || { label: "", description: "" },
+                        valueType: expression.valueType || "EXPRESSION",
+                        value: expression.value || "",
+                        optional: expression.optional || false,
+                        editable: expression.editable !== undefined ? expression.editable : true,
+                        valueTypeConstraint: expression.valueTypeConstraint,
+                        typeMembers: expression.typeMembers
+                    },
+                    recordTypeMembers: expression.typeMembers
+                };
+                recordTypeFieldsForChoice.push(recordTypeField);
+            } 
         }
-        console.log("Dynamic Form Fields:", formFields)
-        return formFields;
+        console.log(">>> Final Dynamic Form Fields:", formFields)
+        console.log(">>> Final Dynamic Record Type Fields:", recordTypeFieldsForChoice)
+        return { formFields, recordTypeFieldsForChoice };
     }
 
     return (
@@ -129,12 +161,18 @@ export function ChoiceForm(props: ChoiceFormProps) {
 
             <FormSection>
                 {dynamicFields.map((dfield, index) => {
+                    // Merge parent recordTypeFields with dynamically generated ones
+                    const mergedRecordTypeFields = [
+                        ...(recordTypeFields || []),
+                        ...dynamicRecordTypeFields
+                    ];
+
                     return (
                         <EditorFactory
                             key={dfield.key}
                             field={dfield}
                             autoFocus={index === 0 ? true : false}
-                            recordTypeFields={recordTypeFields}
+                            recordTypeFields={mergedRecordTypeFields}
                         />
                     );
                 })}
