@@ -27,6 +27,7 @@ import {
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
+    undo,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -201,6 +202,10 @@ export class VisualizerRpcManager implements VisualizerAPI {
         undoRedoManager.startBatchOperation();
         undoRedoManager.addFileToBatch(params.filePath, currentFileContent, params.source);
         undoRedoManager.commitBatchOperation(params.description);
+    }
+
+    resetUndoRedoStack(): void {
+        undoRedoManager.reset();
     }
 
     async getThemeKind(): Promise<ColorThemeKind> {
