@@ -36,13 +36,13 @@
                     "description": "Select from the existing RabbitMQ listeners"
                   },
                   "value": "orderListener",
-                  "items": [
-                    "orderListener",
-                    "deliveryListener"
-                  ],
                   "types": [
                     {
                       "fieldType": "SINGLE_SELECT",
+                      "options": [
+                        "orderListener",
+                        "deliveryListener"
+                      ],
                       "selected": true
                     }
                   ],

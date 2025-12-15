@@ -362,7 +362,7 @@ public class PropertyType {
         Gson gson = new Gson();
         if (jsonElement.isJsonArray()) {
             JsonArray jsonArray = jsonElement.getAsJsonArray();
-            Type listType = new TypeToken<List<PropertyType>>() {}.getType();
+            Type listType = new TypeToken<List<PropertyType>>() { }.getType();
             return gson.fromJson(jsonArray, listType);
         }
         return new ArrayList<>();

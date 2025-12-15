@@ -36,12 +36,12 @@
                     "description": "Select from the existing Solace listeners"
                   },
                   "value": "solaceListener",
-                  "items": [
-                    "solaceListener"
-                  ],
                   "types": [
                     {
                       "fieldType": "SINGLE_SELECT",
+                      "options": [
+                        "solaceListener"
+                      ],
                       "selected": true
                     }
                   ],
@@ -576,16 +576,15 @@
           },
           "placeholder": "AUTO_ACKNOWLEDGE",
           "value": "AUTO_ACKNOWLEDGE",
-          "items": [
-            "AUTO_ACKNOWLEDGE",
-            "CLIENT_ACKNOWLEDGE",
-            "DUPS_OK_ACKNOWLEDGE",
-            "SESSION_TRANSACTED"
-          ],
           "types": [
             {
               "fieldType": "SINGLE_SELECT",
-              "ballerinaType": "string",
+              "options": [
+                "AUTO_ACKNOWLEDGE",
+                "CLIENT_ACKNOWLEDGE",
+                "DUPS_OK_ACKNOWLEDGE",
+                "SESSION_TRANSACTED"
+              ],
               "selected": true
             }
           ],
