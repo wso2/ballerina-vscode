@@ -170,7 +170,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, projectToml, workspacePath } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, projectToml, workspacePath, initConnector } = usePlatformExtContext()
 
     const onLinkDevantProject = () => {
         if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
@@ -231,6 +231,19 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             projectToml?.refresh();
             platformRpcClient?.refreshConnectionList();
             fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
+            if(data.connectionNode){
+                rpcClient.getVisualizerRpcClient().openView({
+                    type: EVENT_TYPE.OPEN_VIEW,
+                    location: {
+                        view: MACHINE_VIEW.AddConnectionWizard,
+                        documentUri: model.fileName,
+                        metadata: { target: targetRef.current.startLine },
+                    },
+                    isPopup: true,
+                });
+                initConnector?.setConnector(data.connectionNode)
+            }
+            
         },
         onSettled:() => setImportingConn(undefined)
     });

@@ -46,6 +46,7 @@ import FormGeneratorNew from "../../Forms/FormGeneratorNew";
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { DevantConnectorPanel } from "../DevantConnections/DevantConnectorPanel";
 import { FormSubmitOptions } from "../../FlowDiagram";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const Container = styled.div`
     width: 100%;
@@ -127,7 +128,7 @@ interface AddConnectionWizardProps {
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
-
+    const { initConnector } = usePlatformExtContext();
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
     const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus>(undefined);
@@ -234,6 +235,13 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             }, 2000);
         }
     };
+
+    useEffect(()=>{
+        if(initConnector.connector){
+            handleOnSelectConnector(initConnector.connector);
+            initConnector.setConnector(undefined)
+        }
+    },[handleOnSelectConnector, initConnector])
 
     const handleOnAddGeneratedConnector = () => {
         setCurrentStep(WizardStep.GENERATE_CONNECTOR);
@@ -534,12 +542,14 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         setCurrentStep(WizardStep.CONNECTOR_LIST)
                         setSelectedDevantConnector(undefined);
                     }}
-                    onCreate={(connName)=>{
-                        if(connName){
+                     onCreate={(params)=>{
+                        if (params.connectionNode) {
+                            handleOnSelectConnector(params.connectionNode);
+                        } else if(params.connectionName){
                             setCurrentStep(WizardStep.CONNECTOR_LIST)
                             setSelectedDevantConnector(undefined)
                             if(onClose){
-                                onClose({ recentIdentifier: connName, artifactType: DIRECTORY_MAP.CONNECTION })
+                                onClose({ recentIdentifier: params.connectionName, artifactType: DIRECTORY_MAP.CONNECTION })
                             }else{
                                 gotoHome();
                             }

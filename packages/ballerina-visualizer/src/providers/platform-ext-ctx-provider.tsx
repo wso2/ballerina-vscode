@@ -18,6 +18,7 @@
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import {
+    AvailableNode,
     DIRECTORY_MAP,
     findDevantScopeByModule,
     PackageTomlValues,
@@ -25,7 +26,7 @@ import {
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
-import React, { useContext, FC, ReactNode, useEffect } from "react";
+import React, { useContext, FC, ReactNode, useEffect, useState } from "react";
 
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
@@ -35,13 +36,18 @@ const defaultPlatformExtContext: {
     workspacePath: string;
     projectToml?: { values: Partial<PackageTomlValues>; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
-    deployableArtifacts?: { exists: boolean, refetch: () => void }
+    deployableArtifacts?: { exists: boolean, refetch: () => void };
+    initConnector: {
+        connector?: AvailableNode,
+        setConnector?: (node: AvailableNode) => void;
+    }
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     refetchProjectInfo: () => {},
     devantConsoleUrl: "",
     projectPath: "",
     workspacePath: "",
+    initConnector: {}
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -54,6 +60,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const queryClient = useQueryClient();
     const { rpcClient } = useRpcContext();
     const platformRpcClient = rpcClient.getPlatformRpcClient();
+    const [newConnectorNode, setNewConnectorNode] = useState<AvailableNode>();
 
     const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery({
         queryKey: ["project-info"],
@@ -124,6 +131,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                 refetchProjectInfo,
                 platformRpcClient,
                 projectToml: { values: projectToml, refresh: refetchToml },
+                initConnector: { connector: newConnectorNode, setConnector: setNewConnectorNode }
             }}
         >
             {children}

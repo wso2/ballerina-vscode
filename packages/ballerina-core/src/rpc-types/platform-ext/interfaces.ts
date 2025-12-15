@@ -17,6 +17,7 @@
  */
 
 import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceItem } from "@wso2/wso2-platform-core";
+import { AvailableNode } from "../../interfaces/bi";
 
 export interface CreateDevantConnectionReq {
     params:{
@@ -33,11 +34,13 @@ export interface ImportDevantConnectionReq {
 }
 
 export interface CreateDevantConnectionResp {
-    connectionName: string;
+    connectionName?: string;
+    connectionNode?: AvailableNode;
 }
 
 export interface ImportDevantConnectionResp {
-    connectionName: string;
+    connectionName?: string;
+    connectionNode?: AvailableNode;
 }
 
 export interface BiDevantConnectionListItem extends ConnectionListItem {
