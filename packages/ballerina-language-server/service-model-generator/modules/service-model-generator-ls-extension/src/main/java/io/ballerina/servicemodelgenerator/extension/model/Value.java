@@ -103,7 +103,8 @@ public class Value {
         HEADER_SET,
         RAW_TEMPLATE,
         SINGLE_SELECT_LISTENER,
-        MULTIPLE_SELECT_LISTENER
+        MULTIPLE_SELECT_LISTENER,
+        FILE_SELECT
     }
 
     public MetaData getMetadata() {
