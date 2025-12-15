@@ -19,7 +19,7 @@
 import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
 import { VSCodeTextField, VSCodeButton, VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
-import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse } from "@wso2/ballerina-core";
+import { GetRecordConfigRequest, Property, TypeField, RecordSourceGenRequest, RecordSourceGenResponse, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Typography } from "@wso2/ui-toolkit";
 
@@ -454,7 +454,7 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
         setIsLoading(true);
         setError('');
         try {
-            const typeInfo = typeValue.typeMembers.find(m => typeValue.value.toString().includes(m.type));
+            const typeInfo = getPrimaryInputType(typeValue.types)?.typeMembers.find(m => typeValue.value.toString().includes(m.type));
             if (!typeInfo) {
                 setError('Type information not found');
                 setIsLoading(false);

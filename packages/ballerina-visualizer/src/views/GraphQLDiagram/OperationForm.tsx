@@ -180,7 +180,7 @@ export function OperationForm(props: OperationFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }]
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }]
             },
             {
                 key: 'returnType',
@@ -204,8 +204,8 @@ export function OperationForm(props: OperationFormProps) {
         if (model?.properties) {
             const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
                 .filter(([_, property]) =>
-                    property.typeMembers &&
-                    property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    getPrimaryInputType(property.types)?.typeMembers &&
+                    getPrimaryInputType(property.types)?.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 )
                 .map(([key, property]) => ({
                     key,
@@ -221,7 +221,7 @@ export function OperationForm(props: OperationFormProps) {
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 }));
             console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
 

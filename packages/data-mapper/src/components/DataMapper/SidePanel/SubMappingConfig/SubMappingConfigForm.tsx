@@ -123,7 +123,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         editable: true,
         documentation: "Enter the name of the sub mapping.",
         value: formValues.name,
-        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global" }],
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
     };
 
@@ -135,7 +135,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         editable: true,
         documentation: "Enter the type of the sub mapping.",
         value: formValues.type,
-        types: [{ fieldType: "TYPE", ballerinaType: "Global" }],
+        types: [{ fieldType: "TYPE", ballerinaType: "Global", selected: false }],
         enabled: true,
     };
 

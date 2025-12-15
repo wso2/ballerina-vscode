@@ -424,14 +424,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
         const recordTypeFields = Object.entries(formProperties)
-            .filter(([_, property]) =>
-                property.typeMembers &&
-                property.typeMembers.some(member => member.kind === "RECORD_TYPE")
-            )
+            .filter(([_, property]) => {
+                const primaryInputType = getPrimaryInputType(property?.types);
+            
+                return primaryInputType?.typeMembers &&
+                    primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
+            })
             .map(([key, property]) => ({
                 key,
                 property,
-                recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
 
         setRecordTypeFields(recordTypeFields);

@@ -288,8 +288,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                         Object.entries(property.choices).flatMap(([choiceKey, choice]) =>
                             Object.entries(choice.properties || {})
                                 .filter(([_, choiceProperty]) =>
-                                    choiceProperty.typeMembers &&
-                                    choiceProperty.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                                    getPrimaryInputType(choiceProperty.types)?.typeMembers &&
+                                    getPrimaryInputType(choiceProperty.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
                                 )
                                 .map(([choicePropertyKey, choiceProperty]) => ({
                                     key: choicePropertyKey,
@@ -305,7 +305,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                             diagnostics: choiceProperty.diagnostics
                                         }
                                     } as Property,
-                                    recordTypeMembers: choiceProperty.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                                    recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
                                 }))
                         )
                     );
@@ -315,8 +315,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             } else {
                 const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
                     .filter(([_, property]) =>
-                        property.typeMembers &&
-                        property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                        getPrimaryInputType(property.types)?.typeMembers &&
+                        getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
                     )
                     .map(([key, property]) => ({
                         key,
@@ -332,7 +332,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                 diagnostics: property.diagnostics
                             }
                         } as Property,
-                        recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                        recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
                     }));
                 console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
 
