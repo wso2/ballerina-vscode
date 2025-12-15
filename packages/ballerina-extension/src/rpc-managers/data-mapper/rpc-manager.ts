@@ -24,6 +24,8 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ClearTypeCacheResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -418,4 +420,8 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }
