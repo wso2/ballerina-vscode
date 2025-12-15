@@ -36,8 +36,8 @@
             "character": 0
           },
           "end": {
-            "line": 0,
-            "character": 0
+            "line": 8,
+            "character": 67
           }
         },
         "newText": "// This file demonstrates an existing connections file with a pre-existing client\n// The test will append a new client to this file\n\nimport sample_project_with_connections.departments;\n\nimport ballerina/http;\nimport ballerinax/mysql;\nimport ballerinax/mysql.driver as _;\n\nfinal mysql:Client mysqlClient = check new (\"localhost\", \"root\", \"root@123\", \"demo\", 3306);\nfinal http:Client httpClient = check new (\"http://localhost:8080\");\nfinal departments:Client userdb = check new (userdbHost, userdbPort, userdbUser, userdbPassword, userdbDatabase);\n"
