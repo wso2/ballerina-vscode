@@ -20,7 +20,7 @@ import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, Overlay, ProgressRing } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -28,48 +28,7 @@ import APIConnectionPopup from "../APIConnectionPopup";
 import ConnectionConfigurationPopup from "../ConnectionConfigurationPopup";
 import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
 import { BodyTinyInfo } from "../../../styles";
-
-const PopupOverlay = styled(Overlay)`
-    z-index: 1999;
-`;
-
-const PopupContainer = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 800px;
-    height: 80%;
-    max-height: 800px;
-    z-index: 2000;
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-`;
-
-const PopupHeader = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 32px;
-    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-`;
-
-const PopupTitle = styled(Typography)`
-    font-size: 20px;
-    font-weight: 600;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
-const CloseButton = styled(Button)`
-    min-width: auto;
-    padding: 4px;
-`;
+import { PopupOverlay, PopupContainer, PopupHeader, PopupTitle, CloseButton } from "../styles";
 
 const PopupContent = styled.div`
     flex: 1;
