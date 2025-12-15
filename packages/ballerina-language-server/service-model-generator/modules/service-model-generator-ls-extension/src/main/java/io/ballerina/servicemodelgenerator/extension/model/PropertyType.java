@@ -219,7 +219,7 @@ public class PropertyType {
 
     private static Optional<PropertyType> handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
         TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
-        switch (rawType.typeKind()) {
+        return switch (rawType.typeKind()) {
             case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
                  INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL ->
                     Optional.of(PropertyType.types(Value.FieldType.NUMBER, ballerinaType));
@@ -243,15 +243,12 @@ public class PropertyType {
                             .setTypeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
                                     packageIdentifier, id.packageName())))
                             .build();
-                    return Optional.of(propertyType);
+                    yield Optional.of(propertyType);
                 }
-                return Optional.empty();
+                yield Optional.empty();
             }
-            default -> {
-                return Optional.empty();
-            }
-        }
-        return Optional.empty();
+            default -> Optional.empty();
+        };
     }
 
     private static Value.FieldType findMatchingValueType(Node node) {
