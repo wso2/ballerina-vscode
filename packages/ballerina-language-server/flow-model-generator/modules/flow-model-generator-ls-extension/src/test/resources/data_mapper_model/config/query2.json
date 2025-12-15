@@ -40,7 +40,8 @@
         "typeName": "SecondaryPhones",
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
-        "ref": "-782972947"
+        "ref": "-782972947",
+        "isIterableVariable": true
       }
     ],
     "output": {

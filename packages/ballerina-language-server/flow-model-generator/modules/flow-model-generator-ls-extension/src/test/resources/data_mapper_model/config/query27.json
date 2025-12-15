@@ -102,6 +102,7 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "BBB",
+        "isIterableVariable": true,
         "ref": "-2143678211"
       },
       {
@@ -111,6 +112,7 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "CCC",
+        "isIterableVariable": true,
         "ref": "-2143678211"
       }
     ],

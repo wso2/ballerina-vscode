@@ -56,6 +56,7 @@
         "typeName": "InRoot",
         "kind": "record",
         "focusExpression": "input",
+        "isIterableVariable": true,
         "ref": "694571155"
       }
     ],
