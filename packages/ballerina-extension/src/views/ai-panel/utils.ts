@@ -24,7 +24,7 @@ import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod } from '../../utils/ai/auth';
-import { getBedrockRegionalPrefix } from '../../features/ai/service/connection';
+import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';

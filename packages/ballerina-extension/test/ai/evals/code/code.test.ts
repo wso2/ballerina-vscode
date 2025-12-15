@@ -151,7 +151,7 @@ async function setupTestEnvironment(): Promise<void> {
 
     while (attempts < TIMING.MAX_ACTIVATION_ATTEMPTS) {
         const availableCommands = await vscode.commands.getCommands();
-        if (availableCommands.includes(VSCODE_COMMANDS.AI_GENERATE_DESIGN_FOR_TEST)) {
+        if (availableCommands.includes(VSCODE_COMMANDS.AI_GENERATE_AGENT_FOR_TEST)) {
             break;
         }
         await new Promise(resolve => setTimeout(resolve, TIMING.EXTENSION_ACTIVATION_RETRY_INTERVAL));

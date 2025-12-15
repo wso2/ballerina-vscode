@@ -22,7 +22,7 @@ import { By, VSBrowser, until } from "vscode-extension-tester";
 export class ServiceDesigner {
 
     static async waitForServiceDesigner() {
-        const serviceDesignView = By.xpath("//*[@data-testid='service-design-view']");
+        const serviceDesignView = By.xpath("//*[@data-testid='service-agent-view']");
         await waitUntil(serviceDesignView, 30000);
     }
 

@@ -68,7 +68,7 @@ export const closeAIWebview = () => {
  * });
  *
  * @example
- * // Open with text input (design mode is the default)
+ * // Open with text input (agent mode is the default)
  * openAIPanelWithPrompt({
  *   type: 'text',
  *   text: 'Generate a REST API',

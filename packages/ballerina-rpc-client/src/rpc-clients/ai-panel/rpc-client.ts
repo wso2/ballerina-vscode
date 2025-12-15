@@ -23,7 +23,6 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddFilesToProjectRequest,
-    AddToProjectRequest,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DocGenerationRequest,
@@ -56,16 +55,15 @@ import {
     abortTestGeneration,
     addChatSummary,
     addFilesToProject,
-    addToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
     deleteFromProject,
     fetchData,
+    generateAgent,
     generateCode,
     generateContextTypes,
-    generateDesign,
     generateFunctionTests,
     generateHealthcareCode,
     generateInlineMappingCode,
@@ -95,6 +93,7 @@ import {
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
+    isPlanModeFeatureEnabled,
     isRequirementsSpecificationFileExist,
     isUserAuthenticated,
     markAlertShown,
@@ -150,10 +149,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     fetchData(params: FetchDataRequest): Promise<FetchDataResponse> {
         return this._messenger.sendRequest(fetchData, HOST_EXTENSION, params);
-    }
-
-    addToProject(params: AddToProjectRequest): Promise<boolean> {
-        return this._messenger.sendRequest(addToProject, HOST_EXTENSION, params);
     }
 
     getFromFile(params: GetFromFileRequest): Promise<string> {
@@ -308,8 +303,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(generateCode, HOST_EXTENSION, params);
     }
 
-    generateDesign(params: GenerateAgentCodeRequest): Promise<boolean> {
-        return this._messenger.sendRequest(generateDesign, HOST_EXTENSION, params);
+    generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
+        return this._messenger.sendRequest(generateAgent, HOST_EXTENSION, params);
     }
 
     repairGeneratedCode(params: RepairParams): void {
@@ -346,5 +341,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     openAIPanel(params: AIPanelPrompt): Promise<void> {
         return this._messenger.sendRequest(openAIPanel, HOST_EXTENSION, params);
+    }
+
+    isPlanModeFeatureEnabled(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
     }
 }

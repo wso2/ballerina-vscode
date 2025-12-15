@@ -147,21 +147,33 @@ export async function restoreWorkspaceSnapshot(checkpoint: Checkpoint): Promise<
             // Queue all file creations/updates with content
             for (const [filePath, content] of Object.entries(checkpoint.workspaceSnapshot)) {
                 const fileUri = vscode.Uri.file(path.join(workspaceRoot.fsPath, filePath));
-                const contentBuffer = Buffer.from(content, 'utf8');
-                workspaceEdit.createFile(fileUri, { overwrite: true, contents: contentBuffer });
+                
+                // Create file first (empty or existing)
+                workspaceEdit.createFile(fileUri, { ignoreIfExists: true, overwrite: true });
+                
+                // Then replace content to trigger proper LS notifications
+                workspaceEdit.replace(
+                    fileUri,
+                    new vscode.Range(
+                        new vscode.Position(0, 0),
+                        new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+                    ),
+                    content
+                );
             }
 
             progress.report({ message: 'Applying workspace changes...' });
 
             // Apply all changes atomically
             const success = await vscode.workspace.applyEdit(workspaceEdit);
+            await vscode.workspace.saveAll();
             if (!success) {
                 throw new Error('Failed to apply workspace edit');
             }
 
             progress.report({ message: 'Checkpoint restored successfully!' });
+            await renderDatamapper();
         });
-        await renderDatamapper();
 
         // Wait for artifact update notification if any .bal files were restored
         await new Promise<void>((resolve, reject) => {

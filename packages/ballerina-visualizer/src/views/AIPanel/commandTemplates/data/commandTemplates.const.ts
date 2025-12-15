@@ -21,30 +21,30 @@ import { AIPanelPrompt, Command, TemplateId } from "@wso2/ballerina-core/";
 
 // All command templates are defined here.
 export const commandTemplates = {
-    [Command.Tests]: [
-        {
-            id: TemplateId.TestsForService,
-            text: 'generate tests for <servicename> service',
-            placeholders: [
-                {
-                    id: 'servicename',
-                    text: '<servicename>',
-                    multiline: false,
-                }
-            ],
-        },
-        {
-            id: TemplateId.TestsForFunction,
-            text: 'generate tests for resource <method(space)path> function',
-            placeholders: [
-                {
-                    id: 'methodPath',
-                    text: '<method(space)path>',
-                    multiline: false,
-                }
-            ],
-        },
-    ],
+    // [Command.Tests]: [
+    //     {
+    //         id: TemplateId.TestsForService,
+    //         text: 'generate tests for <servicename> service',
+    //         placeholders: [
+    //             {
+    //                 id: 'servicename',
+    //                 text: '<servicename>',
+    //                 multiline: false,
+    //             }
+    //         ],
+    //     },
+    //     {
+    //         id: TemplateId.TestsForFunction,
+    //         text: 'generate tests for resource <method(space)path> function',
+    //         placeholders: [
+    //             {
+    //                 id: 'methodPath',
+    //                 text: '<method(space)path>',
+    //                 multiline: false,
+    //             }
+    //         ],
+    //     },
+    // ],
     [Command.DataMap]: [
         {
             id: TemplateId.MappingsForRecords,
@@ -92,13 +92,13 @@ export const commandTemplates = {
             placeholders: []
         }
     ],
-    [Command.Healthcare]: [
-        {
-            id: TemplateId.Wildcard,
-            text: '',
-            placeholders: [],
-        },
-    ],
+    // [Command.Healthcare]: [
+    //     {
+    //         id: TemplateId.Wildcard,
+    //         text: '',
+    //         placeholders: [],
+    //     },
+    // ],
     [Command.Ask]: [
         {
             id: TemplateId.Wildcard,
@@ -116,8 +116,8 @@ export const commandTemplates = {
             placeholders: [],
         },
     ],
-    [Command.Design]: [
-        // Internal use only - design is the default behavior when no command is specified
+    [Command.Agent]: [
+        // Internal use only - agent is the default behavior when no command is specified
     ],
     [Command.Doc]: [
         {
@@ -171,17 +171,7 @@ export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
         type: "text",
         text: "write a hello world http service",
-        planMode: true,
-    },
-    {
-        type: "text",
-        text: "I need to build a pet store application that manages pets, store orders, and users. Can you help me integrate with the Petstore API?",
-        planMode: true,
-    },
-    {
-        type: "text",
-        text: "create an API for a task management system with mysql",
-        planMode: true,
+        planMode: false,
     },
     {
         type: "command-template",

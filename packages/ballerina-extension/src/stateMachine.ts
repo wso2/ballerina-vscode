@@ -92,7 +92,7 @@ const stateMachine = createMachine<MachineContext>(
                         queueMicrotask(() => {
                             commands.executeCommand("BI.project-explorer.refresh");
                             // Check if the current view is Service desginer and if so don't notify the webview
-                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner) {
+                            if (StateMachine.context().view !== MACHINE_VIEW.ServiceDesigner && StateMachine.context().view !== MACHINE_VIEW.BIDiagram) {
                                 notifyCurrentWebview();
                             }
                         });

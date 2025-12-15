@@ -157,7 +157,7 @@ const AIChat: React.FC = () => {
     const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
-    const [isExperimentalEnabled, setIsExperimentalEnabled] = useState(false);
+    const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -273,17 +273,17 @@ const AIChat: React.FC = () => {
     }, [rpcClient]);
 
     useEffect(() => {
-        const checkExperimentalEnabled = async () => {
+        const checkPlanModeFeatureEnabled = async () => {
             try {
-                const enabled = await rpcClient.getCommonRpcClient().experimentalEnabled();
-                setIsExperimentalEnabled(enabled);
+                const enabled = await rpcClient.getAiPanelRpcClient().isPlanModeFeatureEnabled();
+                setIsPlanModeFeatureEnabled(enabled);
             } catch (error) {
-                console.error("[AIChat] Failed to check experimental enabled status:", error);
-                setIsExperimentalEnabled(false);
+                console.error("[AIChat] Failed to check plan mode feature enabled status:", error);
+                setIsPlanModeFeatureEnabled(false);
             }
         };
 
-        checkExperimentalEnabled();
+        checkPlanModeFeatureEnabled();
     }, [rpcClient]);
 
     /**
@@ -871,7 +871,7 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processDesignGeneration(parsedInput.text, inputText);
+            await processAgentGeneration(parsedInput.text, inputText);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
@@ -920,25 +920,25 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Tests: {
-                    switch (parsedInput.templateId) {
-                        case "tests-for-service":
-                            await processTestGeneration(
-                                [inputText, attachments],
-                                "service",
-                                parsedInput.placeholderValues.servicename
-                            );
-                            break;
-                        case "tests-for-function":
-                            await processTestGeneration(
-                                [inputText, attachments],
-                                "function",
-                                parsedInput.placeholderValues.methodPath
-                            );
-                            break;
-                    }
-                    break;
-                }
+                // case Command.Tests: {
+                //     switch (parsedInput.templateId) {
+                //         case "tests-for-service":
+                //             await processTestGeneration(
+                //                 [inputText, attachments],
+                //                 "service",
+                //                 parsedInput.placeholderValues.servicename
+                //             );
+                //             break;
+                //         case "tests-for-function":
+                //             await processTestGeneration(
+                //                 [inputText, attachments],
+                //                 "function",
+                //                 parsedInput.placeholderValues.methodPath
+                //             );
+                //             break;
+                //     }
+                //     break;
+                // }
                 case Command.DataMap: {
                     switch (parsedInput.templateId) {
                         case "mappings-for-records":
@@ -992,14 +992,14 @@ const AIChat: React.FC = () => {
                     }
                     break;
                 }
-                case Command.Healthcare: {
-                    switch (parsedInput.templateId) {
-                        case TemplateId.Wildcard:
-                            await processHealthcareCodeGeneration(parsedInput.text, inputText);
-                            break;
-                    }
-                    break;
-                }
+                // case Command.Healthcare: {
+                //     switch (parsedInput.templateId) {
+                //         case TemplateId.Wildcard:
+                //             await processHealthcareCodeGeneration(parsedInput.text, inputText);
+                //             break;
+                //     }
+                //     break;
+                // }
                 case Command.Ask: {
                     switch (parsedInput.templateId) {
                         case TemplateId.Wildcard:
@@ -1053,6 +1053,16 @@ const AIChat: React.FC = () => {
         filePaths?: SourceFile[]
     ) => {
         console.log("Add to integration called. Command: ", command);
+        const fileChanges: FileChanges[] = [];
+        for (let { segmentText, filePath } of codeSegments) {
+            fileChanges.push({
+                filePath: filePath,
+                content: segmentText,
+            });
+        }
+        await rpcClient.getAiPanelRpcClient().addFilesToProject({
+            fileChanges: fileChanges,
+        })
         setIsAddingToWorkspace(true);
     };
 
@@ -1208,9 +1218,9 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
     }
 
-    async function processDesignGeneration(useCase: string, message: string) {
+    async function processAgentGeneration(useCase: string, message: string) {
         rpcClient.sendAIChatStateEvent({
-            type: AIChatMachineEventType.SUBMIT_DESIGN_PROMPT,
+            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
             payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
         });
     }
@@ -1490,9 +1500,9 @@ const AIChat: React.FC = () => {
                             <br />
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
-                        <div>State: {aiChatStateMachineState}</div>
+                        {isPlanModeFeatureEnabled && <div>State: {aiChatStateMachineState}</div>}
                         <HeaderButtons>
-                            {isExperimentalEnabled && (
+                            {isPlanModeFeatureEnabled && (
                                 <Button
                                     appearance="icon"
                                     onClick={handleTogglePlanMode}
@@ -1502,7 +1512,7 @@ const AIChat: React.FC = () => {
                                     &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
                                 </Button>
                             )}
-                            {isExperimentalEnabled && (
+                            {isPlanModeFeatureEnabled && (
                                 <Button
                                     appearance="icon"
                                     onClick={handleToggleAutoApprove}
