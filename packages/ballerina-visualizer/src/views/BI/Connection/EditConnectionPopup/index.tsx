@@ -18,14 +18,12 @@
 
 import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { FlowNode, LinePosition, ParentPopupData, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, ThemeColors, Typography, Overlay, ProgressRing } from "@wso2/ui-toolkit";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
-import { HelperView } from "../../HelperView";
-import { ConnectorIcon } from "@wso2/bi-diagram";
 import { cloneDeep } from "lodash";
 
 const PopupOverlay = styled(Overlay)`
@@ -88,85 +86,6 @@ const CloseButton = styled(Button)`
     padding: 4px;
 `;
 
-const ConnectorInfoCard = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    margin: 24px 32px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-    position: relative;
-`;
-
-const ConnectorInfoIcon = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    flex-shrink: 0;
-
-    & > img {
-        width: 32px;
-        height: 32px;
-        object-fit: contain;
-    }
-
-    & > svg {
-        width: 32px;
-        height: 32px;
-    }
-`;
-
-const StyledCodicon = styled(Codicon)`
-    font-size: 32px;
-    width: 32px;
-    height: 32px;
-`;
-
-const StyledConnectorIcon = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-
-    & > img {
-        width: 32px;
-        height: 32px;
-        object-fit: contain;
-    }
-
-    & > svg {
-        width: 32px;
-        height: 32px;
-    }
-`;
-
-const ConnectorInfoContent = styled.div`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-`;
-
-const ConnectorInfoName = styled(Typography)`
-    font-size: 16px;
-    font-weight: 600;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
-const ConnectorInfoDescription = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin: 0;
-`;
-
 const ConnectionDetailsSection = styled.div`
     display: flex;
     flex-direction: column;
@@ -186,7 +105,6 @@ const ConnectionDetailsSubtitle = styled(Typography)`
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     margin: 0;
 `;
-
 
 
 const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
@@ -319,11 +237,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
     };
 
 
-
-    const updateExpressionField = (data: ExpressionFormField) => {
-        setUpdatedExpressionField(data);
-    };
-
     const handleResetUpdatedExpressionField = () => {
         setUpdatedExpressionField(undefined);
     };
@@ -331,18 +244,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
 
     const handleBack = () => {
         handleClosePopup();
-    };
-
-    const getConnectorName = () => {
-        return connection?.codedata?.module || connectionName || "Connection";
-    };
-
-    const getConnectorDescription = () => {
-        return connection?.metadata?.description || "";
-    };
-
-    const getConnectorIcon = () => {
-        return connection?.metadata?.icon;
     };
 
     if (isLoading) {
@@ -380,25 +281,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                         <Codicon name="close" />
                     </CloseButton>
                 </ConfigHeader>
-
-                {/* <ConnectorInfoCard>
-                    <ConnectorInfoIcon>
-                        {getConnectorIcon() ? (
-                            <StyledConnectorIcon>
-                                <ConnectorIcon url={getConnectorIcon()} />
-                            </StyledConnectorIcon>
-                        ) : (
-                            <StyledCodicon name="package" />
-                        )}
-                    </ConnectorInfoIcon>
-                    <ConnectorInfoContent>
-                        <ConnectorInfoName>{getConnectorName()}</ConnectorInfoName>
-                        <ConnectorInfoDescription>
-                            {getConnectorDescription()}
-                        </ConnectorInfoDescription>
-                    </ConnectorInfoContent>
-                </ConnectorInfoCard> */}
-
                 <ContentContainer hasFooterButton={true}>
                     <>
                         <ConnectionDetailsSection>

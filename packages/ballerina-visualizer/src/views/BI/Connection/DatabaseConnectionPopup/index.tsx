@@ -225,14 +225,6 @@ const SearchRow = styled.div`
     justify-content: space-between;
 `;
 
-const ActionButtonsContainer = styled.div`
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 24px;
-    width: 100%;
-`;
-
 const ConfigurablesPanel = styled.div`
     display: flex;
     flex-direction: column;
@@ -338,7 +330,7 @@ const DEFAULT_PORTS: Record<DatabaseType, string> = {
 };
 
 export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
-    const { fileName, target, onClose, onBack, onBrowseConnectors} = props;
+    const { fileName, target, onClose, onBack, onBrowseConnectors } = props;
     const { rpcClient } = useRpcContext();
 
     const [currentStep, setCurrentStep] = useState(0);
@@ -695,9 +687,9 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         </FormSection>
                         <ConfigurablesPanel>
                             <div style={{ gap: "4px" }}>
-                            <SectionTitle variant="h4">Connection Configurables</SectionTitle>
+                                <SectionTitle variant="h4">Connection Configurables</SectionTitle>
                                 <ConfigurablesDescription>
-                                Configurables will be generated for the connection host, port, username, password, and database name, with default values specified below.
+                                    Configurables will be generated for the connection host, port, username, password, and database name, with default values specified below.
                                 </ConfigurablesDescription>
                             </div>
                             <FormSection>
