@@ -38,7 +38,8 @@
         "displayName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
-        "focusExpression": "u.info.secondaryPhones"
+        "focusExpression": "u.info.secondaryPhones",
+        "isIterableVariable": true
       }
     ],
     "output": {
