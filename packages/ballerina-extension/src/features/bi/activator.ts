@@ -40,7 +40,7 @@ import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/b
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { needsProjectDiscovery, promptPackageSelection, requiresPackageSelection } from "../../utils/command-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
@@ -124,7 +124,7 @@ export function activate(context: BallerinaExtension) {
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
         );
-        
+
         if (needsPackageSelection && projectInfo?.children.length === 0) {
             window.showErrorMessage("No packages found in the workspace.");
             return;
@@ -169,12 +169,30 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
     });
 
-    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        if (isBallerinaWorkspace) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
+        try {
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            if (result.type == "BALLERINA_WORKSPACE") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+            } else if (result.type == "SINGLE_PROJECT") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+            } else {
+                const packageRoot = await getCurrentProjectRoot();
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+
+                if (!packageRoot || !window.activeTextEditor) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                } else {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+                }
+            }
+        } catch (error) {
+            if (error instanceof Error) {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unkown error occurred.");
+            }
         }
     });
 
