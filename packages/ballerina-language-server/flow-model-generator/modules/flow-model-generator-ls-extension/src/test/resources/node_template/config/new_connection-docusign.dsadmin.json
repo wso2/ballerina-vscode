@@ -12,7 +12,7 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "New Connection",
+      "label": "DS Admin",
       "description": "An API for an organization administrator to manage organizations, accounts and users",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_2.0.0.png"
     },

@@ -18,7 +18,7 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "New Connection",
+      "label": "MySQL",
       "description": "Represents a MySQL database client.",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.15.0.png"
     },

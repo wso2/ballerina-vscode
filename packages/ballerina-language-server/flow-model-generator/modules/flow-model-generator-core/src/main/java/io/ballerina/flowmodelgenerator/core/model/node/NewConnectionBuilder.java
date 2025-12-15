@@ -26,6 +26,7 @@ import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -70,7 +71,6 @@ public class NewConnectionBuilder extends CallBuilder {
 
     @Override
     public void setConcreteConstData() {
-        metadata().label(NEW_CONNECTION_LABEL);
         codedata().node(NodeKind.NEW_CONNECTION).symbol(INIT_SYMBOL);
     }
 
@@ -160,7 +160,7 @@ public class NewConnectionBuilder extends CallBuilder {
 
         functionData = functionDataBuilder.build();
         metadata()
-                .label(functionData.packageName())
+                .label(ConnectorUtil.getConnectorName(functionData.name(), functionData.moduleName()))
                 .description(functionData.description())
                 .icon(CommonUtils.generateIcon(functionData.org(), functionData.packageName(),
                         functionData.version()));

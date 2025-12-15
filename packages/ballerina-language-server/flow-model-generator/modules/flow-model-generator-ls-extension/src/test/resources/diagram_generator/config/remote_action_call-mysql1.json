@@ -350,7 +350,7 @@
       {
         "id": "34766",
         "metadata": {
-          "label": "New Connection",
+          "label": "MySQL",
           "description": "MySQL database client that enables interaction with MySQL servers and supports standard SQL operations.",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mysql_1.16.1.png"
         },
