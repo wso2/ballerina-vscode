@@ -18,7 +18,7 @@
 
 import React, { ReactNode, useState, useEffect } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable } from "@wso2/ballerina-core";
+import { ConfigVariable, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
@@ -198,8 +198,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     }
 
     const isRecordType = () => {
-        if (configVariable?.properties?.type?.typeMembers.length > 0) {
-            const recordType = configVariable?.properties?.type?.typeMembers.find(m => configVariable?.properties?.type?.value.toString().includes(m.type));
+        if (getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers.length > 0) {
+            const recordType = getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers.find(m => configVariable?.properties?.type?.value.toString().includes(m.type));
             return recordType?.kind === 'RECORD_TYPE';
         }
         return false;

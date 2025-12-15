@@ -218,14 +218,14 @@ export class InitVisitor implements BaseVisitor {
                             label: "Patterns",
                             description: "List of binding patterns",
                         },
-                        types: [{ fieldType: "SINGLE_SELECT", ballerinaType: "" }],
+                        types: [{ fieldType: "SINGLE_SELECT", ballerinaType: "", selected: false }],
                         value: [
                             {
                                 metadata: {
                                     label: "Pattern",
                                     description: "Binding pattern",
                                 },
-                                types: [{ fieldType: "EXPRESSION", ballerinaType: "" }],
+                                types: [{ fieldType: "EXPRESSION", ballerinaType: "", selected: false }],
                                 value: "_",
                                 optional: false,
                                 editable: true,

@@ -70,8 +70,8 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
     useEffect(() => {
         const recordTypeFields: RecordTypeField[] = Object.entries(listenerModel.properties)
             .filter(([_, property]) =>
-                property.typeMembers &&
-                property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                getPrimaryInputType(property.types)?.typeMembers &&
+                getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
             )
             .map(([key, property]) => ({
                 key,
@@ -87,7 +87,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                         diagnostics: property.diagnostics
                     }
                 } as Property,
-                recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
         console.log(">>> recordTypeFields", recordTypeFields);
         setRecordTypeFields(recordTypeFields);

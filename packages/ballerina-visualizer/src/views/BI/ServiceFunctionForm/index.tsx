@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FunctionModel, LineRange, RecordTypeField, Property, PropertyTypeMemberInfo, NodePosition } from '@wso2/ballerina-core';
+import { FunctionModel, LineRange, RecordTypeField, Property, PropertyTypeMemberInfo, NodePosition, getPrimaryInputType } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
 import { FormGeneratorNew } from '../Forms/FormGeneratorNew';
@@ -107,8 +107,8 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
         if (model?.properties) {
             const recordFields: RecordTypeField[] = Object.entries(model.properties)
                 .filter(([_, property]) =>
-                    property.typeMembers &&
-                    property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    getPrimaryInputType(property.types)?.typeMembers &&
+                    getPrimaryInputType(property.types)?.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 )
                 .map(([key, property]) => ({
                     key,
@@ -118,13 +118,13 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        types: [{ fieldType: "STRING", ballerinaType: "" }],
+                        types: [{ fieldType: "STRING", ballerinaType: "", selected: false }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: property.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 }));
             setRecordTypeFields(recordFields);
         }
@@ -161,7 +161,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "" }],
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }],
             },
             {
                 key: 'returnType',

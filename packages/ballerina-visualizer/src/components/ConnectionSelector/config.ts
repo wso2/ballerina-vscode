@@ -29,7 +29,7 @@ import {
 export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfig> = {
     MODEL_PROVIDER: {
         displayName: "Model Provider",
-        types: [{ fieldType: "TEXT", ballerinaType: "ai:ModelProvider" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:ModelProvider", selected: false }],
         nodePropertyKey: ["model", "modelProvider"],
         categoryConverter: convertModelProviderCategoriesToSidePanelCategories,
         searchConfig: (aiModuleOrg?: string): ConnectionSearchConfig => ({
@@ -39,25 +39,25 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
     },
     VECTOR_STORE: {
         displayName: "Vector Store",
-        types: [{ fieldType: "TEXT", ballerinaType: "ai:VectorStore" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:VectorStore", selected: false }],
         nodePropertyKey: "vectorStore",
         categoryConverter: convertVectorStoreCategoriesToSidePanelCategories,
     },
     EMBEDDING_PROVIDER: {
         displayName: "Embedding Provider",
-        types: [{ fieldType: "TEXT", ballerinaType: "ai:EmbeddingProvider" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:EmbeddingProvider", selected: false }],
         nodePropertyKey: "embeddingModel",
         categoryConverter: convertEmbeddingProviderCategoriesToSidePanelCategories,
     },
     CHUNKER: {
         displayName: "Chunker",
-        types: [{ fieldType: "TEXT", ballerinaType: "ai:Chunker" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:Chunker", selected: false }],
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     },
     MEMORY_STORE: {
         displayName: "Memory Store",
-        types: [{ fieldType: "TEXT", ballerinaType: "ai:MemoryStore" }],
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:MemoryStore", selected: false }],
         nodePropertyKey: "store",
         categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
         searchConfig: (): ConnectionSearchConfig => ({

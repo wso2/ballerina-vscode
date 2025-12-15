@@ -139,11 +139,13 @@ export type FormFieldInputType = "TEXT" |
     "SINGLE_SELECT_LISTENER" |
     "EXPRESSION_SET" |
     "FLAG" |
-    "CHOICE" ;
+    "CHOICE";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
     ballerinaType?: string;
+    selected: boolean;
+    typeMembers?: PropertyTypeMemberInfo[];
 }
 
 export interface DropdownType extends BaseType {
@@ -178,7 +180,6 @@ export type Property = {
     placeholder?: string;
     types?: InputType[];
     codedata?: CodeData;
-    typeMembers?: PropertyTypeMemberInfo[];
     imports?: Imports;
     advancedValue?: string;
     modified?: boolean;

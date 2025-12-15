@@ -87,7 +87,12 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
-    const isExpressionField = field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type === "ACTION_OR_EXPRESSION" || field.type === "TEXT";
+    const isExpressionField =
+        field.type === "EXPRESSION" ||
+        field.type === "LV_EXPRESSION" || 
+        field.type === "ACTION_OR_EXPRESSION" || 
+        field.type === "RECORD_MAP_EXPRESSION" || 
+        field.type === "TEXT";
 
     if (!field.enabled || field.hidden) {
         return <></>;
@@ -120,10 +125,10 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
-    } else if (field.type.toUpperCase() === "ENUM") {
+    } else if (field.type?.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
-    } else if (field.type.toUpperCase() === "AUTOCOMPLETE") {
+    } else if (field.type?.toUpperCase() === "AUTOCOMPLETE") {
         return <AutoCompleteEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "CUSTOM_DROPDOWN") {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
