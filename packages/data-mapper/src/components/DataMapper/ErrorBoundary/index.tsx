@@ -15,44 +15,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as React from "react";
+import React from "react";
+import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 
 import ErrorScreen from "./Error";
 
 export interface DataMapperErrorBoundaryProps {
-    hasError: boolean;
-    children?: React.ReactNode;
+    children: React.ReactNode;
     onClose: () => void;
+    goToSource: () => void;
 }
 
-export class DataMapperErrorBoundaryC extends React.Component<DataMapperErrorBoundaryProps, { hasError: boolean }> {
-    state = { hasError: false }
+export function DataMapperErrorBoundary(props: DataMapperErrorBoundaryProps) {
+    const { children, onClose, goToSource } = props;
 
-    static getDerivedStateFromProps(props: DataMapperErrorBoundaryProps, state: { hasError: boolean }) {
-      // Only update from props if we're not in an error state
-      if (!state.hasError) {
-        return {
-          hasError: props.hasError
-        };
-      }
-      return null; // Don't update state if we're in an error state
-    }
+    const handleError = (error: Error, errorInfo: React.ErrorInfo) => {
+        console.error("Error caught by DataMapperErrorBoundary:", error, errorInfo);
+    };
 
-    static getDerivedStateFromError() {
-      return { hasError: true };
-    }
-
-    componentDidCatch(error: any, errorInfo: any) {
-      // tslint:disable: no-console
-      console.error(error, errorInfo);
-    }
-
-    render() {
-      if (this.state.hasError) {
-        return <ErrorScreen onClose={this.props.onClose} />;
-      }
-      return this.props?.children;
-    }
+    return (
+        <ReactErrorBoundary
+            FallbackComponent={() => <ErrorScreen onClose={onClose} goToSource={goToSource} />}
+            onError={handleError}
+        >
+            {children}
+        </ReactErrorBoundary>
+    );
 }
-
-export const DataMapperErrorBoundary = DataMapperErrorBoundaryC;
