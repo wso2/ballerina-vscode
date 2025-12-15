@@ -20,18 +20,17 @@ import { InlineMappingsSourceResult, MetadataWithAttachments } from "@wso2/balle
 import { ExtendedLangClient } from "../../../../core";
 import { CopilotEventHandler } from "../../utils/events";
 import { getAllDataMapperSource } from "../orchestrator";
-import { createTempBallerinaDir } from "./temp-project";
 import { createTempFileAndGenerateMetadata, generateMappings } from "./model";
 
 /**
  * Inline mapping generation utilities
  */
-
 export async function generateInlineMappingsSource(
   inlineMappingRequest: MetadataWithAttachments,
   langClient: ExtendedLangClient,
   context: any,
-  eventHandler: CopilotEventHandler
+  eventHandler: CopilotEventHandler,
+  tempDirectory: string
 ): Promise<InlineMappingsSourceResult> {
   if (!inlineMappingRequest) {
     throw new Error("Inline mapping request is required");
@@ -55,7 +54,6 @@ export async function generateInlineMappingsSource(
     throw new Error("Target file name could not be determined from code data");
   }
 
-  const tempDirectory = await createTempBallerinaDir();
   const tempFileMetadata = await createTempFileAndGenerateMetadata(
     {
       tempDir: tempDirectory,
