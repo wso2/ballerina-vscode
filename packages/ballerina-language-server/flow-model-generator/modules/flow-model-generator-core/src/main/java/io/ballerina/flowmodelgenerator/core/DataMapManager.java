@@ -3216,18 +3216,15 @@ public class DataMapManager {
         public void visit(IndexedExpressionNode node) {
             ExpressionNode containerExpr = node.containerExpression();
             SyntaxKind containerKind = containerExpr.kind();
-            boolean isQueryExp = containerKind == SyntaxKind.QUERY_EXPRESSION ||
-                    (containerKind == SyntaxKind.BRACED_EXPRESSION &&
-                     ((BracedExpressionNode) containerExpr).expression().kind() == SyntaxKind.QUERY_EXPRESSION);
 
-            if (isQueryExp) {
-                containerExpr.accept(this);
-            } else {
+            if (containerKind == SyntaxKind.FIELD_ACCESS || containerKind == SyntaxKind.INDEXED_EXPRESSION) {
                 String source = node.toSourceCode().trim();
                 String openBraceRemoved = source.replace("[", ".");
                 String middleBracesRemoved = openBraceRemoved.replace("][", ".");
                 String closedBraceRemoved = middleBracesRemoved.replace("]", "");
                 addInput(closedBraceRemoved);
+            } else {
+                containerExpr.accept(this);
             }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
