@@ -135,7 +135,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 									context: (element.getNode() as DataMapperNodeModel).context
 								}));
 								this.link = link;
-							} else if (!isValueConfig) {
+							} else if (!isValueConfig && !isQueryHeaderPort(element)) {
 								element.fireEvent({}, "expressionBarFocused");
 								this.clearState();
 								this.eject();
