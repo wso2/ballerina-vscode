@@ -1131,7 +1131,8 @@ async function getProjectRoots(): Promise<string[]> {
         return projectInfo?.children.map((child: any) => child.projectPath) ?? [];
     }
 
-    return [await getCurrentProjectRoot()];
+    const currentRoot = await getCurrentProjectRoot();
+    return currentRoot ? [currentRoot] : [];
 }
 
 async function getProjectPathAndServices(
@@ -1150,13 +1151,14 @@ async function getProjectPathAndServices(
         // If currentProjectRoot is a file (single file project), use its directory
         // Otherwise, use the current project root
         try {
-            projectPath = getProjectWorkingDirectory(currentProjectRoots[0]);
+            const root = currentProjectRoots[0];
+            projectPath = getProjectWorkingDirectory(root);
             const services = await getServiceInfo(projectPath, serviceMetadata, filePath);
             if (!services || services.length === 0) {
                 vscode.window.showInformationMessage('No services found in the integration');
                 return;
             }
-            serviceInfos[currentProjectRoots[0]] = services;
+            serviceInfos[projectPath] = services;
         } catch (error) {
             throw new Error(`Failed to determine working directory`);
         }
