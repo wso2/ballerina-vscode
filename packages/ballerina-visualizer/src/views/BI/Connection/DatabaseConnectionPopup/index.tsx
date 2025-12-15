@@ -703,25 +703,25 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                             <FormSection>
                                 <FormField>
                                     <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        Host
+                                        {connectionName ? `${connectionName}Host` : "Host"}
                                     </Typography>
                                     <ReadonlyValue>{credentials.host}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
                                     <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        Port
+                                        {connectionName ? `${connectionName}Port` : "Port"}
                                     </Typography>
                                     <ReadonlyValue>{credentials.port}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
                                     <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        Username
+                                        {connectionName ? `${connectionName}User` : "Username"}
                                     </Typography>
                                     <ReadonlyValue>{credentials.username}</ReadonlyValue>
                                 </FormField>
                                 <FormField>
                                     <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                        Database Name
+                                        {connectionName ? `${connectionName}Database` : "Database Name"}
                                     </Typography>
                                     <ReadonlyValue>{credentials.databaseName}</ReadonlyValue>
                                 </FormField>
