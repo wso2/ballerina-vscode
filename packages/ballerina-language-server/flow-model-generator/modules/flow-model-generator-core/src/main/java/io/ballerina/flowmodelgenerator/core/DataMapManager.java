@@ -3350,7 +3350,7 @@ public class DataMapManager {
             return result;
         }
 
-        String convertedExpression = getTypeConversionExpression(expression, targetKind);
+        String convertedExpression = getTypeConversionExpression(expression, sourceKind, targetKind);
         result.put("convertedExpression", convertedExpression);
         return result;
     }
@@ -3384,7 +3384,7 @@ public class DataMapManager {
      * @param targetKind the target type kind
      * @return the converted expression
      */
-    private String getTypeConversionExpression(String expression, TypeDescKind targetKind) {
+    private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
         if (targetKind == TypeDescKind.STRING) {
             return expression + ".toString()";
         }
@@ -3396,7 +3396,8 @@ public class DataMapManager {
             default -> null;
         };
 
-        if (targetTypeName != null) {
+        if (targetTypeName != null &&
+                sourceKind != TypeDescKind.STRING && sourceKind != TypeDescKind.BOOLEAN) {
             return "<" + targetTypeName + ">" + expression;
         }
 
