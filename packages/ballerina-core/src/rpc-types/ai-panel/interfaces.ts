@@ -302,7 +302,6 @@ export interface DeveloperDocument {
 }
 
 export interface RequirementSpecification {
-    filepath: string;
     content: string;
 }
 

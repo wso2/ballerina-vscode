@@ -255,8 +255,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(isRequirementsSpecificationFileExist, HOST_EXTENSION, params);
     }
 
-    getDriftDiagnosticContents(params: string): Promise<LLMDiagnostics> {
-        return this._messenger.sendRequest(getDriftDiagnosticContents, HOST_EXTENSION, params);
+    getDriftDiagnosticContents(): Promise<LLMDiagnostics> {
+        return this._messenger.sendRequest(getDriftDiagnosticContents, HOST_EXTENSION);
     }
 
     addChatSummary(params: AIChatSummary): Promise<boolean> {
@@ -283,8 +283,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(updateRequirementSpecification, HOST_EXTENSION, params);
     }
 
-    createTestDirecoryIfNotExists(params: string): void {
-        return this._messenger.sendNotification(createTestDirecoryIfNotExists, HOST_EXTENSION, params);
+    createTestDirecoryIfNotExists(): void {
+        return this._messenger.sendNotification(createTestDirecoryIfNotExists, HOST_EXTENSION);
     }
 
     submitFeedback(params: SubmitFeedbackRequest): Promise<boolean> {
