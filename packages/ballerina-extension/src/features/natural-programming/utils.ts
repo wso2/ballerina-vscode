@@ -25,7 +25,6 @@ import { CustomDiagnostic } from './custom-diagnostics';
 import { requirementsSpecification, isErrorCode } from "../../rpc-managers/ai-panel/utils";
 import { BallerinaPluginConfig, ResultItem, DriftResponseData, DriftResponse, BallerinaSource } from "./interfaces";
 import {
-    PROJECT_DOCUMENTATION_DRIFT_CHECK_ENDPOINT, API_DOCS_DRIFT_CHECK_ENDPOINT,
     DEVELOPER_OVERVIEW_FILENAME, NATURAL_PROGRAMMING_PATH, DEVELOPER_OVERVIEW_RELATIVE_PATH,
     REQUIREMENT_DOC_PREFIX, REQUIREMENT_TEXT_DOCUMENT, REQUIREMENT_MD_DOCUMENT,
     README_FILE_NAME_LOWERCASE, DRIFT_DIAGNOSTIC_ID,
@@ -37,7 +36,7 @@ import {
     ERROR_NO_BALLERINA_SOURCES,
     LOGIN_REQUIRED_WARNING
 } from "./constants";
-import { isError, isNumber } from 'lodash';
+import { isNumber } from 'lodash';
 import { HttpStatusCode } from 'axios';
 import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
 import { AIMachineEventType, BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
@@ -45,9 +44,8 @@ import { getCurrentBallerinaProjectFromContext } from '../config-generator/confi
 import { BallerinaExtension } from 'src/core';
 import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
-import { fetchWithAuth } from '../ai/utils/ai-client';
-
-let controller = new AbortController();
+import { performApiDocsDriftCheck, performDocumentationDriftCheck } from './drift-check';
+import { ApiDocsDriftResponse, DocumentationDriftResponse } from './drift-check/schemas';
 
 export async function getLLMDiagnostics(projectPath: string, diagnosticCollection
     : vscode.DiagnosticCollection): Promise<number | null> {
@@ -56,95 +54,62 @@ export async function getLLMDiagnostics(projectPath: string, diagnosticCollectio
         = getSourcesOfNonDefaultModulesWithReadme(path.join(projectPath, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
-    const backendurl = await getBackendURL();
-    const token = await getAccessToken();
 
-    const responses = await getLLMResponses(sources, token, backendurl);
-
-    if (responses == null) {
-        return;
-    }
+    const responses = await getLLMResponses(sources);
 
     if (isNumber(responses)) {
         return responses;
     }
 
     await createDiagnosticCollection(responses, projectPath, diagnosticCollection);
+    return null;
 }
 
-async function getLLMResponses(sources: BallerinaSource[], token: string, backendurl: string)
-    : Promise<any[] | number> {
-    let promises: Promise<Response | Error>[] = [];
-    const nonDefaultModulesWithReadmeFiles: string[]
-        = sources.map(source => source.moduleName).filter(name => name != DEFAULT_MODULE);
+async function getLLMResponses(sources: BallerinaSource[])
+    : Promise<DriftResponseData[] | number> {
+    try {
+        const promises: Promise<ApiDocsDriftResponse | DocumentationDriftResponse>[] = [];
+        const nonDefaultModulesWithReadmeFiles: string[]
+            = sources.map(source => source.moduleName).filter(name => name !== DEFAULT_MODULE);
 
-    const commentResponsePromise = fetchWithAuth(
-        backendurl + API_DOCS_DRIFT_CHECK_ENDPOINT,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify([sources[0].balFiles]),
-            signal: controller.signal,
-        },
-    );
-    promises.push(commentResponsePromise);
-
-    sources.forEach(source => {
-        let body: string[] = [source.balFiles, source.requirements, source.readme, source.developerOverview];
-
-        if (source.moduleName == DEFAULT_MODULE) {
-            body.push(nonDefaultModulesWithReadmeFiles.join(", "));
-        }
-
-        const documentationSourceResponsePromise = fetchWithAuth(
-            backendurl + PROJECT_DOCUMENTATION_DRIFT_CHECK_ENDPOINT,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(body),
-                signal: controller.signal,
-            },
+        // API docs drift check
+        promises.push(
+            performApiDocsDriftCheck({
+                ballerinaSourceFiles: sources[0].balFiles
+            })
         );
-        promises.push(documentationSourceResponsePromise);
-    });
 
-    let responses: (Response | Error)[] = await Promise.all(promises);
-    const firstResponse = responses[0];
+        // Documentation drift check for each source
+        sources.forEach(source => {
+            promises.push(
+                performDocumentationDriftCheck({
+                    ballerinaSourceFiles: source.balFiles,
+                    requirementSpecification: source.requirements,
+                    readmeDocumentation: source.readme,
+                    developerDocumentation: source.developerOverview,
+                    nonDefaultModules: source.moduleName === DEFAULT_MODULE
+                        ? nonDefaultModulesWithReadmeFiles.join(", ")
+                        : undefined
+                })
+            );
+        });
 
-    const filteredResponses: Response[]
-        = responses.filter(response => response != undefined && !isError(response) && response.ok) as Response[];
+        const responses = await Promise.all(promises);
 
-    if (filteredResponses.length === 0) {
-        if (isError(firstResponse)) {
-            return HttpStatusCode.InternalServerError;
-        }
+        // Convert structured responses to DriftResponseData format
+        const driftResponses: DriftResponseData[] = responses
+            .filter(response => response && response.results && response.results.length > 0)
+            .map(response => ({ results: response.results as ResultItem[] }));
 
-        if (firstResponse == undefined) {
-            return null;
-        }
-        return firstResponse.status;
+        return driftResponses;
+    } catch (error) {
+        console.error('Error in drift check:', error);
+        return HttpStatusCode.InternalServerError;
     }
-
-    let extractedResponses: any[] = [];
-
-    for (const response of filteredResponses) {
-        const extractedResponse = await extractResponseAsJsonFromString(await streamToString(response.body));
-        if (extractedResponse != null) {
-            extractedResponses.push(extractedResponse);
-        }
-    }
-
-    return extractedResponses;
 }
 
 async function createDiagnosticCollection(
-    responses: any[],
+    responses: DriftResponseData[],
     projectPath: string,
     diagnosticCollection: vscode.DiagnosticCollection
 ) {
@@ -270,20 +235,14 @@ export async function getLLMDiagnosticArrayAsString(projectPath: string): Promis
         = getSourcesOfNonDefaultModulesWithReadme(path.join(projectPath, "modules"));
 
     const sources: BallerinaSource[] = [ballerinaProjectSource, ...sourcesOfNonDefaultModulesWithReadme];
-    const backendurl = await getBackendURL();
-    const token = await getAccessToken();
 
-    const responses = await getLLMResponses(sources, token, backendurl);
-
-    if (responses == null) {
-        return "";
-    }
+    const responses = await getLLMResponses(sources);
 
     if (isNumber(responses)) {
         return responses;
     }
 
-    let diagnosticArray = (await createDiagnosticArray(responses, projectPath)).map(diagnostic => {
+    const diagnosticArray = (await createDiagnosticArray(responses, projectPath)).map(diagnostic => {
         return `${diagnostic.message}`;
     })
         .join("\n\n");
@@ -291,8 +250,8 @@ export async function getLLMDiagnosticArrayAsString(projectPath: string): Promis
     return diagnosticArray;
 }
 
-async function createDiagnosticArray(responses: any[], projectPath: string): Promise<Diagnostic[]> {
-    const diagnostics = [];
+async function createDiagnosticArray(responses: DriftResponseData[], projectPath: string): Promise<Diagnostic[]> {
+    const diagnostics: Diagnostic[] = [];
 
     for (const response of responses) {
         await createDiagnosticList(response, projectPath, diagnostics);
@@ -543,7 +502,7 @@ export function handleChatSummaryFailure(message: string) {
 }
 
 // Function to find a file in a case-insensitive way
-function findFileCaseInsensitive(directory, fileName) {
+function findFileCaseInsensitive(directory: string, fileName: string) {
     const files = fs.readdirSync(directory);
     const targetFile = files.find(file => file.toLowerCase() === fileName.toLowerCase());
     const file = targetFile ? targetFile : fileName;
