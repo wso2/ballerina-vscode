@@ -166,27 +166,6 @@ async function createTempBallerinaFile(
   return tempTestFilePath;
 }
 
-/**
- * Creates a temporary Ballerina directory.
- *
- * @deprecated This function creates temp directories that are not managed by the state machine.
- * In datamapper flows, the state machine manages temp directories via setupTempProjectAction.
- * This function is kept only for backward compatibility with non-state-machine flows.
- *
- * WARNING: Using this function in state-machine-managed flows will cause memory leaks
- * as these temp directories are not tracked or cleaned up.
- */
-export async function createTempBallerinaDir(): Promise<string> {
-  console.warn('[DEPRECATED] createTempBallerinaDir: Use state machine temp directory instead');
-  const projectRoot = StateMachine.context().projectPath;
-  const randomNum = Math.floor(Math.random() * 90000) + 10000;
-  const tempDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), `ballerina-data-mapping-${randomNum}-`)
-  );
-  fs.cpSync(projectRoot, tempDir, { recursive: true });
-  return tempDir;
-}
-
 export function extractImports(content: string, filePath: string): { filePath: string; statements: ImportInfo[] } {
   const withoutSingleLineComments = content.replace(/\/\/.*$/gm, "");
   const withoutComments = withoutSingleLineComments.replace(/\/\*[\s\S]*?\*\//g, "");
