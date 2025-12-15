@@ -96,6 +96,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.IMPORT_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
+import static io.ballerina.modelgenerator.commons.CommonUtils.toPosition;
 import static io.ballerina.persist.utils.BalProjectUtils.populateEntities;
 import static io.ballerina.persist.utils.BalProjectUtils.populateEnums;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
@@ -304,7 +305,9 @@ public class PersistClient {
         SyntaxTree newSyntaxTree = syntaxTree.modifyWith(modulePartNode);
         SyntaxTree formattedSyntaxTree = Formatter.format(newSyntaxTree);
         List<TextEdit> textEdits = new ArrayList<>();
-        textEdits.add(new TextEdit(START_RANGE, formattedSyntaxTree.toSourceCode()));
+        Range range = new Range(toPosition(LinePosition.from(0, 0)),
+                toPosition(syntaxTree.rootNode().lineRange().endLine()));
+        textEdits.add(new TextEdit(range, formattedSyntaxTree.toSourceCode()));
         textEditsMap.put(connectionsFilePath, textEdits);
     }
 
