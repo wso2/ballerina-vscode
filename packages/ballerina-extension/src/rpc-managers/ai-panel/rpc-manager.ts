@@ -546,7 +546,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         fs.writeFileSync(requirementsFilePath, requirementsSpecification.content, 'utf8');
     }
 
-    async getDriftDiagnosticContents(projectPath: string): Promise<LLMDiagnostics> {
+    async getDriftDiagnosticContents(): Promise<LLMDiagnostics> {
         const result = await getLLMDiagnosticArrayAsString(StateMachine.context().projectPath);
         if (isNumber(result)) {
             return {
@@ -561,7 +561,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async createTestDirecoryIfNotExists(directoryPath: string) {
+    async createTestDirecoryIfNotExists() {
         const testDirName = path.join(StateMachine.context().projectPath, TEST_DIR_NAME);
         if (!fs.existsSync(testDirName)) {
             fs.mkdirSync(testDirName, { recursive: true }); // Add recursive: true
