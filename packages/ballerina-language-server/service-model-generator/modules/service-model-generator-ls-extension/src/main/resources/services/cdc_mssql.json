@@ -163,6 +163,73 @@
         }
       ]
     },
+    "configureListener": {
+      "metadata": {
+        "label": "Use Existing Listener or Create New Listener",
+        "description": "Use Existing Listener or Create New Listener"
+      },
+      "value": "0",
+      "valueType": "CHOICE",
+      "isType": false,
+      "placeholder": "",
+      "items": [],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": true,
+      "choices": [
+        {
+          "metadata": {
+            "label": "Use Existing Listener",
+            "description": "Use Existing Listener"
+          },
+          "enabled": true,
+          "editable": true,
+          "value": "true",
+          "valueType": "FORM",
+          "isType": false,
+          "placeholder": "true",
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "selectListener": {
+              "metadata": {
+                "label": "Select Listener",
+                "description": "Select from the existing Microsoft SQL Server CDC listeners"
+              },
+              "codedata": {
+                "type": "LISTENER_VAR_NAME"
+              },
+              "placeholder": "",
+              "valueType": "SINGLE_SELECT",
+              "valueTypeConstraint": "string",
+              "value": "mssqlCdcListener",
+              "items": [],
+              "typeMembers": [],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          }
+        },
+        {
+            "metadata": {
+                "label": "Create New Listener",
+                "description": "Create New Listener"
+            },
+            "enabled": false,
+            "editable": true,
+            "value": "true",
+            "valueType": "FORM",
+            "isType": false,
+            "placeholder": "true",
+            "optional": false,
+            "advanced": false,
+            "properties": {}
+        }
+      ]
+    },
     "listenerVarName": {
       "metadata": {
         "label": "Listener Name",
