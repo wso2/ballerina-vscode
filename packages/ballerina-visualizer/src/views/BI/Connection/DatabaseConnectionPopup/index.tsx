@@ -92,7 +92,7 @@ const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
+    overflow: auto;
     padding: 24px 32px;
     padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
     min-height: 0;
@@ -145,7 +145,6 @@ const FormField = styled.div`
 `;
 
 const ActionButton = styled(Button)`
-    margin-top: 24px;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
@@ -328,10 +327,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
     const [currentStep, setCurrentStep] = useState(0);
     const [credentials, setCredentials] = useState<DatabaseCredentials>({
-        databaseType: "PostgreSQL",
+        databaseType: "MySQL",
         host: "",
-        port: "5432",
-        databaseName: "mydb",
+        port: "3306",
+        databaseName: "",
         username: "",
         password: "",
     });
@@ -548,7 +547,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 <TextField
                                     id="host"
                                     label="Host"
-                                    placeholder="localhost or IP address"
+                                    placeholder="Database host"
                                     value={credentials.host}
                                     onTextChange={(value) => handleCredentialsChange("host", value)}
                                 />
@@ -557,6 +556,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 <TextField
                                     id="port"
                                     label="Port"
+                                    placeholder="Database port"
                                     value={credentials.port}
                                     onTextChange={(value) => handleCredentialsChange("port", value)}
                                 />
@@ -606,6 +606,9 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 {selectedTablesCount} of {totalTablesCount} selected
                             </Typography>
                         </SelectionInfo>
+                        <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
+                            Select All
+                        </SelectAllButton>
                         <TablesGrid>
                             {tables.map((table, index) => (
                                 <TableCard
@@ -622,15 +625,12 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 </TableCard>
                             ))}
                         </TablesGrid>
-                        <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                            Select All
-                        </SelectAllButton>
                     </StepContent>
                 );
 
             case 2:
                 return (
-                    <StepContent fillHeight={true}>
+                    <StepContent fillHeight={true} style={{ gap: "16px" }}>
                         <div>
                             <SectionTitle variant="h3">Connection Details</SectionTitle>
                             <SectionSubtitle variant="body2">
@@ -642,20 +642,19 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 <TextField
                                     id="connection-name"
                                     label="Connection Name"
-                                    placeholder="e.g., Production Database"
+                                    placeholder="Database connection name"
                                     value={connectionName}
                                     onTextChange={setConnectionName}
                                 />
-                                <Typography variant="caption" sx={{ color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                    This name will be used to reference this connection in your code
-                                </Typography>
                             </FormField>
                         </FormSection>
                         <ConfigurablesPanel>
+                            <div style={{ gap: "4px" }}>
                             <SectionTitle variant="h3">Connection Configurables</SectionTitle>
-                            <ConfigurablesDescription variant="body2">
-                                Host, port, username, password, and database name will be created as configurables. Define default values below.
-                            </ConfigurablesDescription>
+                                <ConfigurablesDescription variant="body2">
+                                    Host, port, username, password, and database name will be created as configurables. Define their default values below.
+                                </ConfigurablesDescription>
+                            </div>
                             <FormSection>
                                 <FormField>
                                     <TextField

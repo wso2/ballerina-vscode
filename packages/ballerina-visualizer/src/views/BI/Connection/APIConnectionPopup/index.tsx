@@ -138,7 +138,7 @@ const SectionSubtitle = styled(Typography)`
 const FormSection = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 30px;
     background: transparent;
     border: none;
     padding: 0;
@@ -261,11 +261,11 @@ const StepBadge = styled.div<{ active?: boolean; completed?: boolean }>`
                 : ThemeColors.SURFACE_CONTAINER};
     border: 1px solid
         ${(props: { active?: boolean; completed?: boolean }) =>
-            props.completed
-                ? ThemeColors.PRIMARY
-                : props.active
-                    ? ThemeColors.OUTLINE
-                    : ThemeColors.OUTLINE_VARIANT};
+        props.completed
+            ? ThemeColors.PRIMARY
+            : props.active
+                ? ThemeColors.OUTLINE
+                : ThemeColors.OUTLINE_VARIANT};
     color: ${(props: { active?: boolean; completed?: boolean }) =>
         props.completed ? ThemeColors.PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
     font-weight: 600;
@@ -346,9 +346,9 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         if (!rpcClient) {
             return { success: false, errorMessage: "RPC client not available" };
         }
-        
+
         const isOpenApi = specType.toLowerCase() === "openapi";
-        
+
         if (isOpenApi) {
             const response = await rpcClient.getBIDiagramRpcClient().generateOpenApiClient({
                 openApiContractPath: specFilePath,
@@ -402,7 +402,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             try {
                 // Small delay to ensure the connector is available
                 await new Promise(resolve => setTimeout(resolve, 500));
-                
+
                 const defaultPosition = target || { line: 0, offset: 0 };
                 const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                     position: {
@@ -500,7 +500,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         return (
             <>
                 <StepperContainer>
-                    <Stepper steps={steps} currentStep={currentStep} alignment="center"  />
+                    <Stepper steps={steps} currentStep={currentStep} alignment="center" />
                 </StepperContainer>
             </>
         );
@@ -554,7 +554,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                         </UploadIcon>
                         <UploadText>
                             <UploadTitle variant="body2">
-                                {selectedFilePath ? getFileName(selectedFilePath) : "Choose file to import"}
+                                {selectedFilePath ? selectedFilePath : "Choose file to import"}
                             </UploadTitle>
                             <UploadSubtitle variant="body2">Supports {supportedFileFormats} files</UploadSubtitle>
                         </UploadText>
@@ -568,6 +568,12 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         if (selectedFlowNode) {
             return (
                 <StepContent fillHeight={true}>
+                    <div>
+                        <SectionTitle variant="h3">Connection Details</SectionTitle>
+                        <SectionSubtitle variant="body2">
+                            Configure connection settings
+                        </SectionSubtitle>
+                    </div>
                     <ConnectionConfigView
                         fileName={fileName}
                         submitText={isSavingConnection ? "Creating..." : "Save Connection"}

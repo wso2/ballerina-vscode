@@ -167,6 +167,27 @@ const ConnectorInfoDescription = styled(Typography)`
     margin: 0;
 `;
 
+const ConnectionDetailsSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 16px;
+`;
+
+const ConnectionDetailsTitle = styled(Typography)`
+    font-size: 16px;
+    font-weight: 600;
+    color: ${ThemeColors.ON_SURFACE};
+    margin: 0;
+`;
+
+const ConnectionDetailsSubtitle = styled(Typography)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    margin: 0;
+`;
+
+
 
 const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
@@ -208,7 +229,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
             try {
                 const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
                 console.log(">>> moduleNodes", { moduleNodes: res });
-                
+
                 if (!res.flowModel.connections || res.flowModel.connections.length === 0) {
                     console.error(">>> No connections found");
                     if (onClose) {
@@ -234,10 +255,10 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                 }
 
                 const connectionFile = connector.codedata.lineRange.fileName;
-                const connectionFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ 
-                    segments: [connectionFile] 
+                const connectionFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({
+                    segments: [connectionFile]
                 })).filePath;
-                
+
                 setFilePath(connectionFilePath);
                 setConnection(connector);
 
@@ -352,7 +373,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     <ConfigTitleContainer>
                         <PopupTitle variant="h2">Edit Connection</PopupTitle>
                         <ConfigSubtitle variant="body2">
-                            Update connection settings for this connector
+                            Update connection details
                         </ConfigSubtitle>
                     </ConfigTitleContainer>
                     <CloseButton appearance="icon" onClick={handleClosePopup}>
@@ -360,7 +381,7 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                     </CloseButton>
                 </ConfigHeader>
 
-                <ConnectorInfoCard>
+                {/* <ConnectorInfoCard>
                     <ConnectorInfoIcon>
                         {getConnectorIcon() ? (
                             <StyledConnectorIcon>
@@ -376,27 +397,35 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                             {getConnectorDescription()}
                         </ConnectorInfoDescription>
                     </ConnectorInfoContent>
-                </ConnectorInfoCard>
+                </ConnectorInfoCard> */}
 
                 <ContentContainer hasFooterButton={true}>
-                    <ConnectionConfigView
-                        submitText={isSaving ? "Saving..." : "Save"}
-                        fileName={filePath}
-                        selectedNode={(() => {
-                            // Remove description property from node before passing to form
-                            // since it's already shown in the connector info card
-                            const nodeWithoutDescription = cloneDeep(connection);
-                            if (nodeWithoutDescription?.metadata?.description) {
-                                delete nodeWithoutDescription.metadata.description;
-                            }
-                            return nodeWithoutDescription;
-                        })()}
-                        onSubmit={handleOnFormSubmit}
-                        updatedExpressionField={updatedExpressionField}
-                        resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                        isSaving={isSaving}
-                        footerActionButton={true}
-                    />
+                    <>
+                        <ConnectionDetailsSection>
+                            <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
+                            <ConnectionDetailsSubtitle variant="body2">
+                                Configure your connection settings
+                            </ConnectionDetailsSubtitle>
+                        </ConnectionDetailsSection>
+                        <ConnectionConfigView
+                            submitText={isSaving ? "Updating..." : "Update Connection"}
+                            fileName={filePath}
+                            selectedNode={(() => {
+                                // Remove description property from node before passing to form
+                                // since it's already shown in the connector info card
+                                const nodeWithoutDescription = cloneDeep(connection);
+                                if (nodeWithoutDescription?.metadata?.description) {
+                                    delete nodeWithoutDescription.metadata.description;
+                                }
+                                return nodeWithoutDescription;
+                            })()}
+                            onSubmit={handleOnFormSubmit}
+                            updatedExpressionField={updatedExpressionField}
+                            resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                            isSaving={isSaving}
+                            footerActionButton={true}
+                        />
+                    </>
                 </ContentContainer>
             </PopupContainer>
         </>
