@@ -43,7 +43,7 @@ const PopupContainer = styled.div`
     max-height: 800px;
     z-index: 2000;
     background-color: ${ThemeColors.SURFACE_BRIGHT};
-    border-radius: 20px;
+    border-radius: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;

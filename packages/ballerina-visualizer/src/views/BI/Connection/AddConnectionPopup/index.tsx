@@ -45,7 +45,7 @@ const PopupContainer = styled.div`
     max-height: 800px;
     z-index: 2000;
     background-color: ${ThemeColors.SURFACE_BRIGHT};
-    border-radius: 20px;
+    border-radius: 10px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -103,7 +103,7 @@ const Section = styled.div`
 `;
 
 const SectionTitle = styled(Typography)`
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     color: ${ThemeColors.ON_SURFACE};
     margin: 0;
@@ -577,7 +577,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                     {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
                         <Section>
-                            <SectionTitle variant="h3">CREATE NEW CONNECTOR</SectionTitle>
+                            <SectionTitle variant="h4">CREATE NEW CONNECTOR</SectionTitle>
                             <CreateConnectorOptions>
                                 {connectorOptions.showApiSpec && (
                                     <ConnectorOptionCard onClick={handleApiSpecConnection}>
@@ -636,7 +636,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                     <Section>
                         <SectionHeader>
-                            <SectionTitle variant="h3">PRE-BUILT CONNECTORS</SectionTitle>
+                            <SectionTitle variant="h4">PRE-BUILT CONNECTORS</SectionTitle>
                             <FilterButtons>
                                 <FilterButton
                                     active={filterType === "All"}
