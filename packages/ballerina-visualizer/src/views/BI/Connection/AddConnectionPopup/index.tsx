@@ -171,7 +171,6 @@ const ConnectorOptionButtons = styled.div`
 
 const ConnectorTypeButton = styled(Button)`
     font-size: 12px;
-    padding: 4px 12px;
     height: auto;
 `;
 
