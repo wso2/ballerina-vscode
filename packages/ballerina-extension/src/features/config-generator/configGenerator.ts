@@ -32,7 +32,7 @@ import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 import { TracerMachine } from "../tracing";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { promptPackageSelection } from "../../utils/command-utils";
+import { selectPackageOrPrompt } from "../../utils/command-utils";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -53,9 +53,7 @@ export async function prepareAndGenerateConfig(
             const packages = StateMachine.context().projectInfo?.children;
             const packageList = packages?.map((child) => child.projectPath) ?? [];
 
-            const selectedPackage = await promptPackageSelection(packageList, "Select a package to run");
-
-            // User cancelled selection
+            const selectedPackage = await selectPackageOrPrompt(packageList, "Select a package to run");
             if (!selectedPackage) {
                 return;
             }
