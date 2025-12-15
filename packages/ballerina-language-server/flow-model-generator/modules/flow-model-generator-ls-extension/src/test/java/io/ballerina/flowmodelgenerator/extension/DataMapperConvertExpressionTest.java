@@ -56,8 +56,6 @@ public class DataMapperConvertExpressionTest extends AbstractLSTest {
         };
     }
 
-
-
     @Test(dataProvider = "data-provider")
     @Override
     public void test(Path config) throws IOException {

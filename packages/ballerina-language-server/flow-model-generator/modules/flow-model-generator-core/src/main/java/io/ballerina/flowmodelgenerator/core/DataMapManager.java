@@ -3350,7 +3350,7 @@ public class DataMapManager {
             return result;
         }
 
-        String convertedExpression = getTypeConversionExpression(expression, sourceKind, targetKind);
+        String convertedExpression = getTypeConversionExpression(expression, targetKind);
         result.put("convertedExpression", convertedExpression);
         return result;
     }
@@ -3381,11 +3381,10 @@ public class DataMapManager {
      * Uses type casting with <> for all conversions except to string which uses .toString().
      *
      * @param expression the original expression
-     * @param sourceKind the source type kind
      * @param targetKind the target type kind
      * @return the converted expression
      */
-    private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+    private String getTypeConversionExpression(String expression, TypeDescKind targetKind) {
         if (targetKind == TypeDescKind.STRING) {
             return expression + ".toString()";
         }
