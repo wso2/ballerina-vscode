@@ -18,72 +18,13 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, Dropdown, Overlay, Stepper, TextField, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { FormSubmitOptions } from "../../FlowDiagram";
-
-const PopupOverlay = styled(Overlay)`
-    z-index: 1999;
-`;
-
-const PopupContainer = styled.div`
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 800px;
-    height: 80%;
-    max-height: 800px;
-    z-index: 2000;
-    background-color: ${ThemeColors.SURFACE_BRIGHT};
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-`;
-
-const PopupHeader = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px 32px;
-    border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-`;
-
-const BackButton = styled(Button)`
-    min-width: auto;
-    padding: 4px;
-`;
-
-const HeaderTitleContainer = styled.div`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-`;
-
-const PopupTitle = styled(Typography)`
-    font-size: 20px;
-    font-weight: 600;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
-const PopupSubtitle = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin: 0;
-`;
-
-const CloseButton = styled(Button)`
-    min-width: auto;
-    padding: 4px;
-`;
+import { PopupOverlay, PopupContainer, PopupHeader, BackButton, HeaderTitleContainer, PopupTitle, PopupSubtitle, CloseButton } from "../styles";
 
 const StepperContainer = styled.div`
     padding: 20px 32px 18px 32px;
