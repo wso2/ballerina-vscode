@@ -1165,7 +1165,7 @@
           "variable": {
             "metadata": {
               "label": "Connection Name",
-              "description": "Name of the variable"
+              "description": "Name of the connection"
             },
             "valueType": "IDENTIFIER",
             "value": "httpClient",
@@ -1897,7 +1897,7 @@
           "variable": {
             "metadata": {
               "label": "Connection Name",
-              "description": "Name of the variable"
+              "description": "Name of the connection"
             },
             "valueType": "IDENTIFIER",
             "value": "httpClientResult",
@@ -3024,7 +3024,7 @@
           "variable": {
             "metadata": {
               "label": "Connection Name",
-              "description": "Name of the variable"
+              "description": "Name of the connection"
             },
             "valueType": "IDENTIFIER",
             "value": "redisClient",

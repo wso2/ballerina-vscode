@@ -1669,7 +1669,7 @@
           "variable": {
             "metadata": {
               "label": "Connection Name",
-              "description": "Name of the variable"
+              "description": "Name of the connection"
             },
             "types": [
               {
@@ -2533,7 +2533,7 @@
           "variable": {
             "metadata": {
               "label": "Connection Name",
-              "description": "Name of the variable"
+              "description": "Name of the connection"
             },
             "types": [
               {
