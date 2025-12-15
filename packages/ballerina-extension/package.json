@@ -698,6 +698,14 @@
                 "category": "BI"
             },
             {
+                "command": "BI.devant.push.cloud",
+                "title": "Save Changes in the cloud",
+                "icon": "$(save)",
+                "group": "navigation",
+                "category": "BI",
+                "enablement": "isBIProject && devant.editor"
+            },
+            {
                 "command": "ballerina.showTraceWindow",
                 "title": "Show Traces",
                 "icon": "$(list-tree)",
@@ -878,6 +886,12 @@
                     "group": "navigation@3",
                     "title": "Debug Integration",
                     "when": "isBalVisualizerActive && isBIProject"
+                },
+                {
+                    "command": "BI.devant.push.cloud",
+                    "group": "navigation",
+                    "title": "Save Changes in the cloud",
+                    "when": "isBIProject && devant.editor"
                 }
             ],
             "notebook/toolbar": [
