@@ -402,6 +402,12 @@
             "description": "The accessor of the function"
           },
           "value": "get",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": false,
           "optional": false,
@@ -413,6 +419,12 @@
             "description": "The name of the field"
           },
           "value": "greeting",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -423,6 +435,12 @@
             "label": "Description",
             "description": "The description of the field"
           },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -441,6 +459,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Context",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Context",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -449,6 +474,12 @@
             "name": {
               "placeholder": "context",
               "value": "context",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -473,6 +504,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Field",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Field",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -481,6 +519,12 @@
             "name": {
               "placeholder": "'field",
               "value": "'field",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -581,6 +625,12 @@
                 "description": "The type of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "ACTION_TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -592,6 +642,12 @@
                 "description": "The name of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -602,6 +658,12 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -612,6 +674,12 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -642,6 +710,12 @@
                     "description": "The field returns a nullable value"
                   },
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -653,6 +727,12 @@
                     "description": "The field returns a non-nullable value"
                   },
                   "value": "Mark type as nullable",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -665,6 +745,12 @@
               "advanced": false
             }
           },
+          "types": [
+            {
+              "fieldType": "ACTION_TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -736,6 +822,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -754,6 +847,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -773,6 +873,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": false,
           "optional": false,
@@ -784,6 +890,12 @@
             "description": "The name of the mutation"
           },
           "value": "updateName",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -794,6 +906,12 @@
             "label": "Description",
             "description": "The description of the field"
           },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -812,6 +930,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Context",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Context",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -820,6 +945,12 @@
             "name": {
               "placeholder": "context",
               "value": "context",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -844,6 +975,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Field",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Field",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -852,6 +990,12 @@
             "name": {
               "placeholder": "'field",
               "value": "'field",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1031,6 +1175,12 @@
                 "description": "The type of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "ACTION_TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -1042,6 +1192,12 @@
                 "description": "The name of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -1052,6 +1208,12 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -1062,6 +1224,12 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -1092,6 +1260,12 @@
                     "description": "The field returns a nullable value"
                   },
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -1103,6 +1277,12 @@
                     "description": "The field returns a non-nullable value"
                   },
                   "value": "Mark type as nullable",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -1115,6 +1295,12 @@
               "advanced": false
             }
           },
+          "types": [
+            {
+              "fieldType": "ACTION_TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -1186,6 +1372,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -1204,6 +1397,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -1224,6 +1424,12 @@
             "description": "The accessor of the function"
           },
           "value": "subscribe",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": false,
           "optional": false,
@@ -1235,6 +1441,12 @@
             "description": "The name of the subscription"
           },
           "value": "names",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -1245,6 +1457,12 @@
             "label": "Description",
             "description": "The description of the field"
           },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -1263,6 +1481,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Context",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Context",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1271,6 +1496,12 @@
             "name": {
               "placeholder": "context",
               "value": "context",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1295,6 +1526,13 @@
               },
               "placeholder": "string",
               "value": "graphql:Field",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Field",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1303,6 +1541,12 @@
             "name": {
               "placeholder": "'field",
               "value": "'field",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -1324,6 +1568,12 @@
                 "description": "The type of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "ACTION_TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -1335,6 +1585,12 @@
                 "description": "The name of the argument"
               },
               "value": "",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -1345,6 +1601,12 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -1355,6 +1617,12 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -1385,6 +1653,12 @@
                     "description": "The field returns a stream of nullable values"
                   },
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -1396,6 +1670,12 @@
                     "description": "The field returns a stream of non-nullable values"
                   },
                   "value": "Mark type as nullable",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -1408,6 +1688,12 @@
               "advanced": false
             }
           },
+          "types": [
+            {
+              "fieldType": "ACTION_TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -1479,6 +1765,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -1497,6 +1790,13 @@
             },
             "placeholder": "{}",
             "value": "",
+            "types": [
+              {
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
