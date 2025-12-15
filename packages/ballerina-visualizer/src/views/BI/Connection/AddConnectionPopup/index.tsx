@@ -28,7 +28,6 @@ import APIConnectionPopup from "../APIConnectionPopup";
 import ConnectionConfigurationPopup from "../ConnectionConfigurationPopup";
 import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
 import { BodyTinyInfo } from "../../../styles";
-import AddConnectionWizard from "../AddConnectionWizard";
 
 const PopupOverlay = styled(Overlay)`
     z-index: 1999;
@@ -213,11 +212,6 @@ const FilterButton = styled.button<{ active?: boolean }>`
         color: ${(props: { active?: boolean }) =>
         props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE};
     }
-
-    // &:focus {
-    //     outline: 1px solid ${ThemeColors.PRIMARY};
-    //     outline-offset: 2px;
-    // }
 `;
 
 const ConnectorsGrid = styled.div`
@@ -333,11 +327,11 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             .then(async (model) => {
                 console.log(">>> bi searched connectors", model);
                 console.log(">>> bi filtered connectors", model.categories);
-                
+
                 // When searching, the API might return a flat array of connectors instead of categories
                 // Check if categories exist and have the proper structure (with items arrays)
                 let normalizedCategories: Category[] = [];
-                
+
                 if (model.categories && Array.isArray(model.categories)) {
                     // Check if the first item is a category (has items) or a connector (has codedata)
                     const firstItem = model.categories[0];
@@ -347,7 +341,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                     } else if (firstItem && "codedata" in firstItem) {
                         // Flat array of connectors - wrap in a category
                         normalizedCategories = [{
-                            metadata: { 
+                            metadata: {
                                 label: "Search Results",
                                 description: ""
                             },
@@ -355,7 +349,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                         }];
                     }
                 }
-                
+
                 console.log(">>> normalized categories for search", normalizedCategories);
                 setConnectors(normalizedCategories);
             })
@@ -372,7 +366,6 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
     const handleDatabaseConnection = () => {
         // Navigate to database connection wizard
-        // This would need to be implemented based on your database connection flow
         setWizardStep("database");
     };
 
@@ -525,14 +518,14 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         }
 
         const lowerSearchText = searchText.toLowerCase().trim();
-        
+
         // Database-related keywords
         const databaseKeywords = [
             "database", "db", "mysql", "postgresql", "postgres", "mssql", "sql server",
             "sqlserver", "oracle", "sqlite", "mariadb", "mongodb", "cassandra",
             "redis", "dynamodb", "table", "schema", "query", "sql"
         ];
-        
+
         // API-related keywords
         const apiKeywords = [
             "api", "http", "https", "rest", "graphql", "soap", "wsdl", "openapi",
@@ -547,7 +540,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         if (isDatabaseSearch && !isApiSearch) {
             return { showApiSpec: false, showDatabase: experimentalEnabled };
         }
-        
+
         // If search matches API keywords, show only API spec option
         if (isApiSearch && !isDatabaseSearch) {
             return { showApiSpec: true, showDatabase: false };
@@ -579,13 +572,13 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                 the connection setup.
                             </>
                         ) : (
-                            <> 
-                            To establish your connection, first define a connector. You may create a custom connector using
-                            an API specification. Alternatively, you can select one of the pre-built connectors below. You will then be guided to provide the required details to complete
-                            the connection setup.
-                             </>
+                            <>
+                                To establish your connection, first define a connector. You may create a custom connector using
+                                an API specification. Alternatively, you can select one of the pre-built connectors below. You will then be guided to provide the required details to complete
+                                the connection setup.
+                            </>
                         )}
-                        
+
                     </IntroText>
 
                     <SearchContainer>

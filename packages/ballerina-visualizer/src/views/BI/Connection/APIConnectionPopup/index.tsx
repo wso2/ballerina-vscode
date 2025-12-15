@@ -23,7 +23,6 @@ import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
-import { getFormProperties } from "../../../../utils/bi";
 import { FormSubmitOptions } from "../../FlowDiagram";
 
 const PopupOverlay = styled(Overlay)`
@@ -204,7 +203,6 @@ const UploadSubtitle = styled(Typography)`
     margin: 0;
 `;
 
-
 const ActionButton = styled(Button)`
     width: 100% !important;
     min-width: 0 !important;
@@ -213,80 +211,10 @@ const ActionButton = styled(Button)`
     align-items: center;
 `;
 
-const SummaryCard = styled.div`
-    padding: 12px 14px;
-    border-radius: 10px;
-    background: ${ThemeColors.SURFACE_CONTAINER};
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    color: ${ThemeColors.ON_SURFACE};
-    font-size: 12px;
-`;
-
-const InfoRow = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
 const StepHeader = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
-`;
-
-const DisabledActionButton = styled(Button)`
-    width: 100% !important;
-    min-width: 0 !important;
-    margin-top: 4px;
-`;
-
-const FormGrid = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
-const StepBadge = styled.div<{ active?: boolean; completed?: boolean }>`
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: ${(props: { active?: boolean; completed?: boolean }) =>
-        props.completed
-            ? ThemeColors.PRIMARY_CONTAINER
-            : props.active
-                ? ThemeColors.SURFACE_DIM
-                : ThemeColors.SURFACE_CONTAINER};
-    border: 1px solid
-        ${(props: { active?: boolean; completed?: boolean }) =>
-        props.completed
-            ? ThemeColors.PRIMARY
-            : props.active
-                ? ThemeColors.OUTLINE
-                : ThemeColors.OUTLINE_VARIANT};
-    color: ${(props: { active?: boolean; completed?: boolean }) =>
-        props.completed ? ThemeColors.PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
-    font-weight: 600;
-`;
-
-const StepperLabel = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-`;
-
-const StepperRow = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-`;
-
-const StepperCopy = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin: 0;
 `;
 
 interface APIConnectionPopupProps {
@@ -398,7 +326,6 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
 
         // Only proceed if there's no error message
         if (generateResponse?.success) {
-            // Wait a bit for the connector to be available, then search for it
             try {
                 // Small delay to ensure the connector is available
                 await new Promise(resolve => setTimeout(resolve, 500));
@@ -436,7 +363,6 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             setCurrentStep(1);
         } else {
             console.error(">>> Error generating connector:", generateResponse?.errorMessage);
-            // Optionally show error to user
         }
         setIsSavingConnector(false);
     };
