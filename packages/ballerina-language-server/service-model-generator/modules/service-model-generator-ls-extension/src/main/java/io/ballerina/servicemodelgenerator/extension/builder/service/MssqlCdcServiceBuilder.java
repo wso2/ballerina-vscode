@@ -23,12 +23,11 @@ import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
-import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
-import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -40,9 +39,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -69,7 +69,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExis
  */
 public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
-    private static final String CDC_MSSQL_SERVICE_MODEL_LOCATION = "services/cdc_mssql_init_wo_existing_listener.json";
+    private static final String CDC_MSSQL_SERVICE_MODEL_LOCATION = "services/cdc_mssql.json";
     public static final String AFTER_ENTRY_FIELD = "afterEntry";
     public static final String BEFORE_ENTRY_FIELD = "beforeEntry";
     public static final String TYPE_PREFIX = "MssqlCdcEvent";
@@ -77,7 +77,24 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     private static final String ON_READ_FUNCTION = "onRead";
     private static final String ON_UPDATE_FUNCTION = "onUpdate";
     private static final String ON_DELETE_FUNCTION = "onDelete";
+    private static final String KEY_CONFIGURE_LISTENER = "configureListener";
+    private static final int CHOICE_SELECT_EXISTING_LISTENER = 0;
+    private static final int CHOICE_CONFIGURE_NEW_LISTENER = 1;
+    private static final String KEY_SELECT_LISTENER = "selectListener";
+    private static final String KEY_TABLES = "tables";
 
+    private final List<String> listenerFields = List.of(
+            "listenerVarName",
+            "host",
+            "port",
+            "username",
+            "password",
+            "databases",
+            "schemas",
+            "databaseInstance",
+            "secureSocket",
+            "options"
+    );
 
     // Regex to match string template literals with only whitespace: string `<spaces>`
     Pattern emptyStringTemplate = Pattern.compile("^string\\s*`\\s*`$");
@@ -89,9 +106,17 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         if (resourceStream == null) {
             return null;
         }
-
         try (JsonReader reader = new JsonReader(new InputStreamReader(resourceStream, StandardCharsets.UTF_8))) {
-            return new Gson().fromJson(reader, ServiceInitModel.class);
+            ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
+            Map<String, Value> properties = serviceInitModel.getProperties();
+            Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
+                    context.semanticModel(), context.project());
+            if (listeners.isEmpty()) {
+                formatInitModelForNewListener(properties);
+            } else {
+                formatInitModelForExistingListener(listeners, properties);
+            }
+            return serviceInitModel;
         } catch (IOException e) {
             return null;
         }
@@ -103,25 +128,40 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
-        applyListenerConfigurations(properties);
+        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.serviceInitModel().getModuleName(),
+                context.semanticModel(), context.project());
+        boolean listenerExists = !listeners.isEmpty();
+        Map<String, Value>  listenerProperties = getListenerProperties(properties, listenerExists);
+        applyListenerConfigurations(listenerProperties);
 
-        ListenerDTO listenerDTO = buildCdcListenerDTO(context);
+        boolean useExisingListener = listenerExists
+                && !properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).isEnabled();
+
+        // TODO: move to a diff func
+        String listenerDeclaration;
+        String listenerName;
+        // Build listener declaration if not using an existing listener
+        if (!listenerExists || !useExisingListener) {
+            ListenerDTO listenerDTO = buildCdcListenerDTO(serviceInitModel.getModuleName(), listenerProperties);
+            listenerDeclaration = listenerDTO.listenerDeclaration();
+            listenerName = listenerDTO.listenerVarName();
+        } else {
+            listenerDeclaration = "";
+            listenerName = properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
+                    .getProperties().get(KEY_SELECT_LISTENER).getValue();
+        }
 
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-//        List<Function> functions = getRequiredFunctionsForServiceType(serviceInitModel); // TODO: this is not required
-//        List<String> functionsStr = buildMethodDefinitions(functions, TRIGGER_ADD, new HashMap<>());
-
-        Value tablesValue = properties.get("tables");
+        Value tablesValue = properties.get(KEY_TABLES);
 
         String serviceDeclaration = NEW_LINE +
-                listenerDTO.listenerDeclaration() +
+                listenerDeclaration +
                 buildServiceConfigurations(tablesValue) +
                 NEW_LINE +
                 SERVICE + SPACE + "cdc:Service" +
-                SPACE + ON + SPACE + listenerDTO.listenerVarName() + SPACE +
+                SPACE + ON + SPACE + listenerName + SPACE +
                 OPEN_BRACE +
                 NEW_LINE +
-//                String.join(TWO_NEW_LINES, functionsStr) + NEW_LINE +
                 CLOSE_BRACE + NEW_LINE;
 
         List<TextEdit> edits = new ArrayList<>();
@@ -144,9 +184,29 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
-    private ListenerDTO buildCdcListenerDTO(AddServiceInitModelContext context) {
-        ServiceInitModel serviceInitModel = context.serviceInitModel();
-        Map<String, Value> properties = serviceInitModel.getProperties();
+    private void formatInitModelForNewListener(Map<String, Value> properties) {
+        properties.remove(KEY_CONFIGURE_LISTENER);
+    }
+
+    private void formatInitModelForExistingListener(Set<String> listenerNames, Map<String, Value> properties) {
+        Value configureListenerValue = properties.get(KEY_CONFIGURE_LISTENER);
+
+        // fill the existing listeners values
+        Value selectListenerValue = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
+                .getProperties().get(KEY_SELECT_LISTENER);
+        selectListenerValue.setValue(listenerNames.iterator().next());
+        selectListenerValue.setItems(Arrays.asList(listenerNames.toArray()));
+
+        // Add all listener properties to choice 1 of configureListener
+        listenerFields.forEach(key -> {
+            Value value = properties.get(key);
+            configureListenerValue.getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).getProperties().put(key, value);
+        });
+        // Remove all listener properties from outside
+        listenerFields.forEach(properties::remove);
+    }
+
+    private ListenerDTO buildCdcListenerDTO(String moduleName, Map<String, Value> properties) {
         List<String> requiredParams = new ArrayList<>();
         List<String> includedParams = new ArrayList<>();
         for (Map.Entry<String, Value> entry : properties.entrySet()) {
@@ -166,7 +226,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
                 includedParams.add(entry.getKey() + " = " + value.getValue());
             }
         }
-        String listenerProtocol = getProtocol(serviceInitModel.getModuleName());
+        String listenerProtocol = getProtocol(moduleName);
         String listenerVarName = properties.get(KEY_LISTENER_VAR_NAME).getValue();
         requiredParams.addAll(includedParams);
         String args = String.join(", ", requiredParams);
@@ -257,6 +317,13 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             }
         });
         return "{" + String.join(", ", dbFields) + "}";
+    }
+
+    private Map<String, Value> getListenerProperties(Map<String, Value> properties, boolean listenerExists) {
+        if (listenerExists) {
+            return properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).getProperties();
+        }
+        return properties;
     }
 
     @Override
