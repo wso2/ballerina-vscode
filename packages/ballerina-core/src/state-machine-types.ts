@@ -501,6 +501,8 @@ export interface UserApproval {
     comment?: string;
 }
 
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+
 export interface AIChatMachineContext {
     chatHistory: ChatMessage[];
     currentPlan?: Plan;
@@ -528,10 +530,11 @@ export interface AIChatMachineContext {
     commandType?: string;
     modifiedFiles?: string[];
     commandParams?: any;
+    operationType?: OperationType;
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType } }
     | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }

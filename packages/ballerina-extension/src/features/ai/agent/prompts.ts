@@ -21,12 +21,14 @@ import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_
 import { CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
-import { CodeContext, ProjectSource } from "@wso2/ballerina-core";
+import { CodeContext, OperationType, ProjectSource } from "@wso2/ballerina-core";
+import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
+import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 
 /**
  * Generates the system prompt for the design agent
  */
-export function getSystemPrompt(): string {
+export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
     return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
 ONLY answer Ballerina-related queries.
@@ -179,6 +181,8 @@ ${getLanglibInstructions()}
 - Do not add/modify documentation such as .md files unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+${getNPSuffix(projects, op)}
 `;
 }
 
@@ -228,3 +232,16 @@ function getGenerationType(isPlanMode:boolean):string {
     }
     return `<system-reminder> Edit Mode is enabled. Avoid using Task management and make the edits directly. </system-reminder>`;
 }
+
+function getNPSuffix(projects: ProjectSource[], op?: OperationType): string {
+    let basePrompt:string = "Note: You are in a special Natural Programming mode. Follow the NP guidelines strictly in addition to what you've given. \n";
+    if (!op) {
+        return "";
+    } else if (op === "CODE_FOR_USER_REQUIREMENT") {
+        basePrompt += getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(flattenProjectToFiles(projects)));
+    } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
+        basePrompt += getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(flattenProjectToFiles(projects)));
+    }
+    return basePrompt;
+}
+
