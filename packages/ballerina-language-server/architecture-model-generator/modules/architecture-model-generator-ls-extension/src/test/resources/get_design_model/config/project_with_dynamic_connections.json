@@ -67,7 +67,7 @@
           "kind": "NAMED",
           "type": "http:Listener",
           "args": [],
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
           "uuid": "c6ff50cf-125e-b9f8-a19c-ba36acfb3253",
           "enableFlowModel": true,
           "sortText": "main.bal2"
@@ -116,7 +116,7 @@
           ],
           "absolutePath": "/api ",
           "type": "http:Service",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.3.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.2.png",
           "uuid": "c6070bec-9562-6f9b-88e5-039190648329",
           "enableFlowModel": true,
           "sortText": "main.bal4"
