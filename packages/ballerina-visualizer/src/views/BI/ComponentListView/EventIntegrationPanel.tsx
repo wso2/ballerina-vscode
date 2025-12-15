@@ -117,6 +117,8 @@ export function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-mcp" />;
         case "solace":
             return <Icon name="bi-solace" sx={{ color: "#00C895" }}/>;
+        case "cdc-mssql":
+            return <Icon name="bi-mssql"/>;
         default:
             return null;
     }
