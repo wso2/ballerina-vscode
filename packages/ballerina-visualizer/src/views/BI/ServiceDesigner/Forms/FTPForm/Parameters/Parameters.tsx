@@ -33,6 +33,7 @@ export interface ParametersProps {
     onChange: (parameters: ParameterModel[]) => void;
     onEditClick?: (param: ParameterModel) => void;
     showPayload: boolean;
+    streamEnabled?: boolean;
 }
 
 const ParamLabelContainer = styled.div`
@@ -80,7 +81,7 @@ const ParamDefault = styled.span`
 `;
 
 export function Parameters(props: ParametersProps) {
-    const { parameters, onChange, onEditClick, showPayload } = props;
+    const { parameters, onChange, onEditClick, showPayload, streamEnabled } = props;
 
     const onDelete = (param: ParameterModel) => {
         const updatedParameters = parameters.filter(
@@ -89,17 +90,45 @@ export function Parameters(props: ParametersProps) {
         onChange(updatedParameters);
     };
 
+    const formatParameterLabel = (typeValue: string, hasStreamProperty: boolean, isStreamEnabled: boolean, hasDataBinding: boolean) => {
+        if (!hasStreamProperty || !hasDataBinding) {
+            return typeValue;
+        }
+
+        if (isStreamEnabled) {
+            const value = typeValue.endsWith("[]") ? typeValue.slice(0, -2) : typeValue;
+            const value2 = value.startsWith("stream<") && value.endsWith(", error>") ? value.slice(7, -8) : value;
+            return `stream<${value2}>`;
+        } else {
+            const value = typeValue.endsWith("[]") ? typeValue.slice(0, -2) : typeValue;
+            const value2 = value.startsWith("stream<") && value.endsWith(", error>") ? value.slice(7, -8) : value;
+            return `${value2}[]`;
+        }
+    };
+
     return (
         <div>
             {showPayload && (
                 <>
                     {parameters.map((param: ParameterModel, index) => {
+                        const readonly = param.editable === false;
+                        const hasStreamProperty = streamEnabled !== undefined;
+                        const isStreamEnabled = streamEnabled === true;
+                        const hasDataBinding = param.kind === "DATA_BINDING";
+
+                        // const formattedTypeValue = formatParameterLabel(
+                        //     param.type.value,
+                        //     hasStreamProperty,
+                        //     isStreamEnabled,
+                        //     hasDataBinding
+                        // );
+                        const formattedTypeValue = param.type.value;
+
                         const label = (
                             <ParamLabelContainer>
-                                <ParamType>{param.type.value}</ParamType>
+                                <ParamType>{formattedTypeValue}</ParamType>
                             </ParamLabelContainer>
                         );
-                        const readonly = param.editable === false;
 
                         return (
                             <HeaderLabel key={index} data-testid={`${param.name.value}-item`}>

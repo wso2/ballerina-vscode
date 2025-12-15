@@ -23,6 +23,7 @@ import styled from '@emotion/styled';
 import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
+import { has } from 'lodash';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -75,6 +76,7 @@ export function FTPForm(props: FTPFormProps) {
     const [functionModel, setFunctionModel] = useState<FunctionModel | null>(props.functionModel || null);
     const [selectedFileFormat, setSelectedFileFormat] = useState<string>('');
 
+
     // State for type editor modal
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
@@ -93,7 +95,7 @@ export function FTPForm(props: FTPFormProps) {
         }
         if (!isNew) {
             setFunctionModel(props.functionModel);
-            setSelectedFileFormat(props.functionModel.name?.metadata?.label || '');
+            setSelectedFileFormat(props.functionModel?.name?.metadata?.label || '');
         }
     }, [model]);
 
@@ -139,6 +141,68 @@ export function FTPForm(props: FTPFormProps) {
         return `${payloadFieldName}Schema`;
     };
 
+    const selectType = (typeValue: string, isStreamEnabled: boolean): string =>{
+        if (!typeValue) {
+            return "";
+        }
+
+        if(!hasStreamProperty){
+            return typeValue;
+        }
+
+        // Extract the base type by removing all wrappers
+        let baseType = typeValue;
+
+        // Remove array suffix if present
+        if (baseType.endsWith("[]")) {
+            baseType = baseType.slice(0, -2);
+        }
+        else if (baseType.startsWith("stream<")) {
+            if (baseType.endsWith(", error>")) {
+                baseType = baseType.slice(7, -8);
+            } else if (baseType.endsWith(">")) {
+                baseType = baseType.slice(7, -1);
+            }
+        }
+
+
+
+        // Apply the correct wrapper based on stream state
+        if (isStreamEnabled) {
+            return `stream<${baseType}, error>`;
+        } else {
+            return `${baseType}[]`;
+        }
+    }
+
+    const withoutStreamType = (typeValue: string): string => {
+
+        if (!typeValue) {
+            return "";
+        }
+        if (!hasStreamProperty) {
+            return typeValue;
+        }
+
+        let baseType = typeValue;
+        
+        if (baseType.endsWith("[]")) {
+            baseType = baseType.slice(0, -2);
+        }
+        else if (baseType.startsWith("stream<")) {
+            if (baseType.endsWith(", error>")) {
+                baseType = baseType.slice(7, -8);
+            } else if (baseType.endsWith(">")) {
+                baseType = baseType.slice(7, -1);
+            }
+        }
+
+        // Remove array suffix if present
+
+
+        return baseType;
+    }
+
     const handleTypeCreated = (type: Type | string) => {
         // When a type is created, set it as the payload type for the DATA_BINDING parameter
         const defaultParamIndex = functionModel.parameters.findIndex(param => param.kind === "REQUIRED" && param.name.value === "content");
@@ -148,7 +212,8 @@ export function FTPForm(props: FTPFormProps) {
             const defaultParamModel = { ...defaultParam };
             const updatedPayloadModel = { ...payloadParam };
             updatedPayloadModel.name.value = "content";
-            updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
+            const typeValue = typeof type === 'string' ? type : type.name;
+            updatedPayloadModel.type.value = selectType(typeValue, functionModel.properties.stream?.enabled) ;
             updatedPayloadModel.enabled = true;
             
             defaultParamModel.enabled = false; // Disable the default content parameter
@@ -274,7 +339,7 @@ export function FTPForm(props: FTPFormProps) {
 
                                 {/* Define Content Schema Button or Display - only show if canDataBind property exists */}
                                 {dataBindingParam && (
-                                    (dataBindingParam.type?.value===dataBindingParam.type?.placeholder) ? (
+                                    (withoutStreamType(dataBindingParam.type?.value)===withoutStreamType(dataBindingParam.type?.placeholder)) ? (
                                         <AddButtonWrapper>
                                             <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
                                                 <LinkButton onClick={onAddContentSchemaClick}>
@@ -300,6 +365,7 @@ export function FTPForm(props: FTPFormProps) {
                                                 }}
                                                 onEditClick={handleEditContentSchema}
                                                 showPayload={true}
+                                                streamEnabled={hasStreamProperty ? functionModel.properties.stream.enabled : undefined}
                                             />
                                         </div>
                                     )
@@ -313,6 +379,20 @@ export function FTPForm(props: FTPFormProps) {
                                                 label={parameterConfig.stream.label}
                                                 checked={functionModel.properties.stream.enabled}
                                                 onChange={(checked) => {
+                                                    // Update the DATA_BINDING parameter type value when stream changes
+                                                    const updatedParameters = functionModel.parameters.map((param) => {
+                                                        if (param.kind === "DATA_BINDING" && param.enabled && param.type?.value) {
+                                                            return {
+                                                                ...param,
+                                                                type: {
+                                                                    ...param.type,
+                                                                    value: selectType(param.type.value, checked)
+                                                                }
+                                                            };
+                                                        }
+                                                        return param;
+                                                    });
+
                                                     setFunctionModel({
                                                         ...functionModel,
                                                         properties: {
@@ -322,8 +402,9 @@ export function FTPForm(props: FTPFormProps) {
                                                                 enabled: checked,
                                                             },
                                                         },
+                                                        parameters: updatedParameters
                                                     });
-                                                    
+
                                                 }}
                                                 sx={{ marginTop: 8 }}
                                             />
