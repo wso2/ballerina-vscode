@@ -29,7 +29,7 @@ import {
 } from "@wso2/ballerina-core";
 import path from "path";
 import { Uri } from "vscode";
-import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../../../utils/modification";
+import { writeBallerinaFileDidOpen } from "../../../../utils/modification";
 import { ExtendedLangClient } from "../../../../core";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { extractRecordTypeDefinitionsFromFile } from "../../../../rpc-managers/ai-panel/utils";
