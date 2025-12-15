@@ -23,7 +23,6 @@ import {
     AddFunctionRequest,
     AddImportItemResponse,
     ArtifactData,
-    AvailableNode,
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     BIAvailableNodesRequest,
@@ -54,11 +53,9 @@ import {
     BallerinaProject,
     BreakpointRequest,
     BuildMode,
-    Category,
     ClassFieldModifierRequest,
     Command,
     ComponentRequest,
-    ConfigVariableRequest,
     ConfigVariableResponse,
     CreateComponentResponse,
     CurrentBreakpointsResponse,
@@ -91,14 +88,12 @@ import {
     GetTypeResponse,
     GetTypesRequest,
     GetTypesResponse,
-    Item,
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
     LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
-    NodePosition,
     OpenAPIClientDeleteRequest,
     OpenAPIClientDeleteResponse,
     OpenAPIClientGenerationRequest,
@@ -141,6 +136,12 @@ import {
     VisibleTypesResponse,
     WorkspaceFolder,
     WorkspacesResponse,
+    BIIntelSecrets,
+    ConfigVariableRequest,
+    AvailableNode,
+    Item,
+    Category,
+    NodePosition,
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     ExpressionTokensRequest,
@@ -720,7 +721,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     let token: string;
                     const loginMethod = await getLoginMethod();
                     if (loginMethod === LoginMethod.BI_INTEL) {
-                        token = await getAccessToken();
+                        const credentials = await getAccessToken();
+                        const secrets = credentials.secrets as BIIntelSecrets;
+                        token = secrets.accessToken;
                     }
 
                     if (!token) {
@@ -758,7 +761,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         let token: string;
                         const loginMethod = await getLoginMethod();
                         if (loginMethod === LoginMethod.BI_INTEL) {
-                            token = await getAccessToken();
+                            const credentials = await getAccessToken();
+                            const secrets = credentials.secrets as BIIntelSecrets;
+                            token = secrets.accessToken;
                         }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
