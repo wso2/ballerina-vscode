@@ -28,7 +28,7 @@
         "stringLiteralLabel": "Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "http"
       },
       "serviceTypes": {
@@ -89,7 +89,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/graphql\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "graphql"
       },
       "serviceTypes": {
@@ -172,7 +172,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "tcp"
       },
       "serviceTypes": {
@@ -256,7 +256,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
       "serviceTypes": {
@@ -405,7 +405,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
       "serviceTypes": {
@@ -559,7 +559,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -685,7 +685,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
       "serviceTypes": {
@@ -713,7 +713,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "mcp"
       },
       "serviceTypes": {
@@ -817,7 +817,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -959,7 +959,7 @@
         "stringLiteralLabel": "Queue Name",
         "stringLiteralDescription": "The name of the queue",
         "stringLiteralDefaultValue": "\"\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1171,7 +1171,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "SINGLE_SELECT",
+        "listenerKind": "SINGLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1313,7 +1313,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1365,7 +1365,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1425,7 +1425,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
       "serviceTypes": {
@@ -1451,7 +1451,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1496,7 +1496,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "SINGLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {

@@ -40,7 +40,7 @@ CREATE TABLE ServiceDeclaration (
     string_literal_description TEXT,
     string_literal_default_value TEXT,
     kind TEXT NOT NULL,
-    listener_kind TEXT CHECK(listener_kind IN ('MULTIPLE_SELECT', 'SINGLE_SELECT')),
+    listener_kind TEXT CHECK(listener_kind IN ('MULTIPLE_SELECT_LISTENER', 'SINGLE_SELECT_LISTENER')),
     FOREIGN KEY (package_id) REFERENCES Package(package_id) ON DELETE CASCADE
 );
 
