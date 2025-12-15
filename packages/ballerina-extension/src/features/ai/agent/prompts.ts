@@ -1,8 +1,25 @@
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import { DIAGNOSTICS_TOOL_NAME } from "../tools/diagnostics";
 import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
 import { TASK_WRITE_TOOL_NAME } from "../tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
+import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { CodeContext, ProjectSource } from "@wso2/ballerina-core";
 
@@ -123,6 +140,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - For GraphQL service related queries, if the user hasn't specified their own GraphQL Schema, write the proposed GraphQL schema for the user query right after the explanation before generating the Ballerina code. Use the same names as the GraphQL Schema when defining record types.
 - Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
 - You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
+
+${getLanglibInstructions()}
 
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
