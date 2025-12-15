@@ -409,6 +409,15 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return new Promise(async (resolve) => {
+            const res = await StateMachine
+                .langClient()
+                .getConvertedExpression(params);
+            resolve(res);
+        });
+    }
+
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -418,10 +427,5 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     resolve(resp);
                 });
         });
-    }
-
-    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 }
