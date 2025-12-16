@@ -51,7 +51,7 @@ export const UnionEditor = () => {
     return (
         <div style={{display: 'flex', flexDirection: "column", gap: "5px"}}>
             <Dropdown
-                id={''}
+                id={'union-type-dropdown'}
                 value={""}
                 items={options}
                 onChange={() => { }}
