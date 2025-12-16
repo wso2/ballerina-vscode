@@ -30,6 +30,7 @@ import io.ballerina.designmodelgenerator.extension.response.GetDesignModelRespon
 import io.ballerina.designmodelgenerator.extension.response.ProjectInfoResponse;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -38,7 +39,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.concurrent.CompletableFuture;
 
@@ -66,9 +66,9 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         return CompletableFuture.supplyAsync(() -> {
             GetDesignModelResponse response = new GetDesignModelResponse();
             try {
-                URI uriPath = URI.create(request.projectPath());
-                WorkspaceManager workspaceManager = workspaceManagerProxy.get(uriPath.toString());
-                Project project = workspaceManager.loadProject(Path.of(uriPath.getPath()));
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.projectPath());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.projectPath());
+                Project project = workspaceManager.loadProject(filePath);
                 DesignModelGenerator designModelGenerator = new DesignModelGenerator(project.currentPackage());
                 DesignModel designModel = designModelGenerator.generate();
                 response.setDesignModel(designModel);

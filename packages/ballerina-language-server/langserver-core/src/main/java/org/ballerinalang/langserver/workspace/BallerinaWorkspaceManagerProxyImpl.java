@@ -59,7 +59,7 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
 
     @Override
     public WorkspaceManager get(String fileUri) {
-        String scheme = URI.create(fileUri).getScheme();
+        String scheme = PathUtil.getEncodedURIPath(fileUri).getScheme();
         if (scheme == null) {
             return this.baseWorkspaceManager;
         }

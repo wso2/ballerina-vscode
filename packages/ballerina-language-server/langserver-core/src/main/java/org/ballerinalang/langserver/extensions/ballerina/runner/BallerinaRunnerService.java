@@ -41,7 +41,6 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,11 +78,11 @@ public class BallerinaRunnerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ProjectDiagnosticsResponse projectDiagnosticsResponse = new ProjectDiagnosticsResponse();
-                URI uriPath = URI.create(request.getProjectRootIdentifier().getUri());
-                Path filePath = Path.of(uriPath.getPath());
+                String filePathUri = request.getProjectRootIdentifier().getUri();
+                Path filePath = PathUtil.getPathFromUriEncodeString(filePathUri);
 
                 // Obtain the semantic model and the document
-                WorkspaceManager workspaceManager = workspaceManagerProxy.get(uriPath.toString());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(filePathUri);
                 Project project = workspaceManager.loadProject(filePath);
                 Map<String, List<Diagnostic>> errorDiagnosticMap =
                         BallerinaRunnerUtil.getErrorDiagnosticMap(workspaceManager, project, filePath);
