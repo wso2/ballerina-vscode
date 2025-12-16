@@ -419,10 +419,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error saving connection", response.errorMsg);
-                if (response.stackTrace) {
-                    console.error(">>> Stack trace", response.stackTrace);
-                }
-                // TODO: Show error message to user
+                setConnectionError("Failed to save the connection. Please try again.");
                 return;
             }
 
@@ -438,7 +435,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
         } catch (error) {
             console.error(">>> Error saving connection", error);
-            // TODO: Show error message to user
+            setConnectionError("Failed to save the connection. Please try again.");
         } finally {
             setIsSaving(false);
         }
