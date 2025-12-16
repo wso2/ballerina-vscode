@@ -20,21 +20,21 @@ import React, { useMemo } from 'react';
 import { Label, Slider, SwitchWrapper } from './styles';
 import { InputMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getDefaultExpressionMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { InputType } from '@wso2/ballerina-core';
 
 interface ModeSwitcherProps {
     value: InputMode;
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
-    valueTypeConstraint: string | string[];
-    fieldKey?: string;
+    types: InputType[];
 }
 
-const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, valueTypeConstraint, fieldKey }) => {
+const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
     const isChecked = value === InputMode.EXP;
 
     const defaultMode = useMemo(
-        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(valueTypeConstraint, fieldKey),
-        [valueTypeConstraint, isRecordTypeField, fieldKey]
+        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(types),
+        [types, isRecordTypeField]
     );
 
     const handlePrimaryModeClick = () => {

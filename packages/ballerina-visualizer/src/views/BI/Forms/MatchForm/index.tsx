@@ -135,7 +135,6 @@ export function MatchForm(props: MatchFormProps) {
                     label: "Pattern",
                     description: "Binding pattern",
                 },
-                valueType: "EXPRESSION",
                 value: "",
                 optional: false,
                 editable: true,
@@ -255,14 +254,12 @@ export function MatchForm(props: MatchFormProps) {
                         label: "Patterns",
                         description: "List of binding patterns",
                     },
-                    valueType: "SINGLE_SELECT",
                     value: [
                         {
                             metadata: {
                                 label: "Pattern",
                                 description: "Binding pattern",
                             },
-                            valueType: "EXPRESSION",
                             value: "",
                             optional: false,
                             editable: true,
@@ -386,14 +383,12 @@ export function MatchForm(props: MatchFormProps) {
                             label: "Patterns",
                             description: "List of binding patterns",
                         },
-                        valueType: "SINGLE_SELECT",
                         value: [
                             {
                                 metadata: {
                                     label: "Pattern",
                                     description: "Binding pattern",
                                 },
-                                valueType: "EXPRESSION",
                                 value: "_",
                                 optional: false,
                                 editable: true,

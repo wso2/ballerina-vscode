@@ -20,7 +20,7 @@ import React, { useCallback, useContext, useEffect, useRef, useState } from "rea
 import { TextField, Button, ProgressRing, Icon, Typography } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Member, Type, TypeNodeKind } from "@wso2/ballerina-core";
+import { FormFieldInputType, Member, Type, TypeNodeKind } from "@wso2/ballerina-core";
 import { RecordEditor } from "../RecordEditor";
 import { EnumEditor } from "../EnumEditor";
 import { UnionEditor } from "../UnionEditor";
@@ -368,16 +368,15 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        valueTypeConstraint: "Global"
+                        types: [{fieldType: type.properties["name"].valueType as FormFieldInputType, ballerinaType: "Global", selected: false}]
                     } :
                     {
                         metadata: {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
                         value: "",
-                        valueTypeConstraint: "Global",
+                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         optional: false,
                         editable: true
                     }
