@@ -22,7 +22,7 @@ import { CheckBoxGroup, FormCheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { EditorFactory } from "./EditorFactory";
 import { useFormContext } from "../../context";
-import { PropertyModel } from "@wso2/ballerina-core";
+import { getPrimaryInputType, PropertyModel } from "@wso2/ballerina-core";
 
 const Form = styled.div`
     display: grid;
@@ -175,7 +175,7 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
 
         // Determine value for MULTIPLE_SELECT
         let value: any = property.value;
-        if (property.valueType === "MULTIPLE_SELECT") {
+        if (getPrimaryInputType(property.types).fieldType === "MULTIPLE_SELECT") {
             if (property.values && property.values.length > 0) {
                 value = property.values;
             } else if (property.value) {
@@ -188,21 +188,20 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.types)?.fieldType === "SINGLE_SELECT") {
             items = property.items;
         }
 
         return {
             key,
             label: property?.metadata?.label,
-            type: property.valueType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             documentation: property?.metadata?.description || "",
-            valueType: property.valueTypeConstraint,
             editable: true,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value,
-            valueTypeConstraint: property.valueTypeConstraint,
+            types: property.types,
             advanced: property.advanced,
             diagnostics: [],
             items,

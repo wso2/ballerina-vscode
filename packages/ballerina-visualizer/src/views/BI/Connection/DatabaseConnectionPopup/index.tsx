@@ -151,6 +151,9 @@ const TableName = styled(Typography)`
 
 const SelectAllButton = styled(Button)`
     align-self: flex-end;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
 `;
 
 const SelectionInfo = styled.div`
@@ -163,7 +166,6 @@ const SearchRow = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    justify-content: space-between;
 `;
 
 const ConfigurablesPanel = styled.div`
@@ -338,7 +340,12 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error introspecting database", response.errorMsg);
-                setConnectionError(response.errorMsg);
+                const errorMsg = response.errorMsg.toLowerCase();
+                if (errorMsg.includes("no tables found")) {
+                    setConnectionError("No tables were found in the database. Currently, connection creation requires at least one table.");
+                } else {
+                    setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
+                }
                 return;
             }
 
@@ -352,12 +359,11 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 setConnectionError(null);
             } else {
                 console.warn(">>> No tables found in database");
-                setConnectionError("No tables found in the database.");
+                setConnectionError("No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.");
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
-            const errorMessage = error instanceof Error ? error.message : "Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.";
-            setConnectionError(errorMessage);
+            setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
         } finally {
             setIsIntrospecting(false);
         }
@@ -413,10 +419,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error saving connection", response.errorMsg);
-                if (response.stackTrace) {
-                    console.error(">>> Stack trace", response.stackTrace);
-                }
-                // TODO: Show error message to user
+                setConnectionError("Failed to save the connection. Please try again.");
                 return;
             }
 
@@ -432,7 +435,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
         } catch (error) {
             console.error(">>> Error saving connection", error);
-            // TODO: Show error message to user
+            setConnectionError("Failed to save the connection. Please try again.");
         } finally {
             setIsSaving(false);
         }
@@ -467,13 +470,13 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                     <ErrorTitle variant="h4">Connection Failed</ErrorTitle>
                 </ErrorHeader>
                 <Typography variant="body2">
-                    Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.
+                    {connectionError}
                 </Typography>
                 <SeparatorLine />
                 <Typography variant="body2">
                     Or try using a pre-built connector:
                 </Typography>
-                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors}>
+                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
                     Browse Pre-built Connectors
                 </BrowseMoreButton>
             </ErrorContainer>
@@ -571,10 +574,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 value={tableSearch}
                                 placeholder="Search tables..."
                                 onChange={setTableSearch}
-                                sx={{ width: "87%" }}
+                                sx={{ flex: 1 }}
                             />
                             <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                                Select All
+                                {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
                             </SelectAllButton>
                         </SearchRow>
                         <TablesGrid>

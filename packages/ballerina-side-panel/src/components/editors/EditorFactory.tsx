@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { getPrimaryInputType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -87,6 +87,16 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
+    const showWithExpressionEditor = field.types.some(type => {
+        return type && (
+            type.fieldType === "EXPRESSION" ||
+            type.fieldType === "LV_EXPRESSION" ||
+            type.fieldType === "ACTION_OR_EXPRESSION" ||
+            type.fieldType === "TEXT" ||
+            type.fieldType === "EXPRESSION_SET"
+        );
+    });
+    
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -99,8 +109,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "EXPRESSION_SET") {
-        return <ArrayEditor field={field} label={"Add Another Value"} />;
     } else if (field.type === "MAPPING_EXPRESSION_SET") {
         return (
             <MapEditor
@@ -118,16 +126,16 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
-    } else if (field.type.toUpperCase() === "ENUM") {
+    } else if (field.type?.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
-    } else if (field.type.toUpperCase() === "AUTOCOMPLETE") {
+    } else if (field.type?.toUpperCase() === "AUTOCOMPLETE") {
         return <AutoCompleteEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "CUSTOM_DROPDOWN") {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
-    } else if (field.type === "SINGLE_SELECT" && field.editable) {
+    } else if (field.type === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
@@ -155,7 +163,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
             />
         );
-    } else if (!field.items && (field.type === "RAW_TEMPLATE") && field.editable) {
+    } else if (!field.items && (field.type === "RAW_TEMPLATE" || getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt") && field.editable) {
         return (
             <ContextAwareRawExpressionEditor
                 field={field}
@@ -167,7 +175,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
-    } else if (!field.items && (field.type === "EXPRESSION" || field.type === "LV_EXPRESSION" || field.type == "ACTION_OR_EXPRESSION") && field.editable) {
+    } else if ( showWithExpressionEditor && field.editable) {
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor
