@@ -388,11 +388,6 @@
                 "icon": "$(distro-new-folder)"
             },
             {
-                "command": "ballerina.deleteFileExplorerTree",
-                "title": "Delete",
-                "icon": "$(distro-delete)"
-            },
-            {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
                 "icon": "$(distro-design-view)",
