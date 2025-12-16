@@ -865,7 +865,7 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processAgentGeneration(parsedInput.text, []);
+            await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
@@ -1214,10 +1214,11 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        //TODO: Send attatchments
+        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
         });
     }
 
