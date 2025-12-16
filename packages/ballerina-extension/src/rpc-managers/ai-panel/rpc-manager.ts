@@ -23,7 +23,7 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddFilesToProjectRequest,
-    AddToProjectRequest,
+    BIIntelSecrets,
     BIModuleNodesRequest,
     BISourceCodeResponse,
     DeleteFromProjectRequest,
@@ -41,6 +41,7 @@ import {
     LoginMethod,
     MetadataWithAttachments,
     OperationType,
+    PackageTomlValues,
     PostProcessRequest,
     PostProcessResponse,
     ProcessContextTypeCreationRequest,
@@ -64,7 +65,7 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import path from "path";
-import { parse } from 'toml';
+import { parse } from "@iarna/toml";
 import { workspace } from 'vscode';
 
 import { isNumber } from "lodash";
@@ -90,6 +91,7 @@ import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCop
 import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { refreshDataMapper } from "../data-mapper/utils";
+import { buildProjectsStructure } from "../../utils/project-artifacts";
 import {
     DEVELOPMENT_DOCUMENT,
     NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
@@ -122,10 +124,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             try {
-                const workspaceFolderPath = workspace.workspaceFolders[0].uri.fsPath;
+                let projectIdentifier: string;
+                const cloudProjectId = process.env.CLOUD_INITIAL_PROJECT_ID;
+                
+                if (cloudProjectId) {
+                    projectIdentifier = cloudProjectId;
+                } else {
+                    projectIdentifier = workspace.workspaceFolders[0].uri.fsPath;
+                }
 
                 const hash = crypto.createHash('sha256')
-                    .update(workspaceFolderPath)
+                    .update(projectIdentifier)
                     .digest('hex');
 
                 resolve(hash);
@@ -145,11 +154,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = await getAccessToken();
-                if (!accessToken) {
+                const credentials = await getAccessToken();
+
+                if (!credentials) {
                     reject(new Error("Access Token is undefined"));
                     return;
                 }
+                const secrets = credentials.secrets as BIIntelSecrets;
+                const accessToken = secrets.accessToken;
                 resolve(accessToken);
             } catch (error) {
                 reject(error);
@@ -182,29 +194,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return {
             response: await fetchData(params.url, params.options)
         };
-    }
-
-    async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
-        // Check if workspaceFolderPath is a Ballerina project
-        // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        let balFilePath = path.join(projectPath, req.filePath);
-
-        const directory = path.dirname(balFilePath);
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory, { recursive: true });
-        }
-
-        await writeBallerinaFileDidOpen(balFilePath, req.content);
-        updateView();
-        const datamapperMetadata = StateMachine.context().dataMapperMetadata;
-        await refreshDataMapper(balFilePath, datamapperMetadata.codeData, datamapperMetadata.name);
-        return true;
     }
 
     async getFromFile(req: GetFromFileRequest): Promise<string> {
@@ -673,7 +662,23 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 throw new Error("Not a Ballerina project.");
             }
             await addToIntegration(projectPath, params.fileChanges);
-            updateView();
+
+            const context = StateMachine.context();
+            const dataMapperMetadata = context.dataMapperMetadata;
+            if (!dataMapperMetadata || !dataMapperMetadata.codeData) {
+                updateView();
+                return true;
+            }
+
+            // Refresh data mapper with the updated code
+            let filePath = dataMapperMetadata.codeData.lineRange?.fileName;
+            const varName = dataMapperMetadata.name;
+            if (!filePath || !varName) {
+                updateView();
+                return true;
+            }
+
+            await refreshDataMapper(filePath, dataMapperMetadata.codeData, varName);
             return true;
         } catch (error) {
             console.error(">>> Failed to add files to the project", error);
@@ -796,8 +801,8 @@ async function getCurrentProjectSource(requestType: OperationType, projectPath?:
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
         // Simple parsing to extract the package.name field
         try {
-            const tomlObj = parse(tomlContent);
-            packageName = tomlObj.package.name;
+            const tomlObj = parse(tomlContent) as Partial<PackageTomlValues>;
+            packageName = tomlObj?.package?.name;
         } catch (error) {
             packageName = '';
         }

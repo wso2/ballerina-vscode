@@ -18,12 +18,13 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
+import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
-const TOKEN_LINE_OFFSET_INDEX = 0;
-const TOKEN_START_CHAR_OFFSET_INDEX = 1;
-const TOKEN_LENGTH_INDEX = 2;
-const TOKEN_TYPE_INDEX = 3;
-const TOKEN_MODIFIERS_INDEX = 4;
+export const TOKEN_LINE_OFFSET_INDEX = 0;
+export const TOKEN_START_CHAR_OFFSET_INDEX = 1;
+export const TOKEN_LENGTH_INDEX = 2;
+export const TOKEN_TYPE_INDEX = 3;
+export const TOKEN_MODIFIERS_INDEX = 4;
 
 export const TOKEN_TYPE_INDEX_MAP: { [key: number]: TokenType } = {
     0: TokenType.VARIABLE,
@@ -39,8 +40,9 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): InputMode => {
+export const getInputModeFromTypes = (valueTypeConstraint: string | string[], key?: string): InputMode => {
     if (!valueTypeConstraint) return;
+    if (key === "query") return InputMode.PROMPT;
     let types: string[];
     if (typeof valueTypeConstraint === 'string') {
         if (valueTypeConstraint.includes('|')) {
@@ -60,9 +62,9 @@ export const getInputModeFromTypes = (valueTypeConstraint: string | string[]): I
     return;
 };
 
-export const getDefaultExpressionMode = (valueTypeConstraint: string | string[]): InputMode => {
+export const getDefaultExpressionMode = (valueTypeConstraint: string | string[], key?: string): InputMode => {
     if (!valueTypeConstraint) throw new Error("Value type constraint is undefined");
-    return getInputModeFromTypes(valueTypeConstraint);
+    return getInputModeFromTypes(valueTypeConstraint, key);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
@@ -150,52 +152,9 @@ export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], 
     }
 
     return completions.filter(completion =>
-        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field') &&
+        (completion.kind === 'function' || completion.kind === 'variable' || completion.kind === 'field' || completion.kind === 'enum-member') &&
         completion.label.toLowerCase().startsWith(prefix.toLowerCase())
     );
-};
-
-// Maps a position from raw expression space to sanitized expression space
-export const mapRawToSanitized = (
-    rawPosition: number,
-    rawExpression: string,
-    sanitizedExpression: string
-): number => {
-    if (rawExpression === sanitizedExpression) {
-        return rawPosition;
-    }
-
-    const sanitizedIndex = rawExpression.indexOf(sanitizedExpression);
-    if (sanitizedIndex === -1) {
-        return rawPosition;
-    }
-
-    const prefixLength = sanitizedIndex;
-    if (rawPosition <= prefixLength) {
-        return 0;
-    }
-
-    const mappedPosition = rawPosition - prefixLength;
-    return Math.min(mappedPosition, sanitizedExpression.length);
-};
-
-// Maps a position from sanitized expression space to raw expression space
-export const mapSanitizedToRaw = (
-    sanitizedPosition: number,
-    rawExpression: string,
-    sanitizedExpression: string
-): number => {
-    if (rawExpression === sanitizedExpression) {
-        return sanitizedPosition;
-    }
-
-    const sanitizedIndex = rawExpression.indexOf(sanitizedExpression);
-    if (sanitizedIndex === -1) {
-        return sanitizedPosition;
-    }
-
-    const prefixLength = sanitizedIndex;
-    return sanitizedPosition + prefixLength;
 };
 
 /**
@@ -328,4 +287,155 @@ export const detectTokenPatterns = (
     }
 
     return compounds;
+};
+
+// Calculates helper pane position with viewport overflow correction
+export const calculateHelperPanePosition = (
+    targetCoords: { bottom: number; left: number },
+    editorRect: DOMRect,
+    helperPaneWidth: number,
+    scrollTop: number = 0
+): { top: number; left: number } => {
+    // Position relative to the editor container, accounting for scroll
+    let top = targetCoords.bottom - editorRect.top + scrollTop;
+    let left = targetCoords.left - editorRect.left;
+
+    // Add overflow correction for window boundaries
+    const viewportWidth = window.innerWidth;
+    const absoluteLeft = targetCoords.left;
+    const overflow = absoluteLeft + helperPaneWidth - viewportWidth;
+
+    if (overflow > 0) {
+        left -= overflow;
+    }
+
+    return { top, left };
+};
+
+export interface FunctionExtractionResult {
+    finalValue: string;
+    cursorAdjustment: number; // How much to adjust cursor position from base position
+}
+
+export const correctTokenStreamPositions = (
+    tokenStream: number[],
+    serializedValue: string,
+    prefixLength: number,
+    suffixLength: number
+): number[] => {
+    if (!tokenStream || tokenStream.length < 5) {
+        return tokenStream;
+    }
+
+    if (prefixLength === 0 && suffixLength === 0) {
+        return tokenStream;
+    }
+
+    const chunks = getTokenChunks(tokenStream);
+    const correctedTokens: number[] = [];
+
+    let currentLine = 0;
+    let currentChar = 0;
+    let previousLine = 0;
+    let previousChar = 0;
+
+    for (const chunk of chunks) {
+        const deltaLine = chunk[TOKEN_LINE_OFFSET_INDEX];
+        const deltaStartChar = chunk[TOKEN_START_CHAR_OFFSET_INDEX];
+        const length = chunk[TOKEN_LENGTH_INDEX];
+        const type = chunk[TOKEN_TYPE_INDEX];
+        const modifiers = chunk[TOKEN_MODIFIERS_INDEX];
+
+        // Calculate absolute position in raw expression
+        currentLine += deltaLine;
+        if (deltaLine === 0) {
+            currentChar += deltaStartChar;
+        } else {
+            currentChar = deltaStartChar;
+        }
+
+        // Map to sanitized expression space
+        let sanitizedLine = currentLine;
+        let sanitizedChar = currentChar;
+
+        if (currentLine === 0) {
+            // First line: subtract prefix length
+            sanitizedChar = Math.max(0, currentChar - prefixLength);
+        }
+        // For lines > 0, no adjustment needed as prefix is only on first line
+
+        // Calculate deltas for the corrected token
+        const correctedDeltaLine = sanitizedLine - previousLine;
+        const correctedDeltaChar = correctedDeltaLine === 0
+            ? sanitizedChar - previousChar
+            : sanitizedChar;
+
+        correctedTokens.push(
+            correctedDeltaLine,
+            correctedDeltaChar,
+            length,
+            type,
+            modifiers
+        );
+
+        previousLine = sanitizedLine;
+        previousChar = sanitizedChar;
+    }
+
+    return correctedTokens;
+};
+
+// Processes a value that ends with () or )}, extracting function arguments and creating placeholders
+export const processFunctionWithArguments = async (
+    value: string,
+    extractArgsFromFunction: (value: string, cursorPosition: number) => Promise<{
+        label: string;
+        args: string[];
+        currentArgIndex: number;
+        documentation?: FnSignatureDocumentation;
+    }>
+): Promise<FunctionExtractionResult> => {
+    try {
+        // Extract the function definition from string templates like "${func()}"
+        let functionDef = value;
+        let prefix = '';
+        let suffix = '';
+
+        // Check if it's within a string template
+        const stringTemplateMatch = value.match(/^(.*\$\{)([^}]+)(\}.*)$/);
+        if (stringTemplateMatch) {
+            prefix = stringTemplateMatch[1];
+            functionDef = stringTemplateMatch[2];
+            suffix = stringTemplateMatch[3];
+        }
+
+        // Calculate cursor position for extraction relative to the functionDef string
+        let cursorPositionForExtraction = functionDef.length - 1;
+        if (functionDef.endsWith(')}')) {
+            cursorPositionForExtraction -= 1;
+        }
+
+        // Extract function signature from backend
+        const fnSignature = await extractArgsFromFunction(functionDef, cursorPositionForExtraction);
+
+        if (fnSignature && fnSignature.args && fnSignature.args.length > 0) {
+            // Generate placeholder arguments: $1, $2, $3, etc.
+            const placeholderArgs = fnSignature.args.map((_arg, index) => `$${index + 1}`);
+            const updatedFunctionDef = functionDef.slice(0, -2) + '(' + placeholderArgs.join(', ') + ')';
+            const finalValue = prefix + updatedFunctionDef + suffix;
+
+            // Cursor adjustment is relative to the start of the inserted value
+            const closingParenIndex = finalValue.lastIndexOf(")");
+            const cursorAdjustment =
+                closingParenIndex >= 0 ? closingParenIndex + 1 : finalValue.length;
+
+            return { finalValue, cursorAdjustment };
+        }
+    } catch (error) {
+        console.warn('Failed to extract function arguments:', error);
+    }
+
+    // Return original value if extraction failed or no arguments
+    // Keep caret at the end of the inserted snippet.
+    return { finalValue: value, cursorAdjustment: value.length };
 };

@@ -18,10 +18,9 @@
 
 import { window, Uri, commands } from "vscode";
 import { existsSync, readFileSync, writeFile } from "fs";
-import { BAL_CONFIG_FILE, PALETTE_COMMANDS, clearTerminal } from "../project";
+import { BAL_CONFIG_FILE, MESSAGES, PALETTE_COMMANDS, clearTerminal } from "../project";
 import { BallerinaExtension, ExtendedLangClient } from "../../core";
-import { extension } from "../../BalExtensionContext";
-import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../utils/project-utils";
 import { typeOfComment } from "./utils";
 import { ConfigProperty, ConfigTypes, Constants, Property } from "./model";
 import { BallerinaProject, ConfigVariableResponse, EVENT_TYPE, MACHINE_VIEW, PackageConfigSchema, ProjectDiagnosticsResponse, SyntaxTree } from "@wso2/ballerina-core";
@@ -32,6 +31,8 @@ import { startDebugging } from "../editor-support/activator";
 import { openView, StateMachine } from "../../stateMachine";
 import * as path from "path";
 import { TracerMachine } from "../tracing";
+import { VisualizerWebview } from "../../views/visualizer/webview";
+import { selectPackageOrPrompt } from "../../utils/command-utils";
 
 const UNUSED_IMPORT_ERR_CODE = "BCE2002";
 
@@ -41,26 +42,80 @@ export async function prepareAndGenerateConfig(
     isCommand?: boolean,
     isBi?: boolean,
     executeRun: boolean = true,
-    includeOptional: boolean = false
+    needsPackageSelection: boolean = false
 ): Promise<void> {
-    const currentProject: BallerinaProject | undefined = await getCurrentBIProject(projectPath);
-    const ignoreFile = path.join(currentProject.path, ".gitignore");
-    const configFile = path.join(currentProject.path, BAL_CONFIG_FILE);
+
+    let packagePath: string;
+    let packageName: string;
+
+    if (needsPackageSelection) {
+        try {
+            const packages = StateMachine.context().projectInfo?.children;
+            const packageList = packages?.map((child) => child.projectPath) ?? [];
+
+            const selectedPackage = await selectPackageOrPrompt(packageList, "Select a package to run");
+            if (!selectedPackage) {
+                return;
+            }
+
+            const selectedPackageInfo = packages?.find((child) => child.projectPath === selectedPackage);
+
+            if (!selectedPackageInfo) {
+                throw new Error("Failed to find selected package information.");
+            }
+
+            packagePath = selectedPackageInfo.projectPath;
+            packageName = selectedPackageInfo.name;
+            
+            if (isBi) {
+                openView(
+                    EVENT_TYPE.OPEN_VIEW,
+                    { view: MACHINE_VIEW.PackageOverview, projectPath: selectedPackage },
+                    true
+                );
+            }
+        } catch (error) {
+            console.error("Error selecting package:", error);
+            return;
+        }
+    } else {
+        const currentProject: BallerinaProject | undefined = await getCurrentBIProject(projectPath);
+
+        if (!currentProject) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        packagePath = currentProject.path;
+        packageName = currentProject.packageName;
+
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        if (isBi && !isWebviewOpen) {
+            openView(
+                EVENT_TYPE.OPEN_VIEW,
+                { view: MACHINE_VIEW.PackageOverview, projectPath: packagePath },
+                true
+            );
+        }
+    }
+
+    const ignoreFile = path.join(packagePath, ".gitignore");
+    const configFile = path.join(packagePath, BAL_CONFIG_FILE);
 
     const hasWarnings = (
         await checkConfigUpdateRequired(
             ballerinaExtInstance,
-            projectPath
+            packagePath
         )).hasWarnings;
 
     if (!hasWarnings) {
         if (!isCommand && executeRun) {
-            executeRunCommand(ballerinaExtInstance, projectPath, isBi);
+            executeRunCommand(ballerinaExtInstance, packagePath, isBi);
         }
         return;
     }
 
-    await handleOnUnSetValues(currentProject.packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi);
+    await handleOnUnSetValues(packageName, configFile, ignoreFile, ballerinaExtInstance, isCommand, isBi);
 }
 
 export async function checkConfigUpdateRequired(
@@ -151,11 +206,8 @@ export async function getCurrentBallerinaProjectFromContext(ballerinaExtInstance
 }
 
 export async function getCurrentBIProject(projectPath: string): Promise<BallerinaProject | undefined> {
-    if (StateMachine.context().projectPath) {
-        projectPath = StateMachine.context().projectPath;
-    }
-
-    return await getCurrentBallerinaProject(projectPath);
+    const projectRoot = await getCurrentProjectRoot();
+    return await getCurrentBallerinaProject(projectRoot || projectPath);
 }
 
 export async function handleOnUnSetValues(packageName: string, configFile: string, ignoreFile: string, ballerinaExtInstance: BallerinaExtension, isCommand: boolean, isBi: boolean): Promise<void> {
@@ -236,7 +288,7 @@ async function executeRunCommand(ballerinaExtInstance: BallerinaExtension, fileP
             await startDebugging(Uri.file(filePath), false, true, true);
         }
     } else {
-        commands.executeCommand(PALETTE_COMMANDS.RUN_CMD);
+        commands.executeCommand(PALETTE_COMMANDS.RUN_CMD, filePath);
     }
 }
 

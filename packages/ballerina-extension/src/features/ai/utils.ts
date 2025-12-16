@@ -26,14 +26,30 @@ import { AIStateMachine } from '../../../src/views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
 import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
-import { BallerinaProject } from '@wso2/ballerina-core';
+import { BallerinaProject, LoginMethod } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
+import { getAuthCredentials } from '../../utils/ai/auth';
 
 const config = workspace.getConfiguration('ballerina');
-export const BACKEND_URL: string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
-export const AUTH_ORG: string = config.get('authOrg') || process.env.BALLERINA_AUTH_ORG;
-export const AUTH_CLIENT_ID: string = config.get('authClientID') || process.env.BALLERINA_AUTH_CLIENT_ID;
-export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || process.env.BALLERINA_AUTH_REDIRECT_URL;
+const isDevantDev = process.env.CLOUD_ENV === "dev";
+export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
+export const AUTH_ORG: string = config.get('authOrg') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_ORG : process.env.BALLERINA_AUTH_ORG;
+export const AUTH_CLIENT_ID: string = config.get('authClientID') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_CLIENT_ID : process.env.BALLERINA_AUTH_CLIENT_ID;
+export const AUTH_REDIRECT_URL: string = config.get('authRedirectURL') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_AUTH_REDIRECT_URL : process.env.BALLERINA_AUTH_REDIRECT_URL;
+
+export const DEVANT_STS_TOKEN_CONFIG: string = config.get('cloudStsToken') || process.env.CLOUD_STS_TOKEN;
+
+//TODO: Move to configs after custom URL approved
+const DEVANT_DEV_EXCHANGE_URL = 'https://e95488c8-8511-4882-967f-ec3ae2a0f86f-dev.e1-us-east-azure.choreoapis.dev/ballerina-copilot/devant-token-exchange-ser/v1.0/exchange';
+const DEVANT_PROD_EXCHANGE_URL = 'https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod.e1-us-east-azure.choreoapis.dev/ballerina-copilot/devant-token-exchange-ser/v1.0/exchange';
+
+export function getDevantExchangeUrl(): string {
+    if (isDevantDev) {
+        return DEVANT_DEV_EXCHANGE_URL;
+    } else {
+        return DEVANT_PROD_EXCHANGE_URL;
+    }
+}
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
 export const OLD_BACKEND_URL: string = BACKEND_URL + "/v2.0";
@@ -130,8 +146,26 @@ export async function getConfigFilePath(ballerinaExtInstance: BallerinaExtension
 
 export async function getTokenForDefaultModel() {
     try {
-        const token = await getRefreshedAccessToken();
-        return token;
+        const credentials = await getAuthCredentials();
+
+        if (!credentials) {
+            throw new Error('No authentication credentials found.');
+        }
+
+        // Check login method and handle accordingly
+        if (credentials.loginMethod === LoginMethod.BI_INTEL) {
+            // Keep existing behavior for BI Intel - refresh token
+            const token = await getRefreshedAccessToken();
+            return token;
+        } else if (credentials.loginMethod === LoginMethod.DEVANT_ENV) {
+            // For Devant, return stored access token
+            return credentials.secrets.accessToken;
+        } else {
+            // For anything else, show error
+            const errorMessage = 'This feature is only available for BI Intelligence users.';
+            vscode.window.showErrorMessage(errorMessage);
+            throw new Error(errorMessage);
+        }
     } catch (error) {
         throw error;
     }

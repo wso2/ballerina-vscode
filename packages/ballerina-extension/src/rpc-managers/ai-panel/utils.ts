@@ -16,18 +16,19 @@
  * under the License.
  */
 
-import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest} from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest, RepairedMapping} from "@wso2/ballerina-core";
 import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
 import { processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
-import { DataMapperRequest, DataMapperResponse, FileData } from "../../../src/features/ai/service/datamapper/types";
+import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../../src/features/ai/service/datamapper/types";
 import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
 import { MappingFileRecord} from "./types";
 import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
+import { CopilotEventHandler } from "../../../src/features/ai/service/event";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -154,15 +155,18 @@ async function convertAttachmentToFileData(attachment: Attachment): Promise<File
 // Processes data mapper model and optional mapping instruction files to generate mapping expressions
 export async function generateMappingExpressionsFromModel(
     dataMapperModel: DMModel,
-    mappingInstructionFiles: Attachment[] = []
+    mappingInstructionFiles: Attachment[] = [],
+    eventHandler: CopilotEventHandler
 ): Promise<Mapping[]> {
     let dataMapperResponse: DataMapperModelResponse = {
         mappingsModel: dataMapperModel as DMModel
     };
     if (mappingInstructionFiles.length > 0) {
+        eventHandler({ type: "content_block", content: "\n<progress>Processing mapping hints from attachments...</progress>" });
         const enhancedResponse = await enrichModelWithMappingInstructions(mappingInstructionFiles, dataMapperResponse);
         dataMapperResponse = enhancedResponse as DataMapperModelResponse;
     }
+    eventHandler({ type: "content_block", content: "\n<progress>Generating data mappings...</progress>" });
 
     const generatedMappings = await generateAutoMappings(dataMapperResponse);
     return generatedMappings.map(mapping => ({
@@ -197,11 +201,11 @@ export async function enrichModelWithMappingInstructions(mappingInstructionFiles
     };
 }
 
-// Processes a repair request and returns the repaired source files using AI
-export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<SourceFile[]> {
+// Processes a repair request and returns the repaired mappings using AI
+export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<{ repairedMappings: RepairedMapping[] }> {
     try {
         const repairResponse = await generateRepairCode(codeRepairRequest);
-        return repairResponse.repairedFiles;
+        return { repairedMappings: repairResponse.repairedMappings };
     } catch (error) {
         console.error(error);
         throw error;

@@ -24,7 +24,7 @@ import { Codicon, Dropdown, Tooltip, Typography } from "@wso2/ui-toolkit";
 import { TypeProps } from "../../ParameterBranch";
 import { useHelperPaneStyles } from "../../styles";
 import { ParameterBranch } from "../../ParameterBranch";
-import { getSelectedUnionMember, isRequiredParam, updateFieldsSelection } from "../../utils";
+import { getSelectedUnionMember, isRequiredParam, updateFieldsSelection, resetFieldValues } from "../../utils";
 
 export default function UnionType(props: TypeProps) {
     const { param, depth, onChange } = props;
@@ -184,7 +184,8 @@ export default function UnionType(props: TypeProps) {
                 }
             }
         } else {
-            // When unchecking, clear all member selections
+            // When unchecking, reset values and clear all member selections
+            resetFieldValues(param);
             param.members.forEach((field) => {
                 field.selected = false;
 

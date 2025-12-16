@@ -18,7 +18,7 @@
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
 import { InputOutputPortModel, ValueType } from "../Port";
-import { getDMTypeDim, getTypeName, isPrimitive } from "./type-utils";
+import { getDMTypeDim, getGenericTypeKind, getTypeName, isNumericType, isPrimitive } from "./type-utils";
 import { DataMapperLinkModel, MappingType } from "../Link";
 
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
@@ -65,7 +65,7 @@ export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): 
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType !== MappingType.Default;
+    return mappingType !== MappingType.Default && mappingType !== MappingType.SeqToArray;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
@@ -95,6 +95,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         if (sourceField.kind === TypeKind.Union || targetField.kind === TypeKind.Union) {
             return MappingType.ContainsUnions;
         }
+
+        if (sourceField.isSeq) {
+            if (isPrimitive(targetField.kind)){
+                return MappingType.SeqToPrimitive;
+            }
+            if (targetField.kind === TypeKind.Array) {
+                return MappingType.SeqToArray;
+            }
+        }
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
@@ -109,6 +118,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             }
             if (dimDelta > 0) {
                 return MappingType.ArrayToSingleton;
+            }
+        }
+
+        if (getGenericTypeKind(targetField.kind) !== getGenericTypeKind(sourceField.kind)) {
+            if (targetField.kind === TypeKind.String && isPrimitive(sourceField.kind)) {
+                return MappingType.PrimitiveToString;
+            }
+            if (isNumericType(sourceField.kind) && isNumericType(targetField.kind)) {
+                return MappingType.NumberToNumber;
             }
         }
 

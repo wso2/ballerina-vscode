@@ -53,18 +53,15 @@ import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
-    checkIsBallerinaPackage,
-    checkIsBallerinaWorkspace,
-    getBallerinaPackages,
     getProjectTomlValues,
-    goToSource,
-    hasMultipleBallerinaPackages
+    goToSource
 } from "../../utils";
 import {
     askFileOrFolderPath,
     askFilePath,
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
+    findWorkspaceTypeFromWorkspaceFolders,
     getUpdatedSource,
     handleDownloadFile,
     selectSampleDownloadPath
@@ -265,51 +262,13 @@ export class CommonRpcManager implements CommonRPCAPI {
         return extension.ballerinaExtInstance.isNPSupported;
     }
 
-    async getCurrentProjectTomlValues(): Promise<PackageTomlValues> {
-        return getProjectTomlValues(StateMachine.context().projectPath);
+    async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
+        const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
+        return tomlValues ?? {};  
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
-        const workspaceFolders = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            throw new Error("No workspaces found.");
-        }
-
-        if (workspaceFolders.length > 1) {
-            let balPackagesCount = 0;
-            for (const folder of workspaceFolders) {
-                const packages = await getBallerinaPackages(folder.uri);
-                balPackagesCount += packages.length;
-            }
-
-            const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
-            if (balPackagesCount > 1) {
-                return isWorkspaceFile
-                    ? { type: "VSCODE_WORKSPACE" }
-                    : { type: "MULTIPLE_PROJECTS" };
-            }
-        } else if (workspaceFolders.length === 1) {
-            const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
-
-            const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
-            if (isBallerinaWorkspace) {
-                return { type: "BALLERINA_WORKSPACE" };
-            }
-
-            const isBallerinaPackage = await checkIsBallerinaPackage(Uri.file(workspaceFolderPath));
-            if (isBallerinaPackage) {
-                return { type: "SINGLE_PROJECT" };
-            }
-
-            const hasMultiplePackages = await hasMultipleBallerinaPackages(Uri.file(workspaceFolderPath));
-            if (hasMultiplePackages) {
-                return { type: "MULTIPLE_PROJECTS" };
-            }
-
-            return { type: "UNKNOWN" };
-        }
-
-        return { type: "UNKNOWN" };
+        return await findWorkspaceTypeFromWorkspaceFolders();
     }
 
 
