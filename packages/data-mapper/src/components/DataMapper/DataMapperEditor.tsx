@@ -142,6 +142,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         goToFunction,
         enrichChildFields,
         genUniqueName,
+        getConvertedExpression,
         undoRedoGroup
     } = props;
     const {
@@ -250,7 +251,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 mapWithTransformFn,
                 goToFunction,
                 enrichChildFields,
-                genUniqueName
+                genUniqueName,
+                getConvertedExpression
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
