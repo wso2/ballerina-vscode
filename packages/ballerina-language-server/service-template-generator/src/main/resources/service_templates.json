@@ -1,0 +1,153 @@
+{
+  "ballerina": {
+    "udp": {
+      "1.13.2": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "tcp": {
+      "1.13.2": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "websub": {
+      "2.14.0": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "ftp": {
+      "2.14.1": [
+        {
+          "symbolName": "Listener",
+          "args": "",
+          "index": 3
+        }
+      ]
+    },
+    "ai": {
+      "1.6.1": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 3
+        }
+      ]
+    },
+    "websubhub": {
+      "1.15.0": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "grpc": {
+      "1.14.2": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "messaging": {
+      "1.0.0": [
+        {
+          "symbolName": "StoreListener",
+          "args": "new ()",
+          "index": 4
+        }
+      ]
+    },
+    "file": {
+      "1.12.0": [
+        {
+          "symbolName": "Listener",
+          "args": "",
+          "index": 3
+        }
+      ]
+    },
+    "task": {
+      "2.11.0": [
+        {
+          "symbolName": "Listener",
+          "args": "",
+          "index": 3
+        }
+      ]
+    },
+    "websocket": {
+      "2.14.2": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "mqtt": {
+      "1.4.0": [
+        {
+          "symbolName": "Listener",
+          "args": "\"\",\"\",\"\"",
+          "index": 6
+        }
+      ]
+    },
+    "http": {
+      "2.14.6": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "mcp": {
+      "1.0.1": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "graphql": {
+      "1.16.1": [
+        {
+          "symbolName": "Listener",
+          "args": "0",
+          "index": 4
+        }
+      ]
+    },
+    "email": {
+      "2.12.0": [
+        {
+          "symbolName": "ImapListener",
+          "args": "{}",
+          "index": 3
+        },
+        {
+          "symbolName": "PopListener",
+          "args": "{}",
+          "index": 3
+        }
+      ]
+    }
+  }
+}
