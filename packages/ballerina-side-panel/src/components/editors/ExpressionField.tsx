@@ -112,7 +112,7 @@ export const getEditorConfiguration = (inputMode: InputMode, primaryMode: InputM
         case InputMode.TEMPLATE:
             return new RawTemplateEditorConfig();
         default:
-            return new PrimaryModeChipExpressionEditorConfig(primaryMode);
+            return new ChipExpressionEditorDefaultConfiguration();
     }
 };
 
@@ -261,7 +261,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={field.valueTypeConstraint === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+                configuration={getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
             />
 
         );
