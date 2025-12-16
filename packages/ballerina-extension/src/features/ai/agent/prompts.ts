@@ -21,7 +21,7 @@ import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_
 import { CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
-import { CodeContext, OperationType, ProjectSource } from "@wso2/ballerina-core";
+import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
 import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
 import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 
@@ -188,13 +188,11 @@ ${getNPSuffix(projects, op)}
 
 /**
  * Generates user prompt content array with codebase structure for new threads
- * @param usecase User's query/requirement
- * @param hasHistory Whether chat history exists
- * @param tempProjectPath Path to temp project (used when hasHistory is false)
- * @param packageName Name of the Ballerina package
- * @param isPlanModeEnabled Whether plan mode is enabled
+ * @param params Generation request parameters containing usecase, plan mode, code context, and file attachments
+ * @param tempProjectPath Path to temp project
+ * @param projects Project source information
  */
-export function getUserPrompt(usecase: string, tempProjectPath: string, projects: ProjectSource[], isPlanModeEnabled: boolean, codeContext?: CodeContext) {
+export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
     content.push({
@@ -203,24 +201,38 @@ export function getUserPrompt(usecase: string, tempProjectPath: string, projects
     });
 
     // Add code context if available
-    if (codeContext) {
+    if (params.codeContext) {
         content.push({
             type: 'text' as const,
-            text: formatCodeContext(codeContext, tempProjectPath)
+            text: formatCodeContext(params.codeContext, tempProjectPath)
+        });
+    }
+
+    // Add file attachments if available
+    if (params.fileAttachmentContents && params.fileAttachmentContents.length > 0) {
+        const attachmentsText = params.fileAttachmentContents.map((attachment) =>
+            `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``
+        ).join('\n\n');
+
+        content.push({
+            type: 'text' as const,
+            text: `<User Attachments>
+${attachmentsText}
+</User Attachments>`
         });
     }
 
     content.push({
         type: 'text' as const,
         text: `<User Query>
-${usecase}
+${params.usecase}
 </User Query>`
     });
 
 
     content.push({
         type: 'text' as const,
-        text: getGenerationType(isPlanModeEnabled)
+        text: getGenerationType(params.isPlanMode)
     });
     return content;
 }

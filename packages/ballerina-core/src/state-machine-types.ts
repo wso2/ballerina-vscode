@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -515,6 +515,7 @@ export interface AIChatMachineContext {
     autoApproveEnabled?: boolean;
     isPlanMode?: boolean;
     codeContext?: CodeContext;
+    fileAttachments: FileAttatchment[];
     currentSpec?: {
         requestId: string;
         spec?: any;
@@ -534,7 +535,7 @@ export interface AIChatMachineContext {
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType } }
+    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType, fileAttachments?: FileAttatchment[] } }
     | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
