@@ -95,7 +95,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -106,7 +107,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var obj",
@@ -129,7 +131,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "obj is record {|int quantity; string 'type;|} ",
@@ -170,7 +173,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "obj.quantity",
@@ -186,7 +190,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "quantity",
@@ -215,7 +220,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "int",
@@ -259,7 +265,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "obj.'type",
@@ -275,7 +282,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "'type",
@@ -304,7 +312,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "string",
@@ -348,7 +357,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "string `Order for ${quantity} ${'type} cherries placed`",
@@ -389,7 +399,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -400,7 +411,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "_",
@@ -448,7 +460,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"Invalid data format\")",
@@ -489,7 +502,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -505,7 +519,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "e ",
@@ -522,7 +537,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -585,7 +601,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "e is error ",
@@ -627,7 +644,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "error(\"Data processing failed\", e)",
@@ -656,7 +674,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "any|error"
+                "ballerinaType": "any|error",
+                "selected": true
               }
             ],
             "value": "data ",

@@ -40,7 +40,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "true",
@@ -56,7 +57,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "",
@@ -73,7 +75,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "",
@@ -95,7 +98,9 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION"
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "int",
+            "selected": true
           }
         ],
         "value": "3",

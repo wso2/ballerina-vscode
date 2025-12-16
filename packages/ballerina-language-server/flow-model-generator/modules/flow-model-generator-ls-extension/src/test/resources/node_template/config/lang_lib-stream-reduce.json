@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream<stream:Type, stream:ErrorType?>"
+            "ballerinaType": "stream<stream:Type, stream:ErrorType?>",
+            "selected": false
           }
         ],
         "placeholder": "new ()",
@@ -50,16 +51,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "stm"
-        },
-        "typeMembers": [
-          {
-            "type": "Type, stream",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "STREAM_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "func": {
         "metadata": {
@@ -69,7 +61,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (stream:Type1 accum, stream:Type val) returns stream:Type1"
+            "ballerinaType": "function (stream:Type1 accum, stream:Type val) returns stream:Type1",
+            "selected": false
           }
         ],
         "placeholder": "",
@@ -80,16 +73,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "func"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1 accum, stream",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "FUNCTION_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "initial": {
         "metadata": {
@@ -99,7 +83,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "stream:Type1"
+            "ballerinaType": "stream:Type1",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -110,16 +95,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "initial"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1",
-            "packageInfo": "ballerina:lang.stream:0.0.0",
-            "packageName": "lang.stream",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -128,7 +104,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "stream:Type1",
@@ -146,7 +123,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "streamType1",
@@ -162,7 +140,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

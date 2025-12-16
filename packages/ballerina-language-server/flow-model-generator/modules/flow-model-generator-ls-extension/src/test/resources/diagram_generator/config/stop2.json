@@ -95,7 +95,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "x == 2 ",
@@ -160,7 +161,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "x == 3 ",
@@ -202,7 +204,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "x",

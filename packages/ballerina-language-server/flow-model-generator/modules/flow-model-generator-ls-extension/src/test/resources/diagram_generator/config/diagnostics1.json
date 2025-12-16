@@ -81,7 +81,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -142,7 +143,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"12\"",
@@ -167,7 +169,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "i",
@@ -196,7 +199,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -243,7 +247,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"12\"",
@@ -259,7 +264,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "s",
@@ -288,7 +294,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -337,7 +344,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -363,11 +371,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "i",
@@ -388,16 +398,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "s"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "i": {
             "metadata": {
@@ -406,11 +407,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": true
               }
             ],
             "value": "s",
@@ -431,16 +434,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "i"
-            },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "b": {
             "metadata": {
@@ -449,11 +443,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "value": "true",
@@ -465,16 +461,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "b"
-            },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "j": {
             "metadata": {
@@ -483,11 +470,13 @@
             "types": [
               {
                 "fieldType": "MAPPING_EXPRESSION_SET",
-                "ballerinaType": "map<json>"
+                "ballerinaType": "map<json>",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<json>"
+                "ballerinaType": "map<json>",
+                "selected": false
               }
             ],
             "value": "[]",
@@ -508,16 +497,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "j"
-            },
-            "typeMembers": [
-              {
-                "type": "map<json>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "diagnostics": {
@@ -555,7 +535,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "12",
@@ -571,7 +552,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "j",
@@ -600,7 +582,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -644,7 +627,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "i j",
@@ -669,7 +653,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "k",
@@ -698,7 +683,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -745,7 +731,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "1.5 \"b\"",
@@ -770,7 +757,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "l",
@@ -799,7 +787,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -867,7 +856,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "(s == 12) ",
@@ -939,7 +929,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "(i == \"12\") ",
@@ -997,7 +988,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "(s == 12) ",
@@ -1055,7 +1047,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "-9223372036854775808",
@@ -1080,7 +1073,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "num2",
@@ -1109,7 +1103,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -1156,7 +1151,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "i == s",
@@ -1210,7 +1206,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"h\"",
@@ -1226,7 +1223,8 @@
             },
             "types": [
               {
-                "fieldType": "LV_EXPRESSION"
+                "fieldType": "LV_EXPRESSION",
+                "selected": false
               }
             ],
             "value": "c",
@@ -1271,7 +1269,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "12",
@@ -1287,7 +1286,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "i",
@@ -1325,7 +1325,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -1372,7 +1373,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "4",
@@ -1388,7 +1390,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "val",
@@ -1417,7 +1420,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Unknown Type",

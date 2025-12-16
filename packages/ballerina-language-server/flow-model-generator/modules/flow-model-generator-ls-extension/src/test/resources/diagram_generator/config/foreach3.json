@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "[1, 2, 3]",
@@ -87,7 +88,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "intArr",
@@ -116,7 +118,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int[]",
@@ -203,7 +206,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "item",
@@ -219,7 +223,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "_",
@@ -283,7 +288,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"Error message\")",
@@ -306,7 +312,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "item",
@@ -335,7 +342,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -354,7 +362,8 @@
             "types": [
               {
                 "fieldType": "ACTION_OR_EXPRESSION",
-                "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json"
+                "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json",
+                "selected": true
               }
             ],
             "value": "intArr ",

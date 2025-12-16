@@ -39,11 +39,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:Type[]"
+            "ballerinaType": "array:Type[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:Type[]"
+            "ballerinaType": "array:Type[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -54,16 +56,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "arr"
-        },
-        "typeMembers": [
-          {
-            "type": "Type",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "packageName": "lang.array",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "func": {
         "metadata": {
@@ -73,7 +66,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (array:Type1 accum, array:Type val) returns array:Type1"
+            "ballerinaType": "function (array:Type1 accum, array:Type val) returns array:Type1",
+            "selected": false
           }
         ],
         "placeholder": "",
@@ -84,16 +78,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "func"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1 accum, array",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "FUNCTION_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "initial": {
         "metadata": {
@@ -103,7 +88,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:Type1"
+            "ballerinaType": "array:Type1",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -114,16 +100,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "initial"
-        },
-        "typeMembers": [
-          {
-            "type": "Type1",
-            "packageInfo": "ballerina:lang.array:0.0.0",
-            "packageName": "lang.array",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -132,7 +109,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "array:Type1",
@@ -150,7 +128,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "arrayType1",
@@ -166,7 +145,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

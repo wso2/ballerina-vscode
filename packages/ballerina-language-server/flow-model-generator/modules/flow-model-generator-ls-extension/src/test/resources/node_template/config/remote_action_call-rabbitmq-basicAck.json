@@ -43,7 +43,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "rabbitmq:Caller"
+            "ballerinaType": "rabbitmq:Caller",
+            "selected": false
           }
         ],
         "value": "caller",
@@ -60,11 +61,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -76,15 +79,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "multiple"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "checkError": {
@@ -94,7 +88,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

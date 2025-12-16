@@ -115,7 +115,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error"
+                        "ballerinaType": "error",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"Failing\")",
@@ -156,7 +157,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -172,7 +174,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "e ",
@@ -189,7 +192,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -231,7 +235,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "e",

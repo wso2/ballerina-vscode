@@ -34,7 +34,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "ai:Wso2ModelProvider",
@@ -55,7 +56,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "aiWso2modelprovider",
@@ -71,7 +73,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -87,7 +90,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,

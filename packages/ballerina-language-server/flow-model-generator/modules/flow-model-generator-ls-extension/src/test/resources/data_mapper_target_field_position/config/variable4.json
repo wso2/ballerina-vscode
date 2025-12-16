@@ -20,7 +20,8 @@
   "property": {
     "types": [
       {
-        "fieldType": "EXPRESSION"
+        "fieldType": "EXPRESSION",
+        "selected": false
       }
     ],
     "optional": false,

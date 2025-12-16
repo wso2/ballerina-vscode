@@ -31,7 +31,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "set",
@@ -60,7 +61,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "The `Client.get()` function can be used to send HTTP GET requests to HTTP endpoints.\n",
@@ -76,7 +78,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string|error?",
@@ -92,7 +95,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -116,7 +120,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -127,7 +132,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -143,7 +149,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -159,7 +166,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -173,7 +181,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {
@@ -184,7 +193,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -195,7 +205,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "string",
@@ -211,7 +222,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "key",
@@ -240,7 +252,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "The key to be used for the request\n",
@@ -262,7 +275,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -273,7 +287,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "string",
@@ -289,7 +304,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "value",
@@ -318,7 +334,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -346,7 +363,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "@ai:AgentTool\n@display {\n    iconPath: \"/path/icon.png\"\n}\n\n",
@@ -362,7 +380,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",
@@ -411,7 +430,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION"
+            "fieldType": "EXPRESSION",
+            "selected": true
           }
         ],
         "value": "redisClient",
@@ -428,11 +448,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": true
           }
         ],
         "value": "key",
@@ -444,16 +466,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "key"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": true
-          }
-        ]
+        }
       },
       "value": {
         "metadata": {
@@ -463,11 +476,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": true
           }
         ],
         "value": "value",
@@ -479,16 +494,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "value"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": true
-          }
-        ]
+        }
       },
       "checkError": {
         "metadata": {
@@ -497,7 +503,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,
@@ -513,7 +520,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "item",
@@ -542,7 +550,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",

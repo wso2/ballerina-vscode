@@ -80,7 +80,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -105,8 +106,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "pkgB:Customer",
+                "typeMembers": [
+                  {
+                    "type": "Customer",
+                    "packageInfo": "wso2:pkgB:0.1.0",
+                    "packageName": "pkgB",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "pkgB:Customer"
+                "ballerinaType": "pkgB:Customer",
+                "selected": true
               }
             ],
             "value": "customer",
@@ -118,16 +134,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "customer"
-            },
-            "typeMembers": [
-              {
-                "type": "Customer",
-                "packageInfo": "wso2:pkgB:0.1.0",
-                "packageName": "pkgB",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "orderAmount": {
             "metadata": {
@@ -136,11 +143,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "decimal"
+                "ballerinaType": "decimal",
+                "selected": false
               }
             ],
             "value": "250.75",
@@ -152,16 +161,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "orderAmount"
-            },
-            "typeMembers": [
-              {
-                "type": "decimal",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -170,7 +170,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -186,7 +187,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "result",
@@ -215,7 +217,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -265,7 +268,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET"
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": [
@@ -279,16 +283,7 @@
             "codedata": {
               "kind": "REST_PARAMETER",
               "originalName": "values"
-            },
-            "typeMembers": [
-              {
-                "type": "Printable",
-                "packageInfo": "ballerina:io:1.8.0",
-                "packageName": "io",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "flags": 0
