@@ -3,13 +3,9 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.api.SemanticModel;
-import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
-import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
@@ -38,7 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import static io.ballerina.compiler.syntax.tree.SyntaxKind.OBJECT_TYPE_DESC;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINA;
@@ -51,12 +46,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPER
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_READONLY_METADATA_KEY;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.updateHttpServiceContractModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getReadonlyMetadata;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.updateListenerItems;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getHttpServiceContractSym;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
@@ -64,16 +57,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
 
     private static final String FTP_MODEL_LOCATION = "services/ftp_init.json";
     private static final String FTP_SERVICE_MODEL_LOCATION = "services/ftp_service.json";
-    private static final String FTP_CALLER_TYPE = "ftp:Caller";
-    private static final String FTP_INFO_TYPE = "ftp:FileInfo";
-
-    private static final Map<String,String> DEFAULT_MAP = new HashMap<>(
-            Map.of(
-                "onFileJson", "json",
-                "onFileCsv", "string[][]",
-                "onFileXml", "xml"
-            )
-    );
 
     @Override
     public String kind() {
@@ -352,7 +335,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
 
                                         // Update parameter type while preserving placeholder if it exists
                                         if (sourceParam.getType() != null && modelParam.getType() != null) {
-                                            String sourceTypeName = sourceParam.getType().getValue();
                                             modelParam.getType().setValue(sourceParam.getType().getValue());
 
                                         }
@@ -368,52 +350,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
                 }
             }
         }
-//                            // Copy codedata from source function while preserving existing metadata
-//                            if (sourceFunc.getCodedata() != null) {
-//                                modelFunc.setCodedata(sourceFunc.getCodedata());
-//                            }
-//                            // Copy parameter enable values from source function by matching parameter names
-//                            // Set to false if no matching source parameter exists
-//                            if (modelFunc.getParameters() != null) {
-//                                for (Parameter modelParam : modelFunc.getParameters()) {
-//                                    if (modelParam.getName() != null) {
-//                                        String modelParamName = modelParam.getName().getValue();
-//                                        boolean found = false;
-//
-//                                        if (sourceFunc.getParameters() != null) {
-//                                            for (Parameter sourceParam : sourceFunc.getParameters()) {
-//                                                if (sourceParam.getName() != null &&
-//                                                    modelParamName.equals(sourceParam.getName().getValue()) && modelParam.getKind().equals(sourceParam.getKind()) ) {
-//                                                        modelParam.setEnabled(sourceParam.isEnabled());
-//                                                        found = true;
-//                                                        break;
-//                                                }
-//                                                if (modelParam.getKind().equals("DATA_BINDING") && sourceParam.getName().getValue().equals("content")){
-//                                                    if( !sourceParam.getType().getValue().equals(DEFAULT_MAP.get(sourceFunc.getName().getValue()))){
-//                                                        modelParam.setEnabled(true);
-//                                                        for (Parameter modelParam1: modelFunc.getParameters()) {
-//                                                            if (modelParam1.getKind().equals("REQUIRED") && modelParam1.getName().getValue().equals("content")) {
-//                                                                modelParam1.setEnabled(false);
-//                                                            }
-//                                                        }
-//                                                        modelParam.getType().setValue(sourceParam.getType().getValue());
-//                                                        found = true;
-//                                                    }
-//                                                }
-//                                            }
-//                                        }
-//
-//                                        if (!found) {
-//                                            modelParam.setEnabled(false);
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    );
-//                }
-//            }
-//        }
 
         updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
 

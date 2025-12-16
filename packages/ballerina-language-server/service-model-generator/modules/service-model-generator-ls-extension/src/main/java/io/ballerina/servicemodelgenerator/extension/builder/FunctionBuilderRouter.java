@@ -27,7 +27,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.function.DefaultFunctionBuilder;
-import io.ballerina.servicemodelgenerator.extension.builder.function.FTPFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.GraphqlFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
@@ -51,7 +50,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
@@ -74,7 +72,6 @@ public class FunctionBuilderRouter {
         put(MCP, McpFunctionBuilder::new);
         put(KAFKA, KafkaFunctionBuilder::new);
         put(SOLACE, SolaceFunctionBuilder::new);
-        put(FTP, FTPFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {

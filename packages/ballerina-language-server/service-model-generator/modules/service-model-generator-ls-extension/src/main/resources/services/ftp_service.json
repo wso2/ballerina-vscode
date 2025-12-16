@@ -555,7 +555,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
@@ -708,7 +708,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
@@ -861,7 +861,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
@@ -1005,7 +1005,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
@@ -1158,7 +1158,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
@@ -1269,7 +1269,7 @@
             "optional": false,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "optional": true,
           "advanced": true
