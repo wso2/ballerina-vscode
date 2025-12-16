@@ -40,35 +40,35 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.MSSQL;
 public final class MssqlCdcFunctionBuilder extends AbstractFunctionBuilder {
 
     private static final String REQUIRED_PARAM_TYPE = "record {}";
-
-    @Override
-    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
-        // Process databinding - handles type generation/update and parameter updates
-        // Note: CDC uses record {} as the base type, not array type (isArray = false)
-        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingUpdate(
-                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, AFTER_ENTRY_FIELD, false);
-
-        // Get edits for main file
-        Map<String, List<TextEdit>> mainFileEdits = super.updateModel(context);
-
-        // Merge both edits into a mutable map
-        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
-        allEdits.putAll(databindEdits);
-
-        return allEdits;
-    }
-
-    @Override
-    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
-        // Process databinding when adding new functions
-        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
-                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, AFTER_ENTRY_FIELD, false);
-
-        Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
-        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
-        allEdits.putAll(databindEdits);
-        return allEdits;
-    }
+//
+//    @Override
+//    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+//        // Process databinding - handles type generation/update and parameter updates
+//        // Note: CDC uses record {} as the base type, not array type (isArray = false)
+//        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingUpdate(
+//                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, AFTER_ENTRY_FIELD, false);
+//
+//        // Get edits for main file
+//        Map<String, List<TextEdit>> mainFileEdits = super.updateModel(context);
+//
+//        // Merge both edits into a mutable map
+//        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
+//        allEdits.putAll(databindEdits);
+//
+//        return allEdits;
+//    }
+//
+//    @Override
+//    public Map<String, List<TextEdit>> addModel(AddModelContext context) throws Exception {
+//        // Process databinding when adding new functions
+//        Map<String, List<TextEdit>> databindEdits = DatabindUtil.processDatabindingForAdd(
+//                context, TYPE_PREFIX, REQUIRED_PARAM_TYPE, AFTER_ENTRY_FIELD, false);
+//
+//        Map<String, List<TextEdit>> mainFileEdits = super.addModel(context);
+//        Map<String, List<TextEdit>> allEdits = new HashMap<>(mainFileEdits);
+//        allEdits.putAll(databindEdits);
+//        return allEdits;
+//    }
 
     @Override
     public String kind() {
