@@ -2369,7 +2369,7 @@ export class BallerinaExtension {
         return this.documentContext;
     }
 
-    public setDiagramActiveContextsetDiagramActiveContext(value: boolean) {
+    public setDiagramActiveContext(value: boolean) {
         commands.executeCommand('setContext', 'isBallerinaDiagram', value);
         this.documentContext.setActiveDiagram(value);
     }
