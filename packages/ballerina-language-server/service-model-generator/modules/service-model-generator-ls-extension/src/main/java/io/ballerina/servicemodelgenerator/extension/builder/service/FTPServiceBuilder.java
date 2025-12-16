@@ -105,6 +105,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
             throws WorkspaceDocumentException, FormatterException, IOException, BallerinaOpenApiException,
             EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
+
+        // Get the selected protocol (ftp, ftps, or sftp) from the design approach choices
+        String selectedProtocol = getEnabledChoiceValue(serviceInitModel, PROPERTY_DESIGN_APPROACH);
+
         applyEnabledChoiceProperty(serviceInitModel, PROPERTY_DESIGN_APPROACH);
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
 
@@ -112,24 +116,64 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
 
         // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
         String listenerVarName = properties.get("listenerVarName").getValue();
-        String host = properties.get("host") != null ? properties.get("host").getValue() : "";
-        String port = properties.get("portNumber") != null ? properties.get("portNumber").getValue().replace("\"", "") : "21";
-        String folderPath = properties.get("folderPath") != null ? properties.get("folderPath").getValue() : "/";
-        String username = properties.get("userName") != null ? properties.get("userName").getValue() : "";
-        String password = properties.get("password") != null ? properties.get("password").getValue() : "";
+        String host = cleanQuotes(getPropertyValue(properties, "host", "127.0.0.1"));
+        String port = getPropertyValue(properties, "portNumber", "21");
+        String folderPath = cleanQuotes(getPropertyValue(properties, "folderPath", "/"));
+
+        // Access nested authentication properties
+        String username = getNestedAuthProperty(properties, "userName", "");
+        String password = getNestedAuthProperty(properties, "password", "");
+        String privateKey = cleanQuotes(getNestedAuthProperty(properties, "privateKey", ""));
+        String secureSocket = cleanQuotes(getNestedAuthProperty(properties, "secureSocket", ""));
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();
         listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new({\n");
-        listenerDeclaration.append("    protocol: ftp:FTP,\n");
+        listenerDeclaration.append("    protocol: ftp:").append(selectedProtocol).append(",\n");
         listenerDeclaration.append("    host: \"").append(host).append("\",\n");
 
-        if (!username.isEmpty() || !password.isEmpty()) {
+        // Add authentication configuration if any auth details are provided
+        if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
             listenerDeclaration.append("    auth: {\n");
-            listenerDeclaration.append("        credentials: {\n");
-            listenerDeclaration.append("            username: \"").append(username).append("\",\n");
-            listenerDeclaration.append("            password: \"").append(password).append("\"\n");
-            listenerDeclaration.append("        }\n");
+
+            // Add credentials block if username or password is provided
+            if (!username.isEmpty() || !password.isEmpty()) {
+                listenerDeclaration.append("        credentials: {\n");
+                if (!username.isEmpty()) {
+                    listenerDeclaration.append("            username: \"").append(username).append("\",\n");
+                }
+                if (!password.isEmpty()) {
+                    listenerDeclaration.append("            password: \"").append(password).append("\"\n");
+                }
+                listenerDeclaration.append("        }");
+
+                // Add comma if private key or secure socket is also present
+                if (!privateKey.isEmpty() || !secureSocket.isEmpty()) {
+                    listenerDeclaration.append(",\n");
+                } else {
+                    listenerDeclaration.append("\n");
+                }
+            }
+
+            // Add private key configuration if provided
+            if (!privateKey.isEmpty()) {
+                listenerDeclaration.append("        privateKey: {\n");
+                listenerDeclaration.append("            path: \"").append(privateKey).append("\"\n");
+                listenerDeclaration.append("        }");
+
+                // Add comma if secure socket is also present
+                if (!secureSocket.isEmpty()) {
+                    listenerDeclaration.append(",\n");
+                } else {
+                    listenerDeclaration.append("\n");
+                }
+            }
+
+            // Add secure socket configuration if provided (for FTPS)
+            if (!secureSocket.isEmpty()) {
+                listenerDeclaration.append("        secureSocket: ").append(secureSocket).append("\n");
+            }
+
             listenerDeclaration.append("    },\n");
         }
 
@@ -161,6 +205,81 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
         edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().endLine()), serviceCode));
 
         return Map.of(context.filePath(), edits);
+    }
+
+    /**
+     * Helper method to get property value with default fallback
+     */
+    private String getPropertyValue(Map<String, Value> properties, String key, String defaultValue) {
+        Value property = properties.get(key);
+        if (property != null && property.getValue() != null && !property.getValue().isEmpty()) {
+            return property.getValue();
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Helper method to clean surrounding quotes from string values
+     */
+    private String cleanQuotes(String value) {
+        if (value == null) {
+            return "";
+        }
+        // Remove surrounding quotes if present
+        String cleaned = value.trim();
+        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() > 1) {
+            cleaned = cleaned.substring(1, cleaned.length() - 1);
+        }
+        return cleaned;
+    }
+
+    /**
+     * Helper method to get the enabled choice value
+     */
+    private String getEnabledChoiceValue(ServiceInitModel serviceInitModel, String propertyKey) {
+        try {
+            Value property = serviceInitModel.getProperties().get(propertyKey);
+            if (property == null || property.getChoices() == null) {
+                return "ftp";
+            }
+
+            for (Value choice : property.getChoices()) {
+                if (choice.isEnabled()) {
+                    return choice.getValue();
+                }
+            }
+            return "ftp";
+        } catch (Exception e) {
+            return "ftp";
+        }
+    }
+
+    /**
+     * Helper method to access nested authentication properties
+     * Accesses properties.get("authentication").getChoices().getFirst().getProperties().get(propertyName).getValue()
+     */
+    private String getNestedAuthProperty(Map<String, Value> properties, String propertyName, String defaultValue) {
+        try {
+            Value authProperty = properties.get("authentication");
+            if (authProperty == null || authProperty.getChoices() == null || authProperty.getChoices().isEmpty()) {
+                return defaultValue;
+            }
+
+            Value firstChoice = authProperty.getChoices().get(0);
+            if (firstChoice == null || firstChoice.getProperties() == null) {
+                return defaultValue;
+            }
+
+            Value targetProperty = firstChoice.getProperties().get(propertyName);
+            if (targetProperty == null || targetProperty.getValue() == null || targetProperty.getValue().isEmpty()) {
+                return defaultValue;
+            }
+
+            return targetProperty.getValue();
+        } catch (Exception e) {
+            // Return default value if any step in the nested access fails
+            return defaultValue;
+        }
     }
 
     @Override
@@ -196,6 +315,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
 
                                 modelFunc.getParameters().stream().filter(
                                         modelParam -> modelParam.getType().getValue().equals(sourceParam.getType().getValue()) || modelParam.getKind().equals("DATA_BINDING")
+                                || modelParam.getName().getValue().equals("content")
                                 ).forEach(
                                         modelParam -> {
                                             modelParam.setEnabled(true);

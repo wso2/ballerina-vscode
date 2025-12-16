@@ -30,7 +30,7 @@
           },
           "enabled": true,
           "editable": true,
-          "value": "true",
+          "value": "FTP",
           "valueType": "FORM",
           "isType": false,
           "placeholder": "true",
@@ -44,15 +44,14 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "IDENTIFIER",
+              "value": "\"127.0.0.1\"",
+              "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "placeholder": "\"127.0.0.1\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "IDENTIFIER"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "portNumber": {
@@ -62,33 +61,32 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
+              "value": "21",
               "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "valueTypeConstraint": "int",
+              "placeholder": "21",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "EXPRESSION"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "folderPath": {
               "metadata": {
                 "label": "Folder Path",
-                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)\n"
+                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
               },
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "SERVICE_PATH",
+              "value": "\"/\"",
+              "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "",
+              "placeholder": "\"/\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "SERVICE_BASEPATH"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "authentication": {
@@ -182,7 +180,7 @@
           },
           "enabled": false,
           "editable": true,
-          "value": "true",
+          "value": "SFTP",
           "valueType": "FORM",
           "isType": false,
           "placeholder": "true",
@@ -192,37 +190,35 @@
             "host": {
               "metadata": {
                 "label": "Host",
-                "description": "Hostname or IP address of the server (e.g., ftp.example.com)"
+                "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
               },
               "enabled": true,
               "editable": true,
-              "value": "",
+              "value": "\"127.0.0.1\"",
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "placeholder": "\"127.0.0.1\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "EXPRESSION"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "portNumber": {
               "metadata": {
                 "label": "Port Number",
-                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)"
+                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
               },
               "enabled": true,
               "editable": true,
-              "value": "",
+              "value": "21",
               "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "valueTypeConstraint": "int",
+              "placeholder": "21",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "EXPRESSION"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "folderPath": {
@@ -232,15 +228,15 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "SERVICE_PATH",
+              "value": "\"/\"",
+              "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "",
+              "placeholder": "\"/\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "SERVICE_BASEPATH"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "authentication": {
@@ -351,7 +347,7 @@
           },
           "enabled": false,
           "editable": true,
-          "value": "true",
+          "value": "FTP",
           "valueType": "FORM",
           "isType": false,
           "placeholder": "true",
@@ -365,15 +361,14 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
+              "value": "\"127.0.0.1\"",
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "placeholder": "\"127.0.0.1\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "EXPRESSION"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "portNumber": {
@@ -383,15 +378,14 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
+              "value": "21",
               "valueType": "EXPRESSION",
-              "valueTypeConstraint": "string",
-              "isType": false,
-              "placeholder": "",
+              "valueTypeConstraint": "int",
+              "placeholder": "21",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "EXPRESSION"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "folderPath": {
@@ -401,15 +395,15 @@
               },
               "enabled": true,
               "editable": true,
-              "value": "",
-              "valueType": "SERVICE_PATH",
+              "value": "\"/\"",
+              "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "",
+              "placeholder": "\"/\"",
               "optional": false,
               "advanced": false,
               "codedata": {
-                "type": "SERVICE_PATH"
+                "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
               }
             },
             "authentication": {
@@ -484,13 +478,21 @@
                     "editable": true,
                     "value": "",
                     "valueType": "EXPRESSION",
-                    "valueTypeConstraint": "string",
+                    "valueTypeConstraint": "ftp:SecureSocket",
+                    "typeMembers": [
+                      {
+                        "type": "SecureSocket",
+                        "packageInfo": "ballerina:ftp:2.16.0",
+                        "kind": "RECORD_TYPE",
+                        "selected": false
+                      }
+                    ],
                     "isType": false,
                     "placeholder": "",
                     "optional": false,
                     "advanced": false,
                     "codedata": {
-                      "type": "EXPRESSION"
+                      "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                     }
                   }
                 }

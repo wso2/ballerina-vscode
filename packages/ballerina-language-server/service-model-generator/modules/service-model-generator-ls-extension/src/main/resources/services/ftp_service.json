@@ -1044,7 +1044,7 @@
           "label": "RAW",
           "description": "onFile function type"
         },
-        "enabled": false,
+        "enabled": true,
         "editable": false,
         "value": "onFile",
         "valueType": "IDENTIFIER",
