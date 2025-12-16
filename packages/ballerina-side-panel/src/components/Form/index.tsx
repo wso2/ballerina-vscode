@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { forwardRef, useMemo, useEffect, useImperativeHandle, useState, useRef } from "react";
+import React, { forwardRef, useMemo, useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import ReactMarkdown from "react-markdown";
 import {
@@ -31,7 +31,7 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { ExpressionFormField, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
+import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
 import { EditorFactory } from "../editors/EditorFactory";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
@@ -401,6 +401,7 @@ export interface FormProps {
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
+    derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -441,7 +442,8 @@ export const Form = forwardRef((props: FormProps) => {
         footerActionButton = false,
         onValidityChange,
         changeOptionalFieldTitle = undefined,
-        openFormTypeEditor
+        openFormTypeEditor,
+        derivedFields = []
     } = props;
 
     const {
@@ -463,6 +465,7 @@ export const Form = forwardRef((props: FormProps) => {
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
+    const [manuallyEditedFields, setManuallyEditedFields] = useState<Set<string>>(new Set());
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
     const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Advanced Configurations");
 
@@ -755,6 +758,54 @@ export const Form = forwardRef((props: FormProps) => {
             prevValuesRef.current = { ...watchedValues };
         }
     }, [watchedValues]);
+
+    // Handle derived fields: auto-generate target field values from source fields
+    useEffect(() => {
+        if (derivedFields.length === 0) return;
+
+        derivedFields.forEach(({ sourceField, targetField, deriveFn, breakOnManualEdit = true }) => {
+            const sourceValue = watchedValues[sourceField];
+            const currentTargetValue = watchedValues[targetField];
+
+            // Skip if this field has been manually edited and breakOnManualEdit is true
+            if (breakOnManualEdit && manuallyEditedFields.has(targetField)) {
+                return;
+            }
+
+            // Derive the new target value
+            const derivedValue = deriveFn(sourceValue);
+
+            // Only update if the value has actually changed
+            if (derivedValue !== currentTargetValue) {
+                setValue(targetField, derivedValue);
+            }
+        });
+    }, [watchedValues, derivedFields, manuallyEditedFields, setValue]);
+
+    // Track manual edits to derived target fields
+    useEffect(() => {
+        if (derivedFields.length === 0) return;
+
+        const prevValues = prevValuesRef.current;
+        derivedFields.forEach(({ targetField, breakOnManualEdit = true }) => {
+            if (!breakOnManualEdit) return;
+
+            const currentValue = watchedValues[targetField];
+            const prevValue = prevValues[targetField];
+
+            if (currentValue !== prevValue && prevValue !== undefined) {
+                // Mark this field as manually edited
+                setManuallyEditedFields(prev => {
+                    if (!prev.has(targetField)) {
+                        const newSet = new Set(prev);
+                        newSet.add(targetField);
+                        return newSet;
+                    }
+                    return prev;
+                });
+            }
+        });
+    }, [watchedValues, derivedFields]);
 
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
