@@ -1135,7 +1135,7 @@
               "typeMembers": [
                 {
                   "type": "ListenerConfiguration",
-                  "packageInfo": "ballerina:http:2.15.2",
+                  "packageInfo": "ballerina:http:2.15.3",
                   "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
@@ -1373,7 +1373,7 @@
               "typeMembers": [
                 {
                   "type": "TraceLogAdvancedConfiguration",
-                  "packageInfo": "ballerina:http:2.15.2",
+                  "packageInfo": "ballerina:http:2.15.3",
                   "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
@@ -1492,7 +1492,7 @@
               "typeMembers": [
                 {
                   "type": "AccessLogConfiguration",
-                  "packageInfo": "ballerina:http:2.15.2",
+                  "packageInfo": "ballerina:http:2.15.3",
                   "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false

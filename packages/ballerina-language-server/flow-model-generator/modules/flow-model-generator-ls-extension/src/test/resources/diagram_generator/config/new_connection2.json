@@ -44,7 +44,7 @@
       {
         "id": "46825",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -908,7 +908,7 @@
       {
         "id": "47797",
         "metadata": {
-          "label": "New Connection",
+          "label": "Redis",
           "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
         },
@@ -1159,7 +1159,7 @@
       {
         "id": "62561",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -1335,7 +1335,7 @@
       {
         "id": "34787",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -1511,7 +1511,7 @@
       {
         "id": "42732",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -2375,7 +2375,7 @@
       {
         "id": "35751",
         "metadata": {
-          "label": "New Connection",
+          "label": "Redis",
           "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
         },
@@ -2624,7 +2624,7 @@
       {
         "id": "43704",
         "metadata": {
-          "label": "New Connection",
+          "label": "Redis",
           "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
         },

@@ -30,6 +30,9 @@ import io.ballerina.centralconnector.response.ConnectorApiResponse;
 import io.ballerina.centralconnector.response.Function;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
+import io.ballerina.centralconnector.response.Listener;
+import io.ballerina.centralconnector.response.ListenerResponse;
+import io.ballerina.centralconnector.response.Listeners;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +63,7 @@ class GraphQlClient {
     private static final String QUERY_DIRECTORY = "graphql_queries";
     private static final String GET_FUNCTIONS_QUERY = "GetFunctions.graphql";
     private static final String GET_FUNCTION_QUERY = "GetFunction.graphql";
+    private static final String GET_LISTENERS_QUERY = "GetListeners.graphql";
     private static final String GET_CONNECTION_QUERY = "GetConnector.graphql";
 
     public GraphQlClient() {
@@ -76,6 +81,27 @@ class GraphQlClient {
         String queryBody = String.format(queryTemplate, org, module, version);
         String response = query(queryBody);
         return gson.fromJson(response, FunctionsResponse.class);
+    }
+
+    static Type listenersType = new TypeToken<List<Listener>>() {
+    }.getType();
+
+    public Listeners getListeners(String org, String module, String version) {
+        String queryTemplate = getQueryTemplate(GET_LISTENERS_QUERY);
+        String queryBody = String.format(queryTemplate, org, module, version);
+        String response = query(queryBody);
+        ListenerResponse listenerResponse = gson.fromJson(response, ListenerResponse.class);
+        ListenerResponse.ApiDocs apiDocs = listenerResponse.data().apiDocs();
+        List<Listener> newListeners = new ArrayList<>();
+        if (apiDocs != null) {
+            List<ListenerResponse.Module> modules = apiDocs.docsData().modules();
+            for (ListenerResponse.Module mod : modules) {
+                String listeners = mod.listeners();
+                newListeners.addAll(gson.fromJson(listeners, listenersType));
+            }
+        }
+
+        return new Listeners(org, module, version, newListeners);
     }
 
     public FunctionResponse getFunction(String organization, String name, String version, String functionName) {
