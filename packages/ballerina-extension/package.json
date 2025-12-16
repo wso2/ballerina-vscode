@@ -1169,7 +1169,7 @@
         "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
-        "postbuild": "node -e \"const { execSync } = require('child_process'); const pre = String(process.env.isPreRelease).toLowerCase() === 'true'; execSync(pre ? 'pnpm run download-ls:prerelease' : 'pnpm run download-ls', { stdio: 'inherit' }); execSync('pnpm run copyFonts', { stdio: 'inherit' }); execSync('pnpm run copyJSLibs', { stdio: 'inherit' }); execSync('pnpm run package', { stdio: 'inherit' }); execSync('pnpm run copyVSIX', { stdio: 'inherit' });\"",
+        "postbuild": "pnpm run download-ls && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
