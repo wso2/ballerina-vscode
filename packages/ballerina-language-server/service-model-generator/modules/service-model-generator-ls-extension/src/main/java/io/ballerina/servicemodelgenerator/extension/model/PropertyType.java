@@ -22,6 +22,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
@@ -46,6 +50,7 @@ import java.util.Optional;
  */
 public class PropertyType {
 
+    @JsonAdapter(FieldTypeSerializer.class)
     private final Value.FieldType fieldType;
     private final String ballerinaType;
     private final List<Object> options;
@@ -363,5 +368,12 @@ public class PropertyType {
             return gson.fromJson(jsonArray, listType);
         }
         return new ArrayList<>();
+    }
+
+    public static class FieldTypeSerializer implements JsonSerializer<Value.FieldType> {
+        @Override
+        public JsonElement serialize(Value.FieldType src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(src.name());
+        }
     }
 }
