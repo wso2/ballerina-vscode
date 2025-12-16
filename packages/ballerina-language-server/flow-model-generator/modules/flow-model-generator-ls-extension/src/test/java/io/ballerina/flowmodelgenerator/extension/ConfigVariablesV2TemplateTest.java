@@ -19,7 +19,6 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonObject;
-import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableNodeTemplateRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
