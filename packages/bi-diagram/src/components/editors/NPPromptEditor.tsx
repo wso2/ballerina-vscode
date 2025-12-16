@@ -394,7 +394,7 @@ export const NPPromptEditor: React.FC<NPPromptEditorProps> = (props) => {
                             editable: true,
                             documentation: "",
                             value: value,
-                            valueTypeConstraint: undefined,
+                            types: undefined,
                             enabled: true,
                             placeholder: placeholder
                         }}

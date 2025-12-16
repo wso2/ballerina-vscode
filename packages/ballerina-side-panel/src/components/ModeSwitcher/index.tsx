@@ -27,8 +27,6 @@ interface ModeSwitcherProps {
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
     types: InputType[];
-    valueTypeConstraint: string | string[];
-    fieldKey?: string;
 }
 
 const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
