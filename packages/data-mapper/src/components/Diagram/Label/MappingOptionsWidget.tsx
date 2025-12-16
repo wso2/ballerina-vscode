@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -138,6 +138,10 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await mapSeqToX(link, context, (expr: string) => `${fn}(${expr})`);
         }
 
+        const onClickConvertAndMap = async () => {
+            await convertAndMap(link, context);
+        }
+
         const getItemElement = (id: string, label: string) => {
             return (
                 <div
@@ -160,6 +164,14 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 id: "a2a-inner",
                 label: getItemElement("a2a-inner", "Map Array Elements Individually"),
                 onClick: wrapWithProgress(onClickMapIndividualElements)
+            }
+        ];
+
+        const convertMenuItems: Item[] = [
+            {
+                id: "convert-n-map",
+                label: getItemElement("convert-n-map", "Convert and Map"),
+                onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
     
@@ -226,6 +238,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     return genAggregateItems(onClickMapWithAggregateFn);
                 case MappingType.SeqToPrimitive:
                     return genAggregateItems(onClickMapSeqToPrimitive);
+                case MappingType.PrimitiveToString:
+                case MappingType.NumberToNumber:
+                    return [...convertMenuItems, ...defaultMenuItems];
                 default:
                     return defaultMenuItems;
             }
@@ -235,7 +250,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     
         if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
             pendingMappingType !== MappingType.SeqToPrimitive &&
-            pendingMappingType !== MappingType.SeqToArray) {
+            pendingMappingType !== MappingType.SeqToArray &&
+            pendingMappingType !== MappingType.PrimitiveToString &&
+            pendingMappingType !== MappingType.NumberToNumber) {
             menuItems.push({
                 id: "a2a-a2s-custom-func",
                 label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
