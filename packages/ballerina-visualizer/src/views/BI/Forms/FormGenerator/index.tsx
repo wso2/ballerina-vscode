@@ -1172,7 +1172,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
-        return items?.find(item => `${item.codedata.module.split(".")[1]}:${item.insertText}` === typeName);
+        return items?.find(item => {
+            const moduleName = item.codedata.module?.split(".")[1] || item.codedata.module;
+            return `${moduleName}:${item.insertText}` === typeName;
+        });
     }
 
     /**
