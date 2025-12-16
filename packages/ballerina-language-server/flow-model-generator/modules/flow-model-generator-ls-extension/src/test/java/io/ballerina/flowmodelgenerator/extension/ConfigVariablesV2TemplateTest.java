@@ -18,7 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import com.google.gson.JsonObject;
 import io.ballerina.flowmodelgenerator.extension.request.ConfigVariableNodeTemplateRequest;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
 import org.testng.Assert;
@@ -42,10 +42,12 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
         ConfigVariableNodeTemplateRequest request = new ConfigVariableNodeTemplateRequest(testConfig.isNew());
-        ConfigVariableResponse actualResponse = gson.fromJson(getResponse(request), ConfigVariableResponse.class);
+        JsonObject actualResponse = getResponse(request);
 
-        if (!actualResponse.flowNode().equals(testConfig.flowNode())) {
-//            updateConfig(configJsonPath, new TestConfig(request.isNew(), actualResponse.flowNode()));
+        boolean assertEqual = actualResponse.equals(testConfig.flowNode());
+        if (!assertEqual) {
+            compareJsonElements(actualResponse, testConfig.flowNode());
+//            updateConfig(configJsonPath, new TestConfig(request.isNew(), actualResponse));
             Assert.fail(String.format("Failed test: '%s'", configJsonPath));
         }
     }
@@ -70,11 +72,5 @@ public class ConfigVariablesV2TemplateTest extends AbstractLSTest {
         return "configEditorV2";
     }
 
-    private record TestConfig(boolean isNew, FlowNode flowNode) {
-
-    }
-
-    private record ConfigVariableResponse(FlowNode flowNode) {
-
-    }
+    private record TestConfig(boolean isNew, JsonObject flowNode) { }
 }

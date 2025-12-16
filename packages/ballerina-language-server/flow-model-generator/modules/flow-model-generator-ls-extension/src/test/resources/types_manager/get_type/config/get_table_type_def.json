@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "AddressTable",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -136,7 +141,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FLAG"
+                  "fieldType": "FLAG",
+                  "selected": true
                 }
               ],
               "value": "false",
@@ -152,7 +158,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -223,7 +230,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Address",
@@ -239,7 +247,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -255,7 +264,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -271,7 +281,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -287,7 +298,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",

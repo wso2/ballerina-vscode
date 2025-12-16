@@ -41,11 +41,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -56,16 +58,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "host"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "port": {
         "metadata": {
@@ -75,11 +68,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -90,16 +85,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "port"
-        },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "username": {
         "metadata": {
@@ -109,11 +95,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -125,15 +113,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "username"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "password": {
@@ -144,11 +123,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -160,15 +141,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "password"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "virtualHost": {
@@ -179,11 +151,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -195,15 +169,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "virtualHost"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "connectionTimeout": {
@@ -214,11 +179,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -230,15 +197,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "connectionTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "handshakeTimeout": {
@@ -249,11 +207,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -265,15 +225,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "handshakeTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "shutdownTimeout": {
@@ -284,11 +235,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -300,15 +253,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "shutdownTimeout"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "heartbeat": {
@@ -319,11 +263,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -335,15 +281,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "heartbeat"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "validation": {
@@ -354,11 +291,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -370,15 +309,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "validation"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "secureSocket": {
@@ -388,8 +318,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "typeMembers": [
+              {
+                "type": "SecureSocket",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "rabbitmq:SecureSocket"
+            "ballerinaType": "rabbitmq:SecureSocket",
+            "selected": false
           }
         ],
         "placeholder": "{cert: {path: \"\", password: \"\"}}",
@@ -401,15 +346,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "secureSocket"
         },
-        "typeMembers": [
-          {
-            "type": "SecureSocket",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "packageName": "rabbitmq",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{cert: {path: \"\", password: \"\"}}"
       },
       "auth": {
@@ -419,8 +355,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:Credentials",
+            "typeMembers": [
+              {
+                "type": "Credentials",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "packageName": "rabbitmq",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "rabbitmq:Credentials"
+            "ballerinaType": "rabbitmq:Credentials",
+            "selected": false
           }
         ],
         "placeholder": "{username: \"\", password: \"\"}",
@@ -432,15 +383,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "auth"
         },
-        "typeMembers": [
-          {
-            "type": "Credentials",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "packageName": "rabbitmq",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{username: \"\", password: \"\"}"
       },
       "type": {
@@ -450,7 +392,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "rabbitmq:Client",
@@ -471,7 +414,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "rabbitmqClient",
@@ -487,7 +431,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -503,7 +448,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

@@ -79,7 +79,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "moduleCl",
@@ -96,11 +97,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"/hello\"",
@@ -112,16 +115,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "path"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "headers": {
             "metadata": {
@@ -131,11 +125,13 @@
             "types": [
               {
                 "fieldType": "MAPPING_EXPRESSION_SET",
-                "ballerinaType": "map<string|string[]>"
+                "ballerinaType": "map<string|string[]>",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<string|string[]>?"
+                "ballerinaType": "map<string|string[]>?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -147,22 +143,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "headers"
             },
-            "typeMembers": [
-              {
-                "type": "map<string|string[]>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -172,7 +152,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -189,7 +170,8 @@
             "types": [
               {
                 "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
               }
             ],
             "value": "json",
@@ -211,7 +193,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "moduleVal",
@@ -240,7 +223,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "json",
@@ -290,7 +274,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "    myModuleCl",
@@ -338,11 +323,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"http://localhost:8080\"",
@@ -354,16 +341,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "config": {
             "metadata": {
@@ -372,8 +350,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "ClientConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientConfiguration"
+                "ballerinaType": "http:ClientConfiguration",
+                "selected": false
               }
             ],
             "value": "{}",
@@ -385,16 +378,7 @@
             "codedata": {
               "kind": "INCLUDED_RECORD",
               "originalName": "config"
-            },
-            "typeMembers": [
-              {
-                "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.15.3",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -403,7 +387,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -419,7 +404,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Local",
@@ -435,7 +421,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "localCl",
@@ -464,7 +451,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "http:Client",
@@ -516,7 +504,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "localCl",
@@ -533,11 +522,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"/hello\"",
@@ -549,16 +540,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "path"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "headers": {
             "metadata": {
@@ -568,11 +550,13 @@
             "types": [
               {
                 "fieldType": "MAPPING_EXPRESSION_SET",
-                "ballerinaType": "map<string|string[]>"
+                "ballerinaType": "map<string|string[]>",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "map<string|string[]>?"
+                "ballerinaType": "map<string|string[]>?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -584,22 +568,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "headers"
             },
-            "typeMembers": [
-              {
-                "type": "map<string|string[]>",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "MAP_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "checkError": {
@@ -609,7 +577,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -626,7 +595,8 @@
             "types": [
               {
                 "fieldType": "TYPE",
-                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+                "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+                "selected": false
               }
             ],
             "value": "json",
@@ -648,7 +618,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "localVal",
@@ -677,7 +648,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "json",
@@ -726,7 +698,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Local",
@@ -742,7 +715,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -758,7 +732,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "myLocalCl",
@@ -787,7 +762,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "MyClient",
@@ -837,7 +813,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "    myLocalCl",
@@ -879,7 +856,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "\nvar myObj = object {\n    MyClient myObjCl = new;\n    http:Client|http:ClientError objCl = new (\"http://localhost:5005\");\n};\n(myObj.myObjCl)->myRemoteFn();\njson objVal = check (check myObj.objCl)->get(\"/hello\");",
@@ -929,11 +907,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"http://localhost:9090\"",
@@ -945,16 +925,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "url"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "config": {
             "metadata": {
@@ -963,8 +934,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "http:ClientConfiguration",
+                "typeMembers": [
+                  {
+                    "type": "ClientConfiguration",
+                    "packageInfo": "ballerina:http:2.15.3",
+                    "packageName": "http",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "http:ClientConfiguration"
+                "ballerinaType": "http:ClientConfiguration",
+                "selected": false
               }
             ],
             "value": "{}",
@@ -976,16 +962,7 @@
             "codedata": {
               "kind": "INCLUDED_RECORD",
               "originalName": "config"
-            },
-            "typeMembers": [
-              {
-                "type": "ClientConfiguration",
-                "packageInfo": "ballerina:http:2.15.3",
-                "packageName": "http",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "checkError": {
             "metadata": {
@@ -994,7 +971,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1010,7 +988,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1026,7 +1005,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "moduleCl",
@@ -1055,7 +1035,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "http:Client",
@@ -1104,7 +1085,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1120,7 +1102,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1136,7 +1119,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "myExplicitModuleCl",
@@ -1165,7 +1149,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "MyClient",
@@ -1214,7 +1199,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1230,7 +1216,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1246,7 +1233,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "myModuleCl",
@@ -1275,7 +1263,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "MyClient",

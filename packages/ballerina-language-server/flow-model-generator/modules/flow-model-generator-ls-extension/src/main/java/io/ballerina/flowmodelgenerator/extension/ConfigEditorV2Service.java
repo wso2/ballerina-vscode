@@ -49,6 +49,7 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.TypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -747,6 +748,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             }
         }
 
+        TypeDescriptorNode typeDescriptor = typedBindingPattern.typeDescriptor();
         return nodeBuilder
                 .metadata()
                 .stepOut()
@@ -762,13 +764,14 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         .description(Property.TYPE_DOC)
                         .stepOut()
                     .placeholder("var")
-                    .value(CommonUtils.getVariableName(typedBindingPattern.typeDescriptor()))
-                    .type(Property.ValueType.TYPE)
-                    .typeMembers(extractTypeMembersFromTypeDescriptor(
-                        typedBindingPattern.typeDescriptor(), semanticModel))
+                    .value(CommonUtils.getVariableName(typeDescriptor))
+                    .type()
+                        .fieldType(Property.ValueType.TYPE)
+                        .typeMembers(extractTypeMembersFromTypeDescriptor(typeDescriptor, semanticModel))
+                        .stepOut()
                     .editable(isRootProject)
                     .stepOut()
-                    .addProperty(Property.TYPE_KEY, typedBindingPattern.typeDescriptor().lineRange())
+                    .addProperty(Property.TYPE_KEY, typeDescriptor.lineRange())
                 .defaultValue(variableNode.initializer().orElse(null), isRootProject)
                 .configValue(configValueExpr)
                 .documentation(markdownDocs.orElse(null), isRootProject)

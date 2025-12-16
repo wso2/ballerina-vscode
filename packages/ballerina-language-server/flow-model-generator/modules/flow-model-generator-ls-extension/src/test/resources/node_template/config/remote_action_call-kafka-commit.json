@@ -43,7 +43,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "kafka:Consumer"
+            "ballerinaType": "kafka:Consumer",
+            "selected": false
           }
         ],
         "value": "kafkaConsumer",
@@ -59,7 +60,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

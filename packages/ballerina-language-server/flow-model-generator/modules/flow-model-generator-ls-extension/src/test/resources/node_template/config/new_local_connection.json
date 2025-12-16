@@ -42,11 +42,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -58,15 +60,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "serviceUrl"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       },
       "allowHeaders": {
@@ -77,11 +70,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -93,15 +88,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowHeaders"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowMethods": {
@@ -112,11 +98,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -128,15 +116,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowMethods"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowOrigins": {
@@ -147,11 +126,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -163,15 +144,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowOrigins"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "exposeHeaders": {
@@ -182,11 +154,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string[]"
+            "ballerinaType": "string[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -198,15 +172,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "exposeHeaders"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "[]"
       },
       "allowCredentials": {
@@ -217,11 +182,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -233,15 +200,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "allowCredentials"
         },
-        "typeMembers": [
-          {
-            "type": "boolean",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "false"
       },
       "maxAge": {
@@ -252,11 +210,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "decimal"
+            "ballerinaType": "decimal",
+            "selected": false
           }
         ],
         "placeholder": "0.0d",
@@ -268,15 +228,6 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxAge"
         },
-        "typeMembers": [
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0.0d"
       },
       "type": {
@@ -286,7 +237,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "mod:Client",
@@ -307,7 +259,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "modClient",
@@ -323,7 +276,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -339,7 +293,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

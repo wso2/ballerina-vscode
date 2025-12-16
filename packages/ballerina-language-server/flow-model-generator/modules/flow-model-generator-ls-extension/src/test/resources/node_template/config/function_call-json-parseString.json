@@ -40,11 +40,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -55,16 +57,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "s"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "options": {
         "metadata": {
@@ -73,8 +66,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "jsondata:Options",
+            "typeMembers": [
+              {
+                "type": "Options",
+                "packageInfo": "ballerina:data.jsondata:1.1.0",
+                "packageName": "data.jsondata",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "jsondata:Options"
+            "ballerinaType": "jsondata:Options",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -86,15 +94,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "options"
         },
-        "typeMembers": [
-          {
-            "type": "Options",
-            "packageInfo": "ballerina:data.jsondata:1.1.0",
-            "packageName": "data.jsondata",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "{}"
       },
       "t": {
@@ -105,7 +104,8 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "anydata"
+            "ballerinaType": "anydata",
+            "selected": false
           }
         ],
         "placeholder": "anydata",
@@ -126,7 +126,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "t",
@@ -144,7 +145,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "t",
@@ -160,7 +162,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

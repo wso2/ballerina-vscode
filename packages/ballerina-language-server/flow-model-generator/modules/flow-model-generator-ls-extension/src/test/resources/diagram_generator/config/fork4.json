@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "[]",
@@ -87,7 +88,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "results",
@@ -116,7 +118,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string[]",
@@ -180,7 +183,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "First",
@@ -209,7 +213,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -257,11 +262,13 @@
                     "types": [
                       {
                         "fieldType": "NUMBER",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "decimal"
+                        "ballerinaType": "decimal",
+                        "selected": false
                       }
                     ],
                     "value": ".5",
@@ -273,16 +280,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "seconds"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "decimal",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0
@@ -317,7 +315,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "results.push(\"First done\");",
@@ -358,7 +357,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "Second",
@@ -387,7 +387,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -428,7 +429,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": false,
@@ -444,7 +446,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "REPEATABLE_PROPERTY"
+                        "fieldType": "REPEATABLE_PROPERTY",
+                        "selected": false
                       }
                     ],
                     "value": {
@@ -455,7 +458,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "FIXED_PROPERTY"
+                            "fieldType": "FIXED_PROPERTY",
+                            "selected": false
                           }
                         ],
                         "value": {
@@ -466,7 +470,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "",
@@ -485,7 +490,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "First",
@@ -539,7 +545,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "results.push(\"Second after First\");",
@@ -580,7 +587,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "Third",
@@ -609,7 +617,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -650,7 +659,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": false,
@@ -666,7 +676,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "REPEATABLE_PROPERTY"
+                        "fieldType": "REPEATABLE_PROPERTY",
+                        "selected": false
                       }
                     ],
                     "value": {
@@ -677,7 +688,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "FIXED_PROPERTY"
+                            "fieldType": "FIXED_PROPERTY",
+                            "selected": false
                           }
                         ],
                         "value": {
@@ -688,7 +700,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "",
@@ -707,7 +720,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "Second",
@@ -761,7 +775,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "results.push(\"Third after Second\");",
@@ -808,7 +823,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": false,
@@ -824,7 +840,8 @@
             },
             "types": [
               {
-                "fieldType": "REPEATABLE_PROPERTY"
+                "fieldType": "REPEATABLE_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -835,7 +852,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY"
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
                 "value": {
@@ -846,7 +864,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "",
@@ -865,7 +884,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "Third",
@@ -919,7 +939,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "results",

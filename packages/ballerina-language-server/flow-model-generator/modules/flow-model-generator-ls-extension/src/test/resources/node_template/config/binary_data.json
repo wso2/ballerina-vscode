@@ -23,7 +23,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "var1",
@@ -39,7 +40,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "byte[]",
@@ -55,7 +57,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION"
+            "fieldType": "EXPRESSION",
+            "selected": true
           }
         ],
         "value": "base64 `abcd`",

@@ -35,7 +35,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "ai:VectorKnowledgeBase",
@@ -56,7 +57,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "aiVectorknowledgebase",
@@ -73,7 +75,8 @@
           "types": [
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:VectorStore"
+              "ballerinaType": "ai:VectorStore",
+              "selected": false
             }
           ],
           "placeholder": "object {}",
@@ -84,16 +87,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "vectorStore"
-          },
-          "typeMembers": [
-            {
-              "type": "VectorStore",
-              "packageInfo": "ballerina:ai:1.1.0",
-              "packageName": "ai",
-              "kind": "OBJECT_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "embeddingModel": {
           "metadata": {
@@ -103,7 +97,8 @@
           "types": [
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:EmbeddingProvider"
+              "ballerinaType": "ai:EmbeddingProvider",
+              "selected": false
             }
           ],
           "placeholder": "object {}",
@@ -114,16 +109,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "embeddingModel"
-          },
-          "typeMembers": [
-            {
-              "type": "EmbeddingProvider",
-              "packageInfo": "ballerina:ai:1.1.0",
-              "packageName": "ai",
-              "kind": "OBJECT_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "scope": {
           "metadata": {
@@ -132,7 +118,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -148,7 +135,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,
