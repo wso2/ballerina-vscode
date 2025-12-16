@@ -17,9 +17,23 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { ConnectorRequest, ConnectorResponse, ConnectorsRequest, ConnectorsResponse } from "./interfaces";
+import {
+    ConnectorRequest,
+    ConnectorResponse,
+    ConnectorsRequest,
+    ConnectorsResponse,
+    PersistClientGenerateRequest,
+    IntrospectDatabaseResponse,
+    PersistClientGenerateResponse,
+    IntrospectDatabaseRequest,
+    WSDLApiClientGenerationRequest,
+    WSDLApiClientGenerationResponse
+} from "./interfaces";
 import { RequestType } from "vscode-messenger-common";
 
 const _preFix = "connector-wizard";
 export const getConnector: RequestType<ConnectorRequest, ConnectorResponse> = { method: `${_preFix}/getConnector` };
 export const getConnectors: RequestType<ConnectorsRequest, ConnectorsResponse> = { method: `${_preFix}/getConnectors` };
+export const introspectDatabase: RequestType<IntrospectDatabaseRequest, IntrospectDatabaseResponse> = { method: `${_preFix}/introspectDatabase` };
+export const persistClientGenerate: RequestType<PersistClientGenerateRequest, PersistClientGenerateResponse> = { method: `${_preFix}/persistClientGenerate` };
+export const generateWSDLApiClient: RequestType<WSDLApiClientGenerationRequest, WSDLApiClientGenerationResponse> = { method: `${_preFix}/generateWSDLApiClient` };
