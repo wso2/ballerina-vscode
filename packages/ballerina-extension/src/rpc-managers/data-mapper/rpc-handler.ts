@@ -26,6 +26,7 @@ import {
     AddSubMappingRequest,
     ClausePositionRequest,
     clearTypeCache,
+    ConvertExpressionRequest,
     convertToQuery,
     ConvertToQueryRequest,
     DataMapperModelRequest,
@@ -39,6 +40,7 @@ import {
     DMModelRequest,
     FieldPropertyRequest,
     getClausePosition,
+    getConvertedExpression,
     getDataMapperCodedata,
     GetDataMapperCodedataRequest,
     getDataMapperModel,
@@ -84,5 +86,6 @@ export function registerDataMapperRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getClausePosition, (args: ClausePositionRequest) => rpcManger.getClausePosition(args));
     messenger.onRequest(getExpandedDMFromDMModel, (args: DMModelRequest) => rpcManger.getExpandedDMFromDMModel(args));
     messenger.onRequest(getProcessTypeReference, (args: ProcessTypeReferenceRequest) => rpcManger.getProcessTypeReference(args));
+    messenger.onRequest(getConvertedExpression, (args: ConvertExpressionRequest) => rpcManger.getConvertedExpression(args));
     messenger.onRequest(clearTypeCache, () => rpcManger.clearTypeCache());
 }

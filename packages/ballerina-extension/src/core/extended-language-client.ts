@@ -276,6 +276,8 @@ import {
     FieldPropertyRequest,
     ClausePositionResponse,
     ClausePositionRequest,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     IntrospectDatabaseRequest,
     IntrospectDatabaseResponse,
     PersistClientGenerateRequest,
@@ -383,6 +385,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_FIELD_PROPERTY = 'dataMapper/fieldPosition',
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
+    DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
@@ -877,6 +880,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
         return this.sendRequest<ClausePositionResponse>(EXTENDED_APIS.DATA_MAPPER_CLAUSE_POSITION, params);
+    }
+
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return this.sendRequest<ConvertExpressionResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_EXPRESSION, params);
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
