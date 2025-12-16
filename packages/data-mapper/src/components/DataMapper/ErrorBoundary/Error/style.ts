@@ -15,43 +15,70 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import { css } from "@emotion/css";
+import { ThemeColors } from "@wso2/ui-toolkit";
 
 export const useStyles = () => ({
-    root: css({
-        position: 'relative',
-        flexGrow: 1,
-        margin: '25vh auto',
-        width: 'fit-content'
-    }),
-    errorContainer: css({
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        flexDirection: "column" 
-    }),
-    errorTitle: css({
-        color: "var(--vscode-badge-background)",
-        textAlign: "center"
-    }),
-    errorMsg: css({
-        paddingTop: "16px",
-        color: "var(--vscode-checkbox-border)",
-        textAlign: "center"
-    }),
-    closeButtonContainer: css({
+
+    overlay: css({
+        zIndex: 1,
         position: 'absolute',
-        top: '16px',
-        right: '16px'
+        width: '100%',
+        height: '100%',
+        background: "var(--vscode-input-background)",
+        opacity: 0.5,
+        cursor: 'not-allowed'
     }),
-    errorImg: css({
+
+    errorContainer: css({
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        width: '90%',
+        maxWidth: '500px',
+        zIndex: 2
+    }),
+
+    errorBody: css({
+        backgroundColor: 'var(--vscode-editorWidget-background)',
+        color: 'var(--vscode-foreground)',
+        padding: '16px',
+        border: `1px solid ${ThemeColors.OUTLINE_VARIANT}`,
+        borderRadius: '4px',
         display: 'flex',
-        justifyContent: 'center',
-        width: '100%'
+        flexDirection: 'column',
+        gap: '12px'
     }),
-    gridContainer: css({
-        height: "100%"
+
+    headerContainer: css({
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px'
     }),
+
+    infoIconContainer: css({
+        display: 'flex',
+        alignItems: 'center',
+        color: 'var(--vscode-editorInfo-foreground)'
+    }),
+
+    actionButtons: css({
+        display: 'flex',
+        gap: '8px',
+        alignItems: 'center',
+        alignSelf: 'flex-end'
+    }),
+
+    errorMessage: css({
+        paddingLeft: '8px',
+        '& p': {
+            margin: '8px 0'
+        }
+    }),
+
     link: css({
         color: "var(--vscode-editor-selectionBackground)",
         textDecoration: "underline",
@@ -59,5 +86,6 @@ export const useStyles = () => ({
             color: "var(--vscode-editor-selectionBackground)",
             textDecoration: "underline",
         }
-    })
+    }),
+
 });
