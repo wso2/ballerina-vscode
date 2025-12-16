@@ -1,0 +1,255 @@
+{
+  "id": "17",
+  "displayName": "Microsoft SQL Server CDC Service",
+  "description": "Create a service to capture data changes from a Microsoft SQL Server database using CDC",
+  "orgName": "ballerinax",
+  "packageName": "mssql",
+  "moduleName": "mssql",
+  "version": "1.16.1",
+  "type": "event",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png",
+  "properties": {
+    "host": {
+      "metadata": {
+        "label": "Host",
+        "description": "The hostname of the Microsoft SQL Server"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "localhost",
+      "placeholder": "localhost",
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": true,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "hostname"
+      }
+    },
+    "port": {
+      "metadata": {
+        "label": "Port",
+        "description": "The port number of the Microsoft SQL Server"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "1433",
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "int",
+      "isType": false,
+      "placeholder": "1433",
+      "optional": true,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "port"
+      }
+    },
+    "username": {
+      "metadata": {
+        "label": "Username",
+        "description": "The username for the Microsoft SQL Server connection"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "username"
+      }
+    },
+    "password": {
+      "metadata": {
+        "label": "Password",
+        "description": "The password for the Microsoft SQL Server connection"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "password"
+      }
+    },
+    "databases": {
+      "metadata": {
+        "label": "Databases",
+        "description": "List of databases to capture changes from"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION_SET",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": false,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "databaseNames"
+      },
+      "typeMembers": [
+        {
+          "type": "string",
+          "kind": "ARRAY_TYPE",
+          "selected": true
+        }
+      ]
+    },
+    "schemas": {
+      "metadata": {
+        "label": "Schemas",
+        "description": "A list of regular expressions that match names of schemas to capture changes from"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION_SET",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": true,
+      "advanced": false,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "includedSchemas"
+      },
+      "typeMembers": [
+        {
+          "type": "string",
+          "kind": "ARRAY_TYPE",
+          "selected": false
+        }
+      ]
+    },
+    "tables": {
+      "metadata": {
+        "label": "Tables",
+        "description": "The fully-qualified table name(s) to capture events from. Format: `<database>.<schema>.<table>`"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION_SET",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": true,
+      "advanced": false,
+      "codedata": {
+        "argType": "annotationParam",
+        "originalName": "tables"
+      },
+      "typeMembers": [
+        {
+          "type": "string",
+          "kind": "ARRAY_TYPE",
+          "selected": false
+        }
+      ]
+    },
+    "listenerVarName": {
+      "metadata": {
+        "label": "Listener Name",
+        "description": "Provide a name for the listener being created"
+      },
+      "value": "mssqlCdcListener",
+      "placeholder": "mssqlCdcListener",
+      "valueType": "IDENTIFIER",
+      "valueTypeConstraint": "CdcListener",
+      "enabled": true,
+      "editable": true,
+      "isType": false,
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "argType": "LISTENER_VAR_NAME"
+      }
+    },
+    "databaseInstance": {
+      "metadata": {
+        "label": "Database Instance",
+        "description": "Microsoft SQL Server instance name"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION",
+      "valueTypeConstraint": "string",
+      "isType": false,
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "databaseInstance"
+      }
+    },
+    "secureSocket": {
+      "metadata": {
+        "label": "Secure Socket",
+        "description": "Configure SSL/TLS configuration for secure connection"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION",
+      "isType": false,
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "argType": "databaseConfig",
+        "originalName": "secure"
+      },
+      "typeMembers": [
+        {
+          "type": "SecureDatabaseConnection",
+          "packageInfo": "ballerinax:cdc:1.0.3",
+          "kind": "RECORD_TYPE",
+          "selected": true
+        }
+      ]
+    },
+    "options": {
+      "metadata": {
+        "label": "Options",
+        "description": "Additional options for the CDC engine"
+      },
+      "enabled": true,
+      "editable": true,
+      "value": "",
+      "placeholder": "",
+      "valueType": "EXPRESSION",
+      "isType": false,
+      "optional": true,
+      "advanced": true,
+      "codedata": {
+        "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+      },
+      "typeMembers": [
+        {
+          "type": "Options",
+          "packageInfo": "ballerinax:cdc:1.0.3",
+          "kind": "RECORD_TYPE",
+          "selected": true
+        }
+      ]
+    }
+  }
+}
