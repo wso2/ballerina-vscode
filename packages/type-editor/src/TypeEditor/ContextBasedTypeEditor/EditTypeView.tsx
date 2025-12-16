@@ -385,7 +385,7 @@ export function EditTypeView(props: EditTypeViewProps) {
                             description: "",
                         },
                         value: "",
-                        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+                        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         optional: false,
                         editable: true
                     }
