@@ -71,7 +71,13 @@ export class LibraryResultDispatcher extends BaseToolResultDispatcher {
 
     dispatch(part: any, result: any, context: StreamContext): void {
         const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-        const fetchedLibraries = libraryNames.filter((name) => context.selectedLibraries.includes(name));
+        
+        // For HealthcareLibraryProviderTool, return all fetched libraries since it determines relevance internally
+        // For LibraryProviderTool, filter based on selectedLibraries from the tool input
+        const fetchedLibraries = part.toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL
+            ? libraryNames
+            : libraryNames.filter((name) => context.selectedLibraries.includes(name));
+        
         context.eventHandler({ type: "tool_result", toolName: part.toolName, toolOutput: fetchedLibraries });
     }
 }
