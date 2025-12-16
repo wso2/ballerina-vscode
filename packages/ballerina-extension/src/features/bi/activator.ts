@@ -105,12 +105,30 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
     });
 
-    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        if (isBallerinaWorkspace) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
+        try {
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            if (result.type === "BALLERINA_WORKSPACE") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+            } else if (result.type === "SINGLE_PROJECT") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+            } else {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot || !window.activeTextEditor) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unknown error occurred.");
+            }
         }
     });
 
