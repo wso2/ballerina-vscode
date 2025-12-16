@@ -377,7 +377,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
     const {projectPath, projectInfo} = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
     if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
-        StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
     }
     const projectStructure = await rpcClient.getProjectStructure();
     const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
