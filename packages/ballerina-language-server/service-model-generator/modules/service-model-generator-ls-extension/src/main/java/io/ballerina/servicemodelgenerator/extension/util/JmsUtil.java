@@ -31,6 +31,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -51,11 +52,6 @@ import java.util.function.BiFunction;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FLAG;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 
 /**
  * Utility class for JMS-based service model generation.
@@ -83,8 +79,7 @@ public final class JmsUtil {
         Value existingListenerOptions = new Value.ValueBuilder()
                 .metadata("Select Listener", String.format(EXISTING_LISTENER_CHOICE_DESCRIPTION, moduleName))
                 .value(items.getFirst())
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setItems(itemsAsObject)
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
@@ -94,7 +89,7 @@ public final class JmsUtil {
         return new Value.ValueBuilder()
                 .metadata("Use Existing Listener", "Use Existing Listener")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false).
                 editable(false)
                 .setAdvanced(false)
@@ -106,7 +101,7 @@ public final class JmsUtil {
         return new Value.ValueBuilder()
                 .metadata("Create New Listener", String.format(CREATE_NEW_LISTENER_CHOICE_DESCRIPTION, moduleName))
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setAdvanced(false)
@@ -119,7 +114,7 @@ public final class JmsUtil {
         Value choicesProperty = new Value.ValueBuilder()
                 .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
                 .value(true)
-                .valueType(VALUE_TYPE_CHOICE)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(true)
@@ -134,14 +129,14 @@ public final class JmsUtil {
     public static void addCallerParameter(Function onMessageFunction, String callerTypeStr, String moduleName) {
         Value callerType = new Value.ValueBuilder()
                 .value(callerTypeStr)
-                .valueType(VALUE_TYPE_EXPRESSION)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .enabled(true)
                 .editable(false)
                 .build();
 
         Value callerName = new Value.ValueBuilder()
                 .value(CALLER_PARAM_NAME)
-                .valueType(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                 .enabled(true)
                 .editable(false)
                 .build();
@@ -175,10 +170,8 @@ public final class JmsUtil {
         return new Value.ValueBuilder()
                 .metadata(LABEL_SESSION_ACK_MODE, DESC_SESSION_ACK_MODE)
                 .value(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, ackModeOptions)))
                 .setPlaceholder(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue())
-                .setItems(ackModeOptions)
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -363,8 +356,7 @@ public final class JmsUtil {
         queueProps.put("queueName", new Value.ValueBuilder()
                 .metadata(queueNameLabel, queueNameDesc)
                 .value(queueDefaultValue)
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -373,7 +365,7 @@ public final class JmsUtil {
         Value queueChoice = new Value.ValueBuilder()
                 .metadata(queueLabel, queueDesc)
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(true)
                 .editable(false)
                 .setProperties(queueProps)
@@ -384,8 +376,7 @@ public final class JmsUtil {
         topicProps.put("topicName", new Value.ValueBuilder()
                 .metadata(topicNameLabel, topicNameDesc)
                 .value(topicDefaultValue)
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -394,8 +385,7 @@ public final class JmsUtil {
         topicProps.put("subscriberName", new Value.ValueBuilder()
                 .metadata("Subscriber Name", "The name to be used for the subscription.")
                 .value("\"default\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -405,8 +395,7 @@ public final class JmsUtil {
         topicProps.put("durable", new Value.ValueBuilder()
                 .metadata("Durable Subscriber", "Persist subscription when disconnected.")
                 .value(false)
-                .valueType(VALUE_TYPE_FLAG)
-                .setValueTypeConstraint("BOOLEAN")
+                .types(List.of(PropertyType.types(Value.FieldType.FLAG)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -419,7 +408,7 @@ public final class JmsUtil {
         Value topicChoice = new Value.ValueBuilder()
                 .metadata(topicLabel, topicDesc)
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setProperties(topicProps)
@@ -429,7 +418,7 @@ public final class JmsUtil {
         Value destinationChoice = new Value.ValueBuilder()
                 .metadata(destinationLabel, destinationDesc)
                 .value(0)
-                .valueType(VALUE_TYPE_CHOICE)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -551,8 +540,7 @@ public final class JmsUtil {
         basicAuthProps.put("username", new Value.ValueBuilder()
                 .metadata("Username", "Username for broker authentication")
                 .value("\"default\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("default")
                 .enabled(true)
                 .editable(true)
@@ -561,8 +549,7 @@ public final class JmsUtil {
         basicAuthProps.put("password", new Value.ValueBuilder()
                 .metadata("Password", "Password for broker authentication")
                 .value("")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -572,7 +559,7 @@ public final class JmsUtil {
         Value basicAuthChoice = new Value.ValueBuilder()
                 .metadata("Basic Authentication", "Username and password authentication")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(true)
                 .editable(false)
                 .setProperties(basicAuthProps)
@@ -583,8 +570,7 @@ public final class JmsUtil {
         kerberosAuthProps.put("serviceName", new Value.ValueBuilder()
                 .metadata("Service Name", "Kerberos service name.")
                 .value("\"solace\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("solace")
                 .enabled(true)
                 .editable(true)
@@ -594,8 +580,7 @@ public final class JmsUtil {
         kerberosAuthProps.put("jaasLoginContext", new Value.ValueBuilder()
                 .metadata("JAAS Login Context", "JAAS login context name.")
                 .value("\"SolaceGSS\"")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("SolaceGSS")
                 .enabled(true)
                 .editable(true)
@@ -605,8 +590,7 @@ public final class JmsUtil {
         kerberosAuthProps.put("mutualAuthentication", new Value.ValueBuilder()
                 .metadata("Mutual Authentication", "Enable Kerberos mutual authentication.")
                 .value(true)
-                .valueType(VALUE_TYPE_FLAG)
-                .setValueTypeConstraint("BOOLEAN")
+                .types(List.of(PropertyType.types(Value.FieldType.FLAG)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -615,8 +599,7 @@ public final class JmsUtil {
         kerberosAuthProps.put("jaasConfigReloadEnabled", new Value.ValueBuilder()
                 .metadata("JAAS Config Reload", "Enable automatic JAAS configuration reload.")
                 .value(false)
-                .valueType(VALUE_TYPE_FLAG)
-                .setValueTypeConstraint("BOOLEAN")
+                .types(List.of(PropertyType.types(Value.FieldType.FLAG)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -625,7 +608,7 @@ public final class JmsUtil {
         Value kerberosAuthChoice = new Value.ValueBuilder()
                 .metadata("Kerberos Authentication", "Kerberos (GSS-KRB) authentication.")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setProperties(kerberosAuthProps)
@@ -636,8 +619,7 @@ public final class JmsUtil {
         oauth2AuthProps.put("issuer", new Value.ValueBuilder()
                 .metadata("Issuer", "OAuth 2.0 issuer identifier URI")
                 .value("")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .setPlaceholder("https://auth.example.com")
                 .enabled(true)
                 .editable(true)
@@ -646,8 +628,7 @@ public final class JmsUtil {
         oauth2AuthProps.put("accessToken", new Value.ValueBuilder()
                 .metadata("Access Token", "OAuth 2.0 access token for authentication")
                 .value("")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -657,8 +638,7 @@ public final class JmsUtil {
         oauth2AuthProps.put("oidcToken", new Value.ValueBuilder()
                 .metadata("OIDC Token", "OpenID Connect ID token for authentication")
                 .value("")
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true)
@@ -668,7 +648,7 @@ public final class JmsUtil {
         Value oauth2AuthChoice = new Value.ValueBuilder()
                 .metadata("OAuth 2.0 Authentication", "OAuth 2.0 token-based authentication")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setProperties(oauth2AuthProps)
@@ -678,7 +658,7 @@ public final class JmsUtil {
         Value authenticationChoice = new Value.ValueBuilder()
                 .metadata("Authentication", "Select the authentication method for Solace broker connection")
                 .value(0)
-                .valueType(VALUE_TYPE_CHOICE)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(true)
@@ -738,17 +718,21 @@ public final class JmsUtil {
                 new PropertyTypeMemberInfo(typeName, packageInfo, kind, false)
         );
 
+        PropertyType propertyType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType(typeConstraint)
+                .setMembers(typeMembers)
+                .build();
+
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(typeConstraint)
+                .types(List.of(propertyType))
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .enabled(true)
                 .editable(true)
                 .optional(optional)
                 .setAdvanced(true)
-                .setMembers(typeMembers)
                 .build();
     }
 

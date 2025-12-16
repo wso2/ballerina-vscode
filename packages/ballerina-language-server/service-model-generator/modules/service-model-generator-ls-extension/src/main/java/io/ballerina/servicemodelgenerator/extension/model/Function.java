@@ -38,7 +38,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_O
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_FUNCTION_RETURN_TYPE_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 
 /**
  * Represents a function in a service declaration or in a service class.
@@ -157,7 +156,7 @@ public class Function {
     private static Value functionAccessor() {
         return new Value.ValueBuilder()
                 .setMetadata(Constants.FUNCTION_ACCESSOR_METADATA)
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -166,7 +165,7 @@ public class Function {
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -175,7 +174,7 @@ public class Function {
     private static Value documentation(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                 .enabled(true)
                 .optional(true)
                 .editable(true)
@@ -185,7 +184,7 @@ public class Function {
     public static FunctionReturnType returnType(MetaData metadata) {
         Value value = new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_TYPE)
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -212,18 +211,23 @@ public class Function {
                 .build();
         String[] parts = annotation.typeConstrain().split(":");
         String type = parts.length > 1 ? parts[1] : parts[0];
+
+        PropertyType propertyType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType(annotation.typeConstrain())
+                .setMembers((List.of(new PropertyTypeMemberInfo(type, annotation.packageIdentifier(),
+                                "RECORD_TYPE", false))))
+                .build();
+
         return new Value.ValueBuilder()
                 .setMetadata(new MetaData(annotation.displayName(), annotation.description()))
                 .setCodedata(codedata)
-                .valueType(VALUE_TYPE_EXPRESSION)
+                .types(List.of(propertyType))
                 .setPlaceholder("{}")
-                .setValueTypeConstraint(annotation.typeConstrain())
                 .enabled(true)
                 .editable(true)
                 .optional(true)
                 .setAdvanced(true)
-                .setMembers(List.of(new PropertyTypeMemberInfo(type,
-                        annotation.packageIdentifier(), "RECORD_TYPE", false)))
                 .build();
     }
 
@@ -258,7 +262,7 @@ public class Function {
     public Value getDocumentation() {
         if (documentation == null) {
             documentation = new Value.ValueBuilder()
-                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                     .enabled(true)
                     .optional(true)
                     .editable(true)

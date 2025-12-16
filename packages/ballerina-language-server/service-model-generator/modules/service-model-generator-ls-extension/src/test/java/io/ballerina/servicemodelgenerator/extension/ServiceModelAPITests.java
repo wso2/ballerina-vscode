@@ -157,53 +157,6 @@ public class ServiceModelAPITests {
     }
 
     @Test
-    public void testAddHttpListener() throws ExecutionException, InterruptedException {
-        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "http");
-        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
-        ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
-        Listener listener = modelResponse.listener();
-
-        Value name = listener.getVariableNameProperty();
-        name.setValue("httpListener");
-        Value port = listener.getProperty("port");
-        port.setValue("9999");
-        Value httpVersion = listener.getProperty("httpVersion");
-        httpVersion.setValue("\"1.1\"");
-        httpVersion.setEnabled(true);
-
-        Path filePath = resDir.resolve("sample2/main.bal");
-        ListenerSourceRequest sourceRequest = new ListenerSourceRequest(filePath.toAbsolutePath().toString(),
-                listener);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addListener", sourceRequest);
-        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
-        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
-        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
-    }
-
-    @Test
-    public void testAddAiListener() throws ExecutionException, InterruptedException {
-        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerina", "ai");
-        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
-        ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
-        Listener listener = modelResponse.listener();
-
-        Value name = listener.getVariableNameProperty();
-        name.setValue("agentListener");
-        Value listenOn = listener.getProperty("listenOn");
-        listenOn.setValue("check http:getDefaultListener()");
-
-        Path filePath = resDir.resolve("sample2/main.bal");
-        ListenerSourceRequest sourceRequest = new ListenerSourceRequest(filePath.toAbsolutePath().toString(),
-                listener);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addListener", sourceRequest);
-        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
-        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
-        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
-        List<TextEdit> textEdits = sourceResponse.textEdits().entrySet().stream().findFirst().get().getValue();
-        Assert.assertEquals(textEdits.size(), 2);
-    }
-
-    @Test
     public void testGetServiceModelWithoutListener() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample1/main.bal");
         ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerina",
@@ -462,54 +415,6 @@ public class ServiceModelAPITests {
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }
 
-    @Test
-    public void testAddTriggerListener() throws ExecutionException, InterruptedException {
-        ListenerModelRequest modelRequest = new ListenerModelRequest("ballerinax", "trigger.github");
-        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getListenerModel", modelRequest);
-        ListenerModelResponse modelResponse = (ListenerModelResponse) modelResult.get();
-        Listener listener = modelResponse.listener();
-        Assert.assertTrue(Objects.nonNull(listener));
-
-        Value name = listener.getVariableNameProperty();
-        name.setValue("githubTestListener");
-        Value listenerConfig = listener.getProperty("listenerConfig");
-        listenerConfig.setValue("{webhookSecret: \"secret\"}");
-        Value port = listener.getProperty("listenOn");
-        port.setValue("9119");
-        port.setEnabled(true);
-
-        Path filePath = resDir.resolve("sample4/main.bal");
-        ListenerSourceRequest sourceRequest = new ListenerSourceRequest(filePath.toAbsolutePath().toString(),
-                listener);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addListener", sourceRequest);
-        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
-        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
-        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
-    }
-
-    @Test
-    public void testAddTriggerService() throws ExecutionException, InterruptedException {
-        Path filePath = resDir.resolve("sample2/main.bal");
-        ServiceModelRequest modelRequest = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
-                "trigger.github", null);
-        CompletableFuture<?> modelResult = serviceEndpoint.request("serviceDesign/getServiceModel", modelRequest);
-        ServiceModelResponse modelResponse = (ServiceModelResponse) modelResult.get();
-        Service service = modelResponse.service();
-        Assert.assertTrue(Objects.nonNull(service));
-        service.getListener().setValue("githubTestListener");
-        Value serviceTypeValue = service.getServiceType();
-        List<String> serviceTypes = serviceTypeValue.getItems();
-        serviceTypeValue.setValue(serviceTypes.get(9));
-
-        ServiceSourceRequest sourceRequest = new ServiceSourceRequest(filePath.toAbsolutePath().toString(), service);
-        CompletableFuture<?> sourceResult = serviceEndpoint.request("serviceDesign/addService", sourceRequest);
-        CommonSourceResponse sourceResponse = (CommonSourceResponse) sourceResult.get();
-        Assert.assertTrue(Objects.nonNull(sourceResponse.textEdits()));
-        Assert.assertFalse(sourceResponse.textEdits().isEmpty());
-        serviceEndpoint.notify("textDocument/didClose",
-                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
-    }
-
     @Test(enabled = false)
     public void testGetTriggerServiceFromSource() throws ExecutionException, InterruptedException {
         Path filePath = resDir.resolve("sample4/main.bal");
@@ -550,30 +455,6 @@ public class ServiceModelAPITests {
         CommonSourceResponse genResponse = (CommonSourceResponse) genResult.get();
         Assert.assertTrue(Objects.nonNull(genResponse.textEdits()));
         Assert.assertFalse(genResponse.textEdits().isEmpty());
-        serviceEndpoint.notify("textDocument/didClose",
-                new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
-    }
-
-    @Test
-    public void testGetTriggerServiceModelWithExistingServices() throws ExecutionException, InterruptedException {
-        Path filePath = resDir.resolve("sample4/main.bal");
-        ServiceModelRequest request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
-                "trigger.github", null);
-        CompletableFuture<?> result = serviceEndpoint.request("serviceDesign/getServiceModel", request);
-        ServiceModelResponse response = (ServiceModelResponse) result.get();
-        Service service = response.service();
-        Assert.assertTrue(Objects.nonNull(response.service()));
-        Value serviceType = service.getServiceType();
-        Assert.assertEquals(serviceType.getItems().size(), 11);
-
-        request = new ServiceModelRequest(filePath.toAbsolutePath().toString(), "ballerinax",
-                "trigger.github", "githubTestListener");
-        result = serviceEndpoint.request("serviceDesign/getServiceModel", request);
-        response = (ServiceModelResponse) result.get();
-        service = response.service();
-        Assert.assertTrue(Objects.nonNull(response.service()));
-        serviceType = service.getServiceType();
-        Assert.assertEquals(serviceType.getItems().size(), 11);
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
     }

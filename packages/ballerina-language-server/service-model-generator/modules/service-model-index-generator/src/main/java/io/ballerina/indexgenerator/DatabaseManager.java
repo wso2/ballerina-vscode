@@ -175,20 +175,13 @@ class DatabaseManager {
     }
 
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,
-                                                       String defaultValue, String placeholder, String valueType,
-                                                       String typeConstraint, String sourceKind, String selections) {
+                                                       String defaultValue, String placeholder, String types,
+                                                       String sourceKind) {
         String sql = "INSERT INTO ServiceInitializerProperty (package_id, key_name, label, description, " +
-                "default_value, placeholder, value_type, type_constraint, source_kind, selections) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "default_value, placeholder, types, source_kind) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         return insertEntry(sql, new Object[]{packageId, keyName, label, description, defaultValue, placeholder,
-                valueType, typeConstraint, sourceKind, selections});
-    }
-
-    public static void insertServiceInitializerPropertyMemberType(int initializerId, String type, String kind,
-                                                                  String packageInfo) {
-        String sql = "INSERT INTO ServiceInitializerPropertyMemberType (initializer_id, type, kind, package) " +
-                "VALUES (?, ?, ?, ?)";
-        insertEntry(sql, new Object[]{initializerId, type, kind, packageInfo});
+                types, sourceKind});
     }
 
     public static void insertServiceReadOnlyMetaData(int packageId, String metadataKey,

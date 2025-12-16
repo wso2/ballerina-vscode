@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.modelgenerator.commons.ServiceDeclaration;
@@ -216,6 +217,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @param request Listener model request
      * @return {@link ListenerModelResponse} of the listener model response
      */
+    @Deprecated
     @JsonRequest
     public CompletableFuture<ListenerModelResponse> getListenerModel(ListenerModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -322,6 +324,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @param request Service model request
      * @return {@link ServiceModelResponse} of the service model response
      */
+    @Deprecated
     @JsonRequest
     public CompletableFuture<ServiceModelResponse> getServiceModel(ServiceModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
@@ -344,7 +347,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 Set<String> listenersList = ListenerUtil.getCompatibleListeners(request.moduleName(), semanticModel,
                         project);
-                serviceModel.getListener().setItems(listenersList.stream().map(l -> (Object) l).toList());
+                serviceModel.getListener().getTypes().getFirst().options()
+                        .addAll(listenersList.stream().map(l -> (Object) l).toList());
                 return new ServiceModelResponse(serviceModel);
             } catch (Throwable e) {
                 return new ServiceModelResponse(e);
@@ -551,7 +555,8 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 NonTerminalNode node = findNonTerminalNode(request.codedata(), document);
                 String orgName = request.codedata().getOrgName();
 
-                return processListenerNode(node, orgName, semanticModel);
+                ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
+                return processListenerNode(node, orgName, semanticModel, moduleInfo);
             } catch (Exception e) {
                 return new ListenerFromSourceResponse(e);
             }

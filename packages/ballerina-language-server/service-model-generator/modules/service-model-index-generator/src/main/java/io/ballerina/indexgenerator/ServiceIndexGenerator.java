@@ -237,14 +237,9 @@ class ServiceIndexGenerator {
             for (Map.Entry<String, ServiceInitializerProperty> entry : packageMetadataInfo.initForm().entrySet()) {
                 String propertyName = entry.getKey();
                 ServiceInitializerProperty property = entry.getValue();
-                int id = DatabaseManager.insertServiceInitializerProperty(packageId, propertyName,
-                        property.label(), property.description(), property.defaultValue(), property.placeholder(),
-                        property.valueType(), property.typeConstraint(), property.sourceKind(),
-                        GSON.toJson(property.selections()));
-                for (ServiceInitializerPropertyMemberType memberType : property.typeMembers()) {
-                    DatabaseManager.insertServiceInitializerPropertyMemberType(id, memberType.type(),
-                            memberType.kind(), memberType.packageInfo());
-                }
+                DatabaseManager.insertServiceInitializerProperty(packageId, propertyName, property.label(),
+                        property.description(), property.defaultValue(), property.placeholder(),
+                        GSON.toJson(property.types()), property.sourceKind());
             }
         }
     }
@@ -696,9 +691,7 @@ class ServiceIndexGenerator {
     }
 
     record ServiceInitializerProperty(String label, String description, String defaultValue, String placeholder,
-                                      String valueType, String typeConstraint,
-                                      List<ServiceInitializerPropertyMemberType> typeMembers, String sourceKind,
-                                      List<Object> selections) {
+                                      List<PropertyType> types, String sourceKind) {
     }
 
     record ServiceInitializerPropertyMemberType(String type, String packageInfo, String kind) {
@@ -739,6 +732,14 @@ class ServiceIndexGenerator {
             String importStatements,
             int nameEditable,
             int typeEditable
+    ) {
+    }
+
+    record PropertyType(
+            String fieldType,
+            String ballerinaType,
+            List<Object> options,
+            List<ServiceInitializerPropertyMemberType> typeMembers
     ) {
     }
 }
