@@ -156,12 +156,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const a2aMenuItems: Item[] = [
             {
                 id: "a2a-direct",
-                label: getItemElement("a2a-direct", "Assign Directly", "arrow-right", true),
+                label: getItemElement("a2a-direct", "Assign Directly", "arrow-right-solid"),
                 onClick: wrapWithProgress(onClickMapDirectly)
             },
             {
                 id: "a2a-inner",
-                label: getItemElement("a2a-inner", "Map Each Element Individually", "tasklist", true),
+                label: getItemElement("a2a-inner", "Map Each Element Individually", "bi-convert"),
                 onClick: wrapWithProgress(onClickMapIndividualElements)
             }
         ];
@@ -169,7 +169,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const convertMenuItems: Item[] = [
             {
                 id: "convert-n-map",
-                label: getItemElement("convert-n-map", "Convert and Map", "bi-convert"),
+                label: getItemElement("convert-n-map", "Convert and Map", "while-icon"),
                 onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
