@@ -247,7 +247,7 @@ export function SamplesView() {
                 setIsLoadingSamples(true);
                 setSamplesError(null);
                 const response = await fetch(
-                    "https://raw.githubusercontent.com/wso2/integration-samples/refs/heads/main/ballerina-integrator/samples/meta.json"
+                    "https://devant-cdn.wso2.com/bi-samples/v1/meta.json"
                 );
                 if (!response.ok) {
                     throw new Error(`Failed to fetch samples at the moment. Please try again later.`);
