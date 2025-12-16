@@ -511,7 +511,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                                     return (
                                                         <div key={param.name?.value || index} style={{ marginBottom: 12 }}>
                                                             {/* Show "+ Define" button if parameter is NOT customized */}
-                                                            {!isCustomized && !editModel && (
+                                                            {!isCustomized && (!editModel || isTypeEditorOpen) && (
                                                                 <AddButtonWrapper>
                                                                     <Tooltip
                                                                         content={`Define ${capitalizedName} type for easier access in the flow diagram`}
@@ -546,7 +546,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                     )}
 
                                     {/* BOTH MODES: Payload Editor */}
-                                    {editModel && editModel.kind === "DATA_BINDING" && (
+                                    {editModel && editModel.kind === "DATA_BINDING" && !isTypeEditorOpen && (
                                         <ParamEditor
                                             param={editModel}
                                             onChange={onChangeParam}
