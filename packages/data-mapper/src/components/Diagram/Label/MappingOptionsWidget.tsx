@@ -169,7 +169,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const convertMenuItems: Item[] = [
             {
                 id: "convert-n-map",
-                label: getItemElement("convert-n-map", "Convert and Map", "while-icon"),
+                label: getItemElement("convert-n-map", "Convert and Map", "transform"),
                 onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
