@@ -226,7 +226,10 @@ export function DatabindForm(props: DatabindFormProps) {
         }
 
         // INLINE MODE: Restore to original type when parameter is "deleted"
-        const currentDataBindingParams = functionModel.parameters?.filter((p) => p.kind === "DATA_BINDING") || [];
+        // Only consider enabled DATA_BINDING params since disabled ones aren't shown in UI
+        const currentDataBindingParams = functionModel.parameters?.filter(
+            (p) => p.kind === "DATA_BINDING" && p.enabled !== false
+        ) || [];
         const newDataBindingParams = params.filter((p) => p.kind === "DATA_BINDING");
 
         const removedParam = currentDataBindingParams.find(
@@ -503,7 +506,7 @@ export function DatabindForm(props: DatabindFormProps) {
                                     {useInlineDataBinding && functionModel.parameters && (
                                         <>
                                             {functionModel.parameters
-                                                .filter((param) => param.kind === "DATA_BINDING")
+                                                .filter((param) => param.kind === "DATA_BINDING" && param.enabled !== false)
                                                 .map((param, index) => {
                                                     const capitalizedName = getCapitalizedParameterName(param);
                                                     const isCustomized = isParameterCustomized(param);
