@@ -259,6 +259,11 @@ public class ServiceTemplateGenerator {
                 symbolName, snippetIndex, moduleID));
     }
 
+    public static ListenerMetaData generateServiceSnippetMetaData(String symbolName, String listenerInitArgs,
+                                                                  int snippetIndex, ModuleID moduleID) {
+        return new ListenerMetaData(listenerInitArgs, new ArrayList<>(), symbolName, snippetIndex, moduleID);
+    }
+
     private LSCompletionItem generateServiceSnippet(ListenerMetaData serviceSnippet,
                                                     BallerinaCompletionContext context) {
 
