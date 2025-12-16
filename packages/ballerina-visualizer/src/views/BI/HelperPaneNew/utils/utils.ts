@@ -19,6 +19,6 @@
 import { InputMode } from "@wso2/ballerina-side-panel";
 
 // Wraps a value in template interpolation syntax ${} if in template mode
-export const wrapInTemplateInterpolation = (value: string, inputMode?: InputMode): string => {
-    return inputMode === InputMode.TEMPLATE ? `\${${value}}` : value;
+export const wrapInTemplateInterpolation = (value: string, inputMode: InputMode): string => {
+    return (inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? `\${${value}}` : value;
 };
