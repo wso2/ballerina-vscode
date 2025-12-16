@@ -92,7 +92,6 @@ export async function generateAgentCore(
     eventHandler: CopilotEventHandler,
     ctx: ExecutionContext
 ): Promise<string> {
-    const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
 
     const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
@@ -108,7 +107,7 @@ export async function generateAgentCore(
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, tempProjectPath, projects, isPlanModeEnabled, params.codeContext);
+    const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
     const allMessages: ModelMessage[] = [
         {
             role: "system",

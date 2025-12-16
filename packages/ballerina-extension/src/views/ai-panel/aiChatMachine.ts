@@ -129,6 +129,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         isPlanMode: false,
         checkpoints: [],
         operationType: undefined,
+        fileAttachments: [],
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_AGENT_PROMPT]: {
@@ -148,6 +149,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
                     operationType: (_ctx, event) => event.payload.operationType,
+                    fileAttachments: (_ctx, event) => event.payload.fileAttachments ?? [],
                 }),
                 "captureCheckpoint",
             ],
@@ -203,6 +205,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     checkpoints: (_ctx) => [],
                     isPlanMode: (_ctx) => false,
                     operationType : undefined,
+                    fileAttachments: (_ctx) => [],
                 }),
             ],
         },
@@ -220,6 +223,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 isPlanMode: (_ctx, event) => event.payload.state.isPlanMode || false,
                 autoApproveEnabled: (_ctx, event) => event.payload.state.autoApproveEnabled || false,
                 operationType: (_ctx, event) => event.payload.state.operationType || undefined,
+                fileAttachments: (_ctx, event) => event.payload.state.fileAttachments || [],
             }),
         },
         [AIChatMachineEventType.RESTORE_CHECKPOINT]: {
@@ -602,7 +606,7 @@ const startAgentGenerationService = async (context: AIChatMachineContext): Promi
         usecase: usecase,
         chatHistory: convertChatHistoryToModelMessages(previousHistory),
         operationType: context.operationType,
-        fileAttachmentContents: [],
+        fileAttachmentContents: context.fileAttachments,
         messageId: messageId,
         isPlanMode: context.isPlanMode ?? false,
         codeContext: context.codeContext,
