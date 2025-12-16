@@ -909,6 +909,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "BI.project-explorer.delete",
+                    "when": "false"
+                },
+                {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
                 },
