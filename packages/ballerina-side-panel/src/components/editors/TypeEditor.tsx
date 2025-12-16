@@ -38,7 +38,7 @@ import { sanitizeType } from "./utils";
 import { debounce } from "lodash";
 import styled from "@emotion/styled";
 import ReactMarkdown from "react-markdown";
-import { NodeProperties } from "@wso2/ballerina-core";
+import { getPrimaryInputType, NodeProperties } from "@wso2/ballerina-core";
 import TypeModeSwitcher, { TypeInputMode } from "../TypeModeSwitcher";
 
 interface TypeEditorProps {
@@ -142,7 +142,7 @@ export function TypeEditor(props: TypeEditorProps) {
 
         // Trigger actions on focus
         await onFocus?.();
-        await retrieveVisibleTypes(value, value.length, true, field.valueTypeConstraint as string, field.key);
+        await retrieveVisibleTypes(value, value.length, true, field.types, field.key);
         handleOnFieldFocus?.(field.key);
     };
 
@@ -214,7 +214,7 @@ export function TypeEditor(props: TypeEditorProps) {
     ) => {
         return getTypeHelper(
             field.key,
-            field.valueTypeConstraint as string,
+            field.types,
             typeBrowserRef,
             value,
             cursorPositionRef.current,
@@ -265,9 +265,9 @@ export function TypeEditor(props: TypeEditorProps) {
                             <S.LabelContainer>
                                 <S.Label>{field.label}</S.Label>
                                 {!field.optional && <RequiredFormInput />}
-                                {field.valueTypeConstraint && (
-                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
-                                        {sanitizeType(field.valueTypeConstraint as string)}
+                                {getPrimaryInputType(field.types)?.ballerinaType && (
+                                    <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                        {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
                                     </S.Type>
                                 )}
                             </S.LabelContainer>
@@ -339,7 +339,7 @@ export function TypeEditor(props: TypeEditorProps) {
                                     updatedValue,
                                     updatedCursorPosition,
                                     false,
-                                    field.valueTypeConstraint as string,
+                                    field.types,
                                     field.key
                                 );
                             }}
