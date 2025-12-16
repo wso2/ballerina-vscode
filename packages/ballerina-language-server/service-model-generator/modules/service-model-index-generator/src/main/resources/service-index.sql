@@ -124,7 +124,7 @@ CREATE TABLE ServiceTypeFunctionParameter (
     name TEXT NOT NULL,
     label TEXT NOT NULL,
     description TEXT,
-    kind TEXT CHECK(kind IN ('REQUIRED', 'DEFAULTABLE', 'INCLUDED_RECORD', 'REST', 'OPTIONAL')),
+    kind TEXT CHECK(kind IN ('REQUIRED', 'DEFAULTABLE', 'INCLUDED_RECORD', 'REST', 'OPTIONAL', 'DATA_BINDING')),
     type JSON, -- JSON type for parameter type information
     default_value TEXT,
     import_statements TEXT,

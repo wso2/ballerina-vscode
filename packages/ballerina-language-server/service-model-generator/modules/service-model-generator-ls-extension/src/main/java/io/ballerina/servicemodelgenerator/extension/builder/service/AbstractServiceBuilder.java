@@ -520,7 +520,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
      * @param context the model context
      * @return the base service model or null if template not found
      */
-    private Service createBaseServiceModel(ModelFromSourceContext context) {
+    protected Service createBaseServiceModel(ModelFromSourceContext context) {
         String serviceType = getServiceTypeIdentifier(context.serviceType());
         Optional<Service> serviceTemplate = ServiceBuilderRouter.getModelTemplate(
                 context.orgName(), context.moduleName());

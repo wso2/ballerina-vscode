@@ -381,6 +381,86 @@ public final class DatabindUtil {
     }
 
     /**
+     * <p>This method handles the case where standard consolidation may overwrite DATA_BINDING kinds to
+     * REQUIRED when parameter types match (e.g., both template and source have "record {}"). By using the original
+     * kinds captured before consolidation, it can correctly restore DATA_BINDING kinds and update parameter
+     * values.</p>
+     *
+     * <p>Handles three scenarios:
+     * <p>
+     * 1. Custom type (e.g., MyType) - enabled=true, type.value="MyType", type.placeholder="record {}"
+     * <p>
+     * 2. Generic type (e.g., record {}) - enabled=true, type.value="record {}", type.placeholder="record {}"
+     * <p>
+     * 3. No parameter in source - enabled=false
+     * </p>
+     *
+     * @param targetFunction         The function in the consolidated model
+     * @param sourceFunction         The function from source code (contains actual parameter types and names)
+     * @param originalParameterKinds Map of parameter position to original kind (from before consolidation)
+     */
+    public static void restoreAndUpdateDataBindingParams(Function targetFunction, Function sourceFunction,
+                                                         Map<Integer, String> originalParameterKinds) {
+        if (targetFunction == null || sourceFunction == null || originalParameterKinds == null) {
+            return;
+        }
+
+        List<Parameter> templateParams = targetFunction.getParameters();
+        List<Parameter> sourceParams = sourceFunction.getParameters();
+
+        for (int i = 0; i < templateParams.size(); i++) {
+            Parameter templateParam = templateParams.get(i);
+            String originalKind = originalParameterKinds.get(i);
+
+            // Only process parameters that were originally DATA_BINDING
+            if (!DATA_BINDING.equals(originalKind)) {
+                continue;
+            }
+
+            // Restore the DATA_BINDING kind (may have been overwritten to REQUIRED by consolidation)
+            templateParam.setKind(DATA_BINDING);
+
+            // Check if source has a parameter at this position
+            if (i < sourceParams.size()) {
+                Parameter sourceParam = sourceParams.get(i);
+                String sourceType = sourceParam.getType().getValue();
+                String sourceName = sourceParam.getName().getValue();
+
+                // Parameter exists in source - update type and name, set enabled=true
+                templateParam.getType().setValue(sourceType);
+                templateParam.getName().setValue(sourceName);
+                templateParam.setEnabled(true);
+            } else {
+                // No source parameter at this position - parameter doesn't exist in source
+                templateParam.setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * Extracts the original parameter kinds from the template before consolidation.
+     *
+     * @param serviceModel The base service model with original template data
+     * @return Map of function name to (parameter position to original kind)
+     */
+    public static Map<String, Map<Integer, String>> extractParameterKinds(Service serviceModel) {
+        Map<String, Map<Integer, String>> originalKinds = new java.util.HashMap<>();
+
+        for (Function function : serviceModel.getFunctions()) {
+            Map<Integer, String> paramKinds = new java.util.HashMap<>();
+            List<Parameter> params = function.getParameters();
+
+            for (int i = 0; i < params.size(); i++) {
+                paramKinds.put(i, params.get(i).getKind());
+            }
+
+            originalKinds.put(function.getName().getValue(), paramKinds);
+        }
+
+        return originalKinds;
+    }
+
+    /**
      * Processes databinding for a function add operation. This method generates wrapper types and updates the function
      * parameters when a DATA_BINDING parameter is enabled. Similar to processDatabindingUpdate but adapted for add
      * operations where we don't have function nodes.

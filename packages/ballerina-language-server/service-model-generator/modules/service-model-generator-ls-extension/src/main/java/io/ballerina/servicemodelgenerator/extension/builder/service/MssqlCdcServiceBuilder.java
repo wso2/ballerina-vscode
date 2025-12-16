@@ -21,12 +21,16 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
+import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -58,6 +62,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
+import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.extractParameterKinds;
+import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
+import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
@@ -131,7 +138,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         Set<String> listeners = ListenerUtil.getCompatibleListeners(context.serviceInitModel().getModuleName(),
                 context.semanticModel(), context.project());
         boolean listenerExists = !listeners.isEmpty();
-        Map<String, Value>  listenerProperties = getListenerProperties(properties, listenerExists);
+        Map<String, Value> listenerProperties = getListenerProperties(properties, listenerExists);
         applyListenerConfigurations(listenerProperties);
 
         boolean useExisingListener = listenerExists
@@ -235,24 +242,6 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         return new ListenerDTO(listenerProtocol, listenerVarName, listenerDeclaration);
     }
 
-//    @Override
-//    public Service getModelFromSource(ModelFromSourceContext context) {
-//        Service service = super.getModelFromSource(context);
-//
-//        // Add data binding for functions with single parameter (afterEntry)
-//        addDataBindingParam(service, ON_READ_FUNCTION, context, AFTER_ENTRY_FIELD, TYPE_PREFIX);
-//        addDataBindingParam(service, ON_CREATE_FUNCTION, context, AFTER_ENTRY_FIELD, TYPE_PREFIX);
-//
-//        // For onUpdate - add data binding for both beforeEntry and afterEntry
-//        addDataBindingParam(service, ON_UPDATE_FUNCTION, context, BEFORE_ENTRY_FIELD, TYPE_PREFIX);
-//        addDataBindingParam(service, ON_UPDATE_FUNCTION, context, AFTER_ENTRY_FIELD, TYPE_PREFIX);
-//
-//        // Add data binding for onDelete - has beforeEntry
-//        addDataBindingParam(service, ON_DELETE_FUNCTION, context, BEFORE_ENTRY_FIELD, TYPE_PREFIX);
-//
-//        return service;
-//    }
-
     // TODO: refactor
     private void applyListenerConfigurations(Map<String, Value> properties) {
         String databaseConfig = buildDatabaseConfig(properties);
@@ -321,9 +310,52 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
     private Map<String, Value> getListenerProperties(Map<String, Value> properties, boolean listenerExists) {
         if (listenerExists) {
-            return properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).getProperties();
+            return properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER)
+                    .getProperties();
         }
         return properties;
+    }
+
+    @Override
+    public Service getModelFromSource(ModelFromSourceContext context) {
+        // First, create the base service model to get the original template with DATA_BINDING kinds
+        Service baseServiceModel = createBaseServiceModel(context);
+        if (baseServiceModel == null) {
+            return null;
+        }
+
+        // Store original parameter kinds before standard consolidation modifies them
+        Map<String, Map<Integer, String>> originalParameterKinds = extractParameterKinds(baseServiceModel);
+
+        // Run standard consolidation (this may overwrite DATA_BINDING kinds to REQUIRED)
+        Service serviceModel = super.getModelFromSource(context);
+
+        if (serviceModel == null) {
+            return null;
+        }
+
+        ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
+
+        List<Function> sourceFunctions = extractFunctionsFromSource(serviceNode);
+
+        // Create a map for quick lookup by function name
+        Map<String, Function> sourceFunctionMap = sourceFunctions.stream()
+                .collect(Collectors.toMap(f -> f.getName().getValue(), f -> f));
+
+        // Process each function to update DATA_BINDING parameters
+        for (Function function : serviceModel.getFunctions()) {
+            String functionName = function.getName().getValue();
+
+            // Find matching source function
+            Function sourceFunction = sourceFunctionMap.get(functionName);
+            if (sourceFunction == null) {
+                continue;
+            }
+
+            restoreAndUpdateDataBindingParams(function, sourceFunction, originalParameterKinds.get(functionName));
+        }
+
+        return serviceModel;
     }
 
     @Override
