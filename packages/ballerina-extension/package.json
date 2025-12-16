@@ -383,16 +383,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.refreshPackageTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
-                "command": "ballerina.refreshExplorerTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
                 "command": "ballerina.newFileExplorerTree",
                 "title": "New File",
                 "icon": "$(distro-new-file)"
@@ -415,9 +405,10 @@
             },
             {
                 "command": "ballerina.force.update.artifacts",
-                "title": "Refresh",
+                "title": "Refresh Artifacts",
                 "icon": "$(distro-refresh)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.test.edit.case",
@@ -518,7 +509,7 @@
             },
             {
                 "command": "ballerina.notebook.refreshVariableView",
-                "title": "Refresh",
+                "title": "Refresh Notebook Variables",
                 "icon": "$(distro-refresh)",
                 "category": "Ballerina",
                 "enablement": "isNotebookVariableViewEnabled"
