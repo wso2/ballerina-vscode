@@ -25,13 +25,10 @@ import {
     sendTelemetryException,
     getMessageObject
 } from "../../telemetry";
-import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../../utils/project-utils";
+import { getCurrentBallerinaProject } from "../../../utils/project-utils";
 import { MESSAGES, PALETTE_COMMANDS, PROJECT_TYPE } from "./cmd-runner";
 import * as fs from 'fs';
 import { sep } from 'path';
-import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/common/utils";
-import { StateMachine } from "../../../stateMachine";
-
 
 const CLOUD_CONFIG_FILE_NAME = `${sep}Cloud.toml`;
 
@@ -72,7 +69,6 @@ export function activateCloudCommand() {
                     }
                 }
             } else {
-                const projectType = await findWorkspaceTypeFromWorkspaceFolders();
                 const message = `Cloud.toml is not supported for single file projects.`;
                 sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD, CMP_PROJECT_CLOUD,
                     getMessageObject(message));
