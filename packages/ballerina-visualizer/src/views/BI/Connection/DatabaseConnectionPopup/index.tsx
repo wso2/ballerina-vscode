@@ -151,6 +151,9 @@ const TableName = styled(Typography)`
 
 const SelectAllButton = styled(Button)`
     align-self: flex-end;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
 `;
 
 const SelectionInfo = styled.div`
@@ -163,7 +166,6 @@ const SearchRow = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    justify-content: space-between;
 `;
 
 const ConfigurablesPanel = styled.div`
@@ -575,10 +577,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 value={tableSearch}
                                 placeholder="Search tables..."
                                 onChange={setTableSearch}
-                                sx={{ width: "87%" }}
+                                sx={{ flex: 1 }}
                             />
                             <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                                Select All
+                                {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
                             </SelectAllButton>
                         </SearchRow>
                         <TablesGrid>
