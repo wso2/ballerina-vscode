@@ -64,11 +64,7 @@ export function activate(context: BallerinaExtension) {
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
         );
-        
-        if (needsPackageSelection && projectInfo?.children.length === 0) {
-            window.showErrorMessage("No packages found in the workspace.");
-            return;
-        }
+
         prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
     });
 
@@ -109,12 +105,30 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
     });
 
-    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        if (isBallerinaWorkspace) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
+        try {
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            if (result.type === "BALLERINA_WORKSPACE") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+            } else if (result.type === "SINGLE_PROJECT") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+            } else {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot || !window.activeTextEditor) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unknown error occurred.");
+            }
         }
     });
 
@@ -378,9 +392,13 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const projectPath = StateMachine.context().projectPath;
+    const {projectPath, projectInfo} = StateMachine.context();
+    const projectRoot = await findBallerinaPackageRoot(filePath);
+    if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
+        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+    }
     const projectStructure = await rpcClient.getProjectStructure();
-    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
     const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
@@ -388,7 +406,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
         return;
     }
 
-    componentCategory.forEach((component) => {
+    for (const component of componentCategory) {
         if (component.name === itemLabel) {
             const componentInfo: ComponentInfo = {
                 name: component.name,
@@ -400,9 +418,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
                 resources: component?.resources
             };
 
-            deleteComponent(componentInfo, rpcClient, filePath);
+            await deleteComponent(componentInfo, rpcClient, filePath);
+            return;
         }
-    });
+    }
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {
