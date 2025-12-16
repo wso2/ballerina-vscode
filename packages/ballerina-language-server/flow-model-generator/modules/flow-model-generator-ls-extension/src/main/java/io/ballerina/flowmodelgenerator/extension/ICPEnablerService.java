@@ -38,6 +38,8 @@ import io.ballerina.projects.Project;
 import io.ballerina.toml.semantic.ast.TomlKeyValueNode;
 import io.ballerina.toml.semantic.ast.TomlTableNode;
 import io.ballerina.toml.semantic.ast.TopLevelNode;
+import io.ballerina.tools.text.LinePosition;
+import io.ballerina.tools.text.LineRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.common.utils.PositionUtil;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
@@ -163,12 +165,16 @@ public class ICPEnablerService implements ExtendedLanguageServerService {
                 if (!hasCorrectImport) {
                     Path mainPath = project.sourceRoot().resolve("main.bal");
                     Optional<Document> document = workspaceManager.document(mainPath);
+                    TextEdit edit;
                     if (document.isEmpty()) {
-                        throw new RuntimeException("main.bal not found");
+                        edit = new TextEdit(PositionUtil.toRange(LineRange.from("main.bal",
+                                LinePosition.from(0, 0), LinePosition.from(0, 0))),
+                                IMPORT_STMT.formatted());
+                    } else {
+                        Node node = document.get().syntaxTree().rootNode();
+                         edit = new TextEdit(PositionUtil.toRange(node.lineRange().startLine()),
+                                IMPORT_STMT.formatted());
                     }
-                    Node node = document.get().syntaxTree().rootNode();
-                    TextEdit edit = new TextEdit(PositionUtil.toRange(node.lineRange().startLine()),
-                            IMPORT_STMT.formatted());
                     textEdits.put(mainPath.toString(), List.of(edit));
                 }
                 Optional<BallerinaToml> ballerinaToml = pkg.ballerinaToml();
@@ -193,7 +199,7 @@ public class ICPEnablerService implements ExtendedLanguageServerService {
                     } else {
                         TextEdit edit = new TextEdit(
                                 PositionUtil.toRange(buildOptions.location().lineRange().endLine()),
-                                REMOTE_MANAGEMENT_TRUE + LS);
+                                LS + REMOTE_MANAGEMENT_TRUE + LS);
                         textEdits.put(tomlPath.toString(), List.of(edit));
                     }
                 } else {
