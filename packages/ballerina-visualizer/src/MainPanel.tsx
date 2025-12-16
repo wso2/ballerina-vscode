@@ -618,18 +618,9 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.ReviewMode:
                         console.log('[Review Mode] Received value:', value);
-                        console.log('[Review Mode] reviewData:', value?.reviewData);
-                        if (value?.reviewData) {
-                            setViewComponent(
-                                <ReviewMode
-                                    reviewData={value.reviewData}
-                                    projectPath={value.projectPath}
-                                />
-                            );
-                        } else {
-                            console.error("ReviewMode requires reviewData. Received value:", value);
-                            setViewComponent(<LoadingRing />);
-                        }
+                        setViewComponent(
+                            <ReviewMode projectPath={value.projectPath} />
+                        );
                         break;
                     default:
                         setNavActive(false);

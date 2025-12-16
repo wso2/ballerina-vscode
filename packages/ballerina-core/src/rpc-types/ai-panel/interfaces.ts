@@ -490,22 +490,23 @@ export interface SemanticDiffRequest {
     projectPath: string;
 }
 
+// Numeric enum values from the API
+export enum ChangeTypeEnum {
+    ADDITION = 0,
+    MODIFICATION = 1,
+    DELETION = 2
+}
+
 export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
 
 export interface SemanticDiff {
-    changeType: ChangeType;
-    nodeKind: NodeKind;
+    changeType: number; // API returns numeric value
+    nodeKind: number;   // API returns numeric value
     uri: string;
     lineRange: LineRange;
 }
 
-export interface SemanticDiffOutput {
+export interface SemanticDiffResponse {
     loadDesignDiagrams: boolean;
     semanticDiffs: SemanticDiff[];
-}
-
-export interface SemanticDiffResponse {
-    description: string;
-    projectPath: string;
-    output: SemanticDiffOutput;
 }
