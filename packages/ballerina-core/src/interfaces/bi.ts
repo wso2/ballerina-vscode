@@ -139,7 +139,8 @@ export type FormFieldInputType = "TEXT" |
     "SINGLE_SELECT_LISTENER" |
     "EXPRESSION_SET" |
     "FLAG" |
-    "CHOICE" ;
+    "CHOICE" |
+    "LV_EXPRESSION";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
