@@ -135,7 +135,8 @@
         "typeName": "MyType",
         "kind": "record",
         "focusExpression": "myType3",
-        "ref": "819315698"
+        "ref": "819315698",
+        "isIterableVariable": true
       }
     ],
     "output": {

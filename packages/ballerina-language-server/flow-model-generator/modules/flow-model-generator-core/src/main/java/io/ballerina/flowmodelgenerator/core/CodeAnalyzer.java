@@ -151,6 +151,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.StartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.VariableBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.WaitBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.XmlPayloadBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.ConnectorUtil;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
@@ -1391,7 +1392,8 @@ public class CodeAnalyzer extends NodeVisitor {
         String name = classSymbol.getName().orElse("");
         nodeBuilder
                 .metadata()
-                    .label(packageName)
+                    .label(kind == NodeKind.NEW_CONNECTION ?
+                            ConnectorUtil.getConnectorName(name, packageName) : packageName)
                     .description(functionData.description())
                     .icon(CommonUtils.generateIcon(org, packageName, functionData.version()))
                     .stepOut()

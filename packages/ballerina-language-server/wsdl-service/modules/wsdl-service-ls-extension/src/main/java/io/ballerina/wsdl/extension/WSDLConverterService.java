@@ -52,7 +52,7 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
     /**
      * Generate Ballerina types and client from a WSDL file in a generated module folder.
      *
-     * @param request The WSDL converter request containing the WSDL content, project path, port name,
+     * @param request The WSDL converter request containing the WSDL file path, project path, port name,
      * module name and operations
      * @return CompletableFuture containing the response with source (text edits map) or error information
      */
@@ -63,7 +63,7 @@ public class WSDLConverterService implements ExtendedLanguageServerService {
             try {
                 this.workspaceManager.loadProject(Path.of(request.getProjectPath()));
                 WSDLTypeGenerator generator = new WSDLTypeGenerator(
-                        request.getWsdlContent(),
+                        Path.of(request.getWsdlFilePath()),
                         Path.of(request.getProjectPath()),
                         request.getPortName(),
                         request.getOperations()

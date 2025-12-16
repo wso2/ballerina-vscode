@@ -1,0 +1,8 @@
+{
+  "description": "Convert decimal to float (implicit conversion)",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "decimal.decimalField",
+  "expressionType": "decimal",
+  "convertedExpression": "<float>decimal.decimalField"
+}

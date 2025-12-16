@@ -53,8 +53,9 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
         TestConfig testConfig = gson.fromJson(bufferedReader, TestConfig.class);
         bufferedReader.close();
 
+        Path wsdlFilePath = sourceDir.resolve(testConfig.testProjectFolder).resolve(testConfig.wsdlFilePath());
         WSDLConverterRequest request = new WSDLConverterRequest(
-                testConfig.wsdlContent(),
+                wsdlFilePath.toAbsolutePath().toString(),
                 sourceDir.resolve(testConfig.testProjectFolder).toAbsolutePath().toString(),
                 testConfig.portName(),
                 testConfig.module(),
@@ -101,7 +102,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
 
         if (assertFailure) {
             TestConfig updatedConfig = new TestConfig(
-                    testConfig.wsdlContent(),
+                    testConfig.wsdlFilePath(),
                     testConfig.description(),
                     testConfig.testProjectFolder(),
                     testConfig.portName(),
@@ -137,7 +138,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
     /**
      * Represents the test configuration for the WSDL converter test.
      *
-     * @param wsdlContent  The WSDL content.
+     * @param wsdlFilePath The WSDL file path relative to the test project folder.
      * @param description The description of the test.
      * @param testProjectFolder The test project folder path.
      * @param portName The port name to process (optional).
@@ -145,7 +146,7 @@ public class WSDLConverterServiceTest extends AbstractLSTest {
      * @param operations The operations to include (optional, null/empty = all operations).
      * @param output      The expected text edits output.
      */
-    private record TestConfig(String wsdlContent, String description, String testProjectFolder,
+    private record TestConfig(String wsdlFilePath, String description, String testProjectFolder,
                               String portName, String module, String[] operations,
                               Map<String, List<TextEdit>> output) {
 

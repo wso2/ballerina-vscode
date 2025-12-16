@@ -38,7 +38,8 @@
         "displayName": "kItem",
         "typeName": "string",
         "kind": "string",
-        "focusExpression": "v1.k"
+        "focusExpression": "v1.k",
+        "isIterableVariable": true
       }
     ],
     "output": {

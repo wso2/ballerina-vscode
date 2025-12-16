@@ -283,6 +283,7 @@ public class DataMapManager {
                             Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol, typeDefSymbols)),
                             new HashMap<>(), references);
                     mappingPort.setFocusExpression(expression.toString().trim());
+                    mappingPort.setIsIterableVariable(true);
                     NonTerminalNode parent = matchingNode.queryExpr().parent();
                     SyntaxKind parentKind = parent.kind();
                     while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
@@ -502,6 +503,7 @@ public class DataMapManager {
                     Objects.requireNonNull(ReferenceType.fromSemanticSymbol(memberTypeSymbol,
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.setFocusExpression(clauseExpr);
+            mappingPort.setIsIterableVariable(true);
             inputPorts.add(mappingPort);
         }
     }
@@ -2901,6 +2903,7 @@ public class DataMapManager {
         String ref;
         TypeInfo typeInfo;
         Boolean isSeq;
+        Boolean isIterableVariable;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -2991,6 +2994,14 @@ public class DataMapManager {
 
         Boolean getIsSeq() {
             return this.isSeq;
+        }
+
+        void setIsIterableVariable(Boolean isIterableVariable) {
+            this.isIterableVariable = isIterableVariable;
+        }
+
+        Boolean getIsIterableVariable() {
+            return this.isIterableVariable;
         }
 
         public String getFocusExpression() {
@@ -3203,11 +3214,18 @@ public class DataMapManager {
 
         @Override
         public void visit(IndexedExpressionNode node) {
-            String source = node.toSourceCode().trim();
-            String openBraceRemoved = source.replace("[", ".");
-            String middleBracesRemoved = openBraceRemoved.replace("][", ".");
-            String closedBraceRemoved = middleBracesRemoved.replace("]", "");
-            addInput(closedBraceRemoved);
+            ExpressionNode containerExpr = node.containerExpression();
+            SyntaxKind containerKind = containerExpr.kind();
+
+            if (containerKind == SyntaxKind.FIELD_ACCESS || containerKind == SyntaxKind.INDEXED_EXPRESSION) {
+                String source = node.toSourceCode().trim();
+                String openBraceRemoved = source.replace("[", ".");
+                String middleBracesRemoved = openBraceRemoved.replace("][", ".");
+                String closedBraceRemoved = middleBracesRemoved.replace("]", "");
+                addInput(closedBraceRemoved);
+            } else {
+                containerExpr.accept(this);
+            }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
@@ -3312,5 +3330,84 @@ public class DataMapManager {
         public void visit(CheckExpressionNode node) {
             node.expression().accept(this);
         }
+    }
+
+    /**
+     * Converts an expression from one type to another for incompatible primitive types.
+     * This method is used by the convertExpression API.
+     *
+     * @param expression     the source expression
+     * @param expressionType the source type as a string (e.g., "int", "string")
+     * @param outputType     the target type as a string (e.g., "string", "int")
+     * @return a map containing the converted expression
+     */
+    public Map<String, Object> convertExpression(String expression, String expressionType, String outputType) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (expression == null || expressionType == null || outputType == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        TypeDescKind sourceKind = getTypeDescKindFromString(expressionType);
+        TypeDescKind targetKind = getTypeDescKindFromString(outputType);
+
+        if (sourceKind == null || targetKind == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        String convertedExpression = getTypeConversionExpression(expression, sourceKind, targetKind);
+        result.put("convertedExpression", convertedExpression);
+        return result;
+    }
+
+    /**
+     * Converts a type string to TypeDescKind.
+     *
+     * @param typeString the type as a string (e.g., "int", "string")
+     * @return the corresponding TypeDescKind, or null if not a primitive type
+     */
+    private TypeDescKind getTypeDescKindFromString(String typeString) {
+        if (typeString == null) {
+            return null;
+        }
+
+        return switch (typeString.toLowerCase(java.util.Locale.ROOT).trim()) {
+            case "int" -> TypeDescKind.INT;
+            case "float" -> TypeDescKind.FLOAT;
+            case "decimal" -> TypeDescKind.DECIMAL;
+            case "string" -> TypeDescKind.STRING;
+            case "boolean" -> TypeDescKind.BOOLEAN;
+            default -> null;
+        };
+    }
+
+    /**
+     * Generates the type conversion expression for converting between primitive types.
+     * Uses type casting with <> for all conversions except to string which uses .toString().
+     *
+     * @param expression the original expression
+     * @param targetKind the target type kind
+     * @return the converted expression
+     */
+    private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+        if (targetKind == TypeDescKind.STRING) {
+            return expression + ".toString()";
+        }
+
+        String targetTypeName = switch (targetKind) {
+            case INT -> "int";
+            case FLOAT -> "float";
+            case DECIMAL -> "decimal";
+            default -> null;
+        };
+
+        if (targetTypeName != null &&
+                sourceKind != TypeDescKind.STRING && sourceKind != TypeDescKind.BOOLEAN) {
+            return "<" + targetTypeName + ">" + expression;
+        }
+
+        return expression;
     }
 }

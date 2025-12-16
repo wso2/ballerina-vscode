@@ -77,6 +77,7 @@
         "typeName": "Elephant[]",
         "kind": "array",
         "focusExpression": "AAA",
+        "isIterableVariable": true,
         "ref": "115957393"
       },
       {
@@ -86,6 +87,7 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "aaa",
+        "isIterableVariable": true,
         "ref": "-2143678211"
       }
     ],

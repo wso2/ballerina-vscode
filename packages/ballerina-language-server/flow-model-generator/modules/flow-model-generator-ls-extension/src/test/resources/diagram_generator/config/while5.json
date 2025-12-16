@@ -728,7 +728,7 @@
               {
                 "id": "88745",
                 "metadata": {
-                  "label": "New Connection",
+                  "label": "HTTP",
                   "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
                   "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
                 },
@@ -2225,7 +2225,7 @@
       {
         "id": "33789",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },

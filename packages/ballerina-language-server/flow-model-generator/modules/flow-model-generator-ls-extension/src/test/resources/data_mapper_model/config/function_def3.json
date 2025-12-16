@@ -47,7 +47,8 @@
         "typeName": "Input",
         "kind": "record",
         "focusExpression": "inputs",
-        "ref": "-393207458"
+        "ref": "-393207458",
+        "isIterableVariable": true
       }
     ],
     "output": {
