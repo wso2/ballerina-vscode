@@ -454,7 +454,7 @@ export function ConfigObjectEditor(props: ObjectEditorProps) {
         setIsLoading(true);
         setError('');
         try {
-            const typeInfo = getPrimaryInputType(typeValue.types)?.typeMembers.find(m => typeValue.value.toString().includes(m.type));
+            const typeInfo = getPrimaryInputType(typeValue.types)?.typeMembers?.find(m => typeValue.value.toString().includes(m.type));
             if (!typeInfo) {
                 setError('Type information not found');
                 setIsLoading(false);

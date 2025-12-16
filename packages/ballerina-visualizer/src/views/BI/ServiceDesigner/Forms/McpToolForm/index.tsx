@@ -240,7 +240,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     } as Property,
                     recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(
                         (member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE"
-                    ),
+                    ) || [],
                 }));
             console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
 

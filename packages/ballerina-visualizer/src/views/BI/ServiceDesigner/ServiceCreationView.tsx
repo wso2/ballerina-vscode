@@ -305,7 +305,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                             diagnostics: choiceProperty.diagnostics
                                         }
                                     } as Property,
-                                    recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                                    recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE") || []
                                 }))
                         )
                     );

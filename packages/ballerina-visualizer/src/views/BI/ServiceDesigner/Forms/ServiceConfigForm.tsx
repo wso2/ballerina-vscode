@@ -108,7 +108,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                         diagnostics: choiceProperty.diagnostics
                                     }
                                 } as Property,
-                                recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                                recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE")
                             }))
                     )
                 );
@@ -135,7 +135,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE")
                 }));
             console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
 
