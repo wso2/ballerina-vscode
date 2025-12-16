@@ -18,7 +18,7 @@
   "output": {
     "id": "31",
     "metadata": {
-      "label": "New Connection",
+      "label": "PostgreSQL",
       "description": "Represents a PostgreSQL database client.",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.15.0.png"
     },

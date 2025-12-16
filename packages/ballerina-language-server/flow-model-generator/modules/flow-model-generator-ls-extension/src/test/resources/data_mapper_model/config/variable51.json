@@ -57,7 +57,8 @@
         "typeName": "MyType2",
         "kind": "record",
         "focusExpression": "m2Item",
-        "ref": "-371017088"
+        "ref": "-371017088",
+        "isIterableVariable": true
       }
     ],
     "output": {

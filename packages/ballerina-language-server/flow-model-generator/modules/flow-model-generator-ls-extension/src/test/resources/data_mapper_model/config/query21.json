@@ -108,6 +108,7 @@
         "typeName": "Person",
         "kind": "record",
         "focusExpression": "personList",
+        "isIterableVariable": true,
         "ref": "887620673"
       },
       {
@@ -117,6 +118,7 @@
         "typeName": "Department",
         "kind": "record",
         "focusExpression": "deptList",
+        "isIterableVariable": true,
         "ref": "-954444226"
       }
     ],
