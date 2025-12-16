@@ -65,10 +65,6 @@ export function activate(context: BallerinaExtension) {
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
         );
 
-        if (needsPackageSelection && projectInfo?.children.length === 0) {
-            window.showErrorMessage("No packages found in the workspace.");
-            return;
-        }
         prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
     });
 
@@ -127,7 +123,7 @@ export function activate(context: BallerinaExtension) {
 
             }
         } catch (error) {
-            if (error instanceof Error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unknown error occurred.");
