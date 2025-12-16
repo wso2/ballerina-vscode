@@ -130,7 +130,7 @@ export function activate(context: BallerinaExtension) {
             if (error instanceof Error) {
                 window.showErrorMessage(error.message);
             } else {
-                window.showErrorMessage("Unkown error occurred.");
+                window.showErrorMessage("Unknown error occurred.");
             }
         }
     });
