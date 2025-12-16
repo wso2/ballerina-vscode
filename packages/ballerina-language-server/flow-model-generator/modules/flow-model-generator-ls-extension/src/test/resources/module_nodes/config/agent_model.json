@@ -339,7 +339,7 @@
       {
         "id": "35776",
         "metadata": {
-          "label": "New Connection",
+          "label": "gRPC",
           "description": "The base client used in the generated client code to provide the capability for initiating the contact and executing remote calls with a remote gRPC service.",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png"
         },
@@ -759,7 +759,7 @@
       {
         "id": "33792",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -2396,7 +2396,7 @@
       {
         "id": "34766",
         "metadata": {
-          "label": "New Connection",
+          "label": "Redis",
           "description": "Ballerina Redis connector provides the capability to access Redis cache.\nThis connector lets you to perform operations to access and manipulate key-value data stored in a Redis database. \n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_redis_3.1.0.png"
         },
