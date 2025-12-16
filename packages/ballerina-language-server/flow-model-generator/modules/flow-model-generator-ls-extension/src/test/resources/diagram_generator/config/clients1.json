@@ -305,7 +305,7 @@
       {
         "id": "48798",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -694,7 +694,7 @@
       {
         "id": "50745",
         "metadata": {
-          "label": "New Connection",
+          "label": "MyClient",
           "description": "",
           "icon": "https://bcentral-packageicons.azureedge.net/images/$anon_._0.0.0.png"
         },
@@ -896,7 +896,7 @@
       {
         "id": "39743",
         "metadata": {
-          "label": "New Connection",
+          "label": "HTTP",
           "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
         },
@@ -1072,7 +1072,7 @@
       {
         "id": "41709",
         "metadata": {
-          "label": "New Connection",
+          "label": "MyClient",
           "description": "",
           "icon": "https://bcentral-packageicons.azureedge.net/images/$anon_._0.0.0.png"
         },
@@ -1182,7 +1182,7 @@
       {
         "id": "40698",
         "metadata": {
-          "label": "New Connection",
+          "label": "MyClient",
           "description": "",
           "icon": "https://bcentral-packageicons.azureedge.net/images/$anon_._0.0.0.png"
         },

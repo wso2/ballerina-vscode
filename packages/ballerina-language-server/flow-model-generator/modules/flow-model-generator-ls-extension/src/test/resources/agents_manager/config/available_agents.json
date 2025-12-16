@@ -47,7 +47,7 @@
               "metadata": {
                 "label": "get",
                 "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -56,7 +56,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "get",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -66,7 +66,7 @@
               "metadata": {
                 "label": "post",
                 "description": "Create a new resource or submit data to a resource for processing.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -75,7 +75,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "post",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -85,7 +85,7 @@
               "metadata": {
                 "label": "put",
                 "description": "Create a new resource or replace a representation of a specified resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -94,7 +94,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "put",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -104,7 +104,7 @@
               "metadata": {
                 "label": "delete",
                 "description": "Remove a specified resource from an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -113,7 +113,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "delete",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -123,7 +123,7 @@
               "metadata": {
                 "label": "patch",
                 "description": "Partially update an existing resource in an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -132,7 +132,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "patch",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -142,7 +142,7 @@
               "metadata": {
                 "label": "head",
                 "description": "Get the metadata of a resource in the form of headers without the body. Often used for testing the resource existence or finding recent modifications.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -151,7 +151,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "head",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -161,7 +161,7 @@
               "metadata": {
                 "label": "options",
                 "description": "Get the communication options for a specified resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -170,7 +170,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "options",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -180,7 +180,7 @@
               "metadata": {
                 "label": "execute",
                 "description": "Send a request using any HTTP method. Can be used to invoke the endpoint with a custom or less common HTTP method.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -189,7 +189,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "execute",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -199,7 +199,7 @@
               "metadata": {
                 "label": "forward",
                 "description": "Forward an incoming request to another endpoint using the same HTTP method. Can be used in proxy or gateway scenarios.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -208,7 +208,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "forward",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -218,7 +218,7 @@
               "metadata": {
                 "label": "submit",
                 "description": "Send an asynchronous HTTP request that does not wait for the response immediately. Can be used for non-blocking operations.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -227,7 +227,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "submit",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -237,7 +237,7 @@
               "metadata": {
                 "label": "getResponse",
                 "description": "Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to retrieve the actual response.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -246,7 +246,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getResponse",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -256,7 +256,7 @@
               "metadata": {
                 "label": "hasPromise",
                 "description": "Check if the server has sent a push promise for additional resources. Should be used with HTTP/2 server push functionality.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -265,7 +265,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "hasPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -275,7 +275,7 @@
               "metadata": {
                 "label": "getNextPromise",
                 "description": "Get the next server push promise that contains information about additional resources the server wants to send.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -284,7 +284,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getNextPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -294,7 +294,7 @@
               "metadata": {
                 "label": "getPromisedResponse",
                 "description": "Get the actual response data from a server push promise. Can be used to receive resources that the server proactively sends.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -303,7 +303,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getPromisedResponse",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -313,7 +313,7 @@
               "metadata": {
                 "label": "rejectPromise",
                 "description": "Reject a server push promise to decline receiving the additional resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -322,7 +322,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "rejectPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -332,7 +332,7 @@
               "metadata": {
                 "label": "getCookieStore",
                 "description": "Get the cookie storage associated with this HTTP client. Can be used to access stored cookies for session management.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -341,7 +341,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCookieStore",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -351,7 +351,7 @@
               "metadata": {
                 "label": "circuitBreakerForceClose",
                 "description": "Force the circuit breaker to allow all requests through, ignoring current error rates. Can be used to manually\nrestore service after fixing issues.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -360,7 +360,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceClose",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -370,7 +370,7 @@
               "metadata": {
                 "label": "circuitBreakerForceOpen",
                 "description": "Force the circuit breaker to block all requests until the reset time expires. Can be used to manually stop\nrequests during maintenance or known issues.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -379,7 +379,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceOpen",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -389,7 +389,7 @@
               "metadata": {
                 "label": "getCircuitBreakerCurrentState",
                 "description": "Check the current state of the circuit breaker. Can be used to monitor the health status of your HTTP connections.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -398,7 +398,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCircuitBreakerCurrentState",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClient",
                 "resourcePath": ""
               },
@@ -415,7 +415,7 @@
               "metadata": {
                 "label": "get",
                 "description": "Retrieve a representation of a specified resource from an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -424,7 +424,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "get",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -434,7 +434,7 @@
               "metadata": {
                 "label": "post",
                 "description": "Create a new resource or submit data to a resource for processing.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -443,7 +443,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "post",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -453,7 +453,7 @@
               "metadata": {
                 "label": "put",
                 "description": "Create a new resource or replace a representation of a specified resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -462,7 +462,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "put",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -472,7 +472,7 @@
               "metadata": {
                 "label": "delete",
                 "description": "Remove a specified resource from an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -481,7 +481,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "delete",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -491,7 +491,7 @@
               "metadata": {
                 "label": "patch",
                 "description": "Partially update an existing resource in an HTTP endpoint.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -500,7 +500,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "patch",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -510,7 +510,7 @@
               "metadata": {
                 "label": "head",
                 "description": "Get the metadata of a resource in the form of headers without the body. Often used for testing the resource existence or finding recent modifications.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -519,7 +519,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "head",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -529,7 +529,7 @@
               "metadata": {
                 "label": "options",
                 "description": "Get the communication options for a specified resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -538,7 +538,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "options",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -548,7 +548,7 @@
               "metadata": {
                 "label": "execute",
                 "description": "Send a request using any HTTP method. Can be used to invoke the endpoint with a custom or less common HTTP method.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -557,7 +557,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "execute",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -567,7 +567,7 @@
               "metadata": {
                 "label": "forward",
                 "description": "Forward an incoming request to another endpoint using the same HTTP method. Can be used in proxy or gateway scenarios.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -576,7 +576,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "forward",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -586,7 +586,7 @@
               "metadata": {
                 "label": "submit",
                 "description": "Send an asynchronous HTTP request that does not wait for the response immediately. Can be used for non-blocking operations.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -595,7 +595,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "submit",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -605,7 +605,7 @@
               "metadata": {
                 "label": "getResponse",
                 "description": "Get the response from a previously submitted asynchronous request. Can be used after calling `submit()` action to retrieve the actual response.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -614,7 +614,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getResponse",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -624,7 +624,7 @@
               "metadata": {
                 "label": "hasPromise",
                 "description": "Check if the server has sent a push promise for additional resources. Should be used with HTTP/2 server push functionality.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -633,7 +633,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "hasPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -643,7 +643,7 @@
               "metadata": {
                 "label": "getNextPromise",
                 "description": "Get the next server push promise that contains information about additional resources the server wants to send.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -652,7 +652,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getNextPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -662,7 +662,7 @@
               "metadata": {
                 "label": "getPromisedResponse",
                 "description": "Get the actual response data from a server push promise. Can be used to receive resources that the server proactively sends.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -671,7 +671,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getPromisedResponse",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -681,7 +681,7 @@
               "metadata": {
                 "label": "rejectPromise",
                 "description": "Reject a server push promise to decline receiving the additional resource.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "REMOTE_ACTION_CALL",
@@ -690,7 +690,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "rejectPromise",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -700,7 +700,7 @@
               "metadata": {
                 "label": "getCookieStore",
                 "description": "Get the cookie storage associated with this HTTP client. Can be used to access stored cookies for session management.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -709,7 +709,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCookieStore",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -719,7 +719,7 @@
               "metadata": {
                 "label": "circuitBreakerForceClose",
                 "description": "Force the circuit breaker to allow all requests through, ignoring current error rates. Can be used to manually\nrestore service after fixing issues.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -728,7 +728,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceClose",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -738,7 +738,7 @@
               "metadata": {
                 "label": "circuitBreakerForceOpen",
                 "description": "Force the circuit breaker to block all requests until the reset time expires. Can be used to manually stop\nrequests during maintenance or known issues.",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -747,7 +747,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "circuitBreakerForceOpen",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },
@@ -757,7 +757,7 @@
               "metadata": {
                 "label": "getCircuitBreakerCurrentState",
                 "description": "Check the current state of the circuit breaker. Can be used to monitor the health status of your HTTP connections.\n",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.2.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png"
               },
               "codedata": {
                 "node": "METHOD_CALL",
@@ -766,7 +766,7 @@
                 "packageName": "http",
                 "object": "Client",
                 "symbol": "getCircuitBreakerCurrentState",
-                "version": "2.15.2",
+                "version": "2.15.3",
                 "parentSymbol": "httpClientResult",
                 "resourcePath": ""
               },

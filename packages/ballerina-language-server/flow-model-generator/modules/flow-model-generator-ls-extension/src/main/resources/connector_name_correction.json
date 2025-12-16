@@ -18,6 +18,8 @@
   "ftp": "FTP",
   "udp": "UDP",
   "tcp": "TCP",
+  "azure_cosmosdb": "Azure CosmosDB",
+  "docusign.dsadmin": "DS Admin",
   "persist.sql": "Persist",
   "persist.inmemory": "Persist",
   "persist.googlesheets": "Persist",
