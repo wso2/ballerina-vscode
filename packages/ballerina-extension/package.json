@@ -411,12 +411,6 @@
                 "enablement": "isSupportedProject"
             },
             {
-                "command": "ballerina.test.edit.case",
-                "title": "Edit test case",
-                "icon": "$(distro-design-view)",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.project.run",
                 "title": "Run",
                 "icon": {
@@ -921,6 +915,14 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "BI.test.edit.function.def",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.test.edit.function",
+                    "when": "false"
+                },
                 {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
