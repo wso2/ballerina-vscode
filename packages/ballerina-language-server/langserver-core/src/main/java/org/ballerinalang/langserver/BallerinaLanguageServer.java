@@ -150,7 +150,7 @@ public class BallerinaLanguageServer extends AbstractExtendedLanguageServer
                 workspaceManagerProxy instanceof BallerinaWorkspaceManagerProxyImpl ballerinaWorkspaceManagerProxy) {
             BuildOptions buildOptions = BuildOptions.builder()
                     .setOffline(CommonUtil.COMPILE_OFFLINE)
-                    .setSticky(true)
+                    .setSticky(false)
                     .setExperimental(true)
                     .build();
             ballerinaWorkspaceManagerProxy.setBuildOptions(buildOptions);
