@@ -64,9 +64,9 @@ export const TOKEN_TYPE_COLORS: Partial<Record<TokenType, { background: string; 
         icon: "rgba(0, 134, 71, 0.9)"
     },
     [TokenType.DOCUMENT]: {
-        background: "rgba(59, 130, 246, 0.15)",
-        border: "rgba(59, 130, 246, 0.4)",
-        icon: "rgba(59, 130, 246, 0.9)"
+        background: "rgba(128, 59, 246, 0.15)",
+        border: "rgba(168, 59, 246, 0.4)",
+        icon: "rgba(166, 89, 255, 0.9)"
     }
 };
 

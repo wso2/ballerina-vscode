@@ -19,6 +19,9 @@
 import { startCase } from "lodash";
 import { FormField } from "../Form/types";
 import { ExpressionProperty } from "@wso2/ballerina-core";
+import { InputMode } from "../..";
+import { EditorMode } from "./ExpandedEditor";
+import { EXPANDABLE_MODES } from "./ExpandedEditor/modes/types";
 
 export function isDropdownField(field: FormField) {
     return field.type === "MULTIPLE_SELECT" || field.type === "SINGLE_SELECT" || field.type?.toUpperCase() === "ENUM";
@@ -104,4 +107,12 @@ export const getValueForTextModeEditor = (value: string | any[]) => {
         return value;
     }
     return value;
+}
+
+export function isExpandableMode(mode: InputMode): mode is EditorMode {
+    return EXPANDABLE_MODES.includes(mode as EditorMode);
+}
+
+export function toEditorMode(mode: InputMode): EditorMode | undefined {
+    return isExpandableMode(mode) ? mode : undefined;
 }

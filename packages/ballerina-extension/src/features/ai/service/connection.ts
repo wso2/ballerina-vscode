@@ -16,10 +16,10 @@
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, refreshDevantToken } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
-import { AIMachineEventType, LoginMethod } from "@wso2/ballerina-core";
+import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
@@ -63,32 +63,72 @@ let cachedAuthMethod: LoginMethod | null = null;
  */
 export async function fetchWithAuth(input: string | URL | Request, options: RequestInit = {}): Promise<Response | undefined> {
     try {
-        const accessToken = await getAccessToken();
+        const credentials = await getAccessToken();
+        const loginMethod = credentials.loginMethod;
 
-        // Ensure headers object exists
-        options.headers = {
-            ...options.headers,
-            'Authorization': `Bearer ${accessToken}`,
+        const headers: Record<string, string> = {
+            "Content-Type": "application/json",
             'User-Agent': 'Ballerina-VSCode-Plugin',
             'Connection': 'keep-alive',
+        };
+
+        if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
+            // For DEVANT_ENV, use Bearer token (exchanged from STS token)
+            const secrets = credentials.secrets as DevantEnvSecrets;
+            if (secrets.accessToken && secrets.accessToken.trim() !== "") {
+                headers["Authorization"] = `Bearer ${secrets.accessToken}`;
+            } else {
+                console.warn("DevantEnv access token missing, this may cause authentication issues");
+            }
+        } else if (credentials && loginMethod === LoginMethod.BI_INTEL) {
+            // For BI_INTEL, use Bearer token
+            const secrets = credentials.secrets as BIIntelSecrets;
+            headers["Authorization"] = `Bearer ${secrets.accessToken}`;
+        }
+
+        // Ensure headers object exists and merge with existing headers
+        options.headers = {
+            ...options.headers,
+            ...headers,
         };
 
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration
+        // Handle token expiration for both BI_INTEL and DEVANT_ENV methods
         if (response.status === 401) {
-            console.log("Token expired. Refreshing token...");
-            const newToken = await getRefreshedAccessToken();
-            if (newToken) {
-                options.headers = {
-                    ...options.headers,
-                    'Authorization': `Bearer ${newToken}`,
-                };
-                response = await fetch(input, options);
-            } else {
-                AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                return;
+            if (loginMethod === LoginMethod.BI_INTEL) {
+                console.log("Token expired. Refreshing BI_INTEL token...");
+                const newToken = await getRefreshedAccessToken();
+                if (newToken) {
+                    options.headers = {
+                        ...options.headers,
+                        'Authorization': `Bearer ${newToken}`,
+                    };
+                    response = await fetch(input, options);
+                } else {
+                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                    return;
+                }
+            } else if (loginMethod === LoginMethod.DEVANT_ENV) {
+                console.log("Token expired. Refreshing DEVANT_ENV token...");
+                try {
+                    const newToken = await refreshDevantToken();
+                    if (newToken) {
+                        options.headers = {
+                            ...options.headers,
+                            'Authorization': `Bearer ${newToken}`,
+                        };
+                        response = await fetch(input, options);
+                    } else {
+                        AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Failed to refresh Devant token:", error);
+                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                    return;
+                }
             }
         }
 
@@ -121,17 +161,18 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
         let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
-        if (loginMethod === LoginMethod.BI_INTEL) {
+        if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth
                 fetch: fetchWithAuth,
             });
         } else if (loginMethod === LoginMethod.ANTHROPIC_KEY) {
-            const apiKey = await getAccessToken();
+            const credentials = await getAccessToken();
+            const secrets = credentials.secrets as AnthropicKeySecrets;
             cachedAnthropic = createAnthropic({
                 baseURL: "https://api.anthropic.com/v1",
-                apiKey: apiKey,
+                apiKey: secrets.apiKey,
             });
         } else if (loginMethod === LoginMethod.AWS_BEDROCK) {
             const awsCredentials = await getAwsBedrockCredentials();
