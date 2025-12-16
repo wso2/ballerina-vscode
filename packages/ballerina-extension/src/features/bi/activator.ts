@@ -64,11 +64,7 @@ export function activate(context: BallerinaExtension) {
         const needsPackageSelection = requiresPackageSelection(
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
         );
-        
-        if (needsPackageSelection && projectInfo?.children.length === 0) {
-            window.showErrorMessage("No packages found in the workspace.");
-            return;
-        }
+
         prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
     });
 
