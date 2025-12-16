@@ -28,7 +28,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,7 +52,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
 
-public class FTPServiceBuilder extends AbstractServiceBuilder{
+public class FTPServiceBuilder extends AbstractServiceBuilder {
 
     private static final String FTP_MODEL_LOCATION = "services/ftp_init.json";
     private static final String FTP_SERVICE_MODEL_LOCATION = "services/ftp_service.json";
@@ -191,7 +190,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
     }
 
     /**
-     * Helper method to get property value with default fallback
+     * Helper method to get property value with default fallback.
      */
     private String getPropertyValue(Map<String, Value> properties, String key, String defaultValue) {
         Value property = properties.get(key);
@@ -202,7 +201,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
     }
 
     /**
-     * Helper method to clean surrounding quotes from string values
+     * Helper method to clean surrounding quotes from string values.
      */
     private String cleanQuotes(String value) {
         if (value == null) {
@@ -217,52 +216,43 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
     }
 
     /**
-     * Helper method to get the enabled choice value
+     * Helper method to get the enabled choice value.
      */
     private String getEnabledChoiceValue(ServiceInitModel serviceInitModel, String propertyKey) {
-        try {
-            Value property = serviceInitModel.getProperties().get(propertyKey);
-            if (property == null || property.getChoices() == null) {
-                return "ftp";
-            }
-
-            for (Value choice : property.getChoices()) {
-                if (choice.isEnabled()) {
-                    return choice.getValue();
-                }
-            }
-            return "ftp";
-        } catch (Exception e) {
+        Value property = serviceInitModel.getProperties().get(propertyKey);
+        if (property == null || property.getChoices() == null) {
             return "ftp";
         }
+
+        for (Value choice : property.getChoices()) {
+            if (choice.isEnabled()) {
+                return choice.getValue();
+            }
+        }
+        return "ftp";
     }
 
     /**
-     * Helper method to access nested authentication properties
+     * Helper method to access nested authentication properties.
      * Accesses properties.get("authentication").getChoices().getFirst().getProperties().get(propertyName).getValue()
      */
     private String getNestedAuthProperty(Map<String, Value> properties, String propertyName, String defaultValue) {
-        try {
-            Value authProperty = properties.get("authentication");
-            if (authProperty == null || authProperty.getChoices() == null || authProperty.getChoices().isEmpty()) {
-                return defaultValue;
-            }
-
-            Value firstChoice = authProperty.getChoices().get(0);
-            if (firstChoice == null || firstChoice.getProperties() == null) {
-                return defaultValue;
-            }
-
-            Value targetProperty = firstChoice.getProperties().get(propertyName);
-            if (targetProperty == null || targetProperty.getValue() == null || targetProperty.getValue().isEmpty()) {
-                return defaultValue;
-            }
-
-            return targetProperty.getValue();
-        } catch (Exception e) {
-            // Return default value if any step in the nested access fails
+        Value authProperty = properties.get("authentication");
+        if (authProperty == null || authProperty.getChoices() == null || authProperty.getChoices().isEmpty()) {
             return defaultValue;
         }
+
+        Value firstChoice = authProperty.getChoices().get(0);
+        if (firstChoice == null || firstChoice.getProperties() == null) {
+            return defaultValue;
+        }
+
+        Value targetProperty = firstChoice.getProperties().get(propertyName);
+        if (targetProperty == null || targetProperty.getValue() == null || targetProperty.getValue().isEmpty()) {
+            return defaultValue;
+        }
+
+        return targetProperty.getValue();
     }
 
     @Override
@@ -275,8 +265,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         SemanticModel semanticModel = context.semanticModel();
         List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
-
-        List<Function> modelFunctions = serviceModel.getFunctions();
 
         // Enable specific functions in serviceModel if they match enabled functions in functionsInSource
         // Also copy codedata from functionsInSource while preserving metadata
@@ -294,10 +282,12 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
                             modelFunc.getParameters().forEach(
                                     parameter -> parameter.setEnabled(false)
                             );
-                            for (Parameter sourceParam: sourceFunc.getParameters()){
+                            for (Parameter sourceParam: sourceFunc.getParameters()) {
 
                                 modelFunc.getParameters().stream().filter(
-                                        modelParam -> modelParam.getType().getValue().equals(sourceParam.getType().getValue()) || modelParam.getKind().equals("DATA_BINDING")
+                                        modelParam -> modelParam.getType().getValue()
+                                                .equals(sourceParam.getType().getValue()) ||
+                                                modelParam.getKind().equals("DATA_BINDING")
                                 || modelParam.getName().getValue().equals("content")
                                 ).forEach(
                                         modelParam -> {
@@ -320,9 +310,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder{
                                     Parameter modelParam = modelFunc.getParameters().getFirst();
                                     if (modelParam.getType() != null &&
                                         "DATA_BINDING".equals(modelParam.getKind())) {
-
-                                        // Find corresponding source parameter and update name and type
-                                        // Use the first filtered parameter for now, or implement matching logic as needed
 
                                         // Update parameter name while preserving placeholder if it exists
                                         if (sourceParam.getName() != null && modelParam.getName() != null) {

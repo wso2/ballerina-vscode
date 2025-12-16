@@ -1,5 +1,5 @@
 {
-  "filePath": "sample10/main.bal",
+  "filePath": "sample14/main.bal",
   "description": "Test the generation of service model for a Kafka service",
   "start": {
     "line": 15,
@@ -728,11 +728,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 28,
+              "line": 16,
               "offset": 4
             },
             "endLine": {
-              "line": 34,
+              "line": 22,
               "offset": 5
             }
           },
@@ -893,11 +893,11 @@
           "lineRange": {
             "fileName": "main.bal",
             "startLine": {
-              "line": 36,
+              "line": 24,
               "offset": 4
             },
             "endLine": {
-              "line": 42,
+              "line": 30,
               "offset": 5
             }
           },
@@ -1326,4 +1326,4 @@
       }
     ]
   }
-
+}
