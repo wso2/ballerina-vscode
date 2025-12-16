@@ -30,7 +30,7 @@ const SpinnerContainer = styled.div`
     height: 100%;
 `;
 
-const DiagramContainer = styled.div`
+const Container = styled.div`
     height: 100%;
     pointer-events: auto;
 `;
@@ -53,7 +53,7 @@ export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): 
     const fetchProject = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .getDesignModel()
+            .getDesignModel({ projectPath })
             .then((response) => {
                 if (response?.designModel) {
                     setProject(response.designModel);
@@ -78,7 +78,7 @@ export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): 
     }
 
     return (
-        <DiagramContainer>
+        <Container>
             <Diagram
                 project={project}
                 onListenerSelect={noOpHandler as any}
@@ -88,7 +88,6 @@ export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): 
                 onConnectionSelect={noOpHandler as any}
                 onDeleteComponent={noOpHandler as any}
             />
-        </DiagramContainer>
+        </Container>
     );
 }
-

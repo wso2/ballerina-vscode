@@ -261,7 +261,7 @@ async function getFlowModelForArtifact(artifact: ProjectStructureArtifactRespons
         const flowModelResponse = await StateMachine
             .langClient()
             .getFlowModel({
-                filePath,
+                filePath: filePath,
                 startLine: {
                     line: artifact.position.startLine,
                     offset: artifact.position.startColumn
