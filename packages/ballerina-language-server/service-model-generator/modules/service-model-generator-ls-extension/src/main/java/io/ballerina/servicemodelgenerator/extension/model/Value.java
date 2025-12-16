@@ -345,10 +345,10 @@ public class Value {
             return this;
         }
 
-//        public ValueBuilder setItems(List<Object> items) {
-//            this.items = items;
-//            return this;
-//        }
+        public ValueBuilder setItems(List<Object> items) {
+            this.items = items;
+            return this;
+        }
 
         public ValueBuilder setCodedata(Codedata codedata) {
             this.codedata = codedata;

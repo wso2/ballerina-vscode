@@ -269,7 +269,6 @@ public class PropertyType {
 
     private static String getSelectedType(Node node, SemanticModel semanticModel) {
         if (node != null) {
-            String value = node.toSourceCode().strip();
             Optional<TypeSymbol> paramType = semanticModel.typeOf(node);
             if (paramType.isPresent()) {
                 if (paramType.get().getModule().isPresent()) {
