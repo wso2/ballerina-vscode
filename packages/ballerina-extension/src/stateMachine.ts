@@ -997,8 +997,8 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
         const { orgName, packageName } = getOrgPackageName(balProjects[0].uri.fsPath);
-        setBIContext(isBI);
         const projectPath = balProjects[0].uri.fsPath;
+        setContextValues(isBI, projectPath);
         return { isBI, projectPath, scope, orgName, packageName };
     }
 
@@ -1010,7 +1010,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
 
     if (isBallerinaWorkspace) {
         const isBI = checkIsBI(workspaceURI);
-        setBIContext(isBI);
+        setContextValues(isBI, undefined, workspaceURI.fsPath);
 
         return { isBI, workspacePath: workspaceURI.fsPath };
     } else {
@@ -1020,7 +1020,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
         const { orgName, packageName } = getOrgPackageName(projectPath);
 
-        setBIContext(isBI);
+        setContextValues(isBI, projectPath);
         if (!isBI) {
             console.error("No BI enabled workspace found");
         }
@@ -1052,6 +1052,7 @@ function notifyTreeView(
     }
 }
 
-function setBIContext(isBI: boolean) {
+function setContextValues(isBI: boolean, projectPath?: string, workspacePath?: string) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
+    commands.executeCommand('setContext', 'isSupportedProject', projectPath || workspacePath);
 }
