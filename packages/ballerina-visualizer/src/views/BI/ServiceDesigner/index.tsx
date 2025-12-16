@@ -204,6 +204,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [readonlyProperties, setReadonlyProperties] = useState<Set<ReadonlyProperty>>(new Set());
     const [isHttpService, setIsHttpService] = useState<boolean>(false);
     const [isMcpService, setIsMcpService] = useState<boolean>(false);
+    const [isCdcService, setIsCdcService] = useState<boolean>(false);
     const [objectMethods, setObjectMethods] = useState<FunctionModel[]>([]);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOptionProps[]>([]);
     const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
@@ -301,6 +302,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             setReadonlyProperties(readonlyProps);
             setIsHttpService(service.moduleName === "http");
             setIsMcpService(service.moduleName === "mcp");
+            setIsCdcService(service.moduleName === "mssql");
         }
 
         // Extract object methods if available (for service classes)
@@ -1195,6 +1197,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                             serviceName: serviceModel.name || '',
                                             messageDocumentation: functionModel?.metadata?.description || ''
                                         }}
+                                        useInlineDataBinding={isCdcService}
                                         serviceProperties={serviceModel.properties}
                                         serviceModuleName={serviceModel.moduleName}
                                     />
