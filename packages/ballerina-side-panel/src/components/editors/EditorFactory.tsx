@@ -96,7 +96,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "EXPRESSION_SET"
         );
     });
-
+    
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -126,10 +126,10 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
         return <TextEditor field={field} handleOnFieldFocus={handleOnFieldFocus} />;
-    } else if (field.type.toUpperCase() === "ENUM") {
+    } else if (field.type?.toUpperCase() === "ENUM") {
         // Enum is a dropdown field
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
-    } else if (field.type.toUpperCase() === "AUTOCOMPLETE") {
+    } else if (field.type?.toUpperCase() === "AUTOCOMPLETE") {
         return <AutoCompleteEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "CUSTOM_DROPDOWN") {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;

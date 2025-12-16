@@ -52,13 +52,13 @@ export function ResourceConfig(props: ResourceConfigProps) {
 		if (recordTypeFields?.length === 0) {
 			const recordTypeFields: any[] = Object.entries(properties)
 				.filter(([_, property]) =>
-					property.typeMembers &&
-					property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+					getPrimaryInputType(property.types)?.typeMembers &&
+					getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
 				)
 				.map(([key, property]) => ({
 					key,
 					property,
-					recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+					recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
 				}));
 
 			setRecordTypeFields(recordTypeFields as RecordTypeField[]);

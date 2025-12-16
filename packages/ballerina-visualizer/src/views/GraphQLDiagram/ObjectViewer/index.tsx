@@ -426,7 +426,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: serviceClassModel.properties["name"].metadata.label || "",
                             description: serviceClassModel.properties["name"].metadata.description || ""
                         },
-                        types: serviceClassModel.properties["name"].types?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
+                        types: serviceClassModel.properties["name"].types?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         value: serviceClassModel.properties["name"].value || "",
                         optional: serviceClassModel.properties["name"].optional || false,
                         editable: serviceClassModel.properties["name"].editable || true
@@ -436,7 +436,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: "",
                             description: "",
                         },
-                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global"}],
+                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         value: "",
                         optional: false,
                         editable: true
