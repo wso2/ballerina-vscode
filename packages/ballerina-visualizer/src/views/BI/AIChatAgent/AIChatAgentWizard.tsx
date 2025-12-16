@@ -89,7 +89,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const designModelRef = useRef<CDModel>(null);
 
     const init = async () => {
-        const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel();
+        const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel({});
         designModelRef.current = designModelResponse.designModel;
     }
 

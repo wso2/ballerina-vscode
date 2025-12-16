@@ -22,14 +22,17 @@ import {
     AddFieldRequest,
     AddFunctionRequest,
     AddImportItemResponse,
+    AddProjectToWorkspaceRequest,
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     BIAvailableNodesRequest,
     BIAvailableNodesResponse,
     BIDeleteByComponentInfoRequest,
     BIDeleteByComponentInfoResponse,
+    BIDesignModelRequest,
     BIDesignModelResponse,
     BIDiagramAPI,
+    BIFlowModelRequest,
     BIFlowModelResponse,
     BIGetEnclosedFunctionRequest,
     BIGetEnclosedFunctionResponse,
@@ -64,6 +67,9 @@ import {
     ExpressionCompletionsResponse,
     ExpressionDiagnosticsRequest,
     ExpressionDiagnosticsResponse,
+    ExpressionTokensRequest,
+    FormDiagnosticsRequest,
+    FormDiagnosticsResponse,
     FormDidCloseParams,
     FormDidOpenParams,
     FunctionNodeRequest,
@@ -88,6 +94,7 @@ import {
     OpenAPIGeneratedModulesRequest,
     OpenAPIGeneratedModulesResponse,
     OpenConfigTomlRequest,
+    OpenReadmeRequest,
     ProjectComponentsResponse,
     ProjectRequest,
     ProjectStructureResponse,
@@ -122,11 +129,11 @@ import {
     addBreakpointToSource,
     addClassField,
     addFunction,
+    addProjectToWorkspace,
     buildProject,
     createComponent,
     createGraphqlClassType,
     createProject,
-    addProjectToWorkspace,
     deleteByComponentInfo,
     deleteConfigVariableV2,
     deleteFlowNode,
@@ -156,7 +163,9 @@ import {
     getEndOfFile,
     getExpressionCompletions,
     getExpressionDiagnostics,
+    getExpressionTokens,
     getFlowModel,
+    getFormDiagnostics,
     getFunctionNames,
     getFunctionNode,
     getModuleNodes,
@@ -195,14 +204,7 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    verifyTypeDelete,
-    FormDiagnosticsRequest,
-    FormDiagnosticsResponse,
-    getFormDiagnostics,
-    getExpressionTokens,
-    ExpressionTokensRequest,
-    AddProjectToWorkspaceRequest,
-    OpenReadmeRequest,
+    verifyTypeDelete
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -214,8 +216,8 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         this._messenger = messenger;
     }
 
-    getFlowModel(): Promise<BIFlowModelResponse> {
-        return this._messenger.sendRequest(getFlowModel, HOST_EXTENSION);
+    getFlowModel(params: BIFlowModelRequest): Promise<BIFlowModelResponse> {
+        return this._messenger.sendRequest(getFlowModel, HOST_EXTENSION, params);
     }
 
     getSourceCode(params: BISourceCodeRequest): Promise<UpdatedArtifactsResponse> {
@@ -410,8 +412,8 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(formDidClose, HOST_EXTENSION, params);
     }
 
-    getDesignModel(): Promise<BIDesignModelResponse> {
-        return this._messenger.sendRequest(getDesignModel, HOST_EXTENSION);
+    getDesignModel(params: BIDesignModelRequest): Promise<BIDesignModelResponse> {
+        return this._messenger.sendRequest(getDesignModel, HOST_EXTENSION, params);
     }
 
     getTypes(params: GetTypesRequest): Promise<GetTypesResponse> {

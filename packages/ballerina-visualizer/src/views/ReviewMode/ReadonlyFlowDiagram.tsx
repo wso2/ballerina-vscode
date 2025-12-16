@@ -16,46 +16,23 @@
  * under the License.
  */
 
-import React from "react";
-import { NodePosition } from "@wso2/ballerina-core";
+import React, { useEffect, useState } from "react";
+import { Flow, NodePosition } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
+import { MemoizedDiagram } from "@wso2/bi-diagram";
 
-const Container = styled.div`
-    width: 100%;
-    height: 100%;
-`;
-
-const PlaceholderContainer = styled.div`
+const SpinnerContainer = styled.div`
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100%;
-    gap: 16px;
-    color: var(--vscode-descriptionForeground);
-    font-family: var(--vscode-font-family);
 `;
 
-const PlaceholderTitle = styled.div`
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-`;
-
-const PlaceholderText = styled.div`
-    font-size: 13px;
-    max-width: 400px;
-    text-align: center;
-    line-height: 1.5;
-`;
-
-const CodeBlock = styled.div`
-    background: var(--vscode-textCodeBlock-background);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-family: var(--vscode-editor-font-family);
-    font-size: 12px;
-    color: var(--vscode-textPreformat-foreground);
+const Container = styled.div`
+    height: 100%;
+    pointer-events: auto;
 `;
 
 interface ReadonlyFlowDiagramProps {
@@ -66,25 +43,43 @@ interface ReadonlyFlowDiagramProps {
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
     const { filePath, position } = props;
-    const fileName = filePath.split('/').pop() || filePath;
+    const { rpcClient } = useRpcContext();
+    const [flowModel, setFlowModel] = useState<Flow | null>(null);
+
+    console.log(">>> ReadonlyFlowDiagram props", props);
+
+    useEffect(() => {
+        fetchFlowModel();
+    }, [filePath, position]);
+
+    const fetchFlowModel = () => {
+        console.log(">>> fetching flow model", filePath, position);
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getFlowModel({
+                filePath: filePath,
+                startLine: { line: position.startLine, offset: position.startColumn },
+                endLine: { line: position.endLine, offset: position.endColumn },
+            })
+            .then((response) => {
+                console.log(">>> flow model", response);
+                if (response?.flowModel) {
+                    setFlowModel(response.flowModel);
+                }
+            });
+    };
+
+    if (!flowModel) {
+        return (
+            <SpinnerContainer>
+                <ProgressRing color={ThemeColors.PRIMARY} />
+            </SpinnerContainer>
+        );
+    }
 
     return (
         <Container>
-            <PlaceholderContainer>
-                <span className="codicon codicon-symbol-method" style={{ fontSize: '48px', opacity: 0.5 }}></span>
-                <PlaceholderTitle>Flow Diagram View</PlaceholderTitle>
-                <CodeBlock>
-                    {fileName}
-                </CodeBlock>
-                <PlaceholderText>
-                    Lines {position.startLine + 1} - {position.endLine + 1}
-                </PlaceholderText>
-                <PlaceholderText style={{ fontSize: '12px', opacity: 0.7, marginTop: '16px' }}>
-                    Flow diagram visualization in review mode will be available in a future update.
-                    <br />
-                    For now, you can review changes using the component diagram.
-                </PlaceholderText>
-            </PlaceholderContainer>
+            <MemoizedDiagram model={flowModel} readOnly={true} />
         </Container>
     );
 }
