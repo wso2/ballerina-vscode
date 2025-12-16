@@ -83,7 +83,6 @@ const a2aMenuStyles = {
 };
 
 const codiconStyles = {
-    color: 'var(--vscode-editorLightBulb-foreground)',
     marginRight: '10px'
 }
 
@@ -157,12 +156,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const a2aMenuItems: Item[] = [
             {
                 id: "a2a-direct",
-                label: getItemElement("a2a-direct", "Map Input Array to Output Array", "arrow-right", true),
+                label: getItemElement("a2a-direct", "Assign Directly", "arrow-right", true),
                 onClick: wrapWithProgress(onClickMapDirectly)
             },
             {
                 id: "a2a-inner",
-                label: getItemElement("a2a-inner", "Map Array Elements Individually", "tasklist", true),
+                label: getItemElement("a2a-inner", "Map Each Element Individually", "tasklist", true),
                 onClick: wrapWithProgress(onClickMapIndividualElements)
             }
         ];
