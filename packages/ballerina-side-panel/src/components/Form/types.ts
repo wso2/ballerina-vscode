@@ -26,6 +26,13 @@ export type FormValues = {
     [key: string]: any;
 };
 
+export type FieldDerivation = {
+    sourceField: string;
+    targetField: string;
+    deriveFn: (sourceValue: any) => any;
+    breakOnManualEdit?: boolean;
+};
+
 export type FormField = {
     key: string;
     label: string;
