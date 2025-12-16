@@ -41,9 +41,22 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
 };
 
 export const getInputModeFromTypes = (inputType: InputType): InputMode => {
-    if (!inputType || !inputType.ballerinaType) return;
-    return INPUT_MODE_MAP[inputType.ballerinaType];
+    if (!inputType || !inputType) return;
+
+    if (inputType.fieldType === "SINGLE_SELECT") {
+        return InputMode.ENUM;
+    }
+    if (inputType.fieldType === "EXPRESSION_SET") {
+        return InputMode.ARRAY;
+    }
+
+    //default behaviour
+    return getInputModeFromBallerinaType(inputType.ballerinaType);
 };
+
+export const getInputModeFromBallerinaType = (ballerinaType: string): InputMode => {
+    return INPUT_MODE_MAP[ballerinaType];
+}
 
 export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
     const primaryInputType = getPrimaryInputType(inputTypes);

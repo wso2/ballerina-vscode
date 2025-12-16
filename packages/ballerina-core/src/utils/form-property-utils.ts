@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { InputType, TemplateType } from "../interfaces/bi";
+import { DropdownType, InputType, TemplateType } from "../interfaces/bi";
 
 export const getPrimaryInputType = (types: InputType[]): InputType | undefined => {
   if (!types || types.length === 0) return undefined;
@@ -26,5 +26,11 @@ export const getPrimaryInputType = (types: InputType[]): InputType | undefined =
 export const isTemplateType = (
   value: InputType
 ): value is TemplateType => {
-  return value != null && typeof value === "object" && "template" in value;
+  return value !== null && typeof value === "object" && "template" in value;
+};
+
+export const isDropDownType = (
+  value: InputType
+): value is DropdownType => {
+  return value !== null && (value?.fieldType === "SINGLE_SELECT" || value?.fieldType === "MULTIPLE_SELECT");
 };
