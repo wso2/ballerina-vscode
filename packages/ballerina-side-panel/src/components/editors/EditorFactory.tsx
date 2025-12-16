@@ -87,13 +87,16 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
-    const isExpressionField =
-        field.type === "EXPRESSION" ||
-        field.type === "LV_EXPRESSION" || 
-        field.type === "ACTION_OR_EXPRESSION" || 
-        field.type === "RECORD_MAP_EXPRESSION" || 
-        field.type === "TEXT";
-
+    const showWithExpressionEditor = field.types.some(type => {
+        return type && (
+            type.fieldType === "EXPRESSION" ||
+            type.fieldType === "LV_EXPRESSION" ||
+            type.fieldType === "ACTION_OR_EXPRESSION" ||
+            type.fieldType === "TEXT" ||
+            type.fieldType === "EXPRESSION_SET"
+        );
+    });
+    
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -106,8 +109,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "EXPRESSION_SET") {
-        return <ArrayEditor field={field} label={"Add Another Value"} />;
     } else if (field.type === "MAPPING_EXPRESSION_SET") {
         return (
             <MapEditor
@@ -134,7 +135,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
-    } else if (field.type === "SINGLE_SELECT" && field.editable) {
+    } else if (field.type === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
         return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
@@ -174,7 +175,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
                 recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
             />
         );
-    } else if (!field.items && isExpressionField && field.editable) {
+    } else if ( showWithExpressionEditor && field.editable) {
         // Expression field is a inline expression editor
         return (
             <ContextAwareExpressionEditor
