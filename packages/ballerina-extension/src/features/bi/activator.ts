@@ -392,9 +392,13 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const projectPath = StateMachine.context().projectPath;
+    const {projectPath, projectInfo} = StateMachine.context();
+    const projectRoot = await findBallerinaPackageRoot(filePath);
+    if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
+        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+    }
     const projectStructure = await rpcClient.getProjectStructure();
-    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
     const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
@@ -402,7 +406,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
         return;
     }
 
-    componentCategory.forEach((component) => {
+    for (const component of componentCategory) {
         if (component.name === itemLabel) {
             const componentInfo: ComponentInfo = {
                 name: component.name,
@@ -414,9 +418,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
                 resources: component?.resources
             };
 
-            deleteComponent(componentInfo, rpcClient, filePath);
+            await deleteComponent(componentInfo, rpcClient, filePath);
+            return;
         }
-    });
+    }
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {
