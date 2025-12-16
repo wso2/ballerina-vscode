@@ -18,12 +18,11 @@
 
 package io.ballerina.servicemodelgenerator.extension.model;
 
-import io.ballerina.servicemodelgenerator.extension.util.Constants;
-
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -101,7 +100,7 @@ public class Parameter {
     private static Value name(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -110,7 +109,7 @@ public class Parameter {
     private static Value type(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_TYPE)
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
                 .enabled(true)
                 .editable(true)
                 .build();
@@ -119,7 +118,7 @@ public class Parameter {
     private static Value defaultValue(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_EXPRESSION)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -129,7 +128,7 @@ public class Parameter {
     private static Value documentation(MetaData metadata) {
         return new Value.ValueBuilder()
                 .setMetadata(metadata)
-                .valueType(Constants.VALUE_TYPE_STRING)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                 .enabled(true)
                 .editable(true)
                 .optional(true)
@@ -195,7 +194,7 @@ public class Parameter {
     public Value getDocumentation() {
         if (Objects.isNull(documentation)) {
             documentation = new Value.ValueBuilder()
-                    .valueType(Constants.VALUE_TYPE_STRING)
+                    .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                     .enabled(true)
                     .optional(true)
                     .editable(true)

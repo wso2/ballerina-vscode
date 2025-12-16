@@ -40,9 +40,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "listener3",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -58,14 +62,16 @@
             "originalName": "port"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "9090",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -84,14 +90,24 @@
             "originalName": "config"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerConfiguration",
           "value": "{}",
-          "typeMembers": [
+          "types": [
             {
-              "type": "ListenerConfiguration",
-              "packageInfo": "ballerina:http:2.15.3",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerConfiguration",
+              "typeMembers": [
+                {
+                  "type": "ListenerConfiguration",
+                  "packageInfo": "ballerina:http:2.15.3",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerConfiguration",
               "selected": false
             }
           ],

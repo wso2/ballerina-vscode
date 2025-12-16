@@ -25,11 +25,19 @@
             "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "80",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "80",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -43,9 +51,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "tcpListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

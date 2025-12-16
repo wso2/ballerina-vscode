@@ -22,9 +22,13 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
       "value": "This is a sample Ballerina service class definition",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -50,9 +54,13 @@
             }
           }
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
         "value": "Book",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -84,7 +92,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -108,8 +121,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "init",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -120,7 +138,12 @@
             "label": "Description",
             "description": "The description of the resource"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -138,8 +161,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "string",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -150,8 +178,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "name",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -162,7 +195,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -173,7 +211,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -194,7 +237,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -205,7 +253,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -216,7 +269,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -227,7 +285,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -248,8 +311,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -283,13 +351,18 @@
               "originalName": "ResourceConfig"
             },
             "placeholder": "{}",
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ResourceConfig",
-            "typeMembers": [
+            "types": [
               {
-                "type": "ResourceConfig",
-                "kind": "RECORD_TYPE",
-                "selected": false
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
               }
             ],
             "enabled": false,
@@ -310,8 +383,13 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
           "value": "get",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -335,8 +413,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "author/[int id]",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -347,7 +430,12 @@
             "label": "Description",
             "description": "The description of the resource"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -361,7 +449,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -372,7 +465,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -383,7 +481,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -394,7 +497,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -415,8 +523,13 @@
             "label": "Return Type",
             "description": "The return type of the resource"
           },
-          "valueType": "TYPE",
           "value": "string|error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -450,13 +563,18 @@
               "originalName": "ResourceConfig"
             },
             "placeholder": "{}",
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ResourceConfig",
-            "typeMembers": [
+            "types": [
               {
-                "type": "ResourceConfig",
-                "kind": "RECORD_TYPE",
-                "selected": false
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
               }
             ],
             "enabled": false,
@@ -477,7 +595,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -501,8 +624,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "addAuthor",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -513,8 +641,13 @@
             "label": "Description",
             "description": "The description of the resource"
           },
-          "valueType": "STRING",
           "value": "Remote method to add an author",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -532,8 +665,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "Author",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -544,8 +682,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "author",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -556,7 +699,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -567,8 +715,13 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
               "value": "Author ID",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -589,7 +742,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -600,7 +758,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -611,7 +774,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -622,7 +790,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -643,7 +816,12 @@
             "label": "Return Type",
             "description": "The return type of the resource"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -677,13 +855,18 @@
               "originalName": "ResourceConfig"
             },
             "placeholder": "{}",
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "ResourceConfig",
-            "typeMembers": [
+            "types": [
               {
-                "type": "ResourceConfig",
-                "kind": "RECORD_TYPE",
-                "selected": false
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "ResourceConfig",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
               }
             ],
             "enabled": false,
@@ -716,8 +899,13 @@
             "label": "Field Type",
             "description": "The type of the field"
           },
-          "valueType": "TYPE",
           "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -741,8 +929,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "id",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -753,7 +946,12 @@
             "label": "Initial Value",
             "description": "The initial value of the filed"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -787,8 +985,13 @@
             "label": "Field Type",
             "description": "The type of the field"
           },
-          "valueType": "TYPE",
           "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -812,8 +1015,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "name",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -824,7 +1032,12 @@
             "label": "Initial Value",
             "description": "The initial value of the filed"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -858,8 +1071,13 @@
             "label": "Field Type",
             "description": "The type of the field"
           },
-          "valueType": "TYPE",
           "value": "Author[]",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -883,8 +1101,13 @@
               }
             }
           },
-          "valueType": "IDENTIFIER",
           "value": "authors",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -895,8 +1118,13 @@
             "label": "Initial Value",
             "description": "The initial value of the filed"
           },
-          "valueType": "EXPRESSION",
           "value": "[]",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,

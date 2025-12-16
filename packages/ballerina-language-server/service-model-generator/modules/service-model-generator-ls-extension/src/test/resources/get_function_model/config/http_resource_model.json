@@ -10,18 +10,22 @@
         "description": "The resource accessor"
       },
       "placeholder": "GET",
-      "valueType": "SINGLE_SELECT",
-      "valueTypeConstraint": "http:Method",
       "value": "GET",
-      "items": [
-        "GET",
-        "POST",
-        "PUT",
-        "DELETE",
-        "PATCH",
-        "OPTIONS",
-        "HEAD",
-        "DEFAULT"
+      "types": [
+        {
+          "fieldType": "SINGLE_SELECT",
+          "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS",
+            "HEAD",
+            "DEFAULT"
+          ],
+          "selected": true
+        }
       ],
       "enabled": true,
       "editable": true,
@@ -34,9 +38,13 @@
         "description": "The resource path"
       },
       "placeholder": "",
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "string",
       "value": "",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -51,9 +59,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Request",
           "value": "http:Request",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -61,9 +73,13 @@
         },
         "name": {
           "placeholder": "request",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -84,9 +100,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Caller",
           "value": "http:Caller",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -94,9 +114,13 @@
         },
         "name": {
           "placeholder": "caller",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -117,9 +141,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Headers",
           "value": "http:Headers",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -127,9 +155,13 @@
         },
         "name": {
           "placeholder": "headers",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -152,9 +184,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -162,9 +198,13 @@
         },
         "name": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -176,9 +216,13 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -200,9 +244,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -210,9 +258,13 @@
         },
         "name": {
           "placeholder": "name",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -224,9 +276,13 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "anydata",
           "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": true,
           "optional": true,
@@ -234,9 +290,13 @@
         },
         "headerName": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -258,9 +318,13 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -268,9 +332,13 @@
         },
         "name": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -290,42 +358,67 @@
         {
           "statusCode": {
             "placeholder": "",
-            "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "",
             "value": "200",
             "items": [],
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "options": [],
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": false,
             "advanced": false
           },
           "body": {
-            "valueType": "TYPE",
             "value": "json",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": true
           },
           "mediaType": {
-            "valueType": "TYPE",
             "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": true
           },
           "name": {
-            "valueType": "OPTIONAL_IDENTIFIER",
             "value": "",
+            "types": [
+              {
+                "fieldType": "OPTIONAL_IDENTIFIER",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": true
           },
           "type": {
-            "valueType": "TYPE",
             "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -336,8 +429,13 @@
               "label": "Headers",
               "description": "Add mandatory or optional headers to the response"
             },
-            "valueType": "HEADER_SET",
             "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -356,10 +454,14 @@
               "description": "HTTP status code for the response"
             },
             "placeholder": "",
-            "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "",
             "value": "",
             "items": [],
+            "types": [
+              {
+                "fieldType": "SINGLE_SELECT",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": false,
@@ -370,8 +472,13 @@
               "label": "Response Body Schema",
               "description": "Schema of the response body or data type of the response body"
             },
-            "valueType": "TYPE",
             "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -382,8 +489,13 @@
               "label": "Content Type",
               "description": "Value for the Content-Type header in the response"
             },
-            "valueType": "TYPE",
             "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -394,8 +506,13 @@
               "label": "Response Definition Name",
               "description": "Define a name for the response definition"
             },
-            "valueType": "OPTIONAL_IDENTIFIER",
             "value": "",
+            "types": [
+              {
+                "fieldType": "OPTIONAL_IDENTIFIER",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -406,8 +523,13 @@
               "label": "Response Type",
               "description": "Select a response type"
             },
-            "valueType": "TYPE",
             "value": "",
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -418,8 +540,13 @@
               "label": "Headers",
               "description": "Add mandatory or optional headers to the response"
             },
-            "valueType": "HEADER_SET",
             "value": "",
+            "types": [
+              {
+                "fieldType": "HEADER_SET",
+                "selected": true
+              }
+            ],
             "enabled": true,
             "editable": true,
             "optional": true,
@@ -437,9 +564,13 @@
         "description": "Return type of the function"
       },
       "placeholder": "",
-      "valueType": "TYPE",
-      "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
       "value": "",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,

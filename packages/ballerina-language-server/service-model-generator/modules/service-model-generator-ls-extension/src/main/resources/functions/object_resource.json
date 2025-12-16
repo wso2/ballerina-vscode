@@ -10,7 +10,12 @@
       "label": "Description",
       "description": "The description of the resource"
     },
-    "valueType": "STRING",
+    "types": [
+      {
+        "fieldType": "TEXT",
+        "selected": true
+      }
+    ],
     "enabled": true,
     "editable": true,
     "isType": false,
@@ -26,20 +31,25 @@
     "enabled": true,
     "editable": true,
     "value": "",
-    "valueType": "SINGLE_SELECT",
+    "types": [
+      {
+        "fieldType": "SINGLE_SELECT",
+        "selected": true,
+        "options": [
+          "GET",
+          "POST",
+          "PUT",
+          "DELETE",
+          "PATCH",
+          "OPTIONS",
+          "HEAD"
+        ]
+      }
+    ],
     "isType": false,
     "optional": false,
     "advanced": false,
-    "addNewButton": false,
-    "items": [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "PATCH",
-      "OPTIONS",
-      "HEAD"
-    ]
+    "addNewButton": false
   },
   "name": {
     "metadata": {
@@ -49,8 +59,12 @@
     "enabled": true,
     "editable": true,
     "value": "",
-    "valueType": "IDENTIFIER",
-    "valueTypeConstraint": "string",
+    "types": [
+      {
+        "fieldType": "IDENTIFIER",
+        "selected": true
+      }
+    ],
     "isType": false,
     "placeholder": "",
     "optional": false,
@@ -64,7 +78,12 @@
           "label": "Parameter Type",
           "description": "The type of the parameter"
         },
-        "valueType": "TYPE",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "isType": false,
@@ -77,7 +96,12 @@
           "label": "Parameter Name",
           "description": "The name of the parameter"
         },
-        "valueType": "IDENTIFIER",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "isType": false,
@@ -90,7 +114,12 @@
           "label": "Default Value",
           "description": "The default value of the parameter"
         },
-        "valueType": "EXPRESSION",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "isType": false,
@@ -103,7 +132,12 @@
           "label": "Description",
           "description": "The description of the parameter"
         },
-        "valueType": "STRING",
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "isType": false,
@@ -128,7 +162,12 @@
     "optional": false,
     "advanced": false,
     "addNewButton": false,
-    "valueType": "TYPE"
+    "types": [
+      {
+        "fieldType": "TYPE",
+        "selected": true
+      }
+    ]
   },
   "enabled": true,
   "optional": false,

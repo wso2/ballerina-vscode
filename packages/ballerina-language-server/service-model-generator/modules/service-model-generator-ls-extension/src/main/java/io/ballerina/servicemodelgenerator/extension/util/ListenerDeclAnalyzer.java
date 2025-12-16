@@ -18,9 +18,12 @@
 
 package io.ballerina.servicemodelgenerator.extension.util;
 
+import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.FunctionSymbol;
 import io.ballerina.compiler.api.symbols.FunctionTypeSymbol;
 import io.ballerina.compiler.api.symbols.ParameterSymbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
 import io.ballerina.compiler.syntax.tree.NamedArgumentNode;
 import io.ballerina.compiler.syntax.tree.Node;
@@ -28,9 +31,11 @@ import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.modelgenerator.commons.FunctionData;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 
@@ -53,9 +58,13 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLead
 public class ListenerDeclAnalyzer {
 
     private final Map<String, Value> properties;
+    private final SemanticModel semanticModel;
+    private final ModuleInfo moduleInfo;
 
-    public ListenerDeclAnalyzer(Map<String, Value> properties) {
+    public ListenerDeclAnalyzer(Map<String, Value> properties, SemanticModel semanticModel, ModuleInfo moduleInfo) {
         this.properties = properties;
+        this.semanticModel = semanticModel;
+        this.moduleInfo = moduleInfo;
     }
 
     public Map<String, Value> getProperties() {
@@ -110,18 +119,18 @@ public class ListenerDeclAnalyzer {
                 String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
+
+                List<PropertyType> propertyTypes = buildPropertyType(paramResult);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                         .setCodedata(codedata)
                         .value("")
-                        .valueType("EXPRESSION")
+                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
-                        .setValueTypeConstraint(paramResult.type())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
-                        .setAdvanced(paramResult.optional())
-                        .setTypeMembers(paramResult.typeMembers());
+                        .setAdvanced(paramResult.optional());
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             return;
@@ -153,19 +162,18 @@ public class ListenerDeclAnalyzer {
                     String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
                     Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                     codedata.setOriginalName(paramResult.name());
+                    List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                     Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                     valueBuilder
                             .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                             .setCodedata(codedata)
                             .value(value)
-                            .valueType("EXPRESSION")
+                            .types(propertyTypes)
                             .setPlaceholder(paramResult.placeholder())
-                            .setValueTypeConstraint(paramResult.type())
                             .editable(true)
                             .enabled(true)
                             .optional(paramResult.optional())
-                            .setAdvanced(paramResult.optional())
-                            .setTypeMembers(paramResult.typeMembers());
+                            .setAdvanced(paramResult.optional());
                     properties.put(unescapedParamName, valueBuilder.build());
                 }
 
@@ -181,19 +189,18 @@ public class ListenerDeclAnalyzer {
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(restParamResult.name());
 
+                List<PropertyType> propertyTypes = buildPropertyType(restParamResult);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                 valueBuilder
                         .setMetadata(new MetaData(unescapedParamName, restParamResult.description()))
                         .setCodedata(codedata)
                         .value("[%s]".formatted(String.join(", ", restArgs)))
-                        .valueType("EXPRESSION")
+                        .types(propertyTypes)
                         .setPlaceholder(restParamResult.placeholder())
-                        .setValueTypeConstraint(restParamResult.type())
                         .editable(true)
                         .enabled(true)
                         .optional(restParamResult.optional())
-                        .setAdvanced(restParamResult.optional())
-                        .setTypeMembers(restParamResult.typeMembers());
+                        .setAdvanced(restParamResult.optional());
 
                 properties.put(unescapedParamName, valueBuilder.build());
             }
@@ -234,19 +241,18 @@ public class ListenerDeclAnalyzer {
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
 
+                            List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                             Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                             valueBuilder
                                     .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                                     .setCodedata(codedata)
                                     .value(value)
-                                    .valueType("EXPRESSION")
+                                    .types(propertyTypes)
                                     .setPlaceholder(paramResult.placeholder())
-                                    .setValueTypeConstraint(paramResult.type())
                                     .editable(true)
                                     .enabled(true)
                                     .optional(paramResult.optional())
-                                    .setAdvanced(paramResult.optional())
-                                    .setTypeMembers(paramResult.typeMembers());
+                                    .setAdvanced(paramResult.optional());
 
                             properties.put(unescapedParamName, valueBuilder.build());
                         } else {
@@ -262,19 +268,18 @@ public class ListenerDeclAnalyzer {
                                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                                 codedata.setOriginalName(paramResult.name());
 
+                                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                                 valueBuilder
                                         .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                                         .setCodedata(codedata)
                                         .value(value)
-                                        .valueType("EXPRESSION")
+                                        .types(propertyTypes)
                                         .setPlaceholder(paramResult.placeholder())
-                                        .setValueTypeConstraint(paramResult.type())
                                         .editable(true)
                                         .enabled(true)
                                         .optional(paramResult.optional())
-                                        .setAdvanced(paramResult.optional())
-                                        .setTypeMembers(paramResult.typeMembers());
+                                        .setAdvanced(paramResult.optional());
 
                                 properties.put(unescapedParamName, valueBuilder.build());
 
@@ -289,19 +294,18 @@ public class ListenerDeclAnalyzer {
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
 
+                            List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                             Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                             valueBuilder
                                     .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                                     .setCodedata(codedata)
                                     .value(value)
-                                    .valueType("EXPRESSION")
+                                    .types(propertyTypes)
                                     .setPlaceholder(paramResult.placeholder())
-                                    .setValueTypeConstraint(paramResult.type())
                                     .editable(true)
                                     .enabled(true)
                                     .optional(paramResult.optional())
-                                    .setAdvanced(paramResult.optional())
-                                    .setTypeMembers(paramResult.typeMembers());
+                                    .setAdvanced(paramResult.optional());
 
                             properties.put(unescapedParamName, valueBuilder.build());
                             return;
@@ -319,19 +323,18 @@ public class ListenerDeclAnalyzer {
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
 
+                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                 valueBuilder
                         .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                         .setCodedata(codedata)
                         .value(value)
-                        .valueType("EXPRESSION")
+                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
-                        .setValueTypeConstraint(paramResult.type())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
-                        .setAdvanced(paramResult.optional())
-                        .setTypeMembers(paramResult.typeMembers());
+                        .setAdvanced(paramResult.optional());
                 properties.put(unescapedParamName, valueBuilder.build());
             }
 
@@ -347,18 +350,18 @@ public class ListenerDeclAnalyzer {
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
+
+                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue);
                 valueBuilder
                         .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                         .setCodedata(codedata)
                         .value(value)
-                        .valueType("EXPRESSION")
+                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
-                        .setValueTypeConstraint(paramResult.type())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
-                        .setAdvanced(paramResult.optional())
-                        .setTypeMembers(paramResult.typeMembers());
+                        .setAdvanced(paramResult.optional());
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             addRemainingParamsToPropertyMap(funcParamMap);
@@ -376,21 +379,49 @@ public class ListenerDeclAnalyzer {
             String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
             codedata.setOriginalName(paramResult.name());
+
+            List<PropertyType> propertyTypes = buildPropertyType(paramResult);
             Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
             valueBuilder
                     .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
                     .setCodedata(codedata)
                     .value("")
-                    .valueType("EXPRESSION")
+                    .types(propertyTypes)
                     .setPlaceholder(paramResult.placeholder())
-                    .setValueTypeConstraint(paramResult.type())
                     .editable(true)
                     .enabled(true)
                     .optional(paramResult.optional())
-                    .setAdvanced(paramResult.optional())
-                    .setTypeMembers(paramResult.typeMembers());
+                    .setAdvanced(paramResult.optional());
             properties.put(unescapedParamName, valueBuilder.build());
         }
+    }
+
+    private List<PropertyType> buildPropertyType(ParameterData paramData) {
+        return buildPropertyType(paramData, null);
+    }
+
+    private List<PropertyType> buildPropertyType(ParameterData paramData, Node value) {
+        ParameterData.Kind kind = paramData.kind();
+        if (kind == ParameterData.Kind.REST_PARAMETER) {
+            return List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET));
+        } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
+            return List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET));
+        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
+            return List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE));
+        }
+        return PropertyType.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
+    }
+
+    private boolean isSubTypeOfRawTemplate(TypeSymbol typeSymbol) {
+        if (typeSymbol == null) {
+            return false;
+        }
+
+        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol) semanticModel.types()
+                .getTypeByName("ballerina", "lang.object", "0.0.0", "RawTemplate").get();
+
+        TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
+        return typeSymbol.subtypeOf(rawTemplateTypeDesc);
     }
 }
 

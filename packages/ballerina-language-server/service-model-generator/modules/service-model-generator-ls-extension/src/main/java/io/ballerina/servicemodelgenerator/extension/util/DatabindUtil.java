@@ -43,6 +43,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
@@ -160,14 +161,14 @@ public final class DatabindUtil {
     private static Parameter createDataBindingParam(String paramType, String paramName,
                                                     boolean dataBindingEnabled, boolean editable) {
         Value parameterType = new Value.ValueBuilder()
-                .valueType(Constants.VALUE_TYPE_TYPE)
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
                 .value(paramType)
                 .enabled(true)
                 .editable(false)
                 .build();
 
         Value parameterNameValue = new Value.ValueBuilder()
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .value(paramName)
                 .enabled(true)
                 .editable(false)
