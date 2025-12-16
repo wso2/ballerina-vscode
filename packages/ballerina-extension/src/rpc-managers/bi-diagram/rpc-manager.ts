@@ -1790,7 +1790,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async getRecordNames(): Promise<RecordsInWorkspaceMentions> {
         const projectComponents = await this.getProjectComponents();
 
-        // Extracting all record names
+        // Extracting all record names and type names
         const recordNames: string[] = [];
 
         if (projectComponents?.components?.packages) {
@@ -1799,6 +1799,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     if (module.records) {
                         for (const record of module.records) {
                             recordNames.push(record.name);
+                        }
+                    }
+                    if (module.types) {
+                        for (const type of module.types) {
+                            recordNames.push(type.name);
                         }
                     }
                 }
@@ -1939,7 +1944,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 projectPath: projectPath,
                 module: params.module
             };
-            StateMachine.langClient().openApiGenerateClient(request).then((res) => {
+            StateMachine.langClient().openApiGenerateClient(request).then(async (res) => {
                 if (!res.source || !res.source.textEditsMap) {
                     console.error("textEditsMap is undefined or null");
                     reject(new Error("textEditsMap is undefined or null"));
@@ -1952,11 +1957,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     return;
                 }
 
-                // Convert the plain object back to a Map
-                const textEditsMap = new Map(Object.entries(res.source.textEditsMap));
-                textEditsMap.forEach(async (value, key) => {
-                    await this.applyTextEdits(key, value);
-                });
+
+                if (res?.source?.textEditsMap) {
+                    await updateSourceCode({
+                        textEdits: res.source.textEditsMap,
+                        description: `OpenAPI Client Generation`,
+                        skipUpdateViewOnTomlUpdate: true
+                    });
+                    console.log(">>> Applied text edits for openapi client");
+                }
+
                 resolve({});
             }).catch((error) => {
                 console.log(">>> error generating openapi client", error);
