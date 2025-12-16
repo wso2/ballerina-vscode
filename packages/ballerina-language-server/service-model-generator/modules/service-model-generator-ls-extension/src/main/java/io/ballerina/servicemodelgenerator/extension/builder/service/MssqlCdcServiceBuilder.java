@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -56,6 +57,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
@@ -346,6 +348,9 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         for (Function function : serviceModel.getFunctions()) {
             String functionName = function.getName().getValue();
 
+            // Set module name on function codedata so router can correctly invoke MssqlCdcFunctionBuilder
+            setModuleName(function);
+
             // Find matching source function
             Function sourceFunction = sourceFunctionMap.get(functionName);
             if (sourceFunction == null) {
@@ -355,7 +360,95 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             restoreAndUpdateDataBindingParams(function, sourceFunction, originalParameterKinds.get(functionName));
         }
 
+        // After all consolidation and databinding processing is complete,
+        // apply onUpdate parameter combining to all functions
+        applyOnUpdateCombining(serviceModel);
+
         return serviceModel;
+    }
+
+    /**
+     * Ensures the function has a Codedata object and sets the module name. This is required for the router to correctly
+     * invoke MssqlCdcFunctionBuilder.
+     *
+     * @param function The function to process
+     */
+    private void setModuleName(Function function) {
+        if (function.getCodedata() == null) {
+            function.setCodedata(new Codedata());
+        }
+        function.getCodedata().setModuleName(kind());
+    }
+
+    /**
+     * Applies onUpdate parameter combining to all functions in the service model. This ensures that onUpdate function
+     * shows only one databinding parameter in the UI, regardless of whether the function exists in source code or is
+     * being added from the UI.
+     *
+     * @param serviceModel The service model to process
+     */
+    private void applyOnUpdateCombining(Service serviceModel) {
+        for (Function function : serviceModel.getFunctions()) {
+            if ("onUpdate".equals(function.getName().getValue())) {
+                combineDatabindingParams(function);
+            }
+        }
+    }
+
+    /**
+     * Combines the two DATA_BINDING parameters (beforeEntry and afterEntry) for onUpdate function. The UI will show
+     * only afterEntry as the databinding parameter. beforeEntry is kept in the model but marked as hidden
+     * (enabled=false) so it can be expanded during code generation.
+     * <p>
+     * This method handles two scenarios: 1. Template case: Both parameters disabled (template initial state) - keeps
+     * beforeEntry disabled 2. Source case: Both parameters enabled with same type - disables beforeEntry This ensures
+     * UI shows only ONE databinding button/field for onUpdate.
+     * </p>
+     *
+     * @param function The onUpdate function to process
+     */
+    private void combineDatabindingParams(Function function) {
+        List<Parameter> parameters = function.getParameters();
+        Parameter beforeEntry = null;
+        Parameter afterEntry = null;
+
+        // Find the two DATA_BINDING parameters
+        for (Parameter param : parameters) {
+            if (!DATA_BINDING.equals(param.getKind())) {
+                continue;
+            }
+            String paramName = param.getName().getValue();
+            if (BEFORE_ENTRY_FIELD.equals(paramName)) {
+                beforeEntry = param;
+            } else if (AFTER_ENTRY_FIELD.equals(paramName)) {
+                afterEntry = param;
+            }
+        }
+
+        // Both parameters must exist
+        if (beforeEntry == null || afterEntry == null) {
+            return;
+        }
+
+        // Case 1: Both disabled  - keep beforeEntry disabled, afterEntry disabled
+        if (!beforeEntry.isEnabled() && !afterEntry.isEnabled()) {
+            // Nothing to do - already in desired state (beforeEntry hidden)
+            return;
+        }
+
+        // Case 2: Both enabled with same type (from source code) - disable beforeEntry
+        if (beforeEntry.isEnabled() && afterEntry.isEnabled()) {
+            String beforeType = beforeEntry.getType().getValue();
+            String afterType = afterEntry.getType().getValue();
+
+            // Combine if both have the same type (whether "record {}" or custom type)
+            if (beforeType.equals(afterType)) {
+                // Hide beforeEntry - it will be expanded during code generation
+                beforeEntry.setEnabled(false);
+                // afterEntry stays enabled and represents both parameters in the UI
+            }
+        }
+
     }
 
     @Override
