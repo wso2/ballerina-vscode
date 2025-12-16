@@ -99,22 +99,57 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         canGoNext
     } = props;
 
+    console.log('[ReviewNavigation] Props received:', {
+        currentIndex,
+        totalViews,
+        canGoPrevious,
+        canGoNext,
+        disabledPrevious: !canGoPrevious,
+        disabledNext: !canGoNext
+    });
+
+    const handlePreviousClick = () => {
+        console.log('[ReviewNavigation] Previous button clicked!');
+        if (canGoPrevious) {
+            onPrevious();
+        } else {
+            console.log('[ReviewNavigation] Cannot go previous - at first view');
+        }
+    };
+
+    const handleNextClick = () => {
+        console.log('[ReviewNavigation] Next button clicked!');
+        if (canGoNext) {
+            onNext();
+        } else {
+            console.log('[ReviewNavigation] Cannot go next - at last view');
+        }
+    };
+
+    // Convert to explicit boolean to avoid VSCode button disabled prop issues
+    const isPreviousDisabled = canGoPrevious === false;
+    const isNextDisabled = canGoNext === false;
+
     return (
         <NavigationContainer>
             <NavigationButtons>
                 <VSCodeButton
                     appearance="icon"
-                    onClick={onPrevious}
-                    disabled={!canGoPrevious}
+                    onClick={handlePreviousClick}
+                    // disabled={isPreviousDisabled}
                     title="Previous View"
+                    aria-label="Previous View"
+                    style={{ opacity: isPreviousDisabled ? 0.4 : 1, cursor: isPreviousDisabled ? 'not-allowed' : 'pointer' }}
                 >
                     <span className="codicon codicon-chevron-left"></span>
                 </VSCodeButton>
                 <VSCodeButton
                     appearance="icon"
-                    onClick={onNext}
-                    disabled={!canGoNext}
+                    onClick={handleNextClick}
+                    // disabled={isNextDisabled}
                     title="Next View"
+                    aria-label="Next View"
+                    style={{ opacity: isNextDisabled ? 0.4 : 1, cursor: isNextDisabled ? 'not-allowed' : 'pointer' }}
                 >
                     <span className="codicon codicon-chevron-right"></span>
                 </VSCodeButton>
