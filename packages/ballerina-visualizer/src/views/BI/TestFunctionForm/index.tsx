@@ -21,7 +21,7 @@ import { View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
-import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation } from "@wso2/ballerina-core";
+import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType } from "@wso2/ballerina-core";
 import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -157,7 +157,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     formFields: paramFiels,
                     handleParameter: handleParamChange
                 },
-                valueTypeConstraint: ""
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }]
             });
         }
         if (testFunction.returnType) {
@@ -214,14 +214,14 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         return {
             key: key,
             label: property.metadata.label,
-            type: property.valueType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             optional: property.optional,
             editable: property.editable,
             advanced: property.advanced,
             enabled: true,
             documentation: property.metadata.description,
             value: property.value,
-            valueTypeConstraint: ""
+            types: [{ fieldType: getPrimaryInputType(property.types)?.fieldType, ballerinaType: "", selected: false }]
         }
     }
 
@@ -281,25 +281,25 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const getEmptyParamModel = (): FunctionParameter => {
         return {
             type: {
-                valueType: "TYPE",
                 value: "string",
                 optional: false,
                 editable: true,
-                advanced: false
+                advanced: false,
+                types: [{fieldType: "TYPE", selected: false }]
             },
             variable: {
-                valueType: "IDENTIFIER",
                 value: "b",
                 optional: false,
                 editable: true,
-                advanced: false
+                advanced: false,
+                types: [{fieldType: "IDENTIFIER", selected: false }]
             },
             defaultValue: {
-                valueType: "EXPRESSION",
                 value: "\"default\"",
                 optional: false,
                 editable: true,
-                advanced: false
+                advanced: false,
+                types: [{fieldType: "EXPRESSION", selected: false }]
             },
             optional: false,
             editable: true,
@@ -315,21 +315,21 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     label: "Test Function",
                     description: "Test function"
                 },
-                valueType: "IDENTIFIER",
                 value: "",
                 optional: false,
                 editable: true,
-                advanced: false
+                advanced: false,
+                types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }]
             },
             returnType: {
                 metadata: {
                     label: "Return Type",
                     description: "Return type of the function"
                 },
-                valueType: "TYPE",
                 optional: true,
                 editable: true,
-                advanced: true
+                advanced: true,
+                types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }],
             },
             parameters: [],
             annotations: [
@@ -347,7 +347,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 label: "Groups",
                                 description: "Groups to run"
                             },
-                            valueType: "EXPRESSION_SET",
+                            types: [{ fieldType: "EXPRESSION_SET", selected: false }],
                             originalName: "groups",
                             value: [],
                             optional: true,
@@ -359,12 +359,12 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 label: "Enabled",
                                 description: "Enable/Disable the test"
                             },
-                            valueType: "FLAG",
                             originalName: "enabled",
                             value: true,
                             optional: true,
                             editable: true,
-                            advanced: false
+                            advanced: false,
+                            types: [{ fieldType: "FLAG", selected: false }]
                         }
                     ]
                 }
@@ -383,7 +383,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            valueTypeConstraint: ""
+            types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }]
         },
         {
             key: `type`,
@@ -394,7 +394,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            valueTypeConstraint: ""
+            types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }]
         },
         {
             key: `defaultable`,
@@ -406,7 +406,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            valueTypeConstraint: ""
+            types: [{ fieldType: "STRING", ballerinaType: "", selected: false }]
         }
     ];
 
