@@ -127,9 +127,14 @@ const ConnectorOptionButtons = styled.div`
     flex-wrap: wrap;
 `;
 
-const ConnectorTypeButton = styled(Button)`
+const ConnectorTypeLabel = styled(Typography)`
     font-size: 12px;
-    height: auto;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    padding: 6px;
+    border-radius: 4px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    margin: 0;
+    display: inline-block;
 `;
 
 const ArrowIcon = styled.div`
@@ -572,12 +577,12 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                                 Import an OpenAPI or WSDL file to create a connector
                                             </ConnectorOptionDescription>
                                             <ConnectorOptionButtons>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                <ConnectorTypeLabel>
                                                     OpenAPI
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     WSDL
-                                                </ConnectorTypeButton>
+                                                </ConnectorTypeLabel>
                                             </ConnectorOptionButtons>
                                         </ConnectorOptionContent>
                                         <ArrowIcon>
@@ -596,15 +601,15 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                                 Enter credentials to introspect and discover database tables
                                             </ConnectorOptionDescription>
                                             <ConnectorOptionButtons>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                <ConnectorTypeLabel>
                                                     MySQL
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     MSSQL
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     PostgreSQL
-                                                </ConnectorTypeButton>
+                                                </ConnectorTypeLabel>
                                             </ConnectorOptionButtons>
                                         </ConnectorOptionContent>
                                         <ArrowIcon>
