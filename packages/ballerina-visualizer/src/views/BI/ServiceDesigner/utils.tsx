@@ -74,7 +74,8 @@ export function removeForwardSlashes(value: string): string {
 }
 
 export function canDataBind(functionModel: FunctionModel): boolean {
-    return functionModel.properties?.canDataBind?.value === "true";
+    return functionModel.properties?.canDataBind?.value === "true" ||
+        functionModel.parameters?.some(param => param.kind === "DATA_BINDING");
 }
 
 export function getReadableListenerName(name: string) {
