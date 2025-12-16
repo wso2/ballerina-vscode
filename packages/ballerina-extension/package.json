@@ -363,11 +363,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.login.copilot",
-                "title": "Authorize Github Copilot",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.reset.bi",
                 "title": "Reset BI Auth",
                 "category": "Ballerina"
