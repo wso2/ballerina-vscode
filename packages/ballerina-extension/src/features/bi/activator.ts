@@ -127,7 +127,7 @@ export function activate(context: BallerinaExtension) {
 
             }
         } catch (error) {
-            if (error instanceof Error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
                 window.showErrorMessage(error.message);
             } else {
                 window.showErrorMessage("Unknown error occurred.");
