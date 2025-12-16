@@ -65,10 +65,6 @@ export function activate(context: BallerinaExtension) {
             workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
         );
 
-        if (needsPackageSelection && projectInfo?.children.length === 0) {
-            window.showErrorMessage("No packages found in the workspace.");
-            return;
-        }
         prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
     });
 
@@ -112,14 +108,15 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
         try {
             const result = await findWorkspaceTypeFromWorkspaceFolders();
-            if (result.type == "BALLERINA_WORKSPACE") {
+            if (result.type === "BALLERINA_WORKSPACE") {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-            } else if (result.type == "SINGLE_PROJECT") {
+            } else if (result.type === "SINGLE_PROJECT") {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
             } else {
                 const packageRoot = await getCurrentProjectRoot();
                 if (!packageRoot || !window.activeTextEditor) {
                     window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
                 }
                 const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
                 await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
