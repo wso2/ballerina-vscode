@@ -118,14 +118,13 @@ export function activate(context: BallerinaExtension) {
                 openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
             } else {
                 const packageRoot = await getCurrentProjectRoot();
-                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
-                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
-
                 if (!packageRoot || !window.activeTextEditor) {
                     window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-                } else {
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                 }
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+
             }
         } catch (error) {
             if (error instanceof Error) {
