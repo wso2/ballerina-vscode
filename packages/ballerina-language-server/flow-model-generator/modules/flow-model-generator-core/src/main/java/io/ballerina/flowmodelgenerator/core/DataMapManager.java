@@ -1553,11 +1553,15 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
+                LinePosition insertPosition;
                 if (!mappingFields.isEmpty()) {
                     stringBuilder.append(", ");
+                    MappingFieldNode lastField = mappingCtrExpr.fields().get(mappingCtrExpr.fields().size() - 1);
+                    insertPosition = lastField.lineRange().endLine();
+                } else {
+                    insertPosition = mappingCtrExpr.closeBrace().lineRange().startLine();
                 }
-                genSource(null, names, idx, stringBuilder, mappingExpr,
-                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+                genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
             } else {
                 genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr,
                         null, textEdits);
@@ -1571,8 +1575,14 @@ public class DataMapManager {
                     if (idx > 0) {
                         stringBuilder.append(", ");
                     }
-                    genSource(null, names, idx, stringBuilder, mappingExpr,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                    LinePosition insertPosition;
+                    if (!listCtrExpr.expressions().isEmpty()) {
+                        Node lastElement = listCtrExpr.expressions().get(listCtrExpr.expressions().size() - 1);
+                        insertPosition = lastElement.lineRange().endLine();
+                    } else {
+                        insertPosition = listCtrExpr.closeBracket().lineRange().startLine();
+                    }
+                    genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
                 } else {
                     genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
                             mappingExpr, null, textEdits);
