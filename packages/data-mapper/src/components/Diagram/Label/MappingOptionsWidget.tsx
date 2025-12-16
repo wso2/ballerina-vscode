@@ -20,7 +20,7 @@
 import React, { useMemo } from 'react';
 
 import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
-import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
+import { Icon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
@@ -142,13 +142,13 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await convertAndMap(link, context);
         }
 
-        const getItemElement = (id: string, label: string) => {
+        const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
             return (
                 <div
                     className={classes.itemContainer}
                     key={id}
                 >
-                    <Codicon name="lightbulb" sx={codiconStyles} />
+                    <Icon isCodicon={isCodicon} name={iconName} sx={codiconStyles} />
                     {label}
                 </div>
             );
@@ -157,12 +157,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const a2aMenuItems: Item[] = [
             {
                 id: "a2a-direct",
-                label: getItemElement("a2a-direct", "Map Input Array to Output Array"),
+                label: getItemElement("a2a-direct", "Map Input Array to Output Array", "arrow-right", true),
                 onClick: wrapWithProgress(onClickMapDirectly)
             },
             {
                 id: "a2a-inner",
-                label: getItemElement("a2a-inner", "Map Array Elements Individually"),
+                label: getItemElement("a2a-inner", "Map Array Elements Individually", "tasklist", true),
                 onClick: wrapWithProgress(onClickMapIndividualElements)
             }
         ];
@@ -170,7 +170,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const convertMenuItems: Item[] = [
             {
                 id: "convert-n-map",
-                label: getItemElement("convert-n-map", "Convert and Map"),
+                label: getItemElement("convert-n-map", "Convert and Map", "bi-convert"),
                 onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
@@ -178,7 +178,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const defaultMenuItems: Item[] = [
             {
                 id: "direct",
-                label: getItemElement("direct", "Map Anyway"),
+                label: getItemElement("direct", "Map Anyway", "warning", true),
                 onClick: wrapWithProgress(onClickMapDirectly)
             }
         ];
@@ -197,7 +197,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             ...aggregateFnsCommon];
             const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
                 id: `a2s-collect-${fn}`,
-                label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
+                label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`, "Aggregate"),
                 onClick: wrapWithProgress(async () => await onClick(fn))
             }));
             return a2sAggregateItems;
@@ -207,7 +207,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const a2sMenuItems: Item[] = [
                 {
                     id: "a2s-index",
-                    label: getItemElement("a2s-index", "Extract Single Element from Array"),
+                    label: getItemElement("a2s-index", "Extract Single Element from Array", "symbol-array", true),
                     onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
                 }
     
@@ -220,7 +220,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
                 a2sMenuItems.push({
                     id: "a2s-aggregate",
-                    label: getItemElement("a2s-aggregate", "Aggregate and map"),
+                    label: getItemElement("a2s-aggregate", "Aggregate and map", "Aggregate"),
                     onClick: wrapWithProgress(onClickAggregateArray)
                 });
             }
@@ -255,13 +255,13 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             pendingMappingType !== MappingType.NumberToNumber) {
             menuItems.push({
                 id: "a2a-a2s-custom-func",
-                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
+                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function", "function-icon"),
                 onClick: wrapWithProgress(onClickMapWithCustomFn)
             });
             if (pendingMappingType !== MappingType.ContainsUnions) {
                 menuItems.push({
                     id: "a2a-a2s-transform-func",
-                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function", "dataMapper"),
                     onClick: wrapWithProgress(onClickMapWithTransformFn)
                 });
             }
