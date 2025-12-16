@@ -143,6 +143,7 @@ interface FormProps {
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
     fieldPriority?: Record<string, number>; // Map of field keys to priority numbers (lower = rendered first)
     fieldOverrides?: Record<string, Partial<FormField>>;
+    footerActionButton?: boolean; // Render save button as footer action button
 }
 
 // Styled component for the action button description
@@ -217,6 +218,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         onChange,
         injectedComponents,
         fieldPriority,
+        footerActionButton,
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -1408,6 +1410,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
+                    footerActionButton={footerActionButton}
                     actionButton={actionButton}
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
@@ -1525,6 +1528,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
+                    footerActionButton={footerActionButton}
                     actionButton={actionButton}
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}

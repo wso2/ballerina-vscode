@@ -63,15 +63,35 @@ import FormDescription from "./FormDescription";
 import TypeHelperText from "./TypeHelperText";
 
 namespace S {
-    export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean }>`
+    export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean; footerActionButton?: boolean }>`
         display: flex;
         flex-direction: column;
         gap: ${({ compact }) => (compact ? "8px" : "20px")};
-        height: ${({ nestedForm }) => (nestedForm ? "unset" : "calc(100vh - 100px)")};
-        overflow-y: ${({ nestedForm }) => (nestedForm ? "visible" : "auto")};
+        height: ${({ nestedForm, footerActionButton }) => {
+            if (nestedForm) return "unset";
+            if (footerActionButton) return "100%";
+            return "calc(100vh - 100px)";
+        }};
+        max-height: ${({ footerActionButton }) => footerActionButton ? "100%" : "none"};
+        min-height: ${({ footerActionButton }) => footerActionButton ? "0" : "auto"};
+        overflow: ${({ nestedForm, footerActionButton }) => {
+            if (nestedForm) return "visible";
+            if (footerActionButton) return "hidden";
+            return "auto";
+        }};
+        position: ${({ footerActionButton }) => footerActionButton ? "relative" : "static"};
         & > :last-child {
             margin-top: ${({ compact }) => (compact ? "12px" : "0")};
         }
+    `;
+
+    export const ScrollableContent = styled.div<{}>`
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     `;
 
     export const Row = styled.div<{}>`
@@ -113,6 +133,26 @@ namespace S {
         align-items: center;
         margin-top: 8px;
         width: 100%;
+    `;
+
+    export const FooterActionButtonContainer = styled.div<{}>`
+        position: sticky;
+        bottom: 0;
+        padding: 20px 0px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        width: 100%;
+    `;
+
+    export const FooterActionButton = styled(Button)`
+        width: 100% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        height: 35px !important;
     `;
 
     export const TitleContainer = styled.div<{}>`
@@ -357,6 +397,7 @@ export interface FormProps {
         index: number;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
+    footerActionButton?: boolean; // Render save button as footer action button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
@@ -397,6 +438,7 @@ export const Form = forwardRef((props: FormProps) => {
         scopeFieldAddon,
         injectedComponents,
         hideSaveButton = false,
+        footerActionButton = false,
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor
@@ -732,12 +774,11 @@ export const Form = forwardRef((props: FormProps) => {
         }
     };
 
-    return (
-        <Provider {...contextValue}>
-            <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
-                {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
-                {infoLabel && !compact && (
-                    <S.MarkdownWrapper>
+    const formContent = (
+        <>
+            {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
+            {infoLabel && !compact && (
+                <S.MarkdownWrapper>
                         <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
                             <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
                         </S.MarkdownContainer>
@@ -957,13 +998,25 @@ export const Form = forwardRef((props: FormProps) => {
                     </S.CategoryRow>
                 )}
 
-                {concertMessage && (
-                    <S.ConcertContainer>
-                        <CheckBox checked={isUserConcert} onChange={handleConcertChange} label={concertMessage} />
-                    </S.ConcertContainer>
-                )}
+            {concertMessage && (
+                <S.ConcertContainer>
+                    <CheckBox checked={isUserConcert} onChange={handleConcertChange} label={concertMessage} />
+                </S.ConcertContainer>
+            )}
+        </>
+    );
 
-                {onSubmit && !hideSaveButton && (
+    return (
+        <Provider {...contextValue}>
+            <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
+                {footerActionButton ? (
+                    <S.ScrollableContent>
+                        {formContent}
+                    </S.ScrollableContent>
+                ) : (
+                    formContent
+                )}
+                {onSubmit && !hideSaveButton && !footerActionButton && (
                     <S.Footer>
                         {onCancelForm && (
                             <Button appearance="secondary" onClick={onCancelForm}>
@@ -996,6 +1049,24 @@ export const Form = forwardRef((props: FormProps) => {
                             )}
                         </Button>
                     </S.Footer>
+                )}
+                {onSubmit && !hideSaveButton && footerActionButton && (
+                    <S.FooterActionButtonContainer>
+                        <S.FooterActionButton
+                            appearance="primary"
+                            onClick={handleOnSaveClick}
+                            disabled={disableSaveButton || isSaving}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            {isValidatingForm ? (
+                                <Typography variant="progress">Validating...</Typography>
+                            ) : isSaving && savingButton === 'save' ? (
+                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                            ) : (
+                                submitText || "Save"
+                            )}
+                        </S.FooterActionButton>
+                    </S.FooterActionButtonContainer>
                 )}
             </S.Container>
         </Provider>

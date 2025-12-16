@@ -17,6 +17,7 @@
  */
 
 import { BallerinaConnectorInfo, BallerinaConnectorsRequest, BallerinaConnector } from "../../interfaces/ballerina";
+import { TextEdit } from "../../interfaces/extended-lang-client";
 
 export interface ConnectorRequest {
     id?: string
@@ -40,4 +41,65 @@ export interface ConnectorsResponse {
     central: BallerinaConnector[];
     local?: BallerinaConnector[];
     error?: string;
+}
+
+export interface IntrospectDatabaseRequest {
+    projectPath: string;
+    dbSystem: string;
+    host: string;
+    port: number;
+    database: string;
+    user: string;
+    password: string;
+}
+
+export interface IntrospectDatabaseResponse {
+    tables?: string[];
+    errorMsg?: string;
+}
+
+export interface PersistClientGenerateRequest {
+    projectPath: string;
+    name: string;
+    dbSystem: string;
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    database: string;
+    selectedTables: string[];
+    module?: string;
+}
+
+export interface PersistClientGenerateResponse {
+    source?: PersistSource;
+    errorMsg?: string;
+    stackTrace?: string;
+}
+
+export interface PersistSource {
+    isModuleExists?: boolean;
+    textEditsMap?: {
+        [key: string]: TextEdit[];
+    };
+}
+
+export interface WSDLApiClientGenerationRequest {
+    projectPath: string;
+    module: string;
+    wsdlFilePath: string;
+    portName?: string;
+    operations?: string[];
+}
+
+export interface WSDLApiClientGenerationResponse {
+    source?: WSDLApiClientSource;
+    errorMsg?: string;
+    stackTrace?: string;
+} 
+
+export interface WSDLApiClientSource {
+    textEditsMap: {
+        [key: string]: TextEdit[];
+    };
 }
