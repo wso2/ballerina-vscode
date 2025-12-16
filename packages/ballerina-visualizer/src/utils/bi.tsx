@@ -687,6 +687,9 @@ async function getDocumentation(fnDescription: string, argsDescription: string[]
 };
 
 export async function convertToFnSignature(signatureHelp: SignatureHelpResponse) {
+    if (!signatureHelp) {
+        return undefined;
+    }
     const currentSignature = signatureHelp.signatures[0];
     if (!currentSignature) {
         return undefined;
@@ -1030,6 +1033,38 @@ export function getImportsForFormFields(formFields: FormField[]): FormImports {
 export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
     return diagnostics.filter((diagnostic) => {
         return !diagnostic.message.startsWith('unknown type') && !diagnostic.message.startsWith('undefined module');
+    });
+}
+
+/**
+ * Filter out "undefined symbol" diagnostics when the symbol is a known Tool Input parameter
+ * @param diagnostics - Array of diagnostics to filter
+ * @param toolInputParameterNames - Array of Tool Input parameter names to exclude from diagnostics
+ * @returns Filtered diagnostics array
+ */
+export function filterToolInputSymbolDiagnostics(
+    diagnostics: Diagnostic[],
+    toolInputs?: { type: string, variable: string }[]
+): Diagnostic[] {
+    if (!toolInputs || toolInputs.length === 0) {
+        return diagnostics;
+    }
+
+    return diagnostics.filter((diagnostic) => {
+        // Only filter "undefined symbol" diagnostics
+        if (!diagnostic.message.includes('undefined symbol')) {
+            return true;
+        }
+
+        // Extract symbol name from message like "undefined symbol 'code'"
+        const match = diagnostic.message.match(/['"`]([^'"`]+)['"`]/);
+        if (!match) {
+            return true; // Keep diagnostic if we can't parse it
+        }
+
+        const symbolName = match[1];
+        // Filter out if symbol is a Tool Input parameter
+        return !toolInputs.some(input => input.variable === symbolName);
     });
 }
 

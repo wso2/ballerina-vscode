@@ -220,6 +220,7 @@ export function createToolParameters(): ToolParameters {
     };
 }
 
-export const cleanServerUrl = (url: string): string => {
+export const cleanServerUrl = (url: string): string | null => {
+    if (url === null || url === undefined) return null;
     return url.replace(/^"|"$/g, '').trim();
 };

@@ -140,7 +140,9 @@ export type FormFieldInputType = "TEXT" |
     "EXPRESSION_SET" |
     "FLAG" |
     "CHOICE"|
-    "LV_EXPRESSION";
+    "LV_EXPRESSION" |
+    "RAW_TEMPLATE" |
+    "ai:Prompt";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -382,6 +384,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "auth"
     | "checkError"
     | "client"
     | "collection"
@@ -421,6 +424,7 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "toolKitName"
     | "tools"
     | "type"
     | "typeDescription"

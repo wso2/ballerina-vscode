@@ -32,13 +32,14 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig, PrimaryModeChipExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
 import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEditor';
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
+import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 
 export interface ExpressionFieldProps {
     field: FormField;
@@ -111,7 +112,7 @@ export const getEditorConfiguration = (inputMode: InputMode, primaryMode: InputM
         case InputMode.TEMPLATE:
             return new RawTemplateEditorConfig();
         default:
-            return new PrimaryModeChipExpressionEditorConfig(primaryMode);
+            return new ChipExpressionEditorDefaultConfiguration();
     }
 };
 
@@ -239,7 +240,28 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={getEditorConfiguration(inputMode, primaryMode)}
+                configuration={new RawTemplateEditorConfig()}
+            />
+
+        );
+    }
+    if (inputMode === InputMode.PROMPT) {
+        return (
+            <TextModeEditor
+                getHelperPane={getHelperPane}
+                isExpandedVersion={false}
+                completions={completions}
+                onChange={onChange}
+                value={value}
+                sanitizedExpression={sanitizedExpression}
+                rawExpression={rawExpression}
+                fileName={fileName}
+                targetLineRange={targetLineRange}
+                extractArgsFromFunction={extractArgsFromFunction}
+                onOpenExpandedMode={onOpenExpandedMode}
+                onRemove={onRemove}
+                isInExpandedMode={isInExpandedMode}
+                configuration={getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
             />
 
         );

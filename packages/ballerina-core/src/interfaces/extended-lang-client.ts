@@ -496,6 +496,16 @@ export interface ClausePositionResponse {
     position: LinePosition;
 }
 
+export interface ConvertExpressionRequest {
+     outputType: string;
+     expression: string;
+     expressionType: string;
+}
+
+export interface ConvertExpressionResponse {
+    convertedExpression: string;
+}
+
 export interface GraphqlDesignServiceParams {
     filePath: string;
     startLine: LinePosition;

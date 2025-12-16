@@ -24,6 +24,8 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ClearTypeCacheResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     ConvertToQueryRequest,
     DataMapperAPI,
     DataMapperModelRequest,
@@ -51,7 +53,7 @@ import {
     VisualizableFieldsResponse
 } from "@wso2/ballerina-core";
 
-import { StateMachine, undoRedoManager } from "../../stateMachine";
+import { StateMachine } from "../../stateMachine";
 
 import {
     expandDMModel,
@@ -72,7 +74,6 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     const varName = params.flowNode.properties?.variable?.value as string ?? null;
                     updateSource(model.textEdits, params.filePath, params.flowNode.codedata, varName)
                         .then(codeData => {
-                            undoRedoManager?.reset();
                             resolve({ textEdits: model.textEdits, codedata: codeData });
                         });
                 })
@@ -408,6 +409,15 @@ export class DataMapperRpcManager implements DataMapperAPI {
         });
     }
 
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return new Promise(async (resolve) => {
+            const res = await StateMachine
+                .langClient()
+                .getConvertedExpression(params);
+            resolve(res);
+        });
+    }
+
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
         return new Promise(async (resolve) => {
             await StateMachine
@@ -418,5 +428,4 @@ export class DataMapperRpcManager implements DataMapperAPI {
                 });
         });
     }
-
 }
