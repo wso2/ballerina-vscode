@@ -45,7 +45,8 @@ import {
     DeleteClauseRequest,
     IORoot,
     IntermediateClauseType,
-    TriggerKind
+    TriggerKind,
+    TypeKind
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -597,6 +598,20 @@ export function DataMapperView(props: DataMapperViewProps) {
 
         return uniqueName;
     };
+    
+    const getConvertedExpression = async (expression: string, expressionType: TypeKind, outputType: TypeKind): Promise<string> => {
+        try {
+            const { convertedExpression } = await rpcClient.getDataMapperRpcClient().getConvertedExpression({
+                expression,
+                expressionType,
+                outputType
+            });
+            return convertedExpression ?? expression;
+        } catch (error) {
+            console.error(error);
+            return expression;
+        }
+    };
 
     const onDMClose = () => {
         onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
@@ -749,6 +764,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             addClauses={addClauses}
                             deleteClause={deleteClause}
                             getClausePosition={getClausePosition}
+                            getConvertedExpression={getConvertedExpression}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}
