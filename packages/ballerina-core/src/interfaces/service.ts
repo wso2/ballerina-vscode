@@ -168,7 +168,6 @@ export interface PropertyModel {
     choices?: PropertyModel[];
     properties?: ConfigProperties;
     addNewButton?: boolean;
-    typeMembers?: PropertyTypeMemberInfo[];
     httpParamType?: "QUERY" | "HEADER" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;

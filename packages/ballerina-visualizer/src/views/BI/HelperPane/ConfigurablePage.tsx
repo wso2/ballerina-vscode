@@ -88,7 +88,7 @@ const getConfigVariable = (fileName: string, lineRange: LineRange, values?: Fiel
                     description: 'Name of the variable'
                 },
                 value: values?.variable ?? '',
-                types: [{fieldType: 'IDENTIFIER', ballerinaType: 'Global'}],
+                types: [{fieldType: 'IDENTIFIER', ballerinaType: 'Global', selected: false}],
                 optional: false,
                 advanced: false,
                 editable: true
@@ -98,7 +98,7 @@ const getConfigVariable = (fileName: string, lineRange: LineRange, values?: Fiel
                     label: 'Default value',
                     description: 'Default value for the config, if empty your need to provide a value at runtime'
                 },
-                types: [{fieldType: 'EXPRESSION', ballerinaType: ''}],
+                types: [{fieldType: 'EXPRESSION', ballerinaType: '', selected: false}],
                 value: values?.defaultable ?? '',
                 optional: true,
                 advanced: true,

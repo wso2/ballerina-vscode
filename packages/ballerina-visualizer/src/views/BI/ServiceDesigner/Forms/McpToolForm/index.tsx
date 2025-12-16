@@ -60,7 +60,7 @@ export function McpToolForm(props: McpToolFormProps) {
                         description: "Description of what this MCP tool does",
                     },
                     placeholder: "Describe what this tool does...",
-                    types: [{ fieldType: "STRING", ballerinaType: "string" }],
+                    types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
                     value: "",
                     enabled: true,
                     editable: true,
@@ -137,7 +137,7 @@ export function McpToolForm(props: McpToolFormProps) {
                 },
                 defaultValue: {
                     value: param.formValues["defaultable"],
-                    types: defaultField?.types || [{ fieldType: "STRING", ballerinaType: "string" }],
+                    types: defaultField?.types || [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
                     isType: false,
                     optional: defaultField?.optional,
                     advanced: defaultField?.advanced,
@@ -190,7 +190,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange,
                 },
-                types: [{fieldType: "PARAM_MANAGER", ballerinaType: ""}],
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }],
             },
             {
                 key: "returnType",
@@ -217,13 +217,12 @@ export function McpToolForm(props: McpToolFormProps) {
 
         // Add remaining properties at the end
         initialFields.push(...properties);
-
         if (model?.properties) {
             const recordTypeFields: RecordTypeField[] = Object.entries(model?.properties)
                 .filter(
                     ([_, property]) =>
-                        property.typeMembers &&
-                        property.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                        getPrimaryInputType(property?.types)?.typeMembers &&
+                        getPrimaryInputType(property?.types)?.typeMembers.some((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 )
                 .map(([key, property]) => ({
                     key,
@@ -239,9 +238,9 @@ export function McpToolForm(props: McpToolFormProps) {
                             diagnostics: property.diagnostics,
                         },
                     } as Property,
-                    recordTypeMembers: property.typeMembers.filter(
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(
                         (member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE"
-                    ),
+                    ) || [],
                 }));
             console.log(">>> recordTypeFields of model.advanceProperties", recordTypeFields);
 
@@ -301,7 +300,7 @@ export function convertSchemaToFormFields(schema: ConfigProperties): FormField[]
                     label: "Description",
                     description: "The description of the parameter",
                 },
-                types: [{ fieldType: "STRING", ballerinaType: "string" }],
+                types: [{ fieldType: "STRING", ballerinaType: "string", selected: false }],
                 enabled: true,
                 editable: true,
                 optional: true,
@@ -378,9 +377,8 @@ function convertParameterToParamValue(param: ParameterModel, index: number) {
     return {
         id: index,
         key: param.name.value,
-        value: `${param.type.value} ${param.name.value}${
-            (param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel)?.value}` : ""
-        }`,
+        value: `${param.type.value} ${param.name.value}${(param.defaultValue as PropertyModel)?.value ? ` = ${(param.defaultValue as PropertyModel)?.value}` : ""
+            }`,
         formValues: {
             variable: param.name.value,
             type: param.type.value,
