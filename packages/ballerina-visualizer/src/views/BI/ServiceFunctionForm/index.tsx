@@ -124,7 +124,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers?.filter((member: PropertyTypeMemberInfo) => member.kind === "RECORD_TYPE")
                 }));
             setRecordTypeFields(recordFields);
         }

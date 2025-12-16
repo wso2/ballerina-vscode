@@ -198,8 +198,8 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
     }
 
     const isRecordType = () => {
-        if (getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers.length > 0) {
-            const recordType = getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers.find(m => configVariable?.properties?.type?.value.toString().includes(m.type));
+        if (getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers?.length > 0) {
+            const recordType = getPrimaryInputType(configVariable?.properties?.type.types)?.typeMembers?.find(m => configVariable?.properties?.type?.value.toString().includes(m.type));
             return recordType?.kind === 'RECORD_TYPE';
         }
         return false;
