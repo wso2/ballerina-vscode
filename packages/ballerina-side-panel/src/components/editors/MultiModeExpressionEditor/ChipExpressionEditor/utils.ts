@@ -18,6 +18,7 @@
 
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { INPUT_MODE_MAP, InputMode, TokenType, CompoundTokenSequence, TokenMetadata, DocumentType, TokenPattern } from "./types";
+import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 import { FnSignatureDocumentation } from "@wso2/ui-toolkit";
 
 export const TOKEN_LINE_OFFSET_INDEX = 0;
@@ -40,31 +41,27 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (valueTypeConstraint: string | string[], key?: string): InputMode => {
-    if (!valueTypeConstraint) return;
-    if (key === "query") return InputMode.PROMPT;
-    let types: string[];
-    if (typeof valueTypeConstraint === 'string') {
-        if (valueTypeConstraint.includes('|')) {
-            types = valueTypeConstraint.split('|').map(t => t.trim());
-        } else {
-            types = [valueTypeConstraint];
-        }
-    } else {
-        types = valueTypeConstraint;
+export const getInputModeFromTypes = (inputType: InputType): InputMode => {
+    if (!inputType || !inputType) return;
+
+    if (inputType.fieldType === "SINGLE_SELECT") {
+        return InputMode.ENUM;
+    }
+    if (inputType.fieldType === "EXPRESSION_SET") {
+        return InputMode.ARRAY;
     }
 
-    for (let i = 0; i < types.length; i++) {
-        if (INPUT_MODE_MAP[types[i]]) {
-            return INPUT_MODE_MAP[types[i]];
-        }
-    }
-    return;
+    //default behaviour
+    return getInputModeFromBallerinaType(inputType.ballerinaType);
 };
 
-export const getDefaultExpressionMode = (valueTypeConstraint: string | string[], key?: string): InputMode => {
-    if (!valueTypeConstraint) throw new Error("Value type constraint is undefined");
-    return getInputModeFromTypes(valueTypeConstraint, key);
+export const getInputModeFromBallerinaType = (ballerinaType: string): InputMode => {
+    return INPUT_MODE_MAP[ballerinaType];
+}
+
+export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
+    const primaryInputType = getPrimaryInputType(inputTypes);
+    return getInputModeFromTypes(primaryInputType);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
