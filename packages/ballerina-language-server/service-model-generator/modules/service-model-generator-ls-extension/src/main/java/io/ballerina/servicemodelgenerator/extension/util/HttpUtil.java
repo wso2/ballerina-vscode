@@ -49,6 +49,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.HttpResponse;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 
@@ -78,7 +79,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_PAREN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractServicePathInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
@@ -286,7 +286,7 @@ public final class HttpUtil {
         Service serviceModel = Service.getEmptyServiceModel();
         Value serviceContractType = new Value.ValueBuilder()
                 .enabled(true)
-                .valueType(Constants.VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .value(serviceTypeNode.typeName().text().trim())
                 .build();
         serviceModel.setServiceContractTypeName(serviceContractType);
@@ -311,9 +311,8 @@ public final class HttpUtil {
                 String headerName = mappingNode.isPresent() ? extractFieldValue(mappingNode.get(), "name", false)
                         : parameter.getName().getValue();
                 Value headerNameProperty = new Value.ValueBuilder()
-                        .valueType(VALUE_TYPE_IDENTIFIER)
+                        .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                         .value(headerName)
-                        .setValueTypeConstraint("string")
                         .enabled(true)
                         .editable(true)
                         .build();

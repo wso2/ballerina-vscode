@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -49,7 +50,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVIC
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.ON_MESSAGE_FUNCTION_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY_SESSION_ACK_MODE;
@@ -188,7 +188,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
         if (authConfig != null && !authConfig.isEmpty()) {
             Value authValue = new Value.ValueBuilder()
                     .value(authConfig)
-                    .valueType(VALUE_TYPE_EXPRESSION)
+                    .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                     .enabled(true)
                     .editable(false)
                     .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))

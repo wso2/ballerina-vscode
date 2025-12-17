@@ -37,6 +37,7 @@ import io.ballerina.servicemodelgenerator.extension.extractor.ReadOnlyMetadataMa
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -66,6 +67,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.servicemodelgenerator.extension.model.PropertyType.deserializeTypes;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ANNOT_PREFIX;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD;
@@ -87,7 +89,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVIC
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TAB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ListenerUtil.getDefaultListenerDeclarationStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.createFallbackServiceModel;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
@@ -110,7 +111,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionAd
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceAnnotationTextEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.addServiceDocTextEdits;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.deserializeSelections;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.generateFunctionDefSource;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
@@ -272,8 +272,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                 .setMetadata(new MetaData("Listener Name", "Provide a name for the listener being created"))
                 .setCodedata(new Codedata(ARG_TYPE_LISTENER_VAR_NAME))
                 .value(listenerName)
-                .valueType(VALUE_TYPE_IDENTIFIER)
-                .setValueTypeConstraint("Global")
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .editable(true)
                 .enabled(true)
                 .optional(false)
@@ -308,18 +307,12 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
             Codedata.Builder codedataBuilder = new Codedata.Builder()
                     .setArgType(property.sourceKind());
 
-            List<Object> items = property.selections() != null && !property.selections().isEmpty() ?
-                    deserializeSelections(property.selections()) : List.of();
-
             Value.ValueBuilder builder = new Value.ValueBuilder()
                     .metadata(property.label(), property.description())
                     .setCodedata(codedataBuilder.build())
                     .value(property.defaultValue())
                     .setPlaceholder(property.placeholder())
-                    .valueType(property.valueType())
-                    .setValueTypeConstraint(property.typeConstraint())
-                    .setItems(items)
-                    .setTypeMembers(property.memberTypes())
+                    .types(deserializeTypes(property.types()))
                     .enabled(true)
                     .editable(true);
             serviceInitModel.addProperty(property.keyName(), builder.build());
@@ -371,7 +364,8 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
                 .setFunctions(new ArrayList<>());
 
         Service service = serviceBuilder.build();
-        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol, serviceTemplate.listenerKind()));
+        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol,
+                Value.FieldType.valueOf(serviceTemplate.listenerKind())));
 
         // type descriptor
         properties.put(PROP_KEY_SERVICE_TYPE, getTypeDescriptorProperty(serviceTemplate, pkg.packageId()));

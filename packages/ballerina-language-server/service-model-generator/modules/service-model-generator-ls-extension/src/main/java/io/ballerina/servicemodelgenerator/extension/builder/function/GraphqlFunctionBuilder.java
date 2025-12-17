@@ -36,6 +36,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
@@ -74,7 +75,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_S
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
@@ -166,7 +166,7 @@ public class GraphqlFunctionBuilder extends AbstractFunctionBuilder {
                     parameter.typeName().toString().trim());
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
-            defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
+            defaultValue.setTypes(List.of(PropertyType.types(Value.FieldType.EXPRESSION)));
             defaultValue.setEnabled(true);
             // Check for GraphQL ID annotation
             ServiceModelUtils.setGraphqlIdForParameter(parameterModel, parameter, semanticModel);

@@ -821,7 +821,6 @@ public class CodeAnalyzer extends NodeVisitor {
                                 .stepOut()
                             .value(expr.toSourceCode())
                             .typeWithExpression(paramResult.typeSymbol(), moduleInfo)
-                            .typeMembers(paramResult.typeMembers())
                             .editable()
                             .defaultable(paramResult.optional())
                             .stepOut()
@@ -880,7 +879,6 @@ public class CodeAnalyzer extends NodeVisitor {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
                     .defaultable(paramResult.optional());
@@ -956,7 +954,6 @@ public class CodeAnalyzer extends NodeVisitor {
                             .stepOut()
                         .placeholder(paramResult.placeholder())
                         .defaultValue(paramResult.defaultValue())
-                        .typeMembers(paramResult.typeMembers())
                         .imports(paramResult.importStatements())
                         .editable()
                         .defaultable(paramResult.optional());
@@ -1007,28 +1004,14 @@ public class CodeAnalyzer extends NodeVisitor {
                     Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                    String value = null;
-                    String selectedType = "";
-                    if (paramValue != null) {
-                        value = paramValue.toSourceCode().strip();
-                        Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                        if (paramType.isPresent()) {
-                            if (paramType.get().getModule().isPresent()) {
-                                ModuleID id = paramType.get().getModule().get().id();
-                                selectedType = CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
-                            } else {
-                                selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                            }
-                        }
-                    }
+                    String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                     String label = paramResult.label();
-                    buildPropertyType(customPropBuilder, paramResult);
+                    buildPropertyType(customPropBuilder, paramResult, paramValue);
                     customPropBuilder
                             .metadata()
                                 .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                 .description(paramResult.description())
                                 .stepOut()
-                               .typeMembers(paramResult.typeMembers(), selectedType)
                                .imports(paramResult.importStatements())
                                .value(value)
                                .placeholder(paramResult.placeholder())
@@ -1062,7 +1045,6 @@ public class CodeAnalyzer extends NodeVisitor {
                             .label(unescapedParamName)
                             .description(restParamResult.description())
                             .stepOut()
-                        .typeMembers(restParamResult.typeMembers())
                         .imports(restParamResult.importStatements())
                         .value(restArgs)
                         .placeholder(restParamResult.placeholder())
@@ -1116,24 +1098,13 @@ public class CodeAnalyzer extends NodeVisitor {
                                     nodeBuilder.properties().custom();
                             String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                            Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                            String selectedType = "";
-                            if (paramType.isPresent()) {
-                                if (paramType.get().getModule().isPresent()) {
-                                    ModuleID id = paramType.get().getModule().get().id();
-                                    selectedType = CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
-                                } else {
-                                    selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                                }
-                            }
                             String label = paramResult.label();
-                            buildPropertyType(customPropBuilder, paramResult);
+                            buildPropertyType(customPropBuilder, paramResult, paramValue);
                             customPropBuilder
                                     .metadata()
                                         .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                         .description(paramResult.description())
                                         .stepOut()
-                                    .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
                                     .placeholder(paramResult.placeholder())
@@ -1157,45 +1128,27 @@ public class CodeAnalyzer extends NodeVisitor {
                                     paramValue = namedArgValueMap.get(argName);
                                     namedArgValueMap.remove(argName);
                                 }
-                                String value = null;
-                                String selectedType = "";
-                                if (paramValue != null) {
-                                    value = paramValue.toSourceCode().strip();
-                                    Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                                    if (paramType.isPresent()) {
-                                        if (paramType.get().getModule().isPresent()) {
-                                            ModuleID id = paramType.get().getModule().get().id();
-                                            selectedType = CommonUtils.getTypeSignature(
-                                                    paramType.get(), ModuleInfo.from(id));
-                                        } else {
-                                            selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                                        }
-                                    }
-                                }
-
+                                String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                                 String label = paramResult.label();
-                                buildPropertyType(customPropBuilder, paramResult);
+                                buildPropertyType(customPropBuilder, paramResult, paramValue);
                                 customPropBuilder
                                         .metadata()
                                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                             .description(paramResult.description())
                                             .stepOut()
-                                        .typeMembers(paramResult.typeMembers(), selectedType)
-                                                       .imports(paramResult.importStatements())
-                                                       .value(value)
-                                                       .placeholder(paramResult.placeholder())
-                                                       .defaultValue(paramResult.defaultValue())
-                                                       .editable()
-                                                       .defaultable(paramResult.optional())
-                                                       .codedata()
-                                                           .kind(paramResult.kind().name())
-                                                           .originalName(paramResult.name())
-                                                           .stepOut()
-                                                       .stepOut()
-                                                       .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName),
-                                                paramValue);
-
+                                       .imports(paramResult.importStatements())
+                                       .value(value)
+                                       .placeholder(paramResult.placeholder())
+                                       .defaultValue(paramResult.defaultValue())
+                                       .editable()
+                                       .defaultable(paramResult.optional())
+                                       .codedata()
+                                           .kind(paramResult.kind().name())
+                                           .originalName(paramResult.name())
+                                           .stepOut()
+                                       .stepOut()
+                                       .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
                             }
                         }
                         funcParamMap.remove(escapedParamName);
@@ -1207,24 +1160,13 @@ public class CodeAnalyzer extends NodeVisitor {
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
                             String value = paramValue.toSourceCode().strip();
-                            Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                            String selectedType = "";
-                            if (paramType.isPresent()) {
-                                if (paramType.get().getModule().isPresent()) {
-                                    ModuleID id = paramType.get().getModule().get().id();
-                                    selectedType = CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
-                                } else {
-                                    selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                                }
-                            }
                             String label = paramResult.label();
-                            buildPropertyType(customPropBuilder, paramResult);
+                            buildPropertyType(customPropBuilder, paramResult, paramValue);
                             customPropBuilder
                                     .metadata()
                                         .label(label == null || label.isEmpty() ? unescapedParamName : label)
                                         .description(paramResult.description())
                                         .stepOut()
-                                    .typeMembers(paramResult.typeMembers(), selectedType)
                                     .imports(paramResult.importStatements())
                                     .value(value)
                                     .placeholder(paramResult.placeholder())
@@ -1250,28 +1192,14 @@ public class CodeAnalyzer extends NodeVisitor {
                         nodeBuilder.properties().custom();
                 funcParamMap.remove(escapedParamName);
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                String value = null;
-                String selectedType = "";
-                if (paramValue != null) {
-                    value = paramValue.toSourceCode().strip();
-                    Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                    if (paramType.isPresent()) {
-                        if (paramType.get().getModule().isPresent()) {
-                            ModuleID id = paramType.get().getModule().get().id();
-                            selectedType = CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
-                        } else {
-                            selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                        }
-                    }
-                }
+                String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                 String label = paramResult.label();
-                buildPropertyType(customPropBuilder, paramResult);
+                buildPropertyType(customPropBuilder, paramResult, paramValue);
                 customPropBuilder
                          .metadata()
                              .label(label == null || label.isEmpty() ? unescapedParamName : label)
                              .description(paramResult.description())
                              .stepOut()
-                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1298,29 +1226,15 @@ public class CodeAnalyzer extends NodeVisitor {
                         nodeBuilder.properties().custom();
                 ParameterData paramResult = funcParamMap.remove(escapedParamName);
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                String value = null;
-                String selectedType = "";
                 Node paramValue = entry.getValue();
-                if (paramValue != null) {
-                    value = paramValue.toSourceCode().strip();
-                    Optional<TypeSymbol> paramType = semanticModel.typeOf(paramValue);
-                    if (paramType.isPresent()) {
-                        if (paramType.get().getModule().isPresent()) {
-                            ModuleID id = paramType.get().getModule().get().id();
-                            selectedType = CommonUtils.getTypeSignature(paramType.get(), ModuleInfo.from(id));
-                        } else {
-                            selectedType = CommonUtils.getTypeSignature(paramType.get(), null);
-                        }
-                    }
-                }
+                String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                 String label = paramResult.label();
-                buildPropertyType(customPropBuilder, paramResult);
+                buildPropertyType(customPropBuilder, paramResult, paramValue);
                 customPropBuilder
                          .metadata()
                              .label(label == null || label.isEmpty() ? unescapedParamName : label)
                              .description(paramResult.description())
                              .stepOut()
-                         .typeMembers(paramResult.typeMembers(), selectedType)
                         .imports(paramResult.importStatements())
                         .value(value)
                         .placeholder(paramResult.placeholder())
@@ -1346,7 +1260,6 @@ public class CodeAnalyzer extends NodeVisitor {
                             .label(unescapedParamName)
                             .description(includedRecordRest.description())
                             .stepOut()
-                        .typeMembers(includedRecordRest.typeMembers())
                         .imports(includedRecordRest.importStatements())
                         .value(includedRecordRestArgs)
                         .placeholder(includedRecordRest.placeholder())
@@ -1383,6 +1296,10 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData) {
+        buildPropertyType(builder, paramData, null);
+    }
+
+    private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
         ParameterData.Kind kind = paramData.kind();
         if (kind == ParameterData.Kind.REST_PARAMETER) {
             builder.type(Property.ValueType.EXPRESSION_SET);
@@ -1391,7 +1308,7 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
             builder.type(Property.ValueType.RAW_TEMPLATE);
         } else {
-            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo);
+            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }
     }
 

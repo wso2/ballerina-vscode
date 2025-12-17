@@ -28,8 +28,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -45,13 +49,8 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT_LISTENER",
-        "valueTypeConstraint": "rabbitmq:Listener",
         "value": "rabbitmqListener",
         "values": [],
-        "items": [
-          "rabbitmqListener"
-        ],
         "properties": {
           "rabbitmqListener": {
             "codedata": {
@@ -73,6 +72,15 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "rabbitmqListener"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -87,12 +95,16 @@
           "type": "SERVICE_TYPE"
         },
         "placeholder": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
         "value": "Service",
-        "items": [
-          "",
-          "Service"
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "",
+              "Service"
+            ],
+            "selected": true
+          }
         ],
         "enabled": false,
         "editable": false,
@@ -108,10 +120,14 @@
           "type": "STRING_LITERAL"
         },
         "placeholder": "\"\"",
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
         "value": "\"queueName\"",
         "values": [],
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -122,12 +138,17 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Queue Name": [
             "queueName"
           ]
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -143,15 +164,20 @@
           "originalName": "ServiceConfig"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "rabbitmq:RabbitMQServiceConfig",
         "value": "",
         "values": [],
-        "typeMembers": [
+        "types": [
           {
-            "type": "RabbitMQServiceConfig",
-            "packageInfo": "ballerinax:rabbitmq:3.2.0",
-            "kind": "RECORD_TYPE",
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "rabbitmq:RabbitMQServiceConfig",
+            "typeMembers": [
+              {
+                "type": "RabbitMQServiceConfig",
+                "packageInfo": "ballerinax:rabbitmq:3.2.0",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
             "selected": true
           }
         ],
@@ -190,8 +216,13 @@
             "description": "The `onMessage` remote method will be triggered when a message is received in the specified queue"
           },
           "placeholder": "onMessage",
-          "valueType": "IDENTIFIER",
           "value": "onMessage",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -210,8 +241,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:AnydataMessage",
-              "valueType": "TYPE",
               "value": "rabbitmq:AnydataMessage",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -223,8 +259,13 @@
                 "description": "The message received from the RabbitMQ queue"
               },
               "placeholder": "message",
-              "valueType": "IDENTIFIER",
               "value": "message",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -236,8 +277,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -262,8 +308,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:Caller",
-              "valueType": "TYPE",
               "value": "rabbitmq:Caller",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -275,8 +326,13 @@
                 "description": "The RabbitMQ caller object to acknowledge the message"
               },
               "placeholder": "caller",
-              "valueType": "IDENTIFIER",
               "value": "caller",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -288,8 +344,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -309,16 +370,26 @@
             },
             "kind": "DATA_BINDING",
             "type": {
-              "valueType": "TYPE",
               "value": "Order",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false
             },
             "name": {
-              "valueType": "IDENTIFIER",
               "value": "message",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -340,8 +411,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,
@@ -401,8 +477,13 @@
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
           "placeholder": "onError",
-          "valueType": "IDENTIFIER",
           "value": "onError",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -421,8 +502,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:AnydataMessage",
-              "valueType": "TYPE",
               "value": "rabbitmq:AnydataMessage",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -434,8 +520,13 @@
                 "description": "The message received from the RabbitMQ queue"
               },
               "placeholder": "message",
-              "valueType": "IDENTIFIER",
               "value": "message",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -447,8 +538,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -473,8 +569,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "rabbitmq:Error",
-              "valueType": "TYPE",
               "value": "rabbitmq:Error",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -486,8 +587,13 @@
                 "description": "The error occurred during the message processing"
               },
               "placeholder": "rabbitmqError",
-              "valueType": "IDENTIFIER",
               "value": "rabbitmqError",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -499,8 +605,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -522,8 +633,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,

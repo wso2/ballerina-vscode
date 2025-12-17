@@ -25,11 +25,24 @@
             "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "\"localhost:9092\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -44,11 +57,24 @@
             "argType": "LISTENER_PARAM_INCLUDED_FIELD"
           },
           "placeholder": "\"myTopic\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
+              "selected": false
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -62,9 +88,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "kafkaListenerResult",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

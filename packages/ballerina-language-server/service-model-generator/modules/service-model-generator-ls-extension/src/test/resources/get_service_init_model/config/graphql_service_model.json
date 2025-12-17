@@ -22,7 +22,6 @@
             "description": ""
           },
           "placeholder": "",
-          "valueType": "CHOICE",
           "value": "",
           "choices": [
             {
@@ -31,7 +30,6 @@
                 "description": "Design the service from scratch"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "basePath": {
@@ -43,9 +41,14 @@
                     "type": "SERVICE_BASEPATH"
                   },
                   "placeholder": "/graphql",
-                  "valueType": "SERVICE_PATH",
-                  "valueTypeConstraint": "string",
                   "value": "/graphql",
+                  "types": [
+                    {
+                      "fieldType": "SERVICE_PATH",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -60,15 +63,31 @@
                     "type": "LISTENER_PARAM_REQUIRED"
                   },
                   "placeholder": "8080",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "int",
                   "value": "8080",
+                  "types": [
+                    {
+                      "fieldType": "NUMBER",
+                      "ballerinaType": "int",
+                      "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "int",
+                      "selected": false
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -80,7 +99,6 @@
                 "description": "Create the service from a GraphQL schema"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "spec": {
@@ -92,19 +110,36 @@
                     "type": "GRAPHQL_SCHEMA"
                   },
                   "placeholder": "",
-                  "valueType": "FILE_SELECT",
-                  "valueTypeConstraint": "string",
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "FILE_SELECT",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": true,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": true
             }
           ],
           "enabled": true,
@@ -120,9 +155,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "graphqlListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

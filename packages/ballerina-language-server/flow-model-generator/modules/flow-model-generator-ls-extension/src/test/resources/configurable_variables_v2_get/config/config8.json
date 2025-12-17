@@ -33,7 +33,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "intVar",
@@ -49,7 +50,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "int",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "int",
@@ -57,16 +68,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "int",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -75,7 +77,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "42",
@@ -92,7 +95,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "int\n",
@@ -109,7 +113,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with integer value.",
@@ -152,7 +157,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "stringVar",
@@ -168,7 +174,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "string",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "string",
@@ -176,16 +192,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "string",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -194,7 +201,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"foo\"",
@@ -211,7 +219,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"test\n",
@@ -228,7 +237,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -271,7 +281,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "stringArrayVar",
@@ -287,7 +298,9 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [],
+                  "selected": false
                 }
               ],
               "value": "string[]",
@@ -295,8 +308,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": []
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -305,7 +317,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "[\"bar\", \"baz\"]",
@@ -322,7 +335,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "[\"apple\" \"banana\", \"cherry\"]\n",
@@ -339,7 +353,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with array value.",
@@ -382,7 +397,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "recordVar1",
@@ -398,7 +414,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "Student",
+                      "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
+                      "packageName": "simpleconfigs_errors",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "Student",
@@ -406,16 +432,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "Student",
-                  "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
-                  "packageName": "simpleconfigs_errors",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -424,7 +441,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "{\n    name: \"John Doe\",\n    age: 20,\n    grade: \"A\"\n}",
@@ -441,7 +459,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "recordVar1 = { name \"Jane Smith\", age = 22, grade = \"A\" }\n",
@@ -458,7 +477,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "Configurable variable with record value.",
@@ -501,7 +521,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "recordVar2",
@@ -517,7 +538,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "Student",
+                      "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
+                      "packageName": "simpleconfigs_errors",
+                      "kind": "RECORD_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "Student",
@@ -525,16 +556,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "Student",
-                  "packageInfo": "config_tests:simpleconfigs_errors:0.1.0",
-                  "packageName": "simpleconfigs_errors",
-                  "kind": "RECORD_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -543,7 +565,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -560,7 +583,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\n[config_tests.simpleconfigs_errors.recordVar2]\nname = \"John\"\nage = 30\ngrade = B\n",
@@ -577,7 +601,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -594,5 +619,5 @@
     }
   },
   "errorMsg": "Config.toml contains syntax errors. Features like config editing, local run, and debugging may not function properly until the file is manually fixed.",
-  "stacktrace": "[io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.handleConfigTomlErrors(ConfigEditorV2Service.java:1062), io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.lambda$getConfigVariables$0(ConfigEditorV2Service.java:182), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760), java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387), java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312), java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843), java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808), java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)]"
+  "stacktrace": "[io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.handleConfigTomlErrors(ConfigEditorV2Service.java:1065), io.ballerina.flowmodelgenerator.extension.ConfigEditorV2Service.lambda$getConfigVariables$0(ConfigEditorV2Service.java:183), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1768), java.base/java.util.concurrent.CompletableFuture$AsyncSupply.exec(CompletableFuture.java:1760), java.base/java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:387), java.base/java.util.concurrent.ForkJoinPool$WorkQueue.topLevelExec(ForkJoinPool.java:1312), java.base/java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1843), java.base/java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1808), java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:188)]"
 }

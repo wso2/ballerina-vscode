@@ -33,7 +33,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "itemCode",
@@ -49,7 +50,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "string",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "string",
@@ -57,16 +68,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "string",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -75,7 +77,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"item12393\"",
@@ -92,7 +95,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -109,7 +113,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -152,7 +157,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "discount",
@@ -168,7 +174,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "float",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "float",
@@ -176,16 +192,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "float",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -194,7 +201,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "4.5",
@@ -211,7 +219,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -228,7 +237,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -271,7 +281,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "testMode",
@@ -287,7 +298,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "boolean",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "boolean",
@@ -295,16 +316,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "boolean",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -313,7 +325,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -330,7 +343,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -347,7 +361,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -392,7 +407,8 @@
               "types": [
                 {
                   "fieldType": "IDENTIFIER",
-                  "scope": "Global"
+                  "scope": "Global",
+                  "selected": true
                 }
               ],
               "value": "nameVal",
@@ -408,7 +424,17 @@
               },
               "types": [
                 {
-                  "fieldType": "TYPE"
+                  "fieldType": "TYPE",
+                  "typeMembers": [
+                    {
+                      "type": "string",
+                      "packageInfo": "",
+                      "packageName": "",
+                      "kind": "BASIC_TYPE",
+                      "selected": false
+                    }
+                  ],
+                  "selected": false
                 }
               ],
               "value": "string",
@@ -416,16 +442,7 @@
               "optional": false,
               "editable": true,
               "advanced": false,
-              "hidden": false,
-              "typeMembers": [
-                {
-                  "type": "string",
-                  "packageInfo": "",
-                  "packageName": "",
-                  "kind": "BASIC_TYPE",
-                  "selected": false
-                }
-              ]
+              "hidden": false
             },
             "defaultValue": {
               "metadata": {
@@ -434,7 +451,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "\"User\"",
@@ -451,7 +469,8 @@
               },
               "types": [
                 {
-                  "fieldType": "EXPRESSION"
+                  "fieldType": "EXPRESSION",
+                  "selected": true
                 }
               ],
               "value": "",
@@ -468,7 +487,8 @@
               },
               "types": [
                 {
-                  "fieldType": "TEXT"
+                  "fieldType": "TEXT",
+                  "selected": true
                 }
               ],
               "value": "",

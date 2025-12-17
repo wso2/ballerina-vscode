@@ -22,7 +22,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",

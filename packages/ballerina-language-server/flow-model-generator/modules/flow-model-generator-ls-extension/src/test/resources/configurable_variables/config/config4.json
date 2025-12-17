@@ -30,7 +30,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "int",
@@ -49,7 +50,8 @@
           "types": [
             {
               "fieldType": "IDENTIFIER",
-              "scope": "Global"
+              "scope": "Global",
+              "selected": true
             }
           ],
           "value": "config3",
@@ -65,7 +67,8 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION"
+              "fieldType": "EXPRESSION",
+              "selected": true
             }
           ],
           "value": "10",
@@ -107,7 +110,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "string",
@@ -126,7 +130,8 @@
           "types": [
             {
               "fieldType": "IDENTIFIER",
-              "scope": "Global"
+              "scope": "Global",
+              "selected": true
             }
           ],
           "value": "config4",
@@ -142,7 +147,8 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION"
+              "fieldType": "EXPRESSION",
+              "selected": true
             }
           ],
           "value": "\"new config\"",
@@ -184,7 +190,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "int",
@@ -203,7 +210,8 @@
           "types": [
             {
               "fieldType": "IDENTIFIER",
-              "scope": "Global"
+              "scope": "Global",
+              "selected": true
             }
           ],
           "value": "config1",
@@ -219,7 +227,8 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION"
+              "fieldType": "EXPRESSION",
+              "selected": true
             }
           ],
           "value": "10",
@@ -261,7 +270,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "string",
@@ -280,7 +290,8 @@
           "types": [
             {
               "fieldType": "IDENTIFIER",
-              "scope": "Global"
+              "scope": "Global",
+              "selected": true
             }
           ],
           "value": "config2",
@@ -296,7 +307,8 @@
           },
           "types": [
             {
-              "fieldType": "EXPRESSION"
+              "fieldType": "EXPRESSION",
+              "selected": true
             }
           ],
           "value": "\"new config\"",

@@ -93,7 +93,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "W1",
@@ -122,7 +123,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "string|error",
@@ -163,7 +165,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "mockFetch(\"http://1.com\", 1)",
@@ -204,7 +207,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "W2",
@@ -233,7 +237,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "string|error",
@@ -274,7 +279,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "mockFetch(\"http://2.com\", 2)",
@@ -321,7 +327,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "",
@@ -337,7 +344,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "value",
@@ -366,7 +374,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -431,7 +440,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "condition ",
@@ -473,7 +483,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": false,
@@ -489,7 +500,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "REPEATABLE_PROPERTY"
+                        "fieldType": "REPEATABLE_PROPERTY",
+                        "selected": false
                       }
                     ],
                     "value": {
@@ -500,7 +512,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "FIXED_PROPERTY"
+                            "fieldType": "FIXED_PROPERTY",
+                            "selected": false
                           }
                         ],
                         "value": {
@@ -511,7 +524,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "",
@@ -530,7 +544,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "W1",
@@ -606,7 +621,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "FLAG"
+                        "fieldType": "FLAG",
+                        "selected": true
                       }
                     ],
                     "value": false,
@@ -622,7 +638,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "REPEATABLE_PROPERTY"
+                        "fieldType": "REPEATABLE_PROPERTY",
+                        "selected": false
                       }
                     ],
                     "value": {
@@ -633,7 +650,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "FIXED_PROPERTY"
+                            "fieldType": "FIXED_PROPERTY",
+                            "selected": false
                           }
                         ],
                         "value": {
@@ -644,7 +662,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "IDENTIFIER"
+                                "fieldType": "IDENTIFIER",
+                                "selected": true
                               }
                             ],
                             "value": "",
@@ -663,7 +682,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "W2",
@@ -728,7 +748,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET"
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": [
@@ -742,16 +763,7 @@
             "codedata": {
               "kind": "REST_PARAMETER",
               "originalName": "values"
-            },
-            "typeMembers": [
-              {
-                "type": "Printable",
-                "packageInfo": "ballerina:io:1.8.0",
-                "packageName": "io",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "flags": 0

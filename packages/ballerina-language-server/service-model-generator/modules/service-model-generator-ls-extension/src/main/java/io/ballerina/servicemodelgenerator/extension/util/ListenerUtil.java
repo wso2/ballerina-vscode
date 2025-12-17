@@ -42,6 +42,7 @@ import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
+import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.modelgenerator.commons.ServiceDatabaseManager;
 import io.ballerina.projects.Document;
@@ -50,6 +51,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromSourceResponse;
@@ -98,8 +100,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEF
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
 /**
@@ -335,47 +335,17 @@ public class ListenerUtil {
         functionData.setParameters(parameters);
 
         Listener listener = createBaseListenerModel(functionData);
-        setParameterProperties(functionData, listener.getProperties());
         return Optional.of(listener);
     }
 
     private static Value getHttpDefaultListenerValue() {
         return new Value.ValueBuilder()
                 .metadata("HTTP Default Listener", "The default HTTP listener")
-                .valueType(VALUE_TYPE_EXPRESSION)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .value(HTTP_DEFAULT_LISTENER_EXPR)
                 .enabled(true)
                 .setImports(new HashMap<>())
                 .build();
-    }
-
-    private static void setParameterProperties(FunctionData function, Map<String, Value> properties) {
-        for (ParameterData paramResult : function.parameters().values()) {
-            if (paramResult.kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER)
-                    || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
-                continue;
-            }
-
-            String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
-
-            Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
-            codedata.setOriginalName(paramResult.name());
-
-            Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
-                    .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
-                    .setCodedata(codedata)
-                    .value("")
-                    .valueType("EXPRESSION")
-                    .setPlaceholder(paramResult.placeholder())
-                    .setValueTypeConstraint(paramResult.type())
-                    .editable(true)
-                    .enabled(true)
-                    .optional(paramResult.optional())
-                    .setAdvanced(paramResult.optional())
-                    .setTypeMembers(paramResult.typeMembers());
-
-            properties.put(unescapedParamName, valueBuilder.build());
-        }
     }
 
     /**
@@ -390,16 +360,17 @@ public class ListenerUtil {
      * or empty response if processing fails
      */
     public static ListenerFromSourceResponse processListenerNode(NonTerminalNode node, String orgName,
-                                                                 SemanticModel semanticModel) {
+                                                                 SemanticModel semanticModel,
+                                                                 ModuleInfo moduleInfo) {
         Listener listener;
         if (node instanceof ListenerDeclarationNode listenerNode) {
-            listener = processListenerDeclaration(listenerNode, orgName, semanticModel);
+            listener = processListenerDeclaration(listenerNode, orgName, semanticModel, moduleInfo);
             if (Objects.isNull(listener)) {
                 return new ListenerFromSourceResponse();
             }
             processListenerName(listener, listenerNode);
         } else if (node instanceof ExplicitNewExpressionNode newExpressionNode) {
-            listener = processExplicitNewExpression(newExpressionNode, semanticModel);
+            listener = processExplicitNewExpression(newExpressionNode, semanticModel, moduleInfo);
         } else {
             listener = new Listener.ListenerBuilder().build();
         }
@@ -416,8 +387,8 @@ public class ListenerUtil {
      * @param semanticModel the semantic model for symbol resolution
      * @return {@link Listener} containing the listener model with all properties set as non-advanced
      */
-    private static Listener processListenerDeclaration(ListenerDeclarationNode listenerNode,
-                                                       String orgName, SemanticModel semanticModel) {
+    private static Listener processListenerDeclaration(ListenerDeclarationNode listenerNode, String orgName,
+                                                       SemanticModel semanticModel, ModuleInfo moduleInfo) {
 
         if (isHttpDefaultListener(listenerNode)) {
             return createHttpDefaultListenerModel(orgName, listenerNode).get();
@@ -438,7 +409,7 @@ public class ListenerUtil {
         }
 
         return createListenerModelFromNewExpressionNode(listenerNode.lineRange(), newExpressionNode, semanticModel,
-                classSymbol);
+                classSymbol, moduleInfo);
     }
 
     private static void processListenerName(Listener listener, ListenerDeclarationNode listenerDeclarationNode) {
@@ -479,15 +450,16 @@ public class ListenerUtil {
      * @param semanticModel     the semantic model for symbol resolution
      * @return {@link Listener}  the listener model without variable name property
      */
-    private static Listener processExplicitNewExpression(ExplicitNewExpressionNode newExpressionNode
-            , SemanticModel semanticModel) {
+    private static Listener processExplicitNewExpression(ExplicitNewExpressionNode newExpressionNode,
+                                                         SemanticModel semanticModel,
+                                                         ModuleInfo moduleInfo) {
         Optional<Symbol> symbol = semanticModel.symbol(newExpressionNode.typeDescriptor());
         if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol)
                 || !(CommonUtils.getRawType(typeSymbol) instanceof ClassSymbol classSymbol)) {
             return null;
         }
         Listener listenerModel = createListenerModelFromNewExpressionNode(newExpressionNode.lineRange(),
-                newExpressionNode, semanticModel, classSymbol);
+                newExpressionNode, semanticModel, classSymbol, moduleInfo);
         listenerModel.getProperties().remove(PROP_KEY_VARIABLE_NAME);
         return listenerModel;
     }
@@ -507,11 +479,13 @@ public class ListenerUtil {
     private static Listener createListenerModelFromNewExpressionNode(LineRange lineRange,
                                                                      NewExpressionNode newExpressionNode,
                                                                      SemanticModel semanticModel,
-                                                                     ClassSymbol classSymbol) {
+                                                                     ClassSymbol classSymbol,
+                                                                     ModuleInfo moduleInfo) {
         FunctionData functionData = buildListenerFunctionData(classSymbol, semanticModel);
 
         Listener listenerModel = createBaseListenerModel(functionData);
-        analyzeAndSetListenerProperties(listenerModel, functionData, newExpressionNode, classSymbol.initMethod().get());
+        analyzeAndSetListenerProperties(listenerModel, functionData, newExpressionNode,
+                classSymbol.initMethod().get(), semanticModel, moduleInfo);
 
         setPropertiesAsNonAdvanced(listenerModel);
         Codedata codedata = new Codedata.Builder()
@@ -557,10 +531,12 @@ public class ListenerUtil {
      */
     private static void analyzeAndSetListenerProperties(Listener listener, FunctionData functionData,
                                                         NewExpressionNode newExpressionNode,
-                                                        MethodSymbol initSymbol) {
+                                                        MethodSymbol initSymbol,
+                                                        SemanticModel semanticModel,
+                                                        ModuleInfo moduleInfo) {
         SeparatedNodeList<FunctionArgumentNode> arguments = getArgList(newExpressionNode);
 
-        ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties());
+        ListenerDeclAnalyzer analyzer = new ListenerDeclAnalyzer(listener.getProperties(), semanticModel, moduleInfo);
         analyzer.analyze(arguments, initSymbol, functionData);
     }
 
@@ -596,8 +572,7 @@ public class ListenerUtil {
                 .setMetadata(new MetaData("Name", "The name of the listener"))
                 .setCodedata(new Codedata("LISTENER_VAR_NAME"))
                 .value("")
-                .valueType("IDENTIFIER")
-                .setValueTypeConstraint("Global")
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .editable(true)
                 .enabled(true)
                 .optional(false)

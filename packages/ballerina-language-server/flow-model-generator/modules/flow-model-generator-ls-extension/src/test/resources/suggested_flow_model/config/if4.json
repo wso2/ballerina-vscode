@@ -76,7 +76,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "10",
@@ -92,7 +93,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "x",
@@ -121,7 +123,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -166,7 +169,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "20",
@@ -182,7 +186,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "y",
@@ -211,7 +216,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -277,7 +283,8 @@
                 "types": [
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "boolean"
+                    "ballerinaType": "boolean",
+                    "selected": true
                   }
                 ],
                 "value": "(x > y) ",
@@ -324,7 +331,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "VIEW"
+                        "fieldType": "VIEW",
+                        "selected": true
                       }
                     ],
                     "value": {
@@ -350,11 +358,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": true
                       }
                     ],
                     "value": "\"x is greater than y\"",
@@ -366,16 +376,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "val"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0
@@ -438,7 +439,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "VIEW"
+                        "fieldType": "VIEW",
+                        "selected": true
                       }
                     ],
                     "value": {
@@ -464,11 +466,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": true
                       }
                     ],
                     "value": "\"x is equal to y\"",
@@ -480,16 +484,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "val"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      }
-                    ]
+                    }
                   }
                 },
                 "flags": 0,
@@ -546,7 +541,8 @@
                         "types": [
                           {
                             "fieldType": "EXPRESSION",
-                            "ballerinaType": "boolean"
+                            "ballerinaType": "boolean",
+                            "selected": true
                           }
                         ],
                         "value": "(x == 10) ",
@@ -593,7 +589,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "VIEW"
+                                "fieldType": "VIEW",
+                                "selected": true
                               }
                             ],
                             "value": {
@@ -619,11 +616,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "\"x is equal to 10\"",
@@ -635,16 +634,7 @@
                             "codedata": {
                               "kind": "REQUIRED",
                               "originalName": "val"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": true
-                              }
-                            ]
+                            }
                           }
                         },
                         "flags": 0,
@@ -707,7 +697,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "VIEW"
+                                "fieldType": "VIEW",
+                                "selected": true
                               }
                             ],
                             "value": {
@@ -733,11 +724,13 @@
                             "types": [
                               {
                                 "fieldType": "TEXT",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": false
                               },
                               {
                                 "fieldType": "EXPRESSION",
-                                "ballerinaType": "string"
+                                "ballerinaType": "string",
+                                "selected": true
                               }
                             ],
                             "value": "\"x is not equal to 10\"",
@@ -749,16 +742,7 @@
                             "codedata": {
                               "kind": "REQUIRED",
                               "originalName": "val"
-                            },
-                            "typeMembers": [
-                              {
-                                "type": "string",
-                                "packageInfo": "",
-                                "packageName": "",
-                                "kind": "BASIC_TYPE",
-                                "selected": true
-                              }
-                            ]
+                            }
                           }
                         },
                         "flags": 0,

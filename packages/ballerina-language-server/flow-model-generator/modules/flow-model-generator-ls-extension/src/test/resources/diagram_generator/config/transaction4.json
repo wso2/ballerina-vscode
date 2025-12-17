@@ -114,7 +114,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "_",
@@ -143,7 +144,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "()",
@@ -209,7 +211,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "error(\"Found error\")",

@@ -44,6 +44,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -69,7 +70,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQ
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE_CONFIG;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERCVICE_CLASS_NAME_METADATA;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getServiceDocumentation;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getDocumentationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateFunctionDocs;
@@ -130,9 +130,8 @@ public class ServiceClassUtil {
 
         return new Value.ValueBuilder()
                 .metadata(metaData.label(), metaData.description())
-                .valueType(VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .value(className)
-                .setValueTypeConstraint("Global")
                 .enabled(true)
                 .setCodedata(new Codedata(lineRange))
                 .setImports(new HashMap<>())
@@ -190,7 +189,7 @@ public class ServiceClassUtil {
             FunctionReturnType returnType = functionModel.getReturnType();
             if (Objects.nonNull(returnType)) {
                 returnType.setValue(returnTypeDesc.get().type().toString().trim());
-                returnType.setValueType(Constants.VALUE_TYPE_TYPE);
+                returnType.setTypes(List.of(PropertyType.types(Value.FieldType.TYPE)));
                 returnType.setEnabled(true);
                 returnType.setEditable(true);
                 returnType.setOptional(true);
@@ -215,11 +214,11 @@ public class ServiceClassUtil {
         Parameter parameterModel = Parameter.getNewField();
         Value type = parameterModel.getType();
         type.setValue(objectField.typeName().toSourceCode().trim());
-        type.setValueType(Constants.VALUE_TYPE_TYPE);
+        type.setTypes(List.of(PropertyType.types(Value.FieldType.TYPE)));
         type.setEnabled(true);
         Value name = parameterModel.getName();
         name.setValue(objectField.fieldName().text().trim());
-        name.setValueType(VALUE_TYPE_IDENTIFIER);
+        name.setTypes(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)));
         name.setEnabled(true);
         name.setEditable(false);
         name.setCodedata(new Codedata(objectField.fieldName().lineRange()));
@@ -227,7 +226,7 @@ public class ServiceClassUtil {
         if (objectField.expression().isPresent()) {
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(objectField.expression().get().toString().trim());
-            defaultValue.setValueType(Constants.VALUE_TYPE_EXPRESSION);
+            defaultValue.setTypes(List.of(PropertyType.types(Value.FieldType.EXPRESSION)));
             defaultValue.setEnabled(true);
         }
 
@@ -294,8 +293,9 @@ public class ServiceClassUtil {
                         property.getCodedata().setModuleName(moduleName);
                         property.getCodedata().setOrgName(moduleOrg);
                         String type = annotSymbol.typeDescriptor().get().getName().orElse(RESOURCE_CONFIG);
-                        property.setTypeMembers(List.of(new PropertyTypeMemberInfo(type, String.join(COLON, moduleOrg,
-                                moduleName, module.get().id().version()), "RECORD_TYPE", false)));
+                        property.getTypes().getFirst().typeMembers().add(new PropertyTypeMemberInfo(type,
+                                String.join(COLON, moduleOrg, moduleName, module.get().id().version()),
+                                "RECORD_TYPE", false));
                     }
                 }
                 property.setValue(annotationNode.annotValue().get().toSourceCode().trim());

@@ -78,7 +78,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "mysqlClient",
@@ -94,7 +95,8 @@
             },
             "types": [
               {
-                "fieldType": "RAW_TEMPLATE"
+                "fieldType": "RAW_TEMPLATE",
+                "selected": false
               }
             ],
             "value": "``",
@@ -107,15 +109,6 @@
               "kind": "REQUIRED",
               "originalName": "sqlQuery"
             },
-            "typeMembers": [
-              {
-                "type": "ParameterizedQuery",
-                "packageInfo": "ballerina:sql:1.17.1",
-                "packageName": "sql",
-                "kind": "OBJECT_TYPE",
-                "selected": true
-              }
-            ],
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -128,7 +121,8 @@
             "types": [
               {
                 "fieldType": "TYPE",
-                "ballerinaType": "record {|anydata...;|}"
+                "ballerinaType": "record {|anydata...;|}",
+                "selected": false
               }
             ],
             "value": "Row",
@@ -150,7 +144,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "res1",
@@ -179,7 +174,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "stream<Row, sql:Error?>",
@@ -230,7 +226,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "mysqlClient",
@@ -246,7 +243,8 @@
             },
             "types": [
               {
-                "fieldType": "RAW_TEMPLATE"
+                "fieldType": "RAW_TEMPLATE",
+                "selected": false
               }
             ],
             "value": "``",
@@ -259,15 +257,6 @@
               "kind": "REQUIRED",
               "originalName": "sqlQuery"
             },
-            "typeMembers": [
-              {
-                "type": "ParameterizedQuery",
-                "packageInfo": "ballerina:sql:1.17.1",
-                "packageName": "sql",
-                "kind": "OBJECT_TYPE",
-                "selected": true
-              }
-            ],
             "imports": {
               "sql": "ballerina/sql"
             }
@@ -280,7 +269,8 @@
             "types": [
               {
                 "fieldType": "TYPE",
-                "ballerinaType": "record {|anydata...;|}"
+                "ballerinaType": "record {|anydata...;|}",
+                "selected": false
               }
             ],
             "value": "record {|string id; int val;|}",
@@ -302,7 +292,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "res2",
@@ -331,7 +322,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "stream<record {|string id; int val;|}, sql:Error?>",
@@ -383,11 +375,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -399,15 +393,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "host"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "user": {
@@ -418,11 +403,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string?"
+                "ballerinaType": "string?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -434,22 +421,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "user"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "password": {
@@ -460,11 +431,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string?"
+                "ballerinaType": "string?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -476,22 +449,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "password"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "database": {
@@ -502,11 +459,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string?"
+                "ballerinaType": "string?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -518,22 +477,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "database"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "port": {
@@ -544,11 +487,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -560,15 +505,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "port"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "options": {
@@ -578,8 +514,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "mysql:Options",
+                "typeMembers": [
+                  {
+                    "type": "Options",
+                    "packageInfo": "ballerinax:mysql:1.16.1",
+                    "packageName": "mysql",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "mysql:Options?"
+                "ballerinaType": "mysql:Options?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -591,22 +542,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "options"
             },
-            "typeMembers": [
-              {
-                "type": "Options",
-                "packageInfo": "ballerinax:mysql:1.16.1",
-                "packageName": "mysql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "connectionPool": {
@@ -616,8 +551,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "sql:ConnectionPool",
+                "typeMembers": [
+                  {
+                    "type": "ConnectionPool",
+                    "packageInfo": "ballerina:sql:1.17.1",
+                    "packageName": "sql",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "sql:ConnectionPool?"
+                "ballerinaType": "sql:ConnectionPool?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -629,22 +579,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "connectionPool"
             },
-            "typeMembers": [
-              {
-                "type": "ConnectionPool",
-                "packageInfo": "ballerina:sql:1.17.1",
-                "packageName": "sql",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "imports": {
               "sql": "ballerina/sql"
             },
@@ -657,7 +591,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -673,7 +608,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -689,7 +625,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "mysqlClient",
@@ -718,7 +655,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "mysql:Client",

@@ -31,7 +31,8 @@
             },
             "types": [
               {
-                "fieldType": "SINGLE_SELECT"
+                "fieldType": "SINGLE_SELECT",
+                "selected": true
               }
             ],
             "value": [],
@@ -58,7 +59,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "true",
@@ -74,7 +76,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "",
@@ -91,7 +94,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "",
@@ -114,7 +118,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "any|error"
+            "ballerinaType": "any|error",
+            "selected": false
           }
         ],
         "value": "",

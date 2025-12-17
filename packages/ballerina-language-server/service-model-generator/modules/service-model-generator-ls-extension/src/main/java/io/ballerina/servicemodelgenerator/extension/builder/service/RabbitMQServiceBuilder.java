@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -43,9 +44,6 @@ import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitMode
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_CHOICE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_FORM;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 
@@ -141,7 +139,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
             Value choicesProperty = new Value.ValueBuilder()
                     .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
                     .value(true)
-                    .valueType(VALUE_TYPE_CHOICE)
+                    .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                     .enabled(true)
                     .editable(true)
                     .setAdvanced(true)
@@ -161,7 +159,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         return new Value.ValueBuilder()
                 .metadata("Create New Listener", "Create a new RabbitMQ listener")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setAdvanced(false)
@@ -176,8 +174,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         Value existingListenerOptions = new Value.ValueBuilder()
                 .metadata("Select Listener", "Select from the existing RabbitMQ listeners")
                 .value(items.getFirst())
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setItems(itemsAsObject)
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
@@ -187,7 +184,7 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         return new Value.ValueBuilder()
                 .metadata("Use Existing Listener", "Use Existing Listener")
                 .value("true")
-                .valueType(VALUE_TYPE_FORM)
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
                 .enabled(false)
                 .editable(false)
                 .setAdvanced(false)

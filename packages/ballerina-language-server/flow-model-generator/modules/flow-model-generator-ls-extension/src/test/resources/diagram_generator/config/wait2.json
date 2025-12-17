@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "io:readln(\"Enter a value: \")",
@@ -87,7 +88,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "futureResult",
@@ -116,7 +118,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "future<string|error>",
@@ -160,7 +163,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": false,
@@ -176,7 +180,8 @@
             },
             "types": [
               {
-                "fieldType": "REPEATABLE_PROPERTY"
+                "fieldType": "REPEATABLE_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -187,7 +192,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FIXED_PROPERTY"
+                    "fieldType": "FIXED_PROPERTY",
+                    "selected": false
                   }
                 ],
                 "value": {
@@ -198,7 +204,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "",
@@ -217,7 +224,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "futureResult",
@@ -245,7 +253,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "result",
@@ -274,7 +283,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -324,7 +334,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET"
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": [
@@ -338,16 +349,7 @@
             "codedata": {
               "kind": "REST_PARAMETER",
               "originalName": "values"
-            },
-            "typeMembers": [
-              {
-                "type": "Printable",
-                "packageInfo": "ballerina:io:1.8.0",
-                "packageName": "io",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "flags": 0
