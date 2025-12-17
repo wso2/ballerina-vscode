@@ -591,7 +591,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                     {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
                         <Section>
-                            <SectionTitle variant="h4">CREATE NEW CONNECTOR</SectionTitle>
+                            <SectionTitle variant="h4">Create New Connector</SectionTitle>
                             <CreateConnectorOptions>
                                 {connectorOptions.showApiSpec && (
                                     <ConnectorOptionCard onClick={handleApiSpecConnection}>
@@ -650,7 +650,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                     <Section>
                         <SectionHeader>
-                            <SectionTitle variant="h4">PRE-BUILT CONNECTORS</SectionTitle>
+                            <SectionTitle variant="h4">Pre-built Connectors</SectionTitle>
                             <FilterButtons>
                                 <FilterButton
                                     active={filterType === "All"}
