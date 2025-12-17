@@ -1,15 +1,34 @@
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
 import { DIAGNOSTICS_TOOL_NAME } from "../tools/diagnostics";
 import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
 import { TASK_WRITE_TOOL_NAME } from "../tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
+import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
-import { CodeContext, ProjectSource } from "@wso2/ballerina-core";
+import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
+import { getRequirementAnalysisCodeGenPrefix, getRequirementAnalysisTestGenPrefix } from "./np/prompts";
+import { extractResourceDocumentContent, flattenProjectToFiles } from "../utils/ai-utils";
 
 /**
  * Generates the system prompt for the design agent
  */
-export function getSystemPrompt(): string {
+export function getSystemPrompt(projects: ProjectSource[], op: OperationType): string {
     return `You are an expert assistant to help with writing ballerina integrations. You will be helping with designing a solution for user query in a step-by-step manner.
 
 ONLY answer Ballerina-related queries.
@@ -124,6 +143,8 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - Some libaries has instructions field in their API documentation. Follow those instructions strictly when using those libraries.
 - You should only generate tests if the user explicitly asks for them in the query. You must use the 'ballerina/test' and whatever services associated when writing tests. Respect the instructions field in ballerina/test library and testGenerationInstruction field in whatever library associated with the service in the library API documentation when writing tests.
 
+${getLanglibInstructions()}
+
 ### Local Connectors
 - If the codebase structure shows connector modules in generated/moduleName, import using: import packageName.moduleName
 
@@ -160,18 +181,18 @@ When generating Ballerina code strictly follow these syntax and structure guidel
 - Do not add/modify documentation such as .md files unless explicitly asked to be modified in the query.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
+
+${getNPSuffix(projects, op)}
 `;
 }
 
 /**
  * Generates user prompt content array with codebase structure for new threads
- * @param usecase User's query/requirement
- * @param hasHistory Whether chat history exists
- * @param tempProjectPath Path to temp project (used when hasHistory is false)
- * @param packageName Name of the Ballerina package
- * @param isPlanModeEnabled Whether plan mode is enabled
+ * @param params Generation request parameters containing usecase, plan mode, code context, and file attachments
+ * @param tempProjectPath Path to temp project
+ * @param projects Project source information
  */
-export function getUserPrompt(usecase: string, tempProjectPath: string, projects: ProjectSource[], isPlanModeEnabled: boolean, codeContext?: CodeContext) {
+export function getUserPrompt(params: GenerateAgentCodeRequest, tempProjectPath: string, projects: ProjectSource[]) {
     const content = [];
 
     content.push({
@@ -180,24 +201,38 @@ export function getUserPrompt(usecase: string, tempProjectPath: string, projects
     });
 
     // Add code context if available
-    if (codeContext) {
+    if (params.codeContext) {
         content.push({
             type: 'text' as const,
-            text: formatCodeContext(codeContext, tempProjectPath)
+            text: formatCodeContext(params.codeContext, tempProjectPath)
+        });
+    }
+
+    // Add file attachments if available
+    if (params.fileAttachmentContents && params.fileAttachmentContents.length > 0) {
+        const attachmentsText = params.fileAttachmentContents.map((attachment) =>
+            `## File: ${attachment.fileName}\n\`\`\`\n${attachment.content}\n\`\`\``
+        ).join('\n\n');
+
+        content.push({
+            type: 'text' as const,
+            text: `<User Attachments>
+${attachmentsText}
+</User Attachments>`
         });
     }
 
     content.push({
         type: 'text' as const,
         text: `<User Query>
-${usecase}
+${params.usecase}
 </User Query>`
     });
 
 
     content.push({
         type: 'text' as const,
-        text: getGenerationType(isPlanModeEnabled)
+        text: getGenerationType(params.isPlanMode)
     });
     return content;
 }
@@ -209,3 +244,16 @@ function getGenerationType(isPlanMode:boolean):string {
     }
     return `<system-reminder> Edit Mode is enabled. Avoid using Task management and make the edits directly. </system-reminder>`;
 }
+
+function getNPSuffix(projects: ProjectSource[], op?: OperationType): string {
+    let basePrompt:string = "Note: You are in a special Natural Programming mode. Follow the NP guidelines strictly in addition to what you've given. \n";
+    if (!op) {
+        return "";
+    } else if (op === "CODE_FOR_USER_REQUIREMENT") {
+        basePrompt += getRequirementAnalysisCodeGenPrefix(extractResourceDocumentContent(flattenProjectToFiles(projects)));
+    } else if (op === "TESTS_FOR_USER_REQUIREMENT") {
+        basePrompt += getRequirementAnalysisTestGenPrefix(extractResourceDocumentContent(flattenProjectToFiles(projects)));
+    }
+    return basePrompt;
+}
+

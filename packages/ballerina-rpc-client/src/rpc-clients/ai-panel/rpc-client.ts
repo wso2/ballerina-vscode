@@ -49,8 +49,6 @@ import {
     SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
-    TestGenerationRequest,
-    TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
     abortAIGeneration,
@@ -83,18 +81,13 @@ import {
     getFromDocumentation,
     getFromFile,
     getGeneratedDocumentation,
-    getGeneratedTests,
     getLoginMethod,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
-    getResourceMethodAndPaths,
-    getResourceSourceForMethodAndPath,
     getSemanticDiff,
     getServiceNames,
-    getServiceSourceForName,
     getShadowDiagnostics,
-    getTestDiagnostics,
     handleChatSummaryError,
     hideReviewActions,
     isCopilotSignedIn,
@@ -199,28 +192,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(generateInlineMappingCode, HOST_EXTENSION, params);
     }
 
-    getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
-        return this._messenger.sendRequest(getGeneratedTests, HOST_EXTENSION, params);
-    }
-
-    getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
-        return this._messenger.sendRequest(getTestDiagnostics, HOST_EXTENSION, params);
-    }
-
-    getServiceSourceForName(params: string): Promise<string> {
-        return this._messenger.sendRequest(getServiceSourceForName, HOST_EXTENSION, params);
-    }
-
-    getResourceSourceForMethodAndPath(params: string): Promise<string> {
-        return this._messenger.sendRequest(getResourceSourceForMethodAndPath, HOST_EXTENSION, params);
-    }
-
     getServiceNames(): Promise<TestGenerationMentions> {
         return this._messenger.sendRequest(getServiceNames, HOST_EXTENSION);
-    }
-
-    getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
-        return this._messenger.sendRequest(getResourceMethodAndPaths, HOST_EXTENSION);
     }
 
     abortTestGeneration(): void {
@@ -263,8 +236,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(isRequirementsSpecificationFileExist, HOST_EXTENSION, params);
     }
 
-    getDriftDiagnosticContents(params: string): Promise<LLMDiagnostics> {
-        return this._messenger.sendRequest(getDriftDiagnosticContents, HOST_EXTENSION, params);
+    getDriftDiagnosticContents(): Promise<LLMDiagnostics> {
+        return this._messenger.sendRequest(getDriftDiagnosticContents, HOST_EXTENSION);
     }
 
     addChatSummary(params: AIChatSummary): Promise<boolean> {
@@ -291,8 +264,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(updateRequirementSpecification, HOST_EXTENSION, params);
     }
 
-    createTestDirecoryIfNotExists(params: string): void {
-        return this._messenger.sendNotification(createTestDirecoryIfNotExists, HOST_EXTENSION, params);
+    createTestDirecoryIfNotExists(): void {
+        return this._messenger.sendNotification(createTestDirecoryIfNotExists, HOST_EXTENSION);
     }
 
     submitFeedback(params: SubmitFeedbackRequest): Promise<boolean> {

@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -133,6 +133,7 @@ export interface VisualizerLocation {
     position?: NodePosition;
     syntaxTree?: STNode;
     isBI?: boolean;
+    isInDevant?: boolean;
     focusFlowDiagramView?: FocusFlowDiagramView;
     serviceType?: string;
     type?: Type;
@@ -525,6 +526,8 @@ export interface UserApproval {
     comment?: string;
 }
 
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+
 export interface AIChatMachineContext {
     chatHistory: ChatMessage[];
     currentPlan?: Plan;
@@ -537,6 +540,7 @@ export interface AIChatMachineContext {
     autoApproveEnabled?: boolean;
     isPlanMode?: boolean;
     codeContext?: CodeContext;
+    fileAttachments: FileAttatchment[];
     currentSpec?: {
         requestId: string;
         spec?: any;
@@ -554,10 +558,11 @@ export interface AIChatMachineContext {
     commandParams?: any;
     // Review actions state
     showReviewActions?: boolean;
+    operationType?: OperationType;
 }
 
 export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext } }
+    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType, fileAttachments?: FileAttatchment[] } }
     | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
     | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
     | { type: AIChatMachineEventType.PLANNING_STARTED }
@@ -586,16 +591,22 @@ export type AIChatMachineSendableEvent =
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
+    DEVANT_ENV = 'devant_env',
     AWS_BEDROCK = 'aws_bedrock'
 }
 
-interface BIIntelSecrets {
+export interface BIIntelSecrets {
     accessToken: string;
     refreshToken: string;
 }
 
-interface AnthropicKeySecrets {
+export interface AnthropicKeySecrets {
     apiKey: string;
+}
+
+export interface DevantEnvSecrets {
+    accessToken: string;
+    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
@@ -615,12 +626,22 @@ export type AuthCredentials =
         secrets: AnthropicKeySecrets;
     }
     | {
+        loginMethod: LoginMethod.DEVANT_ENV;
+        secrets: DevantEnvSecrets;
+    }
+    | {
         loginMethod: LoginMethod.AWS_BEDROCK;
         secrets: AwsBedrockSecrets;
     };
 
 export interface AIUserToken {
-    token: string; // For BI Intel, this is the access token and for Anthropic, this is the API key
+    credentials: AuthCredentials;
+    usageToken?: string;
+    metadata?: {
+        lastRefresh?: string;
+        expiresAt?: string;
+        [key: string]: any;
+    };
 }
 
 export interface AIMachineContext {

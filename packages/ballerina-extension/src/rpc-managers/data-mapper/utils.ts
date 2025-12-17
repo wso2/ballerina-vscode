@@ -732,7 +732,7 @@ function processTypeFields(
 
         let isFocused = false;
         let isSeq = !!model.groupById;
-        if (model.focusInputs) {
+        if (isSeq && model.focusInputs) {
             const focusMember = model.focusInputs[fieldId];
             if (focusMember) {
                 field = focusMember;

@@ -23,14 +23,6 @@ import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
 
 /**
- * Closes all documents in the temp project and waits for LS to process
- */
-async function closeAllDocumentsAndWait(tempProjectPath: string, projects: any[]): Promise<void> {
-    sendAgentDidCloseForProjects(tempProjectPath, projects);
-    await new Promise(resolve => setTimeout(resolve, 300));
-}
-
-/**
  * Handles abort events from the stream.
  * Saves partial state and performs cleanup.
  */
@@ -67,7 +59,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         });
 
         if (context.shouldCleanup) {
-            await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
+            sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
             cleanupTempProject(context.tempProjectPath);
         }
 

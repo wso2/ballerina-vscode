@@ -23,9 +23,16 @@ import {
     ConnectorResponse,
     ConnectorWizardAPI,
     ConnectorsRequest,
-    ConnectorsResponse
+    ConnectorsResponse,
+    IntrospectDatabaseRequest,
+    IntrospectDatabaseResponse,
+    PersistClientGenerateRequest,
+    PersistClientGenerateResponse,
+    WSDLApiClientGenerationRequest,
+    WSDLApiClientGenerationResponse
 } from "@wso2/ballerina-core";
 import { StateMachine } from "../../stateMachine";
+import { updateSourceCode } from "../../utils/source-utils";
 
 
 export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
@@ -60,6 +67,70 @@ export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
                         resolve(undefined);
                     });
                 });
+        });
+    }
+
+    async introspectDatabase(params: IntrospectDatabaseRequest): Promise<IntrospectDatabaseResponse> {
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .introspectDatabase(params)
+                .then((response) => {
+                    console.log(">>> introspect database response", response);
+                    resolve(response as IntrospectDatabaseResponse);
+                })
+                .catch((error) => {
+                    console.log(">>> error introspecting database", error);
+                    resolve(undefined);
+                });
+        });
+    }
+
+    async persistClientGenerate(params: PersistClientGenerateRequest): Promise<PersistClientGenerateResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const response = await StateMachine.langClient().generatePersistClient(params);
+                console.log(">>> persist client generate response", response);
+
+                const persistResponse = response as PersistClientGenerateResponse;
+
+                // Apply text edits if provided
+                if (persistResponse?.source?.textEditsMap) {
+                    await updateSourceCode({
+                        textEdits: persistResponse.source.textEditsMap,
+                        description: `Database Connection and Connector Generation`
+                    });
+                    console.log(">>> Applied text edits for database connection");
+                }
+
+                resolve(persistResponse);
+            } catch (error) {
+                console.log(">>> error persisting client", error);
+                resolve(undefined);
+            }
+        });
+    }
+
+    async generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const response = await StateMachine.langClient().generateWSDLApiClient(params);
+                console.log(">>> generate wsdl api client response", response);
+
+                const wsdlResponse = response as WSDLApiClientGenerationResponse;
+
+                if (wsdlResponse?.source?.textEditsMap) {
+                    await updateSourceCode({
+                        textEdits: wsdlResponse.source.textEditsMap,
+                        description: `WSDL API Client Generation`
+                    });
+                    console.log(">>> Applied text edits for wsdl api client");
+                }
+
+                resolve(wsdlResponse);
+            } catch (error) {
+                console.log(">>> error generating wsdl api client", error);
+                resolve(undefined);
+            }
         });
     }
 }

@@ -91,12 +91,6 @@ import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 import ReviewActions from "../ReviewActions";
 
-enum CodeGenerationType {
-    CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
-    TESTS_FOR_USER_REQUIREMENT = "TESTS_FOR_USER_REQUIREMENT",
-    CODE_GENERATION = "CODE_GENERATION",
-}
-
 // var projectUuid = "";
 // var chatLocation = "";
 
@@ -899,40 +893,37 @@ const AIChat: React.FC = () => {
         if (parsedInput && "type" in parsedInput && parsedInput.type === "error") {
             throw new Error(parsedInput.message);
         } else if ("text" in parsedInput && !("command" in parsedInput)) {
-            await processAgentGeneration(parsedInput.text, inputText);
+            await processAgentGeneration(parsedInput.text, attachments);
         } else if ("command" in parsedInput) {
             switch (parsedInput.command) {
                 case Command.NaturalProgramming: {
                     let useCase = "";
                     switch (parsedInput.templateId) {
                         case "code-doc-drift-check":
-                            // await processLLMDiagnostics(attachments, inputText);
+                            await processLLMDiagnostics();
                             break;
                         case "generate-code-from-following-requirements":
-                            // await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
-                            //     filepath: chatLocation,
-                            //     content: parsedInput.placeholderValues.requirements,
-                            // });
-                            // setIsReqFileExists(true);
+                            await rpcClient.getAiPanelRpcClient().updateRequirementSpecification({
+                                content: parsedInput.placeholderValues.requirements
+                            });
+                            setIsReqFileExists(true);
 
-                            // useCase = parsedInput.placeholderValues.requirements;
-                            // await processCodeGeneration(
-                            //     [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                            //     inputText
-                            // );
+                            useCase = parsedInput.placeholderValues.requirements;
+                            await processAgentGeneration(
+                                useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
+                            );
                             break;
                         case "generate-test-from-requirements":
-                            // rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists(chatLocation);
+                            rpcClient.getAiPanelRpcClient().createTestDirecoryIfNotExists();
 
-                            // useCase = getTemplateTextById(
-                            //     commandTemplates,
-                            //     Command.NaturalProgramming,
-                            //     "generate-test-from-requirements"
-                            // );
-                            // await processCodeGeneration(
-                            //     [useCase, attachments, CodeGenerationType.TESTS_FOR_USER_REQUIREMENT],
-                            //     inputText
-                            // );
+                            useCase = getTemplateTextById(
+                                commandTemplates,
+                                Command.NaturalProgramming,
+                                "generate-test-from-requirements"
+                            );
+                            await processAgentGeneration(
+                                useCase, attachments, "TESTS_FOR_USER_REQUIREMENT"
+                            );
                             break;
                         case "generate-code-from-requirements":
                             useCase = getTemplateTextById(
@@ -940,33 +931,13 @@ const AIChat: React.FC = () => {
                                 Command.NaturalProgramming,
                                 "generate-code-from-requirements"
                             );
-                            await processCodeGeneration(
-                                [useCase, attachments, CodeGenerationType.CODE_FOR_USER_REQUIREMENT],
-                                inputText
+                            await processAgentGeneration(
+                                useCase, attachments, "CODE_FOR_USER_REQUIREMENT"
                             );
                             break;
                     }
                     break;
                 }
-                // case Command.Tests: {
-                //     switch (parsedInput.templateId) {
-                //         case "tests-for-service":
-                //             await processTestGeneration(
-                //                 [inputText, attachments],
-                //                 "service",
-                //                 parsedInput.placeholderValues.servicename
-                //             );
-                //             break;
-                //         case "tests-for-function":
-                //             await processTestGeneration(
-                //                 [inputText, attachments],
-                //                 "function",
-                //                 parsedInput.placeholderValues.methodPath
-                //             );
-                //             break;
-                //     }
-                //     break;
-                // }
                 case Command.DataMap: {
                     switch (parsedInput.templateId) {
                         case "mappings-for-records":
@@ -1056,24 +1027,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processCodeGeneration(content: [string, Attachment[], OperationType], message: string) {
-        const [useCase, attachments, operationType] = content;
-        const fileAttatchments = attachments.map((file) => ({
-            fileName: file.name,
-            content: file.content,
-        }));
-
-        const requestBody: GenerateCodeRequest = {
-            usecase: useCase,
-            chatHistory: [],
-            operationType,
-            fileAttachmentContents: fileAttatchments,
-            codeContext: codeContext,
-        };
-
-        await rpcClient.getAiPanelRpcClient().generateCode(requestBody);
-    }
-
     const handleAddAllCodeSegmentsToWorkspace = async (
         codeSegments: any,
         setIsCodeAdded: React.Dispatch<React.SetStateAction<boolean>>,
@@ -1102,37 +1055,6 @@ const AIChat: React.FC = () => {
         console.log("Revert gration called. Command: ", command);
         setIsAddingToWorkspace(true);
     };
-
-    async function processTestGeneration(
-        content: [string, Attachment[]],
-        targetType: string, // service or function
-        target: string // <servicename> or <resourcemethod resourcepath>
-    ) {
-        let assistantResponse = "";
-        try {
-            const targetSource =
-                targetType === "service"
-                    ? await rpcClient.getAiPanelRpcClient().getServiceSourceForName(target)
-                    : await rpcClient.getAiPanelRpcClient().getResourceSourceForMethodAndPath(target);
-            const requestBody: TestPlanGenerationRequest = {
-                targetType: targetType === "service" ? TestGenerationTarget.Service : TestGenerationTarget.Function,
-                targetSource: targetSource,
-                target: target,
-            };
-
-            await rpcClient.getAiPanelRpcClient().generateTestPlan(requestBody);
-        } catch (error: any) {
-            setIsLoading(false);
-            const errorName = error instanceof Error ? error.name : "Unknown error";
-            const errorMessage = "message" in error ? error.message : "Unknown error";
-
-            if (errorName === "AbortError") {
-                throw new Error("Failed: The user cancelled the request.");
-            } else {
-                throw new Error(errorMessage);
-            }
-        }
-    }
 
     async function processUserDocGeneration(serviceName: string) {
         try {
@@ -1227,16 +1149,6 @@ const AIChat: React.FC = () => {
         }
     }
 
-    async function processHealthcareCodeGeneration(useCase: string, message: string) {
-        const requestBody: GenerateCodeRequest = {
-            usecase: useCase,
-            chatHistory: [],
-            fileAttachmentContents: [],
-            operationType: CodeGenerationType.CODE_GENERATION,
-        };
-        await rpcClient.getAiPanelRpcClient().generateHealthcareCode(requestBody);
-    }
-
     async function processOpenAPICodeGeneration(useCase: string, message: string) {
         const requestBody: any = {
             query: useCase,
@@ -1246,10 +1158,17 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().generateOpenAPI(requestBody);
     }
 
-    async function processAgentGeneration(useCase: string, message: string) {
+    async function processAgentGeneration(useCase: string, attachments: Attachment[], operationType?: OperationType) {
+        const fileAttatchments = attachments.map((file) => ({
+            fileName: file.name,
+            content: file.content,
+        }));
+
+        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+
         rpcClient.sendAIChatStateEvent({
             type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext }
+            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
         });
     }
 
@@ -1517,7 +1436,32 @@ const AIChat: React.FC = () => {
         setApprovalRequest(null);
     };
 
+    async function processLLMDiagnostics() {
+        let response: LLMDiagnostics = await rpcClient.getAiPanelRpcClient().getDriftDiagnosticContents();
 
+        const responseStatus = response.statusCode;
+        const invalidResponse = response == null || response.statusCode == null;
+
+        if (invalidResponse) {
+            throw new Error(DRIFT_CHECK_ERROR);
+        }
+
+        if (!(responseStatus >= 200 && responseStatus < 300)) {
+            throw new Error(DRIFT_CHECK_ERROR);
+        }
+
+        if (response.diags == null || response.diags == "") {
+            response.diags = NO_DRIFT_FOUND;
+        }
+
+        setIsLoading(false);
+
+        setMessages((prevMessages) => {
+            const newMessage = [...prevMessages];
+            newMessage[newMessage.length - 1].content = response.diags;
+            return newMessage;
+        });
+    }
     return (
         <>
             {!showSettings && (
@@ -1590,10 +1534,6 @@ const AIChat: React.FC = () => {
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            showPreview={true}
-                                            isLoading={
-                                                isLoading && !isSuggestionLoading && index === otherMessages.length - 1
-                                            }
                                             checkpointButton={
                                                 message.role === "User" && message.checkpointId ? (
                                                     <CheckpointButton
@@ -1885,3 +1825,5 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
+
+

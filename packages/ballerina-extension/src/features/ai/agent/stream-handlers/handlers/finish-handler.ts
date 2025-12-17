@@ -117,16 +117,11 @@ export class FinishHandler implements StreamEventHandler {
             messageId: context.messageId,
         });
 
-        // Show review actions component in the chat UI via state machine
-        console.log(`[Review Actions] Showing review actions for message: ${context.messageId}`);
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
-        });
-
-        // Note: Code integration and cleanup are now deferred until user makes a choice
-        // - Review: will open review mode (integration/cleanup deferred)
-        // - Accept All: will integrate code and cleanup
-        // - Decline: will just cleanup without integration
+        // Cleanup
+        sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
+        if (context.shouldCleanup) {
+            cleanupTempProject(context.tempProjectPath);
+        }
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);

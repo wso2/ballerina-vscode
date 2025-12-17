@@ -273,7 +273,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         label: "Comment",
                         description: "Comment to describe the flow",
                     },
-                    valueType: "STRING",
                     value: `\n${comment}\n\n`, // HACK: add extra new lines to get last position right
                     optional: false,
                     advanced: false,

@@ -29,12 +29,12 @@ import {
 } from "@wso2/ballerina-core";
 import path from "path";
 import { Uri } from "vscode";
-import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../../../utils/modification";
+import { writeBallerinaFileDidOpen } from "../../../../utils/modification";
 import { ExtendedLangClient } from "../../../../core";
 import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
 import { extractRecordTypeDefinitionsFromFile } from "../../../../rpc-managers/ai-panel/utils";
 import { TypesGenerationResult } from "../types";
-import { createTempBallerinaDir } from "./temp-project";
+import { existsSync, readFileSync } from "fs";
 
 /**
  * Type extraction and generation from context
@@ -77,11 +77,10 @@ export async function extractRecordTypesFromSyntaxTree(
 }
 
 // Generate Ballerina record types from context attachments and validate against existing records
-// TODO: Refactor this. Need to see the cases when file contains types, when the file is not found, rely on LS diagnostics APIs for checking existing types etc.
+// TODO: Refactor this. We need to generate types, get diagnostics, and validate in a better way.
 export async function generateTypesFromContext(
   sourceAttachments: Attachment[],
   projectComponents: ProjectComponentsResponse,
-  langClient: ExtendedLangClient,
   tempDirectory: string
 ): Promise<TypesGenerationResult> {
   if (!sourceAttachments || sourceAttachments.length === 0) {
@@ -127,30 +126,17 @@ export async function generateTypesFromContext(
   // Use provided temp directory
   const tempTypesFilePath = path.join(tempDirectory, outputFileName);
 
-  writeBallerinaFileDidOpen(tempTypesFilePath, generatedTypesCode);
-
-  // // Wait for Language Server to process the file
-  // await new Promise(resolve => setTimeout(resolve, 2000));
-
-  // Extract record and enum names from syntax tree
-  const { records: generatedRecords, enums: generatedEnums } = await extractRecordTypesFromSyntaxTree(langClient, tempTypesFilePath);
-
-  // Check for duplicate record names
-  for (const recordName of generatedRecords) {
-    if (existingRecordTypesMap.has(recordName)) {
-      throw new Error(`Record "${recordName}" already exists in the workspace`);
-    }
+  // Check if types.bal already exists and append new types
+  let finalTypesCode = generatedTypesCode;
+  if (existsSync(tempTypesFilePath)) {
+    const existingContent = readFileSync(tempTypesFilePath, 'utf-8');
+    finalTypesCode = existingContent.trim() + '\n\n' + generatedTypesCode.trim();
   }
 
-  // Check for duplicate enum names
-  for (const enumName of generatedEnums) {
-    if (existingRecordTypesMap.has(enumName)) {
-      throw new Error(`Enum "${enumName}" already exists in the workspace`);
-    }
-  }
+  writeBallerinaFileDidOpen(tempTypesFilePath, finalTypesCode);
 
   return {
-    typesCode: generatedTypesCode,
+    typesCode: finalTypesCode,
     filePath: outputFileName,
     recordMap: existingRecordTypesMap
   };

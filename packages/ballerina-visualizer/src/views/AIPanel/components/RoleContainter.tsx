@@ -20,7 +20,6 @@
 
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
-import { useState, useEffect } from "react";
 
 export const PreviewContainerDefault = styled.div`
     font-size: 0.6em;
@@ -33,40 +32,13 @@ export const PreviewContainerDefault = styled.div`
     margin-right: -20px;
 `;
 
-export const PreviewContainer = styled.div`
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    font-size: 0.8em;
-    padding: 2px 5px;
-    border-radius: 3px;
-    display: inline-block;
-    margin-left: 2px;
-`;
-
 interface RoleContainerProps {
     icon: string;
     title: string;
-    showPreview: boolean;
-    isLoading: boolean;
     checkpointButton?: React.ReactNode;
 }
 
-const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview, isLoading, checkpointButton }) => {
-    const [generatingText, setGeneratingText] = useState("Generating.");
-
-    useEffect(() => {
-        if (isLoading) {
-            const interval = setInterval(() => {
-                setGeneratingText((prev) => {
-                    if (prev === "Generating...") return "Generating.";
-                    return prev + ".";
-                });
-            }, 500);
-
-            return () => clearInterval(interval);
-        }
-    }, [isLoading]);
-
+const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, checkpointButton }) => {
     return (
         <div style={{ display: "flex", flexDirection: "row", gap: "6px", alignItems: "center" }}>
             <Icon
@@ -75,8 +47,6 @@ const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, showPreview,
                 iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)", cursor: "default" }}
             />
             <h3 style={{ margin: 0 }}>{title}</h3>
-            {showPreview && <PreviewContainer>Experimental</PreviewContainer>}
-            {isLoading && <span style={{ color: "var(--vscode-input-placeholderForeground)" }}>{generatingText}</span>}
             {checkpointButton && <div style={{ marginLeft: "auto" }}>{checkpointButton}</div>}
         </div>
     );

@@ -18,6 +18,7 @@
 
 import { window } from "vscode";
 import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
+import { MESSAGES } from "../features/project";
 
 export function requiresPackageSelection(
     workspacePath: string | undefined,
@@ -33,7 +34,7 @@ export function requiresPackageSelection(
     );
 }
 
-export async function promptPackageSelection(
+async function promptPackageSelection(
     availablePackages: string[],
     placeHolder?: string
 ): Promise<string | undefined> {
@@ -41,6 +42,20 @@ export async function promptPackageSelection(
         placeHolder: placeHolder || "Select a package",
         ignoreFocusOut: false
     });
+}
+
+export async function selectPackageOrPrompt(
+    availablePackages: string[],
+    placeHolder?: string
+): Promise<string | undefined> {
+    if (availablePackages.length === 0) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return;
+    }
+    if (availablePackages.length === 1) {
+        return availablePackages[0];
+    }
+    return await promptPackageSelection(availablePackages, placeHolder);
 }
 
 export function needsProjectDiscovery(

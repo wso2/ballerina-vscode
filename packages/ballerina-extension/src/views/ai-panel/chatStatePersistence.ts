@@ -17,22 +17,11 @@
  */
 
 import { AIChatMachineContext } from '@wso2/ballerina-core/lib/state-machine-types';
-import { extension } from '../../BalExtensionContext';
 import { generateProjectId } from './idGenerators';
-
-const CHAT_STATE_STORAGE_KEY_PREFIX = 'ballerina.ai.chat.state';
-
-/**
- * Gets the storage key for the current project
- * @param projectId The project identifier
- * @returns The storage key for this project
- */
-export const getStorageKey = (projectId: string): string => {
-    return `${CHAT_STATE_STORAGE_KEY_PREFIX}.${projectId}`;
-};
+import { sessionStorage } from './chatStateStorage';
 
 /**
- * Saves the chat state for the current project
+ * Saves the chat state for the current project (session-only storage)
  * @param context The chat machine context
  */
 export const saveChatState = (context: AIChatMachineContext): void => {
@@ -42,27 +31,10 @@ export const saveChatState = (context: AIChatMachineContext): void => {
             return;
         }
 
-        const stateToSave = {
-            chatHistory: context.chatHistory,
-            currentPlan: context.currentPlan,
-            currentTaskIndex: context.currentTaskIndex,
-            sessionId: context.sessionId,
-            projectId: context.projectId,
-            checkpoints: context.checkpoints || [],
-            savedAt: Date.now(),
-        };
+        // Save to in-memory session storage instead of globalState
+        sessionStorage.save(context.projectId, context);
 
-        const storageKey = getStorageKey(context.projectId);
-        extension.context?.globalState.update(storageKey, stateToSave);
-
-        // Also save a list of all project IDs for management purposes
-        const allProjectIds =
-            extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
-        if (!allProjectIds.includes(context.projectId)) {
-            allProjectIds.push(context.projectId);
-            extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, allProjectIds);
-            extension.context;
-        }
+        console.log(`Saved chat state for project: ${context.projectId} (session-only)`);
     } catch (error) {
         console.error("Failed to save chat state:", error);
     }
@@ -79,8 +51,7 @@ export const clearChatStateAction = (context: AIChatMachineContext): void => {
             return;
         }
 
-        const storageKey = getStorageKey(context.projectId);
-        extension.context?.globalState.update(storageKey, undefined);
+        sessionStorage.clear(context.projectId);
         console.log(`Cleared chat state for project: ${context.projectId}`);
     } catch (error) {
         console.error('Failed to clear chat state:', error);
@@ -88,21 +59,22 @@ export const clearChatStateAction = (context: AIChatMachineContext): void => {
 };
 
 /**
- * Loads the chat state for the current project
+ * Loads the chat state for the current project (from session storage)
  * @param projectId Optional project ID. If not provided, uses current workspace
  * @returns The saved chat state or undefined
  */
 export const loadChatState = async (projectId?: string): Promise<AIChatMachineContext | undefined> => {
     try {
         const targetProjectId = projectId || generateProjectId();
-        const storageKey = getStorageKey(targetProjectId);
-        const savedState = extension.context?.globalState.get<AIChatMachineContext & { savedAt?: number }>(storageKey);
+        const savedState = sessionStorage.load(targetProjectId);
 
         if (savedState) {
-            console.log(`Loaded chat state for project: ${targetProjectId}, saved at: ${savedState.savedAt ? new Date(savedState.savedAt).toISOString() : 'unknown'}`);
+            console.log(`Loaded chat state for project: ${targetProjectId} (from current session), saved at: ${new Date(savedState.savedAt).toISOString()}`);
+            return savedState as unknown as AIChatMachineContext;
         }
 
-        return savedState;
+        console.log(`No session state found for project: ${targetProjectId}`);
+        return undefined;
     } catch (error) {
         console.error('Failed to load chat state:', error);
         return undefined;
@@ -116,8 +88,7 @@ export const loadChatState = async (projectId?: string): Promise<AIChatMachineCo
 export const clearChatState = async (projectId?: string): Promise<void> => {
     try {
         const targetProjectId = projectId || generateProjectId();
-        const storageKey = getStorageKey(targetProjectId);
-        await extension.context?.globalState.update(storageKey, undefined);
+        sessionStorage.clear(targetProjectId);
         console.log(`Cleared chat state for project: ${targetProjectId}`);
     } catch (error) {
         console.error('Failed to clear chat state:', error);
@@ -125,12 +96,12 @@ export const clearChatState = async (projectId?: string): Promise<void> => {
 };
 
 /**
- * Gets all project IDs that have saved chat states
+ * Gets all project IDs that have saved chat states (from session storage)
  * @returns Array of project IDs
  */
 export const getAllProjectIds = async (): Promise<string[]> => {
     try {
-        return extension.context?.globalState.get<string[]>(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`) || [];
+        return sessionStorage.getAllProjectIds();
     } catch (error) {
         console.error('Failed to get project IDs:', error);
         return [];
@@ -138,18 +109,14 @@ export const getAllProjectIds = async (): Promise<string[]> => {
 };
 
 /**
- * Clears all chat states for all projects
+ * Clears all chat states for all projects (from session storage)
  */
 export const clearAllChatStates = async (): Promise<void> => {
     try {
         const projectIds = await getAllProjectIds();
+        console.log(`Clearing chat states for ${projectIds.length} project(s): ${projectIds.join(', ')}`);
 
-        for (const projectId of projectIds) {
-            await clearChatState(projectId);
-        }
-
-        // Clear the projects list
-        await extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, []);
+        sessionStorage.clearAll();
         console.log('Cleared all chat states');
     } catch (error) {
         console.error('Failed to clear all chat states:', error);
@@ -157,7 +124,7 @@ export const clearAllChatStates = async (): Promise<void> => {
 };
 
 /**
- * Gets metadata about saved chat states
+ * Gets metadata about saved chat states (from session storage)
  * @returns Array of project metadata
  */
 export const getChatStateMetadata = async (): Promise<Array<{
@@ -168,18 +135,17 @@ export const getChatStateMetadata = async (): Promise<Array<{
     taskCount?: number;
 }>> => {
     try {
-        const projectIds = await getAllProjectIds();
+        const projectIds = sessionStorage.getAllProjectIds();
         const metadata = [];
 
         for (const projectId of projectIds) {
-            const state = await loadChatState(projectId);
+            const state = sessionStorage.load(projectId);
             if (state) {
-                const savedState = state as AIChatMachineContext & { savedAt?: number };
                 metadata.push({
                     projectId,
-                    savedAt: savedState.savedAt,
-                    sessionId: savedState.sessionId,
-                    taskCount: savedState.currentPlan?.tasks.length || 0,
+                    savedAt: state.savedAt,
+                    sessionId: state.sessionId,
+                    taskCount: state.currentPlan?.tasks.length || 0,
                 });
             }
         }

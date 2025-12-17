@@ -32,14 +32,12 @@ export async function repairAndCheckDiagnostics(
   projectRoot: string,
   params: TempDirectoryPath
 ): Promise<DiagnosticList> {
-  const targetDir = params.tempDir && params.tempDir.trim() !== "" ? params.tempDir : projectRoot;
-
-  let diagnostics = await attemptRepairProject(langClient, targetDir);
+  let diagnostics = await attemptRepairProject(langClient, projectRoot);
 
   // Add missing required fields and recheck diagnostics
   let isDiagsChanged = await addMissingRequiredFields(diagnostics, langClient);
   if (isDiagsChanged) {
-    diagnostics = await checkProjectDiagnostics(langClient, targetDir);
+    diagnostics = await checkProjectDiagnostics(langClient, projectRoot);
   }
 
   const filteredDiagnostics = diagnostics.filter(diag =>
