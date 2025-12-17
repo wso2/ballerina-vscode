@@ -701,17 +701,17 @@ export const AIChatStateMachine = {
     initialize: () => {
         chatStateService.start();
 
-        // Attempt to restore state on initialization for current project
+        // Attempt to restore state from session storage for current project
         const projectId = generateProjectId();
         loadChatState(projectId).then((savedState) => {
             if (savedState && savedState.sessionId && savedState.projectId === projectId) {
-                console.log(`Restoring chat state for project: ${projectId}`);
+                console.log(`Restoring chat state for project: ${projectId} (from current session)`);
                 chatStateService.send({
                     type: AIChatMachineEventType.RESTORE_STATE,
                     payload: { state: savedState },
                 });
             } else {
-                console.log(`No saved state found for project: ${projectId}, starting fresh`);
+                console.log(`No session state found for project: ${projectId}, starting with fresh session`);
             }
         }).catch((error) => {
             console.error('Failed to restore chat state:', error);
@@ -730,9 +730,9 @@ export const AIChatStateMachine = {
         }
     },
     dispose: () => {
-        // Save state before disposing
-        const context = chatStateService.getSnapshot().context;
-        saveChatState(context);
+        // No need to save state on dispose - session-only storage will be cleared automatically
+        // when the extension deactivates (window closes)
+        console.log('[AIChatStateMachine] Disposing - session state will be cleared');
         chatStateService.stop();
     },
     /**
