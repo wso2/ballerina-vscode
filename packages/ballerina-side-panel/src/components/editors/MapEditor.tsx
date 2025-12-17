@@ -107,7 +107,7 @@ export function MapEditor(props: MapEditorProps) {
 
     const onAddAnother = () => {
         if (editorCount <= 1) return;
-        setEditorCount(prev => prev - 1);
+        setEditorCount(prev => prev + 1);
     }
 
     return (
