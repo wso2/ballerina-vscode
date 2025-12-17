@@ -33,15 +33,15 @@
       {
         "range": {
           "start": {
-            "line": 7,
-            "character": 12
+            "line": 9,
+            "character": 24
           },
           "end": {
-            "line": 10,
-            "character": 12
+            "line": 9,
+            "character": 33
           }
         },
-        "newText": ""
+        "newText": "0"
       }
     ]
   }
