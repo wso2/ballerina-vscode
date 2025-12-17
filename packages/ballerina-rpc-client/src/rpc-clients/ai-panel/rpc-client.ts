@@ -96,6 +96,7 @@ import {
     getShadowDiagnostics,
     getTestDiagnostics,
     handleChatSummaryError,
+    hideReviewActions,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isPlanModeFeatureEnabled,
@@ -110,6 +111,7 @@ import {
     readDeveloperMdFile,
     repairGeneratedCode,
     revertChanges,
+    showReviewActions,
     showSignInAlert,
     submitFeedback,
     updateDevelopmentDocument,
@@ -367,5 +369,13 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     declineChanges(): Promise<void> {
         return this._messenger.sendRequest(declineChanges, HOST_EXTENSION);
+    }
+
+    showReviewActions(): Promise<void> {
+        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);  
+    }
+
+    hideReviewActions(): Promise<void> {
+        return this._messenger.sendRequest(hideReviewActions, HOST_EXTENSION);
     }
 }

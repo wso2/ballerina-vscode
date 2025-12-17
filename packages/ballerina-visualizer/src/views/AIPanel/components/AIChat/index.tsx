@@ -159,6 +159,7 @@ const AIChat: React.FC = () => {
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
+    const [showReviewActions, setShowReviewActions] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -265,6 +266,9 @@ const AIChat: React.FC = () => {
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
                 }
+                if (context && context.showReviewActions !== undefined) {
+                    setShowReviewActions(context.showReviewActions);
+                }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
             }
@@ -307,8 +311,18 @@ const AIChat: React.FC = () => {
         loadHistory();
     }, [rpcClient]);
 
-    rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
+    rpcClient?.onAIChatStateChanged(async (newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
+        
+        // Update context when state changes
+        try {
+            const context = await rpcClient.getAIChatContext();
+            if (context && context.showReviewActions !== undefined) {
+                setShowReviewActions(context.showReviewActions);
+            }
+        } catch (error) {
+            console.error("[AIChat] Failed to update review actions state:", error);
+        }
     });
 
     rpcClient?.onCheckpointCaptured((payload: { messageId: string; checkpointId: string }) => {
@@ -657,15 +671,10 @@ const AIChat: React.FC = () => {
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
         } else if ((response as any).type === "review_actions") {
-            console.log("[Review Actions] Received review_actions event, appending to message");
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
                 if (newMessages.length > 0) {
-                    console.log("[Review Actions] Current message content length:", newMessages[newMessages.length - 1].content.length);
                     newMessages[newMessages.length - 1].content += `\n\n<reviewactions></reviewactions>`;
-                    console.log("[Review Actions] Updated message content, new length:", newMessages[newMessages.length - 1].content.length);
-                } else {
-                    console.warn("[Review Actions] No messages to append review actions to");
                 }
                 return newMessages;
             });
@@ -798,6 +807,11 @@ const AIChat: React.FC = () => {
         attachments: Attachment[];
         metadata?: Record<string, any>;
     }) {
+        // Hide review actions when a new prompt is submitted
+        if (showReviewActions) {
+            await rpcClient.getAiPanelRpcClient().hideReviewActions();
+        }
+        
         // Clear previous generation refs
         currentDiagnosticsRef.current = [];
         functionsRef.current = [];
@@ -1683,7 +1697,6 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.ReviewActions) {
-                                            console.log("[Review Actions] Rendering ReviewActions component");
                                             return (
                                                 <ReviewActions
                                                     key={i}
@@ -1829,6 +1842,12 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
+                    {/* Review Actions Component - positioned at bottom above input */}
+                    {showReviewActions && (
+                        <div style={{ padding: "10px 20px 0", borderTop: "1px solid var(--vscode-panel-border)" }}>
+                            <ReviewActions rpcClient={rpcClient} />
+                        </div>
+                    )}
                     {approvalRequest ? (
                         <ApprovalFooter
                             approvalType={approvalRequest.approvalType}

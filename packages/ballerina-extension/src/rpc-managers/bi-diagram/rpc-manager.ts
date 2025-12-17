@@ -200,6 +200,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 const context = StateMachine.context();
                 
                 if (!context.position) {
+                    // TODO: check why this hits when we are in review mode
                     console.log(">>> position not found in context, cannot create request");
                     resolve(undefined);
                     return;

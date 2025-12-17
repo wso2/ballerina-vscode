@@ -83,3 +83,5 @@ export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffRespo
 export const revertChanges: NotificationType<void> = { method: `${_preFix}/revertChanges` };
 export const acceptChanges: NotificationType<void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: NotificationType<void> = { method: `${_preFix}/declineChanges` };
+export const showReviewActions: NotificationType<void> = { method: `${_preFix}/showReviewActions` };
+export const hideReviewActions: NotificationType<void> = { method: `${_preFix}/hideReviewActions` };

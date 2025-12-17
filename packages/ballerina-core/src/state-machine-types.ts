@@ -460,6 +460,8 @@ export enum AIChatMachineEventType {
     CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
     PROVIDE_CONNECTOR_SPEC = 'PROVIDE_CONNECTOR_SPEC',
     SKIP_CONNECTOR_GENERATION = 'SKIP_CONNECTOR_GENERATION',
+    SHOW_REVIEW_ACTIONS = 'SHOW_REVIEW_ACTIONS',
+    HIDE_REVIEW_ACTIONS = 'HIDE_REVIEW_ACTIONS',
 }
 
 export interface ChatMessage {
@@ -550,6 +552,8 @@ export interface AIChatMachineContext {
     commandType?: string;
     modifiedFiles?: string[];
     commandParams?: any;
+    // Review actions state
+    showReviewActions?: boolean;
 }
 
 export type AIChatMachineSendableEvent =
@@ -575,7 +579,9 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.RETRY }
     | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
     | { type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC; payload: { requestId: string; spec: any; inputMethod: 'file' | 'paste' | 'url'; sourceIdentifier?: string } }
-    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } };
+    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } }
+    | { type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS }
+    | { type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS };
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',

@@ -130,6 +130,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         currentSpec: undefined,
         isPlanMode: false,
         checkpoints: [],
+        showReviewActions: false,
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_AGENT_PROMPT]: {
@@ -148,6 +149,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         return event.payload.isPlanMode;
                     },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
+                    showReviewActions: () => false, // Hide review actions when new prompt is submitted
                 }),
                 "captureCheckpoint",
             ],
@@ -202,6 +204,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     sessionId: (_ctx) => undefined,
                     checkpoints: (_ctx) => [],
                     isPlanMode: (_ctx) => false,
+                    showReviewActions: (_ctx) => false,
                 }),
             ],
         },
@@ -263,6 +266,16 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 target: "Completed",
             },
         ],
+        [AIChatMachineEventType.SHOW_REVIEW_ACTIONS]: {
+            actions: assign({
+                showReviewActions: () => true,
+            }),
+        },
+        [AIChatMachineEventType.HIDE_REVIEW_ACTIONS]: {
+            actions: assign({
+                showReviewActions: () => false,
+            }),
+        },
     },
     states: {
         Idle: {

@@ -16,10 +16,9 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
-import { ThemeColors } from "@wso2/ui-toolkit";
+import { Button } from "@wso2/ui-toolkit";
 
 const NavigationContainer = styled.div`
     position: fixed;
@@ -99,6 +98,20 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         canGoNext
     } = props;
 
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handleAccept = async () => {
+        setIsProcessing(true);
+        await onAccept();
+        // setIsProcessing(false);
+    };
+
+    const handleReject = async () => {
+        setIsProcessing(true);
+        await onReject();
+        // setIsProcessing(false);
+    };
+
     console.log('[ReviewNavigation] Props received:', {
         currentIndex,
         totalViews,
@@ -133,26 +146,24 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
     return (
         <NavigationContainer>
             <NavigationButtons>
-                <VSCodeButton
+                <Button
                     appearance="icon"
                     onClick={handlePreviousClick}
-                    // disabled={isPreviousDisabled}
-                    title="Previous View"
+                    disabled={isPreviousDisabled}
+                    tooltip="Previous View"
                     aria-label="Previous View"
-                    style={{ opacity: isPreviousDisabled ? 0.4 : 1, cursor: isPreviousDisabled ? 'not-allowed' : 'pointer' }}
                 >
                     <span className="codicon codicon-chevron-left"></span>
-                </VSCodeButton>
-                <VSCodeButton
+                </Button>
+                <Button
                     appearance="icon"
                     onClick={handleNextClick}
-                    // disabled={isNextDisabled}
-                    title="Next View"
+                    disabled={isNextDisabled}
+                    tooltip="Next View"
                     aria-label="Next View"
-                    style={{ opacity: isNextDisabled ? 0.4 : 1, cursor: isNextDisabled ? 'not-allowed' : 'pointer' }}
                 >
                     <span className="codicon codicon-chevron-right"></span>
-                </VSCodeButton>
+                </Button>
             </NavigationButtons>
 
             <ViewInfo>
@@ -163,20 +174,20 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
             </ViewInfo>
 
             <ActionButtons>
-                <VSCodeButton
+                <Button
                     appearance="secondary"
-                    onClick={onReject}
-                    title="Decline All Changes"
+                    onClick={handleReject}
+                    tooltip="Undo All Changes"
                 >
-                    Decline All
-                </VSCodeButton>
-                <VSCodeButton
+                    Undo All
+                </Button>
+                <Button
                     appearance="primary"
-                    onClick={onAccept}
-                    title="Accept All Changes"
+                    onClick={handleAccept}
+                    tooltip="Keep All Changes"
                 >
-                    Accept All
-                </VSCodeButton>
+                    Keep All
+                </Button>
             </ActionButtons>
         </NavigationContainer>
     );

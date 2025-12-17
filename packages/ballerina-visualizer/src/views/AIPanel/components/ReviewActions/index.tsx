@@ -17,26 +17,25 @@
  */
 
 import React, { useState } from "react";
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
+import { Button } from "@wso2/ui-toolkit";
 import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 
 const ReviewActionsContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 16px;
+    gap: 4px;
+    padding: 10px 16px;
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    margin: 12px 0;
+    margin: 12px 0 0;
 `;
 
 const ActionsTitle = styled.div`
     font-size: 14px;
     font-weight: 600;
     color: var(--vscode-foreground);
-    margin-bottom: 4px;
 `;
 
 const ActionsDescription = styled.div`
@@ -58,10 +57,7 @@ interface ReviewActionsProps {
 export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
-    console.log("[ReviewActions] Component rendered, isProcessing:", isProcessing, "rpcClient:", !!rpcClient);
-
     const handleReview = async () => {
-        console.log("[ReviewActions] Review button clicked");
 
         try {
             setIsProcessing(true);
@@ -72,6 +68,7 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
                     view: MACHINE_VIEW.ReviewMode
                 }
             });
+            // Don't dismiss when opening review mode
         } catch (error) {
             console.error("[Review Actions] Error opening review mode:", error);
         } finally {
@@ -83,7 +80,7 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
         console.log("[ReviewActions] Accept All button clicked");
         try {
             setIsProcessing(true);
-            // Accept all changes (integrate code to workspace)
+            // Accept all changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
             console.log("[ReviewActions] Changes accepted successfully");
             
@@ -102,7 +99,7 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
         console.log("[ReviewActions] Decline All button clicked");
         try {
             setIsProcessing(true);
-            // Decline all changes (cleanup without integrating)
+            // Decline all changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
             console.log("[ReviewActions] Changes declined successfully");
             
@@ -124,15 +121,15 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
                 You can review the changes, accept them to apply to your workspace, or decline them.
             </ActionsDescription>
             <ButtonGroup>
-                <VSCodeButton appearance="secondary" onClick={handleDeclineAll}>
-                    Decline All
-                </VSCodeButton>
-                <VSCodeButton appearance="primary" onClick={handleAcceptAll}>
-                    Accept All
-                </VSCodeButton>
-                <VSCodeButton onClick={handleReview}>
+                <Button appearance="secondary" onClick={handleDeclineAll} disabled={isProcessing}>
+                    Undo All
+                </Button>
+                <Button appearance="primary" onClick={handleAcceptAll} disabled={isProcessing}>
+                    Keep All
+                </Button>
+                <Button onClick={handleReview}>
                     Review
-                </VSCodeButton>
+                </Button>
             </ButtonGroup>
         </ReviewActionsContainer>
     );
