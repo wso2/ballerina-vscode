@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "../constants";
+import { ErrorType, NullablePrimitiveType, PrimitiveArrayType, PrimitiveType } from "../constants";
 
 /**
  * Type checking utilities for Ballerina types
@@ -47,6 +47,10 @@ export const isPrimitiveArrayType = (type: string): boolean => {
   return false;
 };
 
+const isErrorType = (type: string): boolean => {
+  return Object.values(ErrorType).includes(type as ErrorType);
+};
+
 export const isAnyPrimitiveType = (type: string): boolean => {
-  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type);
+  return isPrimitiveType(type) || isNullablePrimitiveType(type) || isPrimitiveArrayType(type) || isErrorType(type);
 };

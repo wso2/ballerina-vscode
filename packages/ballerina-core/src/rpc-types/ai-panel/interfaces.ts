@@ -27,7 +27,7 @@ import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatemen
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
     | undefined;
 
@@ -125,7 +125,6 @@ export interface MetadataWithAttachments {
 }
 
 export interface InlineMappingsSourceResult {
-    sourceResponse: DataMapperSourceResponse;
     allMappingsRequest: AllDataMapperSourceRequest;
     tempFileMetadata: ExtendedDataMapperMetadata;
     tempDir: string;

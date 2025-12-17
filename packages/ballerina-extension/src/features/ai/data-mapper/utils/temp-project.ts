@@ -157,7 +157,7 @@ async function createTempBallerinaFile(
     if (!funcSource) {
       fullSource = existingContent;
     } else {
-      fullSource = existingContent + "\n\n" + fullSource;
+      fullSource = existingContent + fullSource;
     }
   } else {
     fullSource = existingContent;
