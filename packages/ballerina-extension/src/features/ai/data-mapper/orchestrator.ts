@@ -455,6 +455,7 @@ export async function generateMappingCodeCore(
 
     const ctx = createExecutionContextFromStateMachine();
     const { path: tempProjectPath } = await getTempProject(ctx);
+    let projectName = path.basename(ctx.projectPath);
     try {
         // Initialize generation process
         eventHandler({ type: "start" });
@@ -463,7 +464,10 @@ export async function generateMappingCodeCore(
         const biDiagramRpcManager = new BiDiagramRpcManager();
         const langClient = StateMachine.langClient();
         const context = StateMachine.context();
-        const projectRoot = tempProjectPath;
+        let projectRoot = tempProjectPath;
+        if (ctx.workspacePath) {
+            projectRoot = path.join(projectRoot, projectName);
+        }
 
         const targetFunctionName = mappingRequest.parameters.functionName;
 
@@ -510,6 +514,7 @@ export async function generateMappingCodeCore(
             });
         }
 
+        //TODO: Refactor LS calls to only rely on Temp directory
         const mappingContext = await prepareMappingContext(
             mappingRequest.parameters,
             recordTypeMap,
@@ -522,12 +527,16 @@ export async function generateMappingCodeCore(
         );
 
         // Use temp directory provided by state machine (no double temp creation)
-        const tempDirectory = tempProjectPath;
         const doesFunctionAlreadyExist = existingFunctionsInProject.some(func => func.name === targetFunctionName);
+        let tempDirectory = tempProjectPath;
+        let projectFilePath = mappingContext.filePath;
+        if (ctx.workspacePath) {
+            projectFilePath = path.join(projectName, projectFilePath);
+        }
 
         const tempFileMetadata = await createTempFileAndGenerateMetadata({
             tempDir: tempDirectory,
-            filePath: mappingContext.filePath,
+            filePath: projectFilePath,
             metadata: mappingRequest.metadata,
             inputs: mappingContext.mappingDetails.inputs,
             output: mappingContext.mappingDetails.output,
@@ -607,24 +616,13 @@ export async function generateMappingCodeCore(
             updatedCustomContent = fs.readFileSync(allMappingsRequest.customFunctionsFilePath, 'utf8');
         }
 
-        // For workspace projects, compute relative file path from workspace root
-        const workspacePath = context.workspacePath;
-        let targetFilePath = mappingContext.filePath;
-
-        if (workspacePath) {
-            // Workspace project: need to include package path prefix (e.g., "foo/mappings.bal")
-            const absoluteFilePath = path.join(projectRoot, mappingContext.filePath);
-            targetFilePath = path.relative(workspacePath, absoluteFilePath);
-        }
-
         const generatedSourceFiles = buildMappingFileArray(
-            targetFilePath,
+            projectFilePath,
             updatedMainContent,
             customFunctionsTargetPath,
             updatedCustomContent,
         );
 
-        // Extract modified file paths
         const modifiedFiles = generatedSourceFiles.map(file => file.filePath);
 
         // Integrate code to workspace automatically
@@ -860,7 +858,7 @@ export async function generateInlineMappingCodeCore(
     // Create temp project using shared utilities
     const ctx = createExecutionContextFromStateMachine();
     const { path: tempProjectPath } = await getTempProject(ctx);
-
+    let projectName = path.basename(ctx.projectPath);
     try {
         // Initialize generation process
         eventHandler({ type: "start" });
@@ -874,18 +872,17 @@ export async function generateInlineMappingCodeCore(
             new Map(allImportStatements.map(imp => [imp.moduleName, imp])).values()
         );
 
-        let targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
-
-        if (!targetFileName) {
-            throw new Error("Target file name could not be determined from code data");
-        }
-
         const langClient = StateMachine.langClient();
         const context = StateMachine.context();
-        // const projectRoot = tempProjectPath;
+        let projectRoot = tempProjectPath;
+        let targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
+        if (ctx.workspacePath) {
+            projectRoot = path.join(projectRoot, projectName);
+            targetFileName = path.join(projectName, targetFileName);
+        }
 
         const inlineMappingsResult: InlineMappingsSourceResult =
-            await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler, tempProjectPath);
+            await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler, tempProjectPath, targetFileName);
 
         let customFunctionsTargetPath: string | undefined;
         let customFunctionsFileName: string | undefined;
@@ -916,7 +913,7 @@ export async function generateInlineMappingCodeCore(
         // Repair check expression errors (BCE3032)
         await repairCheckErrors(
             langClient,
-            tempProjectPath,
+            projectRoot,
             mainFilePath,
             inlineMappingsResult.allMappingsRequest,
             inlineMappingsResult.tempDir,
@@ -1031,6 +1028,7 @@ export async function generateContextTypesCore(
     // Create temp project using shared utilities
     const ctx = createExecutionContextFromStateMachine();
     const { path: tempProjectPath } = await getTempProject(ctx);
+    let projectName = path.basename(ctx.projectPath);
 
     try {
         // Initialize generation process
@@ -1042,19 +1040,30 @@ export async function generateContextTypesCore(
         eventHandler({ type: "content_block", content: "\n\nAnalyzing your provided data to generate Ballerina record types.\n\n" });
         eventHandler({ type: "content_block", content: "\n\n<progress>Generating types...</progress>" });
 
+        let projectRoot = tempProjectPath;
+        if (ctx.workspacePath) {
+            projectRoot = path.join(projectRoot, projectName);
+        }
+
         // Generate types from context with validation
         const { typesCode, filePath } = await generateTypesFromContext(
             typeCreationRequest.attachments,
             projectComponents,
-            tempProjectPath
+            projectRoot
         );
+
+        // Adjust file path for workspace projects
+        let targetFilePath = filePath;
+        if (ctx.workspacePath) {
+            targetFilePath = path.join(projectName, filePath);
+        }
 
         // Create source files array
         const sourceFiles: SourceFile[] = [{
-            filePath: filePath,
+            filePath: targetFilePath,
             content: typesCode
         }];
-        const modifiedFiles = [filePath];
+        const modifiedFiles = [targetFilePath];
 
         // Integrate code to workspace automatically
         if (modifiedFiles.length > 0) {
