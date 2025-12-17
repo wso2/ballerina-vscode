@@ -525,9 +525,6 @@ public class SemanticDiffComputer {
                                              ServiceDeclarationNode modifiedService) {
         ServiceMemberMap original = extractServiceMembers(originalService);
         ServiceMemberMap modified = extractServiceMembers(modifiedService);
-
-        analyzeMethodChanges(original.getRemoteMethods(), modified.getRemoteMethods());
-        analyzeMethodChanges(original.getResourceMethods(), modified.getResourceMethods());
         analyzeMethodChanges(original.getObjectMethods(), modified.getObjectMethods());
     }
 

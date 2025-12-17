@@ -37,38 +37,6 @@
         }
       },
       {
-        "changeType": "MODIFICATION",
-        "nodeKind": "OBJECT_FUNCTION",
-        "uri": "ai:///main.bal",
-        "lineRange": {
-          "fileName": "main.bal",
-          "startLine": {
-            "line": 48,
-            "offset": 4
-          },
-          "endLine": {
-            "line": 84,
-            "offset": 5
-          }
-        }
-      },
-      {
-        "changeType": "MODIFICATION",
-        "nodeKind": "OBJECT_FUNCTION",
-        "uri": "ai:///main.bal",
-        "lineRange": {
-          "fileName": "main.bal",
-          "startLine": {
-            "line": 9,
-            "offset": 4
-          },
-          "endLine": {
-            "line": 46,
-            "offset": 5
-          }
-        }
-      },
-      {
         "changeType": "ADDITION",
         "nodeKind": "TYPE_DEFINITION",
         "uri": "ai:///types.bal",
