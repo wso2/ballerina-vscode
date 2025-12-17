@@ -1579,7 +1579,7 @@ const AIChat: React.FC = () => {
                                                 }
                                                 return (
                                                     <CodeSection
-                                                        key={i}
+                                                        key={`code-${i}`}
                                                         codeSegments={codeSegments}
                                                         loading={isLoading}
                                                         handleAddAllCodeSegmentsToWorkspace={
@@ -1607,6 +1607,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.Progress) {
                                             return (
                                                 <ProgressTextSegment
+                                                    key={`progress-${i}`}
                                                     text={segment.text}
                                                     loading={segment.loading}
                                                     failed={segment.failed}
@@ -1615,6 +1616,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.ToolCall) {
                                             return (
                                                 <ToolCallSegment
+                                                    key={`tool-call-${i}`}
                                                     text={segment.text}
                                                     loading={segment.loading}
                                                     failed={segment.failed}
@@ -1624,6 +1626,7 @@ const AIChat: React.FC = () => {
                                             const isLastMessage = index === otherMessages.length - 1;
                                             return (
                                                 <TodoSection
+                                                    key={`todo-${i}`}
                                                     tasks={segment.tasks || []}
                                                     message={segment.message}
                                                     isLoading={isLoading && isLastMessage}
@@ -1632,6 +1635,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.SpecFetcher) {
                                             return (
                                                 <ConnectorGeneratorSegment
+                                                    key={`connector-generator-${i}`}
                                                     data={segment.specData}
                                                     rpcClient={rpcClient}
                                                 />
@@ -1639,7 +1643,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.ReviewActions) {
                                             return (
                                                 <ReviewActions
-                                                    key={i}
+                                                    key={`review-actions-${i}`}
                                                     rpcClient={rpcClient}
                                                 />
                                             );
@@ -1648,7 +1652,7 @@ const AIChat: React.FC = () => {
                                                 <AttachmentsContainer>
                                                     {segment.text.split(",").map((fileName, index) => (
                                                         <AttachmentBox
-                                                            key={index}
+                                                            key={`attachment-${i}-${index}`}
                                                             status={AttachmentStatus.Success}
                                                             fileName={fileName.trim()}
                                                             index={index}
@@ -1662,6 +1666,7 @@ const AIChat: React.FC = () => {
                                             // return <BallerinaCodeBlock key={i} code={segment.text} />;
                                             return (
                                                 <CodeSegment
+                                                    key={`code-segment-${i}`}
                                                     source={segment.text}
                                                     fileName={"Ballerina"}
                                                     language={"ballerina"}
@@ -1670,10 +1675,11 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.References) {
-                                            return <ReferenceDropdown key={i} links={JSON.parse(segment.text)} />;
+                                            return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
                                         } else if (segment.type === SegmentType.TestScenario) {
                                             return (
                                                 <AccordionItem
+                                                    key={`test-scenario-${i}`}
                                                     content={segment.text}
                                                     onDelete={onTestScenarioDelete}
                                                     isEnabled={
@@ -1696,6 +1702,7 @@ const AIChat: React.FC = () => {
                                             ) {
                                                 return (
                                                     <VSCodeButton
+                                                        key={`btn-${i}`}
                                                         title="Add a new test scenario"
                                                         appearance="secondary"
                                                         onClick={onTestScenarioAdd}
@@ -1712,7 +1719,7 @@ const AIChat: React.FC = () => {
                                                 isLoading
                                             ) {
                                                 return (
-                                                    <div style={{ display: "flex", gap: "10px" }}>
+                                                    <div key={`btn-group-${i}`} style={{ display: "flex", gap: "10px" }}>
                                                         <VSCodeButton
                                                             title="Generate Tests"
                                                             onClick={generateFunctionTests}
@@ -1736,7 +1743,7 @@ const AIChat: React.FC = () => {
                                                 !isLoading
                                             ) {
                                                 return (
-                                                    <div style={{ display: "flex", gap: "10px" }}>
+                                                    <div key={`btn-save-${i}`} style={{ display: "flex", gap: "10px" }}>
                                                         <VSCodeButton
                                                             title="Save Documentation"
                                                             onClick={saveDocumentation}
@@ -1757,16 +1764,16 @@ const AIChat: React.FC = () => {
                                                 segment.buttonType === "documentation_saved"
                                             ) {
                                                 return (
-                                                    <VSCodeButton title="Documentation has been saved" disabled>
+                                                    <VSCodeButton key={`btn-saved-${i}`} title="Documentation has been saved" disabled>
                                                         {"Saved"}
                                                     </VSCodeButton>
                                                 );
                                             }
                                         } else {
                                             if (message.type === "Error") {
-                                                return <ErrorBox key={i}>{segment.text}</ErrorBox>;
+                                                return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
                                             }
-                                            return <MarkdownRenderer key={i} markdownContent={segment.text} />;
+                                            return <MarkdownRenderer key={`markdown-${i}`} markdownContent={segment.text} />;
                                         }
                                     })}
                                     {/* Show feedback bar only for the latest assistant message and when loading is complete, but not if review actions are present */}
