@@ -142,6 +142,7 @@ export const getAllProjectIds = async (): Promise<string[]> => {
 export const clearAllChatStates = async (): Promise<void> => {
     try {
         const projectIds = await getAllProjectIds();
+        console.log(`Clearing chat states for projects: ${projectIds.join(', ')}`);
 
         for (const projectId of projectIds) {
             await clearChatState(projectId);
