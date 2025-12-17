@@ -31,7 +31,7 @@ import styled from '@emotion/styled';
 import { ThemeColors } from '@wso2/ui-toolkit';
 import { isNodeClass } from '../../../utils/model-mapper/entityModelMapper';
 
-const HighlightedButton = styled.div`
+const HighlightedButton = styled.div<{ disabled?: boolean }>`
     margin: 16px;
     width: calc(100% - 32px);
     display: flex;
@@ -43,9 +43,9 @@ const HighlightedButton = styled.div`
     color: ${ThemeColors.PRIMARY};
     border: 1px dashed ${ThemeColors.PRIMARY};
     border-radius: 5px;
-    cursor: pointer;
+    cursor: ${props => props.disabled ? 'default' : 'pointer'};
     &:hover {
-        border: 1px solid ${ThemeColors.HIGHLIGHT};
+        border: 1px solid ${props => props.disabled ? ThemeColors.PRIMARY : ThemeColors.HIGHLIGHT};
         background-color: ${ThemeColors.PRIMARY_CONTAINER};
     }
 `;
@@ -72,11 +72,13 @@ interface EntityWidgetProps {
 
 export function EntityWidget(props: EntityWidgetProps) {
     const { node, engine } = props;
-    const { focusedNodeId, selectedNodeId, onEditNode } = useContext(DiagramContext);
+    const { focusedNodeId, selectedNodeId, onEditNode, readonly } = useContext(DiagramContext);
     const [selectedLink, setSelectedLink] = useState<EntityLinkModel>(undefined);
 
     const onGraphqlEdit = () => {
-        onEditNode(node.getID(), true);
+        if (!readonly) {
+            onEditNode(node.getID(), true);
+        }
     };
 
     const renderAttributes = () => {
@@ -107,7 +109,7 @@ export function EntityWidget(props: EntityWidgetProps) {
             if (!hasAnyOperations) {
                 return (
                     <OperationSection>
-                        <HighlightedButton onClick={onGraphqlEdit} data-testid="create-operation-button">
+                        <HighlightedButton onClick={onGraphqlEdit} data-testid="create-operation-button" disabled={readonly}>
                             <Codicon name="plus" />
                             Create Operations
                         </HighlightedButton>

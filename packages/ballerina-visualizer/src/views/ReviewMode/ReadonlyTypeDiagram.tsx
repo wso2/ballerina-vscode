@@ -110,6 +110,7 @@ export function ReadonlyTypeDiagram(props: ReadonlyTypeDiagramProps): JSX.Elemen
                 onTypeEdit={noOpHandler}
                 onTypeDelete={noOpHandler}
                 verifyTypeDelete={async () => true}
+                readonly={true}
             />
         </Container>
     );
