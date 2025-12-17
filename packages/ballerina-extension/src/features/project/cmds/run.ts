@@ -108,6 +108,36 @@ function activateRunCmdCommand() {
                 return;
             }
 
+            // TODO: Test in the cloud editor environment and remove the comments if working
+            // This should be handles automatically by the platform
+
+            // Check if we should update auth token (only in cloud editor with private package dependencies)
+            // const shouldUpdate = await shouldUpdateAuthToken();
+            
+            // if (shouldUpdate) {
+            //     try {
+            //         // Get the STS token from platform extension for authenticated operations
+            //         const stsToken = await getDevantStsToken();
+            //         console.log("Cloud editor detected with dependencies, checking STS token...");
+                    
+            //         // Only update Settings.toml if token needs updating
+            //         if (stsToken && stsToken.trim() !== "") {
+            //             const currentToken = await getCurrentAccessToken();
+                        
+            //             if (shouldUpdateToken(currentToken, stsToken)) {
+            //                 await updateBallerinaSettingsWithStsToken(stsToken);
+            //                 console.log('Token updated in Settings.toml for cloud editor');
+            //                 // Don't show notification in cloud editor to avoid noise
+            //             }
+            //         } else {
+            //             console.warn('Unable to retrieve STS token in cloud editor environment');
+            //         }
+            //     } catch (error) {
+            //         console.warn('Failed to update authentication token in cloud editor:', error);
+            //         // Continue execution even if token update fails
+            //     }
+            // }
+
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
                 const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
                 extension.ballerinaExtInstance.setBallerinaConfigPath('');

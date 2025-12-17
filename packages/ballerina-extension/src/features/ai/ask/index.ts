@@ -111,7 +111,7 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
         }
 
         const data = await response.json() as Document[];
-        
+
         // Transform the response to match Document interface
         return data;
     } catch (error) {
@@ -130,7 +130,7 @@ async function extractCentralApiDocs(query: string): Promise<LibraryWithUrl[]> {
             library_link: `https://central.ballerina.io/${lib.name.replace(/'/g, '')}/`
         } as LibraryWithUrl;
     });
-    
+
     return apiDocs;
 }
 
@@ -139,10 +139,10 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
     try {
         // First, try to get tool calls from Claude
         const toolCallsResponse: ToolCall[] = await getToolCallsFromClaude(question);
-        
+
         let centralContext: ApiDocResult[] = [];
         let documentationContext: Document[] = [];
-        
+
         // Execute the tools if we got tool calls
         if (toolCallsResponse && toolCallsResponse.length > 0) {
             for (const toolCall of toolCallsResponse) {
@@ -159,7 +159,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
             const docs = await extractLearnPages(question);
             documentationContext.push(...docs);
         }
-        
+
         // Build document chunks
         const docChunks: { [key: string]: DocChunk } = {};
         if (documentationContext.length > 0) {
@@ -171,13 +171,13 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
                 };
             });
         }
-        
+
         // Build system message
         const systemMessage = buildLlmMessage(docChunks, documentationContext, centralContext);
 
         // Get final response from Claude
         const finalResponse = await getFinalResponseFromClaude(systemMessage, question);
-        
+
         // Extract library links
         const libraryLinks: string[] = [];
         if (centralContext.length > 0) {
@@ -185,7 +185,7 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
                 libraryLinks.push(lib.library_link);
             });
         }
-        
+
         // Extract doc IDs and add corresponding links
         const docIdPattern = /<doc_id>(.*?)<\/doc_id>/g;
         const docIds: string[] = [];
@@ -193,25 +193,25 @@ export async function getAskResponse(question: string): Promise<ResponseSchema> 
         while ((match = docIdPattern.exec(finalResponse)) !== null) {
             docIds.push(match[1]);
         }
-        
+
         // Add documentation links for referenced chunks
         docIds.forEach(id => {
             if (docChunks[id] && docChunks[id].doc_link.length > 0) {
                 libraryLinks.push(docChunks[id].doc_link);
             }
         });
-        
+
         // Clean response
         const filteredResponse = finalResponse.replace(/<doc_id>.*?<\/doc_id>/g, '').trim();
-        
+
         // Format links
         const formattedLinks = libraryLinks.map(link => `<${link}>`);
-        
+
         return {
             content: filteredResponse,
             references: formattedLinks
         };
-        
+
     } catch (error) {
         console.error('Error in assistantToolCall:', error);
         throw new Error(`Failed to process question: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -232,14 +232,14 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
         stopWhen: stepCountIs(1), // Limit to one step to get tool calls only
         abortSignal: AIPanelAbortController.getInstance().signal
     });
-    
+
     if (toolCalls && toolCalls.length > 0) {
         return toolCalls.map(toolCall => ({
             name: toolCall.toolName,
             input: toolCall.input
         }));
     }
-    
+
     return [];
 }
 
@@ -256,7 +256,7 @@ async function getFinalResponseFromClaude(systemMessage: string, question: strin
         ],
         abortSignal: AIPanelAbortController.getInstance().signal
     });
-    
+
     return text;
 }
 
@@ -265,14 +265,14 @@ function buildLlmMessage(
     documentationContext: Document[],
     centralContext: ApiDocResult[]
 ): string {
-    const documentationSection = documentationContext.length > 0 
+    const documentationSection = documentationContext.length > 0
         ? `Information from Ballerina Learn Pages: This section includes content sourced from the Ballerina Learn pages, consisting of document chunks that cover various topics. These chunks also include sample code examples that are necessary for explaining Ballerina concepts effectively. Out of the given document chunks, you must include the chunk number(eg:- chunk1,chunk2...) of all the document chunks that you used to formulate the answer within <doc_id></doc_id> tags and include it at the end of your response. Only include one chunk number per tag. Document chunks ${JSON.stringify(docChunks)}`
         : "";
-    
-    const centralSection = centralContext.length > 0 
+
+    const centralSection = centralContext.length > 0
         ? `Information from the Ballerina API Documentation: This section provides detailed information about type definitions, clients, functions, function parameters, return types, and other library-specific details essential for answering questions related to the Ballerina programming language. ${JSON.stringify(centralContext)}`
         : "";
-    
+
     return `You are an AI assistant specialized in answering questions about the Ballerina programming language. Your task is to provide precise, accurate, and helpful answers based solely on the information provided below. The information provided below comes from reliable and authoritative sources on the Ballerina programming language. For every response, include your reasoning or derivation inside <thinking></thinking> tags. The content within these tags should explain how you arrived at the answer.
 
 INFORMATION SOURCES:
