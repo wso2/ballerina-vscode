@@ -23,7 +23,6 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddFilesToProjectRequest,
-    AddToProjectRequest,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DocGenerationRequest,
@@ -55,7 +54,6 @@ import {
     abortTestGeneration,
     addChatSummary,
     addFilesToProject,
-    addToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
@@ -147,10 +145,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     fetchData(params: FetchDataRequest): Promise<FetchDataResponse> {
         return this._messenger.sendRequest(fetchData, HOST_EXTENSION, params);
-    }
-
-    addToProject(params: AddToProjectRequest): Promise<boolean> {
-        return this._messenger.sendRequest(addToProject, HOST_EXTENSION, params);
     }
 
     getFromFile(params: GetFromFileRequest): Promise<string> {

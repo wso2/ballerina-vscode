@@ -539,12 +539,100 @@ function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlane
     );
 }
 
+function DevantDashboard({ projectStructure, handleDeploy, goToDevant }: { projectStructure: ProjectStructure, handleDeploy: () => void, goToDevant: () => void }) {
+    const { rpcClient } = useRpcContext();
+    const { platformExtState } = usePlatformExtContext();
+
+    const handleSaveAndDeployToDevant = () => {
+        handleDeploy();
+    }
+
+    const handlePushChanges = () => {
+        rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.DEVANT_PUSH_TO_CLOUD] });
+    }
+
+    // Check if project has automation or service
+    const hasAutomationOrService = projectStructure?.directoryMap && (
+        (projectStructure.directoryMap.AUTOMATION && projectStructure.directoryMap.AUTOMATION.length > 0) ||
+        (projectStructure.directoryMap.SERVICE && projectStructure.directoryMap.SERVICE.length > 0)
+    );
+
+    return (
+        <React.Fragment>
+            {platformExtState?.selectedComponent ? <Title variant="h3">Deployed in Devant</Title> : <Title variant="h3">Deploy to Devant</Title>}
+            {!hasAutomationOrService ? (
+                <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                    Before you can deploy your integration to Devant, please add an artifact (such as a Service or Automation) to your project.
+                </Typography>
+            ) : (
+                <>
+                    {platformExtState?.selectedComponent ? (
+                        <>
+                            <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                                This integration is deployed in Devant.
+                            </Typography>
+                            <Button
+                                appearance="secondary"
+                                disabled={!platformExtState?.hasLocalChanges}
+                                onClick={handlePushChanges}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    marginTop: "10px",
+                                    mx: "auto"
+                                }}
+                            >
+                                <Codicon name="save" sx={{ marginRight: 8 }} /> Push Changes to Devant
+                            </Button>
+                            <Button
+                                appearance="icon"
+                                onClick={goToDevant}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    marginTop: "10px",
+                                    mx: "auto"
+                                }}
+                            >
+                                <Codicon name="link" sx={{ marginRight: 8 }} /> Open in Devant Console
+                            </Button>
+                        </>
+                    ) : (
+                        <React.Fragment>
+                            <Typography sx={{ color: "var(--vscode-descriptionForeground)" }}>
+                                Deploy your integration to Devant and run it in the cloud.
+                            </Typography>
+                            <Button
+                                appearance="primary"
+                                onClick={handleSaveAndDeployToDevant}
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    marginTop: "10px",
+                                    mx: "auto"
+                                }}
+                            >
+                                <Codicon name="save" sx={{ marginRight: 8 }} /> Save and Deploy
+                            </Button>
+                        </React.Fragment>
+                    )}
+                </>
+            )}
+        </React.Fragment>
+    );
+}
+
+
 interface PackageOverviewProps {
     projectPath: string;
+    isInDevant: boolean;
 }
 
 export function PackageOverview(props: PackageOverviewProps) {
-    const { projectPath } = props;
+    const { projectPath, isInDevant } = props;
     const { rpcClient } = useRpcContext();
     const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
@@ -553,7 +641,6 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
-
 
     const fetchContext = () => {
         rpcClient
@@ -889,14 +976,33 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </FooterPanel>
                     </LeftContent>
                     <SidePanel>
-                        <DeploymentOptions
+                        {/* <DeploymentOptions
                             handleDockerBuild={handleDockerBuild}
                             handleJarBuild={handleJarBuild}
                             handleDeploy={handleDeploy}
                             goToDevant={goToDevant}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
-                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} /> */}
+                        {!isInDevant &&
+                            <>
+                                <DeploymentOptions
+                                    handleDockerBuild={handleDockerBuild}
+                                    handleJarBuild={handleJarBuild}
+                                    handleDeploy={handleDeploy}
+                                    goToDevant={goToDevant}
+                                />
+                                <Divider sx={{ margin: "16px 0" }} />
+                                <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                            </>
+                        }
+                        {isInDevant &&
+                            <DevantDashboard
+                                projectStructure={projectStructure}
+                                handleDeploy={handleDeploy}
+                                goToDevant={goToDevant}
+                            />
+                        }
                     </SidePanel>
                 </MainContent>
             </PageLayout>

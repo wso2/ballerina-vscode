@@ -19,7 +19,7 @@
 import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { LineRange, Property, RecordTypeField, ServiceModel, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { getPrimaryInputType, LineRange, Property, RecordTypeField, ServiceModel, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { URI, Utils } from "vscode-uri";
 import { FormGeneratorNew } from "../../Forms/FormGeneratorNew";
@@ -91,8 +91,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                     Object.entries(property.choices).flatMap(([choiceKey, choice]) =>
                         Object.entries(choice.properties || {})
                             .filter(([_, choiceProperty]) =>
-                                choiceProperty.typeMembers &&
-                                choiceProperty.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                                getPrimaryInputType(choiceProperty.types)?.typeMembers &&
+                                getPrimaryInputType(choiceProperty.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
                             )
                             .map(([choicePropertyKey, choiceProperty]) => ({
                                 key: choicePropertyKey,
@@ -102,13 +102,13 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                         label: choiceProperty.metadata?.label || choicePropertyKey,
                                         description: choiceProperty.metadata?.description || ''
                                     },
-                                    valueType: choiceProperty?.valueType || 'string',
+                                    types: choiceProperty?.types || [{ fieldType: 'STRING' }],
                                     diagnostics: {
                                         hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
                                         diagnostics: choiceProperty.diagnostics
                                     }
                                 } as Property,
-                                recordTypeMembers: choiceProperty.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                                recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE")
                             }))
                     )
                 );
@@ -118,8 +118,8 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
         } else {
             const recordTypeFields: RecordTypeField[] = Object.entries(serviceModel.properties)
                 .filter(([_, property]) =>
-                    property.typeMembers &&
-                    property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                    getPrimaryInputType(property.types)?.typeMembers &&
+                    getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
                 )
                 .map(([key, property]) => ({
                     key,
@@ -129,13 +129,13 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        valueType: property?.valueType || 'string',
+                        types: property?.types || [{ fieldType: 'STRING' }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
                         }
                     } as Property,
-                    recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE")
                 }));
             console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
 
@@ -256,7 +256,7 @@ function convertConfig(service: ServiceModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in service.properties) {
         const expression = service.properties[key];
-        if (expression.valueType === "MULTIPLE_SELECT_LISTENER" || expression.valueType === "SINGLE_SELECT_LISTENER") {
+        if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT_LISTENER" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER") {
             continue
         }
         // Skip readOnlyMetadata as it's a special property that doesn't have standard form fields
@@ -266,14 +266,13 @@ function convertConfig(service: ServiceModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: expression.valueType,
+            type: getPrimaryInputType(expression.types)?.fieldType,
             documentation: expression?.metadata.description || "",
-            valueType: expression.valueTypeConstraint,
             editable: true,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
-            value: expression.valueType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
-            valueTypeConstraint: expression.valueTypeConstraint,
+            value: getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
+            types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
             items: expression.items,

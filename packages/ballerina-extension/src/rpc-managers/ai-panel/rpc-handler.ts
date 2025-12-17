@@ -23,8 +23,6 @@ import {
     addChatSummary,
     addFilesToProject,
     AddFilesToProjectRequest,
-    addToProject,
-    AddToProjectRequest,
     AIChatSummary,
     applyDoOnFailBlocks,
     checkSyntaxError,
@@ -110,7 +108,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getDefaultPrompt, () => rpcManger.getDefaultPrompt());
     messenger.onRequest(getAIMachineSnapshot, () => rpcManger.getAIMachineSnapshot());
     messenger.onRequest(fetchData, (args: FetchDataRequest) => rpcManger.fetchData(args));
-    messenger.onRequest(addToProject, (args: AddToProjectRequest) => rpcManger.addToProject(args));
     messenger.onRequest(getFromFile, (args: GetFromFileRequest) => rpcManger.getFromFile(args));
     messenger.onRequest(getFileExists, (args: GetFromFileRequest) => rpcManger.getFileExists(args));
     messenger.onNotification(deleteFromProject, (args: DeleteFromProjectRequest) => rpcManger.deleteFromProject(args));
