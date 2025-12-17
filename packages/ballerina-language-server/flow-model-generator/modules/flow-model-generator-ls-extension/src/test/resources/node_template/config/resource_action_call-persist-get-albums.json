@@ -42,7 +42,8 @@
           },
           "types" : [ {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "db:Client"
+            "ballerinaType" : "db:Client",
+            "selected" : false
           } ],
           "value" : "dbClient",
           "optional" : false,
@@ -56,7 +57,8 @@
             "description" : "Resource Path"
           },
           "types" : [ {
-            "fieldType" : "ACTION_PATH"
+            "fieldType" : "ACTION_PATH",
+            "selected" : false
           } ],
           "value" : "/albums",
           "optional" : false,
@@ -74,10 +76,12 @@
           },
           "types" : [ {
             "fieldType" : "TEXT",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           } ],
           "placeholder" : "\"\"",
           "optional" : false,
@@ -87,14 +91,7 @@
           "codedata" : {
             "kind" : "REQUIRED",
             "originalName" : "genre"
-          },
-          "typeMembers" : [ {
-            "type" : "string",
-            "packageInfo" : "",
-            "packageName" : "",
-            "kind" : "BASIC_TYPE",
-            "selected" : false
-          } ]
+          }
         },
         "maxPrice" : {
           "metadata" : {
@@ -103,10 +100,12 @@
           },
           "types" : [ {
             "fieldType" : "NUMBER",
-            "ballerinaType" : "decimal"
+            "ballerinaType" : "decimal",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "decimal"
+            "ballerinaType" : "decimal",
+            "selected" : false
           } ],
           "placeholder" : "0.0d",
           "optional" : false,
@@ -116,14 +115,7 @@
           "codedata" : {
             "kind" : "REQUIRED",
             "originalName" : "maxPrice"
-          },
-          "typeMembers" : [ {
-            "type" : "decimal",
-            "packageInfo" : "",
-            "packageName" : "",
-            "kind" : "BASIC_TYPE",
-            "selected" : false
-          } ]
+          }
         },
         "minStock" : {
           "metadata" : {
@@ -132,10 +124,12 @@
           },
           "types" : [ {
             "fieldType" : "NUMBER",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           } ],
           "placeholder" : "0",
           "optional" : true,
@@ -146,13 +140,6 @@
             "kind" : "DEFAULTABLE",
             "originalName" : "minStock"
           },
-          "typeMembers" : [ {
-            "type" : "int",
-            "packageInfo" : "",
-            "packageName" : "",
-            "kind" : "BASIC_TYPE",
-            "selected" : false
-          } ],
           "defaultValue" : "0"
         },
         "targetType" : {
@@ -162,7 +149,8 @@
           },
           "types" : [ {
             "fieldType" : "TYPE",
-            "ballerinaType" : "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}"
+            "ballerinaType" : "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}",
+            "selected" : false
           } ],
           "value" : "db:AlbumWithRelations",
           "placeholder" : "db:AlbumWithRelations",
@@ -183,10 +171,12 @@
           },
           "types" : [ {
             "fieldType" : "TEXT",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           } ],
           "placeholder" : "\"\"",
           "optional" : true,
@@ -197,13 +187,6 @@
             "kind" : "DEFAULTABLE",
             "originalName" : "sortBy"
           },
-          "typeMembers" : [ {
-            "type" : "string",
-            "packageInfo" : "",
-            "packageName" : "",
-            "kind" : "BASIC_TYPE",
-            "selected" : false
-          } ],
           "defaultValue" : "\"\""
         },
         "type" : {
@@ -212,7 +195,8 @@
             "description" : "Type of the variable"
           },
           "types" : [ {
-            "fieldType" : "TYPE"
+            "fieldType" : "TYPE",
+            "selected" : true
           } ],
           "value" : "targetType[]",
           "placeholder" : "var",
@@ -228,7 +212,8 @@
             "description" : "Name of the result variable"
           },
           "types" : [ {
-            "fieldType" : "IDENTIFIER"
+            "fieldType" : "IDENTIFIER",
+            "selected" : true
           } ],
           "value" : "var2",
           "optional" : false,
@@ -242,7 +227,8 @@
             "description" : "Trigger error flow"
           },
           "types" : [ {
-            "fieldType" : "FLAG"
+            "fieldType" : "FLAG",
+            "selected" : true
           } ],
           "value" : true,
           "optional" : false,

@@ -42,7 +42,8 @@
           },
           "types" : [ {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "db:Client"
+            "ballerinaType" : "db:Client",
+            "selected" : false
           } ],
           "value" : "dbClient",
           "optional" : false,
@@ -56,7 +57,8 @@
             "description" : "Resource Path"
           },
           "types" : [ {
-            "fieldType" : "ACTION_PATH"
+            "fieldType" : "ACTION_PATH",
+            "selected" : false
           } ],
           "value" : "/albumratings/[albumId]/[customerName]",
           "optional" : false,
@@ -74,10 +76,12 @@
           },
           "types" : [ {
             "fieldType" : "NUMBER",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           } ],
           "placeholder" : "0",
           "optional" : false,
@@ -87,8 +91,7 @@
           "codedata" : {
             "kind" : "PATH_PARAM",
             "originalName" : "albumId"
-          },
-          "typeMembers" : [ ]
+          }
         },
         "customerName" : {
           "metadata" : {
@@ -97,10 +100,12 @@
           },
           "types" : [ {
             "fieldType" : "TEXT",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "string"
+            "ballerinaType" : "string",
+            "selected" : false
           } ],
           "placeholder" : "\"\"",
           "optional" : false,
@@ -110,8 +115,7 @@
           "codedata" : {
             "kind" : "PATH_PARAM",
             "originalName" : "customerName"
-          },
-          "typeMembers" : [ ]
+          }
         },
         "targetType" : {
           "metadata" : {
@@ -120,7 +124,8 @@
           },
           "types" : [ {
             "fieldType" : "TYPE",
-            "ballerinaType" : "record {|db:AlbumOptionalized album?; string customerName?; int? rating?; string? review?; int albumId?;|}"
+            "ballerinaType" : "record {|db:AlbumOptionalized album?; string customerName?; int? rating?; string? review?; int albumId?;|}",
+            "selected" : false
           } ],
           "value" : "db:AlbumRatingWithRelations",
           "placeholder" : "db:AlbumRatingWithRelations",
@@ -140,7 +145,8 @@
             "description" : "Type of the variable"
           },
           "types" : [ {
-            "fieldType" : "TYPE"
+            "fieldType" : "TYPE",
+            "selected" : true
           } ],
           "value" : "targetType",
           "placeholder" : "var",
@@ -156,7 +162,8 @@
             "description" : "Name of the result variable"
           },
           "types" : [ {
-            "fieldType" : "IDENTIFIER"
+            "fieldType" : "IDENTIFIER",
+            "selected" : true
           } ],
           "value" : "var2",
           "optional" : false,
@@ -170,7 +177,8 @@
             "description" : "Trigger error flow"
           },
           "types" : [ {
-            "fieldType" : "FLAG"
+            "fieldType" : "FLAG",
+            "selected" : true
           } ],
           "value" : true,
           "optional" : false,

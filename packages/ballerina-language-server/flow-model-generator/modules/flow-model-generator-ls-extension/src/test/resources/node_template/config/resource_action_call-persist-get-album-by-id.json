@@ -42,7 +42,8 @@
           },
           "types" : [ {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "db:Client"
+            "ballerinaType" : "db:Client",
+            "selected" : false
           } ],
           "value" : "dbClient",
           "optional" : false,
@@ -56,7 +57,8 @@
             "description" : "Resource Path"
           },
           "types" : [ {
-            "fieldType" : "ACTION_PATH"
+            "fieldType" : "ACTION_PATH",
+            "selected" : false
           } ],
           "value" : "/albums/[albumId]",
           "optional" : false,
@@ -74,10 +76,12 @@
           },
           "types" : [ {
             "fieldType" : "NUMBER",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           }, {
             "fieldType" : "EXPRESSION",
-            "ballerinaType" : "int"
+            "ballerinaType" : "int",
+            "selected" : false
           } ],
           "placeholder" : "0",
           "optional" : false,
@@ -87,8 +91,7 @@
           "codedata" : {
             "kind" : "PATH_PARAM",
             "originalName" : "albumId"
-          },
-          "typeMembers" : [ ]
+          }
         },
         "targetType" : {
           "metadata" : {
@@ -97,7 +100,8 @@
           },
           "types" : [ {
             "fieldType" : "TYPE",
-            "ballerinaType" : "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}"
+            "ballerinaType" : "record {|db:AlbumRatingOptionalized[] albumratings?; db:PurchaseOptionalized[] purchases?; int albumId?; string title?; string artist?; decimal price?; int stock?;|}",
+            "selected" : false
           } ],
           "value" : "db:AlbumWithRelations",
           "placeholder" : "db:AlbumWithRelations",
@@ -117,7 +121,8 @@
             "description" : "Type of the variable"
           },
           "types" : [ {
-            "fieldType" : "TYPE"
+            "fieldType" : "TYPE",
+            "selected" : true
           } ],
           "value" : "targetType",
           "placeholder" : "var",
@@ -133,7 +138,8 @@
             "description" : "Name of the result variable"
           },
           "types" : [ {
-            "fieldType" : "IDENTIFIER"
+            "fieldType" : "IDENTIFIER",
+            "selected" : true
           } ],
           "value" : "var2",
           "optional" : false,
@@ -147,7 +153,8 @@
             "description" : "Trigger error flow"
           },
           "types" : [ {
-            "fieldType" : "FLAG"
+            "fieldType" : "FLAG",
+            "selected" : true
           } ],
           "value" : true,
           "optional" : false,
