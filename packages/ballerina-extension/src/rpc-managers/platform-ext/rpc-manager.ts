@@ -86,7 +86,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             await platformExt.activate();
         }
         const platformExtAPI: IWso2PlatformExtensionAPI = platformExt.exports;
-        await platformExtAPI.waitUntilInitialized();
         PlatformExtRpcManager.platformExtAPI = platformExtAPI;
         return platformExtAPI;
     }

@@ -132,6 +132,7 @@ async function getContext(): Promise<VisualizerLocation> {
             position: context.position,
             syntaxTree: context.syntaxTree,
             isBI: context.isBI,
+            isInDevant: context.isInDevant,
             projectPath: context.projectPath,
             workspacePath: context.workspacePath,
             serviceType: context.serviceType,

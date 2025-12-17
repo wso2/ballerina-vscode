@@ -15,49 +15,56 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import * as React from "react";
+
+import React from "react";
+import { useErrorBoundary } from "react-error-boundary";
 
 import { useStyles } from "./style";
-import { Button, Codicon, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon } from "@wso2/ui-toolkit";
 import { ISSUES_URL } from "../../../Diagram/utils/constants";
 
 interface ErrorScreenProps {
-    onClose: () => void;  
-};
+    onClose: () => void;
+    goToSource: () => void;
+}
 
 export default function ErrorScreen(props: ErrorScreenProps) {
     const classes = useStyles();
+    const { resetBoundary } = useErrorBoundary();
+    const { onClose, goToSource } = props;
 
     return (
         <>
-            <div className={classes.closeButtonContainer}>
-                <Button appearance="icon" onClick={props.onClose}>
-                    <Codicon name="close" />
-                </Button>
-            </div>
-            <div className={classes.root}>
-                <div className={classes.errorImg}>
-                    <svg
-                        width="64"
-                        height="64"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="var(--vscode-editor-foreground)"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    >
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="8" x2="12" y2="12" />
-                        <line x1="12" y1="16" x2="12.01" y2="16" />
-                    </svg>
+            <div className={classes.overlay} />
+            <div className={classes.errorContainer}>
+                <div className={classes.errorBody}>
+                    <div className={classes.headerContainer}>
+                        <div className={classes.infoIconContainer}>
+                            <Codicon iconSx={{ fontSize: 25 }} name="info" />
+                        </div>
+                        <div className={classes.actionButtons}>
+                            <Button appearance="icon" onClick={onClose} tooltip="Close">
+                                <Icon name="close" isCodicon sx={{ width: 22, height: 22 }} iconSx={{ fontSize: 20 }} />
+                            </Button>
+                        </div>
+                    </div>
+                    <div data-test-id={"error-message"} className={classes.errorMessage}>
+                        <p>This mapping cannot be visualized. Please switch to the source view to continue editing.</p>
+                        <p>
+                            Please raise an issue with the sample code in our <a className={classes.link} href={ISSUES_URL}>issue tracker.</a>
+                        </p>
+                    </div>
+                    <div className={classes.actionButtons}>
+                        <Button appearance="secondary" onClick={resetBoundary}>
+                            <Icon name="refresh" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
+                            Refresh
+                        </Button>
+                         <Button appearance="primary" onClick={goToSource}>
+                            <Icon name="code" isCodicon sx={{ width: 16, height: 16, marginRight: 5 }} iconSx={{ fontSize: 16 }} />
+                            Switch To Source
+                        </Button>
+                    </div>
                 </div>
-                <Typography variant="h4" className={classes.errorTitle}>
-                    A problem occurred while rendering the Data Mapper.
-                </Typography>
-                <Typography variant="body2" className={classes.errorMsg}>
-                    Please raise an issue with the sample code in our <a href={ISSUES_URL}>issue tracker</a>
-                </Typography>
             </div>
         </>
     );

@@ -23,7 +23,7 @@ import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
 import { Documents } from './Views/Documents';
 import { DocumentConfig } from './Views/DocumentConfig';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
@@ -65,7 +65,7 @@ export type HelperPaneNewProps = {
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
-    valueTypeConstraint?: string;
+    types?: InputType[];
     forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
@@ -92,14 +92,14 @@ const HelperPaneNewEl = ({
     selectedType,
     filteredCompletions,
     isInModal,
-    valueTypeConstraint,
+    types,
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
     handleValueTypeConstChange,
     inputMode
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = valueTypeConstraint ?
+    const currentMenuItemCount = types ?
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
 
@@ -109,10 +109,10 @@ const HelperPaneNewEl = ({
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
-        if (valueTypeConstraint?.length > 0) {
-            handleValueTypeConstChange(valueTypeConstraint)
+        if (types?.length > 0) {
+            handleValueTypeConstChange(getPrimaryInputType(types)?.ballerinaType);
         }
-    }, [valueTypeConstraint, forcedValueTypeConstraint])
+    }, [types, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -394,7 +394,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
+                            selectedType={getPrimaryInputType(types)?.ballerinaType || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
                             valueCreationOptions={valueCreationOptions}
                             anchorRef={anchorRef} />
@@ -500,7 +500,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         isInModal,
-        valueTypeConstraint,
+        types,
         forcedValueTypeConstraint,
         handleValueTypeConstChange,
     } = props;
@@ -525,7 +525,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             selectedType={selectedType}
             filteredCompletions={filteredCompletions}
             isInModal={isInModal}
-            valueTypeConstraint={valueTypeConstraint}
+            types={types}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}

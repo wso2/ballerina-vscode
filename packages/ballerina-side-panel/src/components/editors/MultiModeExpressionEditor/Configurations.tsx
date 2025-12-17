@@ -19,7 +19,6 @@
 import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
-import { InputMode } from "./ChipExpressionEditor/types";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
 import { tags } from "@lezer/highlight";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
@@ -86,6 +85,9 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -118,6 +120,9 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -153,6 +158,9 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }

@@ -29,7 +29,7 @@ import {
 export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfig> = {
     MODEL_PROVIDER: {
         displayName: "Model Provider",
-        valueTypeConstraint: "ai:ModelProvider",
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:ModelProvider", selected: false }],
         nodePropertyKey: ["model", "modelProvider"],
         categoryConverter: convertModelProviderCategoriesToSidePanelCategories,
         searchConfig: (aiModuleOrg?: string): ConnectionSearchConfig => ({
@@ -39,25 +39,25 @@ export const CONNECTION_TYPE_CONFIGS: Record<ConnectionKind, ConnectionKindConfi
     },
     VECTOR_STORE: {
         displayName: "Vector Store",
-        valueTypeConstraint: "ai:VectorStore",
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:VectorStore", selected: false }],
         nodePropertyKey: "vectorStore",
         categoryConverter: convertVectorStoreCategoriesToSidePanelCategories,
     },
     EMBEDDING_PROVIDER: {
         displayName: "Embedding Provider",
-        valueTypeConstraint: "ai:EmbeddingProvider",
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:EmbeddingProvider", selected: false }],
         nodePropertyKey: "embeddingModel",
         categoryConverter: convertEmbeddingProviderCategoriesToSidePanelCategories,
     },
     CHUNKER: {
         displayName: "Chunker",
-        valueTypeConstraint: "ai:Chunker",
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:Chunker", selected: false }],
         nodePropertyKey: "chunker",
         categoryConverter: convertChunkerCategoriesToSidePanelCategories,
     },
     MEMORY_STORE: {
         displayName: "Memory Store",
-        valueTypeConstraint: "ai:MemoryStore",
+        types: [{ fieldType: "TEXT", ballerinaType: "ai:MemoryStore", selected: false }],
         nodePropertyKey: "store",
         categoryConverter: convertMemoryStoreCategoriesToSidePanelCategories,
         searchConfig: (): ConnectionSearchConfig => ({

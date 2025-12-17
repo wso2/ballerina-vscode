@@ -449,11 +449,11 @@ export const initializeDevantConnection = async (params: {
             filePath: StateMachine.context().documentUri,
             queryMap: { limit: 60 },
             searchKind: "CONNECTOR"
-        })
+        });
 
         const localCategory = connectors?.categories?.find(item=>item.metadata?.label === "Local");
         if(localCategory){
-            const matchingLocalConnector = localCategory?.items?.find(item=>(item as AvailableNode)?.codedata?.module === moduleName)
+            const matchingLocalConnector = localCategory?.items?.find(item=>(item as AvailableNode)?.codedata?.module === moduleName);
             if(matchingLocalConnector){
                 return { connectionNode: matchingLocalConnector as AvailableNode };
             }
