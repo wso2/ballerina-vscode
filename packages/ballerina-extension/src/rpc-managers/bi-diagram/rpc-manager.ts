@@ -1560,12 +1560,23 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
 
     async getTypes(params: GetTypesRequest): Promise<GetTypesResponse> {
-        const projectPath = StateMachine.context().projectPath;
-        const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
+        let filePath = params.filePath;
+
+        if (!filePath && StateMachine.context()?.projectPath){
+            const projectPath = StateMachine.context().projectPath;
+            const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
+            filePath = ballerinaFiles.at(0)
+        }
+
+        if (!filePath) {
+            return new Promise((resolve, reject) => {
+                reject(new Error("No file path provided"));
+            });
+        }
 
         return new Promise((resolve, reject) => {
             StateMachine.langClient()
-                .getTypes({ filePath: ballerinaFiles[0] })
+                .getTypes({ filePath })
                 .then((types) => {
                     resolve(types);
                 }).catch((error) => {
