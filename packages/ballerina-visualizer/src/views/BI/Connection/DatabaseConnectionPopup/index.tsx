@@ -426,8 +426,6 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             if (response.errorMsg) {
                 console.error(">>> Error saving connection", response.errorMsg);
                 setConnectionError("Failed to save the connection. Please try again.");
-                // Clear password field on error
-                setCredentials(prev => ({ ...prev, password: "" }));
                 return;
             }
 
@@ -444,8 +442,6 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         } catch (error) {
             console.error(">>> Error saving connection", error);
             setConnectionError("Failed to save the connection. Please try again.");
-            // Clear password field on error
-            setCredentials(prev => ({ ...prev, password: "" }));
         } finally {
             setIsSaving(false);
         }
@@ -726,7 +722,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <ActionButton
                             appearance="primary"
                             onClick={handleSaveConnection}
-                            disabled={!connectionName || isSaving || !!connectionError}
+                            disabled={!connectionName || isSaving}
                             buttonSx={{ width: "100%", height: "35px" }}
                         >
                             {isSaving ? "Saving..." : "Save Connection"}
