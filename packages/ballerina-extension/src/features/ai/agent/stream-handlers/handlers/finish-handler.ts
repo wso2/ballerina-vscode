@@ -115,11 +115,10 @@ export class FinishHandler implements StreamEventHandler {
             messageId: context.messageId,
         });
 
-        // Cleanup
-        sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
-        if (context.shouldCleanup) {
-            cleanupTempProject(context.tempProjectPath);
-        }
+        // Show review actions component in the chat UI via state machine
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
+        });
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
