@@ -21,7 +21,7 @@ import { Flow, NodePosition } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ProgressRing, ThemeColors } from "@wso2/ui-toolkit";
-import { MemoizedDiagram } from "@wso2/bi-diagram";
+import { Diagram } from "@wso2/bi-diagram";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -103,7 +103,7 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
 
     return (
         <Container>
-            <MemoizedDiagram model={flowModel} readOnly={true} />
+            <Diagram model={flowModel} readOnly={true} />
         </Container>
     );
 }

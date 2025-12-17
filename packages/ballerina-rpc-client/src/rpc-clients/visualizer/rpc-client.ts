@@ -42,8 +42,7 @@ import {
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
-    reviewAccepted,
-    reviewRejected
+    reviewAccepted
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -113,9 +112,5 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     reviewAccepted(): void {
         return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
-    }
-
-    reviewRejected(): void {
-        return this._messenger.sendNotification(reviewRejected, HOST_EXTENSION);
     }
 }
