@@ -203,23 +203,28 @@ const SampleDownloadButton = styled(Button)`
 `;
 
 interface Sample {
-    id: string;
-    category: string;
+    categoryId: number;
+    sampleId: number;
     title: string;
     description: string;
-    icon: string;
-    zipUrl: string;
+    identifier: string;
     isEnabled: boolean;
 }
 
-// Map icon names from JSON to codicon names
+interface Category {
+    id: number;
+    title: string;
+    icon: string;
+}
+
+// Map category titles to codicon names
 const ICON_MAP: Record<string, string> = {
-    automation: "bi-task",
-    ai: "bi-ai-agent",
-    file: "file",
-    api: "bi-globe",
-    integration: "Event",
-    default: "bi-globe"
+    "Automation": "bi-task",
+    "AI Agent": "bi-ai-agent",
+    "File Integration": "file",
+    "Integration as API": "bi-globe",
+    "Integration": "Event",
+    "Default": "bi-globe"
 };
 
 // Map categories to icon colors
@@ -237,6 +242,9 @@ export function SamplesView() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [samples, setSamples] = useState<Sample[]>([]);
+    const [filteredSamples, setFilteredSamples] = useState<Sample[]>([]);
+    const [filteredSamplesCopy, setFilteredSamplesCopy] = useState<Sample[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [isLoadingSamples, setIsLoadingSamples] = useState(true);
     const [samplesError, setSamplesError] = useState<string | null>(null);
 
@@ -247,15 +255,52 @@ export function SamplesView() {
                 setIsLoadingSamples(true);
                 setSamplesError(null);
                 const response = await fetch(
-                    "https://devant-cdn.wso2.com/bi-samples/v1/meta.json"
+                    "https://devant-cdn.wso2.com/bi-samples/v1/info.json"
                 );
                 if (!response.ok) {
                     throw new Error(`Failed to fetch samples at the moment. Please try again later.`);
                 }
-                const data: Sample[] = await response.json();
-                // Filter only enabled samples
-                const enabledSamples = data.filter((sample) => sample.isEnabled);
-                setSamples(enabledSamples);
+
+                const data = await response.json();
+
+                // Parse categories from tuple format: [id, title, icon]
+                const categoriesList: Category[] = [];
+                if (data.categories && Array.isArray(data.categories)) {
+                    for (let i = 0; i < data.categories.length; i++) {
+                        const cat: Category = {
+                            id: data.categories[i][0],
+                            title: data.categories[i][1],
+                            icon: data.categories[i][2]
+                        };
+                        categoriesList.push(cat);
+                    }
+                }
+
+                // Parse samples from tuple format: [categoryId, sampleId, title, description, identifier, isEnabled]
+                const samplesList: Sample[] = [];
+                if (data.Samples && Array.isArray(data.Samples)) {
+                    for (let i = 0; i < data.Samples.length; i++) {
+                        const sample: Sample = {
+                            categoryId: data.Samples[i][0],
+                            sampleId: data.Samples[i][1],
+                            title: data.Samples[i][2],
+                            description: data.Samples[i][3],
+                            identifier: data.Samples[i][4],
+                            isEnabled: data.Samples[i][5]
+                        };
+                        // Filter only enabled samples
+                        if (sample.isEnabled) {
+                            samplesList.push(sample);
+                        }
+                    }
+                }
+
+                // Add "All" category at the beginning
+                const categoriesWithAll = [{ id: 0, title: "All", icon: "" }, ...categoriesList];
+                setCategories(categoriesWithAll);
+                setSamples(samplesList);
+                setFilteredSamples(samplesList);
+                setFilteredSamplesCopy(samplesList);
             } catch (error) {
                 rpcClient.getCommonRpcClient().openExternalUrl({
                     url: "https://bi.docs.wso2.com/integration-guides/integration-as-api/message-transformation/",
@@ -270,25 +315,38 @@ export function SamplesView() {
         fetchSamples();
     }, [rpcClient]);
 
-    const categories = useMemo(() => {
-        const uniqueCategories = Array.from(new Set(samples.map((s) => s.category)));
-        return ["All", ...uniqueCategories];
-    }, [samples]);
+    // Handle category filter change
+    useEffect(() => {
+        if (selectedCategory === "All") {
+            setFilteredSamples(samples);
+            setFilteredSamplesCopy(samples);
+        } else {
+            const categoryId = categories.find(cat => cat.title === selectedCategory)?.id;
+            if (categoryId !== undefined) {
+                const filteredData = samples.filter(sample => sample.categoryId === categoryId);
+                setFilteredSamples(filteredData);
+                setFilteredSamplesCopy(filteredData);
+            }
+        }
+    }, [selectedCategory, samples, categories]);
 
-    const filteredSamples = useMemo(() => {
-        return samples.filter((sample) => {
-            const matchesSearch =
+    // Handle search filter
+    useEffect(() => {
+        if (searchQuery !== "") {
+            const filteredData = filteredSamplesCopy.filter(sample =>
                 sample.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                sample.description.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = selectedCategory === "All" || sample.category === selectedCategory;
-            return matchesSearch && matchesCategory;
-        });
-    }, [searchQuery, selectedCategory, samples]);
+                sample.description.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredSamples(filteredData);
+        } else {
+            setFilteredSamples(filteredSamplesCopy);
+        }
+    }, [searchQuery, filteredSamplesCopy]);
 
-    const handleDownload = async (sampleId: string) => {
+    const handleDownload = async (identifier: string) => {
         try {
             const request: SampleDownloadRequest = {
-                zipFileName: sampleId
+                zipFileName: identifier
             };
             await rpcClient.getCommonRpcClient().downloadSelectedSampleFromGithub(request);
         } catch (error) {
@@ -337,8 +395,8 @@ export function SamplesView() {
                         onChange={(e) => setSelectedCategory(e.target.value)}
                     >
                         {categories.map((category) => (
-                            <option key={category} value={category}>
-                                {category}
+                            <option key={category.id} value={category.title}>
+                                {category.title}
                             </option>
                         ))}
                     </CategorySelect>
@@ -359,11 +417,13 @@ export function SamplesView() {
                 </div>
             ) : (
                 <SamplesGrid>
-                    {filteredSamples.map((sample) => {
-                        const iconName = ICON_MAP[sample.icon] || ICON_MAP.default;
-                        const iconColor = CATEGORY_COLOR_MAP[sample.category] || CATEGORY_COLOR_MAP.Default;
+                    {filteredSamples.sort((a, b) => a.sampleId - b.sampleId).map((sample) => {
+                        const category = categories.find(cat => cat.id === sample.categoryId);
+                        const categoryTitle = category?.title || "Default";
+                        const iconName = ICON_MAP[categoryTitle] || ICON_MAP.Default;
+                        const iconColor = CATEGORY_COLOR_MAP[categoryTitle] || CATEGORY_COLOR_MAP.Default;
                         return (
-                            <SampleCard key={sample.id} onClick={() => handleDownload(sample.id)}>
+                            <SampleCard key={sample.identifier} onClick={() => handleDownload(sample.identifier)}>
                                 <SampleIconContainer iconColor={iconColor}>
                                     <Icon name={iconName} iconSx={{ fontSize: 24, color: "#FFFFFF" }} />
                                 </SampleIconContainer>
@@ -373,7 +433,7 @@ export function SamplesView() {
                                     appearance="secondary"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        handleDownload(sample.id);
+                                        handleDownload(sample.identifier);
                                     }}
                                 >
                                     Download
