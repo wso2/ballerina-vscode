@@ -72,6 +72,7 @@ import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
+import { getPendingReviewContext, clearPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
@@ -720,7 +721,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     // TODO: check this if needed, we are not using this currently
     async revertChanges(): Promise<void> {
-        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
         const reviewContext = getPendingReviewContext();
         
         if (!reviewContext) {
@@ -745,7 +745,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async acceptChanges(): Promise<void> {
-        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
         const reviewContext = getPendingReviewContext();
         
         if (!reviewContext) {
@@ -776,8 +775,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             clearPendingReviewContext();
             
             // Hide review actions component
-            const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
-            const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
             AIChatStateMachine.sendEvent({
                 type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
             });
@@ -788,7 +785,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async declineChanges(): Promise<void> {
-        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
         const reviewContext = getPendingReviewContext();
         
         if (!reviewContext) {
@@ -811,8 +807,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             clearPendingReviewContext();
             
             // Hide review actions component
-            const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
-            const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
             AIChatStateMachine.sendEvent({
                 type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
             });
@@ -823,16 +817,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showReviewActions(): Promise<void> {
-        const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
-        const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
         });
     }
 
     async hideReviewActions(): Promise<void> {
-        const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
-        const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
         });
