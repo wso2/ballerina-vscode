@@ -621,7 +621,6 @@ const MainPanel = () => {
                         );
                         break;
                     case MACHINE_VIEW.ReviewMode:
-                        console.log('[Review Mode] Received value:', value);
                         setViewComponent(
                             <ReviewMode projectPath={value.projectPath} />
                         );

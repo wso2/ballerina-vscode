@@ -53,14 +53,11 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
 
-    console.log(">>> ReadonlyFlowDiagram props", props);
-
     useEffect(() => {
         fetchFlowModel();
     }, [filePath, position]);
 
     const fetchFlowModel = () => {
-        console.log(">>> fetching flow model", filePath, position);
         rpcClient
             .getBIDiagramRpcClient()
             .getFlowModel({
@@ -69,7 +66,6 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
                 endLine: { line: position.endLine, offset: position.endColumn },
             })
             .then((response) => {
-                console.log(">>> flow model", response);
                 if (response?.flowModel) {
                     setFlowModel(response.flowModel);
                     
@@ -86,7 +82,6 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
                                 name: data.label || 'Unknown',
                                 accessor: data.accessor
                             });
-                            console.log(">>> Extracted metadata from EVENT_START:", data);
                         }
                     }
                 }

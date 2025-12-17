@@ -77,12 +77,10 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
     };
 
     const handleAcceptAll = async () => {
-        console.log("[ReviewActions] Accept All button clicked");
         try {
             setIsProcessing(true);
             // Accept all changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
-            console.log("[ReviewActions] Changes accepted successfully");
             
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
@@ -96,12 +94,10 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
     };
 
     const handleDeclineAll = async () => {
-        console.log("[ReviewActions] Decline All button clicked");
         try {
             setIsProcessing(true);
             // Decline all changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
-            console.log("[ReviewActions] Changes declined successfully");
             
             // Navigate back to previous view  
             rpcClient.getVisualizerRpcClient().reviewRejected();
