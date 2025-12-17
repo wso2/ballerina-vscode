@@ -79,7 +79,7 @@ export function createPromptHelperPane(params: CreatePromptHelperPaneParams): JS
 
     const property: Property = {
         metadata: { label: "Prompt", description: "Prompt expression" },
-        valueType: "ai:Prompt",
+        types: [{fieldType: "ai:Prompt", selected: false}],
         value: value,
         optional: false,
         editable: true
@@ -96,13 +96,12 @@ export function createPromptHelperPane(params: CreatePromptHelperPaneParams): JS
         key: fieldKey,
         label: "Prompt",
         type: "RAW_TEMPLATE",
-        valueTypeConstraint: valueTypeConstraint,
+        types: [{fieldType:'RAW_TEMPLATE', ballerinaType: "ai:Prompt", selected: false}],
         enabled: true,
         optional: false,
         editable: true,
         documentation: "Prompt expression",
         value: value,
-        valueType: "RAW_TEMPLATE"
     };
 
     const helperPane = getHelperPaneNew({
@@ -127,7 +126,7 @@ export function createPromptHelperPane(params: CreatePromptHelperPaneParams): JS
         selectedType: undefined,
         filteredCompletions: filteredCompletions,
         isInModal: false,
-        valueTypeConstraint: valueTypeConstraint as string || "ai:Prompt",
+        types: [{ballerinaType: "ai:Prompt", fieldType: "RAW_TEMPLATE", selected: false}],
         forcedValueTypeConstraint: valueTypeConstraint as string || "ai:Prompt",
         handleRetrieveCompletions: async (value: string, property: Property, offset: number, triggerCharacter?: string) =>
             await debouncedRetrieveCompletions(value, property, offset, triggerCharacter),

@@ -127,9 +127,14 @@ const ConnectorOptionButtons = styled.div`
     flex-wrap: wrap;
 `;
 
-const ConnectorTypeButton = styled(Button)`
+const ConnectorTypeLabel = styled(Typography)`
     font-size: 12px;
-    height: auto;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    padding: 6px;
+    border-radius: 4px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    margin: 0;
+    display: inline-block;
 `;
 
 const ArrowIcon = styled.div`
@@ -200,6 +205,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | null>(null);
     const [selectedConnector, setSelectedConnector] = useState<AvailableNode | null>(null);
     const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
+    const [hasPersistConnection, setHasPersistConnection] = useState<boolean>(false);
 
     useEffect(() => {
         rpcClient
@@ -211,6 +217,32 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 setExperimentalEnabled(false);
             });
     }, [rpcClient]);
+
+    // Temporary fix to check for existing database Persist connection till the backend is updated to support this.
+    useEffect(() => {
+        const checkExistingDatabaseConnection = async () => {
+            if (!rpcClient || !experimentalEnabled) {
+                return;
+            }
+            try {
+                const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
+                
+                const hasDatabaseConnection = res.flowModel.connections?.some((connection) => {
+                    const metadataData = connection.metadata?.data as any;
+                    return metadataData?.connectorType === "persist";
+                });
+                
+                setHasPersistConnection(hasDatabaseConnection || false);
+            } catch (error) {
+                console.error(">>> Error checking for existing database connection", error);
+                setHasPersistConnection(false);
+            }
+        };
+
+        if (experimentalEnabled) {
+            checkExistingDatabaseConnection();
+        }
+    }, [rpcClient, experimentalEnabled]);
 
     const fetchConnectors = useCallback((filter?: boolean) => {
         setFetchingInfo(true);
@@ -480,8 +512,8 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
     const getConnectorCreationOptions = () => {
         if (!searchText || searchText.trim() === "") {
-            // No search - show both options (database only if experimental)
-            return { showApiSpec: true, showDatabase: experimentalEnabled };
+            // No search - show both options (database only if experimental and no existing DB connection)
+            return { showApiSpec: true, showDatabase: experimentalEnabled && !hasPersistConnection };
         }
 
         const lowerSearchText = searchText.toLowerCase().trim();
@@ -505,7 +537,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
         // If search matches database keywords, show only database option
         if (isDatabaseSearch && !isApiSearch) {
-            return { showApiSpec: false, showDatabase: experimentalEnabled };
+            return { showApiSpec: false, showDatabase: experimentalEnabled && !hasPersistConnection };
         }
 
         // If search matches API keywords, show only API spec option
@@ -514,7 +546,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         }
 
         // If both or neither match, show both options
-        return { showApiSpec: true, showDatabase: experimentalEnabled };
+        return { showApiSpec: true, showDatabase: experimentalEnabled && !hasPersistConnection };
     };
 
     const connectorOptions = getConnectorCreationOptions();
@@ -531,7 +563,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 </PopupHeader>
                 <PopupContent>
                     <IntroText>
-                        {experimentalEnabled ? (
+                        {experimentalEnabled && !hasPersistConnection ? (
                             <>
                                 To establish your connection, first define a connector. You may create a custom connector using
                                 an API specification or by introspecting a database. Alternatively, you can select one of the
@@ -572,12 +604,12 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                                 Import an OpenAPI or WSDL file to create a connector
                                             </ConnectorOptionDescription>
                                             <ConnectorOptionButtons>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                <ConnectorTypeLabel>
                                                     OpenAPI
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     WSDL
-                                                </ConnectorTypeButton>
+                                                </ConnectorTypeLabel>
                                             </ConnectorOptionButtons>
                                         </ConnectorOptionContent>
                                         <ArrowIcon>
@@ -585,7 +617,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                         </ArrowIcon>
                                     </ConnectorOptionCard>
                                 )}
-                                {connectorOptions.showDatabase && (
+                                {connectorOptions.showDatabase && !hasPersistConnection && (
                                     <ConnectorOptionCard onClick={handleDatabaseConnection}>
                                         <ConnectorOptionIcon>
                                             <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
@@ -596,15 +628,15 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                                 Enter credentials to introspect and discover database tables
                                             </ConnectorOptionDescription>
                                             <ConnectorOptionButtons>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                <ConnectorTypeLabel>
                                                     MySQL
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     MSSQL
-                                                </ConnectorTypeButton>
-                                                <ConnectorTypeButton appearance="secondary">
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
                                                     PostgreSQL
-                                                </ConnectorTypeButton>
+                                                </ConnectorTypeLabel>
                                             </ConnectorOptionButtons>
                                         </ConnectorOptionContent>
                                         <ArrowIcon>
