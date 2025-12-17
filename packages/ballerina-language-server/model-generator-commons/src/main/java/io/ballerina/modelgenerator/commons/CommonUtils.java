@@ -33,6 +33,7 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeDescTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -75,10 +76,12 @@ import org.eclipse.lsp4j.Range;
 import org.wso2.ballerinalang.compiler.tree.BLangPackage;
 
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -111,6 +114,11 @@ public class CommonUtils {
     private static final String UNKNOWN_TYPE = "Unknown Type";
     private static final String AI = "ai";
     private static final String AGENT = "Agent";
+    public static final String CONNECTOR_TYPE = "connectorType";
+    public static final String PERSIST = "persist";
+    public static final String PERSIST_MODEL_FILE = "persistModelFile";
+    public static final String DEFAULT_PERSIST_MODEL_FILE = "model.bal";
+    public static final String ABSTRACT_PERSIST_CLIENT = "AbstractPersistClient";
 
     public static final String AI_OPENAI = "ai.openai";
     public static final String AI_ANTHROPIC = "ai.anthropic";
@@ -1038,6 +1046,112 @@ public class CommonUtils {
     public static boolean isAiMcpBaseToolKit(Symbol symbol) {
         ClassSymbol classSymbol = getClassSymbol(symbol);
         return classSymbol != null && hasAiTypeInclusion(classSymbol, MCP_BASE_TOOL_KIT_TYPE_NAME);
+    }
+
+    /**
+     * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
+     *
+     * @param semanticModel the semantic model used to resolve types
+     * @param functionData  the function data containing module and organization information
+     * @param name          the name of the class symbol to check
+     * @return true if the class symbol is a subtype of AbstractPersistClient, false otherwise
+     */
+    public static boolean isPersistClient(SemanticModel semanticModel, FunctionData functionData, String name) {
+        Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()
+                .typesInModule(functionData.org(), functionData.moduleName(), functionData.version());
+        if (moduleTypesOpt.isEmpty()) {
+            return false;
+        }
+
+        Map<String, Symbol> moduleTypes = moduleTypesOpt.get();
+        Symbol symbol = moduleTypes.get(name);
+        if (!(symbol instanceof ClassSymbol classSymbol)) {
+            return false;
+        }
+
+        return isPersistClient(classSymbol, semanticModel);
+    }
+
+    /**
+     * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
+     *
+     * @param classSymbol   the class symbol to check
+     * @param semanticModel the semantic model used to resolve types
+     * @return true if the class symbol is a subtype of AbstractPersistClient, false otherwise
+     */
+    public static boolean isPersistClient(ClassSymbol classSymbol, SemanticModel semanticModel) {
+        Optional<Map<String, Symbol>> persistTypesOpt = semanticModel.types()
+                .typesInModule(BALLERINA_ORG_NAME, PERSIST, "");
+        if (persistTypesOpt.isEmpty()) {
+            return false;
+        }
+
+        Map<String, Symbol> persistTypes = persistTypesOpt.get();
+        Symbol abstractClientSymbol = persistTypes.get(ABSTRACT_PERSIST_CLIENT);
+        if (!(abstractClientSymbol instanceof TypeDefinitionSymbol abstractClientTypeDefSymbol)) {
+            return false;
+        }
+
+        return classSymbol.subtypeOf(abstractClientTypeDefSymbol.typeDescriptor());
+    }
+
+    /**
+     * Extracts a user-friendly label for a persist client from its module name.
+     *
+     * @param packageName the package name of the persist module
+     * @param moduleName  the full module name of the persist client
+     * @return an Optional containing the formatted client label, or empty if extraction fails
+     */
+    public static Optional<String> getPersistClientLabel(String packageName, String moduleName) {
+        String modulePartName = "";
+        if (moduleName != null && moduleName.startsWith(packageName + ".")) {
+            modulePartName = moduleName.substring(packageName.length() + 1);
+        }
+
+        // The modulePartName follows the pattern <database-type>.<database-name>
+        if (modulePartName.isEmpty()) {
+            return Optional.empty();
+        }
+        String[] moduleParts = modulePartName.split("\\.");
+        if (moduleParts.length == 2 && !moduleParts[0].isEmpty() && !moduleParts[1].isEmpty()) {
+            String dbType = moduleParts[0];
+            String dbName = moduleParts[1];
+            return Optional.of(dbType.substring(0, 1).toUpperCase(Locale.getDefault()) +
+                    dbType.substring(1) + " " + dbName);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Retrieves the file path of the persist model file in the given project directory.
+     *
+     * @param projectPath the path to the project directory as a string
+     * @return an Optional containing the file path if it exists, or empty if not found
+     */
+    public static Optional<String> getPersistModelFilePath(String projectPath) {
+        if (projectPath == null || projectPath.isEmpty()) {
+            return Optional.empty();
+        }
+        return getPersistModelFilePath(Path.of(projectPath));
+    }
+
+    /**
+     * Retrieves the file path of the persist model file in the given project directory.
+     *
+     * @param projectPath the path to the project directory
+     * @return an Optional containing the file path if it exists, or empty if not found
+     */
+    public static Optional<String> getPersistModelFilePath(Path projectPath) {
+        // Since persist supports only one model per project, hardcoding the model file name
+        // Once we have multimodel support, we need to extract the model file name from class symbol
+        // Issue: https://github.com/ballerina-platform/ballerina-library/issues/8503
+        Path persistModelPath = projectPath.resolve(PERSIST)
+                .resolve(DEFAULT_PERSIST_MODEL_FILE)
+                .toAbsolutePath();
+        if (!Files.exists(persistModelPath)) {
+            return Optional.empty();
+        }
+        return Optional.of(persistModelPath.toString());
     }
 
     private static ClassSymbol getClassSymbol(Symbol symbol) {

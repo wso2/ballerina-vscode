@@ -169,7 +169,6 @@ import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -177,7 +176,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -186,6 +184,12 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
+import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistClientLabel;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
@@ -197,6 +201,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
  * Analyzes the source code and generates the flow model.
@@ -205,11 +210,6 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
  */
 public class CodeAnalyzer extends NodeVisitor {
 
-    public static final String CONNECTOR_TYPE = "connectorType";
-    public static final String PERSIST = "persist";
-    public static final String PERSIST_MODEL_FILE = "persistModelFile";
-    public static final String DEFAULT_PERSIST_MODEL_FILE = "model.bal";
-    public static final String ABSTRACT_PERSIST_CLIENT = "AbstractPersistClient";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -228,8 +228,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
-    public static final String BALLERINA = "ballerina";
-    public static final String ICON_PATH = CommonUtils.generateIcon(BALLERINA, "mcp", "0.4.2");
+    public static final String ICON_PATH = CommonUtils.generateIcon(BALLERINA_ORG_NAME, "mcp", "0.4.2");
     public static final String MCP_TOOL_KIT = "McpToolKit";
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
@@ -1531,71 +1530,12 @@ public class CodeAnalyzer extends NodeVisitor {
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
         String moduleName = functionData.moduleName();
-        String modulePartName = "";
-        if (moduleName != null && moduleName.startsWith(packageName + ".")) {
-            modulePartName = moduleName.substring(packageName.length() + 1);
-        }
-
-        // The modulePartName follows the pattern <database-type>.<database-name>
-        if (!modulePartName.isEmpty()) {
-            String[] moduleParts = modulePartName.split("\\.");
-            if (moduleParts.length == 2 && !moduleParts[0].isEmpty() && !moduleParts[1].isEmpty()) {
-                String dbType = moduleParts[0];
-                String dbName = moduleParts[1];
-                String label = dbType.substring(0, 1).toUpperCase(Locale.getDefault()) +
-                        dbType.substring(1) + " " + dbName;
-                nodeBuilder.metadata().label(label);
-            }
-        }
+        getPersistClientLabel(moduleName, packageName)
+                .ifPresent(label -> nodeBuilder.metadata().label(label));
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
-        // Since persist supports only one model per project, hardcoding the model file name
-        // Once we have multimodel support, we need to extract the model file name from class symbol
-        // Issue: https://github.com/ballerina-platform/ballerina-library/issues/8503
-        Path persistModelPath = project.sourceRoot().resolve(PERSIST)
-                .resolve(DEFAULT_PERSIST_MODEL_FILE)
-                .toAbsolutePath();
-        if (!Files.exists(persistModelPath)) {
-            return;
-        }
-        nodeBuilder.metadata()
-                .addData(PERSIST_MODEL_FILE, persistModelPath.toString());
-    }
-
-    /**
-     * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
-     *
-     * @param semanticModel the semantic model used to resolve types
-     * @param functionData  the function data containing module and organization information
-     * @param name          the name of the class symbol to check
-     * @return true if the class symbol is a subtype of AbstractPersistClient, false otherwise
-     */
-    private static boolean isPersistClient(SemanticModel semanticModel, FunctionData functionData, String name) {
-        Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()
-                .typesInModule(functionData.org(), functionData.moduleName(), functionData.version());
-        if (moduleTypesOpt.isEmpty()) {
-            return false;
-        }
-
-        Map<String, Symbol> moduleTypes = moduleTypesOpt.get();
-        Symbol symbol = moduleTypes.get(name);
-        if (!(symbol instanceof ClassSymbol classSymbol)) {
-            return false;
-        }
-
-        Optional<Map<String, Symbol>> persistTypesOpt = semanticModel.types()
-                .typesInModule(BALLERINA, PERSIST, "");
-        if (persistTypesOpt.isEmpty()) {
-            return false;
-        }
-
-        Map<String, Symbol> persistTypes = persistTypesOpt.get();
-        Symbol abstractClientSymbol = persistTypes.get(ABSTRACT_PERSIST_CLIENT);
-        if (!(abstractClientSymbol instanceof TypeDefinitionSymbol abstractClientTypeDefSymbol)) {
-            return false;
-        }
-
-        return classSymbol.subtypeOf(abstractClientTypeDefSymbol.typeDescriptor());
+        getPersistModelFilePath(project.sourceRoot())
+                .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
@@ -2766,7 +2706,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
         TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)
-                semanticModel.types().getTypeByName(BALLERINA, "lang.object", "0.0.0", "RawTemplate").get();
+                semanticModel.types().getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate").get();
 
         TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
