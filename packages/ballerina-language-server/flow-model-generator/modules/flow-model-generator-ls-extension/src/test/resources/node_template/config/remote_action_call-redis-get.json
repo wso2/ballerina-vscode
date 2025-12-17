@@ -42,7 +42,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "redis:Client"
+            "ballerinaType": "redis:Client",
+            "selected": false
           }
         ],
         "value": "rc",
@@ -59,11 +60,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -74,16 +77,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "key"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -92,7 +86,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string|()",
@@ -110,7 +105,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "stringResult",
@@ -126,7 +122,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

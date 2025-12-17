@@ -38,8 +38,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "time:Civil",
+            "typeMembers": [
+              {
+                "type": "Civil",
+                "packageInfo": "ballerina:time:2.5.0",
+                "packageName": "time",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "time:Civil"
+            "ballerinaType": "time:Civil",
+            "selected": false
           }
         ],
         "placeholder": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
@@ -50,16 +65,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "civilTime"
-        },
-        "typeMembers": [
-          {
-            "type": "Civil",
-            "packageInfo": "ballerina:time:2.5.0",
-            "packageName": "time",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -68,7 +74,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "time:Utc",
@@ -86,7 +93,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "timeUtc",
@@ -102,7 +110,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

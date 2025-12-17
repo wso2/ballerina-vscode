@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "anydata"
+            "ballerinaType": "anydata",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -50,16 +51,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "v"
-        },
-        "typeMembers": [
-          {
-            "type": "anydata",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "OTHER",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -68,7 +60,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "json",
@@ -86,7 +79,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "jsonResult",

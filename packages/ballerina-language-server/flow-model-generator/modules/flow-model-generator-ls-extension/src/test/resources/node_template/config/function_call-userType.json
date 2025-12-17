@@ -35,8 +35,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Address",
+            "typeMembers": [
+              {
+                "type": "Address",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Address"
+            "ballerinaType": "Address",
+            "selected": false
           }
         ],
         "placeholder": "{houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}",
@@ -47,16 +62,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "address"
-        },
-        "typeMembers": [
-          {
-            "type": "Address",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "Person": {
         "metadata": {
@@ -64,8 +70,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Person",
+            "typeMembers": [
+              {
+                "type": "Person",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Person"
+            "ballerinaType": "Person",
+            "selected": false
           }
         ],
         "placeholder": "{name: \"\", email: \"\", address: {houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}}",
@@ -76,16 +97,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "Person"
-        },
-        "typeMembers": [
-          {
-            "type": "Person",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -94,7 +106,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "Location",
@@ -112,7 +125,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "location",

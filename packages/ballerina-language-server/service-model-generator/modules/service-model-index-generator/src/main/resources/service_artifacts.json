@@ -28,7 +28,7 @@
         "stringLiteralLabel": "Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "http"
       },
       "serviceTypes": {
@@ -89,7 +89,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "\"/graphql\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "graphql"
       },
       "serviceTypes": {
@@ -123,22 +123,30 @@
           "description": "The base path of the GraphQL service",
           "defaultValue": "/graphql",
           "placeholder": "/graphql",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "SERVICE_BASE_PATH",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
         },
         "port": {
           "label": "Port",
           "description": "The port on which the GraphQL service listens",
           "defaultValue": "8080",
           "placeholder": "8080",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "int",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         }
       }
     },
@@ -164,7 +172,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "tcp"
       },
       "serviceTypes": {
@@ -205,11 +213,17 @@
           "description": "The port on which the TCP service listens",
           "defaultValue": "80",
           "placeholder": "80",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "int",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         }
       },
       "readOnlyMetadata": [
@@ -242,7 +256,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
       "serviceTypes": {
@@ -331,22 +345,34 @@
           "description": "Directory path to be monitored",
           "defaultValue": "",
           "placeholder": "\"/tmp\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "recursive": {
           "label": "Recursive",
           "description": "Recursively monitor all sub-directories",
           "defaultValue": "false",
           "placeholder": "false",
-          "valueType": "FLAG",
-          "typeConstraint": "boolean",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       },
       "readOnlyMetadata": [
@@ -379,7 +405,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "file"
       },
       "serviceTypes": {
@@ -431,53 +457,78 @@
           "description": "Target FTP server url",
           "defaultValue": "\"127.0.0.1\"",
           "placeholder": "\"127.0.0.1\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "port": {
           "label": "Port",
           "description": "Target FTP server port",
           "defaultValue": "21",
           "placeholder": "21",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "int",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "protocol": {
           "label": "Protocol",
           "description": "The protocol to connect to the FTP server",
           "defaultValue": "\"ftp\"",
           "placeholder": "\"ftp\"",
-          "valueType": "SINGLE_SELECT",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": [
+          "types": [
             {
-              "label": "ftp",
-              "value": "\"ftp\""
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "string",
+              "options": [
+                {
+                  "label": "ftp",
+                  "value": "\"ftp\""
+                },
+                {
+                  "label": "sftp",
+                  "value": "\"sftp\""
+                }
+              ]
             },
             {
-              "label": "sftp",
-              "value": "\"sftp\""
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
             }
-          ]
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "path": {
           "label": "Path",
           "description": "The path to be monitored",
           "defaultValue": "\"/\"",
           "placeholder": "\"/\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       },
       "readOnlyMetadata": [
@@ -508,7 +559,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -550,33 +601,55 @@
           "description": "The URI of the MQTT broker",
           "defaultValue": "",
           "placeholder": "\"mqtt://localhost:1883\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "clientId": {
           "label": "Client ID",
           "description": "A unique identifier to identify by the MQTT broker",
           "defaultValue": "",
           "placeholder": "\"unique_client_001\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "subscriptions": {
           "label": "Subscriptions",
           "description": "The topics to subscribe to",
           "defaultValue": "",
           "placeholder": "\"topic1\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string|string[]",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         }
       },
       "readOnlyMetadata": [
@@ -612,7 +685,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
       "serviceTypes": {
@@ -640,7 +713,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "mcp"
       },
       "serviceTypes": {
@@ -661,44 +734,64 @@
           "description": "The name of the mcp service",
           "defaultValue": "",
           "placeholder": "MCP Service",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "SOURCE_ANNOTATION",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SOURCE_ANNOTATION"
         },
         "version": {
           "label": "Version",
           "description": "The version of the mcp service",
           "defaultValue": "\"1.0.0\"",
           "placeholder": "\"1.0.0\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "SOURCE_ANNOTATION",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SOURCE_ANNOTATION"
         },
         "port": {
           "label": "Port",
           "description": "The port on which the MCP service listens",
           "defaultValue": "8080",
           "placeholder": "8080",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "int",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "basePath": {
           "label": "Base Path",
           "description": "The base path of the MCP service",
           "defaultValue": "/mcp",
           "placeholder": "/mcp",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "SERVICE_BASE_PATH",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "SERVICE_PATH",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
         }
       }
     }
@@ -724,7 +817,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -789,11 +882,17 @@
           "description": "The connection string to connect to the Azure Service Bus namespace",
           "defaultValue": "",
           "placeholder": "\"Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         },
         "entityConfig": {
           "label": "Entity Config",
@@ -802,20 +901,29 @@
           "placeholder": "{}",
           "valueType": "EXPRESSION",
           "typeConstraint": "asb:TopicSubsConfig|asb:QueueConfig",
-          "typeMembers": [
+          "types": [
             {
-              "type": "TopicSubsConfig",
-              "packageInfo": "ballerinax:asb:3.9.0",
-              "kind": "RECORD_TYPE"
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "asb:TopicSubsConfig|asb:QueueConfig",
+              "typeMembers": [
+                {
+                  "type": "TopicSubsConfig",
+                  "packageInfo": "ballerinax:asb:3.9.0",
+                  "kind": "RECORD_TYPE"
+                },
+                {
+                  "type": "QueueConfig",
+                  "packageInfo": "ballerinax:asb:3.9.0",
+                  "kind": "RECORD_TYPE"
+                }
+              ]
             },
             {
-              "type": "QueueConfig",
-              "packageInfo": "ballerinax:asb:3.9.0",
-              "kind": "RECORD_TYPE"
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "asb:TopicSubsConfig|asb:QueueConfig"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
-          "selections": []
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         }
       },
       "readOnlyMetadata": [
@@ -851,7 +959,7 @@
         "stringLiteralLabel": "Queue Name",
         "stringLiteralDescription": "The name of the queue",
         "stringLiteralDefaultValue": "\"\"",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -983,33 +1091,51 @@
           "description": "The name of the queue to listen to",
           "defaultValue": "",
           "placeholder": "\"myQueue\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "SERVICE_BASE_PATH",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "SERVICE_BASE_PATH"
         },
         "host": {
           "label": "Host",
           "description": "The host used for establishing the connection",
           "defaultValue": "",
           "placeholder": "\"localhost\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "port": {
           "label": "Port",
           "description": "The port used for establishing the connection",
           "defaultValue": "",
           "placeholder": "5672",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "int",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         }
       },
       "readOnlyMetadata": [
@@ -1045,7 +1171,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "SINGLE_SELECT",
+        "listenerKind": "SINGLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1121,22 +1247,42 @@
           "description": "List of remote server endpoints of the Kafka brokers",
           "defaultValue": "",
           "placeholder": "\"localhost:9092\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string|string[]",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+                "fieldType": "EXPRESSION_SET",
+                "ballerinaType": "string[]"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "topics": {
           "label": "Topic(s)",
           "description": "The topic(s) to subscribe to",
           "defaultValue": "",
           "placeholder": "\"myTopic\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string|string[]",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         }
       },
       "readOnlyMetadata": [
@@ -1167,7 +1313,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1178,17 +1324,24 @@
           "description": "Configurations related to username/password authentication",
           "defaultValue": "",
           "placeholder": "{username: \"\", password: \"\"}",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "salesforce:CredentialsConfig",
-          "typeMembers": [
+          "types": [
             {
-              "type": "CredentialsConfig",
-              "packageInfo": "ballerinax:salesforce:8.2.0",
-              "kind": "RECORD_TYPE"
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "salesforce:CredentialsConfig",
+                "typeMembers": [
+                    {
+                    "type": "CredentialsConfig",
+                    "packageInfo": "ballerinax:salesforce:8.2.0",
+                    "kind": "RECORD_TYPE"
+                    }
+                ]
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "salesforce:CredentialsConfig"
             }
           ],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD",
-          "selections": []
+          "sourceKind": "LISTENER_PARAM_INCLUDED_FIELD"
         }
       }
     },
@@ -1212,7 +1365,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1223,22 +1376,25 @@
           "description": "The event channel name",
           "defaultValue": "",
           "placeholder": "\"IssuesService\"",
-          "valueType": "SINGLE_SELECT",
-          "typeConstraint": "github:GenericServiceType",
-          "typeMembers": [],
-          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
-          "selections": [
-            "IssuesService",
-            "IssueCommentService",
-            "PullRequestService",
-            "PullRequestReviewService",
-            "PullRequestReviewCommentService",
-            "ReleaseService",
-            "LabelService",
-            "MilestoneService",
-            "PushService",
-            "ProjectCardService"
-          ]
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "github:GenericServiceType",
+              "options": [
+                "IssuesService",
+                "IssueCommentService",
+                "PullRequestService",
+                "PullRequestReviewService",
+                "PullRequestReviewCommentService",
+                "ReleaseService",
+                "LabelService",
+                "MilestoneService",
+                "PushService",
+                "ProjectCardService"
+              ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
         }
       },
       "readOnlyMetadata": [
@@ -1269,7 +1425,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "agent"
       },
       "serviceTypes": {
@@ -1295,7 +1451,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1306,14 +1462,17 @@
           "description": "The event channel name",
           "defaultValue": "",
           "placeholder": "\"CallStatusService\"",
-          "valueType": "SINGLE_SELECT",
-          "typeConstraint": "twilio:GenericServiceType",
-          "typeMembers": [],
-          "sourceKind": "SERVICE_TYPE_DESCRIPTOR",
-          "selections": [
-            "CallStatusService",
-            "SmsStatusService"
-          ]
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "twilio:GenericServiceType",
+                "options": [
+                    "CallStatusService",
+                    "SmsStatusService"
+                ]
+            }
+          ],
+          "sourceKind": "SERVICE_TYPE_DESCRIPTOR"
         }
       }
     },
@@ -1337,7 +1496,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "SINGLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {
@@ -1422,22 +1581,34 @@
           "description": "The Solace broker URL",
           "defaultValue": "\"smf://localhost:55554\"",
           "placeholder": "\"smf://localhost:55554\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_REQUIRED",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_REQUIRED"
         },
         "messageVpn": {
           "label": "Message VPN",
           "description": "The message VPN to connect to",
           "defaultValue": "\"default\"",
           "placeholder": "\"default\"",
-          "valueType": "EXPRESSION",
-          "typeConstraint": "string",
-          "typeMembers": [],
-          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD",
-          "selections": []
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string"
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string"
+            }
+          ],
+          "sourceKind": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         }
       },
       "readOnlyMetadata": [

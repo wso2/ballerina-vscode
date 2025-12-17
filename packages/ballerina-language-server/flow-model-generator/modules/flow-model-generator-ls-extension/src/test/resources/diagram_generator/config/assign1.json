@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "2",
@@ -86,7 +87,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "i",
@@ -115,7 +117,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -159,7 +162,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "3",
@@ -175,7 +179,8 @@
             },
             "types": [
               {
-                "fieldType": "LV_EXPRESSION"
+                "fieldType": "LV_EXPRESSION",
+                "selected": false
               }
             ],
             "value": "i",
@@ -217,7 +222,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "4",
@@ -233,7 +239,8 @@
             },
             "types": [
               {
-                "fieldType": "LV_EXPRESSION"
+                "fieldType": "LV_EXPRESSION",
+                "selected": false
               }
             ],
             "value": "_",

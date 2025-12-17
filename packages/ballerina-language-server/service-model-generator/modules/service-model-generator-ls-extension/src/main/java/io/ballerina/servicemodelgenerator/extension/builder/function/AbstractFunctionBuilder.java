@@ -42,6 +42,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
@@ -76,7 +77,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LI
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TWO_NEW_LINES;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.CLASS;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.FunctionSignatureContext.FUNCTION_ADD;
@@ -178,7 +178,7 @@ public abstract class AbstractFunctionBuilder implements NodeBuilder<Function> {
             Parameter parameterModel = createParameter(paramName, KIND_DEFAULTABLE, paramType);
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
-            defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
+            defaultValue.setTypes(List.of(PropertyType.types(Value.FieldType.EXPRESSION)));
             defaultValue.setEnabled(true);
             return Optional.of(parameterModel);
         } else if (parameterNode instanceof IncludedRecordParameterNode parameter) {

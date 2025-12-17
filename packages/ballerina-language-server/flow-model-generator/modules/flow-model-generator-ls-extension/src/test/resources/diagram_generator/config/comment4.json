@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "This is a function body comment\nto generate AI flow for function\n`commentInFunctionBody2`",

@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "MyType2",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -183,7 +188,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "MyType",
@@ -199,7 +205,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -215,7 +222,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -231,7 +239,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -247,7 +256,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -303,7 +313,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Color",
@@ -319,7 +330,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -335,7 +347,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -351,7 +364,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",

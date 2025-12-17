@@ -18,6 +18,7 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
@@ -74,7 +75,9 @@ public class ConfigVariablesTest extends AbstractLSTest {
                 }
                 String expectedVarName = expectedVar.get().toSourceCode();
                 if (expectedVarName.equals(actualVarName)) {
-                    if (!actualFlowNode.equals(expectedFlowNode)) {
+                    JsonElement actualNodeJson = gson.toJsonTree(actualFlowNode);
+                    JsonElement expectedNodeJson = gson.toJsonTree(expectedFlowNode);
+                    if (!actualNodeJson.equals(expectedNodeJson)) {
                         assertFalse = true;
                     }
                 }

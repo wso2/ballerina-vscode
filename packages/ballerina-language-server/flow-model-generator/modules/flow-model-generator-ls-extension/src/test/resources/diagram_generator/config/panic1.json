@@ -71,7 +71,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "error"
+                "ballerinaType": "error",
+                "selected": true
               }
             ],
             "value": "error(\"\")",

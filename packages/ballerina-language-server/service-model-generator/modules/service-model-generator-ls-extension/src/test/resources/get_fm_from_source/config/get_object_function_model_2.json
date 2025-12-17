@@ -25,7 +25,12 @@
         "label": "Accessor",
         "description": "The accessor of the function"
       },
-      "valueType": "IDENTIFIER",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -36,8 +41,13 @@
         "label": "Function Name",
         "description": "The name of the function"
       },
-      "valueType": "IDENTIFIER",
       "value": "hello",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": false,
@@ -55,8 +65,13 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
-          "valueType": "TYPE",
           "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -67,8 +82,13 @@
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
-          "valueType": "IDENTIFIER",
           "value": "name",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -79,7 +99,12 @@
             "label": "Default Value",
             "description": "The default value of the parameter"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -90,7 +115,12 @@
             "label": "Description",
             "description": "The description of the parameter"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -111,7 +141,12 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -122,7 +157,12 @@
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -133,7 +173,12 @@
             "label": "Default Value",
             "description": "The default value of the parameter"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -144,7 +189,12 @@
             "label": "Description",
             "description": "The description of the parameter"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -165,8 +215,13 @@
         "label": "Return Type",
         "description": "The return type of the function"
       },
-      "valueType": "TYPE",
       "value": "string",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,

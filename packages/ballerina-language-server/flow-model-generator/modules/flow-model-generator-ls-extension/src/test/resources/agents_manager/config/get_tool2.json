@@ -31,7 +31,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "mutiply",
@@ -60,7 +61,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -76,7 +78,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",
@@ -92,7 +95,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -116,7 +120,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -127,7 +132,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -143,7 +149,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -159,7 +166,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -173,7 +181,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {
@@ -184,7 +193,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -195,7 +205,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "int",
@@ -211,7 +222,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "a",
@@ -240,7 +252,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -262,7 +275,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -273,7 +287,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "int",
@@ -289,7 +304,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "b",
@@ -318,7 +334,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -346,7 +363,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "\n@ai:AgentTool\n\n",
@@ -362,7 +380,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",

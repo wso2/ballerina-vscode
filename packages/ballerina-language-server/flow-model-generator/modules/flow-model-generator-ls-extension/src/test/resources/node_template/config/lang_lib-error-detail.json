@@ -40,7 +40,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "error:error<error:DetailType>"
+            "ballerinaType": "error:error<error:DetailType>",
+            "selected": false
           }
         ],
         "placeholder": "error(\"\")",
@@ -51,16 +52,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "e"
-        },
-        "typeMembers": [
-          {
-            "type": "error<error",
-            "packageInfo": "ballerina:lang.error:0.0.0",
-            "packageName": "lang.error",
-            "kind": "ERROR_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -69,7 +61,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "error:DetailType & readonly",
@@ -87,7 +80,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "errorDetailtypeReadonly",

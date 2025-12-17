@@ -41,8 +41,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "ai:SystemPrompt",
+            "typeMembers": [
+              {
+                "type": "SystemPrompt",
+                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageName": "ai",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:SystemPrompt"
+            "ballerinaType": "ai:SystemPrompt",
+            "selected": false
           }
         ],
         "placeholder": "{role: \"\", instructions: \"\"}",
@@ -63,7 +78,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:ModelProvider"
+            "ballerinaType": "ai:ModelProvider",
+            "selected": false
           }
         ],
         "placeholder": "object {}",
@@ -84,11 +100,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -112,11 +130,13 @@
             "options": [
               "FUNCTION_CALL_AGENT",
               "REACT_AGENT"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:AgentType"
+            "ballerinaType": "ai:AgentType",
+            "selected": false
           }
         ],
         "placeholder": "\"FUNCTION_CALL_AGENT\"",
@@ -137,11 +157,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -162,11 +184,13 @@
         "types": [
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           }
         ],
         "placeholder": "false",
@@ -187,7 +211,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:Memory?"
+            "ballerinaType": "ai:Memory?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -207,7 +232,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",
@@ -225,7 +251,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "stringResult",
@@ -241,7 +268,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,
@@ -257,7 +285,8 @@
         },
         "types": [
           {
-            "fieldType": "ENUM"
+            "fieldType": "ENUM",
+            "selected": true
           }
         ],
         "value": "Global",
@@ -276,7 +305,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": false
           }
         ],
         "value": "",
@@ -297,7 +327,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": false
           }
         ],
         "value": "",
@@ -319,7 +350,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:Agent"
+            "ballerinaType": "ai:Agent",
+            "selected": false
           }
         ],
         "value": "agentRun",
@@ -336,11 +368,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -351,16 +385,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "query"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "sessionId": {
         "metadata": {
@@ -370,11 +395,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -386,15 +413,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "sessionId"
         },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "\"\""
       }
     },

@@ -100,18 +100,6 @@ public class Constants {
 
     // different input boxes in the UI
     public static final String VALUE_TYPE_CONDITIONAL_FIELDS = "CONDITIONAL_FIELDS";
-    public static final String VALUE_TYPE_FORM = "FORM";
-    public static final String VALUE_TYPE_CHOICE = "CHOICE";
-    public static final String VALUE_TYPE_HEADER_SET = "HEADER_SET";
-    public static final String VALUE_TYPE_SINGLE_SELECT = "SINGLE_SELECT";
-    public static final String VALUE_TYPE_FLAG = "FLAG";
-    public static final String VALUE_TYPE_MULTIPLE_SELECT = "MULTIPLE_SELECT";
-    public static final String VALUE_TYPE_EXPRESSION = "EXPRESSION";
-    public static final String VALUE_TYPE_IDENTIFIER = "IDENTIFIER";
-    public static final String VALUE_TYPE_TYPE = "TYPE";
-    public static final String VALUE_TYPE_STRING = "STRING";
-    public static final String VALUE_TYPE_SINGLE_SELECT_LISTENER = "SINGLE_SELECT_LISTENER";
-    public static final String VALUE_TYPE_MULTIPLE_SELECT_LISTENER = "MULTIPLE_SELECT_LISTENER";
 
     public static final String DB_KIND_OPTIONAL = "OPTIONAL";
 

@@ -155,7 +155,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "item",
@@ -184,7 +185,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",
@@ -212,7 +214,8 @@
         "types": [
           {
             "fieldType": "ACTION_OR_EXPRESSION",
-            "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json"
+            "ballerinaType": "(any|error)[]|stream<any|error, ()>|string|map<any|error>|json",
+            "selected": true
           }
         ],
         "value": "intArr ",

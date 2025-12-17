@@ -21,7 +21,6 @@
             "label": "Use Existing Listener",
             "description": "Use Existing Listener or Create New Listener"
           },
-          "valueType": "CHOICE",
           "value": true,
           "choices": [
             {
@@ -29,7 +28,6 @@
                 "label": "Use Existing Listener",
                 "description": "Use Existing Listener"
               },
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "existingListener": {
@@ -37,10 +35,15 @@
                     "label": "Select Listener",
                     "description": "Select from the existing Solace listeners"
                   },
-                  "valueType": "SINGLE_SELECT",
                   "value": "solaceListener",
-                  "items": [
-                    "solaceListener"
+                  "types": [
+                    {
+                      "fieldType": "SINGLE_SELECT",
+                      "options": [
+                        "solaceListener"
+                      ],
+                      "selected": true
+                    }
                   ],
                   "enabled": true,
                   "editable": true,
@@ -48,6 +51,12 @@
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": false,
               "optional": false,
@@ -58,7 +67,6 @@
                 "label": "Create New Listener",
                 "description": "Create a new Solace listener"
               },
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "listenerVarName": {
@@ -69,9 +77,13 @@
                   "codedata": {
                     "type": "LISTENER_VAR_NAME"
                   },
-                  "valueType": "IDENTIFIER",
-                  "valueTypeConstraint": "Global",
                   "value": "solaceListenerResult",
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -86,11 +98,19 @@
                     "argType": "LISTENER_PARAM_REQUIRED"
                   },
                   "placeholder": "\"smf://localhost:55554\"",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "string",
                   "value": "\"smf://localhost:55554\"",
-                  "items": [],
-                  "typeMembers": [],
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -105,11 +125,19 @@
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
                   },
                   "placeholder": "\"default\"",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "string",
                   "value": "\"default\"",
-                  "items": [],
-                  "typeMembers": [],
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -120,7 +148,6 @@
                     "label": "Authentication",
                     "description": "Select the authentication method for Solace broker connection"
                   },
-                  "valueType": "CHOICE",
                   "value": 0,
                   "choices": [
                     {
@@ -128,7 +155,6 @@
                         "label": "Basic Authentication",
                         "description": "Username and password authentication"
                       },
-                      "valueType": "FORM",
                       "value": "true",
                       "properties": {
                         "username": {
@@ -137,9 +163,14 @@
                             "description": "Username for broker authentication"
                           },
                           "placeholder": "default",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "\"default\"",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": false,
@@ -151,15 +182,26 @@
                             "description": "Password for broker authentication"
                           },
                           "placeholder": "",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
                           "advanced": false
                         }
                       },
+                      "types": [
+                        {
+                          "fieldType": "FORM",
+                          "selected": true
+                        }
+                      ],
                       "enabled": true,
                       "editable": false,
                       "optional": false,
@@ -170,7 +212,6 @@
                         "label": "Kerberos Authentication",
                         "description": "Kerberos (GSS-KRB) authentication."
                       },
-                      "valueType": "FORM",
                       "value": "true",
                       "properties": {
                         "serviceName": {
@@ -179,9 +220,14 @@
                             "description": "Kerberos service name."
                           },
                           "placeholder": "solace",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "\"solace\"",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
@@ -193,9 +239,14 @@
                             "description": "JAAS login context name."
                           },
                           "placeholder": "SolaceGSS",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "\"SolaceGSS\"",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
@@ -206,9 +257,13 @@
                             "label": "Mutual Authentication",
                             "description": "Enable Kerberos mutual authentication."
                           },
-                          "valueType": "FLAG",
-                          "valueTypeConstraint": "BOOLEAN",
                           "value": true,
+                          "types": [
+                            {
+                              "fieldType": "FLAG",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
@@ -219,15 +274,25 @@
                             "label": "JAAS Config Reload",
                             "description": "Enable automatic JAAS configuration reload."
                           },
-                          "valueType": "FLAG",
-                          "valueTypeConstraint": "BOOLEAN",
                           "value": false,
+                          "types": [
+                            {
+                              "fieldType": "FLAG",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
                           "advanced": false
                         }
                       },
+                      "types": [
+                        {
+                          "fieldType": "FORM",
+                          "selected": true
+                        }
+                      ],
                       "enabled": false,
                       "editable": false,
                       "optional": false,
@@ -238,7 +303,6 @@
                         "label": "OAuth 2.0 Authentication",
                         "description": "OAuth 2.0 token-based authentication"
                       },
-                      "valueType": "FORM",
                       "value": "true",
                       "properties": {
                         "issuer": {
@@ -247,9 +311,13 @@
                             "description": "OAuth 2.0 issuer identifier URI"
                           },
                           "placeholder": "https://auth.example.com",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": false,
@@ -261,9 +329,14 @@
                             "description": "OAuth 2.0 access token for authentication"
                           },
                           "placeholder": "",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
@@ -275,19 +348,36 @@
                             "description": "OpenID Connect ID token for authentication"
                           },
                           "placeholder": "",
-                          "valueType": "EXPRESSION",
-                          "valueTypeConstraint": "string",
                           "value": "",
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": true
+                            }
+                          ],
                           "enabled": true,
                           "editable": true,
                           "optional": true,
                           "advanced": false
                         }
                       },
+                      "types": [
+                        {
+                          "fieldType": "FORM",
+                          "selected": true
+                        }
+                      ],
                       "enabled": false,
                       "editable": false,
                       "optional": false,
                       "advanced": false
+                    }
+                  ],
+                  "types": [
+                    {
+                      "fieldType": "CHOICE",
+                      "selected": true
                     }
                   ],
                   "enabled": true,
@@ -303,15 +393,20 @@
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                   },
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "solace:SecureSocket",
                   "value": "",
-                  "typeMembers": [
+                  "types": [
                     {
-                      "type": "SecureSocket",
-                      "packageInfo": "ballerinax:solace:0.3.0",
-                      "kind": "RECORD_TYPE",
-                      "selected": false
+                      "fieldType": "RECORD_MAP_EXPRESSION",
+                      "ballerinaType": "solace:SecureSocket",
+                      "typeMembers": [
+                        {
+                          "type": "SecureSocket",
+                          "packageInfo": "ballerinax:solace:0.3.0",
+                          "kind": "RECORD_TYPE",
+                          "selected": false
+                        }
+                      ],
+                      "selected": true
                     }
                   ],
                   "enabled": true,
@@ -320,10 +415,22 @@
                   "advanced": true
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": false,
               "optional": false,
               "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": true
             }
           ],
           "enabled": true,
@@ -336,7 +443,6 @@
             "label": "Destination",
             "description": "The Solace destination to expect messages from."
           },
-          "valueType": "CHOICE",
           "value": 0,
           "choices": [
             {
@@ -344,7 +450,6 @@
                 "label": "Queue",
                 "description": "Listen to messages from a queue"
               },
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "queueName": {
@@ -353,15 +458,26 @@
                     "description": "Queue to listen for incoming messages."
                   },
                   "placeholder": "",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "string",
                   "value": "\"test-queue\"",
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -372,7 +488,6 @@
                 "label": "Topic",
                 "description": "Listen to messages from a topic"
               },
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "topicName": {
@@ -381,9 +496,14 @@
                     "description": "Topic to listen for incoming messages."
                   },
                   "placeholder": "",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "string",
                   "value": "\"test/topic\"",
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -395,9 +515,14 @@
                     "description": "The name to be used for the subscription."
                   },
                   "placeholder": "",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "string",
                   "value": "\"default\"",
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": true,
@@ -408,19 +533,35 @@
                     "label": "Durable Subscriber",
                     "description": "Persist subscription when disconnected."
                   },
-                  "valueType": "FLAG",
-                  "valueTypeConstraint": "BOOLEAN",
                   "value": false,
+                  "types": [
+                    {
+                      "fieldType": "FLAG",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": true,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": false,
               "optional": false,
               "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": true
             }
           ],
           "enabled": true,
@@ -434,14 +575,18 @@
             "description": "How messages received should be acknowledged."
           },
           "placeholder": "AUTO_ACKNOWLEDGE",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "string",
           "value": "AUTO_ACKNOWLEDGE",
-          "items": [
-            "AUTO_ACKNOWLEDGE",
-            "CLIENT_ACKNOWLEDGE",
-            "DUPS_OK_ACKNOWLEDGE",
-            "SESSION_TRANSACTED"
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [
+                "AUTO_ACKNOWLEDGE",
+                "CLIENT_ACKNOWLEDGE",
+                "DUPS_OK_ACKNOWLEDGE",
+                "SESSION_TRANSACTED"
+              ],
+              "selected": true
+            }
           ],
           "enabled": true,
           "editable": true,

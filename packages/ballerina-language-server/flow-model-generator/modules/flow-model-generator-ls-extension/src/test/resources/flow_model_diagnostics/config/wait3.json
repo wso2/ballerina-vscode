@@ -192,7 +192,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": false,
@@ -208,7 +209,8 @@
         },
         "types": [
           {
-            "fieldType": "REPEATABLE_PROPERTY"
+            "fieldType": "REPEATABLE_PROPERTY",
+            "selected": false
           }
         ],
         "value": {
@@ -219,7 +221,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -230,7 +233,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -249,7 +253,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "worker1 ",
@@ -280,7 +285,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -291,7 +297,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -310,7 +317,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "worker2",
@@ -347,7 +355,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "waitResult",
@@ -376,7 +385,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",

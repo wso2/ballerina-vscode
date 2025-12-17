@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetModelContext;
@@ -331,8 +332,7 @@ public class McpFunctionBuilder extends AbstractFunctionBuilder {
                     new Value.ValueBuilder()
                             .metadata("Tool Description", "Description of what this MCP tool does")
                             .setPlaceholder("Describe what this tool does...")
-                            .valueType("STRING")
-                            .setValueTypeConstraint("string")
+                            .types(List.of(PropertyType.types(Value.FieldType.TEXT, "string")))
                             .value(toolDescription)
                             .enabled(true)
                             .editable(true)
