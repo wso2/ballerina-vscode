@@ -166,18 +166,16 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 <VSCodeButton
                     appearance="secondary"
                     onClick={onReject}
-                    title="Reject Changes"
+                    title="Decline All Changes"
                 >
-                    <span className="codicon codicon-close"></span>
-                    &nbsp;Reject
+                    Decline All
                 </VSCodeButton>
                 <VSCodeButton
                     appearance="primary"
                     onClick={onAccept}
                     title="Accept All Changes"
                 >
-                    <span className="codicon codicon-check"></span>
-                    &nbsp;Accept All
+                    Accept All
                 </VSCodeButton>
             </ActionButtons>
         </NavigationContainer>

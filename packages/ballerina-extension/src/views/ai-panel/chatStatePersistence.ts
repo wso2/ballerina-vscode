@@ -61,6 +61,7 @@ export const saveChatState = (context: AIChatMachineContext): void => {
         if (!allProjectIds.includes(context.projectId)) {
             allProjectIds.push(context.projectId);
             extension.context?.globalState.update(`${CHAT_STATE_STORAGE_KEY_PREFIX}.projects`, allProjectIds);
+            extension.context;
         }
     } catch (error) {
         console.error("Failed to save chat state:", error);

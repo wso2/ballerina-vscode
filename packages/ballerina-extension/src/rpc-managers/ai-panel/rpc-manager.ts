@@ -58,7 +58,7 @@ import {
     TestGenerationRequest,
     TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest
+    TestPlanGenerationRequest,
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -77,7 +77,7 @@ import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-// import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
@@ -97,7 +97,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -785,7 +784,106 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 resolve(undefined);
             }
         });
-    }   
+    }
+
+    // TODO: check this if needed, we are not using this currently
+    async revertChanges(): Promise<void> {
+        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
+        const reviewContext = getPendingReviewContext();
+        
+        if (!reviewContext) {
+            console.warn("[Review Actions] No pending review context found for revert");
+            return;
+        }
+
+        try {
+            // TODO: Implement revert logic (restore original files from backup)
+            console.log("[Review Actions] Revert changes not yet implemented");
+            
+            // For now, just cleanup the temp project
+            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            
+            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            if (reviewContext.shouldCleanup) {
+                cleanupTempProject(reviewContext.tempProjectPath);
+            }
+            
+             ();
+            console.log("[Review Actions] Changes reverted and cleanup completed");
+        } catch (error) {
+            console.error("[Review Actions] Error reverting changes:", error);
+            throw error;
+        }
+    }
+
+    async acceptChanges(): Promise<void> {
+        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
+        const reviewContext = getPendingReviewContext();
+        
+        if (!reviewContext) {
+            console.warn("[Review Actions] No pending review context found for accept");
+            return;
+        }
+
+        try {
+            // Integrate code to workspace if there are modified files
+            if (reviewContext.modifiedFiles.length > 0) {
+                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
+                const modifiedFilesSet = new Set(reviewContext.modifiedFiles);
+                await integrateCodeToWorkspace(reviewContext.tempProjectPath, modifiedFilesSet, reviewContext.ctx);
+                console.log(`[Review Actions] Integrated ${reviewContext.modifiedFiles.length} file(s) to workspace`);
+            }
+
+            // Cleanup
+            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            
+            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            if (reviewContext.shouldCleanup) {
+                cleanupTempProject(reviewContext.tempProjectPath);
+            }
+            
+            clearPendingReviewContext();
+            console.log("[Review Actions] Changes accepted and integrated successfully");
+        } catch (error) {
+            console.error("[Review Actions] Error accepting changes:", error);
+            throw error;
+        }
+    }
+
+    async declineChanges(): Promise<void> {
+        const { getPendingReviewContext, clearPendingReviewContext } = await import("../../features/ai/agent/stream-handlers/handlers/finish-handler");
+        const reviewContext = getPendingReviewContext();
+        
+        if (!reviewContext) {
+            console.warn("[Review Actions] No pending review context found for decline");
+            return;
+        }
+
+        try {
+            // Just cleanup without integrating changes
+            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            
+            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            if (reviewContext.shouldCleanup) {
+                cleanupTempProject(reviewContext.tempProjectPath);
+            }
+            
+            clearPendingReviewContext();
+            console.log("[Review Actions] Changes declined and cleanup completed");
+        } catch (error) {
+            console.error("[Review Actions] Error declining changes:", error);
+            throw error;
+        }
+    }
 }
 
 interface SummaryResponse {

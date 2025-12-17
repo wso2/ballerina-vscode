@@ -89,6 +89,7 @@ import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isCo
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
+import ReviewActions from "../ReviewActions";
 
 enum CodeGenerationType {
     CODE_FOR_USER_REQUIREMENT = "CODE_FOR_USER_REQUIREMENT",
@@ -655,6 +656,19 @@ const AIChat: React.FC = () => {
             //TODO: Handle this in review mode
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
+        } else if ((response as any).type === "review_actions") {
+            console.log("[Review Actions] Received review_actions event, appending to message");
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    console.log("[Review Actions] Current message content length:", newMessages[newMessages.length - 1].content.length);
+                    newMessages[newMessages.length - 1].content += `\n\n<reviewactions></reviewactions>`;
+                    console.log("[Review Actions] Updated message content, new length:", newMessages[newMessages.length - 1].content.length);
+                } else {
+                    console.warn("[Review Actions] No messages to append review actions to");
+                }
+                return newMessages;
+            });
         } else if (type === "messages") {
             const messages = response.messages;
             messagesRef.current = messages;
@@ -1553,6 +1567,9 @@ const AIChat: React.FC = () => {
                             const areTestsGenerated = segmentedContent.some(
                                 (segment) => segment.type === SegmentType.Progress
                             );
+                            const hasReviewActions = segmentedContent.some(
+                                (segment) => segment.type === SegmentType.ReviewActions
+                            );
                             return (
                                 <ChatMessage key={index}>
                                     {message.type !== "question" && message.type !== "label" && (
@@ -1662,6 +1679,14 @@ const AIChat: React.FC = () => {
                                             return (
                                                 <ConnectorGeneratorSegment
                                                     data={segment.specData}
+                                                    rpcClient={rpcClient}
+                                                />
+                                            );
+                                        } else if (segment.type === SegmentType.ReviewActions) {
+                                            console.log("[Review Actions] Rendering ReviewActions component");
+                                            return (
+                                                <ReviewActions
+                                                    key={i}
                                                     rpcClient={rpcClient}
                                                 />
                                             );
@@ -1791,8 +1816,8 @@ const AIChat: React.FC = () => {
                                             return <MarkdownRenderer key={i} markdownContent={segment.text} />;
                                         }
                                     })}
-                                    {/* Show feedback bar only for the latest assistant message and when loading is complete */}
-                                    {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && (
+                                    {/* Show feedback bar only for the latest assistant message and when loading is complete, but not if review actions are present */}
+                                    {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && !hasReviewActions && (
                                         <FeedbackBar
                                             messageIndex={index}
                                             onFeedback={handleFeedback}

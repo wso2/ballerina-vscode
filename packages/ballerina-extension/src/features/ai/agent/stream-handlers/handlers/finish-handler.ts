@@ -16,13 +16,64 @@
 
 import { StreamEventHandler, StreamFinishException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { Command, AIChatMachineEventType } from "@wso2/ballerina-core";
+import { Command, AIChatMachineEventType, ExecutionContext } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
 import { checkCompilationErrors } from "../../../tools/diagnostics-utils";
 import { integrateCodeToWorkspace } from "../../utils";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
+
+/**
+ * Stored context data for code review actions
+ * This is used by RPC methods to access temp project data after stream finishes
+ */
+interface ReviewContext {
+    tempProjectPath: string;
+    modifiedFiles: string[];
+    ctx: ExecutionContext;
+    projects: any[];
+    shouldCleanup: boolean;
+    timestamp: number;  // Track when this context was created
+    messageId: string;  // Track which message this belongs to
+}
+
+/**
+ * Module-level storage for pending review context.
+ * Note: This persists for the lifetime of the extension process.
+ * Only one review context is stored at a time (latest wins).
+ */
+let pendingReviewContext: ReviewContext | null = null;
+
+export function getPendingReviewContext(): ReviewContext | null {
+    if (pendingReviewContext) {
+        const ageInMinutes = (Date.now() - pendingReviewContext.timestamp) / 1000 / 60;
+        console.log(`[Review Context] Retrieved context from ${ageInMinutes.toFixed(1)} minutes ago for message: ${pendingReviewContext.messageId}`);
+        
+        // Warn if context is very old (> 30 minutes) - might indicate a leak
+        if (ageInMinutes > 30) {
+            console.warn(`[Review Context] Context is ${ageInMinutes.toFixed(1)} minutes old - possible memory leak?`);
+        }
+    } else {
+        console.log("[Review Context] No pending context found");
+    }
+    return pendingReviewContext;
+}
+
+export function clearPendingReviewContext(): void {
+    if (pendingReviewContext) {
+        console.log(`[Review Context] Clearing context for message: ${pendingReviewContext.messageId}`);
+        pendingReviewContext = null;
+    }
+}
+
+export function setPendingReviewContext(context: ReviewContext): void {
+    if (pendingReviewContext) {
+        console.warn(`[Review Context] Overwriting existing context for message: ${pendingReviewContext.messageId} with new context for message: ${context.messageId}`);
+    }
+    console.log(`[Review Context] Storing context for message: ${context.messageId}, tempPath: ${context.tempProjectPath}`);
+    pendingReviewContext = context;
+}
 
 /**
  * Closes all documents in the temp project and waits for LS to process
@@ -54,17 +105,28 @@ export class FinishHandler implements StreamEventHandler {
             diagnostics: finalDiagnostics.diagnostics
         });
 
-        // Integrate code to workspace if not in test mode
-        if (!process.env.AI_TEST_ENV && context.modifiedFiles.length > 0) {
-            const modifiedFilesSet = new Set(context.modifiedFiles);
-            await integrateCodeToWorkspace(context.tempProjectPath, modifiedFilesSet, context.ctx);
-        }
+        // Store context data for later use by accept/decline/review actions
+        // This will be used by RPC methods to access temp project data
+        setPendingReviewContext({
+            tempProjectPath: context.tempProjectPath,
+            modifiedFiles: context.modifiedFiles,
+            ctx: context.ctx,
+            projects: context.projects,
+            shouldCleanup: context.shouldCleanup,
+            timestamp: Date.now(),
+            messageId: context.messageId,
+        });
 
-        // Cleanup
-        await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
-        if (context.shouldCleanup) {
-            cleanupTempProject(context.tempProjectPath);
-        }
+        // Show review actions component in the chat UI
+        console.log(`[Review Actions] Emitting review_actions event for message: ${context.messageId}`);
+        context.eventHandler({
+            type: "review_actions"
+        } as any);
+
+        // Note: Code integration and cleanup are now deferred until user makes a choice
+        // - Review: will open review mode (integration/cleanup deferred)
+        // - Accept All: will integrate code and cleanup
+        // - Decline: will just cleanup without integration
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
