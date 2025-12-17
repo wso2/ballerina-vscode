@@ -128,7 +128,7 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
     fs.mkdirSync(tempDir, { recursive: true });
 
     // Copy entire project to temp directory
-    fs.cpSync(projectRoot, tempDir, { recursive: true });
+    await fs.promises.cp(projectRoot, tempDir, { recursive: true });
 
     return {
         path: tempDir
