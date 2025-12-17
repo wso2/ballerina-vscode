@@ -363,11 +363,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.login.copilot",
-                "title": "Authorize Github Copilot",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.reset.bi",
                 "title": "Reset BI Auth",
                 "category": "Ballerina"
@@ -383,16 +378,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.refreshPackageTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
-                "command": "ballerina.refreshExplorerTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
                 "command": "ballerina.newFileExplorerTree",
                 "title": "New File",
                 "icon": "$(distro-new-file)"
@@ -403,11 +388,6 @@
                 "icon": "$(distro-new-folder)"
             },
             {
-                "command": "ballerina.deleteFileExplorerTree",
-                "title": "Delete",
-                "icon": "$(distro-delete)"
-            },
-            {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
                 "icon": "$(distro-design-view)",
@@ -415,15 +395,10 @@
             },
             {
                 "command": "ballerina.force.update.artifacts",
-                "title": "Refresh",
+                "title": "Refresh Artifacts",
                 "icon": "$(distro-refresh)",
-                "category": "Ballerina"
-            },
-            {
-                "command": "ballerina.test.edit.case",
-                "title": "Edit test case",
-                "icon": "$(distro-design-view)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.project.run",
@@ -441,11 +416,6 @@
                     "dark": "./resources/images/icons/start-inverse.svg",
                     "light": "./resources/images/icons/start.svg"
                 }
-            },
-            {
-                "command": "ballerina.project.stop",
-                "title": "Stop",
-                "category": "Ballerina"
             },
             {
                 "command": "ballerina.source.debug",
@@ -518,7 +488,7 @@
             },
             {
                 "command": "ballerina.notebook.refreshVariableView",
-                "title": "Refresh",
+                "title": "Refresh Notebook Variables",
                 "icon": "$(distro-refresh)",
                 "category": "Ballerina",
                 "enablement": "isNotebookVariableViewEnabled"
@@ -930,6 +900,18 @@
                 }
             ],
             "commandPalette": [
+                {
+                    "command": "BI.test.edit.function.def",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.test.edit.function",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.project-explorer.delete",
+                    "when": "false"
+                },
                 {
                     "command": "ballerina.show.source",
                     "when": "editorLangId != ballerina && !isBallerinaDiagram"
