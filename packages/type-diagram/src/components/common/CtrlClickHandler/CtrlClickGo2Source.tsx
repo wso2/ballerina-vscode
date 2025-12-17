@@ -27,9 +27,11 @@ interface CtrlClickProps {
 
 export function CtrlClickGo2Source(props: PropsWithChildren<CtrlClickProps>) {
     const { node, children } = props;
-    const { goToSource } = useContext(DiagramContext);
+    const { goToSource, readonly } = useContext(DiagramContext);
     const handleOnClick = () => {
-        goToSource(node);
+        if (!readonly) {
+            goToSource(node);
+        }
     };
 
     return (
