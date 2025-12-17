@@ -164,7 +164,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
         private String icon;
         private String module;
         private final Map<String, Artifact> children = new HashMap<>();
-        private final Map<String, Object> metadata = new HashMap<>();
+        private Map<String, Object> metadata = null;
 
         public Builder(Node node) {
             this.location = node.lineRange();
@@ -240,13 +240,14 @@ public record Artifact(String id, LineRange location, String type, String name, 
         }
 
         public Builder metadata(Map<String, Object> metadata) {
-            if (metadata != null) {
-                this.metadata.putAll(metadata);
-            }
+            this.metadata = metadata;
             return this;
         }
 
         public Builder addMetadata(String key, Object value) {
+            if (this.metadata == null) {
+                this.metadata = new HashMap<>();
+            }
             this.metadata.put(key, value);
             return this;
         }
@@ -282,7 +283,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
             }
             name = IdentifierUtils.unescapeBallerina(name);
             return new Artifact(id, location, type == null ? null : type.name(), name, accessor, scope.getValue(), icon,
-                    module, new HashMap<>(children), new HashMap<>(metadata));
+                    module, new HashMap<>(children), metadata == null ? null : new HashMap<>(metadata));
         }
     }
 }
