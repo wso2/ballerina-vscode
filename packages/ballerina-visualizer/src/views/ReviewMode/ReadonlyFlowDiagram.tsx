@@ -35,14 +35,21 @@ const Container = styled.div`
     pointer-events: auto;
 `;
 
+interface ItemMetadata {
+    type: string;
+    name: string;
+    accessor?: string;
+}
+
 interface ReadonlyFlowDiagramProps {
     projectPath: string;
     filePath: string;
     position: NodePosition;
+    onModelLoaded?: (metadata: ItemMetadata) => void;
 }
 
 export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Element {
-    const { filePath, position } = props;
+    const { filePath, position, onModelLoaded } = props;
     const { rpcClient } = useRpcContext();
     const [flowModel, setFlowModel] = useState<Flow | null>(null);
 
@@ -65,6 +72,23 @@ export function ReadonlyFlowDiagram(props: ReadonlyFlowDiagramProps): JSX.Elemen
                 console.log(">>> flow model", response);
                 if (response?.flowModel) {
                     setFlowModel(response.flowModel);
+                    
+                    // Extract metadata from EVENT_START node
+                    if (onModelLoaded && response.flowModel.nodes) {
+                        const eventStartNode = response.flowModel.nodes.find(
+                            (node: any) => node.codedata?.node === 'EVENT_START'
+                        );
+                        
+                        if (eventStartNode?.metadata?.data) {
+                            const data = eventStartNode.metadata.data as any;
+                            onModelLoaded({
+                                type: data.kind || 'Function',
+                                name: data.label || 'Unknown',
+                                accessor: data.accessor
+                            });
+                            console.log(">>> Extracted metadata from EVENT_START:", data);
+                        }
+                    }
                 }
             });
     };

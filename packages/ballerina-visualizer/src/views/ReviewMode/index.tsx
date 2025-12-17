@@ -23,7 +23,8 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
 import { ReadonlyFlowDiagram } from "./ReadonlyFlowDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
-import { ThemeColors } from "@wso2/ui-toolkit";
+import { Icon, ThemeColors } from "@wso2/ui-toolkit";
+import { TitleBar } from "../../components/TitleBar";
 
 const ReviewContainer = styled.div`
     width: 100%;
@@ -40,18 +41,49 @@ const DiagramContainer = styled.div`
     position: relative;
 `;
 
-const ReviewBadge = styled.div`
-    position: absolute;
-    top: 16px;
-    right: 16px;
+const ReviewModeBadge = styled.div`
+    padding: 4px 12px;
     background: ${ThemeColors.PRIMARY};
     color: white;
-    padding: 8px 16px;
     border-radius: 4px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    z-index: 100;
-    font-family: var(--vscode-font-family);
+    white-space: nowrap;
+`;
+
+const ItemType = styled.span`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    margin-right: 4px;
+`;
+
+const CloseButton = styled.button`
+    background: transparent;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:hover {
+        background: var(--vscode-toolbar-hoverBackground);
+    }
+    
+    &:active {
+        background: var(--vscode-toolbar-activeBackground);
+    }
+    
+    & > div:first-child {
+        width: 20px;
+        height: 20px;
+        font-size: 20px;
+    }
 `;
 
 interface ReviewView {
@@ -173,6 +205,12 @@ interface ReviewModeProps {
     projectPath: string;
 }
 
+interface ItemMetadata {
+    type: string;      // "Resource", "Function", "Automation", etc.
+    name: string;      // e.g., "todos", "processData"
+    accessor?: string; // e.g., "get", "post" (for resources)
+}
+
 export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const { projectPath } = props;
     const { rpcClient } = useRpcContext();
@@ -181,6 +219,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const [views, setViews] = useState<ReviewView[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
     
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView = views.length > 0 && currentIndex >= 0 && currentIndex < views.length 
@@ -204,7 +243,6 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     // Component diagram shows the entire project design, not a specific file/position
                     // We use the first diff's file just as a reference, but the actual diagram
                     // loads the entire design model for the project
-                    const firstDiff = semanticDiffResponse.semanticDiffs[0];
                     allViews.push({
                         type: 'component',
                         filePath: projectPath, // Use project path instead of specific file
@@ -248,6 +286,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         console.log('[Review Mode] Previous clicked. Current index:', currentIndex, 'Total views:', views.length);
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
+            setCurrentItemMetadata(null); // Clear metadata when navigating
             console.log('[Review Mode] Moving to index:', currentIndex - 1);
         } else {
             console.log('[Review Mode] Already at first view');
@@ -258,10 +297,22 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         console.log('[Review Mode] Next clicked. Current index:', currentIndex, 'Total views:', views.length);
         if (currentIndex < views.length - 1) {
             setCurrentIndex(currentIndex + 1);
+            setCurrentItemMetadata(null); // Clear metadata when navigating
             console.log('[Review Mode] Moving to index:', currentIndex + 1);
         } else {
             console.log('[Review Mode] Already at last view');
         }
+    };
+
+    const handleClose = () => {
+        console.log("[Review Mode] Close button clicked");
+        // Just navigate back without accepting or rejecting
+        rpcClient.getVisualizerRpcClient().reviewRejected();
+    };
+
+    const handleModelLoaded = (metadata: ItemMetadata) => {
+        console.log("[Review Mode] Model loaded with metadata:", metadata);
+        setCurrentItemMetadata(metadata);
     };
 
     const handleAccept = async () => {
@@ -303,6 +354,13 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
         switch (currentView.type) {
             case 'component':
+                // For component diagram, set metadata directly
+                if (!currentItemMetadata) {
+                    setCurrentItemMetadata({
+                        type: 'Design',
+                        name: 'Overview'
+                    });
+                }
                 return (
                     <ReadonlyComponentDiagram
                         projectPath={currentView.projectPath || projectPath}
@@ -316,6 +374,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         position={currentView.position}
+                        onModelLoaded={handleModelLoaded}
                     />
                 );
             default:
@@ -326,7 +385,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     if (isLoading) {
         return (
             <ReviewContainer>
-                <ReviewBadge>Review Mode</ReviewBadge>
+                <TitleBar
+                    title="Loading..."
+                    actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
+                    hideBack={true}
+                />
                 <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ color: 'var(--vscode-foreground)' }}>Loading semantic diff...</div>
                 </DiagramContainer>
@@ -337,7 +400,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     if (!semanticDiffData || views.length === 0) {
         return (
             <ReviewContainer>
-                <ReviewBadge>Review Mode</ReviewBadge>
+                <TitleBar
+                    title="No Changes"
+                    actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
+                    hideBack={true}
+                />
                 <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ color: 'var(--vscode-foreground)' }}>No changes to review</div>
                 </DiagramContainer>
@@ -348,17 +415,49 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const canGoPrevious = currentIndex > 0;
     const canGoNext = currentIndex < views.length - 1;
 
-    console.log('[Review Mode] ==========RENDER==========');
-    console.log('[Review Mode] Current index:', currentIndex);
-    console.log('[Review Mode] Total views:', views.length);
-    console.log('[Review Mode] Current view:', currentView?.label, `(type: ${currentView?.type})`);
-    console.log('[Review Mode] Can go previous:', canGoPrevious);
-    console.log('[Review Mode] Can go next:', canGoNext);
-    console.log('[Review Mode] ================================');
+    // Format the display text for the header
+    const getHeaderText = () => {
+        if (!currentItemMetadata) {
+            return { type: '', name: 'Loading...', fullName: 'Loading...' };
+        }
+        
+        const type = currentItemMetadata.type;
+        let name = currentItemMetadata.name;
+        
+        // For resources, prepend accessor (e.g., "get todos")
+        if (currentItemMetadata.accessor) {
+            name = `${currentItemMetadata.accessor} ${name}`;
+        }
+        
+        return { type, name, fullName: name };
+    };
+
+    const headerText = getHeaderText();
+
+    // Create subtitle element with type badge
+    const subtitleElement = headerText.type ? (
+        <ItemType>{headerText.type}</ItemType>
+    ) : undefined;
+
+    // Create actions for the right side
+    const headerActions = (
+        <>
+            <ReviewModeBadge>Review Mode</ReviewModeBadge>
+            <CloseButton onClick={handleClose} title="Close Review Mode">
+                <Icon name="bi-close" />
+            </CloseButton>
+        </>
+    );
 
     return (
         <ReviewContainer>
-            <ReviewBadge>Review Mode</ReviewBadge>
+            <TitleBar
+                title={headerText.fullName}
+                subtitleElement={subtitleElement}
+                actions={headerActions}
+                hideBack={true}
+                hideUndoRedo={true}
+            />
             <DiagramContainer>
                 {renderDiagram()}
             </DiagramContainer>
