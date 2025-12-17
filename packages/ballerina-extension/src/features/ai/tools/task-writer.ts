@@ -35,7 +35,7 @@ export interface TaskWriteResult {
 export const TaskInputSchema = z.object({
     description: z.string().min(1).describe("Clear, actionable description of the task to be implemented"),
     status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe("Current status of the task. Use 'pending' for tasks not started, 'in_progress' when actively working on it, 'completed' when work is finished."),
-    type: z.enum(["service_design", "connections_init", "implementation"]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
+    type: z.enum([TaskTypes.SERVICE_DESIGN, TaskTypes.CONNECTIONS_INIT, TaskTypes.IMPLEMENTATION]).describe("Type of the implementation task. service_design will only generate the http service contract. not the implementation. connections_init will only generate the connection initializations. All of the other tasks will be of type implementation.")
 });
 
 const TaskWriteInputSchema = z.object({
@@ -44,7 +44,7 @@ const TaskWriteInputSchema = z.object({
 
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
-export function createTaskWriteTool(eventHandler?: CopilotEventHandler, tempProjectPath?: string, modifiedFiles?: string[]) {
+export function createTaskWriteTool(eventHandler: CopilotEventHandler, tempProjectPath: string, modifiedFiles?: string[]) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
@@ -150,7 +150,7 @@ Rules:
 
                 if (!isNewPlan && !isPlanRemodification) {
                     const missingTasksError = validateAllTasksIncluded(input, existingPlan);
-                    if (missingTasksError) { { return missingTasksError; } }
+                    if (missingTasksError) { return missingTasksError; }
                 }
 
                 let approvalResult: { approved: boolean; comment?: string; approvedTaskDescription?: string } | undefined;
@@ -309,7 +309,7 @@ async function handleTaskCompletion(
     newlyCompletedTasks: Task[],
     currentContext: AIChatMachineContext,
     eventHandler: CopilotEventHandler,
-    tempProjectPath?: string,
+    tempProjectPath: string,
     modifiedFiles?: string[]
 ): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
