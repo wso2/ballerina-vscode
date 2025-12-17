@@ -79,8 +79,8 @@ public class JsonToTypeMapper {
     private final boolean allowAdditionalFields;
     private final boolean asInlineType;
     private final boolean isNullAsOptional;
-    private String rootTypeName = null;
-    private String updatedRootTypeName = null;
+    private String rootTypeName;
+    private String updatedRootTypeName;
 
     public JsonToTypeMapper(boolean allowAdditionalFields, boolean asInlineType, boolean isNullAsOptional,
                             String typePrefix, WorkspaceManager workspaceManager, Path filePath) {
@@ -105,6 +105,7 @@ public class JsonToTypeMapper {
 
         String typeDefName = (name == null || name.isEmpty()) ? NEW_TYPE_NAME : name;
         rootTypeName = escapeIdentifier(typeDefName.trim());
+        updatedRootTypeName = null;
         if (jsonElement.isJsonObject()) {
             generateForNestedStructures(jsonElement, name, false, null);
         } else if (jsonElement.isJsonArray()) {

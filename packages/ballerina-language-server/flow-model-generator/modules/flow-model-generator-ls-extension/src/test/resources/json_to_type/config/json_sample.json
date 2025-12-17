@@ -1,5 +1,5 @@
 {
-  "description": "Type name case preservation for lowercase type names",
+  "description": "Type name and json type name collision scenario",
   "filePath": "proj/types.bal",
   "jsonString": "{\n    \"orders\": [\n        {\n            \"orderId\": \"A-90231\"\n        },\n        {\n            \"orderId\": \"B-12345\"\n        }\n    ]\n}",
   "typeName": "Orders",
