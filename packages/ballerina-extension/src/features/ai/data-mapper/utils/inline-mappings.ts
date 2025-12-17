@@ -80,10 +80,9 @@ export async function generateInlineMappingsSource(
     eventHandler
   );
 
-  const generatedSourceResponse = await getAllDataMapperSource(allMappingsRequest);
+  await getAllDataMapperSource(allMappingsRequest);
 
   return {
-    sourceResponse: generatedSourceResponse,
     allMappingsRequest,
     tempFileMetadata,
     tempDir: tempDirectory
