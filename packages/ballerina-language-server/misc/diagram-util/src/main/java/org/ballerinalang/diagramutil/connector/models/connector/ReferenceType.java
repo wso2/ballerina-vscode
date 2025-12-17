@@ -222,7 +222,8 @@ public class ReferenceType {
             if (typeSymbols.size() == 1) {
                 TypeSymbol soleTypeSymbol = typeSymbols.getFirst();
                 ModuleID soleModuleId = getModuleID(soleTypeSymbol, moduleID);
-                return fromSemanticSymbol(soleTypeSymbol, unionTypeSymbol.signature(), soleModuleId, typeDefSymbols);
+                String soleTypeName = soleTypeSymbol.getName().orElse("") + "?";
+                return fromSemanticSymbol(soleTypeSymbol, soleTypeName, soleModuleId, typeDefSymbols);
             }
             RefUnionType unionType = new RefUnionType(name);
             unionType.hashCode = typeHash;

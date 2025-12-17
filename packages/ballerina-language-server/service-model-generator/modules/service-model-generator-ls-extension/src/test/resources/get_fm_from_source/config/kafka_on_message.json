@@ -26,8 +26,13 @@
         "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
       },
       "placeholder": "onConsumerRecord",
-      "valueType": "IDENTIFIER",
       "value": "onConsumerRecord",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": false,
       "optional": false,
@@ -45,8 +50,13 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
-          "valueType": "TYPE",
           "value": "Person[]",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -57,8 +67,13 @@
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
-          "valueType": "IDENTIFIER",
           "value": "personStream",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -69,7 +84,12 @@
             "label": "Default Value",
             "description": "The default value of the parameter"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -80,7 +100,12 @@
             "label": "Description",
             "description": "The description of the parameter"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -104,8 +129,13 @@
             "label": "Parameter Type",
             "description": "The type of the parameter"
           },
-          "valueType": "TYPE",
           "value": "kafka:Caller",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -116,8 +146,13 @@
             "label": "Parameter Name",
             "description": "The name of the parameter"
           },
-          "valueType": "IDENTIFIER",
           "value": "myCaller",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -128,7 +163,12 @@
             "label": "Default Value",
             "description": "The default value of the parameter"
           },
-          "valueType": "EXPRESSION",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -139,7 +179,12 @@
             "label": "Description",
             "description": "The description of the parameter"
           },
-          "valueType": "STRING",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -161,8 +206,13 @@
         "description": "The return type of the function"
       },
       "placeholder": "error?",
-      "valueType": "TYPE",
       "value": "error?",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": false,
       "optional": true,

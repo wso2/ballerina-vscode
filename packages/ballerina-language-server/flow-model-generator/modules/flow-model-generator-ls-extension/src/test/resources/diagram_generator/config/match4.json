@@ -95,7 +95,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -106,7 +107,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var p",
@@ -129,7 +131,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "p > 100 ",
@@ -170,7 +173,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"premium\"",
@@ -211,7 +215,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -222,7 +227,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var p",
@@ -245,7 +251,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "p <= 100 ",
@@ -306,7 +313,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "SINGLE_SELECT"
+                            "fieldType": "SINGLE_SELECT",
+                            "selected": true
                           }
                         ],
                         "value": [
@@ -317,7 +325,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "0",
@@ -365,7 +374,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"discounted\"",
@@ -406,7 +416,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "SINGLE_SELECT"
+                            "fieldType": "SINGLE_SELECT",
+                            "selected": true
                           }
                         ],
                         "value": [
@@ -417,7 +428,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "1",
@@ -486,7 +498,8 @@
                                 "types": [
                                   {
                                     "fieldType": "EXPRESSION",
-                                    "ballerinaType": "boolean"
+                                    "ballerinaType": "boolean",
+                                    "selected": true
                                   }
                                 ],
                                 "value": "p < 25 ",
@@ -528,7 +541,8 @@
                                     },
                                     "types": [
                                       {
-                                        "fieldType": "ACTION_OR_EXPRESSION"
+                                        "fieldType": "ACTION_OR_EXPRESSION",
+                                        "selected": true
                                       }
                                     ],
                                     "value": "\"clearance\"",
@@ -574,7 +588,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "SINGLE_SELECT"
+                            "fieldType": "SINGLE_SELECT",
+                            "selected": true
                           }
                         ],
                         "value": [
@@ -585,7 +600,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "_",
@@ -633,7 +649,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"regular price\"",
@@ -657,7 +674,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "any|error"
+                        "ballerinaType": "any|error",
+                        "selected": true
                       }
                     ],
                     "value": "p % 4 ",
@@ -682,7 +700,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "any|error"
+                "ballerinaType": "any|error",
+                "selected": true
               }
             ],
             "value": "price ",
@@ -725,7 +744,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"unpriced\"",

@@ -83,7 +83,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -99,7 +100,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": true
                   }
                 ],
                 "value": "e ",
@@ -116,7 +118,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": true
                   }
                 ],
                 "value": "error",
@@ -165,11 +168,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string|log:PrintableRawTemplate"
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": true
                       }
                     ],
                     "value": "\"Error: \"",
@@ -181,23 +186,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "msg"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "PrintableRawTemplate",
-                        "packageInfo": "ballerina:log:2.15.0",
-                        "packageName": "log",
-                        "kind": "OBJECT_TYPE",
-                        "selected": false
-                      }
-                    ]
+                    }
                   },
                   "error": {
                     "metadata": {
@@ -207,7 +196,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error?"
+                        "ballerinaType": "error?",
+                        "selected": true
                       }
                     ],
                     "value": "e",
@@ -220,22 +210,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "'error"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "error",
-                        "packageInfo": "ballerina:lang.annotations:0.0.0",
-                        "packageName": "lang.annotations",
-                        "kind": "ERROR_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "stackTrace": {
@@ -246,11 +220,13 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]"
+                        "ballerinaType": "error:StackFrame[]",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error:StackFrame[]?"
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": false
                       }
                     ],
                     "placeholder": "()",
@@ -262,22 +238,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "stackTrace"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "StackFrame",
-                        "packageInfo": "ballerina:lang.error:0.0.0",
-                        "packageName": "lang.error",
-                        "kind": "ARRAY_TYPE",
-                        "selected": false
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "additionalValues": {
@@ -287,7 +247,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET"
+                        "fieldType": "MAPPING_EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [
@@ -306,8 +267,7 @@
                     "codedata": {
                       "kind": "INCLUDED_RECORD_REST",
                       "originalName": "Additional Values"
-                    },
-                    "typeMembers": []
+                    }
                   }
                 },
                 "flags": 0
@@ -349,11 +309,13 @@
                     "types": [
                       {
                         "fieldType": "TEXT",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string|log:PrintableRawTemplate"
+                        "ballerinaType": "string|log:PrintableRawTemplate",
+                        "selected": true
                       }
                     ],
                     "value": "\"Error: \"",
@@ -365,23 +327,7 @@
                     "codedata": {
                       "kind": "REQUIRED",
                       "originalName": "msg"
-                    },
-                    "typeMembers": [
-                      {
-                        "type": "string",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "PrintableRawTemplate",
-                        "packageInfo": "ballerina:log:2.15.0",
-                        "packageName": "log",
-                        "kind": "OBJECT_TYPE",
-                        "selected": false
-                      }
-                    ]
+                    }
                   },
                   "error": {
                     "metadata": {
@@ -391,7 +337,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error?"
+                        "ballerinaType": "error?",
+                        "selected": true
                       }
                     ],
                     "value": "e",
@@ -404,22 +351,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "'error"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "error",
-                        "packageInfo": "ballerina:lang.annotations:0.0.0",
-                        "packageName": "lang.annotations",
-                        "kind": "ERROR_TYPE",
-                        "selected": true
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "stackTrace": {
@@ -430,11 +361,13 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]"
+                        "ballerinaType": "error:StackFrame[]",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "error:StackFrame[]?"
+                        "ballerinaType": "error:StackFrame[]?",
+                        "selected": true
                       }
                     ],
                     "value": "e.stackTrace()",
@@ -447,22 +380,6 @@
                       "kind": "DEFAULTABLE",
                       "originalName": "stackTrace"
                     },
-                    "typeMembers": [
-                      {
-                        "type": "StackFrame",
-                        "packageInfo": "ballerina:lang.error:0.0.0",
-                        "packageName": "lang.error",
-                        "kind": "ARRAY_TYPE",
-                        "selected": false
-                      },
-                      {
-                        "type": "()",
-                        "packageInfo": "",
-                        "packageName": "",
-                        "kind": "BASIC_TYPE",
-                        "selected": false
-                      }
-                    ],
                     "defaultValue": "()"
                   },
                   "additionalValues": {
@@ -472,7 +389,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET"
+                        "fieldType": "MAPPING_EXPRESSION_SET",
+                        "selected": false
                       }
                     ],
                     "value": [],
@@ -484,8 +402,7 @@
                     "codedata": {
                       "kind": "INCLUDED_RECORD_REST",
                       "originalName": "Additional Values"
-                    },
-                    "typeMembers": []
+                    }
                   }
                 },
                 "flags": 0
@@ -520,7 +437,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "e",

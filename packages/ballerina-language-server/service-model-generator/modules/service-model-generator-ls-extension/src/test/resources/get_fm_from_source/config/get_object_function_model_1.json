@@ -25,8 +25,13 @@
         "label": "Function Name",
         "description": "The name of the function"
       },
-      "valueType": "IDENTIFIER",
       "value": "init",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": false,
       "optional": false,
@@ -40,7 +45,12 @@
         "label": "Return Type",
         "description": "The return type of the function"
       },
-      "valueType": "TYPE",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
       "enabled": false,
       "editable": false,
       "optional": true,

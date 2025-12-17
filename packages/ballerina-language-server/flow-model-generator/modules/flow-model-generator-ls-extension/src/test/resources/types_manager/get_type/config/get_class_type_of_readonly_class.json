@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "User3",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "MULTIPLE_SELECT"
+            "fieldType": "MULTIPLE_SELECT",
+            "selected": true
           }
         ],
         "value": [
@@ -69,7 +71,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -85,7 +88,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -101,7 +105,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -117,7 +122,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -133,7 +139,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",
@@ -149,7 +156,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",
@@ -169,7 +177,8 @@
             "options": [
               "service",
               "client"
-            ]
+            ],
+            "selected": true
           }
         ],
         "value": "",

@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "School",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -126,11 +131,13 @@
               "value": {
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": false
                   },
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "string"
+                    "ballerinaType": "string",
+                    "selected": false
                   }
                 ],
                 "value": "\"_name\"",
@@ -163,11 +170,13 @@
               "value": {
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": false
                   },
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "string"
+                    "ballerinaType": "string",
+                    "selected": false
                   }
                 ],
                 "value": "\"$state\"",

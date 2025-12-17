@@ -25,11 +25,19 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"127.0.0.1\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "\"127.0.0.1\"",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -44,11 +52,19 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "21",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "21",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -63,20 +79,29 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"ftp\"",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "string",
           "value": "\"ftp\"",
-          "items": [
+          "types": [
             {
-              "label": "ftp",
-              "value": "\"ftp\""
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "string",
+              "options": [
+                {
+                  "label": "ftp",
+                  "value": "\"ftp\""
+                },
+                {
+                  "label": "sftp",
+                  "value": "\"sftp\""
+                }
+              ],
+              "selected": true
             },
             {
-              "label": "sftp",
-              "value": "\"sftp\""
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
-          "typeMembers": [],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -91,11 +116,19 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "\"/\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "\"/\"",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -109,9 +142,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "ftpListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

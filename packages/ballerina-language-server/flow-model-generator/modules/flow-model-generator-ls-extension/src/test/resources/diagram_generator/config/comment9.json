@@ -114,7 +114,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "Commit the trasaction",
@@ -156,7 +157,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "IDENTIFIER"
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
                       }
                     ],
                     "value": "res",
@@ -185,7 +187,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TYPE"
+                        "fieldType": "TYPE",
+                        "selected": true
                       }
                     ],
                     "value": "()",
@@ -229,7 +232,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "Generate new flow nodes",

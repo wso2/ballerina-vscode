@@ -28,8 +28,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -45,13 +49,8 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT_LISTENER",
-        "valueTypeConstraint": "tcp:Listener",
         "value": "tcpListener",
         "values": [],
-        "items": [
-          "tcpListener"
-        ],
         "properties": {
           "tcpListener": {
             "codedata": {
@@ -73,6 +72,15 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "tcpListener"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -87,12 +95,16 @@
           "type": "SERVICE_TYPE"
         },
         "placeholder": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
         "value": "Service",
-        "items": [
-          "",
-          "Service"
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "",
+              "Service"
+            ],
+            "selected": true
+          }
         ],
         "enabled": false,
         "editable": false,
@@ -104,10 +116,15 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Service Name": []
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -143,8 +160,13 @@
             "description": "The `onConnect` remote method will be triggered when a message is received from a tcp client"
           },
           "placeholder": "onConnect",
-          "valueType": "IDENTIFIER",
           "value": "onConnect",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -163,8 +185,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "tcp:Caller",
-              "valueType": "TYPE",
               "value": "tcp:Caller",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -176,8 +203,13 @@
                 "description": "The new client connection"
               },
               "placeholder": "caller",
-              "valueType": "IDENTIFIER",
               "value": "caller",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -189,8 +221,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -212,8 +249,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "tcp:ConnectionService|tcp:Error?",
-          "valueType": "TYPE",
           "value": "tcp:ConnectionService",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,

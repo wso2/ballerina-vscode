@@ -39,11 +39,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string|log:PrintableRawTemplate"
+            "ballerinaType": "string|log:PrintableRawTemplate",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -54,23 +56,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "msg"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "PrintableRawTemplate",
-            "packageInfo": "ballerina:log:2.12.0",
-            "packageName": "log",
-            "kind": "OBJECT_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "error": {
         "metadata": {
@@ -80,7 +66,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "error?"
+            "ballerinaType": "error?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -92,22 +79,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "'error"
         },
-        "typeMembers": [
-          {
-            "type": "error",
-            "packageInfo": "ballerina:lang.annotations:0.0.0",
-            "packageName": "lang.annotations",
-            "kind": "ERROR_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "stackTrace": {
@@ -118,11 +89,13 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "error:StackFrame[]"
+            "ballerinaType": "error:StackFrame[]",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "error:StackFrame[]?"
+            "ballerinaType": "error:StackFrame[]?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -134,22 +107,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "stackTrace"
         },
-        "typeMembers": [
-          {
-            "type": "StackFrame",
-            "packageInfo": "ballerina:lang.error:0.0.0",
-            "packageName": "lang.error",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "additionalValues": {
@@ -160,7 +117,8 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "log:Value"
+            "ballerinaType": "log:Value",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -171,8 +129,7 @@
         "codedata": {
           "kind": "INCLUDED_RECORD_REST",
           "originalName": "Additional Values"
-        },
-        "typeMembers": []
+        }
       }
     },
     "flags": 0

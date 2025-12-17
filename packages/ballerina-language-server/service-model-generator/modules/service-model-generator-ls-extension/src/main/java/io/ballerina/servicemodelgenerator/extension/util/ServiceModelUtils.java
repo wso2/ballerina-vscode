@@ -45,6 +45,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -77,13 +78,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_K
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TYPE_SERVICE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_MULTIPLE_SELECT_LISTENER;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT_LISTENER;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionModel;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getPath;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.isPresent;
@@ -225,7 +219,7 @@ public class ServiceModelUtils {
         return new Value.ValueBuilder()
                 .metadata(function.name(), function.description())
                 .value(function.name())
-                .valueType(VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .setPlaceholder(function.name())
                 .enabled(true)
                 .build();
@@ -241,7 +235,7 @@ public class ServiceModelUtils {
         Value returnValue = new Value.ValueBuilder()
                 .setMetadata(FUNCTION_RETURN_TYPE_METADATA)
                 .value(function.returnType())
-                .valueType(VALUE_TYPE_TYPE)
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
                 .setPlaceholder(function.returnType())
                 .editable(function.returnTypeEditable() == 1)
                 .enabled(true)
@@ -266,7 +260,7 @@ public class ServiceModelUtils {
             Value accessor = new Value.ValueBuilder()
                     .setMetadata(FUNCTION_ACCESSOR_METADATA)
                     .value(function.accessor())
-                    .valueType(VALUE_TYPE_IDENTIFIER)
+                    .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                     .setPlaceholder(function.accessor())
                     .enabled(true)
                     .build();
@@ -327,7 +321,7 @@ public class ServiceModelUtils {
         return new Value.ValueBuilder()
                 .setMetadata(new MetaData(parameter.name(), parameter.description()))
                 .value(parameter.name())
-                .valueType(VALUE_TYPE_IDENTIFIER)
+                .types(List.of(PropertyType.types(Value.FieldType.IDENTIFIER)))
                 .setPlaceholder(parameter.name())
                 .editable(parameter.nameEditable() == 1)
                 .enabled(true)
@@ -344,7 +338,7 @@ public class ServiceModelUtils {
         return new Value.ValueBuilder()
                 .setMetadata(PARAMETER_TYPE_METADATA)
                 .value(parameter.type())
-                .valueType(VALUE_TYPE_TYPE)
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
                 .setPlaceholder(parameter.type())
                 .editable(parameter.typeEditable() == 1)
                 .enabled(true)
@@ -362,7 +356,7 @@ public class ServiceModelUtils {
         return new Value.ValueBuilder()
                 .setMetadata(PARAMETER_DEFAULT_VALUE_METADATA)
                 .value(parameter.defaultValue())
-                .valueType(VALUE_TYPE_EXPRESSION)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .setPlaceholder(parameter.defaultValue())
                 .enabled(true)
                 .editable(true)
@@ -385,9 +379,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData(template.typeDescriptorLabel(), template.typeDescriptorDescription()))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .setItems(items)
-                .valueType(VALUE_TYPE_SINGLE_SELECT)
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, items)))
                 .setPlaceholder(template.typeDescriptorDefaultValue())
                 .enabled(template.optionalTypeDescriptor() == 0)
                 .editable(true);
@@ -401,8 +393,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData("Service Type", "The type of the service"))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .setItems(List.of(value))
-                .valueType("SINGLE_SELECT")
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, List.of(value))))
                 .enabled(true);
 
         return valueBuilder.build();
@@ -415,8 +406,7 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("STRING_LITERAL"))
                 .value(value)
                 .setValues(new ArrayList<>())
-                .valueType("SERVICE_PATH")
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.SERVICE_PATH)))
                 .enabled(true)
                 .editable(true);
 
@@ -430,8 +420,7 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("STRING_LITERAL"))
                 .value("")
                 .setValues(new ArrayList<>())
-                .valueType("SERVICE_PATH")
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.SERVICE_PATH)))
                 .setPlaceholder(template.stringLiteralDefaultValue())
                 .optional(false)
                 .setAdvanced(false)
@@ -448,8 +437,7 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("SERVICE_BASE_PATH"))
                 .value(value)
                 .setValues(new ArrayList<>())
-                .valueType("SERVICE_PATH")
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.SERVICE_PATH)))
                 .setPlaceholder("/")
                 .enabled(true)
                 .editable(true);
@@ -465,8 +453,7 @@ public class ServiceModelUtils {
                 .setCodedata(new Codedata("SERVICE_BASE_PATH"))
                 .value(template.absoluteResourcePathDefaultValue())
                 .setValues(new ArrayList<>())
-                .valueType("SERVICE_PATH")
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.SERVICE_PATH)))
                 .setPlaceholder(template.absoluteResourcePathDefaultValue())
                 .enabled(true)
                 .editable(true);
@@ -485,37 +472,41 @@ public class ServiceModelUtils {
         Codedata codedata = new Codedata("ANNOTATION_ATTACHMENT");
         codedata.setOriginalName(attachment.annotName());
 
+        PropertyType propertyType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType(attachment.typeName())
+                .setMembers(List.of(propertyTypeMemberInfo))
+                .build();
+
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                 .setMetadata(new MetaData(attachment.displayName(), attachment.description()))
                 .setCodedata(codedata)
                 .value("")
                 .setValues(new ArrayList<>())
-                .valueType(VALUE_TYPE_EXPRESSION)
-                .setValueTypeConstraint(attachment.typeName())
+                .types(List.of(propertyType))
                 .setPlaceholder("{}")
                 .optional(true)
                 .setAdvanced(true)
                 .enabled(true)
-                .editable(true)
-                .setMembers(List.of(propertyTypeMemberInfo));
+                .editable(true);
 
         return valueBuilder.build();
     }
 
-    public static Value getListenersProperty(String protocol, String valueType) {
-        boolean isMultiple = valueType.equals(VALUE_TYPE_MULTIPLE_SELECT);
+    public static Value getListenersProperty(String protocol, Value.FieldType fieldType) {
+        boolean isMultiple = fieldType.equals(Value.FieldType.MULTIPLE_SELECT_LISTENER);
         MetaData metaData = isMultiple ?
                 new MetaData("Listeners", "The Listeners to be bound with the service")
                 : new MetaData("Listener", "The Listener to be bound with the service");
-        String kind = isMultiple ? VALUE_TYPE_MULTIPLE_SELECT_LISTENER : VALUE_TYPE_SINGLE_SELECT_LISTENER;
+        Value.FieldType kind = isMultiple ? Value.FieldType.MULTIPLE_SELECT_LISTENER :
+                Value.FieldType.SINGLE_SELECT_LISTENER;
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
                 .setMetadata(metaData)
                 .setCodedata(new Codedata("LISTENER"))
                 .value("")
                 .setValues(new ArrayList<>())
-                .valueType(kind)
-                .setValueTypeConstraint(protocol + ":" + "Listener")
+                .types(List.of(PropertyType.types(kind, new ArrayList<>())))
                 .setPlaceholder("")
                 .enabled(true)
                 .editable(true);
@@ -528,8 +519,7 @@ public class ServiceModelUtils {
         valueBuilder
                 .setMetadata(SERVICE_DOCUMENTATION_METADATA)
                 .setCodedata(new Codedata("DOCUMENTATION"))
-                .valueType(Constants.VALUE_TYPE_STRING)
-                .setValueTypeConstraint("string")
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                 .optional(true)
                 .enabled(true)
                 .editable(true);
@@ -555,7 +545,7 @@ public class ServiceModelUtils {
 
         valueBuilder.setCodedata(new Codedata("READONLY"))
                 .value(props)
-                .valueType("SINGLE_SELECT")
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
                 .setPlaceholder("false")
                 .optional(false)
                 .setAdvanced(false)
@@ -581,7 +571,7 @@ public class ServiceModelUtils {
         }
         Value listener = serviceModel.getListener();
         if (!listeners.isEmpty()) {
-            listener.setItems(listeners.stream().map(l -> (Object) l).toList());
+            listener.getTypes().getFirst().options().addAll(listeners.stream().map(l -> (Object) l).toList());
         }
     }
 
@@ -751,7 +741,7 @@ public class ServiceModelUtils {
 
         Service serviceModel = serviceBuilder.build();
 
-        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol, VALUE_TYPE_SINGLE_SELECT_LISTENER));
+        properties.put(PROP_KEY_LISTENER, getListenersProperty(protocol, Value.FieldType.SINGLE_SELECT_LISTENER));
         populateListenerInfo(serviceModel, serviceNode);
 
         if (serviceNode.typeDescriptor().isPresent()) {

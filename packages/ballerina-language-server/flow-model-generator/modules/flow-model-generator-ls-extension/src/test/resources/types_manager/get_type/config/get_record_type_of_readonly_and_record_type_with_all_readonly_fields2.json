@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "Starship2",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "Readonly record with all readonly fields (open record)",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -114,7 +119,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",

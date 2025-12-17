@@ -33,7 +33,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "getCounter",
@@ -62,7 +63,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -78,7 +80,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "int",
@@ -94,7 +97,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -118,7 +122,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -129,7 +134,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -145,7 +151,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -161,7 +168,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -175,7 +183,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {},
@@ -191,7 +200,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "true",

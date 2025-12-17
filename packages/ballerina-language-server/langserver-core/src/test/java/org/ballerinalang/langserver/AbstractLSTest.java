@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -127,7 +128,7 @@ public abstract class AbstractLSTest {
         Mockito.when(this.lsPackageLoader.getCentralPackages()).thenReturn(CENTRAL_PACKAGES);
         Mockito.when(this.lsPackageLoader.getDistributionRepoModules()).thenReturn(DISTRIBUTION_PACKAGES);
         Mockito.when(this.lsPackageLoader.checkAndResolvePackagesFromRepository(Mockito.any(), Mockito.any(),
-                Mockito.any())).thenCallRealMethod();
+                Mockito.any(), Mockito.any())).thenCallRealMethod();
         Mockito.doNothing().when(this.lsPackageLoader).loadModules(Mockito.any());
         Mockito.when(this.lsPackageLoader.getAllVisiblePackages(Mockito.any())).thenCallRealMethod();
         Mockito.when(this.lsPackageLoader.getPackagesFromBallerinaUserHome(Mockito.any())).thenCallRealMethod();
@@ -138,8 +139,14 @@ public abstract class AbstractLSTest {
         BallerinaDistribution ballerinaDistribution = BallerinaDistribution.from(environment);
         PackageRepository packageRepository = ballerinaDistribution.packageRepository();
         List<String> skippedLangLibs = Arrays.asList("lang.annotations", "lang.__internal", "lang.query");
-        return lsPackageLoader.checkAndResolvePackagesFromRepository(packageRepository,
-                skippedLangLibs, Collections.emptySet());
+        Map<String, Map<String, Map<String, List<LSPackageLoader.ListenerData>>>> listenersMap = new HashMap<>();
+
+        listenersMap.computeIfAbsent("ballerina", k -> new HashMap<>())
+                .computeIfAbsent("module1", k -> new HashMap<>())
+                .computeIfAbsent("0.0.0", k -> new ArrayList<>())
+                .add(new LSPackageLoader.ListenerData("Listener", "${2:0}", 3));
+        return lsPackageLoader.checkAndResolvePackagesFromRepository(packageRepository, listenersMap, skippedLangLibs,
+                Collections.emptySet());
     }
 
     protected static List<Package> getPackages(Map<String, String> projects,

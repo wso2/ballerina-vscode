@@ -22,7 +22,6 @@
             "description": "Service Contract"
           },
           "placeholder": "",
-          "valueType": "CHOICE",
           "value": "",
           "choices": [
             {
@@ -31,7 +30,6 @@
                 "description": "Design the service from scratch"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "basePath": {
@@ -43,15 +41,26 @@
                     "type": "SERVICE_BASEPATH"
                   },
                   "placeholder": "",
-                  "valueType": "SERVICE_PATH",
-                  "valueTypeConstraint": "string",
                   "value": "/",
+                  "types": [
+                    {
+                      "fieldType": "SERVICE_PATH",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -63,7 +72,6 @@
                 "description": "Implement the service from an OpenAPI specification"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "spec": {
@@ -75,9 +83,14 @@
                     "type": "OPENAPI"
                   },
                   "placeholder": "",
-                  "valueType": "FILE_SELECT",
-                  "valueTypeConstraint": "string",
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "FILE_SELECT",
+                      "ballerinaType": "string",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": true,
@@ -92,19 +105,35 @@
                     "type": "SERVICE_BASEPATH"
                   },
                   "placeholder": "",
-                  "valueType": "IDENTIFIER",
-                  "valueTypeConstraint": "string",
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
+            }
+          ],
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": true
             }
           ],
           "enabled": true,
@@ -118,7 +147,6 @@
             "description": "Configure the HTTP listener for the service"
           },
           "placeholder": "",
-          "valueType": "CHOICE",
           "value": "",
           "items": [],
           "choices": [
@@ -128,9 +156,14 @@
                 "description": "Shared Listener (Port 9090)"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {},
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -142,7 +175,6 @@
                 "description": "Configure a custom HTTP listener with a specific port"
               },
               "placeholder": "true",
-              "valueType": "FORM",
               "value": "true",
               "properties": {
                 "port": {
@@ -154,10 +186,19 @@
                     "argType": "LISTENER_PARAM_REQUIRED"
                   },
                   "placeholder": "9090",
-                  "valueType": "EXPRESSION",
-                  "valueTypeConstraint": "int",
                   "value": "9090",
-                  "typeMembers": [],
+                  "types": [
+                    {
+                      "fieldType": "NUMBER",
+                      "ballerinaType": "int",
+                      "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "int",
+                      "selected": false
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -172,25 +213,39 @@
                     "type": "LISTENER_VAR_NAME"
                   },
                   "placeholder": "httpListener",
-                  "valueType": "IDENTIFIER",
-                  "valueTypeConstraint": "string",
                   "value": "httpListener",
                   "items": [],
-                  "typeMembers": [],
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
                   "advanced": false
                 }
               },
+              "types": [
+                {
+                  "fieldType": "FORM",
+                  "selected": true
+                }
+              ],
               "enabled": false,
               "editable": true,
               "optional": false,
               "advanced": false
             }
           ],
-          "typeMembers": [],
           "properties": {},
+          "types": [
+            {
+              "fieldType": "CHOICE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

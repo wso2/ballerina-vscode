@@ -39,7 +39,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "io:Printable"
+            "ballerinaType": "io:Printable",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -50,16 +51,7 @@
         "codedata": {
           "kind": "REST_PARAMETER",
           "originalName": "values"
-        },
-        "typeMembers": [
-          {
-            "type": "Printable",
-            "packageInfo": "ballerina:io:1.8.0",
-            "packageName": "io",
-            "kind": "ARRAY_TYPE",
-            "selected": false
-          }
-        ]
+        }
       }
     },
     "flags": 0

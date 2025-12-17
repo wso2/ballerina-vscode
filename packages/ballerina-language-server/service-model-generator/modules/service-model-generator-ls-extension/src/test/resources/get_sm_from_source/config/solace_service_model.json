@@ -28,8 +28,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -38,20 +42,15 @@
     "properties": {
       "listener": {
         "metadata": {
-          "label": "Listener",
-          "description": "The Listener to be bound with the service"
+          "label": "Listeners",
+          "description": "The Listeners to be bound with the service"
         },
         "codedata": {
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT_LISTENER",
-        "valueTypeConstraint": "solace:Listener",
         "value": "solaceListener",
         "values": [],
-        "items": [
-          "solaceListener"
-        ],
         "properties": {
           "solaceListener": {
             "codedata": {
@@ -73,6 +72,15 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "solaceListener"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -87,12 +95,16 @@
           "type": "SERVICE_TYPE"
         },
         "placeholder": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
         "value": "Service",
-        "items": [
-          "",
-          "Service"
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "",
+              "Service"
+            ],
+            "selected": true
+          }
         ],
         "enabled": false,
         "editable": false,
@@ -104,13 +116,18 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Topic Name": [],
           "Queue Name": [
             "test-queue"
           ]
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -126,15 +143,20 @@
           "originalName": "ServiceConfig"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "solace:ServiceConfiguration",
         "value": "{\n    queueName: \"test-queue\",\n    sessionAckMode: \"AUTO_ACKNOWLEDGE\"\n}",
         "values": [],
-        "typeMembers": [
+        "types": [
           {
-            "type": "ServiceConfiguration",
-            "packageInfo": "ballerinax:solace:0.3.0",
-            "kind": "RECORD_TYPE",
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "solace:ServiceConfiguration",
+            "typeMembers": [
+              {
+                "type": "ServiceConfiguration",
+                "packageInfo": "ballerinax:solace:0.3.0",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
             "selected": true
           }
         ],
@@ -173,8 +195,13 @@
             "description": "Triggers when a message is received from a Solace queue or topic"
           },
           "placeholder": "onMessage",
-          "valueType": "IDENTIFIER",
           "value": "onMessage",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -193,8 +220,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "solace:Message",
-              "valueType": "TYPE",
               "value": "solace:Message",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -206,8 +238,13 @@
                 "description": "The received Solace message"
               },
               "placeholder": "message",
-              "valueType": "IDENTIFIER",
               "value": "message",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -219,8 +256,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -245,8 +287,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "solace:Caller",
-              "valueType": "TYPE",
               "value": "solace:Caller",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -258,8 +305,13 @@
                 "description": "The Solace caller to control transactions and message acknowledgement"
               },
               "placeholder": "caller",
-              "valueType": "IDENTIFIER",
               "value": "caller",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -271,8 +323,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -292,16 +349,26 @@
             },
             "kind": "DATA_BINDING",
             "type": {
-              "valueType": "TYPE",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false
             },
             "name": {
-              "valueType": "IDENTIFIER",
               "value": "message",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -323,8 +390,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,
@@ -384,8 +456,13 @@
             "description": "Triggers when an error occurs during message processing"
           },
           "placeholder": "onError",
-          "valueType": "IDENTIFIER",
           "value": "onError",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -404,8 +481,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "solace:Error",
-              "valueType": "TYPE",
               "value": "solace:Error",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -417,8 +499,13 @@
                 "description": "The error occurred during message processing"
               },
               "placeholder": "solaceError",
-              "valueType": "IDENTIFIER",
               "value": "solaceError",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -430,8 +517,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -453,8 +545,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,

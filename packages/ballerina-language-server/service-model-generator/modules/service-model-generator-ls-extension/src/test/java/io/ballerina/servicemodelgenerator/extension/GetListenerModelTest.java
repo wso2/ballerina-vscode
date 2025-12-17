@@ -35,6 +35,7 @@ import java.nio.file.Path;
  *
  * @since 1.0.0
  */
+@Deprecated
 public class GetListenerModelTest extends AbstractLSTest {
 
     @Override
