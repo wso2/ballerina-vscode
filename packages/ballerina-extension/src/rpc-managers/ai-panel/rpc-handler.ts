@@ -88,7 +88,6 @@ import {
     repairGeneratedCode,
     RepairParams,
     RequirementSpecification,
-    revertChanges,
     SemanticDiffRequest,
     showReviewActions,
     hideReviewActions,
@@ -158,7 +157,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
-    messenger.onNotification(revertChanges, () => rpcManger.revertChanges());
     messenger.onNotification(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onNotification(declineChanges, () => rpcManger.declineChanges());
     messenger.onNotification(showReviewActions, () => rpcManger.showReviewActions());
