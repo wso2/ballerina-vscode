@@ -1585,10 +1585,6 @@ const AIChat: React.FC = () => {
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            showPreview={true}
-                                            isLoading={
-                                                isLoading && !isSuggestionLoading && index === otherMessages.length - 1
-                                            }
                                             checkpointButton={
                                                 message.role === "User" && message.checkpointId ? (
                                                     <CheckpointButton
