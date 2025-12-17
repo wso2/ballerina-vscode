@@ -18,7 +18,39 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import { LoginMethod } from "../../state-machine-types";
-import { GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest, SemanticDiffRequest, SemanticDiffResponse } from "./interfaces";
+import {
+    GetFromFileRequest,
+    DeleteFromProjectRequest,
+    ProjectSource,
+    ProjectDiagnostics,
+    PostProcessRequest,
+    PostProcessResponse,
+    FetchDataRequest,
+    FetchDataResponse,
+    TestGenerationMentions,
+    AIChatSummary,
+    DeveloperDocument,
+    RequirementSpecification,
+    LLMDiagnostics,
+    AIPanelPrompt,
+    AIMachineSnapshot,
+    SubmitFeedbackRequest,
+    RelevantLibrariesAndFunctionsRequest,
+    GenerateOpenAPIRequest,
+    GenerateCodeRequest,
+    GenerateAgentCodeRequest,
+    TestPlanGenerationRequest,
+    TestGeneratorIntermediaryState,
+    RepairParams,
+    RelevantLibrariesAndFunctionsResponse,
+    DocGenerationRequest,
+    AddFilesToProjectRequest,
+    MetadataWithAttachments,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
+} from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
