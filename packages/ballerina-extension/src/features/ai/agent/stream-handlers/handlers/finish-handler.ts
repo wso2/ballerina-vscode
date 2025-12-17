@@ -44,14 +44,50 @@ interface ReviewContext {
  * Only one review context is stored at a time (latest wins).
  */
 let pendingReviewContext: ReviewContext | null = null;
+let autoCleanupTimer: NodeJS.Timeout | null = null;
+
+// Auto-expire timeout in milliseconds (30 minutes)
+const AUTO_EXPIRE_MS = 30 * 60 * 1000;
+
+/**
+ * Automatically cleanup expired review context
+ */
+function scheduleAutoCleanup(): void {
+    // Clear any existing timer
+    if (autoCleanupTimer) {
+        clearTimeout(autoCleanupTimer);
+    }
+
+    // Schedule cleanup after expiration time
+    autoCleanupTimer = setTimeout(() => {
+        if (pendingReviewContext) {
+            const ageInMinutes = (Date.now() - pendingReviewContext.timestamp) / 1000 / 60;
+            console.warn(`[Review Context] Auto-cleaning expired context (age: ${ageInMinutes.toFixed(1)} minutes) for message: ${pendingReviewContext.messageId}`);
+            
+            // Cleanup temp project if it still exists
+            if (pendingReviewContext.shouldCleanup) {
+                try {
+                    cleanupTempProject(pendingReviewContext.tempProjectPath);
+                } catch (error) {
+                    console.error("[Review Context] Error during auto-cleanup:", error);
+                }
+            }
+            
+            pendingReviewContext = null;
+        }
+        autoCleanupTimer = null;
+    }, AUTO_EXPIRE_MS);
+}
 
 export function getPendingReviewContext(): ReviewContext | null {
     if (pendingReviewContext) {
         const ageInMinutes = (Date.now() - pendingReviewContext.timestamp) / 1000 / 60;
         
-        // Warn if context is very old (> 30 minutes) - might indicate a leak
+        // Check if context has expired
         if (ageInMinutes > 30) {
-            console.warn(`[Review Context] Context is ${ageInMinutes.toFixed(1)} minutes old - possible memory leak?`);
+            console.warn(`[Review Context] Context expired (age: ${ageInMinutes.toFixed(1)} minutes) - clearing automatically`);
+            clearPendingReviewContext();
+            return null;
         }
     } else {
         console.log("[Review Context] No pending context found");
@@ -64,13 +100,56 @@ export function clearPendingReviewContext(): void {
         console.log(`[Review Context] Clearing context for message: ${pendingReviewContext.messageId}`);
         pendingReviewContext = null;
     }
+    
+    // Clear the auto-cleanup timer
+    if (autoCleanupTimer) {
+        clearTimeout(autoCleanupTimer);
+        autoCleanupTimer = null;
+    }
 }
 
 export function setPendingReviewContext(context: ReviewContext): void {
     if (pendingReviewContext) {
         console.warn(`[Review Context] Overwriting existing context for message: ${pendingReviewContext.messageId} with new context for message: ${context.messageId}`);
+        
+        // Cleanup old context's temp project if needed
+        if (pendingReviewContext.shouldCleanup && pendingReviewContext.tempProjectPath !== context.tempProjectPath) {
+            try {
+                cleanupTempProject(pendingReviewContext.tempProjectPath);
+            } catch (error) {
+                console.error("[Review Context] Error cleaning up old context:", error);
+            }
+        }
     }
+    
     pendingReviewContext = context;
+    
+    // Schedule automatic cleanup
+    scheduleAutoCleanup();
+}
+
+/**
+ * Cleanup function to be called when extension deactivates
+ * Should be registered in the extension's deactivate() function
+ */
+export function cleanupOnExtensionDeactivate(): void {
+    console.log("[Review Context] Extension deactivating - cleaning up pending review context");
+    
+    if (autoCleanupTimer) {
+        clearTimeout(autoCleanupTimer);
+        autoCleanupTimer = null;
+    }
+    
+    if (pendingReviewContext) {
+        if (pendingReviewContext.shouldCleanup) {
+            try {
+                cleanupTempProject(pendingReviewContext.tempProjectPath);
+            } catch (error) {
+                console.error("[Review Context] Error during extension deactivation cleanup:", error);
+            }
+        }
+        pendingReviewContext = null;
+    }
 }
 
 /**
