@@ -564,7 +564,8 @@
                 "command": "BI.test.add.function",
                 "title": "Add test case",
                 "icon": "$(add)",
-                "category": "BI"
+                "category": "BI",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.view.typeDiagram",
