@@ -25,14 +25,6 @@ import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
 
 /**
- * Closes all documents in the temp project and waits for LS to process
- */
-async function closeAllDocumentsAndWait(tempProjectPath: string, projects: any[]): Promise<void> {
-    sendAgentDidCloseForProjects(tempProjectPath, projects);
-    await new Promise(resolve => setTimeout(resolve, 300));
-}
-
-/**
  * Handles finish events from the stream.
  * Runs diagnostics, integrates code to workspace, and performs cleanup.
  */
@@ -61,7 +53,7 @@ export class FinishHandler implements StreamEventHandler {
         }
 
         // Cleanup
-        await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
+        sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
         if (context.shouldCleanup) {
             cleanupTempProject(context.tempProjectPath);
         }

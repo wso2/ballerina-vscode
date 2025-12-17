@@ -54,10 +54,8 @@ import {
     RequirementSpecification,
     SubmitFeedbackRequest,
     TestGenerationMentions,
-    TestGenerationRequest,
-    TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
+    TestPlanGenerationRequest
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -77,6 +75,7 @@ import { generateDocumentationForService } from "../../features/ai/documentation
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 // import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
@@ -96,7 +95,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -317,64 +315,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return false;
     }
 
-    async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-
-        //         const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
-        //         resolve(generatedTests);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            testSource:"",
-
-        };
-    }
-
-    async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const diagnostics = await getDiagnostics(projectPath, params);
-        //         resolve(diagnostics);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            diagnostics: []
-        };
-    }
-
-    async getServiceSourceForName(params: string): Promise<string> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
-        //         resolve(serviceDeclaration.source);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return "";
-    }
-
-    async getResourceSourceForMethodAndPath(params: string): Promise<string> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
-        //         resolve(resourceAccessorDef.source);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return "";
-    }
-
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -387,23 +327,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 reject(error);
             }
         });
-    }
-
-    async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const resourceAccessorNames = await getResourceAccessorNames(projectPath);
-        //         resolve({
-        //             mentions: resourceAccessorNames
-        //         });
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            mentions: []
-        };
     }
 
     async abortTestGeneration(): Promise<void> {
@@ -734,7 +657,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<boolean> {
+    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
             payload: {
@@ -743,8 +666,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 userMessage: 'Generate context types'
             }
         });
-
-        return true;
     }
 
     async openChatWindowWithCommand(): Promise<void> {
