@@ -1644,7 +1644,7 @@
         "stringLiteralLabel": "Service Base Path",
         "stringLiteralDescription": "",
         "stringLiteralDefaultValue": "",
-        "listenerKind": "MULTIPLE_SELECT",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
         "kind": "event"
       },
       "serviceTypes": {

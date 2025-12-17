@@ -26,6 +26,7 @@ import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiExc
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -63,7 +64,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OPEN_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SERVICE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.extractParameterKinds;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.restoreAndUpdateDataBindingParams;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.extractFunctionsFromSource;
@@ -201,10 +201,20 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         Value configureListenerValue = properties.get(KEY_CONFIGURE_LISTENER);
 
         // fill the existing listeners values
-        Value selectListenerValue = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
+        Value selectListenerTemplate = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
                 .getProperties().get(KEY_SELECT_LISTENER);
-        selectListenerValue.setValue(listenerNames.iterator().next());
-        selectListenerValue.setItems(Arrays.asList(listenerNames.toArray()));
+        Value existingListenerOptions = new Value.ValueBuilder()
+                .metadata(selectListenerTemplate.getMetadata().label(),
+                        selectListenerTemplate.getMetadata().description())
+                .value(listenerNames.iterator().next())
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .setItems(Arrays.asList(listenerNames.toArray()))
+                .build();
+        configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
+                .getProperties().put(KEY_SELECT_LISTENER, existingListenerOptions);
 
         // Add all listener properties to choice 1 of configureListener
         listenerFields.forEach(key -> {
@@ -249,7 +259,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         String databaseConfig = buildDatabaseConfig(properties);
         Value databaseValue = new Value.ValueBuilder()
                 .value(databaseConfig)
-                .valueType(VALUE_TYPE_EXPRESSION)
+                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
                 .enabled(true)
                 .editable(false)
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
