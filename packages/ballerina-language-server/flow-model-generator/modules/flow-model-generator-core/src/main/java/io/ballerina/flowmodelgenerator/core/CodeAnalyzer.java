@@ -1585,7 +1585,8 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (nodeBuilder instanceof NewConnectionBuilder) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, NewConnectionBuilder.CONNECTION_NAME_LABEL,
-                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, false, new HashSet<>(), true);
+                            NewConnectionBuilder.CONNECTION_TYPE_LABEL, NewConnectionBuilder.CONNECTION_NAME_DOC,
+                            false, new HashSet<>(), true);
         } else if (nodeBuilder instanceof RemoteActionCallBuilder || nodeBuilder instanceof ResourceActionCallBuilder) {
             nodeBuilder.properties()
                     .dataVariable(this.typedBindingPatternNode, Property.RESULT_NAME, Property.RESULT_TYPE_LABEL,
