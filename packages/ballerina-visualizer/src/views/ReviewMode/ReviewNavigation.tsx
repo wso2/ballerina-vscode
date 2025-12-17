@@ -28,7 +28,7 @@ const NavigationContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 16px 24px;
+    padding: 12px;
     background: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 8px;
@@ -43,12 +43,13 @@ const ViewInfo = styled.div`
     align-items: center;
     gap: 4px;
     padding: 0 16px;
-    border-right: 1px solid var(--vscode-panel-border);
 `;
 
 const ViewCounter = styled.div`
     font-size: 14px;
     font-weight: 600;
+    text-align: center;
+    min-width: 60px;
     color: var(--vscode-foreground);
 `;
 
@@ -71,6 +72,7 @@ const ActionButtons = styled.div`
     gap: 8px;
     padding-left: 16px;
     border-left: 1px solid var(--vscode-panel-border);
+    min-width: 180px;
 `;
 
 interface ReviewNavigationProps {
@@ -178,6 +180,7 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                     appearance="secondary"
                     onClick={handleReject}
                     tooltip="Undo All Changes"
+                    disabled={isProcessing}
                 >
                     Undo All
                 </Button>
@@ -185,6 +188,7 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                     appearance="primary"
                     onClick={handleAccept}
                     tooltip="Keep All Changes"
+                    disabled={isProcessing}
                 >
                     Keep All
                 </Button>

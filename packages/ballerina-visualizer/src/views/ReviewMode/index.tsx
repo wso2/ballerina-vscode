@@ -25,6 +25,7 @@ import { ReadonlyFlowDiagram } from "./ReadonlyFlowDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
 import { Icon, ThemeColors } from "@wso2/ui-toolkit";
 import { TitleBar } from "../../components/TitleBar";
+import { getTitleBarSubEl } from "../BI/DiagramWrapper";
 
 const ReviewContainer = styled.div`
     width: 100%;
@@ -45,7 +46,7 @@ const ReviewModeBadge = styled.div`
     padding: 4px 12px;
     background: ${ThemeColors.PRIMARY};
     color: white;
-    border-radius: 4px;
+    border-radius: 2px;
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
@@ -70,15 +71,15 @@ const CloseButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
         background: var(--vscode-toolbar-hoverBackground);
     }
-    
+
     &:active {
         background: var(--vscode-toolbar-activeBackground);
     }
-    
+
     & > div:first-child {
         width: 20px;
         height: 20px;
@@ -87,7 +88,7 @@ const CloseButton = styled.button`
 `;
 
 interface ReviewView {
-    type: 'component' | 'flow';
+    type: "component" | "flow";
     filePath: string;
     position: {
         startLine: number;
@@ -116,13 +117,13 @@ enum NodeKindEnum {
 function getChangeTypeString(changeType: number): string {
     switch (changeType) {
         case ChangeTypeEnum.ADDITION:
-            return 'addition';
+            return "addition";
         case ChangeTypeEnum.MODIFICATION:
-            return 'modification';
+            return "modification";
         case ChangeTypeEnum.DELETION:
-            return 'deletion';
+            return "deletion";
         default:
-            return 'change';
+            return "change";
     }
 }
 
@@ -130,58 +131,58 @@ function getChangeTypeString(changeType: number): string {
 function getNodeKindString(nodeKind: number): string {
     switch (nodeKind) {
         case NodeKindEnum.AUTOMATION:
-            return 'automation';
+            return "automation";
         case NodeKindEnum.SERVICE:
-            return 'service';
+            return "service";
         case NodeKindEnum.LISTENER:
-            return 'listener';
+            return "listener";
         case NodeKindEnum.MODULE_LEVEL:
-            return 'module level';
+            return "module level";
         case NodeKindEnum.FUNCTION:
-            return 'function';
+            return "function";
         case NodeKindEnum.CLASS_INIT:
-            return 'class init';
+            return "class init";
         case NodeKindEnum.RESOURCE_FUNCTION:
-            return 'resource function';
+            return "resource function";
         case NodeKindEnum.REMOTE_FUNCTION:
-            return 'remote function';
+            return "remote function";
         default:
-            return 'component';
+            return "component";
     }
 }
 
 // Utility function to determine diagram type based on NodeKind
-function getDiagramType(nodeKind: number): 'component' | 'flow' {
+function getDiagramType(nodeKind: number): "component" | "flow" {
     const componentKinds = [
         NodeKindEnum.SERVICE,
         NodeKindEnum.LISTENER,
         NodeKindEnum.AUTOMATION,
-        NodeKindEnum.MODULE_LEVEL
+        NodeKindEnum.MODULE_LEVEL,
     ];
     const flowKinds = [
         NodeKindEnum.FUNCTION,
         NodeKindEnum.CLASS_INIT,
         NodeKindEnum.RESOURCE_FUNCTION,
-        NodeKindEnum.REMOTE_FUNCTION
+        NodeKindEnum.REMOTE_FUNCTION,
     ];
-    
+
     if (componentKinds.includes(nodeKind)) {
-        return 'component';
+        return "component";
     }
     if (flowKinds.includes(nodeKind)) {
-        return 'flow';
+        return "flow";
     }
     // Default to component view for other kinds
-    return 'component';
+    return "component";
 }
 
 // Utility function to convert SemanticDiff to ReviewView
 function convertToReviewView(diff: SemanticDiff, projectPath: string): ReviewView {
-    const fileName = diff.uri.split('/').pop() || diff.uri;
+    const fileName = diff.uri.split("/").pop() || diff.uri;
     const changeTypeStr = getChangeTypeString(diff.changeType);
     const nodeKindStr = getNodeKindString(diff.nodeKind);
     const changeLabel = `${changeTypeStr}: ${nodeKindStr} in ${fileName}`;
-    
+
     return {
         type: "flow",
         filePath: diff.uri,
@@ -206,25 +207,24 @@ interface ReviewModeProps {
 }
 
 interface ItemMetadata {
-    type: string;      // "Resource", "Function", "Automation", etc.
-    name: string;      // e.g., "todos", "processData"
+    type: string; // "Resource", "Function", "Automation", etc.
+    name: string; // e.g., "todos", "processData"
     accessor?: string; // e.g., "get", "post" (for resources)
 }
 
 export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const { projectPath } = props;
     const { rpcClient } = useRpcContext();
-    
+
     const [semanticDiffData, setSemanticDiffData] = useState<SemanticDiffResponse | null>(null);
     const [views, setViews] = useState<ReviewView[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
-    
+
     // Derive current view from views array and currentIndex - no separate state needed
-    const currentView = views.length > 0 && currentIndex >= 0 && currentIndex < views.length 
-        ? views[currentIndex] 
-        : null;
+    const currentView =
+        views.length > 0 && currentIndex >= 0 && currentIndex < views.length ? views[currentIndex] : null;
 
     // Fetch semantic diff data on mount
     useEffect(() => {
@@ -232,19 +232,19 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             try {
                 setIsLoading(true);
                 const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
-                console.log('[Review Mode] Opening review mode with data:', semanticDiffResponse);
-                
+                console.log("[Review Mode] Opening review mode with data:", semanticDiffResponse);
+
                 setSemanticDiffData(semanticDiffResponse);
-                
+
                 const allViews: ReviewView[] = [];
-                
+
                 // If loadDesignDiagrams is true, add component diagram as first view
                 if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
                     // Component diagram shows the entire project design, not a specific file/position
                     // We use the first diff's file just as a reference, but the actual diagram
                     // loads the entire design model for the project
                     allViews.push({
-                        type: 'component',
+                        type: "component",
                         filePath: projectPath, // Use project path instead of specific file
                         position: {
                             startLine: 0,
@@ -253,11 +253,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                             endColumn: 0,
                         },
                         projectPath,
-                        label: 'Design Diagram',
+                        label: "Design Diagram",
                     });
-                    console.log('[Review Mode] Added component diagram as first view');
+                    console.log("[Review Mode] Added component diagram as first view");
                 }
-                
+
                 // Convert all semantic diffs to flow diagram views
                 const flowViews = semanticDiffResponse.semanticDiffs.map((diff, index) => {
                     const view = convertToReviewView(diff, projectPath);
@@ -265,15 +265,18 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     return view;
                 });
                 allViews.push(...flowViews);
-                
-                console.log('[Review Mode] Total views created:', allViews.length);
-                console.log('[Review Mode] All views:', allViews.map((v, i) => `${i}: ${v.label} (${v.type})`));
-                
+
+                console.log("[Review Mode] Total views created:", allViews.length);
+                console.log(
+                    "[Review Mode] All views:",
+                    allViews.map((v, i) => `${i}: ${v.label} (${v.type})`)
+                );
+
                 setViews(allViews);
                 setCurrentIndex(0);
-                console.log('[Review Mode] Set initial index to 0');
+                console.log("[Review Mode] Set initial index to 0");
             } catch (error) {
-                console.error('[Review Mode] Error fetching semantic diff:', error);
+                console.error("[Review Mode] Error fetching semantic diff:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -283,24 +286,24 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     }, [projectPath, rpcClient]);
 
     const handlePrevious = () => {
-        console.log('[Review Mode] Previous clicked. Current index:', currentIndex, 'Total views:', views.length);
+        console.log("[Review Mode] Previous clicked. Current index:", currentIndex, "Total views:", views.length);
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
             setCurrentItemMetadata(null); // Clear metadata when navigating
-            console.log('[Review Mode] Moving to index:', currentIndex - 1);
+            console.log("[Review Mode] Moving to index:", currentIndex - 1);
         } else {
-            console.log('[Review Mode] Already at first view');
+            console.log("[Review Mode] Already at first view");
         }
     };
 
     const handleNext = () => {
-        console.log('[Review Mode] Next clicked. Current index:', currentIndex, 'Total views:', views.length);
+        console.log("[Review Mode] Next clicked. Current index:", currentIndex, "Total views:", views.length);
         if (currentIndex < views.length - 1) {
             setCurrentIndex(currentIndex + 1);
             setCurrentItemMetadata(null); // Clear metadata when navigating
-            console.log('[Review Mode] Moving to index:', currentIndex + 1);
+            console.log("[Review Mode] Moving to index:", currentIndex + 1);
         } else {
-            console.log('[Review Mode] Already at last view');
+            console.log("[Review Mode] Already at last view");
         }
     };
 
@@ -320,7 +323,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             // Accept the changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
             console.log("[Review Mode] Changes accepted successfully");
-            
+
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
@@ -336,7 +339,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             // Decline the changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
             console.log("[Review Mode] Changes declined successfully");
-            
+
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
@@ -352,12 +355,12 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         }
 
         switch (currentView.type) {
-            case 'component':
+            case "component":
                 // For component diagram, set metadata directly
                 if (!currentItemMetadata) {
                     setCurrentItemMetadata({
-                        type: 'Design',
-                        name: 'Overview'
+                        type: "Design",
+                        name: "",
                     });
                 }
                 return (
@@ -367,7 +370,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                         position={currentView.position}
                     />
                 );
-            case 'flow':
+            case "flow":
                 return (
                     <ReadonlyFlowDiagram
                         projectPath={currentView.projectPath || projectPath}
@@ -390,8 +393,8 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     hideBack={true}
                     hideUndoRedo={true}
                 />
-                <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ color: 'var(--vscode-foreground)' }}>Loading semantic diff...</div>
+                <DiagramContainer style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <div style={{ color: "var(--vscode-foreground)" }}>Loading semantic diff...</div>
                 </DiagramContainer>
             </ReviewContainer>
         );
@@ -406,8 +409,8 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     hideBack={true}
                     hideUndoRedo={true}
                 />
-                <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <div style={{ color: 'var(--vscode-foreground)' }}>No changes to review</div>
+                <DiagramContainer style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                    <div style={{ color: "var(--vscode-foreground)" }}>No changes to review</div>
                 </DiagramContainer>
             </ReviewContainer>
         );
@@ -415,31 +418,31 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
     const canGoPrevious = currentIndex > 0;
     const canGoNext = currentIndex < views.length - 1;
-
+    const isAutomation = currentItemMetadata?.type === "Function" && currentItemMetadata?.name === "main";
+    const isResource = currentItemMetadata?.type === "Resource";
     // Format the display text for the header
     const getHeaderText = () => {
         if (!currentItemMetadata) {
-            return { type: '', name: 'Loading...', fullName: 'Loading...' };
+            return { type: "", name: "Loading..." };
         }
-        
+
         let type = currentItemMetadata.type;
         let name = currentItemMetadata.name;
-        
-        // For resources, prepend accessor (e.g., "get todos")
-        if (currentItemMetadata.accessor) {
-            name = `${currentItemMetadata.accessor} ${name}`;
+
+        if (isAutomation) {
+            type = "Automation";
         }
 
-        // if type is function and name is init then change title to 'Automation'
-        if (type === 'function' && name === 'init') {
-            type = 'Automation';
-            name = '';
-        }
-        
-        return { type, name, fullName: name };
+        return { type, name };
     };
-
+    console.log("[Review Mode] currentItemMetadata:", currentItemMetadata);
     const headerText = getHeaderText();
+    const subtitleElement = getTitleBarSubEl(
+        headerText.name,
+        currentItemMetadata?.accessor || "",
+        isResource,
+        isAutomation
+    );
 
     // Create actions for the right side
     const headerActions = (
@@ -455,14 +458,12 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         <ReviewContainer>
             <TitleBar
                 title={headerText.type}
-                subtitleElement={headerText.name}
+                subtitleElement={subtitleElement}
                 actions={headerActions}
                 hideBack={true}
                 hideUndoRedo={true}
             />
-            <DiagramContainer>
-                {renderDiagram()}
-            </DiagramContainer>
+            <DiagramContainer>{renderDiagram()}</DiagramContainer>
             <ReviewNavigation
                 key={`nav-${currentIndex}-${views.length}`}
                 currentIndex={currentIndex}
@@ -478,5 +479,3 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         </ReviewContainer>
     );
 }
-
-

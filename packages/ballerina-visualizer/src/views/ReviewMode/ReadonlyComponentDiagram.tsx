@@ -81,6 +81,7 @@ export function ReadonlyComponentDiagram(props: ReadonlyComponentDiagramProps): 
         <Container>
             <Diagram
                 project={project}
+                readonly={true}
                 onListenerSelect={noOpHandler as any}
                 onServiceSelect={noOpHandler as any}
                 onFunctionSelect={noOpHandler as any}
