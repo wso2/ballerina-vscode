@@ -33,6 +33,7 @@ const ReviewContainer = styled.div`
     display: flex;
     flex-direction: column;
     background-color: var(--vscode-editor-background);
+    border: 1px solid ${ThemeColors.PRIMARY};
     position: relative;
 `;
 
