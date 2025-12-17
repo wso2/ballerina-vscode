@@ -173,11 +173,13 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
     }
 
     @AfterMethod
+    @Override
     public void shutDownLanguageServer() {
         super.shutDownLanguageServer();
     }
 
     @BeforeMethod
+    @Override
     public void startLanguageServer() {
         super.startLanguageServer();
     }

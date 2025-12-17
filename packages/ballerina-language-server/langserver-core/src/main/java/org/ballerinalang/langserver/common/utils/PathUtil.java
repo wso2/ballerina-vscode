@@ -88,10 +88,14 @@ public final class PathUtil {
     public static URI getEncodedURIPath(String input) {
         String encodedPath = input.replaceAll(" ", "%20");
 
-        if (encodedPath.startsWith("file:/") || encodedPath.startsWith("ai:/") || encodedPath.startsWith("expr:/")
-                || encodedPath.startsWith("bala:/")) {
-            return URI.create(encodedPath);
+        try {
+            URI uri = URI.create(encodedPath);
+            if (uri.getScheme() != null) {
+                return uri;
+            }
+        } catch (IllegalArgumentException ignored) {
         }
+
         return Path.of(encodedPath).toUri();
     }
 

@@ -193,7 +193,6 @@ public class SemanticDiffComputer {
                     resolveUri(lineRange.fileName()), lineRange);
             this.semanticDiffs.add(diff);
         }
-        originalTypeDefMap.keySet().forEach(modifiedTypeDefMap::remove);
 
         // Handle newly added type definitions in modified project
         for (Map.Entry<String, TypeDefinitionNode> entry : modifiedTypeDefMap.entrySet()) {
@@ -266,9 +265,18 @@ public class SemanticDiffComputer {
             return;
         }
 
-        if (originalFunctionBody instanceof ExpressionFunctionBodyNode) {
+        if (originalFunctionBody instanceof ExpressionFunctionBodyNode &&
+                modifiedFunctionBody instanceof ExpressionFunctionBodyNode) {
             LineRange lineRange = modifiedFunction.lineRange();
             SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, NodeKind.DATA_MAPPING_FUNCTION,
+                    resolveUri(lineRange.fileName()), lineRange);
+            this.semanticDiffs.add(diff);
+            return;
+        }
+
+        if (!originalFunctionBody.getClass().equals(modifiedFunctionBody.getClass())) {
+            LineRange lineRange = modifiedFunction.lineRange();
+            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
                     resolveUri(lineRange.fileName()), lineRange);
             this.semanticDiffs.add(diff);
             return;
@@ -285,15 +293,15 @@ public class SemanticDiffComputer {
             }
 
             for (int i = 0; i < originalBodyNode.statements().size(); i++) {
-                StatementNode orginalStmtNode = originalBodyNode.statements().get(i);
+                StatementNode originalStmtNode = originalBodyNode.statements().get(i);
                 StatementNode modifiedStmtNode = modifiedBodyNode.statements().get(i);
 
-                if (orginalStmtNode.toSourceCode().equals(modifiedStmtNode.toSourceCode())) {
+                if (originalStmtNode.toSourceCode().equals(modifiedStmtNode.toSourceCode())) {
                     continue;
                 }
 
                 List<Node> allOriginalStmtNodes = new ArrayList<>();
-                extractStatementNodes(orginalStmtNode, allOriginalStmtNodes);
+                extractStatementNodes(originalStmtNode, allOriginalStmtNodes);
                 List<Node> allModifiedStmtNodes = new ArrayList<>();
                 extractStatementNodes(modifiedStmtNode, allModifiedStmtNodes);
 
@@ -308,21 +316,20 @@ public class SemanticDiffComputer {
                 for (int j = 0; j < allOriginalStmtNodes.size(); j++) {
                     Node originalNode = allOriginalStmtNodes.get(j);
                     Node modifiedNode = allModifiedStmtNodes.get(j);
-                    // need to change weather both nodes have the same type
+                    // need to change whether both nodes have the same type
                     if (!originalNode.getClass().equals(modifiedNode.getClass())) {
                         LineRange lineRange = modifiedNode.lineRange();
                         SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
                                 resolveUri(lineRange.fileName()), lineRange);
                         this.semanticDiffs.add(diff);
                         return;
-                    } else {
-                        if (!originalNode.toSourceCode().trim().equals(modifiedNode.toSourceCode().trim())) {
-                            LineRange lineRange = modifiedNode.lineRange();
-                            SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
-                                    resolveUri(lineRange.fileName()), lineRange);
-                            this.semanticDiffs.add(diff);
-                            return;
-                        }
+                    }
+                    if (!originalNode.toSourceCode().trim().equals(modifiedNode.toSourceCode().trim())) {
+                        LineRange lineRange = modifiedNode.lineRange();
+                        SemanticDiff diff = new SemanticDiff(ChangeType.MODIFICATION, kind,
+                                resolveUri(lineRange.fileName()), lineRange);
+                        this.semanticDiffs.add(diff);
+                        return;
                     }
                 }
             }
@@ -473,20 +480,6 @@ public class SemanticDiffComputer {
             ServiceMethodExtractor modifiedServiceMethodExtractor =
                     new ServiceMethodExtractor(modifiedServiceMemberMap);
             modifiedService.accept(modifiedServiceMethodExtractor);
-
-            modifiedServiceMemberMap.getRemoteMethods().forEach((key, modifiedMethod) -> {
-                LineRange lineRange = modifiedMethod.lineRange();
-                SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
-                this.semanticDiffs.add(diff);
-            });
-
-            modifiedServiceMemberMap.getResourceMethods().forEach((key, modifiedMethod) -> {
-                LineRange lineRange = modifiedMethod.lineRange();
-                SemanticDiff diff = new SemanticDiff(ChangeType.ADDITION, NodeKind.OBJECT_FUNCTION,
-                        resolveUri(lineRange.fileName()), lineRange);
-                this.semanticDiffs.add(diff);
-            });
 
             modifiedServiceMemberMap.getObjectMethods().forEach((key, modifiedMethod) -> {
                 LineRange lineRange = modifiedMethod.lineRange();

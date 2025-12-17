@@ -48,21 +48,6 @@ public class ServiceMethodExtractor extends NodeVisitor {
 
     @Override
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
-        Optional<String> methodKind = functionDefinitionNode.qualifierList().stream().map(q -> q.text().trim())
-                .filter(q -> q.equals("resource") || q.equals("remote"))
-                .findFirst();
-
-        if (methodKind.isPresent()) {
-            if (methodKind.get().equals("resource")) {
-                String accessor = functionDefinitionNode.functionName().text().trim();
-                String path = getPath(functionDefinitionNode.relativeResourcePath());
-                String key = accessor + "#" + path;
-                this.serviceMemberMap.putResourceMethod(key, functionDefinitionNode);
-            } else {
-                String key = functionDefinitionNode.functionName().toSourceCode().trim();
-                this.serviceMemberMap.putRemoteMethod(key, functionDefinitionNode);
-            }
-        }
         String key =  functionDefinitionNode.functionName().toSourceCode().trim();
         this.serviceMemberMap.putObjectMethod(key, functionDefinitionNode);
     }

@@ -24,6 +24,7 @@ import io.ballerina.copilotagent.extension.request.SemanticDiffRequest;
 import io.ballerina.copilotagent.extension.response.SemanticDiffResponse;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -59,7 +60,7 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
     public CompletableFuture<SemanticDiffResponse> getSemanticDiff(SemanticDiffRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             SemanticDiffResponse response = new SemanticDiffResponse();
-            Path path = Path.of(request.projectPath());
+            Path path = PathUtil.getPathFromUriEncodeString(request.projectPath());
             Project originalProject;
             Project shadowProject;
             try {

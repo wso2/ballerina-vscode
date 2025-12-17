@@ -197,10 +197,10 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
     }
 
     private boolean isExprScheme(String uri) {
-        return URI.create(uri).getScheme().equals(CommonUtil.EXPR_SCHEME);
+        return PathUtil.getEncodedURIPath(uri).getScheme().equals(CommonUtil.EXPR_SCHEME);
     }
 
     private boolean isAIScheme(String uri) {
-        return URI.create(uri).getScheme().equals(CommonUtil.AI_SCHEME);
+        return PathUtil.getEncodedURIPath(uri).getScheme().equals(CommonUtil.AI_SCHEME);
     }
 }
