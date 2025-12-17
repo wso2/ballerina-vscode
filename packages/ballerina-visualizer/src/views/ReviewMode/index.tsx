@@ -52,14 +52,6 @@ const ReviewModeBadge = styled.div`
     white-space: nowrap;
 `;
 
-const ItemType = styled.span`
-    font-size: 12px;
-    color: var(--vscode-descriptionForeground);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-    margin-right: 4px;
-`;
 
 const CloseButton = styled.button`
     background: transparent;
@@ -151,31 +143,6 @@ function getNodeKindString(nodeKind: number): string {
     }
 }
 
-// Utility function to determine diagram type based on NodeKind
-function getDiagramType(nodeKind: number): "component" | "flow" {
-    const componentKinds = [
-        NodeKindEnum.SERVICE,
-        NodeKindEnum.LISTENER,
-        NodeKindEnum.AUTOMATION,
-        NodeKindEnum.MODULE_LEVEL,
-    ];
-    const flowKinds = [
-        NodeKindEnum.FUNCTION,
-        NodeKindEnum.CLASS_INIT,
-        NodeKindEnum.RESOURCE_FUNCTION,
-        NodeKindEnum.REMOTE_FUNCTION,
-    ];
-
-    if (componentKinds.includes(nodeKind)) {
-        return "component";
-    }
-    if (flowKinds.includes(nodeKind)) {
-        return "flow";
-    }
-    // Default to component view for other kinds
-    return "component";
-}
-
 // Utility function to convert SemanticDiff to ReviewView
 function convertToReviewView(diff: SemanticDiff, projectPath: string): ReviewView {
     const fileName = diff.uri.split("/").pop() || diff.uri;
@@ -232,7 +199,6 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             try {
                 setIsLoading(true);
                 const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
-                console.log("[Review Mode] Opening review mode with data:", semanticDiffResponse);
 
                 setSemanticDiffData(semanticDiffResponse);
 
@@ -255,26 +221,17 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                         projectPath,
                         label: "Design Diagram",
                     });
-                    console.log("[Review Mode] Added component diagram as first view");
                 }
 
                 // Convert all semantic diffs to flow diagram views
-                const flowViews = semanticDiffResponse.semanticDiffs.map((diff, index) => {
+                const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
                     const view = convertToReviewView(diff, projectPath);
-                    console.log(`[Review Mode] Created flow view ${index + 1}:`, view.label);
                     return view;
                 });
                 allViews.push(...flowViews);
 
-                console.log("[Review Mode] Total views created:", allViews.length);
-                console.log(
-                    "[Review Mode] All views:",
-                    allViews.map((v, i) => `${i}: ${v.label} (${v.type})`)
-                );
-
                 setViews(allViews);
                 setCurrentIndex(0);
-                console.log("[Review Mode] Set initial index to 0");
             } catch (error) {
                 console.error("[Review Mode] Error fetching semantic diff:", error);
             } finally {
@@ -286,43 +243,35 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     }, [projectPath, rpcClient]);
 
     const handlePrevious = () => {
-        console.log("[Review Mode] Previous clicked. Current index:", currentIndex, "Total views:", views.length);
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
             setCurrentItemMetadata(null); // Clear metadata when navigating
-            console.log("[Review Mode] Moving to index:", currentIndex - 1);
         } else {
             console.log("[Review Mode] Already at first view");
         }
     };
 
     const handleNext = () => {
-        console.log("[Review Mode] Next clicked. Current index:", currentIndex, "Total views:", views.length);
         if (currentIndex < views.length - 1) {
             setCurrentIndex(currentIndex + 1);
             setCurrentItemMetadata(null); // Clear metadata when navigating
-            console.log("[Review Mode] Moving to index:", currentIndex + 1);
         } else {
             console.log("[Review Mode] Already at last view");
         }
     };
 
     const handleClose = () => {
-        console.log("[Review Mode] Close button clicked");
         rpcClient.getVisualizerRpcClient().goBack();
     };
 
     const handleModelLoaded = (metadata: ItemMetadata) => {
-        console.log("[Review Mode] Model loaded with metadata:", metadata);
         setCurrentItemMetadata(metadata);
     };
 
     const handleAccept = async () => {
-        console.log("[Review Mode] Accepting changes...");
         try {
             // Accept the changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
-            console.log("[Review Mode] Changes accepted successfully");
 
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
@@ -334,11 +283,9 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     };
 
     const handleReject = async () => {
-        console.log("[Review Mode] Rejecting changes...");
         try {
             // Decline the changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
-            console.log("[Review Mode] Changes declined successfully");
 
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().goBack();
@@ -435,7 +382,6 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
         return { type, name };
     };
-    console.log("[Review Mode] currentItemMetadata:", currentItemMetadata);
     const headerText = getHeaderText();
     const subtitleElement = getTitleBarSubEl(
         headerText.name,

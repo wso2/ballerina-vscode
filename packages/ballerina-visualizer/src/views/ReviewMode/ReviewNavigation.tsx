@@ -114,17 +114,7 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         // setIsProcessing(false);
     };
 
-    console.log('[ReviewNavigation] Props received:', {
-        currentIndex,
-        totalViews,
-        canGoPrevious,
-        canGoNext,
-        disabledPrevious: !canGoPrevious,
-        disabledNext: !canGoNext
-    });
-
     const handlePreviousClick = () => {
-        console.log('[ReviewNavigation] Previous button clicked!');
         if (canGoPrevious) {
             onPrevious();
         } else {
@@ -133,7 +123,6 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
     };
 
     const handleNextClick = () => {
-        console.log('[ReviewNavigation] Next button clicked!');
         if (canGoNext) {
             onNext();
         } else {
