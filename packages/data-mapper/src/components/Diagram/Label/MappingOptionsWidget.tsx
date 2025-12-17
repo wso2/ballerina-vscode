@@ -216,7 +216,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const a2sMenuItems: Item[] = [
                 {
                     id: "a2s-index",
-                    label: getItemElement("a2s-index", "Extract Single Element from Array", "symbol-array", true),
+                    label: getItemElement("a2s-index", "Extract Single Element from Array", "index-zero", true),
                     onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
                 }
     
