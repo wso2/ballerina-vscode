@@ -40,6 +40,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
@@ -87,15 +88,39 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
         SemanticDiffRequest request = new SemanticDiffRequest(originalProjectPath.toString());
         JsonObject jsonResponse = getResponseAndCloseFile(request, originalProjectPath.toString());
         JsonElement actualOutput = gson.toJsonTree(jsonResponse);
-        String outputJsonStr = actualOutput.toString().replaceAll(originalProjectPath.toString(), "");
+        String outputJsonStr = normalizeJsonPaths(actualOutput.toString(), originalProjectPath.toString());
         actualOutput = gson.fromJson(outputJsonStr, JsonElement.class);
         // assert the results
         if (!actualOutput.equals(testConfig.output())) {
             TestConfig updatedConfig = new TestConfig(testConfig.description(), 
                     testConfig.projectPath(), actualOutput.getAsJsonObject());
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
+    }
+
+    public String normalizeJsonPaths(String json, String basePath) {
+        String normalizedBase = basePath.replace("\\", "/");
+
+        if (normalizedBase.endsWith("/")) {
+            normalizedBase = normalizedBase.substring(0, normalizedBase.length() - 1);
+        }
+
+        String pathPattern = normalizedBase.startsWith("/")
+                ? normalizedBase.substring(1)
+                : normalizedBase;
+
+        String result = json.replaceAll(
+                Pattern.quote("ai:///" + pathPattern + "/"),
+                "ai:///"
+        );
+
+        result = result.replaceAll(
+                Pattern.quote(pathPattern + "/"),
+                ""
+        );
+
+        return result;
     }
 
     private void notifyCustomDidOpen(String sourcePath, String schema) {
