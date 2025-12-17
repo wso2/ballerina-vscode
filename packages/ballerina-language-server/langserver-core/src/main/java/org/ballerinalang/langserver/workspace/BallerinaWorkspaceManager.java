@@ -173,7 +173,7 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
         // Set the default build options
         this.buildOptions = BuildOptions.builder()
                 .setOffline(CommonUtil.COMPILE_OFFLINE)
-                .setSticky(true)
+                .setSticky(false)
                 .build();
     }
 
@@ -1548,6 +1548,16 @@ public class BallerinaWorkspaceManager implements WorkspaceManager {
                 BuildOptions newOptions = BuildOptions.builder()
                         .setOffline(CommonUtil.COMPILE_OFFLINE)
                         .setSticky(false)
+                        .build();
+                project = compilerApi.loadProject(filePath, newOptions);
+            }
+
+            // TODO: Remove this along with https://github.com/wso2/product-ballerina-integrator/issues/1488
+            // Set sticky true if the Dependencies.toml is there.
+            if (project.currentPackage().dependenciesToml().isPresent()) {
+                BuildOptions newOptions = BuildOptions.builder()
+                        .setOffline(CommonUtil.COMPILE_OFFLINE)
+                        .setSticky(true)
                         .build();
                 project = compilerApi.loadProject(filePath, newOptions);
             }
