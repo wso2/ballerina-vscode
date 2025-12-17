@@ -19,14 +19,9 @@
 package io.ballerina.copilotagent.core;
 
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
-import io.ballerina.compiler.syntax.tree.Node;
-import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeVisitor;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.copilotagent.core.models.ServiceMemberMap;
-
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Visitor to extract service methods and populate the ServiceMemberMap.
@@ -50,9 +45,5 @@ public class ServiceMethodExtractor extends NodeVisitor {
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
         String key =  functionDefinitionNode.functionName().toSourceCode().trim();
         this.serviceMemberMap.putObjectMethod(key, functionDefinitionNode);
-    }
-
-    private static String getPath(NodeList<Node> paths) {
-        return paths.stream().map(Node::toString).map(String::trim).collect(Collectors.joining(""));
     }
 }

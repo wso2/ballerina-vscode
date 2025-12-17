@@ -28,7 +28,6 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams;
 import org.eclipse.lsp4j.DidCloseTextDocumentParams;
 import org.eclipse.lsp4j.DidOpenTextDocumentParams;
 
-import java.net.URI;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
