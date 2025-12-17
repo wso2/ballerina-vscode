@@ -22,6 +22,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
 import { ReadonlyFlowDiagram } from "./ReadonlyFlowDiagram";
+import { ReadonlyTypeDiagram } from "./ReadonlyTypeDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
 import { Icon, ThemeColors } from "@wso2/ui-toolkit";
 import { TitleBar } from "../../components/TitleBar";
@@ -53,7 +54,6 @@ const ReviewModeBadge = styled.div`
     white-space: nowrap;
 `;
 
-
 const CloseButton = styled.button`
     background: transparent;
     border: none;
@@ -80,8 +80,14 @@ const CloseButton = styled.button`
     }
 `;
 
+enum DiagramType {
+    COMPONENT = "component",
+    FLOW = "flow",
+    TYPE = "type",
+}
+
 interface ReviewView {
-    type: "component" | "flow";
+    type: DiagramType;
     filePath: string;
     position: {
         startLine: number;
@@ -93,17 +99,10 @@ interface ReviewView {
     label?: string;
 }
 
-// NodeKind enum mapping (based on backend enum values)
-// Reference: https://github.com/ballerina-platform/ballerina-lang/blob/master/compiler/ballerina-lang/src/main/java/org/wso2/ballerinalang/compiler/tree/BLangNodeVisitor.java
 enum NodeKindEnum {
-    AUTOMATION = 0,
-    SERVICE = 1,
-    LISTENER = 2,
-    MODULE_LEVEL = 3,
-    FUNCTION = 4,
-    CLASS_INIT = 5,
-    RESOURCE_FUNCTION = 6,
-    REMOTE_FUNCTION = 7,
+    FUNCTION = 0,
+    RESOURCE_FUNCTION = 1,
+    TYPE = 2,
 }
 
 // Map numeric changeType to string
@@ -123,25 +122,22 @@ function getChangeTypeString(changeType: number): string {
 // Map numeric nodeKind to string
 function getNodeKindString(nodeKind: number): string {
     switch (nodeKind) {
-        case NodeKindEnum.AUTOMATION:
-            return "automation";
-        case NodeKindEnum.SERVICE:
-            return "service";
-        case NodeKindEnum.LISTENER:
-            return "listener";
-        case NodeKindEnum.MODULE_LEVEL:
-            return "module level";
         case NodeKindEnum.FUNCTION:
             return "function";
-        case NodeKindEnum.CLASS_INIT:
-            return "class init";
         case NodeKindEnum.RESOURCE_FUNCTION:
-            return "resource function";
-        case NodeKindEnum.REMOTE_FUNCTION:
-            return "remote function";
+            return "resource";
+        case NodeKindEnum.TYPE:
+            return "type";
         default:
             return "component";
     }
+}
+
+function getDiagramType(nodeKind: number): DiagramType {
+    if (nodeKind === NodeKindEnum.TYPE) {
+        return DiagramType.TYPE;
+    }
+    return DiagramType.FLOW;
 }
 
 // Utility function to convert SemanticDiff to ReviewView
@@ -152,7 +148,7 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string): ReviewVie
     const changeLabel = `${changeTypeStr}: ${nodeKindStr} in ${fileName}`;
 
     return {
-        type: "flow",
+        type: getDiagramType(diff.nodeKind),
         filePath: diff.uri,
         position: {
             startLine: diff.lineRange.startLine.line,
@@ -200,7 +196,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             try {
                 setIsLoading(true);
                 const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
-
+                console.log("[ReviewMode] semanticDiff Response:", semanticDiffResponse);
                 setSemanticDiffData(semanticDiffResponse);
 
                 const allViews: ReviewView[] = [];
@@ -211,7 +207,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     // We use the first diff's file just as a reference, but the actual diagram
                     // loads the entire design model for the project
                     allViews.push({
-                        type: "component",
+                        type: DiagramType.COMPONENT,
                         filePath: projectPath, // Use project path instead of specific file
                         position: {
                             startLine: 0,
@@ -255,7 +251,8 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
     const handlePrevious = () => {
         if (currentIndex > 0) {
-            setCurrentIndex(currentIndex - 1);
+            const newIndex = currentIndex - 1;
+            setCurrentIndex(newIndex);
             setCurrentItemMetadata(null); // Clear metadata when navigating
         } else {
             console.log("[Review Mode] Already at first view");
@@ -264,7 +261,8 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
     const handleNext = () => {
         if (currentIndex < views.length - 1) {
-            setCurrentIndex(currentIndex + 1);
+            const newIndex = currentIndex + 1;
+            setCurrentIndex(newIndex);
             setCurrentItemMetadata(null); // Clear metadata when navigating
         } else {
             console.log("[Review Mode] Already at last view");
@@ -312,11 +310,15 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             return <div>No view to display</div>;
         }
 
+        // Create a unique key for each diagram to force re-mount when switching views
+        const diagramKey = `${currentView.type}-${currentIndex}-${currentView.filePath}`;
+
         switch (currentView.type) {
             case "component":
                 // Metadata is now set by useEffect hook
                 return (
                     <ReadonlyComponentDiagram
+                        key={diagramKey}
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         position={currentView.position}
@@ -325,9 +327,19 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             case "flow":
                 return (
                     <ReadonlyFlowDiagram
+                        key={diagramKey}
                         projectPath={currentView.projectPath || projectPath}
                         filePath={currentView.filePath}
                         position={currentView.position}
+                        onModelLoaded={handleModelLoaded}
+                    />
+                );
+            case "type":
+                return (
+                    <ReadonlyTypeDiagram
+                        key={diagramKey}
+                        projectPath={currentView.projectPath || projectPath}
+                        filePath={currentView.filePath}
                         onModelLoaded={handleModelLoaded}
                     />
                 );
@@ -346,7 +358,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     hideUndoRedo={true}
                 />
                 <DiagramContainer style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
-                    <div style={{ color: "var(--vscode-foreground)" }}>Loading semantic diff...</div>
+                    <div style={{ color: "var(--vscode-foreground)" }}>Loading changes to review...</div>
                 </DiagramContainer>
             </ReviewContainer>
         );
@@ -372,6 +384,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const canGoNext = currentIndex < views.length - 1;
     const isAutomation = currentItemMetadata?.type === "Function" && currentItemMetadata?.name === "main";
     const isResource = currentItemMetadata?.type === "Resource";
+    const isType = currentItemMetadata?.type === "Type";
     // Format the display text for the header
     const getHeaderText = () => {
         if (!currentItemMetadata) {
@@ -380,20 +393,22 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
         let type = currentItemMetadata.type;
         let name = currentItemMetadata.name;
+        let accessor = currentItemMetadata.accessor;
 
         if (isAutomation) {
             type = "Automation";
         }
 
-        return { type, name };
+        if (isType) {
+            type = "Types";
+            name = "";
+            accessor = "";
+        }
+
+        return { type, name, accessor };
     };
     const headerText = getHeaderText();
-    const subtitleElement = getTitleBarSubEl(
-        headerText.name,
-        currentItemMetadata?.accessor || "",
-        isResource,
-        isAutomation
-    );
+    const subtitleElement = getTitleBarSubEl(headerText.name, headerText.accessor || "", isResource, isAutomation);
 
     // Create actions for the right side
     const headerActions = (
