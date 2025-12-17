@@ -74,7 +74,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"John\"",
@@ -90,7 +91,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -119,7 +121,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -168,7 +171,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -193,8 +197,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "Source",
+                "typeMembers": [
+                  {
+                    "type": "Source",
+                    "packageInfo": "nipunaf:new_connection1:0.1.0",
+                    "packageName": "new_connection1",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Source"
+                "ballerinaType": "Source",
+                "selected": false
               }
             ],
             "value": "{firstName: \"John\", lastName: \"Doe\", age: 30}",
@@ -206,16 +225,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "src"
-            },
-            "typeMembers": [
-              {
-                "type": "Source",
-                "packageInfo": "nipunaf:new_connection1:0.1.0",
-                "packageName": "new_connection1",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -224,7 +234,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -262,7 +273,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Target",
@@ -314,7 +326,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -339,8 +352,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "Source",
+                "typeMembers": [
+                  {
+                    "type": "Source",
+                    "packageInfo": "nipunaf:new_connection1:0.1.0",
+                    "packageName": "new_connection1",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "Source"
+                "ballerinaType": "Source",
+                "selected": false
               }
             ],
             "value": "{firstName: \"John\", age: 30}",
@@ -361,16 +389,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "src"
-            },
-            "typeMembers": [
-              {
-                "type": "Source",
-                "packageInfo": "nipunaf:new_connection1:0.1.0",
-                "packageName": "new_connection1",
-                "kind": "RECORD_TYPE",
-                "selected": false
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -379,7 +398,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var2",
@@ -408,7 +428,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "Target",
@@ -460,7 +481,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -486,11 +508,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "value": "10",
@@ -502,16 +526,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "i"
-            },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -520,7 +535,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -558,7 +574,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -612,7 +629,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "json"
+                "ballerinaType": "json",
+                "selected": false
               }
             ],
             "value": "{name: \"John\", age: 30}",
@@ -624,16 +642,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "value"
-            },
-            "typeMembers": [
-              {
-                "type": "json",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "OTHER",
-                "selected": false
-              }
-            ]
+            }
           },
           "indentation": {
             "metadata": {
@@ -643,11 +652,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "placeholder": "0",
@@ -659,15 +670,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "indentation"
             },
-            "typeMembers": [
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "0"
           },
           "variable": {
@@ -677,7 +679,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "var1",
@@ -715,7 +718,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",

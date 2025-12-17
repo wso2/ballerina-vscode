@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "Create variable name i\nThis is an additional comment",
@@ -113,7 +114,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "0",
@@ -129,7 +131,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "i",
@@ -158,7 +161,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -202,7 +206,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "0",

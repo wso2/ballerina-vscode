@@ -327,10 +327,8 @@ public class ServiceDatabaseManager {
                 sql2.append("sip.description, ");
                 sql2.append("sip.default_value, ");
                 sql2.append("sip.placeholder, ");
-                sql2.append("sip.value_type as valueType, ");
-                sql2.append("sip.type_constraint as typeConstraint, ");
-                sql2.append("sip.source_kind as sourceKind, ");
-                sql2.append("sip.selections ");
+                sql2.append("sip.types, ");
+                sql2.append("sip.source_kind as sourceKind ");
                 sql2.append("FROM ServiceInitializerProperty sip ");
                 sql2.append("WHERE sip.package_id = ?");
 
@@ -357,44 +355,15 @@ public class ServiceDatabaseManager {
     }
 
     private ServiceInitProperty getServiceInitProperty(ResultSet rs) throws SQLException {
-        int initializerId = rs.getInt("initializer_id");
         return new ServiceInitProperty(
                 rs.getString("keyName"),
                 rs.getString("label"),
                 rs.getString("description"),
                 rs.getString("default_value"),
                 rs.getString("placeholder"),
-                rs.getString("valueType"),
-                rs.getString("typeConstraint"),
-                rs.getString("sourceKind"),
-                rs.getString("selections"),
-                getServiceInitPropertyMemberTypes(initializerId)
+                rs.getString("types"),
+                rs.getString("sourceKind")
         );
-    }
-
-    private List<ParameterMemberTypeData> getServiceInitPropertyMemberTypes(int initializerId) {
-        String sql = "SELECT pmt.type AS member_type, pmt.kind AS member_kind, pmt.package AS member_package " +
-                "FROM ServiceInitializerPropertyMemberType pmt WHERE pmt.initializer_id = ?";
-        try (Connection conn = DriverManager.getConnection(dbPath);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, initializerId);
-
-            ResultSet rs = stmt.executeQuery();
-            List<ParameterMemberTypeData> memberTypes = new ArrayList<>();
-            while (rs.next()) {
-                memberTypes.add(new ParameterMemberTypeData(
-                        rs.getString("member_type"),
-                        rs.getString("member_kind"),
-                        rs.getString("member_package"),
-                        rs.getString("member_package")
-                ));
-            }
-            conn.close();
-            return memberTypes;
-        } catch (SQLException e) {
-            Logger.getGlobal().severe("Error executing query: " + e.getMessage());
-            return List.of();
-        }
     }
 
     public List<String> getServiceTypes(int packageId) {

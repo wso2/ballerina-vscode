@@ -43,7 +43,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "http:Client"
+            "ballerinaType": "http:Client",
+            "selected": false
           }
         ],
         "value": "httpClient",
@@ -59,7 +60,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_PATH"
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
         ],
         "value": "/path/to/subdirectory",
@@ -79,11 +81,13 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "map<string|string[]>"
+            "ballerinaType": "map<string|string[]>",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map<string|string[]>?"
+            "ballerinaType": "map<string|string[]>?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -95,22 +99,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "headers"
         },
-        "typeMembers": [
-          {
-            "type": "map<string|string[]>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "targetType": {
@@ -121,7 +109,8 @@
         "types": [
           {
             "fieldType": "TYPE",
-            "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>"
+            "ballerinaType": "http:Response|anydata|stream<http:SseEvent, error?>",
+            "selected": false
           }
         ],
         "placeholder": "http:Response|anydata|stream<http:SseEvent, error?>",
@@ -143,7 +132,8 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "http:QueryParamType"
+            "ballerinaType": "http:QueryParamType",
+            "selected": false
           }
         ],
         "placeholder": "[]",
@@ -154,8 +144,7 @@
         "codedata": {
           "kind": "INCLUDED_RECORD_REST",
           "originalName": "Additional Values"
-        },
-        "typeMembers": []
+        }
       },
       "type": {
         "metadata": {
@@ -164,7 +153,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "targetType",
@@ -182,7 +172,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "var2",
@@ -198,7 +189,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

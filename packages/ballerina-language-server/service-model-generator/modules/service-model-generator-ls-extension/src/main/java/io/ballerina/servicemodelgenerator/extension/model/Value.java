@@ -19,7 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.model;
 
 import com.google.gson.JsonPrimitive;
-import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 
 import java.util.HashMap;
 import java.util.List;
@@ -38,14 +37,12 @@ public class Value {
     private MetaData metadata;
     private Codedata codedata;
     private String placeholder;
-    private String valueType;
-    private String valueTypeConstraint;
     private Object value;
     private List<Object> values;
     private List<Object> items;
     private List<Value> choices;
-    private List<PropertyTypeMemberInfo> typeMembers;
     private Map<String, Value> properties;
+    private List<PropertyType> types;
     private boolean enabled;
     private boolean editable;
     private boolean optional;
@@ -57,8 +54,6 @@ public class Value {
         this.editable = value.editable;
         this.value = value.value;
         this.values = value.values;
-        this.valueType = value.valueType;
-        this.valueTypeConstraint = value.valueTypeConstraint;
         this.placeholder = value.placeholder;
         this.optional = value.optional;
         this.advanced = value.advanced;
@@ -66,29 +61,52 @@ public class Value {
         this.items = value.items;
         this.codedata = value.codedata;
         this.choices = value.choices;
-        this.typeMembers = value.typeMembers;
         this.imports = value.imports;
+        this.types = value.types;
     }
 
     public Value(MetaData metadata, boolean enabled, boolean editable, Object value, List<Object> values,
-                 String valueType, String valueTypeConstraint, String placeholder, boolean optional,
-                 boolean advanced, Map<String, Value> properties, List<Object> items, Codedata codedata,
-                 List<PropertyTypeMemberInfo> typeMembers, Map<String, String> imports) {
+                 String placeholder, boolean optional, boolean advanced, Map<String, Value> properties,
+                 List<Object> items, Codedata codedata, List<PropertyType> types, Map<String, String> imports) {
         this.metadata = metadata;
         this.enabled = enabled;
         this.editable = editable;
         this.value = value;
         this.values = values;
-        this.valueType = valueType;
-        this.valueTypeConstraint = valueTypeConstraint;
+        this.types = types;
         this.placeholder = placeholder;
         this.optional = optional;
         this.advanced = advanced;
         this.properties = properties;
         this.items = items;
         this.codedata = codedata;
-        this.typeMembers = typeMembers;
         this.imports = imports;
+    }
+
+    public enum FieldType {
+        EXPRESSION,
+        FLAG,
+        SINGLE_SELECT,
+        MULTI_SELECT,
+        MULTIPLE_SELECT,
+        MAPPING_EXPRESSION_SET,
+        EXPRESSION_SET,
+        IDENTIFIER,
+        TEXT,
+        TYPE,
+        ENUM,
+        NUMBER,
+        RECORD_MAP_EXPRESSION,
+        SERVICE_PATH,
+        CHOICE,
+        FORM,
+        HEADER_SET,
+        RAW_TEMPLATE,
+        SINGLE_SELECT_LISTENER,
+        MULTIPLE_SELECT_LISTENER,
+        FILE_SELECT,
+        OPTIONAL_IDENTIFIER,
+        ACTION_TYPE
     }
 
     public MetaData getMetadata() {
@@ -186,20 +204,12 @@ public class Value {
         }
     }
 
-    public String getValueType() {
-        return valueType;
+    public List<PropertyType> getTypes() {
+        return types;
     }
 
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
-    }
-
-    public String getValueTypeConstraint() {
-        return valueTypeConstraint;
-    }
-
-    public void setValueTypeConstraint(String valueTypeConstraint) {
-        this.valueTypeConstraint = valueTypeConstraint;
+    public void setTypes(List<PropertyType> types) {
+        this.types = types;
     }
 
     public String getPlaceholder() {
@@ -238,9 +248,9 @@ public class Value {
         return items.stream().map(Object::toString).toList();
     }
 
-    public void setItems(List<Object> items) {
-        this.items = items;
-    }
+//    public void setItems(List<Object> items) {
+//        this.items = items;
+//    }
 
     public Codedata getCodedata() {
         return codedata;
@@ -262,14 +272,6 @@ public class Value {
         return properties.get(key);
     }
 
-    public List<PropertyTypeMemberInfo> getTypeMembers() {
-        return typeMembers;
-    }
-
-    public void setTypeMembers(List<PropertyTypeMemberInfo> typeMembers) {
-        this.typeMembers = typeMembers;
-    }
-
     public Map<String, String> getImports() {
         return imports;
     }
@@ -279,12 +281,10 @@ public class Value {
         private Codedata codedata;
         private Object value;
         private List<Object> values;
-        private String valueType;
-        private String valueTypeConstraint;
+        private List<PropertyType> types;
         private String placeholder;
         private List<Object> items;
         private Map<String, Value> properties;
-        private List<PropertyTypeMemberInfo> typeMembers;
         private Map<String, String> imports;
         private boolean enabled = false;
         private boolean editable = false;
@@ -316,13 +316,12 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder valueType(String valueType) {
-            this.valueType = valueType;
-            return this;
-        }
-
-        public ValueBuilder setValueTypeConstraint(String valueTypeConstraint) {
-            this.valueTypeConstraint = valueTypeConstraint;
+        public ValueBuilder types(List<PropertyType> types) {
+            this.types = types;
+            boolean hasSelected = types.stream().anyMatch(PropertyType::selected);
+            if (!hasSelected) {
+                this.types.getFirst().selected(true);
+            }
             return this;
         }
 
@@ -361,17 +360,6 @@ public class Value {
             return this;
         }
 
-        public ValueBuilder setTypeMembers(List<ParameterMemberTypeData> typeMembers) {
-            this.typeMembers = typeMembers.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), false)).toList();
-            return this;
-        }
-
-        public ValueBuilder setMembers(List<PropertyTypeMemberInfo> typeMembers) {
-            this.typeMembers = typeMembers;
-            return this;
-        }
-
         public ValueBuilder setImports(Map<String, String> imports) {
             this.imports = imports;
             return this;
@@ -386,8 +374,8 @@ public class Value {
         }
 
         public Value build() {
-            return new Value(metadata, enabled, editable, value, values, valueType, valueTypeConstraint,
-                    placeholder, optional, advanced, properties, items, codedata, typeMembers, imports);
+            return new Value(metadata, enabled, editable, value, values, placeholder, optional, advanced, properties,
+                    items, codedata, types, imports);
         }
     }
 }

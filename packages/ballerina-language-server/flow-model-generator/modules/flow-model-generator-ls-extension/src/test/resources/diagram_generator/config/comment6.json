@@ -73,7 +73,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "0",
@@ -89,7 +90,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "x",
@@ -118,7 +120,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "int",
@@ -162,7 +165,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": true
               }
             ],
             "value": "This is a while block",
@@ -247,7 +251,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "update `x`",
@@ -289,7 +294,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "x + 1",
@@ -305,7 +311,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "x",
@@ -347,7 +354,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "TEXT"
+                        "fieldType": "TEXT",
+                        "selected": true
                       }
                     ],
                     "value": "Generate new node",
@@ -371,7 +379,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": true
               }
             ],
             "value": "i > 3 ",

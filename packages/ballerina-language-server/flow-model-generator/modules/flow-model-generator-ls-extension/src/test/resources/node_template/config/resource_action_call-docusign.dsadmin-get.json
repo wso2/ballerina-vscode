@@ -41,7 +41,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "dsadmin:Client"
+            "ballerinaType": "dsadmin:Client",
+            "selected": false
           }
         ],
         "value": "dsAdminClient",
@@ -57,7 +58,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_PATH"
+            "fieldType": "ACTION_PATH",
+            "selected": false
           }
         ],
         "value": "/v2/organizations/[organizationId]/accounts/[accountId]/groups",
@@ -77,11 +79,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -92,8 +96,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "organizationId"
-        },
-        "typeMembers": []
+        }
       },
       "accountId": {
         "metadata": {
@@ -103,11 +106,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -118,8 +123,7 @@
         "codedata": {
           "kind": "PATH_PARAM",
           "originalName": "accountId"
-        },
-        "typeMembers": []
+        }
       },
       "start": {
         "metadata": {
@@ -128,8 +132,14 @@
         },
         "types": [
           {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int:Signed32?"
+            "ballerinaType": "int:Signed32?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -141,22 +151,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "'start"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "take": {
@@ -166,8 +160,14 @@
         },
         "types": [
           {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int:Signed32?"
+            "ballerinaType": "int:Signed32?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -179,22 +179,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "take"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "end": {
@@ -204,8 +188,14 @@
         },
         "types": [
           {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int:Signed32",
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int:Signed32?"
+            "ballerinaType": "int:Signed32?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -217,22 +207,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "end"
         },
-        "typeMembers": [
-          {
-            "type": "Signed32",
-            "packageInfo": "ballerina:lang.int:0.0.0",
-            "packageName": "lang.int",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {
@@ -242,7 +216,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "dsadmin:MemberGroupsResponse",
@@ -260,7 +235,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "dsadminMembergroupsresponse",
@@ -276,7 +252,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

@@ -95,7 +95,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -106,7 +107,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var q",
@@ -129,7 +131,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "q > 10 ",
@@ -170,7 +173,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"large order\"",
@@ -211,7 +215,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -222,7 +227,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var q",
@@ -245,7 +251,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "q > 5 ",
@@ -286,7 +293,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"medium order\"",
@@ -327,7 +335,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -338,7 +347,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var q",
@@ -361,7 +371,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "q > 0 ",
@@ -402,7 +413,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"small order\"",
@@ -443,7 +455,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -454,7 +467,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "_",
@@ -502,7 +516,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"invalid order\"",
@@ -526,7 +541,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "any|error"
+                "ballerinaType": "any|error",
+                "selected": true
               }
             ],
             "value": "quantity ",

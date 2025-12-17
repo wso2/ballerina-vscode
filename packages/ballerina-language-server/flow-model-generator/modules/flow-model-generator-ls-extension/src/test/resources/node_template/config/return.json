@@ -22,7 +22,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_OR_EXPRESSION"
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
           }
         ],
         "value": "",

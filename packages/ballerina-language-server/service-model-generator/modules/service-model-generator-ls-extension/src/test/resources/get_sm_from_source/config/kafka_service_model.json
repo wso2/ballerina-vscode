@@ -28,8 +28,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -45,13 +49,8 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT_LISTENER",
-        "valueTypeConstraint": "kafka:Listener",
         "value": "kafkaListener",
         "values": [],
-        "items": [
-          "kafkaListener"
-        ],
         "properties": {
           "kafkaListener": {
             "codedata": {
@@ -73,6 +72,15 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT_LISTENER",
+            "options": [
+              "kafkaListener"
+            ],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -87,12 +95,16 @@
           "type": "SERVICE_TYPE"
         },
         "placeholder": "Service",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
         "value": "Service",
-        "items": [
-          "",
-          "Service"
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "",
+              "Service"
+            ],
+            "selected": true
+          }
         ],
         "enabled": false,
         "editable": false,
@@ -104,10 +116,15 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Topic(s)": []
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -143,8 +160,13 @@
             "description": "The `onConsumerRecord` remote method will be triggered when a message is received from Kafka topic(s)"
           },
           "placeholder": "onConsumerRecord",
-          "valueType": "IDENTIFIER",
           "value": "onConsumerRecord",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -163,8 +185,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:AnydataConsumerRecord[]",
-              "valueType": "TYPE",
               "value": "kafka:AnydataConsumerRecord[]",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -176,8 +203,13 @@
                 "description": "The messages received for Kafka topic(s)"
               },
               "placeholder": "messages",
-              "valueType": "IDENTIFIER",
               "value": "records",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -189,8 +221,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -215,8 +252,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Caller",
-              "valueType": "TYPE",
               "value": "kafka:Caller",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -228,8 +270,13 @@
                 "description": "The Kafka caller object to commit the offsets"
               },
               "placeholder": "caller",
-              "valueType": "IDENTIFIER",
               "value": "caller",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -241,8 +288,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -262,16 +314,26 @@
             },
             "kind": "DATA_BINDING",
             "type": {
-              "valueType": "TYPE",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false
             },
             "name": {
-              "valueType": "IDENTIFIER",
               "value": "records",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -293,8 +355,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,
@@ -354,8 +421,13 @@
             "description": "The `onError` remote method will be triggered when an error occurs during the message processing"
           },
           "placeholder": "onError",
-          "valueType": "IDENTIFIER",
           "value": "onError",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -374,8 +446,13 @@
                 "description": "The type of the parameter"
               },
               "placeholder": "kafka:Error",
-              "valueType": "TYPE",
               "value": "kafka:Error",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": true,
@@ -387,8 +464,13 @@
                 "description": "The error occurred during the message processing"
               },
               "placeholder": "kafkaError",
-              "valueType": "IDENTIFIER",
               "value": "kafkaError",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -400,8 +482,13 @@
                 "description": "The default value of the parameter"
               },
               "placeholder": "",
-              "valueType": "EXPRESSION",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -423,8 +510,13 @@
             "description": "The return type of the function"
           },
           "placeholder": "error?",
-          "valueType": "TYPE",
           "value": "error?",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": false,
           "optional": true,

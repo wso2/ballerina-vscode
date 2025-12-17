@@ -8,22 +8,26 @@
     "enabled": true,
     "editable": true,
     "value": "GET",
-    "valueType": "SINGLE_SELECT",
-    "valueTypeConstraint": "http:Method",
+    "types": [
+      {
+        "fieldType": "SINGLE_SELECT",
+        "options": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS",
+            "HEAD",
+            "DEFAULT"
+        ],
+        "selected": true
+      }
+    ],
     "isType": false,
     "placeholder": "GET",
     "optional": false,
-    "advanced": false,
-    "items": [
-      "GET",
-      "POST",
-      "PUT",
-      "DELETE",
-      "PATCH",
-      "OPTIONS",
-      "HEAD",
-      "DEFAULT"
-    ]
+    "advanced": false
   },
   "name": {
     "metadata": {
@@ -33,8 +37,12 @@
     "enabled": true,
     "editable": true,
     "value": "",
-    "valueType": "IDENTIFIER",
-    "valueTypeConstraint": "string",
+    "types": [
+      {
+        "fieldType": "IDENTIFIER",
+        "selected": true
+      }
+    ],
     "isType": false,
     "placeholder": "",
     "optional": false,
@@ -51,8 +59,12 @@
         "enabled": true,
         "editable": false,
         "value": "http:Request",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "http:Request",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "string",
         "optional": false,
@@ -62,8 +74,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "request",
         "optional": false,
@@ -84,8 +100,12 @@
         "enabled": true,
         "editable": false,
         "value": "http:Caller",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "http:Caller",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "string",
         "optional": false,
@@ -95,8 +115,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "caller",
         "optional": false,
@@ -117,8 +141,12 @@
         "enabled": true,
         "editable": false,
         "value": "http:Headers",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "http:Headers",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "string",
         "optional": false,
@@ -128,8 +156,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "headers",
         "optional": false,
@@ -152,8 +184,12 @@
         "enabled": true,
         "editable": true,
         "value": "string",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "",
         "optional": false,
@@ -163,8 +199,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "",
         "optional": false,
@@ -178,8 +218,12 @@
         "enabled": false,
         "editable": true,
         "value": "",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "",
         "optional": true,
@@ -200,8 +244,12 @@
         "enabled": true,
         "editable": true,
         "value": "string",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "string",
         "optional": false,
@@ -211,8 +259,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "name",
         "optional": true,
@@ -222,8 +274,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "",
         "optional": false,
@@ -237,8 +293,12 @@
         "enabled": false,
         "editable": true,
         "value": "",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "",
         "optional": true,
@@ -259,8 +319,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "TYPE",
-        "valueTypeConstraint": "anydata",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
         "isType": true,
         "placeholder": "",
         "optional": false,
@@ -270,8 +334,12 @@
         "enabled": true,
         "editable": true,
         "value": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "isType": false,
         "placeholder": "",
         "optional": false,
@@ -291,8 +359,12 @@
     "enabled": true,
     "editable": true,
     "value": "",
-    "valueType": "TYPE",
-    "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
+    "types": [
+      {
+        "fieldType": "TYPE",
+        "selected": true
+      }
+    ],
     "isType": true,
     "placeholder": "",
     "optional": true,
@@ -303,8 +375,13 @@
           "enabled": true,
           "editable": true,
           "value": "200",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "options": [],
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "",
           "optional": false,
@@ -315,7 +392,12 @@
           "enabled": true,
           "editable": true,
           "value": "json",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -325,7 +407,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -335,7 +422,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "OPTIONAL_IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -345,7 +437,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -359,7 +456,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "HEADER_SET",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -379,8 +481,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "SINGLE_SELECT",
-          "valueTypeConstraint": "",
+          "types": [
+            {
+              "fieldType": "SINGLE_SELECT",
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "",
           "optional": false,
@@ -395,7 +501,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -409,7 +520,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -423,7 +539,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "OPTIONAL_IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "OPTIONAL_IDENTIFIER",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -437,7 +558,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "TYPE",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -451,7 +577,12 @@
           "enabled": true,
           "editable": true,
           "value": "",
-          "valueType": "HEADER_SET",
+          "types": [
+            {
+              "fieldType": "HEADER_SET",
+              "selected": true
+            }
+          ],
           "isType": false,
           "optional": true,
           "advanced": true,
@@ -472,8 +603,21 @@
       "enabled": true,
       "editable": true,
       "value": "",
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "http:HttpResourceConfig",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "http:HttpResourceConfig",
+          "selected": true,
+          "typeMembers": [
+            {
+              "type": "HttpResourceConfig",
+              "packageInfo": "ballerina:http:2.14.0",
+              "kind": "RECORD_TYPE",
+              "selected": true
+            }
+          ]
+        }
+      ],
       "isType": false,
       "placeholder": "{}",
       "optional": true,
@@ -487,15 +631,7 @@
         "orgName": "ballerina",
         "moduleName": "http"
       },
-      "addNewButton": false,
-      "typeMembers": [
-        {
-          "type": "HttpResourceConfig",
-          "packageInfo": "ballerina:http:2.14.0",
-          "kind": "RECORD_TYPE",
-          "selected": true
-        }
-      ]
+      "addNewButton": false
     }
   },
   "codedata": {

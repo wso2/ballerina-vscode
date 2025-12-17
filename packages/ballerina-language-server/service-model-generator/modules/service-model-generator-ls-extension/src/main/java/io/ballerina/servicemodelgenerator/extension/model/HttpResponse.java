@@ -19,12 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.model;
 
 import java.util.HashMap;
-
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_HEADER_SET;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_SINGLE_SELECT;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_TYPE;
+import java.util.List;
 
 /**
  * Represents a HTTP response.
@@ -52,37 +47,37 @@ public class HttpResponse {
     }
 
     public HttpResponse(String type) {
-        this.type = createValue(type, VALUE_TYPE_EXPRESSION, true);
+        this.type = createValue(type, Value.FieldType.EXPRESSION, true);
     }
 
     public HttpResponse(String statusCode, String body, String name) {
-        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
-        this.body = createValue(body, VALUE_TYPE_EXPRESSION, true);
-        this.name = createValue(name, VALUE_TYPE_EXPRESSION, true);
+        this.statusCode = createValue(statusCode, Value.FieldType.SINGLE_SELECT, true);
+        this.body = createValue(body, Value.FieldType.EXPRESSION, true);
+        this.name = createValue(name, Value.FieldType.EXPRESSION, true);
     }
 
     public HttpResponse(String statusCode, String type) {
-        this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, true);
-        this.body = createOptionalValue(type, VALUE_TYPE_TYPE, true);
-        this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
-        this.type = createOptionalValue(type, VALUE_TYPE_TYPE, true);
-        this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
+        this.statusCode = createValue(statusCode, Value.FieldType.SINGLE_SELECT, true);
+        this.body = createOptionalValue(type, Value.FieldType.TYPE, true);
+        this.name = createOptionalValue("", Value.FieldType.IDENTIFIER, true);
+        this.type = createOptionalValue(type, Value.FieldType.TYPE, true);
+        this.headers = createOptionalValue("", Value.FieldType.HEADER_SET, true);
     }
 
-    private static Value createValue(Object value, String valueType, boolean editable) {
+    private static Value createValue(Object value, Value.FieldType fieldType, boolean editable) {
         return new Value.ValueBuilder()
                 .value(value)
-                .valueType(valueType)
+                .types(List.of(PropertyType.types(fieldType)))
                 .editable(editable)
                 .enabled(true)
                 .setImports(new HashMap<>())
                 .build();
     }
 
-    private static Value createOptionalValue(Object value, String valueType, boolean editable) {
+    private static Value createOptionalValue(Object value, Value.FieldType fieldType, boolean editable) {
         return new Value.ValueBuilder()
                 .value(value)
-                .valueType(valueType)
+                .types(List.of(PropertyType.types(fieldType)))
                 .editable(editable)
                 .enabled(true)
                 .optional(true)
@@ -163,51 +158,51 @@ public class HttpResponse {
         private Value headers;
 
         public Builder statusCode(String statusCode, boolean editable) {
-            this.statusCode = createValue(statusCode, VALUE_TYPE_SINGLE_SELECT, editable);
+            this.statusCode = createValue(statusCode, Value.FieldType.SINGLE_SELECT, editable);
             return this;
         }
 
         public Builder body(String body, boolean editable) {
-            this.body = createOptionalValue(body, VALUE_TYPE_TYPE, editable);
+            this.body = createOptionalValue(body, Value.FieldType.TYPE, editable);
             return this;
         }
 
         public Builder mediaType(String mediaType, boolean editable) {
-            this.mediaType = createValue(mediaType, VALUE_TYPE_EXPRESSION, editable);
+            this.mediaType = createValue(mediaType, Value.FieldType.EXPRESSION, editable);
             return this;
         }
 
         public Builder name(String name, boolean editable) {
-            this.name = createOptionalValue(name, VALUE_TYPE_IDENTIFIER, editable);
+            this.name = createOptionalValue(name, Value.FieldType.IDENTIFIER, editable);
             ;
             return this;
         }
 
         public Builder type(String type, boolean editable) {
-            this.type = createOptionalValue(type, VALUE_TYPE_TYPE, editable);
+            this.type = createOptionalValue(type, Value.FieldType.TYPE, editable);
             return this;
         }
 
         public Builder headers(Object headers, boolean editable) {
-            this.headers = createOptionalValue(headers, VALUE_TYPE_HEADER_SET, editable);
+            this.headers = createOptionalValue(headers, Value.FieldType.HEADER_SET, editable);
             return this;
         }
 
         public HttpResponse build() {
             if (mediaType == null) {
-                this.mediaType = createValue("", VALUE_TYPE_EXPRESSION, true);
+                this.mediaType = createValue("", Value.FieldType.EXPRESSION, true);
             }
             if (name == null) {
-                this.name = createOptionalValue("", VALUE_TYPE_IDENTIFIER, true);
+                this.name = createOptionalValue("", Value.FieldType.IDENTIFIER, true);
             }
             if (type == null) {
-                this.type = createOptionalValue("", VALUE_TYPE_TYPE, true);
+                this.type = createOptionalValue("", Value.FieldType.TYPE, true);
             }
             if (headers == null) {
-                this.headers = createOptionalValue("", VALUE_TYPE_HEADER_SET, true);
+                this.headers = createOptionalValue("", Value.FieldType.HEADER_SET, true);
             }
             if (body == null) {
-                this.body = createOptionalValue("", VALUE_TYPE_EXPRESSION, true);
+                this.body = createOptionalValue("", Value.FieldType.EXPRESSION, true);
             }
             return new HttpResponse(statusCode, body, mediaType, name, type, headers);
         }

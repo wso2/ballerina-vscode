@@ -76,7 +76,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -102,7 +103,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -149,7 +151,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -175,7 +178,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -222,7 +226,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -248,7 +253,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -264,7 +270,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "_",
@@ -293,7 +300,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "boolean",
@@ -342,7 +350,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -368,7 +377,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -384,7 +394,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "_",
@@ -413,7 +424,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "boolean",
@@ -462,7 +474,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -488,7 +501,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -504,7 +518,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "_",
@@ -533,7 +548,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "boolean",
@@ -582,7 +598,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -608,7 +625,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -624,7 +642,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "_",
@@ -653,7 +672,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "boolean",

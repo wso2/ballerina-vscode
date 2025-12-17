@@ -45,7 +45,7 @@ include(":langserver-core")
 include(":langserver-stdlib")
 include(':diagram-util')
 include(':bal-shell-service')
-
+include (':service-template-generator')
 
 project(':checkstyle').projectDir = file("build-config${File.separator}checkstyle")
 project(':model-generator-commons').projectDir = file('model-generator-commons')
@@ -71,6 +71,7 @@ project(":langserver-core").projectDir = file("langserver-core")
 project(":langserver-stdlib").projectDir = file("langserver-stdlib")
 project(':diagram-util').projectDir = file('misc/diagram-util')
 project(':bal-shell-service').projectDir = file('misc/ls-extensions/modules/bal-shell-service')
+project(':service-template-generator').projectDir = file('service-template-generator')
 
 gradleEnterprise {
     buildScan {

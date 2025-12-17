@@ -22,9 +22,13 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
       "value": "This is a sample Ballerina service class definition with methods and error handling.\nIt includes a resource method to get an author by ID and a remote method to add an author.",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -50,9 +54,13 @@
             }
           }
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
         "value": "Book",
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": false,
         "optional": false,
@@ -85,8 +93,13 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
           "value": "get",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": false,
           "editable": false,
           "optional": false,
@@ -97,8 +110,13 @@
             "label": "Field Name",
             "description": "The name of the field"
           },
-          "valueType": "IDENTIFIER",
           "value": "author",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -109,8 +127,13 @@
             "label": "Description",
             "description": "The description of the field"
           },
-          "valueType": "STRING",
           "value": "This resource function retrieves an author's name by their ID.\nIf the author is not found, it returns an error.",
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,
@@ -128,9 +151,14 @@
                 "graphql": "ballerina/graphql:1.16.0"
               },
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "graphql:Context",
               "value": "graphql:Context",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Context",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -138,9 +166,13 @@
             },
             "name": {
               "placeholder": "context",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "context",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -164,9 +196,14 @@
                 "graphql": "ballerina/graphql:1.16.0"
               },
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "graphql:Field",
               "value": "graphql:Field",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "ballerinaType": "graphql:Field",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -174,9 +211,13 @@
             },
             "name": {
               "placeholder": "'field",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "'field",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": false,
               "optional": false,
@@ -200,8 +241,13 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "TYPE",
               "value": "int",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -212,8 +258,13 @@
                 "label": "Argument Name",
                 "description": "The name of the argument"
               },
-              "valueType": "IDENTIFIER",
               "value": "id",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -224,7 +275,12 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -235,8 +291,13 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
-              "valueType": "STRING",
               "value": "The ID of the author to retrieve.",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -257,8 +318,13 @@
                 "label": "Argument Type",
                 "description": "The type of the argument"
               },
-              "valueType": "ACTION_TYPE",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "ACTION_TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -269,8 +335,13 @@
                 "label": "Argument Name",
                 "description": "The name of the argument"
               },
-              "valueType": "IDENTIFIER",
               "value": "",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -281,7 +352,12 @@
                 "label": "Default Value",
                 "description": "The default value of the argument"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -292,7 +368,12 @@
                 "label": "Description",
                 "description": "The description of the argument"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -313,7 +394,6 @@
             "label": "Field Type",
             "description": "The type of the field"
           },
-          "valueType": "ACTION_TYPE",
           "value": "string|error?",
           "properties": {
             "nullableAction": {
@@ -323,8 +403,13 @@
                     "label": "Action Nullable True",
                     "description": "The field returns a nullable value"
                   },
-                  "valueType": "STRING",
                   "value": "",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -335,8 +420,13 @@
                     "label": "Action Nullable False",
                     "description": "The field returns a non-nullable value"
                   },
-                  "valueType": "STRING",
                   "value": "Mark type as nullable",
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "selected": true
+                    }
+                  ],
                   "enabled": true,
                   "editable": true,
                   "optional": false,
@@ -349,6 +439,12 @@
               "advanced": false
             }
           },
+          "types": [
+            {
+              "fieldType": "ACTION_TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -386,14 +482,19 @@
               "moduleName": "graphql"
             },
             "placeholder": "{}",
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "graphql:GraphqlResourceConfig",
-            "typeMembers": [
+            "types": [
               {
-                "type": "GraphqlResourceConfig",
-                "packageInfo": "ballerina:graphql:1.16.0",
-                "kind": "RECORD_TYPE",
-                "selected": false
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "graphql:GraphqlResourceConfig",
+                "typeMembers": [
+                  {
+                    "type": "GraphqlResourceConfig",
+                    "packageInfo": "ballerina:graphql:1.16.0",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": true
               }
             ],
             "enabled": true,
@@ -413,15 +514,12 @@
               "moduleName": "graphql"
             },
             "placeholder": "{}",
-            "valueType": "FLAG",
-            "valueTypeConstraint": "graphql:Context",
             "value": "",
-            "typeMembers": [
+            "types": [
               {
-                "type": "Context",
-                "packageInfo": "ballerina:graphql:1.16.0",
-                "kind": "OBJECT_TYPE",
-                "selected": false
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
               }
             ],
             "enabled": true,
@@ -441,15 +539,12 @@
               "moduleName": "graphql"
             },
             "placeholder": "{}",
-            "valueType": "FLAG",
-            "valueTypeConstraint": "graphql:Field",
             "value": "",
-            "typeMembers": [
+            "types": [
               {
-                "type": "Field",
-                "packageInfo": "ballerina:graphql:1.16.0",
-                "kind": "OBJECT_TYPE",
-                "selected": false
+                "fieldType": "FLAG",
+                "ballerinaType": "graphql:Field",
+                "selected": true
               }
             ],
             "enabled": true,

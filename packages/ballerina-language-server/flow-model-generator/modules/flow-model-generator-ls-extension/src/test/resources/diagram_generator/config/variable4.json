@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "\"create xml\"",
@@ -86,7 +87,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "content",
@@ -115,7 +117,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -159,7 +162,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "xml `<p>${content}</p>`",
@@ -175,7 +179,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "x1",
@@ -204,7 +209,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "xml",
@@ -248,7 +254,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "xml `<book>The Lost World</book>`",
@@ -264,7 +271,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "x2",
@@ -293,7 +301,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "xml",

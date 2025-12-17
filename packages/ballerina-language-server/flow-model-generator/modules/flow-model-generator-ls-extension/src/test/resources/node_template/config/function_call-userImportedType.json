@@ -35,8 +35,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "http:ClientConfiguration",
+            "typeMembers": [
+              {
+                "type": "ClientConfiguration",
+                "packageInfo": "ballerina:http:2.15.3",
+                "packageName": "http",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "http:ClientConfiguration"
+            "ballerinaType": "http:ClientConfiguration",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -48,15 +63,6 @@
           "kind": "REQUIRED",
           "originalName": "config"
         },
-        "typeMembers": [
-          {
-            "type": "ClientConfiguration",
-            "packageInfo": "ballerina:http:2.15.3",
-            "packageName": "http",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "imports": {
           "http": "ballerina/http"
         }
@@ -67,8 +73,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "Address",
+            "typeMembers": [
+              {
+                "type": "Address",
+                "packageInfo": "nipunaf:new_connection1:0.1.0",
+                "packageName": "new_connection1",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Address"
+            "ballerinaType": "Address",
+            "selected": false
           }
         ],
         "placeholder": "{houseNo: \"\", line1: \"\", line2: \"\", city: \"\", country: \"\"}",
@@ -79,16 +100,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "address"
-        },
-        "typeMembers": [
-          {
-            "type": "Address",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -97,7 +109,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "http:HttpServiceConfig",
@@ -118,7 +131,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "httpHttpserviceconfig",

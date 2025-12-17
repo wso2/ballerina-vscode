@@ -17,7 +17,12 @@
       "enabled": true,
       "editable": true,
       "value": "",
-      "valueType": "CHOICE",
+      "types": [
+        {
+          "fieldType": "CHOICE",
+          "selected": true
+        }
+      ],
       "isType": false,
       "placeholder": "",
       "optional": false,
@@ -31,7 +36,12 @@
           "enabled": true,
           "editable": true,
           "value": "true",
-          "valueType": "FORM",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "true",
           "optional": false,
@@ -45,8 +55,13 @@
               "enabled": true,
               "editable": true,
               "value": "/",
-              "valueType": "SERVICE_PATH",
-              "valueTypeConstraint": "string",
+              "types": [
+                {
+                  "fieldType": "SERVICE_PATH",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": false,
@@ -65,7 +80,12 @@
           "enabled": false,
           "editable": true,
           "value": "true",
-          "valueType": "FORM",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "true",
           "optional": false,
@@ -79,8 +99,13 @@
               "enabled": true,
               "editable": true,
               "value": "",
-              "valueType": "FILE_SELECT",
-              "valueTypeConstraint": "string",
+              "types": [
+                {
+                  "fieldType": "FILE_SELECT",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": true,
@@ -97,8 +122,12 @@
               "enabled": true,
               "editable": true,
               "value": "",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": false,
@@ -117,7 +146,12 @@
         "description": "Configure the HTTP listener for the service"
       },
       "value": "",
-      "valueType": "CHOICE",
+      "types": [
+        {
+          "fieldType": "CHOICE",
+          "selected": true
+        }
+      ],
       "isType": false,
       "placeholder": "",
       "items": [],
@@ -130,7 +164,12 @@
           "enabled": true,
           "editable": true,
           "value": "true",
-          "valueType": "FORM",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "true",
           "optional": false,
@@ -145,7 +184,12 @@
           "enabled": false,
           "editable": true,
           "value": "true",
-          "valueType": "FORM",
+          "types": [
+            {
+              "fieldType": "FORM",
+              "selected": true
+            }
+          ],
           "isType": false,
           "placeholder": "true",
           "optional": false,
@@ -160,8 +204,18 @@
                 "argType": "LISTENER_PARAM_REQUIRED"
               },
               "placeholder": "9090",
-              "valueType": "EXPRESSION",
-              "valueTypeConstraint": "int",
+              "types": [
+                {
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "int",
+                  "selected": false
+                }
+              ],
               "value": "9090",
               "typeMembers": [],
               "enabled": true,
@@ -178,8 +232,12 @@
                 "type": "LISTENER_VAR_NAME"
               },
               "placeholder": "httpListener",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "value": "httpListener",
               "items": [],
               "typeMembers": [],

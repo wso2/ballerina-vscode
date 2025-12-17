@@ -40,11 +40,13 @@
               "PENDING",
               "INACTIVE",
               "ACTIVE"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Status"
+            "ballerinaType": "Status",
+            "selected": false
           }
         ],
         "placeholder": "\"PENDING\"",
@@ -55,16 +57,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "status"
-        },
-        "typeMembers": [
-          {
-            "type": "Status",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "dept": {
         "metadata": {
@@ -78,11 +71,13 @@
               "Sales",
               "HR",
               "Marketing"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Department"
+            "ballerinaType": "Department",
+            "selected": false
           }
         ],
         "placeholder": "\"Engineering\"",
@@ -93,16 +88,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "dept"
-        },
-        "typeMembers": [
-          {
-            "type": "Department",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "priority": {
         "metadata": {
@@ -117,11 +103,13 @@
               "3",
               "4",
               "5"
-            ]
+            ],
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "Priority"
+            "ballerinaType": "Priority",
+            "selected": false
           }
         ],
         "placeholder": "1",
@@ -132,16 +120,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "priority"
-        },
-        "typeMembers": [
-          {
-            "type": "Priority",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "value": {
         "metadata": {
@@ -150,23 +129,23 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
-          },
-          {
-            "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "FLAG",
-            "ballerinaType": "boolean"
+            "ballerinaType": "boolean",
+            "selected": false
           },
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
+            "ballerinaType": "int|decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "MixedValue"
+            "ballerinaType": "MixedValue",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -177,16 +156,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "value"
-        },
-        "typeMembers": [
-          {
-            "type": "MixedValue",
-            "packageInfo": "nipunaf:new_connection1:0.1.0",
-            "packageName": "new_connection1",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "type": {
         "metadata": {
@@ -195,7 +165,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "string",
@@ -213,7 +184,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "stringResult",

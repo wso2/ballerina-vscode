@@ -41,11 +41,13 @@
         "types": [
           {
             "fieldType": "NUMBER",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int"
+            "ballerinaType": "int",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -57,15 +59,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "size"
         },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "0"
       },
       "type": {
@@ -75,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "ai:MessageWindowChatMemory",
@@ -96,7 +90,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "aiMessagewindowchatmemory",
