@@ -20,17 +20,13 @@ package org.ballerinalang.langserver.eventsync.subscribers;
 
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.compiler.BLangCompilerException;
+import org.ballerinalang.langserver.LSContextOperation;
 import org.ballerinalang.langserver.command.executors.PullModuleExecutor;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.client.ExtendedLanguageClient;
 import org.ballerinalang.langserver.commons.eventsync.EventKind;
 import org.ballerinalang.langserver.commons.eventsync.spi.EventSubscriber;
-import org.eclipse.lsp4j.MessageActionItem;
-import org.eclipse.lsp4j.MessageType;
-import org.eclipse.lsp4j.ShowMessageRequestParams;
-
-import java.util.List;
 
 /**
  * Subscriber should gracefully handle compilation errors by notifying the extension.
@@ -53,6 +49,11 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
     @Override
     public void onEvent(ExtendedLanguageClient client, DocumentServiceContext context,
                         LanguageServerContext serverContext) {
+        // Skip this for project load since it's handled by the extension.
+        if (context.operation() == LSContextOperation.LOAD_PROJECT) {
+            return;
+        }
+
         // TODO: Skip this subscriber once diagnostic mentioned in
         //  https://github.com/ballerina-platform/ballerina-lang/issues/44275 is available in the distribution.
         try {
@@ -60,17 +61,21 @@ public class ResolveCompilationErrorsSubscriber implements EventSubscriber {
         } catch (BLangCompilerException e) {
             String message = e.getMessage();
             if (message != null && message.startsWith("failed to load the module")) {
-                ShowMessageRequestParams showMessageRequestParams = new ShowMessageRequestParams();
-                showMessageRequestParams.setType(MessageType.Error);
-                showMessageRequestParams.setMessage(ERROR_MESSAGE);
-                showMessageRequestParams.setActions(List.of(new MessageActionItem(PULL_MODULES_ACTION)));
+                PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
+                        context.languageServercontext(), true);
 
-                client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
-                    if (action != null && PULL_MODULES_ACTION.equals(action.getTitle())) {
-                        PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
-                                context.languageServercontext(), true);
-                    }
-                });
+                // TODO: Restore along with https://github.com/wso2/product-ballerina-integrator/issues/1488
+//                ShowMessageRequestParams showMessageRequestParams = new ShowMessageRequestParams();
+//                showMessageRequestParams.setType(MessageType.Error);
+//                showMessageRequestParams.setMessage(ERROR_MESSAGE);
+//                showMessageRequestParams.setActions(List.of(new MessageActionItem(PULL_MODULES_ACTION)));
+//
+//                client.showMessageRequest(showMessageRequestParams).thenAccept(action -> {
+//                    if (action != null && PULL_MODULES_ACTION.equals(action.getTitle())) {
+//                        PullModuleExecutor.resolveModules(context.fileUri(), client, context.workspace(),
+//                                context.languageServercontext(), true);
+//                    }
+//                });
             }
         }
     }
