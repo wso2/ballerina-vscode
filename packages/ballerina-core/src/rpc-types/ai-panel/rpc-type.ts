@@ -107,7 +107,6 @@ export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_pre
 export const openAIPanel: NotificationType<AIPanelPrompt> = { method: `${_preFix}/openAIPanel` };
 export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const revertChanges: NotificationType<void> = { method: `${_preFix}/revertChanges` };
 export const acceptChanges: NotificationType<void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: NotificationType<void> = { method: `${_preFix}/declineChanges` };
 export const showReviewActions: NotificationType<void> = { method: `${_preFix}/showReviewActions` };

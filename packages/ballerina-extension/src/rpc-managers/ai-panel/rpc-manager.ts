@@ -719,31 +719,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    // TODO: check this if needed, we are not using this currently
-    async revertChanges(): Promise<void> {
-        const reviewContext = getPendingReviewContext();
-        
-        if (!reviewContext) {
-            console.warn("[Review Actions] No pending review context found for revert");
-            return;
-        }
-
-        try {
-            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
-            
-            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (reviewContext.shouldCleanup) {
-                cleanupTempProject(reviewContext.tempProjectPath);
-            }
-        } catch (error) {
-            console.error("[Review Actions] Error reverting changes:", error);
-            throw error;
-        }
-    }
-
     async acceptChanges(): Promise<void> {
         const reviewContext = getPendingReviewContext();
         

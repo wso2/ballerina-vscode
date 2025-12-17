@@ -103,7 +103,6 @@ import {
     promptWSO2AILogout,
     readDeveloperMdFile,
     repairGeneratedCode,
-    revertChanges,
     showReviewActions,
     showSignInAlert,
     submitFeedback,
@@ -330,10 +329,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
-    }
-
-    revertChanges(): Promise<void> {
-        return this._messenger.sendRequest(revertChanges, HOST_EXTENSION);
     }
 
     acceptChanges(): Promise<void> {
