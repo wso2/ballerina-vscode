@@ -101,7 +101,7 @@ export enum MACHINE_VIEW {
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
     BISamplesView = "BI Samples View",
-    ReviewMode = "Review Mode"
+    ReviewMode = "Review Mode SKIP"
 }
 
 export interface MachineEvent {

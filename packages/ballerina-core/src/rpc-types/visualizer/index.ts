@@ -37,5 +37,4 @@ export interface VisualizerAPI {
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
     reviewAccepted: () => void;
-    reviewRejected: () => void;
 }

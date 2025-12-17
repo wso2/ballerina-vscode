@@ -306,19 +306,4 @@ export class VisualizerRpcManager implements VisualizerAPI {
             }
         );
     }
-
-    reviewRejected(): void {
-        // When user rejects changes in review mode, navigate back without applying changes
-        console.log("Review rejected - changes will be discarded");
-        // Navigate to package overview or appropriate view
-        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        openView(
-            EVENT_TYPE.OPEN_VIEW,
-            {
-                view: isWithinBallerinaWorkspace
-                    ? MACHINE_VIEW.WorkspaceOverview
-                    : MACHINE_VIEW.PackageOverview
-            }
-        );
-    }
 }

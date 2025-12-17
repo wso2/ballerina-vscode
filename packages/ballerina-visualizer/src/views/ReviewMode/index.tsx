@@ -306,8 +306,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
     const handleClose = () => {
         console.log("[Review Mode] Close button clicked");
-        // Just navigate back without accepting or rejecting
-        rpcClient.getVisualizerRpcClient().reviewRejected();
+        rpcClient.getVisualizerRpcClient().goBack();
     };
 
     const handleModelLoaded = (metadata: ItemMetadata) => {
@@ -339,11 +338,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             console.log("[Review Mode] Changes declined successfully");
             
             // Navigate back to previous view
-            rpcClient.getVisualizerRpcClient().reviewRejected();
+            rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
             console.error("[Review Mode] Error declining changes:", error);
             // Still navigate back even if there's an error
-            rpcClient.getVisualizerRpcClient().reviewRejected();
+            rpcClient.getVisualizerRpcClient().goBack();
         }
     };
 
@@ -389,6 +388,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     title="Loading..."
                     actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
                     hideBack={true}
+                    hideUndoRedo={true}
                 />
                 <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ color: 'var(--vscode-foreground)' }}>Loading semantic diff...</div>
@@ -404,6 +404,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                     title="No Changes"
                     actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
                     hideBack={true}
+                    hideUndoRedo={true}
                 />
                 <DiagramContainer style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ color: 'var(--vscode-foreground)' }}>No changes to review</div>
@@ -421,23 +422,24 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
             return { type: '', name: 'Loading...', fullName: 'Loading...' };
         }
         
-        const type = currentItemMetadata.type;
+        let type = currentItemMetadata.type;
         let name = currentItemMetadata.name;
         
         // For resources, prepend accessor (e.g., "get todos")
         if (currentItemMetadata.accessor) {
             name = `${currentItemMetadata.accessor} ${name}`;
         }
+
+        // if type is function and name is init then change title to 'Automation'
+        if (type === 'function' && name === 'init') {
+            type = 'Automation';
+            name = '';
+        }
         
         return { type, name, fullName: name };
     };
 
     const headerText = getHeaderText();
-
-    // Create subtitle element with type badge
-    const subtitleElement = headerText.type ? (
-        <ItemType>{headerText.type}</ItemType>
-    ) : undefined;
 
     // Create actions for the right side
     const headerActions = (
@@ -452,8 +454,8 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     return (
         <ReviewContainer>
             <TitleBar
-                title={headerText.fullName}
-                subtitleElement={subtitleElement}
+                title={headerText.type}
+                subtitleElement={headerText.name}
                 actions={headerActions}
                 hideBack={true}
                 hideUndoRedo={true}
