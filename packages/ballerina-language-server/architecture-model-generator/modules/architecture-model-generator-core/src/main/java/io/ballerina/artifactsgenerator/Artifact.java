@@ -282,7 +282,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
             }
             name = IdentifierUtils.unescapeBallerina(name);
             return new Artifact(id, location, type == null ? null : type.name(), name, accessor, scope.getValue(), icon,
-                    module, new HashMap<>(children), metadata);
+                    module, new HashMap<>(children), new HashMap<>(metadata));
         }
     }
 }

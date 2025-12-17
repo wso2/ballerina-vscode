@@ -1103,11 +1103,11 @@ public class CommonUtils {
      * @return an Optional containing the formatted client label, or empty if extraction fails
      */
     public static Optional<String> getPersistClientLabel(String packageName, String moduleName) {
-        String modulePartName = "";
-        if (moduleName != null && moduleName.startsWith(packageName + ".")) {
-            modulePartName = moduleName.substring(packageName.length() + 1);
+        if (packageName == null || packageName.isEmpty() || moduleName == null ||
+                !moduleName.startsWith(packageName + ".")) {
+            return Optional.empty();
         }
-
+        String modulePartName = moduleName.substring(packageName.length() + 1);
         // The modulePartName follows the pattern <database-type>.<database-name>
         if (modulePartName.isEmpty()) {
             return Optional.empty();

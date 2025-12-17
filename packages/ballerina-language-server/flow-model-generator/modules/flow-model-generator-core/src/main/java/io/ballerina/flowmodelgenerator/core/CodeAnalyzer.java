@@ -1447,7 +1447,7 @@ public class CodeAnalyzer extends NodeVisitor {
      */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
         String moduleName = functionData.moduleName();
-        getPersistClientLabel(moduleName, packageName)
+        getPersistClientLabel(packageName, moduleName)
                 .ifPresent(label -> nodeBuilder.metadata().label(label));
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
