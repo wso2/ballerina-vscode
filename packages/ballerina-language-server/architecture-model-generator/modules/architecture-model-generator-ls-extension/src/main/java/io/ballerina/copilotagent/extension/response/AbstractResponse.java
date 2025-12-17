@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -21,9 +21,9 @@ package io.ballerina.copilotagent.extension.response;
 import java.util.Arrays;
 
 /**
- * Represents the response for the design model getDesignModel API.
+ * Represents the response for the copilotAgentService API.
  *
- * @since 1.0.0
+ * @since 1.5.0
  */
 public class AbstractResponse {
 
