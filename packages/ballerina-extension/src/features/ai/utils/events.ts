@@ -15,7 +15,23 @@
 // under the License.
 
 import { ChatNotify, Command } from "@wso2/ballerina-core";
-import { sendContentAppendNotification, sendContentReplaceNotification, sendDiagnosticMessageNotification, sendErrorNotification, sendMessagesNotification, sendMessageStartNotification, sendMessageStopNotification, sendIntermidateStateNotification, sendToolCallNotification, sendToolResultNotification, sendTaskApprovalRequestNotification, sendAbortNotification, sendSaveChatNotification, sendGeneratedSourcesNotification, sendConnectorGenerationNotification, sendReviewActionsNotification } from "./ai-utils";
+import {
+    sendContentAppendNotification,
+    sendContentReplaceNotification,
+    sendDiagnosticMessageNotification,
+    sendErrorNotification,
+    sendMessagesNotification,
+    sendMessageStartNotification,
+    sendMessageStopNotification,
+    sendIntermidateStateNotification,
+    sendToolCallNotification,
+    sendToolResultNotification,
+    sendTaskApprovalRequestNotification,
+    sendAbortNotification,
+    sendSaveChatNotification,
+    sendConnectorGenerationNotification,
+    sendReviewActionsNotification,
+} from "./ai-utils";
 
 export type CopilotEventHandler = (event: ChatNotify) => void;
 
@@ -23,11 +39,7 @@ export type CopilotEventHandler = (event: ChatNotify) => void;
  * Updates chat message with model messages and triggers save
  * This is a shared utility used by agent, datamapper, and other AI features
  */
-export function updateAndSaveChat(
-    messageId: string,
-    command: Command,
-    eventHandler: CopilotEventHandler
-): void {
+export function updateAndSaveChat(messageId: string, command: Command, eventHandler: CopilotEventHandler): void {
     eventHandler({ type: "save_chat", command, messageId });
 }
 
