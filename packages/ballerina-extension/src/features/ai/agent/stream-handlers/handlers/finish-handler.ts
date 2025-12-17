@@ -48,7 +48,6 @@ let pendingReviewContext: ReviewContext | null = null;
 export function getPendingReviewContext(): ReviewContext | null {
     if (pendingReviewContext) {
         const ageInMinutes = (Date.now() - pendingReviewContext.timestamp) / 1000 / 60;
-        console.log(`[Review Context] Retrieved context from ${ageInMinutes.toFixed(1)} minutes ago for message: ${pendingReviewContext.messageId}`);
         
         // Warn if context is very old (> 30 minutes) - might indicate a leak
         if (ageInMinutes > 30) {
@@ -71,7 +70,6 @@ export function setPendingReviewContext(context: ReviewContext): void {
     if (pendingReviewContext) {
         console.warn(`[Review Context] Overwriting existing context for message: ${pendingReviewContext.messageId} with new context for message: ${context.messageId}`);
     }
-    console.log(`[Review Context] Storing context for message: ${context.messageId}, tempPath: ${context.tempProjectPath}`);
     pendingReviewContext = context;
 }
 

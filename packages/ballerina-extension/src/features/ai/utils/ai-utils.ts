@@ -242,7 +242,6 @@ export function sendDiagnosticMessageNotification(diags: DiagnosticEntry[]): voi
 }
 
 export function sendReviewActionsNotification(): void {
-    console.log("[Review Actions] Sending review_actions notification to webview");
     const msg: ChatNotify = {
         type: "review_actions",
     };

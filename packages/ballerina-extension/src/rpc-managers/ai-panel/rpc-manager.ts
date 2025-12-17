@@ -729,10 +729,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         try {
-            // TODO: Implement revert logic (restore original files from backup)
-            console.log("[Review Actions] Revert changes not yet implemented");
-            
-            // For now, just cleanup the temp project
             const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
             const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
             
@@ -742,7 +738,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             if (reviewContext.shouldCleanup) {
                 cleanupTempProject(reviewContext.tempProjectPath);
             }
-            console.log("[Review Actions] Changes reverted and cleanup completed");
         } catch (error) {
             console.error("[Review Actions] Error reverting changes:", error);
             throw error;
@@ -786,8 +781,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             AIChatStateMachine.sendEvent({
                 type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
             });
-            
-            console.log("[Review Actions] Changes accepted and integrated successfully");
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -823,8 +816,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             AIChatStateMachine.sendEvent({
                 type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
             });
-            
-            console.log("[Review Actions] Changes declined and cleanup completed");
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
@@ -832,7 +823,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showReviewActions(): Promise<void> {
-        console.log("[Review Actions] Showing review actions via RPC");
         const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
         const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
         AIChatStateMachine.sendEvent({
@@ -841,7 +831,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async hideReviewActions(): Promise<void> {
-        console.log("[Review Actions] Hiding review actions via RPC");
         const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
         const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
         AIChatStateMachine.sendEvent({
