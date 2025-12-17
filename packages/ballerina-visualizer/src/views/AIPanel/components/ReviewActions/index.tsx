@@ -100,11 +100,11 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
             await rpcClient.getAiPanelRpcClient().declineChanges();
             
             // Navigate back to previous view  
-            rpcClient.getVisualizerRpcClient().reviewRejected();
+            rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
             console.error("[ReviewActions] Error declining changes:", error);
             // Still navigate back even if there's an error
-            rpcClient.getVisualizerRpcClient().reviewRejected();
+            rpcClient.getVisualizerRpcClient().goBack();
         } finally {
             setIsProcessing(false);
         }
