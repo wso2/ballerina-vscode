@@ -18,7 +18,7 @@
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
 import { InputOutputPortModel, ValueType } from "../Port";
-import { getDMTypeDim, getTypeName, isPrimitive } from "./type-utils";
+import { getDMTypeDim, getGenericTypeKind, getTypeName, isNumericType, isPrimitive } from "./type-utils";
 import { DataMapperLinkModel, MappingType } from "../Link";
 
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
@@ -118,6 +118,15 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             }
             if (dimDelta > 0) {
                 return MappingType.ArrayToSingleton;
+            }
+        }
+
+        if (getGenericTypeKind(targetField.kind) !== getGenericTypeKind(sourceField.kind)) {
+            if (targetField.kind === TypeKind.String && isPrimitive(sourceField.kind)) {
+                return MappingType.PrimitiveToString;
+            }
+            if (isNumericType(sourceField.kind) && isNumericType(targetField.kind)) {
+                return MappingType.NumberToNumber;
             }
         }
 

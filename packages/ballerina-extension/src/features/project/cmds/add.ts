@@ -29,6 +29,7 @@ import {
 } from "../../../utils/project-utils";
 import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
+import { selectPackageOrPrompt } from "../../../utils/command-utils";
 
 function activateAddCommand() {
     // register ballerina add handler
@@ -101,17 +102,12 @@ export { activateAddCommand };
 
 // Prompts user to select a package
 async function getPackage(projectInfo: ProjectInfo): Promise<string | undefined> {
-    const packages = projectInfo?.children;
-    if (!packages || packages.length === 0) {
-        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+    const packages = projectInfo?.children.map((child) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(packages, "Select a package to add the module to");
+    if (!selectedPackage) {
         return undefined;
     }
-    else if (packages.length === 1) {
-        return packages[0].projectPath;
-    }
-    const packagePaths = packages.map((pkg) => pkg.projectPath);
-    const resultItem = await window.showQuickPick<QuickPickItem>(packagePaths.map(path => ({ label: path })), {
-                placeHolder: `Select a Package to add the module to`,
-            });
-    return resultItem ? resultItem.label : undefined;
+
+    return selectedPackage;
 }

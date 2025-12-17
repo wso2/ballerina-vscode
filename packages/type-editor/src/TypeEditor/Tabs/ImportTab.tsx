@@ -20,7 +20,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TextField, Dropdown } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Type } from "@wso2/ballerina-core";
+import { FormFieldInputType, Type } from "@wso2/ballerina-core";
 import { RecordFromJson } from "../../RecordFromJson/RecordFromJson";
 import { RecordFromXml } from "../../RecordFromXml/RecordFromXml";
 import { debounce } from "lodash";
@@ -121,16 +121,15 @@ export function ImportTab(props: ImportTabProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        valueTypeConstraint: "Global"
+                        types: [{ fieldType:  type.properties["name"].valueType as FormFieldInputType, ballerinaType: "Global", selected: false }]
                     } :
                     {
                         metadata: {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
                         value: "",
-                        valueTypeConstraint: "Global",
+                        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
                         optional: false,
                         editable: true
                     }
