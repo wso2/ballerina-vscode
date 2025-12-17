@@ -267,11 +267,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const handleAccept = async () => {
         console.log("[Review Mode] Accepting changes...");
         try {
-            // First, accept the changes (integrate code to workspace)
+            // Accept the changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
             console.log("[Review Mode] Changes accepted successfully");
             
-            // Then navigate back to previous view
+            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
             console.error("[Review Mode] Error accepting changes:", error);
@@ -283,11 +283,11 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const handleReject = async () => {
         console.log("[Review Mode] Rejecting changes...");
         try {
-            // First, decline the changes (cleanup without integrating)
+            // Decline the changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
             console.log("[Review Mode] Changes declined successfully");
             
-            // Then navigate back to previous view
+            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewRejected();
         } catch (error) {
             console.error("[Review Mode] Error declining changes:", error);

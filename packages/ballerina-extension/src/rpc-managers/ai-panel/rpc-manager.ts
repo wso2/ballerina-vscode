@@ -810,8 +810,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             if (reviewContext.shouldCleanup) {
                 cleanupTempProject(reviewContext.tempProjectPath);
             }
-            
-             ();
             console.log("[Review Actions] Changes reverted and cleanup completed");
         } catch (error) {
             console.error("[Review Actions] Error reverting changes:", error);
@@ -849,6 +847,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             
             clearPendingReviewContext();
+            
+            // Hide review actions component
+            const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
+            const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
+            AIChatStateMachine.sendEvent({
+                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+            });
+            
             console.log("[Review Actions] Changes accepted and integrated successfully");
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
@@ -878,11 +884,37 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             
             clearPendingReviewContext();
+            
+            // Hide review actions component
+            const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
+            const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
+            AIChatStateMachine.sendEvent({
+                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+            });
+            
             console.log("[Review Actions] Changes declined and cleanup completed");
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
         }
+    }
+
+    async showReviewActions(): Promise<void> {
+        console.log("[Review Actions] Showing review actions via RPC");
+        const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
+        const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
+        });
+    }
+
+    async hideReviewActions(): Promise<void> {
+        console.log("[Review Actions] Hiding review actions via RPC");
+        const { AIChatStateMachine } = await import("../../views/ai-panel/aiChatMachine");
+        const { AIChatMachineEventType } = await import("@wso2/ballerina-core/lib/state-machine-types");
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+        });
     }
 }
 

@@ -95,6 +95,8 @@ import {
     RequirementSpecification,
     revertChanges,
     SemanticDiffRequest,
+    showReviewActions,
+    hideReviewActions,
     showSignInAlert,
     submitFeedback,
     SubmitFeedbackRequest,
@@ -171,4 +173,6 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onNotification(revertChanges, () => rpcManger.revertChanges());
     messenger.onNotification(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onNotification(declineChanges, () => rpcManger.declineChanges());
+    messenger.onNotification(showReviewActions, () => rpcManger.showReviewActions());
+    messenger.onNotification(hideReviewActions, () => rpcManger.hideReviewActions());
 }

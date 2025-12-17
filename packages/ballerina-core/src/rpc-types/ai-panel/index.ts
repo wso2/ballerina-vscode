@@ -89,4 +89,6 @@ export interface AIPanelAPI {
     revertChanges: () => Promise<void>;
     acceptChanges: () => Promise<void>;
     declineChanges: () => Promise<void>;
+    showReviewActions: () => Promise<void>;
+    hideReviewActions: () => Promise<void>;
 }
