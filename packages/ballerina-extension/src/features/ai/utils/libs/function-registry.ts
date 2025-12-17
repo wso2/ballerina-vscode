@@ -41,7 +41,7 @@ const TYPE_CONSTRUCTOR = 'Constructor';
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
     const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
-    const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs);
+    const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs, generationType);
     let typeLibraries: Library[] = [];
     if (generationType === GenerationType.HEALTHCARE_GENERATION) {
         const resp: GetTypeResponse[] = await getRequiredTypesFromLibJson(selectedLibNames, prompt, selectedLibs);
@@ -119,7 +119,8 @@ function selectTypes(fullDefOfSelectedLib: any[], minifiedSelectedLib: GetTypeRe
 async function getRequiredFunctions(
     libraries: string[],
     prompt: string,
-    librariesJson: Library[]
+    librariesJson: Library[],
+    generationType: GenerationType
 ): Promise<GetFunctionResponse[]> {
     if (librariesJson.length === 0) {
         return [];
@@ -132,7 +133,7 @@ async function getRequiredFunctions(
             name: lib.name,
             description: lib.description,
             clients: filteredClients(lib.clients),
-            functions: filteredNormalFunctions(lib.functions),
+            functions: filteredNormalFunctions(lib.functions, generationType),
         }));
 
     const largeLibs = libraryList.filter((lib) => getClientFunctionCount(lib.clients) >= 100);
@@ -316,7 +317,7 @@ function filteredFunctions(
     return output;
 }
 
-function filteredNormalFunctions(functions?: RemoteFunction[]): MinifiedRemoteFunction[] | undefined {
+function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: GenerationType): MinifiedRemoteFunction[] | undefined {
     if (!functions) {
         return undefined;
     }
@@ -325,6 +326,7 @@ function filteredNormalFunctions(functions?: RemoteFunction[]): MinifiedRemoteFu
         name: item.name,
         parameters: item.parameters.map((param) => param.name),
         returnType: item.return.type.name,
+        ...(generationType === GenerationType.HEALTHCARE_GENERATION && { description: item?.description }),
     }));
 }
 

@@ -36,6 +36,7 @@ export interface MinifiedRemoteFunction extends MiniFunction {
 export interface MiniFunction {
     parameters?: string[];
     returnType?: string;
+    description?: string;
 }
 
 export interface MinifiedResourceFunction extends MiniFunction {
