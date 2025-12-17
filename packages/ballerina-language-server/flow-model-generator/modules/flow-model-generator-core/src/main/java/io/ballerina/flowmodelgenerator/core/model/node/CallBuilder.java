@@ -178,7 +178,6 @@ public abstract class CallBuilder extends NodeBuilder {
                         .stepOut()
                     .placeholder(paramResult.placeholder())
                     .defaultValue(paramResult.defaultValue())
-                    .typeMembers(paramResult.typeMembers())
                     .imports(paramResult.importStatements())
                     .editable()
                     .defaultable(paramResult.optional());

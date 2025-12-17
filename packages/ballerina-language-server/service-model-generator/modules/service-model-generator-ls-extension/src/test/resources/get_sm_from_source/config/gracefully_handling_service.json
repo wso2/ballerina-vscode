@@ -27,8 +27,12 @@
       "codedata": {
         "type": "DOCUMENTATION"
       },
-      "valueType": "STRING",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
       "enabled": true,
       "editable": true,
       "optional": true,
@@ -44,8 +48,6 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT_LISTENER",
-        "valueTypeConstraint": "grpc:Listener",
         "value": "new grpc:Listener(9090)",
         "values": [],
         "properties": {
@@ -69,6 +71,13 @@
             "advanced": false
           }
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT_LISTENER",
+            "options": [],
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -82,10 +91,14 @@
         "codedata": {
           "type": "STRING_LITERAL"
         },
-        "valueType": "SERVICE_PATH",
-        "valueTypeConstraint": "string",
         "value": "\"HelloWorld\"",
         "values": [],
+        "types": [
+          {
+            "fieldType": "SERVICE_PATH",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -136,7 +149,12 @@
             "label": "Accessor",
             "description": "The accessor of the function"
           },
-          "valueType": "IDENTIFIER",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -147,8 +165,13 @@
             "label": "Function Name",
             "description": "The name of the function"
           },
-          "valueType": "IDENTIFIER",
           "value": "lotsOfReplies",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -166,8 +189,13 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
               "value": "string",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -178,8 +206,13 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
               "value": "name",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -190,7 +223,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -201,7 +239,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -222,7 +265,12 @@
                 "label": "Parameter Type",
                 "description": "The type of the parameter"
               },
-              "valueType": "TYPE",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -233,7 +281,12 @@
                 "label": "Parameter Name",
                 "description": "The name of the parameter"
               },
-              "valueType": "IDENTIFIER",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": false,
@@ -244,7 +297,12 @@
                 "label": "Default Value",
                 "description": "The default value of the parameter"
               },
-              "valueType": "EXPRESSION",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -255,7 +313,12 @@
                 "label": "Description",
                 "description": "The description of the parameter"
               },
-              "valueType": "STRING",
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
               "enabled": true,
               "editable": true,
               "optional": true,
@@ -276,8 +339,13 @@
             "label": "Return Type",
             "description": "The return type of the function"
           },
-          "valueType": "TYPE",
           "value": "stream<string, error?>",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": true,

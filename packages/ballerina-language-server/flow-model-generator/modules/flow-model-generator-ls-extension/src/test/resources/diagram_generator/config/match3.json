@@ -95,7 +95,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -106,7 +107,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var p",
@@ -129,7 +131,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "p < 100 ",
@@ -170,7 +173,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"cheap\"",
@@ -186,7 +190,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "fruit.quality",
@@ -227,7 +232,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -238,7 +244,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var p",
@@ -261,7 +268,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "p >= 100 && p < 200 ",
@@ -322,7 +330,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "SINGLE_SELECT"
+                            "fieldType": "SINGLE_SELECT",
+                            "selected": true
                           }
                         ],
                         "value": [
@@ -333,7 +342,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "var q",
@@ -356,7 +366,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "EXPRESSION"
+                            "fieldType": "EXPRESSION",
+                            "selected": true
                           }
                         ],
                         "value": "q is int && q > 0 ",
@@ -397,7 +408,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"fresh; moderate\"",
@@ -413,7 +425,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "LV_EXPRESSION"
+                                "fieldType": "LV_EXPRESSION",
+                                "selected": false
                               }
                             ],
                             "value": "fruit.quality",
@@ -454,7 +467,8 @@
                         },
                         "types": [
                           {
-                            "fieldType": "SINGLE_SELECT"
+                            "fieldType": "SINGLE_SELECT",
+                            "selected": true
                           }
                         ],
                         "value": [
@@ -465,7 +479,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION"
+                                "fieldType": "EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "_",
@@ -513,7 +528,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "ACTION_OR_EXPRESSION"
+                                "fieldType": "ACTION_OR_EXPRESSION",
+                                "selected": true
                               }
                             ],
                             "value": "\"expired; moderate\"",
@@ -529,7 +545,8 @@
                             },
                             "types": [
                               {
-                                "fieldType": "LV_EXPRESSION"
+                                "fieldType": "LV_EXPRESSION",
+                                "selected": false
                               }
                             ],
                             "value": "fruit.quality",
@@ -553,7 +570,8 @@
                     "types": [
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "any|error"
+                        "ballerinaType": "any|error",
+                        "selected": true
                       }
                     ],
                     "value": "fruit.quantity ",
@@ -595,7 +613,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -606,7 +625,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "var p",
@@ -629,7 +649,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": true
                   }
                 ],
                 "value": "p >= 200 ",
@@ -668,7 +689,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "SINGLE_SELECT"
+                    "fieldType": "SINGLE_SELECT",
+                    "selected": true
                   }
                 ],
                 "value": [
@@ -679,7 +701,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "_",
@@ -727,7 +750,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "\"expensive\"",
@@ -743,7 +767,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "fruit.quality",
@@ -767,7 +792,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "any|error"
+                "ballerinaType": "any|error",
+                "selected": true
               }
             ],
             "value": "fruit.price ",
@@ -810,7 +836,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "fruit",

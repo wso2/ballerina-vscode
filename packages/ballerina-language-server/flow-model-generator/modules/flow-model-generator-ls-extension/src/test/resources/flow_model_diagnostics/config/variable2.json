@@ -108,7 +108,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_OR_EXPRESSION"
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
           }
         ],
         "value": "12",
@@ -124,7 +125,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "s",
@@ -153,7 +155,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "int",

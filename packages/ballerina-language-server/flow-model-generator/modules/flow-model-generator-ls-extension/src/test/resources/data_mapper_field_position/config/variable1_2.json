@@ -22,7 +22,8 @@
     "types": [
       {
         "fieldType": "EXPRESSION",
-        "ballerinaType": "string"
+        "ballerinaType": "string",
+        "selected": false
       }
     ],
     "optional": false,

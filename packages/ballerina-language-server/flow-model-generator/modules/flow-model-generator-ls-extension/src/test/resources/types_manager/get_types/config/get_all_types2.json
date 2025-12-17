@@ -31,7 +31,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Names",
@@ -47,7 +48,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -63,7 +65,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -79,7 +82,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "true",
@@ -95,7 +99,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "2",
@@ -148,7 +153,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Persons",
@@ -164,7 +170,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -180,7 +187,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -196,7 +204,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "true",
@@ -212,7 +221,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "4",
@@ -267,7 +277,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "PersonWithChildren",
@@ -283,7 +294,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -299,7 +311,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -315,7 +328,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -331,7 +345,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -391,7 +406,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG"
+                    "fieldType": "FLAG",
+                    "selected": true
                   }
                 ],
                 "value": "true",
@@ -407,7 +423,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -473,7 +490,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Parents",
@@ -489,7 +507,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -505,7 +524,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -521,7 +541,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "true",
@@ -537,7 +558,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -564,7 +586,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG"
+                    "fieldType": "FLAG",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -580,7 +603,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -654,7 +678,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Employees",
@@ -670,7 +695,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -686,7 +712,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -702,7 +729,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "true",
@@ -718,7 +746,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -745,7 +774,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG"
+                    "fieldType": "FLAG",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -761,7 +791,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -849,7 +880,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Users",
@@ -865,7 +897,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -881,7 +914,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -897,7 +931,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "true",
@@ -913,7 +948,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "4",
@@ -940,7 +976,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "FLAG"
+                    "fieldType": "FLAG",
+                    "selected": true
                   }
                 ],
                 "value": "false",
@@ -956,7 +993,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": true
                   }
                 ],
                 "value": "",
@@ -1028,7 +1066,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "Person",
@@ -1044,7 +1083,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -1060,7 +1100,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",
@@ -1076,7 +1117,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": "false",
@@ -1092,7 +1134,8 @@
           },
           "types": [
             {
-              "fieldType": "TEXT"
+              "fieldType": "TEXT",
+              "selected": true
             }
           ],
           "value": "",

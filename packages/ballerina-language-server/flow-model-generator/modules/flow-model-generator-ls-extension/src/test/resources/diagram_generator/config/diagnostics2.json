@@ -73,7 +73,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "{}",
@@ -89,7 +90,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "bm1",
@@ -118,7 +120,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "map<boolean>",
@@ -205,7 +208,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "ACTION_OR_EXPRESSION"
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
                       }
                     ],
                     "value": "[bm1]",
@@ -234,7 +238,8 @@
                     },
                     "types": [
                       {
-                        "fieldType": "LV_EXPRESSION"
+                        "fieldType": "LV_EXPRESSION",
+                        "selected": false
                       }
                     ],
                     "value": "f",

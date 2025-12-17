@@ -38,7 +38,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "azure_cosmosdb:DataPlaneClient"
+            "ballerinaType": "azure_cosmosdb:DataPlaneClient",
+            "selected": false
           }
         ],
         "value": "covid19Client",
@@ -55,11 +56,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -70,16 +73,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "databaseId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "containerId": {
         "metadata": {
@@ -89,11 +83,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -104,16 +100,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "containerId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "documemtId": {
         "metadata": {
@@ -123,11 +110,13 @@
         "types": [
           {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
           }
         ],
         "placeholder": "\"\"",
@@ -138,16 +127,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "documemtId"
-        },
-        "typeMembers": [
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "document": {
         "metadata": {
@@ -157,11 +137,13 @@
         "types": [
           {
             "fieldType": "MAPPING_EXPRESSION_SET",
-            "ballerinaType": "map<json>"
+            "ballerinaType": "map<json>",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map<json>"
+            "ballerinaType": "map<json>",
+            "selected": false
           }
         ],
         "placeholder": "{}",
@@ -172,16 +154,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "document"
-        },
-        "typeMembers": [
-          {
-            "type": "map<json>",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "MAP_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "partitionKey": {
         "metadata": {
@@ -190,24 +163,19 @@
         },
         "types": [
           {
-            "fieldType": "NUMBER",
-            "ballerinaType": "int"
-          },
-          {
-            "fieldType": "NUMBER",
-            "ballerinaType": "float"
-          },
-          {
-            "fieldType": "NUMBER",
-            "ballerinaType": "decimal"
-          },
-          {
             "fieldType": "TEXT",
-            "ballerinaType": "string"
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int|float|decimal",
+            "selected": false
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int|float|decimal|string"
+            "ballerinaType": "int|float|decimal|string",
+            "selected": false
           }
         ],
         "placeholder": "0",
@@ -218,37 +186,7 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "partitionKey"
-        },
-        "typeMembers": [
-          {
-            "type": "int",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "float",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "decimal",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          },
-          {
-            "type": "string",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ]
+        }
       },
       "requestOptions": {
         "metadata": {
@@ -257,8 +195,23 @@
         },
         "types": [
           {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "azure_cosmosdb:RequestOptions",
+            "typeMembers": [
+              {
+                "type": "RequestOptions",
+                "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
+                "packageName": "azure_cosmosdb",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "azure_cosmosdb:RequestOptions?"
+            "ballerinaType": "azure_cosmosdb:RequestOptions?",
+            "selected": false
           }
         ],
         "placeholder": "()",
@@ -270,22 +223,6 @@
           "kind": "DEFAULTABLE",
           "originalName": "requestOptions"
         },
-        "typeMembers": [
-          {
-            "type": "RequestOptions",
-            "packageInfo": "ballerinax:azure_cosmosdb:4.2.0",
-            "packageName": "azure_cosmosdb",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          },
-          {
-            "type": "()",
-            "packageInfo": "",
-            "packageName": "",
-            "kind": "BASIC_TYPE",
-            "selected": false
-          }
-        ],
         "defaultValue": "()"
       },
       "type": {
@@ -295,7 +232,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "azure_cosmosdb:DocumentResponse",
@@ -313,7 +251,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "azureCosmosdbDocumentresponse",
@@ -329,7 +268,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": true,

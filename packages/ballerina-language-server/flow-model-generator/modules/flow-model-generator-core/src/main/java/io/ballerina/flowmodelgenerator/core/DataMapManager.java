@@ -1553,11 +1553,15 @@ public class DataMapManager {
             Map<String, SpecificFieldNode> mappingFields = convertMappingFieldsToMap(mappingCtrExpr);
             SpecificFieldNode mappingFieldNode = mappingFields.get(name);
             if (mappingFieldNode == null) {
+                LinePosition insertPosition;
                 if (!mappingFields.isEmpty()) {
                     stringBuilder.append(", ");
+                    MappingFieldNode lastField = mappingCtrExpr.fields().get(mappingCtrExpr.fields().size() - 1);
+                    insertPosition = lastField.lineRange().endLine();
+                } else {
+                    insertPosition = mappingCtrExpr.closeBrace().lineRange().startLine();
                 }
-                genSource(null, names, idx, stringBuilder, mappingExpr,
-                        mappingCtrExpr.closeBrace().lineRange().startLine(), textEdits);
+                genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
             } else {
                 genSource(mappingFieldNode.valueExpr().orElseThrow(), names, idx + 1, stringBuilder, mappingExpr,
                         null, textEdits);
@@ -1571,8 +1575,14 @@ public class DataMapManager {
                     if (idx > 0) {
                         stringBuilder.append(", ");
                     }
-                    genSource(null, names, idx, stringBuilder, mappingExpr,
-                            listCtrExpr.closeBracket().lineRange().startLine(), textEdits);
+                    LinePosition insertPosition;
+                    if (!listCtrExpr.expressions().isEmpty()) {
+                        Node lastElement = listCtrExpr.expressions().get(listCtrExpr.expressions().size() - 1);
+                        insertPosition = lastElement.lineRange().endLine();
+                    } else {
+                        insertPosition = listCtrExpr.closeBracket().lineRange().startLine();
+                    }
+                    genSource(null, names, idx, stringBuilder, mappingExpr, insertPosition, textEdits);
                 } else {
                     genSource((ExpressionNode) listCtrExpr.expressions().get(index), names, idx + 1, stringBuilder,
                             mappingExpr, null, textEdits);
@@ -3214,11 +3224,18 @@ public class DataMapManager {
 
         @Override
         public void visit(IndexedExpressionNode node) {
-            String source = node.toSourceCode().trim();
-            String openBraceRemoved = source.replace("[", ".");
-            String middleBracesRemoved = openBraceRemoved.replace("][", ".");
-            String closedBraceRemoved = middleBracesRemoved.replace("]", "");
-            addInput(closedBraceRemoved);
+            ExpressionNode containerExpr = node.containerExpression();
+            SyntaxKind containerKind = containerExpr.kind();
+
+            if (containerKind == SyntaxKind.FIELD_ACCESS || containerKind == SyntaxKind.INDEXED_EXPRESSION) {
+                String source = node.toSourceCode().trim();
+                String openBraceRemoved = source.replace("[", ".");
+                String middleBracesRemoved = openBraceRemoved.replace("][", ".");
+                String closedBraceRemoved = middleBracesRemoved.replace("]", "");
+                addInput(closedBraceRemoved);
+            } else {
+                containerExpr.accept(this);
+            }
 
             SeparatedNodeList<ExpressionNode> keyExpressions = node.keyExpression();
             for (ExpressionNode keyExpr : keyExpressions) {
@@ -3323,5 +3340,84 @@ public class DataMapManager {
         public void visit(CheckExpressionNode node) {
             node.expression().accept(this);
         }
+    }
+
+    /**
+     * Converts an expression from one type to another for incompatible primitive types.
+     * This method is used by the convertExpression API.
+     *
+     * @param expression     the source expression
+     * @param expressionType the source type as a string (e.g., "int", "string")
+     * @param outputType     the target type as a string (e.g., "string", "int")
+     * @return a map containing the converted expression
+     */
+    public Map<String, Object> convertExpression(String expression, String expressionType, String outputType) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (expression == null || expressionType == null || outputType == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        TypeDescKind sourceKind = getTypeDescKindFromString(expressionType);
+        TypeDescKind targetKind = getTypeDescKindFromString(outputType);
+
+        if (sourceKind == null || targetKind == null) {
+            result.put("convertedExpression", expression);
+            return result;
+        }
+
+        String convertedExpression = getTypeConversionExpression(expression, sourceKind, targetKind);
+        result.put("convertedExpression", convertedExpression);
+        return result;
+    }
+
+    /**
+     * Converts a type string to TypeDescKind.
+     *
+     * @param typeString the type as a string (e.g., "int", "string")
+     * @return the corresponding TypeDescKind, or null if not a primitive type
+     */
+    private TypeDescKind getTypeDescKindFromString(String typeString) {
+        if (typeString == null) {
+            return null;
+        }
+
+        return switch (typeString.toLowerCase(java.util.Locale.ROOT).trim()) {
+            case "int" -> TypeDescKind.INT;
+            case "float" -> TypeDescKind.FLOAT;
+            case "decimal" -> TypeDescKind.DECIMAL;
+            case "string" -> TypeDescKind.STRING;
+            case "boolean" -> TypeDescKind.BOOLEAN;
+            default -> null;
+        };
+    }
+
+    /**
+     * Generates the type conversion expression for converting between primitive types.
+     * Uses type casting with <> for all conversions except to string which uses .toString().
+     *
+     * @param expression the original expression
+     * @param targetKind the target type kind
+     * @return the converted expression
+     */
+    private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+        if (targetKind == TypeDescKind.STRING) {
+            return expression + ".toString()";
+        }
+
+        String targetTypeName = switch (targetKind) {
+            case INT -> "int";
+            case FLOAT -> "float";
+            case DECIMAL -> "decimal";
+            default -> null;
+        };
+
+        if (targetTypeName != null &&
+                sourceKind != TypeDescKind.STRING && sourceKind != TypeDescKind.BOOLEAN) {
+            return "<" + targetTypeName + ">" + expression;
+        }
+
+        return expression;
     }
 }

@@ -35,7 +35,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "pinecone:VectorStore",
@@ -56,7 +57,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "pineconeVectorstore",
@@ -73,11 +75,13 @@
           "types": [
             {
               "fieldType": "TEXT",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "placeholder": "\"\"",
@@ -88,16 +92,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "serviceUrl"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "apiKey": {
           "metadata": {
@@ -107,11 +102,13 @@
           "types": [
             {
               "fieldType": "TEXT",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "placeholder": "\"\"",
@@ -122,16 +119,7 @@
           "codedata": {
             "kind": "REQUIRED",
             "originalName": "apiKey"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "queryMode": {
           "metadata": {
@@ -145,11 +133,13 @@
                 "HYBRID",
                 "SPARSE",
                 "DENSE"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:VectorStoreQueryMode"
+              "ballerinaType": "ai:VectorStoreQueryMode",
+              "selected": false
             }
           ],
           "placeholder": "\"HYBRID\"",
@@ -161,15 +151,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "queryMode"
           },
-          "typeMembers": [
-            {
-              "type": "VectorStoreQueryMode",
-              "packageInfo": "ballerina:ai:1.5.0",
-              "packageName": "ai",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"HYBRID\""
         },
         "config": {
@@ -178,8 +159,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "pinecone:Configuration",
+              "typeMembers": [
+                {
+                  "type": "Configuration",
+                  "packageInfo": "ballerinax:ai.pinecone:1.1.0",
+                  "packageName": "ai.pinecone",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "pinecone:Configuration"
+              "ballerinaType": "pinecone:Configuration",
+              "selected": false
             }
           ],
           "placeholder": "{}",
@@ -191,15 +187,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "config"
           },
-          "typeMembers": [
-            {
-              "type": "Configuration",
-              "packageInfo": "ballerinax:ai.pinecone:1.1.0",
-              "packageName": "ai.pinecone",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "{}"
         },
         "httpConfig": {
@@ -209,8 +196,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "vector:ConnectionConfig",
+              "typeMembers": [
+                {
+                  "type": "ConnectionConfig",
+                  "packageInfo": "ballerinax:pinecone.vector:1.0.2",
+                  "packageName": "pinecone.vector",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "vector:ConnectionConfig"
+              "ballerinaType": "vector:ConnectionConfig",
+              "selected": false
             }
           ],
           "placeholder": "{}",
@@ -222,15 +224,6 @@
             "kind": "DEFAULTABLE",
             "originalName": "httpConfig"
           },
-          "typeMembers": [
-            {
-              "type": "ConnectionConfig",
-              "packageInfo": "ballerinax:pinecone.vector:1.0.2",
-              "packageName": "pinecone.vector",
-              "kind": "RECORD_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "{}"
         },
         "scope": {
@@ -240,7 +233,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -256,7 +250,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,

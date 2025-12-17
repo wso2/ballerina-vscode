@@ -70,7 +70,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "{\n        id: \"CUST200\",\n        name: \"Foo Bar\",\n        email: \"foo@example.com\",\n        phoneNumber: \"+1122334455\",\n        address: \"Foo St\"\n    }",
@@ -86,7 +87,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "customer",
@@ -115,7 +117,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:Customer",
@@ -165,7 +168,8 @@
             },
             "types": [
               {
-                "fieldType": "VIEW"
+                "fieldType": "VIEW",
+                "selected": true
               }
             ],
             "value": {
@@ -190,8 +194,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "pkgB:Customer",
+                "typeMembers": [
+                  {
+                    "type": "Customer",
+                    "packageInfo": "wso2:pkgB:0.1.0",
+                    "packageName": "pkgB",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "pkgB:Customer"
+                "ballerinaType": "pkgB:Customer",
+                "selected": true
               }
             ],
             "value": "customer",
@@ -203,16 +222,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "customer"
-            },
-            "typeMembers": [
-              {
-                "type": "Customer",
-                "packageInfo": "wso2:pkgB:0.1.0",
-                "packageName": "pkgB",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "variable": {
             "metadata": {
@@ -221,7 +231,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "externalCustomer",
@@ -250,7 +261,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "pkgB:ExternalCustomer",
@@ -300,7 +312,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET"
+                "fieldType": "EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": [
@@ -314,16 +327,7 @@
             "codedata": {
               "kind": "REST_PARAMETER",
               "originalName": "values"
-            },
-            "typeMembers": [
-              {
-                "type": "Printable",
-                "packageInfo": "ballerina:io:1.8.0",
-                "packageName": "io",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ]
+            }
           }
         },
         "flags": 0

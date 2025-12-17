@@ -35,7 +35,8 @@
           },
           "types": [
             {
-              "fieldType": "TYPE"
+              "fieldType": "TYPE",
+              "selected": true
             }
           ],
           "value": "ai:TextDataLoader",
@@ -56,7 +57,8 @@
           },
           "types": [
             {
-              "fieldType": "IDENTIFIER"
+              "fieldType": "IDENTIFIER",
+              "selected": true
             }
           ],
           "value": "aiTextdataloader",
@@ -73,7 +75,8 @@
           "types": [
             {
               "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string"
+              "ballerinaType": "string",
+              "selected": false
             }
           ],
           "placeholder": "\"\"",
@@ -84,16 +87,7 @@
           "codedata": {
             "kind": "REST_PARAMETER",
             "originalName": "paths"
-          },
-          "typeMembers": [
-            {
-              "type": "string",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "ARRAY_TYPE",
-              "selected": false
-            }
-          ]
+          }
         },
         "scope": {
           "metadata": {
@@ -102,7 +96,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "Global",
@@ -118,7 +113,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,

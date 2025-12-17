@@ -24,7 +24,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": false
           }
         ],
         "value": "main",
@@ -48,7 +49,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -66,7 +68,8 @@
                         "float",
                         "decimal",
                         "byte"
-                      ]
+                      ],
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -82,7 +85,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
                     }
                   ],
                   "value": "",
@@ -96,7 +100,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {},
@@ -112,7 +117,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": false
           }
         ],
         "value": true,

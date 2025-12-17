@@ -45,8 +45,23 @@
           },
           "types": [
             {
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "ai:SystemPrompt",
+              "typeMembers": [
+                {
+                  "type": "SystemPrompt",
+                  "packageInfo": "ballerina:ai:1.8.0",
+                  "packageName": "ai",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": false
+            },
+            {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:SystemPrompt"
+              "ballerinaType": "ai:SystemPrompt",
+              "selected": false
             }
           ],
           "value": "{role: \"\", instructions: string ``}",
@@ -59,15 +74,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "systemPrompt"
           },
-          "typeMembers": [
-            {
-              "type": "SystemPrompt",
-              "packageInfo": "ballerina:ai:1.8.0",
-              "packageName": "ai",
-              "kind": "RECORD_TYPE",
-              "selected": true
-            }
-          ],
           "defaultValue": "{role: \"\", instructions: \"\"}"
         },
         "model": {
@@ -78,7 +84,8 @@
           "types": [
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:ModelProvider"
+              "ballerinaType": "ai:ModelProvider",
+              "selected": true
             }
           ],
           "value": "self._salesAgentModel",
@@ -91,15 +98,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "model"
           },
-          "typeMembers": [
-            {
-              "type": "ModelProvider",
-              "packageInfo": "ballerina:ai:1.8.0",
-              "packageName": "ai",
-              "kind": "OBJECT_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "object {}"
         },
         "tools": {
@@ -110,11 +108,13 @@
           "types": [
             {
               "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+              "selected": true
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+              "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+              "selected": false
             }
           ],
           "value": "[]",
@@ -127,15 +127,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "tools"
           },
-          "typeMembers": [
-            {
-              "type": "BaseToolKit|ai",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "ARRAY_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "[]"
         },
         "maxIter": {
@@ -146,11 +137,13 @@
           "types": [
             {
               "fieldType": "NUMBER",
-              "ballerinaType": "int"
+              "ballerinaType": "int",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "\"INFER_TOOL_COUNT\"|int"
+              "ballerinaType": "\"INFER_TOOL_COUNT\"|int",
+              "selected": false
             }
           ],
           "placeholder": "\"INFER_TOOL_COUNT\"",
@@ -162,22 +155,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "maxIter"
           },
-          "typeMembers": [
-            {
-              "type": "\"INFER_TOOL_COUNT\"",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            },
-            {
-              "type": "int",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"INFER_TOOL_COUNT\""
         },
         "verbose": {
@@ -188,11 +165,13 @@
           "types": [
             {
               "fieldType": "FLAG",
-              "ballerinaType": "boolean"
+              "ballerinaType": "boolean",
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "boolean"
+              "ballerinaType": "boolean",
+              "selected": false
             }
           ],
           "placeholder": "false",
@@ -204,15 +183,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "verbose"
           },
-          "typeMembers": [
-            {
-              "type": "boolean",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "false"
         },
         "memory": {
@@ -223,7 +193,8 @@
           "types": [
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:Memory?"
+              "ballerinaType": "ai:Memory?",
+              "selected": false
             }
           ],
           "placeholder": "()",
@@ -235,22 +206,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "memory"
           },
-          "typeMembers": [
-            {
-              "type": "Memory",
-              "packageInfo": "ballerina:ai:1.8.0",
-              "packageName": "ai",
-              "kind": "OBJECT_TYPE",
-              "selected": false
-            },
-            {
-              "type": "()",
-              "packageInfo": "",
-              "packageName": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "()"
         },
         "toolLoadingStrategy": {
@@ -264,11 +219,13 @@
               "options": [
                 "LLM_FILTER",
                 "NO_FILTER"
-              ]
+              ],
+              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
-              "ballerinaType": "ai:ToolLoadingStrategy"
+              "ballerinaType": "ai:ToolLoadingStrategy",
+              "selected": false
             }
           ],
           "placeholder": "\"LLM_FILTER\"",
@@ -280,15 +237,6 @@
             "kind": "INCLUDED_FIELD",
             "originalName": "toolLoadingStrategy"
           },
-          "typeMembers": [
-            {
-              "type": "ToolLoadingStrategy",
-              "packageInfo": "ballerina:ai:1.8.0",
-              "packageName": "ai",
-              "kind": "BASIC_TYPE",
-              "selected": false
-            }
-          ],
           "defaultValue": "\"LLM_FILTER\""
         },
         "checkError": {
@@ -298,7 +246,8 @@
           },
           "types": [
             {
-              "fieldType": "FLAG"
+              "fieldType": "FLAG",
+              "selected": true
             }
           ],
           "value": true,
@@ -314,7 +263,8 @@
           },
           "types": [
             {
-              "fieldType": "ENUM"
+              "fieldType": "ENUM",
+              "selected": true
             }
           ],
           "value": "ServiceInit",
@@ -330,7 +280,8 @@
           },
           "types": [
             {
-              "fieldType": "LV_EXPRESSION"
+              "fieldType": "LV_EXPRESSION",
+              "selected": false
             }
           ],
           "value": "self._salesAgentAgent",

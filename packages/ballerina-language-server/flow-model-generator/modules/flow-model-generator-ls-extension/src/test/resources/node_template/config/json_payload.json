@@ -22,7 +22,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "var1",
@@ -38,7 +39,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "json",
@@ -54,7 +56,8 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION"
+            "fieldType": "EXPRESSION",
+            "selected": true
           }
         ],
         "value": "{\"value\": \"Dummy JSON value\"}",

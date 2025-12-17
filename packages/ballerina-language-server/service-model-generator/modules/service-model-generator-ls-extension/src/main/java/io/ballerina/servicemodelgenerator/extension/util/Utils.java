@@ -19,10 +19,6 @@
 package io.ballerina.servicemodelgenerator.extension.util;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
@@ -70,6 +66,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -90,7 +87,6 @@ import org.wso2.ballerinalang.util.RepoUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -128,8 +124,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.REMOTE
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SPACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SUBSCRIBE;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_EXPRESSION;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.VALUE_TYPE_IDENTIFIER;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.getProtocol;
 
@@ -313,7 +307,7 @@ public final class Utils {
 
         Value functionName = functionModel.getName();
         functionName.setValue(methodDeclarationNode.methodName().text().trim());
-        functionName.setValueType(VALUE_TYPE_IDENTIFIER);
+        functionName.setTypes(List.of(PropertyType.types((Value.FieldType.IDENTIFIER))));
 
         Value accessor = functionModel.getAccessor();
         for (Token qualifier : methodDeclarationNode.qualifierList()) {
@@ -350,7 +344,7 @@ public final class Utils {
         functionModel.setKind(KIND_DEFAULT);
         Value functionName = functionModel.getName();
         functionName.setValue(functionDefinitionNode.functionName().text().trim());
-        functionName.setValueType(VALUE_TYPE_IDENTIFIER);
+        functionName.setTypes(List.of(PropertyType.types((Value.FieldType.IDENTIFIER))));
 
         Value accessor = functionModel.getAccessor();
         for (Token qualifier : functionDefinitionNode.qualifierList()) {
@@ -412,7 +406,7 @@ public final class Utils {
                     parameter.typeName().toString().trim());
             Value defaultValue = parameterModel.getDefaultValue();
             defaultValue.setValue(parameter.expression().toString().trim());
-            defaultValue.setValueType(VALUE_TYPE_EXPRESSION);
+            defaultValue.setTypes(List.of(PropertyType.types((Value.FieldType.EXPRESSION))));
             defaultValue.setEnabled(true);
             return Optional.of(parameterModel);
         }
@@ -756,7 +750,7 @@ public final class Utils {
         }
         target.setEnabled(source.isEnabledWithValue());
         target.setValue(source.getValue());
-        target.setValueType(source.getValueType());
+        target.setTypes(source.getTypes());
     }
 
     public static void updateValue(FunctionReturnType target, FunctionReturnType source) {
@@ -765,7 +759,7 @@ public final class Utils {
         }
         target.setEnabled(source.isEnabledWithValue());
         target.setValue(source.getValue());
-        target.setValueType(source.getValueType());
+        target.setTypes(source.getTypes());
         if (Objects.nonNull(source.getResponses())) {
             target.setResponses(source.getResponses());
         }
@@ -1013,8 +1007,15 @@ public final class Utils {
             return "";
         }
         if (!value.getValue().trim().isEmpty()) {
-            return !Objects.isNull(value.getValueType()) && value.getValueType().equals("STRING") ?
-                    String.format("\"%s\"", value.getValue()) : value.getValue();
+            List<PropertyType> types = value.getTypes();
+            if (Objects.nonNull(types) && !types.isEmpty()) {
+                for (PropertyType type : types) {
+                    if (type.fieldType() == Value.FieldType.TEXT) {
+                        return String.format("\"%s\"", value.getValue());
+                    }
+                }
+            }
+            return value.getValue();
         }
         Map<String, Value> properties = value.getProperties();
         if (Objects.isNull(properties)) {
@@ -1257,41 +1258,6 @@ public final class Utils {
             return input.substring(1);
         }
         return input;
-    }
-
-    public static List<Object> deserializeSelections(String jsonString) {
-        JsonElement jsonElement = JsonParser.parseString(jsonString);
-        Gson gson = new Gson();
-
-        if (!jsonElement.isJsonArray()) {
-            return new ArrayList<>();
-        }
-
-        JsonArray jsonArray = jsonElement.getAsJsonArray();
-
-        if (jsonArray.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        // Check the type of first element
-        JsonElement firstElement = jsonArray.get(0);
-
-        if (firstElement.isJsonPrimitive() && firstElement.getAsJsonPrimitive().isString()) {
-            // It's a List<String>
-            Type listType = new TypeToken<List<String>>() {
-            }.getType();
-            return gson.fromJson(jsonString, listType);
-        } else if (firstElement.isJsonObject()) {
-            // Check if it has label and value properties (SelectionRecord)
-            if (firstElement.getAsJsonObject().has("label") &&
-                    firstElement.getAsJsonObject().has("value")) {
-                Type listType = new TypeToken<List<SelectionRecord>>() {
-                }.getType();
-                return gson.fromJson(jsonString, listType);
-            }
-        }
-
-        return new ArrayList<>();
     }
 
     /**

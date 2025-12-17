@@ -25,11 +25,19 @@
             "argType": "LISTENER_PARAM_INCLUDED_FIELD"
           },
           "placeholder": "\"/tmp\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -44,11 +52,19 @@
             "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
           },
           "placeholder": "false",
-          "valueType": "FLAG",
-          "valueTypeConstraint": "boolean",
           "value": "false",
-          "items": [],
-          "typeMembers": [],
+          "types": [
+            {
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
+              "selected": false
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -62,9 +78,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "fileListener",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,

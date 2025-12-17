@@ -1,0 +1,110 @@
+{
+  "source": "proj2/data_mappings.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "proj2/data_mappings.bal",
+      "startLine": {
+        "line": 15,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 16,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "position": {
+    "line": 15,
+    "offset": 53
+  },
+  "targetField": "transform",
+  "model": {
+    "inputs": [
+      {
+        "fields": [],
+        "name": "person",
+        "displayName": "person",
+        "typeName": "Person",
+        "kind": "record",
+        "category": "parameter",
+        "ref": "-1710976578"
+      }
+    ],
+    "output": {
+      "fields": [],
+      "name": "transform",
+      "displayName": "transform",
+      "typeName": "Student",
+      "kind": "record",
+      "ref": "1593596146"
+    },
+    "mappings": [],
+    "refs": {
+      "-351153743": {
+        "fields": [
+          {
+            "name": "colegeName",
+            "displayName": "colegeName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": true
+          }
+        ],
+        "typeName": "College?",
+        "kind": "record"
+      },
+      "1593596146": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          }
+        ],
+        "typeName": "Student",
+        "kind": "record"
+      },
+      "-1710976578": {
+        "fields": [
+          {
+            "name": "id",
+            "displayName": "id",
+            "typeName": "int",
+            "kind": "int",
+            "optional": true
+          },
+          {
+            "name": "firstName",
+            "displayName": "firstName",
+            "typeName": "string",
+            "kind": "string",
+            "optional": false
+          },
+          {
+            "fields": [],
+            "name": "college",
+            "displayName": "college",
+            "typeName": "College?",
+            "kind": "record",
+            "optional": true,
+            "ref": "-351153743"
+          }
+        ],
+        "typeName": "Person",
+        "kind": "record"
+      }
+    }
+  }
+}

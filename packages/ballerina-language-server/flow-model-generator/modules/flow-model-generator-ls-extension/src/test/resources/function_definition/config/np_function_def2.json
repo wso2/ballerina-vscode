@@ -35,7 +35,8 @@
         "types": [
           {
             "fieldType": "IDENTIFIER",
-            "scope": "Global"
+            "scope": "Global",
+            "selected": true
           }
         ],
         "value": "rateMovie",
@@ -64,7 +65,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "int|error",
@@ -88,7 +90,8 @@
               },
               "types": [
                 {
-                  "fieldType": "FIXED_PROPERTY"
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
                 }
               ],
               "value": {
@@ -99,7 +102,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TYPE"
+                      "fieldType": "TYPE",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -115,7 +119,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "IDENTIFIER"
+                      "fieldType": "IDENTIFIER",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -131,7 +136,8 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT"
+                      "fieldType": "TEXT",
+                      "selected": false
                     }
                   ],
                   "value": "",
@@ -145,7 +151,8 @@
               "editable": false,
               "advanced": false,
               "hidden": false
-            }
+            },
+            "selected": false
           }
         ],
         "value": {
@@ -156,7 +163,8 @@
             },
             "types": [
               {
-                "fieldType": "FIXED_PROPERTY"
+                "fieldType": "FIXED_PROPERTY",
+                "selected": false
               }
             ],
             "value": {
@@ -167,7 +175,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TYPE"
+                    "fieldType": "TYPE",
+                    "selected": false
                   }
                 ],
                 "value": "string",
@@ -183,7 +192,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "IDENTIFIER"
+                    "fieldType": "IDENTIFIER",
+                    "selected": false
                   }
                 ],
                 "value": "movieName",
@@ -212,7 +222,8 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT"
+                    "fieldType": "TEXT",
+                    "selected": false
                   }
                 ],
                 "value": "",
@@ -240,7 +251,8 @@
         },
         "types": [
           {
-            "fieldType": "RAW_TEMPLATE"
+            "fieldType": "RAW_TEMPLATE",
+            "selected": false
           }
         ],
         "value": "    **Assumption**\n    Think yourself as a movie expert\n\n    **What to do**\n    Give rating for the movie ${movieName} out of 10 based on your opinion",
@@ -275,7 +287,8 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "ModelProvider"
+            "ballerinaType": "ModelProvider",
+            "selected": false
           }
         ],
         "value": "_rateMovieModel",
@@ -290,7 +303,8 @@
       "modelProviderAsParameter": {
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": false
           }
         ],
         "value": false,

@@ -34,7 +34,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "Person",
@@ -50,7 +51,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -66,7 +68,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -82,7 +85,8 @@
         },
         "types": [
           {
-            "fieldType": "FLAG"
+            "fieldType": "FLAG",
+            "selected": true
           }
         ],
         "value": "false",
@@ -98,7 +102,8 @@
         },
         "types": [
           {
-            "fieldType": "TEXT"
+            "fieldType": "TEXT",
+            "selected": true
           }
         ],
         "value": "",
@@ -150,11 +155,13 @@
           "protocol": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"Protocol\"",
@@ -166,11 +173,13 @@
           "host": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"localhost\"",
@@ -182,11 +191,13 @@
           "path": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"http://example.com/url\"",
@@ -204,11 +215,13 @@
           "__id": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               }
             ],
             "value": "12",
@@ -220,11 +233,13 @@
           "_namespace": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"http://example.com/gen\"",
@@ -236,18 +251,21 @@
           "_module": {
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET"
+                "fieldType": "MAPPING_EXPRESSION_SET",
+                "selected": false
               }
             ],
             "value": {
               "_uri": {
                 "types": [
                   {
-                    "fieldType": "EXPRESSION"
+                    "fieldType": "EXPRESSION",
+                    "selected": false
                   },
                   {
                     "fieldType": "EXPRESSION",
-                    "ballerinaType": "string"
+                    "ballerinaType": "string",
+                    "selected": false
                   }
                 ],
                 "value": "\"http://example.com/gen\"",
@@ -259,18 +277,21 @@
               "_moduleInfo": {
                 "types": [
                   {
-                    "fieldType": "MAPPING_EXPRESSION_SET"
+                    "fieldType": "MAPPING_EXPRESSION_SET",
+                    "selected": false
                   }
                 ],
                 "value": {
                   "_moduleName": {
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       }
                     ],
                     "value": "\"types\"",
@@ -282,11 +303,13 @@
                   "__uuid": {
                     "types": [
                       {
-                        "fieldType": "EXPRESSION"
+                        "fieldType": "EXPRESSION",
+                        "selected": false
                       },
                       {
                         "fieldType": "EXPRESSION",
-                        "ballerinaType": "string"
+                        "ballerinaType": "string",
+                        "selected": false
                       }
                     ],
                     "value": "\"123e4567-e89b-12d3-a456-426614174000\"",
@@ -316,11 +339,13 @@
           "uri": {
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "value": "\"http://example.com/xmlpath\"",

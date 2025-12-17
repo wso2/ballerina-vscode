@@ -18,10 +18,12 @@
 
 package io.ballerina.centralconnector;
 
+
 import io.ballerina.centralconnector.response.ConnectorResponse;
 import io.ballerina.centralconnector.response.ConnectorsResponse;
 import io.ballerina.centralconnector.response.FunctionResponse;
 import io.ballerina.centralconnector.response.FunctionsResponse;
+import io.ballerina.centralconnector.response.Listeners;
 import io.ballerina.centralconnector.response.PackageResponse;
 import io.ballerina.centralconnector.response.SymbolResponse;
 
@@ -65,6 +67,11 @@ public class RemoteCentral implements CentralAPI {
     @Override
     public FunctionsResponse functions(String organization, String name, String version) {
         return graphQlClient.getFunctions(organization, name, version);
+    }
+
+    @Override
+    public Listeners listeners(String organization, String name, String version) {
+        return graphQlClient.getListeners(organization, name, version);
     }
 
     @Override

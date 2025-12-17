@@ -27,7 +27,8 @@
         },
         "types": [
           {
-            "fieldType": "IDENTIFIER"
+            "fieldType": "IDENTIFIER",
+            "selected": true
           }
         ],
         "value": "var2",
@@ -43,7 +44,8 @@
         },
         "types": [
           {
-            "fieldType": "TYPE"
+            "fieldType": "TYPE",
+            "selected": true
           }
         ],
         "value": "",
@@ -61,7 +63,8 @@
         },
         "types": [
           {
-            "fieldType": "ACTION_OR_EXPRESSION"
+            "fieldType": "ACTION_OR_EXPRESSION",
+            "selected": true
           }
         ],
         "value": "",
