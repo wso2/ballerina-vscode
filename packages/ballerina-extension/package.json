@@ -581,18 +581,6 @@
                 "category": "BI"
             },
             {
-                "command": "BI.review.changes",
-                "title": "Review Changes",
-                "icon": "$(eye)",
-                "category": "BI"
-            },
-            {
-                "command": "BI.review.changes.test",
-                "title": "Test Review Mode with Sample Data",
-                "icon": "$(preview)",
-                "category": "BI"
-            },
-            {
                 "command": "BI.project-explorer.refresh",
                 "title": "Refresh Ballerina",
                 "category": "BI"
