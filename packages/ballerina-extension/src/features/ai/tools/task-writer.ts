@@ -315,7 +315,7 @@ async function handleTaskCompletion(
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
 
-    const diagnosticResult = await checkCompilationErrors(tempProjectPath!);
+    const diagnosticResult = await checkCompilationErrors(tempProjectPath);
 
     if (diagnosticResult.diagnostics.length > 0) {
         const errorCount = diagnosticResult.diagnostics.length;
@@ -333,7 +333,6 @@ async function handleTaskCompletion(
         console.log(`[TaskWrite Tool] Integrating ${modifiedFilesSet.size} modified file(s)`);
         const ctx = createExecutionContextFromStateMachine();
         await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
-        modifiedFiles.length = 0;
     }
 
     AIChatStateMachine.sendEvent({

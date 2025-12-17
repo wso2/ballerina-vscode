@@ -21,14 +21,6 @@ import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-n
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 
 /**
- * Closes all documents in the temp project and waits for LS to process
- */
-async function closeAllDocumentsAndWait(tempProjectPath: string, projects: any[]): Promise<void> {
-    sendAgentDidCloseForProjects(tempProjectPath, projects);
-    await new Promise(resolve => setTimeout(resolve, 300));
-}
-
-/**
  * Handles error events from the stream.
  * Performs cleanup and emits error event to the UI.
  */
@@ -44,7 +36,7 @@ export class ErrorHandler implements StreamEventHandler {
         console.error("[Agent] Error:", error);
 
         if (context.shouldCleanup) {
-            await closeAllDocumentsAndWait(context.tempProjectPath, context.projects);
+            sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
             cleanupTempProject(context.tempProjectPath);
         }
 
