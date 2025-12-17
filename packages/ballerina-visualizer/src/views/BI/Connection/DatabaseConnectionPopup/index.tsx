@@ -346,6 +346,8 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 } else {
                     setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
                 }
+                // Clear password field on error
+                setCredentials(prev => ({ ...prev, password: "" }));
                 return;
             }
 
@@ -360,10 +362,14 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             } else {
                 console.warn(">>> No tables found in database");
                 setConnectionError("No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.");
+                // Clear password field on error
+                setCredentials(prev => ({ ...prev, password: "" }));
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
             setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
+            // Clear password field on error
+            setCredentials(prev => ({ ...prev, password: "" }));
         } finally {
             setIsIntrospecting(false);
         }
@@ -704,7 +710,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <ActionButton
                             appearance="primary"
                             onClick={handleContinueToConnectionDetails}
-                            disabled={selectedTablesCount === 0}
+                            disabled={selectedTablesCount === 0 || !!connectionError}
                             buttonSx={{ width: "100%", height: "35px" }}
                         >
                             Continue to Connection Details
