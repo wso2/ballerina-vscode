@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { LineRange, ParameterModel } from '@wso2/ballerina-core';
+import { getPrimaryInputType, LineRange, ParameterModel } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { FormField, FormImports } from '@wso2/ballerina-side-panel';
 import { Divider, Typography } from '@wso2/ui-toolkit';
@@ -59,14 +59,14 @@ export function ParamEditor(props: ParamProps) {
         fields.push({
             key: `type`,
             label: 'Type',
-            type: param.type.valueType,
+            type: getPrimaryInputType(param.type.types)?.fieldType,
             optional: false,
             editable: true,
             documentation: '',
             enabled: param.type?.enabled,
             value: param.type.value || "json",
             defaultValue: "json",
-            valueTypeConstraint: ""
+            types: [{fieldType: getPrimaryInputType(param.type.types)?.fieldType, ballerinaType: "", selected: false}],
         });
 
         setCurrentFields(fields);

@@ -26,7 +26,7 @@ import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } f
 import { VisualizerWebview } from './webview';
 import { findWorkspaceTypeFromWorkspaceFolders } from '../../rpc-managers/common/utils';
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
-import { requiresPackageSelection, needsProjectDiscovery, promptPackageSelection } from '../../utils/command-utils';
+import { requiresPackageSelection, needsProjectDiscovery, selectPackageOrPrompt } from '../../utils/command-utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
@@ -200,15 +200,9 @@ function openTypeDiagramView(projectPath?: string, resetHistory = false): void {
 async function openTypeDiagramForWorkspace(projectInfo: ProjectInfo): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
 
-    if (availablePackages.length === 0) {
-        vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-        return false;
-    }
-
-    const selectedPackage = await promptPackageSelection(availablePackages, "Select a package to open type diagram");
-
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open type diagram");
     if (!selectedPackage) {
-        return false; // User cancelled
+        return false;
     }
 
     openTypeDiagramView(selectedPackage);
