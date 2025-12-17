@@ -41,13 +41,7 @@ export interface AIPanelAPI {
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
     generateMappingCode: (params: ProcessMappingParametersRequest) => void;
     generateInlineMappingCode: (params: MetadataWithAttachments) => void;
-    // Test-generator related functions
-    getGeneratedTests: (params: TestGenerationRequest) => Promise<TestGenerationResponse>;
-    getTestDiagnostics: (params: TestGenerationResponse) => Promise<ProjectDiagnostics>;
-    getServiceSourceForName: (params: string) => Promise<string>;
-    getResourceSourceForMethodAndPath: (params: string) => Promise<string>;
     getServiceNames: () => Promise<TestGenerationMentions>;
-    getResourceMethodAndPaths: () => Promise<TestGenerationMentions>;
     abortTestGeneration: () => void;
     applyDoOnFailBlocks: () => void;
     postProcess: (params: PostProcessRequest) => Promise<PostProcessResponse>;

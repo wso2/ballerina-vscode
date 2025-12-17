@@ -47,8 +47,6 @@ import {
     RequirementSpecification,
     SubmitFeedbackRequest,
     TestGenerationMentions,
-    TestGenerationRequest,
-    TestGenerationResponse,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
     abortAIGeneration,
@@ -79,17 +77,12 @@ import {
     getFromDocumentation,
     getFromFile,
     getGeneratedDocumentation,
-    getGeneratedTests,
     getLoginMethod,
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
-    getResourceMethodAndPaths,
-    getResourceSourceForMethodAndPath,
     getServiceNames,
-    getServiceSourceForName,
     getShadowDiagnostics,
-    getTestDiagnostics,
     handleChatSummaryError,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
@@ -191,28 +184,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendNotification(generateInlineMappingCode, HOST_EXTENSION, params);
     }
 
-    getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
-        return this._messenger.sendRequest(getGeneratedTests, HOST_EXTENSION, params);
-    }
-
-    getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
-        return this._messenger.sendRequest(getTestDiagnostics, HOST_EXTENSION, params);
-    }
-
-    getServiceSourceForName(params: string): Promise<string> {
-        return this._messenger.sendRequest(getServiceSourceForName, HOST_EXTENSION, params);
-    }
-
-    getResourceSourceForMethodAndPath(params: string): Promise<string> {
-        return this._messenger.sendRequest(getResourceSourceForMethodAndPath, HOST_EXTENSION, params);
-    }
-
     getServiceNames(): Promise<TestGenerationMentions> {
         return this._messenger.sendRequest(getServiceNames, HOST_EXTENSION);
-    }
-
-    getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
-        return this._messenger.sendRequest(getResourceMethodAndPaths, HOST_EXTENSION);
     }
 
     abortTestGeneration(): void {
