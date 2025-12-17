@@ -103,7 +103,12 @@ public final class PathUtil {
      */
     public static Path getPathFromUriEncodeString(String fileUri) {
         URI uri = getEncodedURIPath(fileUri);
-        return Paths.get(uri.getPath().replaceAll("%20", " "));
+
+        if (uri.getScheme() == null) {
+            String path = Path.of(uri).toString().replaceAll("%20", " ");
+            return Path.of(path);
+        }
+        return Path.of(Paths.get(uri).toString().replaceAll("%20", " "));
     }
 
     /**
