@@ -242,6 +242,16 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         loadSemanticDiff();
     }, [projectPath, rpcClient]);
 
+    // Set metadata for component diagram when view changes
+    useEffect(() => {
+        if (currentView?.type === "component" && !currentItemMetadata) {
+            setCurrentItemMetadata({
+                type: "Design",
+                name: "",
+            });
+        }
+    }, [currentView, currentItemMetadata]);
+
     const handlePrevious = () => {
         if (currentIndex > 0) {
             setCurrentIndex(currentIndex - 1);
@@ -303,13 +313,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
 
         switch (currentView.type) {
             case "component":
-                // For component diagram, set metadata directly
-                if (!currentItemMetadata) {
-                    setCurrentItemMetadata({
-                        type: "Design",
-                        name: "",
-                    });
-                }
+                // Metadata is now set by useEffect hook
                 return (
                     <ReadonlyComponentDiagram
                         projectPath={currentView.projectPath || projectPath}
