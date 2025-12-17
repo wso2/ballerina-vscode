@@ -448,11 +448,12 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return this;
     }
 
-    public FormBuilder<T> callConnection(ExpressionNode expressionNode, String key) {
+    public FormBuilder<T> callConnection(ExpressionNode expressionNode, String key, Map<String, Object> metadataData) {
         propertyBuilder
                 .metadata()
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
+                    .data(metadataData)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.EXPRESSION)

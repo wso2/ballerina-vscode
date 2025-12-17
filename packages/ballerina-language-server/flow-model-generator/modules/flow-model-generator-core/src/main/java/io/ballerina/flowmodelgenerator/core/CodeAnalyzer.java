@@ -400,8 +400,9 @@ public class CodeAnalyzer extends NodeVisitor {
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
+        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
-                classSymbol.getName().orElseThrow());
+                classSymbol.getName().orElseThrow(), metadataData);
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
@@ -713,7 +714,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private void setFunctionProperties(String functionName, ExpressionNode expressionNode,
                                        RemoteMethodCallActionNode remoteMethodCallActionNode,
-                                       MethodSymbol functionSymbol, String objName) {
+                                       MethodSymbol functionSymbol, String objName,
+                                       Map<String, Object> metadataData) {
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(functionName)
                 .functionSymbol(functionSymbol)
@@ -732,7 +734,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .object(objName)
                 .symbol(functionName)
                 .stepOut()
-                .properties().callConnection(expressionNode, Property.CONNECTION_KEY);
+                .properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         processFunctionSymbol(remoteMethodCallActionNode, remoteMethodCallActionNode.arguments(), functionSymbol,
                 functionData);
     }
@@ -839,6 +841,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .functionResultKind(FunctionData.Kind.RESOURCE);
         FunctionData functionData = functionDataBuilder.build();
 
+        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol.get());
+
         nodeBuilder.symbolInfo(functionSymbol)
                 .metadata()
                     .label(functionName)
@@ -851,9 +855,22 @@ public class CodeAnalyzer extends NodeVisitor {
                     .resourcePath(resourcePathTemplate.resourcePathTemplate())
                     .stepOut()
                 .properties()
-                .callConnection(expressionNode, Property.CONNECTION_KEY)
+                .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
+    }
+
+    private Map<String, Object> getPersistDataFromClient(ClassSymbol classSymbol) {
+        Map<String, Object> persistData;
+        if (isPersistClient(classSymbol, semanticModel)) {
+            persistData = new HashMap<>();
+            persistData.put(CONNECTOR_TYPE, PERSIST);
+            getPersistModelFilePath(project.sourceRoot())
+                    .ifPresent(modelFile -> persistData.put(PERSIST_MODEL_FILE, modelFile));
+        } else {
+            persistData = null;
+        }
+        return persistData;
     }
 
     private void addRemainingParamsToPropertyMap(Map<String, ParameterData> funcParamMap,
@@ -1779,7 +1796,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     .symbol(functionName)
                     .object(classSymbol.getName().orElse(""));
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-            nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY);
+            Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+            nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         } else {
             nodeBuilder.properties().callExpression(expressionNode, Property.CONNECTION_KEY);
         }

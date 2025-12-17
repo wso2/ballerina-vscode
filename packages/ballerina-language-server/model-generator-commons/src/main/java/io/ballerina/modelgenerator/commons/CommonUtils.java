@@ -1116,10 +1116,19 @@ public class CommonUtils {
         if (moduleParts.length == 2 && !moduleParts[0].isEmpty() && !moduleParts[1].isEmpty()) {
             String dbType = moduleParts[0];
             String dbName = moduleParts[1];
-            return Optional.of(dbType.substring(0, 1).toUpperCase(Locale.getDefault()) +
-                    dbType.substring(1) + " " + dbName);
+            return Optional.of(getPersistDatabaseName(dbType) + " " + dbName);
         }
         return Optional.empty();
+    }
+
+    private static String getPersistDatabaseName(String dbType) {
+        // Currently persist supports only PostgreSQL, MySQL and MSSQL
+        return switch (dbType.toLowerCase(Locale.getDefault())) {
+            case "postgresql" -> "Postgres";
+            case "mysql" -> "MySQL";
+            case "mssql" -> "MSSQL";
+            default -> dbType.substring(0, 1).toUpperCase(Locale.getDefault()) + dbType.substring(1);
+        };
     }
 
     /**
