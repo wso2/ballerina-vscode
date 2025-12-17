@@ -66,8 +66,8 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
         Optional<Path> balFile = Files.walk(originalProjectPath).filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(".bal")).findFirst();
         if (balFile.isPresent()) {
-            notifyCustomDidOpen(balFile.get().toString(), "file");
-            notifyCustomDidOpen(balFile.get().toString(), "ai");
+            notifyCustomDidOpen(balFile.get().toString(), "file://");
+            notifyCustomDidOpen(balFile.get().toString(), "ai://");
         }
 
         // read all the modified files in the modified project path
@@ -93,24 +93,27 @@ public class SemanticDiffComputerTest extends AbstractLSTest {
         if (!actualOutput.equals(testConfig.output())) {
             TestConfig updatedConfig = new TestConfig(testConfig.description(), 
                     testConfig.projectPath(), actualOutput.getAsJsonObject());
-//            updateConfig(configJsonPath, updatedConfig);
+            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
 
-    private void notifyCustomDidOpen(String sourcePath, String schema) throws IOException {
-        String exprUriString = schema + Paths.get(sourcePath).toUri().toString().substring(4);
+    private void notifyCustomDidOpen(String sourcePath, String schema) {
+        String exprUriString = getExprUriString(sourcePath, schema);
         String fileUri = URI.create(exprUriString).toString();
         TextDocumentItem textDocumentItem = getDocumentIdentifier(sourcePath, fileUri);
         sendNotification("textDocument/didOpen", new DidOpenTextDocumentParams(textDocumentItem));
     }
 
-    private void notifyCustomDidChange(String sourcePath) throws IOException {
-        String exprUriString = "ai" + Paths.get(sourcePath).toUri().toString().substring(4)
-                .replace("modified", "original");
-        String fileUri = URI.create(exprUriString).toString();
-        String content = this.getText(sourcePath);
+    private static String getExprUriString(String sourcePath, String schema) {
+        URI sourceUri = Paths.get(sourcePath).toUri();
+        return schema + sourceUri.getRawPath();
+    }
 
+    private void notifyCustomDidChange(String sourcePath) throws IOException {
+        String exprUriString = getExprUriString(sourcePath, "ai://");
+        String fileUri = URI.create(exprUriString).toString().replace("modified", "original");
+        String content = this.getText(sourcePath);
         VersionedTextDocumentIdentifier versionedTextDocumentIdentifier = new VersionedTextDocumentIdentifier();
         versionedTextDocumentIdentifier.setVersion(2);
         versionedTextDocumentIdentifier.setUri(fileUri);

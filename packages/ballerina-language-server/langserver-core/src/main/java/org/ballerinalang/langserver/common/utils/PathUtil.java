@@ -82,12 +82,17 @@ public final class PathUtil {
      * Get the encoded URI path by encoding spaces.
      * This is needed since URI.create() fails if there are spaces in the path.
      *
-     * @param fileUri file uri
+     * @param input file uri
      * @return encoded URI
      */
-    public static URI getEncodedURIPath(String fileUri) {
-        String encodedPath = fileUri.replaceAll(" ", "%20");
-        return URI.create(encodedPath);
+    public static URI getEncodedURIPath(String input) {
+        String encodedPath = input.replaceAll(" ", "%20");
+
+        if (encodedPath.startsWith("file:/") || encodedPath.startsWith("ai:/") || encodedPath.startsWith("expr:/")
+                || encodedPath.startsWith("bala:/")) {
+            return URI.create(encodedPath);
+        }
+        return Path.of(encodedPath).toUri();
     }
 
     /**
@@ -98,11 +103,7 @@ public final class PathUtil {
      */
     public static Path getPathFromUriEncodeString(String fileUri) {
         URI uri = getEncodedURIPath(fileUri);
-        if (uri.getScheme() == null) {
-            String decodedPath = uri.getPath().replaceAll("%20", " ");
-            return Path.of(decodedPath);
-        }
-        return Paths.get(uri);
+        return Paths.get(uri.getPath().replaceAll("%20", " "));
     }
 
     /**
