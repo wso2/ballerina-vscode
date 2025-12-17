@@ -24,6 +24,7 @@ import {
     AIPanelPrompt,
     AddFilesToProjectRequest,
     AddToProjectRequest,
+    BIIntelSecrets,
     BIModuleNodesRequest,
     BISourceCodeResponse,
     DeleteFromProjectRequest,
@@ -55,10 +56,8 @@ import {
     SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
-    TestGenerationRequest,
-    TestGenerationResponse,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
+    TestPlanGenerationRequest
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -118,10 +117,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             try {
-                const workspaceFolderPath = workspace.workspaceFolders[0].uri.fsPath;
+                let projectIdentifier: string;
+                const cloudProjectId = process.env.CLOUD_INITIAL_PROJECT_ID;
+                
+                if (cloudProjectId) {
+                    projectIdentifier = cloudProjectId;
+                } else {
+                    projectIdentifier = workspace.workspaceFolders[0].uri.fsPath;
+                }
 
                 const hash = crypto.createHash('sha256')
-                    .update(workspaceFolderPath)
+                    .update(projectIdentifier)
                     .digest('hex');
 
                 resolve(hash);
@@ -141,11 +147,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async getAccessToken(): Promise<string> {
         return new Promise(async (resolve, reject) => {
             try {
-                const accessToken = await getAccessToken();
-                if (!accessToken) {
+                const credentials = await getAccessToken();
+
+                if (!credentials) {
                     reject(new Error("Access Token is undefined"));
                     return;
                 }
+                const secrets = credentials.secrets as BIIntelSecrets;
+                const accessToken = secrets.accessToken;
                 resolve(accessToken);
             } catch (error) {
                 reject(error);
@@ -307,64 +316,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return false;
     }
 
-    async getGeneratedTests(params: TestGenerationRequest): Promise<TestGenerationResponse> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-
-        //         const generatedTests = await generateTest(projectPath, params, AIPanelAbortController.getInstance());
-        //         resolve(generatedTests);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            testSource:"",
-
-        };
-    }
-
-    async getTestDiagnostics(params: TestGenerationResponse): Promise<ProjectDiagnostics> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const diagnostics = await getDiagnostics(projectPath, params);
-        //         resolve(diagnostics);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            diagnostics: []
-        };
-    }
-
-    async getServiceSourceForName(params: string): Promise<string> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const { serviceDeclaration } = await getServiceDeclaration(projectPath, params);
-        //         resolve(serviceDeclaration.source);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return "";
-    }
-
-    async getResourceSourceForMethodAndPath(params: string): Promise<string> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const { resourceAccessorDef } = await getResourceAccessorDef(projectPath, params);
-        //         resolve(resourceAccessorDef.source);
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return "";
-    }
-
     async getServiceNames(): Promise<TestGenerationMentions> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -377,23 +328,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 reject(error);
             }
         });
-    }
-
-    async getResourceMethodAndPaths(): Promise<TestGenerationMentions> {
-        // return new Promise(async (resolve, reject) => {
-        //     try {
-        //         const projectPath = StateMachine.context().projectPath;
-        //         const resourceAccessorNames = await getResourceAccessorNames(projectPath);
-        //         resolve({
-        //             mentions: resourceAccessorNames
-        //         });
-        //     } catch (error) {
-        //         reject(error);
-        //     }
-        // });
-        return {
-            mentions: []
-        };
     }
 
     async abortTestGeneration(): Promise<void> {
@@ -535,7 +469,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async updateRequirementSpecification(requirementsSpecification: RequirementSpecification) {
-        const naturalProgrammingDir = path.join(requirementsSpecification.filepath, 'natural-programming');
+        const naturalProgrammingDir = path.join(StateMachine.context().projectPath, 'natural-programming');
         const requirementsFilePath = path.join(naturalProgrammingDir, 'requirements.txt');
 
         // Create the 'natural-programming' directory if it doesn't exist
@@ -547,8 +481,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         fs.writeFileSync(requirementsFilePath, requirementsSpecification.content, 'utf8');
     }
 
-    async getDriftDiagnosticContents(projectPath: string): Promise<LLMDiagnostics> {
-        const result = await getLLMDiagnosticArrayAsString(projectPath);
+    async getDriftDiagnosticContents(): Promise<LLMDiagnostics> {
+        const result = await getLLMDiagnosticArrayAsString(StateMachine.context().projectPath);
         if (isNumber(result)) {
             return {
                 statusCode: result,
@@ -562,8 +496,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async createTestDirecoryIfNotExists(directoryPath: string) {
-        const testDirName = path.join(directoryPath, TEST_DIR_NAME);
+    async createTestDirecoryIfNotExists() {
+        const testDirName = path.join(StateMachine.context().projectPath, TEST_DIR_NAME);
         if (!fs.existsSync(testDirName)) {
             fs.mkdirSync(testDirName, { recursive: true }); // Add recursive: true
         }
@@ -724,7 +658,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<boolean> {
+    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
             payload: {
@@ -733,8 +667,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 userMessage: 'Generate context types'
             }
         });
-
-        return true;
     }
 
     async openChatWindowWithCommand(): Promise<void> {

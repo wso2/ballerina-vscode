@@ -31,28 +31,11 @@ import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
 import { getTempProject as createTempProjectOfWorkspace } from "../utils/project/temp-project";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
-import { LangfuseExporter } from 'langfuse-vercel';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { getProjectSource } from "../utils/project/temp-project";
 import { StateMachine } from "../../../stateMachine";
 import { createAgentEventRegistry } from "./stream-handlers/create-agent-event-registry";
 import { StreamContext } from "./stream-handlers/stream-context";
 import { StreamErrorException, StreamAbortException, StreamFinishException } from "./stream-handlers/stream-event-handler";
-
-// const LANGFUSE_SECRET = process.env.LANGFUSE_SECRET;
-// const LANGFUSE_PUBLIC = process.env.LANGFUSE_PUBLIC;
-
-// const langfuseExporter = new LangfuseExporter({
-//     secretKey: LANGFUSE_SECRET,
-//     publicKey: LANGFUSE_PUBLIC,
-//     baseUrl: 'https://cloud.langfuse.com', // 🇪🇺 EU region
-// });
-// const sdk = new NodeSDK({
-//     traceExporter: langfuseExporter,
-//     instrumentations: [getNodeAutoInstrumentations()],
-// });
-// sdk.start();
 
 // ==================================
 // ExecutionContext Factory Functions
@@ -92,7 +75,6 @@ export async function generateAgentCore(
     eventHandler: CopilotEventHandler,
     ctx: ExecutionContext
 ): Promise<string> {
-    const isPlanModeEnabled = params.isPlanMode;
     const messageId = params.messageId;
 
     const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
@@ -109,11 +91,11 @@ export async function generateAgentCore(
 
     const modifiedFiles: string[] = [];
 
-    const userMessageContent = getUserPrompt(params.usecase, tempProjectPath, projects, isPlanModeEnabled, params.codeContext);
+    const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
     const allMessages: ModelMessage[] = [
         {
             role: "system",
-            content: getSystemPrompt(),
+            content: getSystemPrompt(projects, params.operationType),
             providerOptions: cacheOptions,
         },
         ...historyMessages,
@@ -148,7 +130,6 @@ export async function generateAgentCore(
         stopWhen: stepCountIs(50),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
-        experimental_telemetry: { isEnabled: true },
     });
 
 

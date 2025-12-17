@@ -351,8 +351,6 @@ export async function addCheckExpressionErrors(
             continue;
         }
 
-        const astModifications: STModification[] = [];
-
         // Process each diagnostic individually
         for (const diagnostic of checkExprDiagnostics) {
             try {
@@ -376,7 +374,6 @@ export async function addCheckExpressionErrors(
                 }
 
                 // Find the action that adds error to return type
-                // The language server typically provides actions like "Change return type to ..."
                 const action = codeActions.find(
                     action => action.title && (
                         action.title.toLowerCase().includes("change") &&
@@ -391,9 +388,10 @@ export async function addCheckExpressionErrors(
 
                 const docEdit = action.edit.documentChanges[0] as TextDocumentEdit;
 
-                // Process all edits from the code action
-                for (const edit of docEdit.edits) {
-                    astModifications.push({
+                // Apply modifications to syntax tree
+                const syntaxTree = await langClient.stModify({
+                    documentIdentifier: { uri: docEdit.textDocument.uri },
+                    astModifications: docEdit.edits.map(edit => ({
                         startLine: edit.range.start.line,
                         startColumn: edit.range.start.character,
                         endLine: edit.range.end.line,
@@ -401,31 +399,22 @@ export async function addCheckExpressionErrors(
                         type: "INSERT",
                         isImport: false,
                         config: { STATEMENT: edit.newText }
-                    });
+                    }))
+                });
+
+                // Update file content
+                const { source } = syntaxTree as SyntaxTree;
+                if (!source) {
+                    // Handle the case where source is undefined, when compiler issue occurs
+                    return false;
                 }
+                const absolutePath = fileURLToPath(fileUri);
+                writeBallerinaFileDidOpenTemp(absolutePath, source);
+                projectModified = true;
             } catch (err) {
                 console.warn(`Could not apply code action for ${fileUri} at line ${diagnostic.range.start.line}:`, err);
             }
         }
-
-        // Apply modifications to syntax tree
-        if (astModifications.length > 0) {
-            const syntaxTree = await langClient.stModify({
-                documentIdentifier: { uri: fileUri },
-                astModifications: astModifications
-            });
-
-            // Update file content
-            const { source } = syntaxTree as SyntaxTree;
-            if (!source) {
-                // Handle the case where source is undefined, when compiler issue occurs
-                return false;
-            }
-            const absolutePath = fileURLToPath(fileUri);
-            writeBallerinaFileDidOpenTemp(absolutePath, source);
-            projectModified = true;
-        }
     }
-
     return projectModified;
 }

@@ -22,6 +22,7 @@ import {
     FILE_BATCH_EDIT_TOOL_NAME,
 } from "../../../tools/text-editor";
 import { HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../../../tools/healthcare-library";
+import { LIBRARY_PROVIDER_TOOL } from "../../../utils/libs/libraries";
 import { TASK_WRITE_TOOL_NAME, TaskWriteResult } from "../../../tools/task-writer";
 import { DIAGNOSTICS_TOOL_NAME } from "../../../tools/diagnostics";
 import { Library } from "../../../utils/libs/library-types";
@@ -67,11 +68,17 @@ export class TaskWriteResultDispatcher extends BaseToolResultDispatcher {
  * Dispatcher for library provider tool results
  */
 export class LibraryResultDispatcher extends BaseToolResultDispatcher {
-    readonly supportedTools = ["LibraryProviderTool", HEALTHCARE_LIBRARY_PROVIDER_TOOL];
+    readonly supportedTools = [LIBRARY_PROVIDER_TOOL, HEALTHCARE_LIBRARY_PROVIDER_TOOL];
 
     dispatch(part: any, result: any, context: StreamContext): void {
         const libraryNames = (part.output as Library[]).map((lib) => lib.name);
-        const fetchedLibraries = libraryNames.filter((name) => context.selectedLibraries.includes(name));
+        
+        // For HealthcareLibraryProviderTool, return all fetched libraries since it determines relevance internally
+        // For LibraryProviderTool, filter based on selectedLibraries from the tool input
+        const fetchedLibraries = part.toolName === HEALTHCARE_LIBRARY_PROVIDER_TOOL
+            ? libraryNames
+            : libraryNames.filter((name) => context.selectedLibraries.includes(name));
+        
         context.eventHandler({ type: "tool_result", toolName: part.toolName, toolOutput: fetchedLibraries });
     }
 }

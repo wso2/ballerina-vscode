@@ -20,14 +20,14 @@
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
-import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, NodeKind } from "../..";
+import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
     | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
     | undefined;
 
@@ -125,7 +125,6 @@ export interface MetadataWithAttachments {
 }
 
 export interface InlineMappingsSourceResult {
-    sourceResponse: DataMapperSourceResponse;
     allMappingsRequest: AllDataMapperSourceRequest;
     tempFileMetadata: ExtendedDataMapperMetadata;
     tempDir: string;
@@ -302,7 +301,6 @@ export interface DeveloperDocument {
 }
 
 export interface RequirementSpecification {
-    filepath: string;
     content: string;
 }
 
@@ -386,8 +384,6 @@ export interface FileAttatchment {
     content: string;
 }
 
-export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
-
 export type CodeContext =
     | { type: 'addition'; position: LinePosition, filePath: string }
     | { type: 'selection'; startPosition: LinePosition; endPosition: LinePosition, filePath: string };
@@ -403,7 +399,7 @@ export interface GenerateCodeRequest {
 export interface GenerateAgentCodeRequest {
     usecase: string;
     chatHistory: any[];
-    operationType: OperationType;
+    operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     messageId: string;
     isPlanMode: boolean;

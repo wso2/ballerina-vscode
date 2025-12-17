@@ -283,7 +283,7 @@ const AIChatInput = forwardRef<AIChatInputRef, AIChatInputProps>(
                 if (isUpdatedCommand && updatedTemplate) {
                     function isTemplateObj(
                         obj: any
-                    ): obj is { templateId: string; text?: string; params?: Map<string, string> } {
+                    ): obj is { templateId: string; text?: string; params?: Record<string, string> } {
                         return typeof obj === "object" && obj !== null && typeof obj.templateId === "string";
                     }
                     if (isTemplateObj(updatedTemplate)) {

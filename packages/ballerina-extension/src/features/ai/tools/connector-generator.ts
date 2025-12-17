@@ -42,7 +42,7 @@ const SpecFetcherInputSchema = z.object({
     serviceDescription: z.string().optional().describe("Optional description of what the service is for"),
 });
 
-export function createConnectorGeneratorTool(eventHandler?: CopilotEventHandler, tempProjectPath?: string, projectName?: string, modifiedFiles?: string[]) {
+export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
         description: `Generates Ballerina connector modules from OpenAPI specifications for services not available in LibraryProviderTool.
 
@@ -77,8 +77,8 @@ Returns complete connector information (DO NOT read files, use the returned cont
 
 export async function ConnectorGeneratorTool(
     input: SpecFetcherInput,
-    eventHandler?: CopilotEventHandler,
-    tempProjectPath?: string,
+    eventHandler: CopilotEventHandler,
+    tempProjectPath: string,
     projectName?: string,
     modifiedFiles?: string[]
 ): Promise<SpecFetcherResult> {

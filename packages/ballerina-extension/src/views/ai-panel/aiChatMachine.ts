@@ -109,8 +109,6 @@ const restoreCheckpointAction = (context: AIChatMachineContext, event: any) => {
     });
 };
 
-// integrateAndCleanupAction removed - integration and cleanup now handled by services
-
 const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEvent>({
     /** @xstate-layout N4IgpgJg5mDOIC5QCMCGAbdYBOBLAdqgLSq5EDGAFqgC4B0AogB5jkCuNBUAIragLaoADkJwBiCAHt8YOgQBukgNaywLdjTC8aA4aOwBtAAwBdRKCGTYuTtPMgmiACwBmABx0jXrwE4jfgEYAdgCAJgA2ABoQAE9EAFYjDwCjcLcncL8jYPiAX1zotEwcAmJSCmp6ZlYOLm1dEXEcbElsOiF0WgAzVv46NRrNesFGw1N7S2tbfHtHBFcPb19-bJCI6LiEcIi6cNS3UODgo1cA-IKQfEkIOHsirDxCEjIqWgmrG1w7JAdEIijYn9wvlChgHqVnhVaHQAJIQLDvKZfGY-OYBPZ0eKhFyuIKZeIBAI4pwbRBhNzxOhOHw0txuFwBLERYEXe4lJ7lV70ADiYBk2FoXAACp0URYPtNZs5QqStuEAp5vEEnAEnEEfKE3CzQcVHmUXpU6CLUPgAEpgeS4MAAd0Rn2+oDRDN2LnCQVCiRxbndPhJgIQbgV1JpPjcRiCWviPhcoRBIDZeshXLoAEERC15JBjWKQJN7TmnQrwq73Z6nN7Qr7ZQFvYqvEdi3iDi44wmIZzDdUNFwACqoWBKO2S1Fk53Ft0eoxen1+zaE+IuOghnxu8JOUJBTduVtg9n6qFVdS1fA8PgjfRD5FS+ZOOhBeIRnFeLcxlyyz2YpVOFV+HzxJw7rq7YGtCfYDualo2peDq-AgRJFiWk7TpWs6IJWoSfl4rqhOW3ruoB4IciB9BpkIGaQGBg4-Hmw6OqOCETmWFZVv6vqLksAR-iu7jBARe5Joa5oAFasJoECUdBBb0S6jFTuWM6yi4oZ1kY8QLi4Slat+fGJh20IAMKSPwHRgGJknXm6Cp-gyEQRFGOSytSi7xPSThJPZlYMjpwEHkaqDYJwYIxIZxlYGZ1ESleI5wWOiFMQp-opOWVIhuWal4pk3lEb5ADqpCcCeABirSGfgMjkDQrQAMqiOQ5nRYSQR0MEK4aiq5ZeASsr0k1iRLASYTukEWX7smDDYC02D1XRWwhEuC5hNs4T2fesrbJSSRPm6MYRmu5y5EAA */
     id: "ballerina-ai-chat",
@@ -131,6 +129,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         isPlanMode: false,
         checkpoints: [],
         showReviewActions: false,
+        operationType: undefined,
+        fileAttachments: [],
     } as AIChatMachineContext,
     on: {
         [AIChatMachineEventType.SUBMIT_AGENT_PROMPT]: {
@@ -150,6 +150,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
                     showReviewActions: () => false, // Hide review actions when new prompt is submitted
+                    operationType: (_ctx, event) => event.payload.operationType,
+                    fileAttachments: (_ctx, event) => event.payload.fileAttachments ?? [],
                 }),
                 "captureCheckpoint",
             ],
@@ -205,6 +207,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     checkpoints: (_ctx) => [],
                     isPlanMode: (_ctx) => false,
                     showReviewActions: (_ctx) => false,
+                    operationType : undefined,
+                    fileAttachments: (_ctx) => [],
                 }),
             ],
         },
@@ -221,6 +225,8 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 checkpoints: (_ctx, event) => event.payload.state.checkpoints || [],
                 isPlanMode: (_ctx, event) => event.payload.state.isPlanMode || false,
                 autoApproveEnabled: (_ctx, event) => event.payload.state.autoApproveEnabled || false,
+                operationType: (_ctx, event) => event.payload.state.operationType || undefined,
+                fileAttachments: (_ctx, event) => event.payload.state.fileAttachments || [],
             }),
         },
         [AIChatMachineEventType.RESTORE_CHECKPOINT]: {
@@ -612,8 +618,8 @@ const startAgentGenerationService = async (context: AIChatMachineContext): Promi
     const requestBody: GenerateAgentCodeRequest = {
         usecase: usecase,
         chatHistory: convertChatHistoryToModelMessages(previousHistory),
-        operationType: "CODE_GENERATION",
-        fileAttachmentContents: [],
+        operationType: context.operationType,
+        fileAttachmentContents: context.fileAttachments,
         messageId: messageId,
         isPlanMode: context.isPlanMode ?? false,
         codeContext: context.codeContext,
@@ -708,17 +714,17 @@ export const AIChatStateMachine = {
     initialize: () => {
         chatStateService.start();
 
-        // Attempt to restore state on initialization for current project
+        // Attempt to restore state from session storage for current project
         const projectId = generateProjectId();
         loadChatState(projectId).then((savedState) => {
             if (savedState && savedState.sessionId && savedState.projectId === projectId) {
-                console.log(`Restoring chat state for project: ${projectId}`);
+                console.log(`Restoring chat state for project: ${projectId} (from current session)`);
                 chatStateService.send({
                     type: AIChatMachineEventType.RESTORE_STATE,
                     payload: { state: savedState },
                 });
             } else {
-                console.log(`No saved state found for project: ${projectId}, starting fresh`);
+                console.log(`No session state found for project: ${projectId}, starting with fresh session`);
             }
         }).catch((error) => {
             console.error('Failed to restore chat state:', error);
@@ -737,9 +743,9 @@ export const AIChatStateMachine = {
         }
     },
     dispose: () => {
-        // Save state before disposing
-        const context = chatStateService.getSnapshot().context;
-        saveChatState(context);
+        // No need to save state on dispose - session-only storage will be cleared automatically
+        // when the extension deactivates (window closes)
+        console.log('[AIChatStateMachine] Disposing - session state will be cleared');
         chatStateService.stop();
     },
     /**

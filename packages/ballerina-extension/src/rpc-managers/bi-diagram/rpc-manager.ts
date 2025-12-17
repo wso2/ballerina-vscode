@@ -24,7 +24,6 @@ import {
     AddImportItemResponse,
     AddProjectToWorkspaceRequest,
     ArtifactData,
-    AvailableNode,
     BIAiSuggestionsRequest,
     BIAiSuggestionsResponse,
     BIAvailableNodesRequest,
@@ -56,7 +55,6 @@ import {
     BallerinaProject,
     BreakpointRequest,
     BuildMode,
-    Category,
     ClassFieldModifierRequest,
     ComponentRequest,
     ConfigVariableRequest,
@@ -95,14 +93,12 @@ import {
     GetTypeResponse,
     GetTypesRequest,
     GetTypesResponse,
-    Item,
     JsonToTypeRequest,
     JsonToTypeResponse,
     LinePosition,
     LoginMethod,
     ModelFromCodeRequest,
     NodeKind,
-    NodePosition,
     OpenAPIClientDeleteRequest,
     OpenAPIClientDeleteResponse,
     OpenAPIClientGenerationRequest,
@@ -144,7 +140,12 @@ import {
     VisibleTypesRequest,
     VisibleTypesResponse,
     WorkspaceFolder,
-    WorkspacesResponse
+    WorkspacesResponse,
+    BIIntelSecrets,
+    AvailableNode,
+    Item,
+    Category,
+    NodePosition
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -735,7 +736,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     let token: string;
                     const loginMethod = await getLoginMethod();
                     if (loginMethod === LoginMethod.BI_INTEL) {
-                        token = await getAccessToken();
+                        const credentials = await getAccessToken();
+                        const secrets = credentials.secrets as BIIntelSecrets;
+                        token = secrets.accessToken;
                     }
 
                     if (!token) {
@@ -773,7 +776,9 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         let token: string;
                         const loginMethod = await getLoginMethod();
                         if (loginMethod === LoginMethod.BI_INTEL) {
-                            token = await getAccessToken();
+                            const credentials = await getAccessToken();
+                            const secrets = credentials.secrets as BIIntelSecrets;
+                            token = secrets.accessToken;
                         }
                         if (!token) {
                             //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
@@ -1966,7 +1971,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 projectPath: projectPath,
                 module: params.module
             };
-            StateMachine.langClient().openApiGenerateClient(request).then((res) => {
+            StateMachine.langClient().openApiGenerateClient(request).then(async (res) => {
                 if (!res.source || !res.source.textEditsMap) {
                     console.error("textEditsMap is undefined or null");
                     reject(new Error("textEditsMap is undefined or null"));
@@ -1979,11 +1984,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     return;
                 }
 
-                // Convert the plain object back to a Map
-                const textEditsMap = new Map(Object.entries(res.source.textEditsMap));
-                textEditsMap.forEach(async (value, key) => {
-                    await this.applyTextEdits(key, value);
-                });
+
+                if (res?.source?.textEditsMap) {
+                    await updateSourceCode({
+                        textEdits: res.source.textEditsMap,
+                        description: `OpenAPI Client Generation`,
+                        skipUpdateViewOnTomlUpdate: true
+                    });
+                    console.log(">>> Applied text edits for openapi client");
+                }
+
                 resolve({});
             }).catch((error) => {
                 console.log(">>> error generating openapi client", error);

@@ -41,6 +41,7 @@ import { AIStateMachine } from './views/ai-panel/aiMachine';
 import { StateMachinePopup } from './stateMachinePopup';
 import { checkIsBallerinaPackage, checkIsBI, fetchScope, getOrgPackageName, UndoRedoManager, getProjectTomlValues, getOrgAndPackageName, checkIsBallerinaWorkspace } from './utils';
 import { AIChatStateMachine } from './views/ai-panel/aiChatMachine';
+import { activateDevantFeatures } from './features/devant/activator';
 import { buildProjectsStructure } from './utils/project-artifacts';
 import { runCommandWithOutput } from './utils/runCommand';
 import { buildOutputChannel } from './utils/logger';
@@ -59,6 +60,7 @@ interface MachineContext extends VisualizerLocation {
     isBISupported: boolean;
     errorCode: string | null;
     dependenciesResolved?: boolean;
+    isInDevant: boolean;
 }
 
 export let history: History;
@@ -76,7 +78,8 @@ const stateMachine = createMachine<MachineContext>(
             errorCode: null,
             isBISupported: false,
             view: MACHINE_VIEW.PackageOverview,
-            dependenciesResolved: false
+            dependenciesResolved: false,
+            isInDevant: !!process.env.CLOUD_STS_TOKEN
         },
         on: {
             RESET_TO_EXTENSION_READY: {
@@ -461,6 +464,7 @@ const stateMachine = createMachine<MachineContext>(
                     if (!ls.biSupported) {
                         commands.executeCommand('setContext', 'BI.status', 'updateNeed');
                     }
+                    activateDevantFeatures(ls);
                     resolve({ langClient: ls.langClient, isBISupported: ls.biSupported });
                 } catch (error) {
                     throw new Error("LS Activation failed", error);
@@ -994,8 +998,8 @@ async function handleMultipleWorkspaceFolders(workspaceFolders: readonly Workspa
         const isBI = checkIsBI(balProjects[0].uri);
         const scope = isBI && fetchScope(balProjects[0].uri);
         const { orgName, packageName } = getOrgPackageName(balProjects[0].uri.fsPath);
-        setBIContext(isBI);
         const projectPath = balProjects[0].uri.fsPath;
+        setContextValues(isBI, projectPath);
         return { isBI, projectPath, scope, orgName, packageName };
     }
 
@@ -1007,7 +1011,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
 
     if (isBallerinaWorkspace) {
         const isBI = checkIsBI(workspaceURI);
-        setBIContext(isBI);
+        setContextValues(isBI, undefined, workspaceURI.fsPath);
 
         return { isBI, workspacePath: workspaceURI.fsPath };
     } else {
@@ -1017,7 +1021,7 @@ async function handleSingleWorkspaceFolder(workspaceURI: Uri): Promise<ProjectMe
         const projectPath = isBallerinaPackage ? workspaceURI.fsPath : "";
         const { orgName, packageName } = getOrgPackageName(projectPath);
 
-        setBIContext(isBI);
+        setContextValues(isBI, projectPath);
         if (!isBI) {
             console.error("No BI enabled workspace found");
         }
@@ -1049,6 +1053,7 @@ function notifyTreeView(
     }
 }
 
-function setBIContext(isBI: boolean) {
+function setContextValues(isBI: boolean, projectPath?: string, workspacePath?: string) {
     commands.executeCommand('setContext', 'isBIProject', isBI);
+    commands.executeCommand('setContext', 'isSupportedProject', projectPath || workspacePath);
 }
