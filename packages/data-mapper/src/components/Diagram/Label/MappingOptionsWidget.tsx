@@ -169,7 +169,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const convertMenuItems: Item[] = [
             {
                 id: "convert-n-map",
-                label: getItemElement("convert-n-map", "Convert and Map", "transform"),
+                label: getItemElement("convert-n-map", "Convert and Map", "refresh"),
                 onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
@@ -186,6 +186,16 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
             const aggregateFnsString = ["string:'join"];
             const aggregateFnsCommon = ["first", "last"];
+
+            const iconsMap: Record<string, string> = {
+                sum: "sum",
+                avg: "graph-avg",
+                min: "graph-min",
+                max: "graph-max",
+                "string:'join": "bi-link",
+                first: "chevron-first",
+                last: "chevron-last"
+            };
     
             const sourcePort = link.getSourcePort() as InputOutputPortModel;
             const sourceType = sourcePort.attributes.field.kind;
@@ -196,7 +206,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             ...aggregateFnsCommon];
             const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
                 id: `a2s-collect-${fn}`,
-                label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`, "Aggregate"),
+                label: getItemElement(`a2s-collect-${fn}`, fn, iconsMap[fn]),
                 onClick: wrapWithProgress(async () => await onClick(fn))
             }));
             return a2sAggregateItems;
