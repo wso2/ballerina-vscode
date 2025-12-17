@@ -30,7 +30,8 @@ export async function generateInlineMappingsSource(
   langClient: ExtendedLangClient,
   context: any,
   eventHandler: CopilotEventHandler,
-  tempDirectory: string
+  tempDirectory: string,
+  targetFileName: string
 ): Promise<InlineMappingsSourceResult> {
   if (!inlineMappingRequest) {
     throw new Error("Inline mapping request is required");
@@ -46,12 +47,6 @@ export async function generateInlineMappingsSource(
 
   if (!langClient) {
     throw new Error("Language client is required for inline mapping generation");
-  }
-
-  const targetFileName = inlineMappingRequest.metadata.codeData.lineRange.fileName;
-
-  if (!targetFileName) {
-    throw new Error("Target file name could not be determined from code data");
   }
 
   const tempFileMetadata = await createTempFileAndGenerateMetadata(
