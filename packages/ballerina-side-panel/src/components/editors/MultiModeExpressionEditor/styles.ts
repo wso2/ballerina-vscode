@@ -60,12 +60,6 @@ export namespace S {
         height: 'auto',
     });
 
-    export const AddButton = styled(Button)({
-        alignSelf: 'flex-start',
-        padding: '4px 8px',
-        fontSize: '12px',
-    });
-
     export const IndexContainer = styled.div({
         padding: '4px 8px',
         fontSize: '12px',
