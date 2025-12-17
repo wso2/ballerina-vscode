@@ -27,6 +27,7 @@ import { RichTemplateMarkdownToolbar } from "../controls/RichTemplateMarkdownToo
 import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolbar";
 import { ErrorBanner } from "@wso2/ui-toolkit";
 import { RawTemplateEditorConfig, StringTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
+import { getPrimaryInputType } from "@wso2/ballerina-core";
 
 const ExpressionContainer = styled.div`
     width: 100%;
@@ -130,7 +131,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
                         enableListContinuation={true}
                         inputMode={inputMode}
-                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                     />
                 </ExpressionContainer>
             ) : (
@@ -145,7 +146,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         getHelperPane={isSimpleMode ? undefined : getHelperPane}
                         onEditorViewReady={setProseMirrorView}
                         onHelperPaneStateChange={handleHelperPaneStateChange}
-                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                     />
                 </ExpressionContainer>
             )
