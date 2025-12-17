@@ -77,6 +77,7 @@ import { generateDocumentationForService } from "../../features/ai/documentation
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 // import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
@@ -96,7 +97,6 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -734,7 +734,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<boolean> {
+    async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
             payload: {
@@ -743,8 +743,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 userMessage: 'Generate context types'
             }
         });
-
-        return true;
     }
 
     async openChatWindowWithCommand(): Promise<void> {
