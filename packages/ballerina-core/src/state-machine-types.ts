@@ -227,7 +227,8 @@ export type ChatNotify =
     | UsageMetricsEvent
     | TaskApprovalRequest
     | GeneratedSourcesEvent
-    | ConnectorGenerationNotification;
+    | ConnectorGenerationNotification
+    | CodeReviewActions;
 
 export interface ChatStart {
     type: "start";
@@ -341,6 +342,10 @@ export interface ConnectorGenerationNotification {
         code: string;
     };
     message: string;
+}
+
+export interface CodeReviewActions {
+    type: "review_actions";
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };

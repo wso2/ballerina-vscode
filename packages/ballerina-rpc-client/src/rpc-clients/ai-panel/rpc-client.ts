@@ -55,12 +55,14 @@ import {
     TestPlanGenerationRequest,
     abortAIGeneration,
     abortTestGeneration,
+    acceptChanges,
     addChatSummary,
     addFilesToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
+    declineChanges,
     deleteFromProject,
     fetchData,
     generateAgent,
@@ -107,6 +109,7 @@ import {
     promptWSO2AILogout,
     readDeveloperMdFile,
     repairGeneratedCode,
+    revertChanges,
     showSignInAlert,
     submitFeedback,
     updateDevelopmentDocument,
@@ -349,8 +352,20 @@ export class AiPanelRpcClient implements AIPanelAPI {
     isPlanModeFeatureEnabled(): Promise<boolean> {
         return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
     }
-    
+
     getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
+    }
+
+    revertChanges(): Promise<void> {
+        return this._messenger.sendRequest(revertChanges, HOST_EXTENSION);
+    }
+
+    acceptChanges(): Promise<void> {
+        return this._messenger.sendRequest(acceptChanges, HOST_EXTENSION);
+    }
+
+    declineChanges(): Promise<void> {
+        return this._messenger.sendRequest(declineChanges, HOST_EXTENSION);
     }
 }

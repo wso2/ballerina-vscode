@@ -264,14 +264,36 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         }
     };
 
-    const handleAccept = () => {
-        console.log("Accepting changes...");
-        rpcClient.getVisualizerRpcClient().reviewAccepted();
+    const handleAccept = async () => {
+        console.log("[Review Mode] Accepting changes...");
+        try {
+            // First, accept the changes (integrate code to workspace)
+            await rpcClient.getAiPanelRpcClient().acceptChanges();
+            console.log("[Review Mode] Changes accepted successfully");
+            
+            // Then navigate back to previous view
+            rpcClient.getVisualizerRpcClient().reviewAccepted();
+        } catch (error) {
+            console.error("[Review Mode] Error accepting changes:", error);
+            // Still navigate back even if there's an error
+            rpcClient.getVisualizerRpcClient().reviewAccepted();
+        }
     };
 
-    const handleReject = () => {
-        console.log("Rejecting changes...");
-        rpcClient.getVisualizerRpcClient().reviewRejected();
+    const handleReject = async () => {
+        console.log("[Review Mode] Rejecting changes...");
+        try {
+            // First, decline the changes (cleanup without integrating)
+            await rpcClient.getAiPanelRpcClient().declineChanges();
+            console.log("[Review Mode] Changes declined successfully");
+            
+            // Then navigate back to previous view
+            rpcClient.getVisualizerRpcClient().reviewRejected();
+        } catch (error) {
+            console.error("[Review Mode] Error declining changes:", error);
+            // Still navigate back even if there's an error
+            rpcClient.getVisualizerRpcClient().reviewRejected();
+        }
     };
 
     const renderDiagram = () => {

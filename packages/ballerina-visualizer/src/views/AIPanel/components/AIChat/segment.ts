@@ -11,6 +11,7 @@ export enum SegmentType {
     TestScenario = "TestScenario",
     Button = "Button",
     SpecFetcher = "SpecFetcher",
+    ReviewActions = "ReviewActions",
 }
 
 interface Segment {
@@ -82,13 +83,27 @@ function splitHalfGeneratedCode(content: string): Segment[] {
 export function splitContent(content: string): Segment[] {
     const segments: Segment[] = [];
 
+    // Check if content contains reviewactions tag for debugging
+    if (content.includes('<reviewactions>')) {
+        console.log('[Segment Parser] Content contains <reviewactions> tag');
+        const startIdx = Math.max(0, content.indexOf('<reviewactions>') - 50);
+        const endIdx = Math.min(content.length, content.indexOf('</reviewactions>') + 20);
+        console.log('[Segment Parser] Content snippet:', content.substring(startIdx, endIdx));
+        
+        // Test the regex directly
+        const testRegex = /<reviewactions>([\s\S]*?)<\/reviewactions>/g;
+        const testMatch = testRegex.exec(content);
+        console.log('[Segment Parser] Direct regex test result:', testMatch ? 'MATCHED' : 'NO MATCH');
+    }
+
     // Combined regex to capture either <code ...>```<language> code ```</code> or <progress>Text</progress>
     // Using matchAll for stateless iteration to avoid regex lastIndex corruption during streaming
     const regexPattern =
-        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<toolresult>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>/g;
+        /<code\s+filename="([^"]+)"(?:\s+type=("test"|"ai_map"|"type_creator"))?>\s*```(\w+)\s*([\s\S]*?)```\s*<\/code>|<progress>([\s\S]*?)<\/progress>|<toolcall>([\s\S]*?)<\/toolcall>|<toolresult>([\s\S]*?)<\/toolresult>|<todo>([\s\S]*?)<\/todo>|<attachment>([\s\S]*?)<\/attachment>|<scenario>([\s\S]*?)<\/scenario>|<button\s+type="([^"]+)">([\s\S]*?)<\/button>|<inlineCode>([\s\S]*?)<inlineCode>|<references>([\s\S]*?)<references>|<connectorgenerator>([\s\S]*?)<\/connectorgenerator>|<reviewactions>([\s\S]*?)<\/reviewactions>/g;
 
     // Convert to array to avoid stateful regex iteration issues
     const matches = Array.from(content.matchAll(regexPattern));
+    console.log(`[Segment Parser] Found ${matches.length} total matches`);
     let lastIndex = 0;
 
     function updateLastProgressSegmentLoading(failed: boolean = false) {
@@ -239,6 +254,17 @@ export function splitContent(content: string): Segment[] {
                 // If parsing fails, show as text
                 console.error("Failed to parse connector generator data:", error);
             }
+        } else if (match[16] !== undefined) {
+            // <reviewactions> block matched
+            console.log("[Segment Parser] Found ReviewActions segment at match[16]");
+            updateLastProgressSegmentLoading();
+            segments.push({
+                type: SegmentType.ReviewActions,
+                loading: false,
+                text: "",
+            });
+        } else {
+            console.warn("[Segment Parser] Unhandled match group:", match);
         }
 
         // Update lastIndex to the end of the current match
@@ -253,5 +279,6 @@ export function splitContent(content: string): Segment[] {
         segments.push(...splitHalfGeneratedCode(remainingText));
     }
 
+    console.log(`[Segment Parser] Returning ${segments.length} segments, types:`, segments.map(s => s.type));
     return segments;
 }
