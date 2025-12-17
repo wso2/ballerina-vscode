@@ -169,6 +169,7 @@ import io.ballerina.tools.text.TextDocument;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -1515,10 +1516,23 @@ public class CodeAnalyzer extends NodeVisitor {
                 .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
     }
 
+    /**
+     * Updates node metadata for persist-related database connections.
+     * <p>
+     * This method extracts the database type and name from the module name, which is expected to follow the pattern
+     * {@code <packageName>.<database-type>.<database-name>}. The substring after the package name should be in the
+     * format {@code <database-type>.<database-name>}, for example, {@code mysql.mydb}.
+     * <p>
+     * The method updates the node metadata with a label (e.g., "Mysql mydb"), sets the connector type to "persist",
+     * and adds the path to the persist model file.
+     *
+     * @param functionData the function data containing the module name
+     * @param packageName  the package name to strip from the module name
+     */
     private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
         String moduleName = functionData.moduleName();
         String modulePartName = "";
-        if (moduleName != null && moduleName.length() > packageName.length() + 1) {
+        if (moduleName != null && moduleName.startsWith(packageName + ".")) {
             modulePartName = moduleName.substring(packageName.length() + 1);
         }
 
@@ -1538,13 +1552,24 @@ public class CodeAnalyzer extends NodeVisitor {
         // Since persist supports only one model per project, hardcoding the model file name
         // Once we have multimodel support, we need to extract the model file name from class symbol
         // Issue: https://github.com/ballerina-platform/ballerina-library/issues/8503
-        String persistModelPath = project.sourceRoot().resolve(PERSIST)
+        Path persistModelPath = project.sourceRoot().resolve(PERSIST)
                 .resolve(DEFAULT_PERSIST_MODEL_FILE)
-                .toAbsolutePath().toString();
+                .toAbsolutePath();
+        if (!Files.exists(persistModelPath)) {
+            return;
+        }
         nodeBuilder.metadata()
-                .addData(PERSIST_MODEL_FILE, persistModelPath);
+                .addData(PERSIST_MODEL_FILE, persistModelPath.toString());
     }
 
+    /**
+     * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
+     *
+     * @param semanticModel the semantic model used to resolve types
+     * @param functionData  the function data containing module and organization information
+     * @param name          the name of the class symbol to check
+     * @return true if the class symbol is a subtype of AbstractPersistClient, false otherwise
+     */
     private static boolean isPersistClient(SemanticModel semanticModel, FunctionData functionData, String name) {
         Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()
                 .typesInModule(functionData.org(), functionData.moduleName(), functionData.version());
