@@ -97,9 +97,11 @@ import {
     VerifyTypeDeleteResponse,
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
-    ExpressionTokensRequest,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    BIDesignModelRequest,
+    BIFlowModelRequest,
+    ExpressionTokensRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -128,7 +130,7 @@ import {
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "bi-diagram";
-export const getFlowModel: RequestType<void, BIFlowModelResponse> = { method: `${_preFix}/getFlowModel` };
+export const getFlowModel: RequestType<BIFlowModelRequest, BIFlowModelResponse> = { method: `${_preFix}/getFlowModel` };
 export const getSourceCode: RequestType<BISourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/getSourceCode` };
 export const deleteFlowNode: RequestType<BISourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/deleteFlowNode` };
 export const deleteByComponentInfo: RequestType<BIDeleteByComponentInfoRequest, BIDeleteByComponentInfoResponse> = { method: `${_preFix}/deleteByComponentInfo` };
@@ -176,7 +178,7 @@ export const getFormDiagnostics: RequestType<FormDiagnosticsRequest, FormDiagnos
 export const getExpressionDiagnostics: RequestType<ExpressionDiagnosticsRequest, ExpressionDiagnosticsResponse> = { method: `${_preFix}/getExpressionDiagnostics` };
 export const formDidOpen: RequestType<FormDidOpenParams, void> = { method: `${_preFix}/formDidOpen` };
 export const formDidClose: RequestType<FormDidCloseParams, void> = { method: `${_preFix}/formDidClose` };
-export const getDesignModel: RequestType<void, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
+export const getDesignModel: RequestType<BIDesignModelRequest, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
 export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method: `${_preFix}/getTypes` };
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };
