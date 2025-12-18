@@ -34,6 +34,7 @@ import org.ballerinalang.langserver.commons.LSOperation;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
@@ -56,13 +57,13 @@ import java.util.concurrent.CompletableFuture;
 @JsonSegment("ballerinaRunner")
 public class BallerinaRunnerService implements ExtendedLanguageServerService {
 
-    private WorkspaceManager workspaceManager;
+    private WorkspaceManagerProxy workspaceManagerProxy;
     private LSClientLogger clientLogger;
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager,
+    public void init(LanguageServer langServer, WorkspaceManagerProxy workspaceManagerProxy,
                      LanguageServerContext serverContext) {
-        this.workspaceManager = workspaceManager;
+        this.workspaceManagerProxy = workspaceManagerProxy;
         this.clientLogger = LSClientLogger.getInstance(serverContext);
     }
 
@@ -77,13 +78,14 @@ public class BallerinaRunnerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 ProjectDiagnosticsResponse projectDiagnosticsResponse = new ProjectDiagnosticsResponse();
-                Optional<Path> filePath = PathUtil.getPathFromURI(request.getProjectRootIdentifier().getUri());
-                if (filePath.isEmpty()) {
-                    return projectDiagnosticsResponse;
-                }
-                Project project = this.workspaceManager.loadProject(filePath.get());
+                String filePathUri = request.getProjectRootIdentifier().getUri();
+                Path filePath = PathUtil.getPathFromUriEncodeString(filePathUri);
+
+                // Obtain the semantic model and the document
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(filePathUri);
+                Project project = workspaceManager.loadProject(filePath);
                 Map<String, List<Diagnostic>> errorDiagnosticMap =
-                        BallerinaRunnerUtil.getErrorDiagnosticMap(this.workspaceManager, project, filePath.get());
+                        BallerinaRunnerUtil.getErrorDiagnosticMap(workspaceManager, project, filePath);
                 projectDiagnosticsResponse.setErrorDiagnosticMap(errorDiagnosticMap);
                 return projectDiagnosticsResponse;
             } catch (Throwable e) {
@@ -109,7 +111,7 @@ public class BallerinaRunnerService implements ExtendedLanguageServerService {
                 if (filePath.isEmpty()) {
                     return new MainFunctionParamsResponse(false, null, null);
                 }
-                Project project = this.workspaceManager.loadProject(filePath.get());
+                Project project = this.workspaceManagerProxy.get().loadProject(filePath.get());
                 Package currentPackage = project.currentPackage();
                 for (DocumentId documentId : currentPackage.getDefaultModule().documentIds()) {
                     Document document = currentPackage.getDefaultModule().document(documentId);
