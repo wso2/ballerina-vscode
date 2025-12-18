@@ -45,8 +45,8 @@ export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) 
         endChar: textEdit.range.end.character
     };
 
-    // Adjust position to skip header comments if inserting at the beginning
-    if (startLine === 0 && startChar === 0) {
+    // Adjust position to skip header comments if inserting at the beginning of the file
+    if (startLine === 0) {
         try {
             const document = await workspace.openTextDocument(tomlPath);
             ({ startLine, startChar, endLine, endChar } = adjustRangeForHeaderComments(
