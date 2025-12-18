@@ -20,7 +20,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip, Badge } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -88,9 +88,9 @@ const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
 
     &:hover {
         background-color: ${(props: { disabled?: boolean }) =>
-            props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
+        props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
         border-color: ${(props: { disabled?: boolean }) =>
-            props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
+        props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
     }
 `;
 
@@ -248,12 +248,12 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             }
             try {
                 const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-                
+
                 const hasDatabaseConnection = res.flowModel.connections?.some((connection) => {
                     const metadataData = connection.metadata?.data as any;
                     return metadataData?.connectorType === "persist";
                 });
-                
+
                 setHasPersistConnection(hasDatabaseConnection || false);
             } catch (error) {
                 console.error(">>> Error checking for existing database connection", error);
