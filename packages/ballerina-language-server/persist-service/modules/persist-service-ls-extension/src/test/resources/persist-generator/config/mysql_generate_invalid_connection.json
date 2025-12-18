@@ -1,0 +1,15 @@
+{
+  "description": "MySQL persist client generation - invalid connection credentials",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "WrongPassword",
+  "database": "testdb",
+  "selectedTables": ["employees"],
+  "module": "employees",
+  "expectError": true,
+  "expectedErrorMessage": "Access denied"
+}

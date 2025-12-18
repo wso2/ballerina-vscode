@@ -1,0 +1,16 @@
+{
+  "description": "MSSQL database introspection test - list all tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mssql",
+  "host": "localhost",
+  "port": 1434,
+  "user": "sa",
+  "password": "Test123#",
+  "database": "testdb",
+  "expectedTables": [
+    "employees",
+    "departments",
+    "projects"
+  ]
+}
