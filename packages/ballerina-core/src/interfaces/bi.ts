@@ -143,7 +143,8 @@ export type FormFieldInputType = "TEXT" |
     "CHOICE"|
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
-    "ai:Prompt";
+    "ai:Prompt" | 
+    "MAPPING_EXPRESSION_SET";
 
 export interface BaseType {
     fieldType: FormFieldInputType;

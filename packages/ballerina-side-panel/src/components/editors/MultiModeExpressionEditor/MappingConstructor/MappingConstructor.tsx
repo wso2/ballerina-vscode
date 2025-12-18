@@ -18,12 +18,16 @@
 
 import React, { useState, useEffect } from "react";
 import { S } from '../styles';
-import { Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
+import { ExpressionFieldProps } from "../../ExpressionField";
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 interface MappingConstructorProps {
     label: string;
-    values: Record<string, string>;
+    value: string;
     onChange: (updated: string, updatedCursorPosition: number) => void;
+    expressionFieldProps: ExpressionFieldProps;
 }
 
 interface KeyValuePair {
@@ -31,89 +35,135 @@ interface KeyValuePair {
     value: string;
 }
 
-export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, values, onChange }) => {
+function extractMapEntries(mapString) {
+    if (!mapString) {
+        return [];
+    }
+
+    // Matches text in format =>  key: "value"
+    const ENTRY_REGEX = /(\w+)\s*:\s*"([^"]*)"/g;
+
+    const entries = [];
+    let match;
+
+    while ((match = ENTRY_REGEX.exec(mapString)) !== null) {
+        entries.push(`${match[1]}: "${match[2]}"`);
+    }
+
+    return entries;
+}
+
+
+export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
     const [pairs, setPairs] = useState<KeyValuePair[]>([]);
+    const [isAddMoreValid, setIsAddMoreValid] = useState(false);
 
     useEffect(() => {
-        const initialPairs = Object.entries(values).map(([key, value]) => ({ key, value }));
-        setPairs(initialPairs);
-    }, [JSON.stringify(values)]);
-
-    const getDuplicateKeys = (pairs: KeyValuePair[]): Set<string> => {
-        const keyCount = new Map<string, number>();
-        pairs.forEach(pair => {
-            if (pair.key.trim()) {
-                keyCount.set(pair.key.trim(), (keyCount.get(pair.key.trim()) || 0) + 1);
-            }
-        });
-        return new Set([...keyCount.entries()].filter(([, count]) => count > 1).map(([key]) => key));
-    };
-
-    const updatePairs = (newPairs: KeyValuePair[]) => {
-        setPairs(newPairs);
-        const map: Record<string, string> = {};
-        newPairs.forEach(pair => {
-            if (pair.key.trim()) {
-                map[pair.key.trim()] = pair.value;
-            }
-        });
-        if (JSON.stringify(map) !== JSON.stringify(values)) {
-            onChange(JSON.stringify(map), JSON.stringify(map).length);
+        if (value !== createFinalValue(pairs)) {
+            const entries: string[] = extractMapEntries(value);
+            const initialPairs: KeyValuePair[] = entries.map(entry => {
+                const [key, val] = entry.split(':').map(part => part.trim());
+                return { key, value: val };
+            });
+            setPairs(initialPairs);
         }
-    };
+    }, [value]);
 
-    const handleKeyChange = (index: number, key: string) => {
-        const newPairs = [...pairs];
-        newPairs[index].key = key;
-        updatePairs(newPairs);
-    };
+    useEffect(() => {
+        const lastPair = pairs[pairs.length - 1];
+        const isValid = lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== ""
+        setIsAddMoreValid(isValid);
+    }, [JSON.stringify(pairs)]);
 
-    const handleValueChange = (index: number, value: string) => {
-        const newPairs = [...pairs];
-        newPairs[index].value = value;
-        updatePairs(newPairs);
-    };
+    const handleAddPair = () => {
+        const updatedPairs = [...pairs, { key: ``, value: '""' }];
+        setPairs(updatedPairs);
+    }
 
-    const handleDelete = (index: number) => {
-        const newPairs = pairs.filter((_, i) => i !== index);
-        updatePairs(newPairs);
-    };
+    const handleDeletePair = (index: number) => {
+        const updatedPairs = pairs.filter((_, i) => i !== index);
+        setPairs(updatedPairs);
+        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
+    }
 
-    const handleAdd = () => {
-        const newPairs = [...pairs, { key: '', value: '' }];
-        updatePairs(newPairs);
-    };
+    const handleKeyChange = (index: number, newKey: string) => {
+        const updatedPairs = [...pairs];
+        updatedPairs[index].key = newKey;
+        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
+    }
 
-    const duplicateKeys = getDuplicateKeys(pairs);
+    const handleValueChange = (index: number, newValue: string) => {
+        const updatedPairs = [...pairs];
+        updatedPairs[index].value = newValue;
+        setPairs(updatedPairs);
+        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
+    }
+
+    const createFinalValue = (pairs: KeyValuePair[]) => {
+        const mapString = pairs
+            .filter(pair => pair.key.trim() !== "")
+            .map(pair => `${pair.key}: ${pair.value}`)
+            .join(', ');
+        return `{ ${mapString} }`;
+    }
+
 
     return (
         <S.Container>
-            <S.Label>{label}</S.Label>
             {pairs.map((pair, index) => (
-                <S.ItemContainer key={index}>
-                    <S.Input
-                        type="text"
-                        value={pair.key}
-                        onChange={(e) => handleKeyChange(index, e.target.value)}
-                        placeholder="Key"
-                        isError={duplicateKeys.has(pair.key.trim())}
-                    />
-                    
+                <S.ItemContainer style={{
+                    border: "1px solid var(--dropdown-border)",
+                    padding: "8px",
+                    borderRadius: "8px",
+                }} key={index}>
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        flex: 1
+                    }}>
+                        <S.Input
+                            type="text"
+                            value={pair.key}
+                            onChange={(e) => handleKeyChange(index, e.target.value)}
+                            placeholder="Key"
+                        />
+
+                        <ChipExpressionEditorComponent
+                            getHelperPane={expressionFieldProps.getHelperPane}
+                            isExpandedVersion={false}
+                            completions={expressionFieldProps.completions}
+                            onChange={(value) => handleValueChange(index, value)}
+                            value={pair.value}
+                            sanitizedExpression={expressionFieldProps.sanitizedExpression}
+                            rawExpression={expressionFieldProps.rawExpression}
+                            fileName={expressionFieldProps.fileName}
+                            targetLineRange={expressionFieldProps.targetLineRange}
+                            extractArgsFromFunction={expressionFieldProps.extractArgsFromFunction}
+                            onOpenExpandedMode={expressionFieldProps.onOpenExpandedMode}
+                            onRemove={expressionFieldProps.onRemove}
+                            isInExpandedMode={expressionFieldProps.isInExpandedMode}
+                            configuration={new ChipExpressionEditorDefaultConfiguration()}
+                        />
+                    </div>
                     <S.DeleteButton
                         appearance="icon"
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDeletePair(index)}
                     >
-                        <Codicon name="trash" />
+                        <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <S.AddButton
-                onClick={handleAdd}
-                appearance="secondary"
+            <Button
+                onClick={handleAddPair}
+                appearance="icon"
+                disabled={!isAddMoreValid}
             >
-                <Codicon name="add" />
-                Add Entry
-            </S.AddButton>
+                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
+                    <Codicon name="add" />
+                    Add Item
+                </div>
+            </Button>
         </S.Container>
     );
 };
