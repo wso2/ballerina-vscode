@@ -44,11 +44,12 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { ExpressionField } from './ExpressionField';
+import { ExpressionField, getEditorConfiguration } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
+import { NumberExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -442,34 +443,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.RECORD);
             return;
         }
-
         let selectedInputType = field?.types.find(type => type.selected) || field?.types[0];
 
         let newInputMode = getInputModeFromTypes(selectedInputType);
-        if (!newInputMode) {
+        if (!newInputMode || !isSwitchToPrimaryModeSafe(field?.value as string)) {
             setInputMode(InputMode.EXP);
             return;
-        }
-        switch (newInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (!isExpToTemplateSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
         }
         setInputMode(newInputMode)
     }, [field?.types, recordTypeField]);
@@ -551,28 +530,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
-    const isExpToBooleanSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        return ["true", "false"].includes(expValue.trim().toLowerCase())
-    }
-
-    const isExpToTemplateSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('`') && trimmed.endsWith('`')) return true;
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
-    }
-
-    const isExpToTextSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-            const content = trimmed.slice(1, -1);
-            return !/(?<!\\)"/.test(content);
-        }
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
+    const isSwitchToPrimaryModeSafe = (expValue: string) => {
+        if (!expValue) return true;
+        const primaryInputType = getPrimaryInputType(field.types);
+        const primaryInputMode = getInputModeFromTypes(primaryInputType);
+        const valueConfigObject = getEditorConfiguration(primaryInputMode);
+        return valueConfigObject.getIsValueCompatible(expValue);
     }
 
     const handleModeChange = (value: InputMode) => {
@@ -582,36 +545,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(value);
             return;
         }
-        const primaryInputType = getPrimaryInputType(field.types);
-        const primaryInputMode = getInputModeFromTypes(primaryInputType);
-        switch (primaryInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (currentValue && currentValue.trim() !== '') {
-                    if (!isExpToTemplateSafe(currentValue)) {
-                        targetInputModeRef.current = value;
-                        setShowModeSwitchWarning(true)
-                        return;
-                    } else {
-                        setInputMode(primaryInputMode);
-                        return;
-                    }
-                }
-                break;
+        if (!isSwitchToPrimaryModeSafe(currentValue)) {
+            targetInputModeRef.current = value;
+            setShowModeSwitchWarning(true)
+            return;
         }
         setInputMode(value);
     };
@@ -620,7 +557,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (targetInputModeRef.current !== null) {
             setInputMode(targetInputModeRef.current);
             const targetMode = targetInputModeRef.current;
-            const shouldClearValue = [InputMode.PROMPT, InputMode.TEMPLATE, InputMode.TEXT].includes(targetMode) && inputMode === InputMode.EXP;
+            const shouldClearValue = [
+                InputMode.PROMPT,
+                InputMode.TEMPLATE,
+                InputMode.TEXT,
+                InputMode.NUMBER,
+            ]
+                .includes(targetMode) && inputMode === InputMode.EXP;
             if (shouldClearValue) {
                 setValue(key, "");
             }

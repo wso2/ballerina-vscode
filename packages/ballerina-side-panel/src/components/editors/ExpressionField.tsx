@@ -32,7 +32,7 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
@@ -105,12 +105,16 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
-export const getEditorConfiguration = (inputMode: InputMode, primaryMode: InputMode) => {
+export const getEditorConfiguration = (inputMode: InputMode) => {
     switch (inputMode) {
         case InputMode.TEXT:
             return new StringTemplateEditorConfig();
         case InputMode.TEMPLATE:
             return new RawTemplateEditorConfig();
+        case InputMode.NUMBER:
+            return new NumberExpressionEditorConfig();
+        case InputMode.SQL:
+            return new SQLExpressionEditorConfig();
         default:
             return new ChipExpressionEditorDefaultConfiguration();
     }
@@ -219,7 +223,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={getEditorConfiguration(inputMode, primaryMode)}
+                configuration={getEditorConfiguration(inputMode)}
             />
 
         );
@@ -321,7 +325,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={getEditorConfiguration(inputMode, primaryMode)}
+            configuration={getEditorConfiguration(inputMode)}
         />
     );
 };
