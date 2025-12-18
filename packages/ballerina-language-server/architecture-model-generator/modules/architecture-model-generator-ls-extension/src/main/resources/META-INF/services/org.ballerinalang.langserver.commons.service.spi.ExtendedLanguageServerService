@@ -2,3 +2,4 @@ io.ballerina.architecturemodelgenerator.extension.architecture.ArchitectureModel
 io.ballerina.architecturemodelgenerator.extension.persist.PersistERModelGeneratorService
 io.ballerina.designmodelgenerator.extension.DesignModelGeneratorService
 io.ballerina.projectservice.extension.ProjectService
+io.ballerina.copilotagent.extension.CopilotAgentService

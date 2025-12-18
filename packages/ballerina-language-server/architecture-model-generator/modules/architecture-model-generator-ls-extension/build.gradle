@@ -32,6 +32,7 @@ configurations {
 dependencies {
     implementation project(':architecture-model-generator:architecture-model-generator-core')
     implementation project(":model-generator-commons")
+    implementation project(":langserver-core")
     implementation project(":langserver-commons")
 
     implementation "org.ballerinalang:ballerina-lang:${ballerinaLangVersion}"

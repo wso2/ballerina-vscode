@@ -116,6 +116,7 @@ public final class CommonUtil {
     public static final String SDK_VERSION = System.getProperty("ballerina.version");
 
     public static final String EXPR_SCHEME = "expr";
+    public static final String AI_SCHEME = "ai";
 
     //lang.array, regexp, lang.value, lang.runtime, jballerina.java are not pre-declared.
     public static final List<String> PRE_DECLARED_LANG_LIBS = Arrays.asList("lang.boolean", "lang.decimal",
