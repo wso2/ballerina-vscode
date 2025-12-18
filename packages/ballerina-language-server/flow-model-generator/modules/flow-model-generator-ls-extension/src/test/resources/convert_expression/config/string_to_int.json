@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to int using int:fromString with error handling",
+  "output": "output.intField",
+  "outputType": "int",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "int:fromString(input.stringField) is error ? 0 : check int:fromString(input.stringField)"
+}

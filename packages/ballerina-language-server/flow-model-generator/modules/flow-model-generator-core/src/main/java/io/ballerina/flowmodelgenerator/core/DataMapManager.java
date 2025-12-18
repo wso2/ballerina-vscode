@@ -3388,6 +3388,7 @@ public class DataMapManager {
 
         return switch (typeString.toLowerCase(java.util.Locale.ROOT).trim()) {
             case "int" -> TypeDescKind.INT;
+            case "byte" -> TypeDescKind.BYTE;
             case "float" -> TypeDescKind.FLOAT;
             case "decimal" -> TypeDescKind.DECIMAL;
             case "string" -> TypeDescKind.STRING;
@@ -3398,9 +3399,8 @@ public class DataMapManager {
 
     /**
      * Generates the type conversion expression for converting between primitive types.
-     * Uses type casting with <> for all conversions except to string which uses .toString().
-     *
      * @param expression the original expression
+     * @param sourceKind the source type kind
      * @param targetKind the target type kind
      * @return the converted expression
      */
@@ -3409,15 +3409,27 @@ public class DataMapManager {
             return expression + ".toString()";
         }
 
+        if (sourceKind == TypeDescKind.STRING) {
+            return switch (targetKind) {
+                case INT -> String.format("int:fromString(%s) is error ? 0 : check int:fromString(%s)",
+                        expression, expression);
+                case FLOAT -> String.format("float:fromString(%s) is error ? 0.0 : check float:fromString(%s)",
+                        expression, expression);
+                case DECIMAL -> String.format("decimal:fromString(%s) is error ? 0.0d : check decimal:fromString(%s)",
+                        expression, expression);
+                default -> expression;
+            };
+        }
+
         String targetTypeName = switch (targetKind) {
             case INT -> "int";
+            case BYTE -> "byte";
             case FLOAT -> "float";
             case DECIMAL -> "decimal";
             default -> null;
         };
 
-        if (targetTypeName != null &&
-                sourceKind != TypeDescKind.STRING && sourceKind != TypeDescKind.BOOLEAN) {
+        if (targetTypeName != null && sourceKind != TypeDescKind.BOOLEAN) {
             return "<" + targetTypeName + ">" + expression;
         }
 

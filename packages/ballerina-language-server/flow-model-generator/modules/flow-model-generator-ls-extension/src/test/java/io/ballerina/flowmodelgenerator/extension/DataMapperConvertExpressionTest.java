@@ -53,6 +53,16 @@ public class DataMapperConvertExpressionTest extends AbstractLSTest {
                 {Path.of("float_to_decimal.json")},
                 {Path.of("int_to_float.json")},
                 {Path.of("decimal_to_float.json")},
+                {Path.of("string_to_int.json")},
+                {Path.of("string_to_float.json")},
+                {Path.of("string_to_decimal.json")},
+                {Path.of("byte_to_decimal.json")},
+                {Path.of("byte_to_float.json")},
+                {Path.of("byte_to_int.json")},
+                {Path.of("byte_to_string.json")},
+                {Path.of("decimal_to_byte.json")},
+                {Path.of("float_to_byte.json")},
+                {Path.of("int_to_byte.json")},
         };
     }
 

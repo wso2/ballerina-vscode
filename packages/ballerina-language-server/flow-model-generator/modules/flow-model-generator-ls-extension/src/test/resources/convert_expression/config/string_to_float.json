@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to float using float:fromString with error handling",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "float:fromString(input.stringField) is error ? 0.0 : check float:fromString(input.stringField)"
+}
