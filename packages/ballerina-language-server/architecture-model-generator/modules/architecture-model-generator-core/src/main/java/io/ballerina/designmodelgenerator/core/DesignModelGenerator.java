@@ -19,6 +19,7 @@
 package io.ballerina.designmodelgenerator.core;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.ObjectTypeSymbol;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -47,6 +48,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
  * Generate the design model for the default package.
@@ -187,6 +194,12 @@ public class DesignModelGenerator {
                         Connection connection = new Connection(variableSymbol.getName().get(), sortText,
                                 getLocation(lineRange), Connection.Scope.GLOBAL, icon, showConnection,
                                 CommonUtils.getConnectionKind(objectTypeSymbol));
+                        if (objectTypeSymbol instanceof ClassSymbol objectClassSymbol &&
+                                isPersistClient(objectClassSymbol, semanticModel)) {
+                            connection.addMetadata(CONNECTOR_TYPE, PERSIST);
+                            getPersistModelFilePath(rootPath)
+                                    .ifPresent(modelFile -> connection.addMetadata(PERSIST_MODEL_FILE, modelFile));
+                        }
                         intermediateModel.connectionMap.put(
                                 String.valueOf(variableSymbol.getLocation().get().hashCode()), connection);
                         intermediateModel.uuidToConnectionMap.put(connection.getUuid(), connection);

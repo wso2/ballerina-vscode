@@ -45,10 +45,12 @@ import java.util.Optional;
  * @param icon     icon representing the artifact
  * @param children map of child artifacts (id -> child)
  * @param module   module name of the artifact
+ * @param metadata metadata about the artifact
  * @since 1.0.0
  */
 public record Artifact(String id, LineRange location, String type, String name, String accessor,
-                       String scope, String icon, String module, Map<String, Artifact> children) {
+                       String scope, String icon, String module, Map<String, Artifact> children,
+                       Map<String, Object> metadata) {
 
     private static final String CATEGORY_ENTRY_POINTS = "Entry Points";
     private static final String CATEGORY_RESOURCES = "Resources";
@@ -107,7 +109,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
     }
 
     public static Artifact emptyArtifact(String id) {
-        return new Artifact(id, null, null, null, null, null, null, null, null);
+        return new Artifact(id, null, null, null, null, null, null, null, null, null);
     }
 
     public Artifact {
@@ -129,7 +131,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
         CONFIGURABLE,
         TYPE,
         CONNECTION,
-        VARIABLE;
+        VARIABLE
     }
 
     public enum Scope {
@@ -162,6 +164,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
         private String icon;
         private String module;
         private final Map<String, Artifact> children = new HashMap<>();
+        private Map<String, Object> metadata = null;
 
         public Builder(Node node) {
             this.location = node.lineRange();
@@ -236,6 +239,19 @@ public record Artifact(String id, LineRange location, String type, String name, 
             return this;
         }
 
+        public Builder metadata(Map<String, Object> metadata) {
+            this.metadata = metadata;
+            return this;
+        }
+
+        public Builder addMetadata(String key, Object value) {
+            if (this.metadata == null) {
+                this.metadata = new HashMap<>();
+            }
+            this.metadata.put(key, value);
+            return this;
+        }
+
         /**
          * Attempts to set the service name from annotations if applicable for the module.
          *
@@ -267,7 +283,7 @@ public record Artifact(String id, LineRange location, String type, String name, 
             }
             name = IdentifierUtils.unescapeBallerina(name);
             return new Artifact(id, location, type == null ? null : type.name(), name, accessor, scope.getValue(), icon,
-                    module, new HashMap<>(children));
+                    module, new HashMap<>(children), metadata == null ? null : new HashMap<>(metadata));
         }
     }
 }
