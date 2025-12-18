@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DiagnosticMessage, Imports, PropertyTypeMemberInfo } from "./bi";
+import { DiagnosticMessage, Imports, PropertyTypeMemberInfo, InputType } from "./bi";
 import { LineRange } from "./common";
 
 
@@ -158,8 +158,7 @@ export interface PropertyModel {
     isHttpResponseType?: boolean;
     value?: string;
     values?: string[];
-    valueType?: string;
-    valueTypeConstraint?: string;
+    types?: InputType[];
     isType?: boolean;
     placeholder?: string;
     defaultValue?: string | PropertyModel;
@@ -169,7 +168,6 @@ export interface PropertyModel {
     choices?: PropertyModel[];
     properties?: ConfigProperties;
     addNewButton?: boolean;
-    typeMembers?: PropertyTypeMemberInfo[];
     httpParamType?: "QUERY" | "HEADER" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;

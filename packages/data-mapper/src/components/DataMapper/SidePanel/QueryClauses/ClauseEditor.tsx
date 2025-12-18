@@ -47,7 +47,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
         { content: "Sort by", value: IntermediateClauseType.ORDER_BY },
         { content: "Limit", value: IntermediateClauseType.LIMIT },
         { content: "From", value: IntermediateClauseType.FROM },
-        { content: "Join", value: IntermediateClauseType.JOIN }
+        { content: "Join", value: IntermediateClauseType.JOIN },
+        { content: "Group by", value: IntermediateClauseType.GROUP_BY }
     ]
 
     const nameField: DMFormField = {
@@ -58,7 +59,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -70,7 +71,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "TYPE", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -86,7 +87,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -98,7 +99,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the order",
         value: clauseProps?.order ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
         items: ["ascending", "descending"]
     }
@@ -111,7 +112,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -123,7 +124,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -158,8 +159,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
         }
     }
 
-    const { 
-        data: clausePosition, 
+    const {
+        data: clausePosition,
         isFetching: isFetchingTargetLineRange
     } = useQuery({
         queryKey: ['getClausePosition', targetField, index],
@@ -200,7 +201,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 </ProgressRingWrapper> :
                 generateForm(formProps)
             }
-            
+
         </EditorContainer >
     );
 }

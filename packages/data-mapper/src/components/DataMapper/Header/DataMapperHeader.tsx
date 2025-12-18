@@ -32,7 +32,7 @@ export interface DataMapperHeaderProps {
     views: View[];
     reusable?: boolean;
     switchView: (index: number) => void;
-    hasEditDisabled: boolean;
+    hasEditDisabled?: boolean;
     onClose: () => void;
     onBack: () => void;
     onEdit?: () => void;
