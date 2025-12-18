@@ -1,0 +1,95 @@
+{
+  "description": "MySQL persist client generation - null module name (should auto-generate from database name)",
+  "testProjectFolder": "sample-project-null-module",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": [
+    "employees"
+  ],
+  "output": {
+    "sample-project-null-module/generated/mysql.testdb/persist_client.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for mysql.testdb.\n// It should not be modified by hand.\n\nimport ballerina/jballerina.java;\nimport ballerina/persist;\nimport ballerina/sql;\nimport ballerinax/mysql;\nimport ballerinax/mysql.driver as _;\nimport ballerinax/persist.sql as psql;\n\nconst EMPLOYEE = \"employees\";\n\n# MySQL persist client.\npublic isolated client class Client {\n    *persist:AbstractPersistClient;\n\n    private final mysql:Client dbClient;\n\n    private final map<psql:SQLClient> persistClients;\n\n    private final record {|psql:SQLMetadata...;|} & readonly metadata = {\n        [EMPLOYEE]: {\n            entityName: \"Employee\",\n            tableName: \"employees\",\n            fieldMetadata: {\n                id: {columnName: \"id\", dbGenerated: true},\n                firstName: {columnName: \"first_name\"},\n                lastName: {columnName: \"last_name\"},\n                email: {columnName: \"email\"},\n                department: {columnName: \"department\"},\n                salary: {columnName: \"salary\"},\n                hireDate: {columnName: \"hire_date\"},\n                createdAt: {columnName: \"created_at\"}\n            },\n            keyFields: [\"id\"]\n        }\n    };\n\n    # Initialize the persist client with MySQL database connection parameters.\n    #\n    # + host - Database server host\n    # + port - Database server port\n    # + user - Database username\n    # + password - Database password\n    # + database - Database name\n    # + connectionOptions - Additional MySQL connection options\n    # + return - An error if initialization fails\n    public isolated function init(string host, int port, string user, string password, string database, mysql:Options connectionOptions = {}) returns persist:Error? {\n        mysql:Client|error dbClient = new (host = host, user = user, password = password, database = database, port = port, options = connectionOptions);\n        if dbClient is error {\n            return <persist:Error>error(dbClient.message());\n        }\n        self.dbClient = dbClient;\n        self.persistClients = {[EMPLOYEE]: check new (dbClient, self.metadata.get(EMPLOYEE), psql:MYSQL_SPECIFICS)};\n    }\n\n    # Get rows from employees table.\n    #\n    # + targetType - Defines which fields to retrieve from the results\n    # + whereClause - SQL WHERE clause to filter the results (e.g., `column_name = value`)\n    # + orderByClause - SQL ORDER BY clause to sort the results (e.g., `column_name ASC`)\n    # + limitClause - SQL LIMIT clause to limit the number of results (e.g., `10`)\n    # + groupByClause - SQL GROUP BY clause to group the results (e.g., `column_name`)\n    # + return - A collection of matching records or an error\n    isolated resource function get employees(EmployeeTargetType targetType = <>, sql:ParameterizedQuery whereClause = ``, sql:ParameterizedQuery orderByClause = ``, sql:ParameterizedQuery limitClause = ``, sql:ParameterizedQuery groupByClause = ``) returns targetType[]|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor\",\n        name: \"queryAsList\"\n    } external;\n\n    # Get row from employees table.\n    #\n    # + id - The value of the primary key field id\n    # + targetType - Defines which fields to retrieve from the result\n    # + return - The matching record or an error\n    isolated resource function get employees/[int id](EmployeeTargetType targetType = <>) returns targetType|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor\",\n        name: \"queryOne\"\n    } external;\n\n    # Insert rows into employees table.\n    #\n    # + data - A list of records to be inserted\n    # + return - The primary key value(s) of the inserted rows or an error\n    isolated resource function post employees(EmployeeInsert[] data) returns int[]|persist:Error {\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(EMPLOYEE);\n        }\n        sql:ExecutionResult[] result = check sqlClient.runBatchInsertQuery(data);\n        return from sql:ExecutionResult inserted in result\n            where inserted.lastInsertId != ()\n            select <int>inserted.lastInsertId;\n    }\n\n    # Update row in employees table.\n    #\n    # + id - The value of the primary key field id\n    # + value - The record containing updated field values\n    # + return - The updated record or an error\n    isolated resource function put employees/[int id](EmployeeUpdate value) returns Employee|persist:Error {\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(EMPLOYEE);\n        }\n        _ = check sqlClient.runUpdateQuery(id, value);\n        return self->/employees/[id].get();\n    }\n\n    # Delete row from employees table.\n    #\n    # + id - The value of the primary key field id\n    # + return - The deleted record or an error\n    isolated resource function delete employees/[int id]() returns Employee|persist:Error {\n        Employee result = check self->/employees/[id].get();\n        psql:SQLClient sqlClient;\n        lock {\n            sqlClient = self.persistClients.get(EMPLOYEE);\n        }\n        _ = check sqlClient.runDeleteQuery(id);\n        return result;\n    }\n\n    # Execute a custom SQL query and return results.\n    #\n    # + sqlQuery - The SQL query to execute\n    # + rowType - Defines the structure of the result rows\n    # + return - A collection of result rows or an error\n    remote isolated function queryNativeSQL(sql:ParameterizedQuery sqlQuery, typedesc<record {}> rowType = <>) returns stream<rowType, persist:Error?> = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor\"\n    } external;\n\n    # Execute a custom SQL command (INSERT, UPDATE, DELETE, etc.).\n    #\n    # + sqlQuery - The SQL command to execute\n    # + return - The execution result or an error\n    remote isolated function executeNativeSQL(sql:ParameterizedQuery sqlQuery) returns psql:ExecutionResult|persist:Error = @java:Method {\n        'class: \"io.ballerina.stdlib.persist.sql.datastore.MySQLProcessor\"\n    } external;\n\n    # Close the database client and release connections.\n    #\n    # + return - An error if closing fails\n    public isolated function close() returns persist:Error? {\n        error? result = self.dbClient.close();\n        if result is error {\n            return <persist:Error>error(result.message());\n        }\n        return result;\n    }\n}\n"
+    } ],
+    "sample-project-null-module/persist/model.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "import ballerina/persist as _;\nimport ballerina/time;\nimport ballerinax/persist.sql;\n\n@sql:Name {value: \"employees\"}\npublic type Employee record {|\n    @sql:Generated\n    readonly int id;\n    @sql:Name {value: \"first_name\"}\n    @sql:Varchar {length: 100}\n    string firstName;\n    @sql:Name {value: \"last_name\"}\n    @sql:Varchar {length: 100}\n    string lastName;\n    @sql:Varchar {length: 255}\n    @sql:UniqueIndex {name: \"email\"}\n    string email;\n    @sql:Varchar {length: 100}\n    string? department;\n    @sql:Decimal {precision: [10, 2]}\n    decimal? salary;\n    @sql:Name {value: \"hire_date\"}\n    time:Date? hireDate;\n    @sql:Name {value: \"created_at\"}\n    time:Utc? createdAt;\n|};\n"
+    } ],
+    "sample-project-null-module/Ballerina.toml" : [ {
+      "range" : {
+        "start" : {
+          "line" : 6,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 6,
+          "character" : 0
+        }
+      },
+      "newText" : "\n[[tool.persist]]\nid = \"sample_project.mysql.testdb\"\ntargetModule = \"sample_project.mysql.testdb\"\nfilePath = \"persist/model.bal\"\noptions.datastore = \"mysql\"\noptions.eagerLoading = true\noptions.withInitParams = true\n\n[[dependency]]\norg = \"ballerina\"\nname = \"tool.persist\"\nversion = \"1.8.0\"\n"
+    } ],
+    "sample-project-null-module/connections.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "import sample_project.mysql.testdb;\n\nfinal testdb:Client testdb = check new (testdbHost, testdbPort, testdbUser, testdbPassword, testdbDatabase);\n\n"
+    } ],
+    "sample-project-null-module/config.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "\nconfigurable string testdbHost = \"localhost\";\nconfigurable int testdbPort = 3307;\nconfigurable string testdbUser = \"root\";\nconfigurable string testdbPassword = ?;\nconfigurable string testdbDatabase = \"testdb\";\n"
+    } ],
+    "sample-project-null-module/generated/mysql.testdb/persist_types.bal" : [ {
+      "range" : {
+        "start" : {
+          "line" : 0,
+          "character" : 0
+        },
+        "end" : {
+          "line" : 0,
+          "character" : 0
+        }
+      },
+      "newText" : "// AUTO-GENERATED FILE. DO NOT MODIFY.\n\n// This file is an auto-generated file by Ballerina persistence layer for mysql.testdb.\n// It should not be modified by hand.\n\nimport ballerina/time;\n\npublic type Employee record {|\n    readonly int id;\n    string firstName;\n    string lastName;\n    string email;\n    string? department;\n    decimal? salary;\n    time:Date? hireDate;\n    time:Utc? createdAt;\n|};\n\npublic type EmployeeOptionalized record {|\n    int id?;\n    string firstName?;\n    string lastName?;\n    string email?;\n    string? department?;\n    decimal? salary?;\n    time:Date? hireDate?;\n    time:Utc? createdAt?;\n|};\n\npublic type EmployeeTargetType typedesc<EmployeeOptionalized>;\n\npublic type EmployeeInsert record {|\n    string firstName;\n    string lastName;\n    string email;\n    string? department;\n    decimal? salary;\n    time:Date? hireDate;\n    time:Utc? createdAt;\n|};\n\npublic type EmployeeUpdate record {|\n    string firstName?;\n    string lastName?;\n    string email?;\n    string? department?;\n    decimal? salary?;\n    time:Date? hireDate?;\n    time:Utc? createdAt?;\n|};\n"
+    } ]
+  }
+}
+

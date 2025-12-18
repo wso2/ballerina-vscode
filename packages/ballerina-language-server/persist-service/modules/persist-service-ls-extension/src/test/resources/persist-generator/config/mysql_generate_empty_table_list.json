@@ -1,0 +1,15 @@
+{
+  "description": "MySQL persist client generation - empty table list",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": [],
+  "module": "test",
+  "expectError": true,
+  "expectedErrorMessage": "table"
+}

@@ -1,0 +1,13 @@
+{
+  "description": "MSSQL database introspection test - invalid database",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mssql",
+  "host": "localhost",
+  "port": 1434,
+  "user": "SA",
+  "password": "Test@12345",
+  "database": "nonexistent_db",
+  "expectError": true,
+  "expectedErrorMessage": "database"
+}

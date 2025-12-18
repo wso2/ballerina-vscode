@@ -1,0 +1,13 @@
+{
+  "description": "MySQL database introspection test - empty database with no tables",
+  "testProjectFolder": "sample-project",
+  "name": "emptydb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "emptydb",
+  "expectError": true,
+  "expectedErrorMessage": "No tables found"
+}

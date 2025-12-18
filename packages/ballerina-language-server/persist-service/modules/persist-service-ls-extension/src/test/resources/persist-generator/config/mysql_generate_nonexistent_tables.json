@@ -1,0 +1,15 @@
+{
+  "description": "MySQL persist client generation - nonexistent tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["nonexistent_table1", "nonexistent_table2"],
+  "module": "test",
+  "expectError": true,
+  "expectedErrorMessage": "No entities found"
+}
