@@ -30,8 +30,11 @@ import io.ballerina.designmodelgenerator.extension.response.GetDesignModelRespon
 import io.ballerina.designmodelgenerator.extension.response.ProjectInfoResponse;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.PathUtil;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -43,11 +46,13 @@ import java.util.concurrent.CompletableFuture;
 @JsonSegment("designModelService")
 public class DesignModelGeneratorService implements ExtendedLanguageServerService {
 
-    private WorkspaceManager workspaceManager;
+    private WorkspaceManagerProxy workspaceManagerProxy;
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
-        this.workspaceManager = workspaceManager;
+    public void init(LanguageServer langServer,
+                     WorkspaceManagerProxy workspaceManagerProxy,
+                     LanguageServerContext serverContext) {
+        this.workspaceManagerProxy = workspaceManagerProxy;
         ArtifactsCache.initialize();
     }
 
@@ -61,8 +66,9 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         return CompletableFuture.supplyAsync(() -> {
             GetDesignModelResponse response = new GetDesignModelResponse();
             try {
-                Path projectPath = Path.of(request.projectPath());
-                Project project = workspaceManager.loadProject(projectPath);
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.projectPath());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.projectPath());
+                Project project = workspaceManager.loadProject(filePath);
                 DesignModelGenerator designModelGenerator = new DesignModelGenerator(project.currentPackage());
                 DesignModel designModel = designModelGenerator.generate();
                 response.setDesignModel(designModel);
@@ -79,6 +85,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             ArtifactResponse response = new ArtifactResponse();
             try {
                 Path projectPath = Path.of(request.projectPath());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get();
                 Project project = workspaceManager.loadProject(projectPath);
                 response.setArtifacts(ArtifactsGenerator.artifacts(project));
                 response.setUri(request.projectPath());
@@ -95,6 +102,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
             ProjectInfoResponse response = new ProjectInfoResponse();
             try {
                 Path projectPath = Path.of(request.projectPath());
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get();
                 Project project = workspaceManager.loadProject(projectPath);
                 ProjectInfoBuilder visitor = new ProjectInfoBuilder(response, project, true);
                 visitor.populate();

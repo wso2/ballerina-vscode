@@ -1,0 +1,57 @@
+{
+  "description": "Get diff related to types",
+  "projectPath": "type_change",
+  "output": {
+    "loadDesignDiagrams": false,
+    "semanticDiffs": [
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 21,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 25,
+            "offset": 3
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 42,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 48,
+            "offset": 3
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "TYPE_DEFINITION",
+        "uri": "ai:///types.bal",
+        "lineRange": {
+          "fileName": "types.bal",
+          "startLine": {
+            "line": 0,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 12,
+            "offset": 3
+          }
+        }
+      }
+    ]
+  }
+}

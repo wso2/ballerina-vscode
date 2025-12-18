@@ -1,0 +1,89 @@
+{
+  "description": "Get diff related to top level functions",
+  "projectPath": "function_change",
+  "output": {
+    "loadDesignDiagrams": false,
+    "semanticDiffs": [
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 10,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 12,
+            "offset": 1
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 28,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 30,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "MODIFICATION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 7,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 7,
+            "offset": 32
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 2,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 1
+          }
+        }
+      },
+      {
+        "changeType": "ADDITION",
+        "nodeKind": "MODULE_FUNCTION",
+        "uri": "ai:///functions.bal",
+        "lineRange": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 34,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 39,
+            "offset": 1
+          }
+        }
+      }
+    ]
+  }
+}

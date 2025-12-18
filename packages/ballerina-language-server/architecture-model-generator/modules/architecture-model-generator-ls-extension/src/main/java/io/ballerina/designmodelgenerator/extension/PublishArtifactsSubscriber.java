@@ -46,6 +46,7 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
 
     public static final String NAME = "Publish artifacts subscriber";
     private static final String EXPR_URI = "expr";
+    private static final String AI_URI = "ai";
     private static final String LOAD_PROJECT = "loadProject";
     private static final String RELOAD_PROJECT = "reloadProject";
 
@@ -61,7 +62,8 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
         // 1. If the event occurred in the cloned project
         // 2. During the loading of the project
         String operationName = context.operation().getName();
-        if (context.fileUri().startsWith(EXPR_URI) || LOAD_PROJECT.equals(operationName)) {
+        if (context.fileUri().startsWith(AI_URI) ||
+                context.fileUri().startsWith(EXPR_URI) || LOAD_PROJECT.equals(operationName)) {
             return;
         }
 
