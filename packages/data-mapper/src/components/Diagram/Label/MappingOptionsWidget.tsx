@@ -247,8 +247,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     return genAggregateItems(onClickMapWithAggregateFn);
                 case MappingType.SeqToPrimitive:
                     return genAggregateItems(onClickMapSeqToPrimitive);
-                case MappingType.PrimitiveToString:
-                case MappingType.NumberToNumber:
+                case MappingType.ConvertiblePrimitives:
                     return [...convertMenuItems, ...defaultMenuItems];
                 default:
                     return defaultMenuItems;
@@ -260,8 +259,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
             pendingMappingType !== MappingType.SeqToPrimitive &&
             pendingMappingType !== MappingType.SeqToArray &&
-            pendingMappingType !== MappingType.PrimitiveToString &&
-            pendingMappingType !== MappingType.NumberToNumber) {
+            pendingMappingType !== MappingType.ConvertiblePrimitives) {
             menuItems.push({
                 id: "a2a-a2s-custom-func",
                 label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function", "function-icon"),
