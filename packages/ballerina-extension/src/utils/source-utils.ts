@@ -23,7 +23,8 @@ import { Uri } from 'vscode';
 import { ArtifactData, EVENT_TYPE, MACHINE_VIEW, ProjectStructureArtifactResponse, STModification, TextEdit } from '@wso2/ballerina-core';
 import { openView, StateMachine, undoRedoManager } from '../stateMachine';
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './project-artifacts-handler';
-import { existsSync, writeFileSync } from 'fs';
+import { existsSync, writeFileSync, mkdirSync } from 'fs';
+import * as path from 'path';
 import { notifyCurrentWebview } from '../RPCLayer';
 import { applyBallerinaTomlEdit } from '../rpc-managers/bi-diagram/utils';
 
@@ -37,6 +38,7 @@ export interface UpdateSourceCodeRequest {
     identifier?: string;
     skipPayloadCheck?: boolean; // This is used to skip the payload check because the payload data might become empty as a result of a change. Example: Deleting a component.
     isRenameOperation?: boolean; // This is used to identify if the update is a rename operation.
+    skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
 export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
@@ -49,6 +51,11 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             const fileUri = key.startsWith("file:") ? Uri.parse(key) : Uri.file(key);
             const fileUriString = fileUri.toString();
             if (!existsSync(fileUri.fsPath)) {
+                // Ensure parent directory exists before creating the file
+                const dirPath = path.dirname(fileUri.fsPath);
+                if (!existsSync(dirPath)) {
+                    mkdirSync(dirPath, { recursive: true });
+                }
                 writeFileSync(fileUri.fsPath, '');
                 await new Promise(resolve => setTimeout(resolve, 500)); // Add small delay to ensure file is created
                 await StateMachine.langClient().didOpen({
@@ -162,7 +169,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             }
 
             return new Promise((resolve, reject) => {
-                if (tomlFilesUpdated) {
+                if (tomlFilesUpdated && !updateSourceCodeRequest?.skipUpdateViewOnTomlUpdate) {
                     StateMachine.setReadyMode();
                     resolve([]);
                     return;

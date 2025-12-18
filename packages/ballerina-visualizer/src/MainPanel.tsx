@@ -82,6 +82,9 @@ import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 import { SamplesView } from "./views/BI/SamplesView";
+import { ReviewMode } from "./views/ReviewMode";
+import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
+import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 
 const globalStyles = css`
     *,
@@ -286,6 +289,7 @@ const MainPanel = () => {
                         setViewComponent(
                             <PackageOverview
                                 projectPath={value.projectPath}
+                                isInDevant={value.isInDevant}
                             />
                         );
                         break;
@@ -538,15 +542,16 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.AddConnectionWizard:
                         setViewComponent(
-                            <AddConnectionWizard
+                            <AddConnectionPopup
                                 projectPath={value.projectPath}
                                 fileName={value.documentUri || value.projectPath}
+                                onNavigateToOverview={handleNavigateToOverview}
                             />
                         );
                         break;
                     case MACHINE_VIEW.EditConnectionWizard:
                         setViewComponent(
-                            <EditConnectionWizard
+                            <EditConnectionPopup
                                 connectionName={value?.identifier}
                             />
                         );
@@ -615,6 +620,11 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.ReviewMode:
+                        setViewComponent(
+                            <ReviewMode projectPath={value.projectPath} />
+                        );
+                        break;
                     default:
                         setNavActive(false);
                         setViewComponent(<LoadingRing />);
@@ -646,6 +656,10 @@ const MainPanel = () => {
         rpcClient
             .getVisualizerRpcClient()
             .openView({ type: EVENT_TYPE.CLOSE_VIEW, location: { view: null, recentIdentifier: parent?.recentIdentifier, artifactType: parent?.artifactType }, isPopup: true });
+    };
+
+    const handleNavigateToOverview = () => {
+        rpcClient.getVisualizerRpcClient().goHome();
     };
 
     const handlePopupClose = (id: string) => {

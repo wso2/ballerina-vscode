@@ -51,8 +51,9 @@ export const BI_COMMANDS = {
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
+    DEVANT_PUSH_TO_CLOUD: 'BI.devant.push.cloud',
     CREATE_BI_PROJECT: 'BI.project.createBIProjectPure',
     CREATE_BI_MIGRATION_PROJECT: 'BI.project.createBIProjectMigration',
     ADD_INTEGRATION: 'BI.project-explorer.add-integration',
-    NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify',
+    NOTIFY_PROJECT_EXPLORER: 'BI.project-explorer.notify'
 };

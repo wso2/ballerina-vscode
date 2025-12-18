@@ -19,7 +19,6 @@
 import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
-import { InputMode } from "./ChipExpressionEditor/types";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
 import { tags } from "@lezer/highlight";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
@@ -86,6 +85,9 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -118,6 +120,9 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -153,6 +158,9 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -170,28 +178,5 @@ export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfi
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
         return `\$\{${value}\}`;
-    }
-}
-
-export class PrimaryModeChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    private readonly primaryMode: InputMode;
-
-    constructor(primaryMode: InputMode) {
-        super();
-        this.primaryMode = primaryMode;
-    }
-
-    getHelperValue(value: string, token?: ParsedToken): string {
-        const isTemplateEditor = (
-            this.primaryMode === InputMode.TEXT ||
-            this.primaryMode === InputMode.TEMPLATE ||
-            this.primaryMode === InputMode.SQL
-        );
-
-
-        if (isTemplateEditor && (!token || token.type !== TokenType.FUNCTION)) {
-            return `\$\{${value}\}`;
-        }
-        return value;
     }
 }

@@ -275,7 +275,17 @@ import {
     ProjectMigrationResult,
     FieldPropertyRequest,
     ClausePositionResponse,
-    ClausePositionRequest
+    ClausePositionRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
+    IntrospectDatabaseRequest,
+    IntrospectDatabaseResponse,
+    PersistClientGenerateRequest,
+    PersistClientGenerateResponse,
+    WSDLApiClientGenerationRequest,
+    WSDLApiClientGenerationResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -377,6 +387,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_FIELD_PROPERTY = 'dataMapper/fieldPosition',
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
+    DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
     VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
     UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
@@ -451,6 +462,7 @@ enum EXTENDED_APIS {
     BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
+    BI_GET_SEMANTIC_DIFF = 'copilotAgentService/getSemanticDiff',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
@@ -459,6 +471,9 @@ enum EXTENDED_APIS {
     OPEN_API_GENERATE_CLIENT = 'openAPIService/genClient',
     OPEN_API_GENERATED_MODULES = 'openAPIService/getModules',
     OPEN_API_CLIENT_DELETE = 'openAPIService/deleteModule',
+    PERSIST_DATABASE_INTROSPECTION = 'persistService/introspectDatabase',
+    PERSIST_CLIENT_GENERATE = 'persistService/generatePersistClient',
+    WSDL_API_CLIENT_GENERATE = 'wsdlService/genClient',
     GET_PROJECT_INFO = 'designModelService/projectInfo',
     GET_ARTIFACTS = 'designModelService/artifacts',
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
@@ -698,6 +713,18 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<Connector>(EXTENDED_APIS.CONNECTOR_CONNECTOR, params);
     }
 
+    async introspectDatabase(params: IntrospectDatabaseRequest): Promise<IntrospectDatabaseResponse> {
+        return this.sendRequest<IntrospectDatabaseResponse>(EXTENDED_APIS.PERSIST_DATABASE_INTROSPECTION, params);
+    }
+
+    async generatePersistClient(params: PersistClientGenerateRequest): Promise<PersistClientGenerateResponse> {
+        return this.sendRequest<PersistClientGenerateResponse>(EXTENDED_APIS.PERSIST_CLIENT_GENERATE, params);
+    }
+
+    async generateWSDLApiClient(params: WSDLApiClientGenerationRequest): Promise<WSDLApiClientGenerationResponse> {
+        return this.sendRequest<WSDLApiClientGenerationResponse>(EXTENDED_APIS.WSDL_API_CLIENT_GENERATE, params);
+    }
+
     async getRecord(params: RecordParams): Promise<BallerinaRecord | NOT_SUPPORTED_TYPE> {
         const isSupported = await this.isExtendedServiceSupported(EXTENDED_APIS.CONNECTOR_RECORD);
         if (!isSupported) {
@@ -856,6 +883,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
         return this.sendRequest<ClausePositionResponse>(EXTENDED_APIS.DATA_MAPPER_CLAUSE_POSITION, params);
+    }
+
+    async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return this.sendRequest<ConvertExpressionResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_EXPRESSION, params);
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
@@ -1424,6 +1455,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
         return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
     }
+
+    async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
+    }   
 
     // <------------ BI APIS END --------------->
 

@@ -44,6 +44,7 @@ export function activateCloudCommand() {
             }
 
             const isDiagram: boolean = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram();
+           
             const currentProject = isDiagram ? await
                 getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
                 : await getCurrentBallerinaProject();
