@@ -1754,8 +1754,11 @@ public class DataMapManager {
                         }
                     }
                 } else if (parentKind == SyntaxKind.COLLECT_CLAUSE) {
-                    genDeleteMappingSource(semanticModel, (ExpressionNode) parent.parent(), names, idx,
-                            textEdits, targetSymbol);
+                    if (targetSymbol != null) {
+                        String defaultVal = getDefaultValue(
+                                CommonUtil.getRawType(targetSymbol).typeKind().getName());
+                        textEdits.add(new TextEdit(CommonUtils.toRange(expr.lineRange()), defaultVal));
+                    }
                 }
             }
         } else if (expr.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
