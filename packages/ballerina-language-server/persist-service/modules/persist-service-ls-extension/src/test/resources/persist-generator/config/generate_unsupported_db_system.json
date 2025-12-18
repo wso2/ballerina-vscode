@@ -1,0 +1,15 @@
+{
+  "description": "Persist client generation - unsupported database system",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "oracle",
+  "host": "localhost",
+  "port": 1521,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["employees"],
+  "module": "employees",
+  "expectError": true,
+  "expectedErrorMessage": "Invalid database system"
+}

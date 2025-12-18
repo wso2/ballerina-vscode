@@ -1,0 +1,17 @@
+{
+  "description": "MySQL database introspection test - list all tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "expectedTables": [
+    "employees",
+    "departments",
+    "projects",
+    "no_pk_table"
+  ]
+}
