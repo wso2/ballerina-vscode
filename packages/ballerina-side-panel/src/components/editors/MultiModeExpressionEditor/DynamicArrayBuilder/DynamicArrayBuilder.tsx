@@ -16,20 +16,18 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from '@emotion/styled';
-import { Button, Codicon, ThemeColors } from '@wso2/ui-toolkit';
-import { ExpressionField, ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
+import { Button, Codicon, ErrorBanner } from '@wso2/ui-toolkit';
+import { ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
 import { InputMode } from "../ChipExpressionEditor/types";
 import { getPrimaryInputType } from "@wso2/ballerina-core";
-import { getInputModeFromBallerinaType, getInputModeFromTypes } from "../ChipExpressionEditor/utils";
+import { getInputModeFromBallerinaType } from "../ChipExpressionEditor/utils";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 
 interface DynamicArrayBuilderProps {
-    label: string;
     value: string | any[];
-    onChange: (updated: string, updatedCursorPosition: number) => void;
     expressionFieldProps: ExpressionFieldProps;
 }
 
@@ -41,31 +39,10 @@ export namespace S {
         fontFamily: 'var(--font-family)',
     });
 
-    export const Label = styled.label({
-        color: 'var(--vscode-editor-foreground)',
-        fontSize: '13px',
-        fontWeight: 'bold',
-    });
-
     export const ItemContainer = styled.div({
         display: 'flex',
         alignItems: 'center',
         gap: '8px',
-    });
-
-    export const Input = styled.input({
-        flex: 1,
-        padding: '4px 8px',
-        border: `1px solid ${ThemeColors.OUTLINE}`,
-        borderRadius: '4px',
-        backgroundColor: 'var(--vscode-input-background)',
-        color: 'var(--vscode-input-foreground)',
-        fontSize: '13px',
-        fontFamily: 'var(--vscode-editor-font-family)',
-        '&:focus': {
-            outline: `1px solid ${ThemeColors.PRIMARY}`,
-            borderColor: ThemeColors.PRIMARY,
-        },
     });
 
     export const DeleteButton = styled(Button)({
@@ -81,63 +58,156 @@ export namespace S {
     });
 }
 
+/**
+ * DynamicArrayBuilder component for managing array inputs with validation.
+ * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET type.
+ */
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
-    const { label, value, onChange, expressionFieldProps } = props;
+    const { value, expressionFieldProps } = props;
     const { form } = useFormContext();
-    const { setValue, getValues } = form;
-    
-    // Use a ref to track the current editing state to avoid stale closures
-    const currentValuesRef = useRef<string[]>(Array.isArray(value) ? value : [""]);
-    
-    // Update ref when prop changes from parent (e.g., opening in edit mode)
-    useEffect(() => {
-        currentValuesRef.current = Array.isArray(value) ? value : [""];
-    }, [value]);
+    const { setValue, setError, clearErrors, formState: { errors } } = form;
 
-    // Use the value from props directly (controlled by parent/form context)
+    // Extract configuration from EXPRESSION_SET type definition
+    const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET");
+    const minItems = expressionSetType?.minItems ?? 1;
+    const defaultItems = expressionSetType?.defaultItems ?? 1;
+    
+    const [isInitialized, setIsInitialized] = useState(false);
+    const currentValuesRef = useRef<string[]>([]);
+
+    /**
+     * Converts the incoming value to an array, using defaultItems if empty.
+     */
+    const getInitialValue = (): string[] => {
+        if (Array.isArray(value) && value.length > 0) {
+            return value;
+        }
+
+        const isEmpty = !value ||
+                       value === '' ||
+                       value === '[]' ||
+                       (Array.isArray(value) && value.length === 0);
+
+        return isEmpty && defaultItems > 0 ? Array(defaultItems).fill("") : [];
+    };
+
+    // Initialize the field with default items on mount
+    useEffect(() => {
+        const initialValue = getInitialValue();
+        const shouldInitialize = initialValue.length > 0 && (
+            !value ||
+            value === '' ||
+            value === '[]' ||
+            (Array.isArray(value) && value.length === 0)
+        );
+
+        if (shouldInitialize) {
+            currentValuesRef.current = initialValue;
+            setValue(expressionFieldProps.field.key, initialValue, { shouldValidate: false, shouldDirty: false });
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Update ref when value changes from parent
+    useEffect(() => {
+        if (isInitialized) {
+            currentValuesRef.current = getInitialValue();
+        }
+    }, [value, isInitialized]);
+
+    // Compute current array values
     const arrayValues = useMemo(() => {
-        return Array.isArray(value) ? value : [""];
-    }, [value]);
+        if (!isInitialized) {
+            return currentValuesRef.current;
+        }
+        return getInitialValue();
+    }, [value, isInitialized]);
+
+    // Validate minItems constraint
+    useEffect(() => {
+        if (!isInitialized) return;
+
+        const hasNonEmptyValues = arrayValues.some(v => v && v.trim() !== '');
+
+        if (minItems > 0) {
+            const isInvalid = arrayValues.length < minItems || !hasNonEmptyValues;
+
+            if (isInvalid) {
+                setError(expressionFieldProps.field.key, {
+                    type: 'required',
+                    message: `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required with valid value${minItems > 1 ? 's' : ''}`
+                });
+            } else {
+                clearErrors(expressionFieldProps.field.key);
+            }
+        } else {
+            clearErrors(expressionFieldProps.field.key);
+        }
+    }, [arrayValues, minItems, expressionFieldProps.field.key, setError, clearErrors, isInitialized]);
+
+    // Ensure minimum number of items are always visible
+    useEffect(() => {
+        if (!isInitialized) return;
+
+        const requiredCount = Math.max(minItems, defaultItems);
+
+        if (requiredCount > 0 && arrayValues.length < requiredCount) {
+            const paddedArray = [...arrayValues];
+            while (paddedArray.length < requiredCount) {
+                paddedArray.push('');
+            }
+            currentValuesRef.current = paddedArray;
+            setValue(expressionFieldProps.field.key, paddedArray, { shouldValidate: true });
+        }
+    }, [arrayValues, isInitialized, minItems, defaultItems, expressionFieldProps.field.key, setValue]);
 
     const handleInputChange = (index: number, newValue: string) => {
-        // Use the current ref value to ensure we have the latest state
-        const currentArray = [...currentValuesRef.current];
-        currentArray[index] = newValue;
-        currentValuesRef.current = currentArray;
-        setValue(expressionFieldProps.field.key, currentArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = [...currentValuesRef.current];
+        updatedArray[index] = newValue;
+        currentValuesRef.current = updatedArray;
+        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleDelete = (index: number) => {
-        const currentArray = [...currentValuesRef.current];
-        const newArray = currentArray.filter((_, i) => i !== index);
-        currentValuesRef.current = newArray;
-        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = currentValuesRef.current.filter((_, i) => i !== index);
+        currentValuesRef.current = updatedArray;
+        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleAdd = () => {
-        const currentArray = [...currentValuesRef.current];
-        const newArray = [...currentArray, ''];
-        currentValuesRef.current = newArray;
-        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = [...currentValuesRef.current, ''];
+        currentValuesRef.current = updatedArray;
+        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const primaryInputMode = useMemo(() => {
         if (expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
-        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)
+        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
+
+    const renderError = () => {
+        const error = errors[expressionFieldProps.field.key];
+        if (!error) return null;
+
+        const errorMessage = typeof error.message === 'string'
+            ? error.message
+            : String(error.message || 'Validation error');
+
+        return <ErrorBanner errorMsg={errorMessage} />;
+    };
+
     return (
         <S.Container>
-            <S.Label>{label}</S.Label>
-            {arrayValues.map((value, index) => (
+            {arrayValues.map((itemValue, index) => (
                 <S.ItemContainer key={`${expressionFieldProps.field.key}-${index}`}>
                     <ChipExpressionEditorComponent
                         getHelperPane={props.expressionFieldProps.getHelperPane}
                         isExpandedVersion={false}
                         completions={props.expressionFieldProps.completions}
                         onChange={(value) => handleInputChange(index, value)}
-                        value={value}
+                        value={itemValue}
                         sanitizedExpression={props.expressionFieldProps.sanitizedExpression}
                         rawExpression={props.expressionFieldProps.rawExpression}
                         fileName={props.expressionFieldProps.fileName}
@@ -151,6 +221,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => handleDelete(index)}
+                        disabled={arrayValues.length <= minItems}
                     >
                         <Codicon name="trash" />
                     </S.DeleteButton>
@@ -163,6 +234,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                 <Codicon name="add" />
                 Add Item
             </S.AddButton>
+            {renderError()}
         </S.Container>
     );
 };
