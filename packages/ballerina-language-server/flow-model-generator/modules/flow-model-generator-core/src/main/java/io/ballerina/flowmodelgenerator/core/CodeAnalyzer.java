@@ -234,6 +234,12 @@ public class CodeAnalyzer extends NodeVisitor {
     public static final String NAME = "name";
     private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
 
+    // Agent field names
+    private static final String FIELD_TOOLS = "tools";
+    private static final String FIELD_MODEL = "model";
+    private static final String FIELD_SYSTEM_PROMPT = "systemPrompt";
+    private static final String FIELD_MEMORY = "memory";
+
     // Metadata data keys
     private static final String KIND_KEY = "kind";
     private static final String LABEL_KEY = "label";
@@ -522,19 +528,42 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode memory = null;
 
         for (FunctionArgumentNode arg : argList.get().arguments()) {
-            if (arg.kind() == SyntaxKind.NAMED_ARG) {
-                NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
-                if (namedArgumentNode.argumentName().name().text().equals("tools")) {
-                    toolsArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("model")) {
-                    modelArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("systemPrompt")) {
-                    systemPromptArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("memory")) {
-                    memory = namedArgumentNode.expression();
+            if (arg instanceof NamedArgumentNode namedArgumentNode) {
+                String argumentName = namedArgumentNode.argumentName().name().text();
+                switch (argumentName) {
+                    case FIELD_TOOLS -> toolsArg = namedArgumentNode.expression();
+                    case FIELD_MODEL -> modelArg = namedArgumentNode.expression();
+                    case FIELD_SYSTEM_PROMPT -> systemPromptArg = namedArgumentNode.expression();
+                    case FIELD_MEMORY -> memory = namedArgumentNode.expression();
+                    default -> {
+                    }
                 }
-                agentData.put(namedArgumentNode.argumentName().name().text(),
-                        namedArgumentNode.expression().toString().trim());
+                agentData.put(argumentName, namedArgumentNode.expression().toString().trim());
+            } else if (arg instanceof PositionalArgumentNode positionalArg) {
+                ExpressionNode expression = positionalArg.expression();
+                if (expression instanceof MappingConstructorExpressionNode mappingCtr) {
+                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                    for (MappingFieldNode field : fields) {
+                        if (!(field instanceof SpecificFieldNode specificField)) {
+                            continue;
+                        }
+                        Optional<ExpressionNode> valueExprOpt = specificField.valueExpr();
+                        if (valueExprOpt.isEmpty()) {
+                            continue;
+                        }
+                        String fieldName = specificField.fieldName().toString().trim();
+                        ExpressionNode valueExpr = valueExprOpt.get();
+                        switch (fieldName) {
+                            case FIELD_TOOLS -> toolsArg = valueExpr;
+                            case FIELD_MODEL -> modelArg = valueExpr;
+                            case FIELD_SYSTEM_PROMPT -> systemPromptArg = valueExpr;
+                            case FIELD_MEMORY -> memory = valueExpr;
+                            default -> {
+                            }
+                        }
+                        agentData.put(fieldName, valueExpr.toString().trim());
+                    }
+                }
             }
         }
 

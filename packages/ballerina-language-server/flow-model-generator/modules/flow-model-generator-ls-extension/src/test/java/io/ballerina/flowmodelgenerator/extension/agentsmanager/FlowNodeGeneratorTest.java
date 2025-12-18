@@ -51,6 +51,7 @@ public class FlowNodeGeneratorTest extends AbstractLSTest {
                 {Path.of("agent_call_flow_node_4.json")},
                 {Path.of("agent_call_flow_node_7.json")},
                 {Path.of("agent_call_flow_node_8.json")},
+                {Path.of("agent_call_flow_node_9.json")}
 //                {Path.of("agent_call_flow_node_5.json")},
 //                {Path.of("agent_call_flow_node_6.json")}
         };
