@@ -150,8 +150,6 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         return (
             <DynamicArrayBuilder
                 value={value}
-                label={field.label}
-                onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
             />
         );
