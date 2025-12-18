@@ -122,7 +122,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     };
 
     const primaryInputMode = useMemo(() => {
-        if (expressionFieldProps.field.types.length === 0) {
+        if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)

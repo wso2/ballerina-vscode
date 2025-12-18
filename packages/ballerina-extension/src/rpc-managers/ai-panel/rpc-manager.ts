@@ -52,6 +52,8 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGeneratorIntermediaryState,
@@ -70,11 +72,11 @@ import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
+import { getPendingReviewContext, clearPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-// import { generateHealthcareCode } from "../../features/ai/service/healthcare/healthcare";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
@@ -701,16 +703,109 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const config = workspace.getConfiguration('ballerina');
         return config.get<boolean>('ai.planMode', false);
     }
-}
 
+    async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return new Promise(async (resolve) => {
+            const context = StateMachine.context();
+            console.log(">>> requesting semantic diff from ls", JSON.stringify(params));
+            try {
+                const res: SemanticDiffResponse = await context.langClient.getSemanticDiff(params);
+                console.log(">>> semantic diff response from ls", JSON.stringify(res));
+                resolve(res);
+            } catch (error) {
+                console.log(">>> error in getting semantic diff", error);
+                resolve(undefined);
+            }
+        });
+    }
+
+    async acceptChanges(): Promise<void> {
+        const reviewContext = getPendingReviewContext();
+        
+        if (!reviewContext) {
+            console.warn("[Review Actions] No pending review context found for accept");
+            return;
+        }
+
+        try {
+            // Integrate code to workspace if there are modified files
+            if (reviewContext.modifiedFiles.length > 0) {
+                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
+                const modifiedFilesSet = new Set(reviewContext.modifiedFiles);
+                await integrateCodeToWorkspace(reviewContext.tempProjectPath, modifiedFilesSet, reviewContext.ctx);
+                console.log(`[Review Actions] Integrated ${reviewContext.modifiedFiles.length} file(s) to workspace`);
+            }
+
+            // Cleanup
+            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            
+            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            if (reviewContext.shouldCleanup) {
+                cleanupTempProject(reviewContext.tempProjectPath);
+            }
+            
+            clearPendingReviewContext();
+            
+            // Hide review actions component
+            AIChatStateMachine.sendEvent({
+                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+            });
+        } catch (error) {
+            console.error("[Review Actions] Error accepting changes:", error);
+            throw error;
+        }
+    }
+
+    async declineChanges(): Promise<void> {
+        const reviewContext = getPendingReviewContext();
+        
+        if (!reviewContext) {
+            console.warn("[Review Actions] No pending review context found for decline");
+            return;
+        }
+
+        try {
+            // Just cleanup without integrating changes
+            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            
+            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
+            await new Promise(resolve => setTimeout(resolve, 300));
+            
+            if (reviewContext.shouldCleanup) {
+                cleanupTempProject(reviewContext.tempProjectPath);
+            }
+            
+            clearPendingReviewContext();
+            
+            // Hide review actions component
+            AIChatStateMachine.sendEvent({
+                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+            });
+        } catch (error) {
+            console.error("[Review Actions] Error declining changes:", error);
+            throw error;
+        }
+    }
+
+    async showReviewActions(): Promise<void> {
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
+        });
+    }
+
+    async hideReviewActions(): Promise<void> {
+        AIChatStateMachine.sendEvent({
+            type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+        });
+    }
+}
 
 interface SummaryResponse {
     summary: string;
-}
-
-interface BalModification {
-    fileUri: string;
-    moduleName: string;
 }
 
 async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {

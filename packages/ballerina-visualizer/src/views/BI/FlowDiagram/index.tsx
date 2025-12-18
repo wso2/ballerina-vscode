@@ -491,7 +491,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then((model) => {
                         console.log(">>> BIFlowDiagram getFlowModel", model);
                         if (model?.flowModel) {
@@ -1343,7 +1343,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
-                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel();
+                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel({});
                         if (!updatedModel?.flowModel) {
                             console.error(">>> Flow model missing after helper-pane update");
                             return;

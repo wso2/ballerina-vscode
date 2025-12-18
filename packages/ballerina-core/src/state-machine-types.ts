@@ -100,7 +100,8 @@ export enum MACHINE_VIEW {
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
-    BISamplesView = "BI Samples View"
+    BISamplesView = "BI Samples View",
+    ReviewMode = "Review Mode SKIP"
 }
 
 export interface MachineEvent {
@@ -148,6 +149,7 @@ export interface VisualizerLocation {
     version?: string;
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
+    reviewData?: ReviewModeData;
 }
 
 export interface ArtifactInfo {
@@ -173,6 +175,21 @@ export interface VisualizerMetadata {
 export interface DataMapperMetadata {
     name: string;
     codeData: CodeData;
+}
+
+export interface ReviewViewItem {
+    type: 'component' | 'flow';
+    filePath: string;
+    position: NodePosition;
+    projectPath: string;
+    label?: string;
+}
+
+export interface ReviewModeData {
+    views: ReviewViewItem[];
+    currentIndex: number;
+    onAccept?: string;
+    onReject?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
@@ -211,7 +228,8 @@ export type ChatNotify =
     | UsageMetricsEvent
     | TaskApprovalRequest
     | GeneratedSourcesEvent
-    | ConnectorGenerationNotification;
+    | ConnectorGenerationNotification
+    | CodeReviewActions;
 
 export interface ChatStart {
     type: "start";
@@ -327,6 +345,10 @@ export interface ConnectorGenerationNotification {
     message: string;
 }
 
+export interface CodeReviewActions {
+    type: "review_actions";
+}
+
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
@@ -439,6 +461,8 @@ export enum AIChatMachineEventType {
     CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
     PROVIDE_CONNECTOR_SPEC = 'PROVIDE_CONNECTOR_SPEC',
     SKIP_CONNECTOR_GENERATION = 'SKIP_CONNECTOR_GENERATION',
+    SHOW_REVIEW_ACTIONS = 'SHOW_REVIEW_ACTIONS',
+    HIDE_REVIEW_ACTIONS = 'HIDE_REVIEW_ACTIONS',
 }
 
 export interface ChatMessage {
@@ -532,6 +556,8 @@ export interface AIChatMachineContext {
     commandType?: string;
     modifiedFiles?: string[];
     commandParams?: any;
+    // Review actions state
+    showReviewActions?: boolean;
     operationType?: OperationType;
 }
 
@@ -558,7 +584,9 @@ export type AIChatMachineSendableEvent =
     | { type: AIChatMachineEventType.RETRY }
     | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
     | { type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC; payload: { requestId: string; spec: any; inputMethod: 'file' | 'paste' | 'url'; sourceIdentifier?: string } }
-    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } };
+    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } }
+    | { type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS }
+    | { type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS };
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',

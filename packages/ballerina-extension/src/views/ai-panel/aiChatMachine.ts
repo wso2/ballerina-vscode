@@ -128,6 +128,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
         currentSpec: undefined,
         isPlanMode: false,
         checkpoints: [],
+        showReviewActions: false,
         operationType: undefined,
         fileAttachments: [],
     } as AIChatMachineContext,
@@ -148,6 +149,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         return event.payload.isPlanMode;
                     },
                     codeContext: (_ctx, event) => normalizeCodeContext(event.payload.codeContext),
+                    showReviewActions: () => false, // Hide review actions when new prompt is submitted
                     operationType: (_ctx, event) => event.payload.operationType,
                     fileAttachments: (_ctx, event) => event.payload.fileAttachments ?? [],
                 }),
@@ -204,6 +206,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     sessionId: (_ctx) => undefined,
                     checkpoints: (_ctx) => [],
                     isPlanMode: (_ctx) => false,
+                    showReviewActions: (_ctx) => false,
                     operationType : undefined,
                     fileAttachments: (_ctx) => [],
                 }),
@@ -269,6 +272,16 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 target: "Completed",
             },
         ],
+        [AIChatMachineEventType.SHOW_REVIEW_ACTIONS]: {
+            actions: assign({
+                showReviewActions: () => true,
+            }),
+        },
+        [AIChatMachineEventType.HIDE_REVIEW_ACTIONS]: {
+            actions: assign({
+                showReviewActions: () => false,
+            }),
+        },
     },
     states: {
         Idle: {

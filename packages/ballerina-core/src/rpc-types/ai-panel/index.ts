@@ -16,7 +16,39 @@
  * under the License.
  */
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, GenerateAgentCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import {
+    GetFromFileRequest,
+    DeleteFromProjectRequest,
+    ProjectSource,
+    ProjectDiagnostics,
+    PostProcessRequest,
+    PostProcessResponse,
+    FetchDataRequest,
+    FetchDataResponse,
+    TestGenerationMentions,
+    AIChatSummary,
+    DeveloperDocument,
+    RequirementSpecification,
+    LLMDiagnostics,
+    AIPanelPrompt,
+    AIMachineSnapshot,
+    SubmitFeedbackRequest,
+    RelevantLibrariesAndFunctionsRequest,
+    GenerateOpenAPIRequest,
+    GenerateCodeRequest,
+    GenerateAgentCodeRequest,
+    TestPlanGenerationRequest,
+    TestGeneratorIntermediaryState,
+    RepairParams,
+    RelevantLibrariesAndFunctionsResponse,
+    DocGenerationRequest,
+    AddFilesToProjectRequest,
+    MetadataWithAttachments,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
+} from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -51,17 +83,19 @@ export interface AIPanelAPI {
     showSignInAlert: () => Promise<boolean>;
     markAlertShown: () => void;
     getFromDocumentation: (params: string) => Promise<string>;
-    isRequirementsSpecificationFileExist:(params: string) => Promise<boolean>;
-    getDriftDiagnosticContents:() => Promise<LLMDiagnostics>;
-    addChatSummary:(params: AIChatSummary) => Promise<boolean>;
-    handleChatSummaryError:(params: string) => void;
-    isNaturalProgrammingDirectoryExists:(params: string) => Promise<boolean>;
-    readDeveloperMdFile:(params: string) => Promise<string>;
-    updateDevelopmentDocument:(params: DeveloperDocument) => void;
-    updateRequirementSpecification:(params: RequirementSpecification) => void;
-    createTestDirecoryIfNotExists:() => void;
+    isRequirementsSpecificationFileExist: (params: string) => Promise<boolean>;
+    getDriftDiagnosticContents: () => Promise<LLMDiagnostics>;
+    addChatSummary: (params: AIChatSummary) => Promise<boolean>;
+    handleChatSummaryError: (params: string) => void;
+    isNaturalProgrammingDirectoryExists: (params: string) => Promise<boolean>;
+    readDeveloperMdFile: (params: string) => Promise<string>;
+    updateDevelopmentDocument: (params: DeveloperDocument) => void;
+    updateRequirementSpecification: (params: RequirementSpecification) => void;
+    createTestDirecoryIfNotExists: () => void;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
-    getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
+    getRelevantLibrariesAndFunctions: (
+        params: RelevantLibrariesAndFunctionsRequest
+    ) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateCode: (params: GenerateCodeRequest) => void;
     generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
@@ -78,4 +112,10 @@ export interface AIPanelAPI {
     isUserAuthenticated: () => Promise<boolean>;
     openAIPanel: (params: AIPanelPrompt) => Promise<void>;
     isPlanModeFeatureEnabled: () => Promise<boolean>;
+    // AI schema related functions
+    getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
+    acceptChanges: () => Promise<void>;
+    declineChanges: () => Promise<void>;
+    showReviewActions: () => Promise<void>;
+    hideReviewActions: () => Promise<void>;
 }

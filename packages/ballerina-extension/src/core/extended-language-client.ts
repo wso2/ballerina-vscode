@@ -276,6 +276,8 @@ import {
     FieldPropertyRequest,
     ClausePositionResponse,
     ClausePositionRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     IntrospectDatabaseRequest,
@@ -460,6 +462,7 @@ enum EXTENDED_APIS {
     BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
+    BI_GET_SEMANTIC_DIFF = 'copilotAgentService/getSemanticDiff',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
@@ -1452,6 +1455,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
         return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
     }
+
+    async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
+    }   
 
     // <------------ BI APIS END --------------->
 

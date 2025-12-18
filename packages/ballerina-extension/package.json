@@ -581,6 +581,11 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.refresh",
+                "title": "Refresh Ballerina",
+                "category": "BI"
+            },
+            {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
                 "icon": "$(distro-agent-view)",
