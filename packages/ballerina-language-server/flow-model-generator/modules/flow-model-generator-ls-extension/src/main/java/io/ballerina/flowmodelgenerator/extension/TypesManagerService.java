@@ -65,8 +65,11 @@ import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.diagramutil.connector.models.connector.Type;
+import org.ballerinalang.langserver.common.utils.PathUtil;
+import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManagerProxy;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.eclipse.lsp4j.jsonrpc.services.JsonSegment;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -86,7 +89,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
     // A type can be deleted if it has at most one reference (the definition itself).
     public static final int MAX_REFERENCE_FOR_DELETE = 1;
-    private WorkspaceManager workspaceManager;
+    private WorkspaceManagerProxy workspaceManagerProxy;
 
     // Cache key for SemanticModel
     private record CacheKey(String org, String packageName, String version) {
@@ -96,8 +99,9 @@ public class TypesManagerService implements ExtendedLanguageServerService {
     private static final ConcurrentHashMap<CacheKey, SemanticModel> semanticModelCache = new ConcurrentHashMap<>();
 
     @Override
-    public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
-        this.workspaceManager = workspaceManager;
+    public void init(LanguageServer langServer, WorkspaceManagerProxy workspaceManagerProxy,
+                     LanguageServerContext serverContext) {
+        this.workspaceManagerProxy = workspaceManagerProxy;
     }
 
     @Override
@@ -116,10 +120,11 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeListResponse response = new TypeListResponse();
             try {
-                Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
+                workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     return response;
                 }
@@ -144,10 +149,11 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeResponse response = new TypeResponse();
             try {
-                Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
+                workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     return response;
                 }
@@ -177,10 +183,11 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeResponse response = new TypeResponse();
             try {
-                Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
+                workspaceManager.loadProject(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
                     return response;
                 }
@@ -211,9 +218,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             TypeUpdateResponse response = new TypeUpdateResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                this.workspaceManager.loadProject(filePath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                workspaceManager.loadProject(filePath);
                 TypeData typeData = (new Gson()).fromJson(request.type(), TypeData.class);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
                 if (document.isEmpty()) {
                     return response;
                 }
@@ -242,9 +250,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
                 Path filePath = Path.of(request.filePath());
 
                 // Load project and document
-                Project project = this.workspaceManager.loadProject(filePath);
-                Optional<SemanticModel> semanticModelOpt = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> documentOpt = this.workspaceManager.document(filePath);
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Project project = workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModelOpt = workspaceManager.semanticModel(filePath);
+                Optional<Document> documentOpt = workspaceManager.document(filePath);
 
                 if (semanticModelOpt.isEmpty() || documentOpt.isEmpty()) {
                     return response;
@@ -297,8 +306,10 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             VerifyTypeDeleteResponse response = new VerifyTypeDeleteResponse();
             try {
                 Path filePath = Path.of(request.filePath());
-                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
-                Optional<Document> document = this.workspaceManager.document(filePath);
+
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
+                Optional<Document> document = workspaceManager.document(filePath);
 
                 if (semanticModel.isEmpty() || document.isEmpty()) {
                     response.setCanDelete(false);
@@ -330,6 +341,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             TypeUpdateResponse response = new TypeUpdateResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
                 FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
                 TypeData typeData = (new Gson()).fromJson(request.type(), TypeData.class);
                 Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
@@ -355,6 +368,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
             MultipleTypeUpdateResponse response = new MultipleTypeUpdateResponse();
             try {
                 Path filePath = Path.of(request.filePath());
+
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
                 FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
                 Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
                 List<TypeData> typeDataList = new ArrayList<>();
@@ -520,6 +535,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
 
             try {
                 Path filePath = Path.of(request.filePath());
+
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
                 FileSystemUtils.createFileIfNotExists(workspaceManager, filePath);
 
                 JsonToTypeMapper jsonToTypeMapper = new JsonToTypeMapper(
@@ -546,6 +563,8 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         // Check cache with filePath
         CacheKey keyWithPath = new CacheKey(org, packageName, version);
         // Try to load via filePath-specific method
+
+        WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
         Optional<SemanticModel> model = PackageUtil.getSemanticModelIfMatched(workspaceManager, filePath, org,
                 packageName, moduleName, version);
         if (model.isPresent()) {
