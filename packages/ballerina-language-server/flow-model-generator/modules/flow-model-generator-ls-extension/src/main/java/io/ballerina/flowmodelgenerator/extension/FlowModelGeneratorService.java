@@ -84,6 +84,7 @@ import io.ballerina.tools.text.TextEdit;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.LSClientLogger;
+import org.ballerinalang.langserver.common.utils.PathUtil;
 import org.ballerinalang.langserver.commons.LanguageServerContext;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -131,10 +132,9 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
-                Path filePath = Path.of(request.filePath());
-                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
-
+                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
                 // Obtain the semantic model and the document
+                WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.filePath());
                 Project project = workspaceManager.loadProject(filePath);
                 Optional<SemanticModel> semanticModel = workspaceManager.semanticModel(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
