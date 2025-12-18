@@ -7,7 +7,6 @@
   "moduleName": "mssql",
   "version": "1.16.1",
   "type": "event",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png",
   "properties": {
     "host": {
       "metadata": {
@@ -131,11 +130,12 @@
         "originalName": "databaseNames"
       },
       "placeholder": "",
-      "value": "",
       "types": [
         {
           "fieldType": "EXPRESSION_SET",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "minItems": 1,
+          "defaultItems": 1
         }
       ],
       "enabled": true,
@@ -153,11 +153,12 @@
         "originalName": "includedSchemas"
       },
       "placeholder": "",
-      "value": "",
       "types": [
         {
           "fieldType": "EXPRESSION_SET",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "minItems": 0,
+          "defaultItems": 0
         }
       ],
       "enabled": true,
@@ -165,21 +166,27 @@
       "optional": true,
       "advanced": false
     },
-    "tables": {
+    "table": {
       "metadata": {
-        "label": "Tables",
-        "description": "The fully-qualified table name(s) to capture events from. Format: `<database>.<schema>.<table>`"
+        "label": "Table",
+        "description": "The fully-qualified table name to capture events from. Format: `<database>.<schema>.<table>`"
       },
       "codedata": {
         "argType": "annotationParam",
         "originalName": "tables"
       },
       "placeholder": "",
-      "value": "",
+      "value": "\"\"",
       "types": [
         {
-          "fieldType": "EXPRESSION_SET",
-          "ballerinaType": "string"
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": true
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": false
         }
       ],
       "enabled": true,

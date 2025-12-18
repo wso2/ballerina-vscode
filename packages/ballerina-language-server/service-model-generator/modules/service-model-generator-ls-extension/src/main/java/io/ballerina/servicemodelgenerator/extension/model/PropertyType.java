@@ -56,14 +56,19 @@ public class PropertyType {
     private final List<Object> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
+    private final Integer minItems;
+    private final Integer defaultItems;
 
     public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Object> options,
-                        List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
+                        List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
+                        Integer defaultItems) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.options = options;
         this.typeMembers = typeMembers;
         this.selected = selected;
+        this.minItems = minItems;
+        this.defaultItems = defaultItems;
     }
 
     public static PropertyType types(Value.FieldType fieldType) {
@@ -148,7 +153,7 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, false));
+                                        distinctMembers, false, null, null));
                             }
                         });
             }
@@ -306,12 +311,22 @@ public class PropertyType {
         this.selected = selected;
     }
 
+    public Integer minItems() {
+        return minItems;
+    }
+
+    public Integer defaultItems() {
+        return defaultItems;
+    }
+
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
         private List<Object> options;
         private List<PropertyTypeMemberInfo> typeMembers;
         private boolean selected = false;
+        private Integer minItems;
+        private Integer defaultItems;
 
         public Builder() {
         }
@@ -347,8 +362,18 @@ public class PropertyType {
             return this;
         }
 
+        public Builder minItems(Integer minItems) {
+            this.minItems = minItems;
+            return this;
+        }
+
+        public Builder defaultItems(Integer defaultItems) {
+            this.defaultItems = defaultItems;
+            return this;
+        }
+
         public PropertyType build() {
-            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected);
+            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems, defaultItems);
         }
     }
 

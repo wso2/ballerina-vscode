@@ -100,7 +100,8 @@ public record Artifact(String id, LineRange location, String type, String name, 
      * module can have multiple field names to try in order of preference.
      */
     private static final Map<String, String[]> moduleAnnotationFields = Map.of(
-            "solace", new String[]{"queueName", "topicName"}
+            "solace", new String[]{"queueName", "topicName"},
+            "mssql", new String[]{"tables"}
     );
 
     public static String getCategory(String type) {
