@@ -1,0 +1,8 @@
+{
+  "description": "Convert byte to float using type casting",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "input.byteField",
+  "expressionType": "byte",
+  "convertedExpression": "<float>input.byteField"
+}

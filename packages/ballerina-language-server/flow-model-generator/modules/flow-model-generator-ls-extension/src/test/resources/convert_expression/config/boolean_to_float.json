@@ -1,0 +1,8 @@
+{
+  "description": "Convert boolean to float using ternary expression",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "input.boolField",
+  "expressionType": "boolean",
+  "convertedExpression": "(input.boolField ? 1.0f : 0.0f)"
+}
