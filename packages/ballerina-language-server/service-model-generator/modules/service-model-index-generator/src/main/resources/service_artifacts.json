@@ -1829,7 +1829,14 @@
             }
           ]
         }
-      }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "tables",
+          "displayName": "Table Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }

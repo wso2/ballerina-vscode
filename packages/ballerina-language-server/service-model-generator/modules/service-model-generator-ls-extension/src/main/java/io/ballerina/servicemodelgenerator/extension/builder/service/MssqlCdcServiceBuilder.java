@@ -90,7 +90,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     private static final int CHOICE_SELECT_EXISTING_LISTENER = 0;
     private static final int CHOICE_CONFIGURE_NEW_LISTENER = 1;
     private static final String KEY_SELECT_LISTENER = "selectListener";
-    private static final String KEY_TABLES = "tables";
+    private static final String KEY_TABLE = "table";
 
     private final List<String> listenerFields = List.of(
             "listenerVarName",
@@ -161,11 +161,11 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         }
 
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
-        Value tablesValue = properties.get(KEY_TABLES);
+        Value tableValue = properties.get(KEY_TABLE);
 
         String serviceDeclaration = NEW_LINE +
                 listenerDeclaration +
-                buildServiceConfigurations(tablesValue) +
+                buildServiceConfigurations(tableValue) +
                 NEW_LINE +
                 SERVICE + SPACE + "cdc:Service" +
                 SPACE + ON + SPACE + listenerName + SPACE +
@@ -274,25 +274,15 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         }
     }
 
-    private String buildServiceConfigurations(Value tablesValue) {
-        StringBuilder annotation = new StringBuilder();
-
-        annotation.append("@").append("cdc:ServiceConfig").append(" {").append("\n");
-        // TODO: create and set the cdc:ServiceConfig annotation using the tables property
-        List<String> tableList = new ArrayList<>();
-        if (tablesValue.getValues() != null && !tablesValue.getValues().isEmpty()) {
-            tableList = tablesValue.getValues().stream()
-                    .filter(Objects::nonNull)
-                    .filter(v -> !emptyStringTemplate.matcher(v.trim()).matches())
-                    .toList();
+    private String buildServiceConfigurations(Value tableValue) {
+        String tableField = tableValue.getValue();
+        if (tableField.isBlank() || emptyStringTemplate.matcher(tableField.trim()).matches()) {
+            return "";
         }
-
-        annotation.append("    tables: [")
-                .append(String.join(", ", tableList))
-                .append("]").append("\n");
-        annotation.append("}").append("\n");
-
-        return annotation.toString();
+        return "@" + "cdc:ServiceConfig" + " {" + "\n" +
+                "    tables: " +
+                tableField +
+                "}" + "\n";
     }
 
     private String buildDatabaseConfig(Map<String, Value> properties) {
