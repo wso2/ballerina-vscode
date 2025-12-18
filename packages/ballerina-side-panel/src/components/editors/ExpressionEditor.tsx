@@ -569,7 +569,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     }
 
     const isExpToTextSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
+        if (expValue === null || expValue === undefined || expValue.length === 0) return true;
         const trimmed = expValue.trim();
         if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
             const content = trimmed.slice(1, -1);

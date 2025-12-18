@@ -44,6 +44,9 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
 export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (!inputType) return;
 
+    if (inputType.fieldType === "TEXT") {
+        return InputMode.TEXT;
+    }
     if (inputType.fieldType === "EXPRESSION") {
         return InputMode.EXP;
     }
@@ -52,6 +55,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     }
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
+    }
+    if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
+        return InputMode.MAP;
     }
 
     //default behaviour

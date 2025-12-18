@@ -98,41 +98,138 @@ interface MapEditorProps {
 }
 
 export function MapEditor(props: MapEditorProps) {
-    const [editorCount, setEditorCount] = useState(1);
+    const { field, label, ...rest } = props;
+    const { form } = useFormContext();
+    const { register, unregister, setValue, watch, formState } = form;
 
-    const onDelete = (index: number) => {
-        if (editorCount <= 1) return;
-        setEditorCount(prev => prev - 1);
-    }
+    const initialValues = Array.isArray(field.value) ? field.value : [];
+    const [editorCount, setEditorCount] = useState(Math.max(initialValues.length, 1));
+
+    // Add useEffect to set initial values
+    useEffect(() => {
+        if (Array.isArray(field.value) && field.value.length > 0) {
+            field.value.forEach((item, index) => {
+                const key = Object.keys(item)[0];
+                const value = Object.values(item)[0];
+                setValue(`${field.key}-${index}-key`, key ?? "");
+                setValue(`${field.key}-${index}-value`, value ?? "");
+            });
+        }
+    }, [field.value, field.key, setValue]);
+
+    // Watch all the individual key-value pair values
+    const values = [...Array(editorCount)]
+        .map((_, index) => {
+            const key = watch(`${field.key}-${index}-key`);
+            const value = watch(`${field.key}-${index}-value`);
+
+            if (key === undefined) {
+                setValue(`${field.key}-${index}-key`, "");
+            }
+
+            if (value === undefined) {
+                setValue(`${field.key}-${index}-value`, "");
+            }
+
+            if (!key && !value) return undefined;
+
+            return {
+                [key]: value
+            };
+        })
+        .filter(Boolean);
+
+    // Update the main field.value array whenever individual fields change
+    useEffect(() => {
+        setValue(field.key, values);
+    }, [values, field.key, setValue]);
 
     const onAddAnother = () => {
-        if (editorCount <= 1) return;
-        setEditorCount(prev => prev - 1);
-    }
+        setEditorCount((prev) => prev + 1);
+    };
+
+    const onDelete = (indexToDelete: number) => {
+        // Unregister the deleted fields
+        unregister(`${field.key}-${indexToDelete}-key`);
+        unregister(`${field.key}-${indexToDelete}-value`);
+
+        // Unregister and re-register fields after the deleted index to shift them up
+        for (let i = indexToDelete + 1; i < editorCount; i++) {
+            const keyValue = watch(`${field.key}-${i}-key`);
+            const valueValue = watch(`${field.key}-${i}-value`);
+            
+            unregister(`${field.key}-${i}-key`);
+            unregister(`${field.key}-${i}-value`);
+            
+            setValue(`${field.key}-${i-1}-key`, keyValue);
+            setValue(`${field.key}-${i-1}-value`, valueValue);
+        }
+
+        // Update the main field value
+        const newValues = values.filter((_, i) => i !== indexToDelete);
+        setValue(field.key, newValues);
+        setEditorCount((prev) => prev - 1);
+    };
 
     return (
         <S.Container>
             <S.LabelContainer>
-                <S.Label>{props.field.label}</S.Label>
+                <S.Label>{field.label}</S.Label>
             </S.LabelContainer>
-            <S.Description>{props.field.documentation}</S.Description>
+            <S.Description>{field.documentation}</S.Description>
             {[...Array(editorCount)].map((_, index) => (
-                <S.EditorContainer key={`${props.field.key}-${index}`}>
+                <S.EditorContainer key={`${field.key}-${index}`}>
                     <S.KeyValueContainer>
+                        <TextField
+                            id={`${field.key}-${index}-key`}
+                            {...register(`${field.key}-${index}-key`, {
+                                validate: {
+                                    keyFormat: (value, formValues) => {
+                                        // If there's no value but the corresponding value field is filled
+                                        const correspondingValue = watch(`${field.key}-${index}-value`);
+                                        if (correspondingValue && !value) {
+                                            return "Key is required when value is provided";
+                                        }
+                                        
+                                        // If there's a value, validate its format
+                                        if (value) {
+                                            if (/^\d/.test(value)) {
+                                                return "Key cannot start with a number";
+                                            }
+                                            if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(value)) {
+                                                return "Key can only contain letters, numbers, and underscores";
+                                            }
+                                            
+                                            // Check for uniqueness only if there's a value
+                                            const keys = values
+                                                .map((_, i) => watch(`${field.key}-${i}-key`))
+                                                .filter((_, i) => i !== index);
+                                            if (keys.includes(value)) {
+                                                return "Key must be unique";
+                                            }
+                                        }
+                                        return true;
+                                    }
+                                }
+                            })}
+                            placeholder="Key"
+                            disabled={!field.editable}
+                            sx={{ width: "100%" }}
+                            errorMsg={formState?.errors[`${field.key}-${index}-key`]?.message as string}
+                        />
                         <ContextAwareExpressionEditor
-                            {...props}
-                            field={props.field}
-                            id={`${props.field.key}-${index}-value`}
-                            fieldKey={`${props.field.key}-${index}-value`}
+                            {...rest}
+                            field={field}
+                            id={`${field.key}-${index}-value`}
+                            fieldKey={`${field.key}-${index}-value`}
                             showHeader={false}
                             placeholder="Value"
                         />
-                        
                     </S.KeyValueContainer>
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => onDelete(index)}
-                        disabled={!props.field.editable}
+                        disabled={!field.editable}
                         tooltip="Delete"
                     >
                         <Codicon name="trash" />
@@ -141,7 +238,7 @@ export function MapEditor(props: MapEditorProps) {
             ))}
             <S.AddNewButton appearance="icon" aria-label="add" onClick={onAddAnother}>
                 <Codicon name="add" />
-                {props.label}
+                {label}
             </S.AddNewButton>
         </S.Container>
     );
