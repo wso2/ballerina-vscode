@@ -47,30 +47,30 @@ export const useFooterLogic = ({
     const injectPlaceholderTags = async (): Promise<void> => {
         // === Command.Tests ===
         const serviceNames = (await rpcClient.getAiPanelRpcClient().getServiceNames()).mentions;
-        injectTags(
-            Command.Tests,
-            "tests-for-service",
-            "servicename",
-            serviceNames.map((serviceName) => ({
-                display: `@${serviceName}`,
-                value: serviceName,
-                injected: true,
-                kind: "placeholder-specific",
-            }))
-        );
+        // injectTags(
+        //     Command.Tests,
+        //     "tests-for-service",
+        //     "servicename",
+        //     serviceNames.map((serviceName) => ({
+        //         display: `@${serviceName}`,
+        //         value: serviceName,
+        //         injected: true,
+        //         kind: "placeholder-specific",
+        //     }))
+        // );
 
-        const resourceNames = (await rpcClient.getAiPanelRpcClient().getResourceMethodAndPaths()).mentions;
-        injectTags(
-            Command.Tests,
-            "tests-for-function",
-            "methodPath",
-            resourceNames.map((resourceName) => ({
-                display: `@${resourceName}`,
-                value: resourceName,
-                injected: true,
-                kind: "placeholder-specific",
-            }))
-        );
+        // const resourceNames = (await rpcClient.getAiPanelRpcClient().getResourceMethodAndPaths()).mentions;
+        // injectTags(
+        //     Command.Tests,
+        //     "tests-for-function",
+        //     "methodPath",
+        //     resourceNames.map((resourceName) => ({
+        //         display: `@${resourceName}`,
+        //         value: resourceName,
+        //         injected: true,
+        //         kind: "placeholder-specific",
+        //     }))
+        // );
 
         // === Command.DataMap ===
         const recordNames = (await rpcClient.getBIDiagramRpcClient().getRecordNames()).mentions;

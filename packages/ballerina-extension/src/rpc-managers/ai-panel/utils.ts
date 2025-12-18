@@ -22,13 +22,15 @@ import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
-import { processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
-import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../../src/features/ai/service/datamapper/types";
-import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
+import { processDataMapperInput } from "../../features/ai/data-mapper/context-api";
+import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../features/ai/data-mapper/types";
+import { getAskResponse } from "../../features/ai/ask/index";
 import { MappingFileRecord} from "./types";
-import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
+import { generateAutoMappings, generateRepairCode } from "../../features/ai/data-mapper/index";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
-import { CopilotEventHandler } from "../../../src/features/ai/service/event";
+import { CopilotEventHandler } from "../../features/ai/utils/events";
+import { VisualizerRpcManager } from "../visualizer/rpc-manager";
+import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -113,6 +115,8 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         }
         fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
     }
+    await renderDatamapper();
+
     return new Promise((resolve, reject) => {
         if (!isBalFileAdded) {
             resolve([]);
@@ -121,6 +125,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Subscribe to artifact updated notifications
         let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            new VisualizerRpcManager().updateCurrentArtifactLocation({ artifacts: payload.data });
             clearTimeout(timeoutId);
             resolve(payload.data);
             unsubscribe();
