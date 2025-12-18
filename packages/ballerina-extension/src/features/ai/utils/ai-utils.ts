@@ -241,6 +241,13 @@ export function sendDiagnosticMessageNotification(diags: DiagnosticEntry[]): voi
     sendAIPanelNotification(msg);
 }
 
+export function sendReviewActionsNotification(): void {
+    const msg: ChatNotify = {
+        type: "review_actions",
+    };
+    sendAIPanelNotification(msg);
+}
+
 export function sendContentReplaceNotification(content: string): void {
     const msg: ChatNotify = {
         type: "content_replace",

@@ -26,22 +26,28 @@ import { ProjectSource } from "@wso2/ballerina-core";
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path
  */
-export function sendAgentDidOpen(tempProjectPath: string, filePath: string): void {
+export function sendAgentDidOpen(tempProjectPath: string, projectPath: string, filePath: string): void {
   try {
-    const fullPath = path.join(tempProjectPath, filePath);
-    if (!fs.existsSync(fullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${fullPath}`);
+    const tempFileFullPath = path.join(tempProjectPath, filePath);
+    if (!fs.existsSync(tempFileFullPath)) {
+      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${tempFileFullPath}`);
       return;
     }
 
-    const fileContent = fs.readFileSync(fullPath, 'utf-8');
+    const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+
+    const projectFileFullPath = path.join(projectPath, filePath);
+    if (!fs.existsSync(projectFileFullPath)) {
+      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${projectFileFullPath}`);
+      return;
+    }
 
     // 1. Send didOpen with 'file' schema
-    const fileUri = Uri.file(fullPath).toString();
+    const tempFileUri = Uri.file(tempFileFullPath).toString();
     try {
       StateMachine.langClient().didOpen({
         textDocument: {
-          uri: fileUri,
+          uri: tempFileUri,
           languageId: 'ballerina',
           version: 1,
           text: fileContent
@@ -53,7 +59,8 @@ export function sendAgentDidOpen(tempProjectPath: string, filePath: string): voi
     }
 
     // 2. Send didOpen with 'ai' schema
-    const aiUri = 'ai' + fileUri.substring(4); // Remove 'file' prefix (4 chars)
+    const projectFileUri = Uri.file(projectFileFullPath).toString();
+    const aiUri = 'ai' + projectFileUri.substring(4); // Remove 'file' prefix (4 chars)
     try {
       StateMachine.langClient().didOpen({
         textDocument: {
@@ -78,22 +85,28 @@ export function sendAgentDidOpen(tempProjectPath: string, filePath: string): voi
  * @param tempProjectPath The root path of the temporary project
  * @param filePath The relative file path that was modified
  */
-export function sendAgentDidChange(tempProjectPath: string, filePath: string): void {
+export function sendAgentDidChange(tempProjectPath: string, projectPath: string, filePath: string): void {
   try {
-    const fullPath = path.join(tempProjectPath, filePath);
-    if (!fs.existsSync(fullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didChange: ${fullPath}`);
+    const tempFileFullPath = path.join(tempProjectPath, filePath);
+    if (!fs.existsSync(tempFileFullPath)) {
+      console.warn(`[AgentNotification] File does not exist, skipping didChange: ${tempFileFullPath}`);
       return;
     }
 
-    const fileContent = fs.readFileSync(fullPath, 'utf-8');
+    const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
+
+    const projectFileFullPath = path.join(projectPath, filePath);
+    if (!fs.existsSync(projectFileFullPath)) {
+      console.warn(`[AgentNotification] File does not exist, skipping didChange: ${projectFileFullPath}`);
+      return;
+    }
 
     // 1. Send didChange with 'file' schema
-    const fileUri = Uri.file(fullPath).toString();
+    const tempFileUri = Uri.file(tempFileFullPath).toString();
     try {
       StateMachine.langClient().didChange({
         textDocument: {
-          uri: fileUri,
+          uri: tempFileUri,
           version: 1
         },
         contentChanges: [{
@@ -106,7 +119,8 @@ export function sendAgentDidChange(tempProjectPath: string, filePath: string): v
     }
 
     // 2. Send didChange with 'ai' schema
-    const aiUri = 'ai' + fileUri.substring(4); // Remove 'file' prefix (4 chars)
+    const projectFileUri = Uri.file(projectFileFullPath).toString();
+    const aiUri = 'ai' + projectFileUri.substring(4); // Remove 'file' prefix (4 chars)
     try {
       StateMachine.langClient().didChange({
         textDocument: {
@@ -133,8 +147,8 @@ export function sendAgentDidChange(tempProjectPath: string, filePath: string): v
  * @param tempProjectPath The root path of the temporary project
  * @param files Array of relative file paths to notify
  */
-export function sendAgentDidOpenBatch(tempProjectPath: string, files: string[]): void {
-  files.forEach(file => sendAgentDidOpen(tempProjectPath, file));
+export function sendAgentDidOpenBatch(tempProjectPath: string, projectPath: string, files: string[]): void {
+  files.forEach(file => sendAgentDidOpen(tempProjectPath, projectPath, file));
 }
 
 /**
@@ -143,7 +157,7 @@ export function sendAgentDidOpenBatch(tempProjectPath: string, files: string[]):
  * @param tempProjectPath The root path of the temporary project
  * @param projects Array of project sources containing source files, modules, and tests
  */
-export function sendAgentDidOpenForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
+export function sendAgentDidOpenForProjects(tempProjectPath: string, projectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
   projects.forEach(project => {
     allFiles.push(...project.sourceFiles.map(f => f.filePath));
@@ -154,7 +168,7 @@ export function sendAgentDidOpenForProjects(tempProjectPath: string, projects: P
       allFiles.push(...project.projectTests.map(f => f.filePath));
     }
   });
-  sendAgentDidOpenBatch(tempProjectPath, allFiles);
+  sendAgentDidOpenBatch(tempProjectPath, projectPath, allFiles);
 }
 
 /**

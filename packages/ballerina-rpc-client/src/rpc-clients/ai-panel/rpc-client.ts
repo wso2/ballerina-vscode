@@ -45,18 +45,22 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
     abortAIGeneration,
     abortTestGeneration,
+    acceptChanges,
     addChatSummary,
     addFilesToProject,
     applyDoOnFailBlocks,
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
+    declineChanges,
     deleteFromProject,
     fetchData,
     generateAgent,
@@ -81,9 +85,11 @@ import {
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
+    getSemanticDiff,
     getServiceNames,
     getShadowDiagnostics,
     handleChatSummaryError,
+    hideReviewActions,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isPlanModeFeatureEnabled,
@@ -97,6 +103,7 @@ import {
     promptWSO2AILogout,
     readDeveloperMdFile,
     repairGeneratedCode,
+    showReviewActions,
     showSignInAlert,
     submitFeedback,
     updateDevelopmentDocument,
@@ -318,5 +325,25 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     isPlanModeFeatureEnabled(): Promise<boolean> {
         return this._messenger.sendRequest(isPlanModeFeatureEnabled, HOST_EXTENSION);
+    }
+
+    getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
+    }
+
+    acceptChanges(): Promise<void> {
+        return this._messenger.sendRequest(acceptChanges, HOST_EXTENSION);
+    }
+
+    declineChanges(): Promise<void> {
+        return this._messenger.sendRequest(declineChanges, HOST_EXTENSION);
+    }
+
+    showReviewActions(): Promise<void> {
+        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);  
+    }
+
+    hideReviewActions(): Promise<void> {
+        return this._messenger.sendRequest(hideReviewActions, HOST_EXTENSION);
     }
 }

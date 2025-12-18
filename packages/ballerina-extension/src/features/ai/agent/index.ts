@@ -79,10 +79,11 @@ export async function generateAgentCore(
 
     const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
     const shouldCleanup = !process.env.AI_TEST_ENV;
+    const projectPath = ctx.projectPath;
 
     const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
     // Send didOpen for all initial project files
-    sendAgentDidOpenForProjects(tempProjectPath, projects);
+    sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
 
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
@@ -114,9 +115,9 @@ export async function generateAgentCore(
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
         [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions),
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, modifiedFiles)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, modifiedFiles)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, modifiedFiles)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, projectPath, modifiedFiles)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, projectPath, modifiedFiles)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, projectPath, modifiedFiles)),
         [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
     };

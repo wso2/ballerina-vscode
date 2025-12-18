@@ -917,7 +917,7 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     }
 
     // Set up parameter manager properties
-    if (formField.types.length > 0) {
+    if (formField.types && formField.types.length > 0) {
         formField.types[0].fieldType = "PARAM_MANAGER";
     }
     formField.type = "PARAM_MANAGER";

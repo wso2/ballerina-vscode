@@ -313,7 +313,8 @@ const stateMachine = createMachine<MachineContext>(
                                 addType: (context, event) => event.viewLocation?.addType,
                                 dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                 artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
-                                rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
+                                rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
+                                reviewData: (context, event) => event.viewLocation?.reviewData
                             }),
                             (context, event) => notifyTreeView(
                                 context.projectPath,
@@ -373,7 +374,8 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
-                                    dataMapperMetadata: (context, event) => event.data.dataMapperMetadata
+                                    dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
+                                    reviewData: (context, event) => event.data.reviewData
                                 })
                             }
                         }
@@ -398,7 +400,8 @@ const stateMachine = createMachine<MachineContext>(
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
-                                        rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId
+                                        rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
+                                        reviewData: (context, event) => event.viewLocation?.reviewData
                                     }),
                                     (context, event) => notifyTreeView(
                                         event.viewLocation?.projectPath || context?.projectPath,
@@ -420,7 +423,8 @@ const stateMachine = createMachine<MachineContext>(
                                         type: (context, event) => event.viewLocation?.type,
                                         isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                         addType: (context, event) => event.viewLocation?.addType,
-                                        dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata
+                                        dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
+                                        reviewData: (context, event) => event.viewLocation?.reviewData
                                     }),
                                     (context, event) => notifyTreeView(
                                         context.projectPath,
@@ -645,7 +649,8 @@ const stateMachine = createMachine<MachineContext>(
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
-                            dataMapperMetadata: context?.dataMapperMetadata
+                            dataMapperMetadata: context?.dataMapperMetadata,
+                            reviewData: context?.reviewData
                         }
                     });
                     return resolve();
@@ -667,7 +672,7 @@ const stateMachine = createMachine<MachineContext>(
                     return resolve({ ...selectedEntry.location, view: selectedEntry.location.view ? selectedEntry.location.view : MACHINE_VIEW.PackageOverview });
                 }
 
-                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram)) {
+                if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram || selectedEntry.location.view === MACHINE_VIEW.ReviewMode)) {
                     return resolve(selectedEntry.location);
                 }
 

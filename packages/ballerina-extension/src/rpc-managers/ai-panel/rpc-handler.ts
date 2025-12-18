@@ -20,6 +20,7 @@
 import {
     abortAIGeneration,
     abortTestGeneration,
+    acceptChanges,
     addChatSummary,
     addFilesToProject,
     AddFilesToProjectRequest,
@@ -29,6 +30,7 @@ import {
     checkSyntaxError,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
+    declineChanges,
     deleteFromProject,
     DeleteFromProjectRequest,
     DeveloperDocument,
@@ -61,6 +63,7 @@ import {
     getProjectUuid,
     getRefreshedAccessToken,
     getRelevantLibrariesAndFunctions,
+    getSemanticDiff,
     getServiceNames,
     getShadowDiagnostics,
     handleChatSummaryError,
@@ -85,6 +88,9 @@ import {
     repairGeneratedCode,
     RepairParams,
     RequirementSpecification,
+    SemanticDiffRequest,
+    showReviewActions,
+    hideReviewActions,
     showSignInAlert,
     submitFeedback,
     SubmitFeedbackRequest,
@@ -150,4 +156,9 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());
     messenger.onNotification(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
+    messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
+    messenger.onNotification(acceptChanges, () => rpcManger.acceptChanges());
+    messenger.onNotification(declineChanges, () => rpcManger.declineChanges());
+    messenger.onNotification(showReviewActions, () => rpcManger.showReviewActions());
+    messenger.onNotification(hideReviewActions, () => rpcManger.hideReviewActions());
 }

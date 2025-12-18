@@ -89,6 +89,7 @@ import { getOnboardingOpens, incrementOnboardingOpens, convertToUIMessages, isCo
 import FeedbackBar from "./../FeedbackBar";
 import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
+import ReviewActions from "../ReviewActions";
 
 // var projectUuid = "";
 // var chatLocation = "";
@@ -152,6 +153,7 @@ const AIChat: React.FC = () => {
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
+    const [showReviewActions, setShowReviewActions] = useState(false);
 
     const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
 
@@ -258,6 +260,9 @@ const AIChat: React.FC = () => {
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
                 }
+                if (context && context.showReviewActions !== undefined) {
+                    setShowReviewActions(context.showReviewActions);
+                }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
             }
@@ -300,8 +305,18 @@ const AIChat: React.FC = () => {
         loadHistory();
     }, [rpcClient]);
 
-    rpcClient?.onAIChatStateChanged((newState: AIChatMachineStateValue) => {
+    rpcClient?.onAIChatStateChanged(async (newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
+        
+        // Update context when state changes
+        try {
+            const context = await rpcClient.getAIChatContext();
+            if (context && context.showReviewActions !== undefined) {
+                setShowReviewActions(context.showReviewActions);
+            }
+        } catch (error) {
+            console.error("[AIChat] Failed to update review actions state:", error);
+        }
     });
 
     rpcClient?.onCheckpointCaptured((payload: { messageId: string; checkpointId: string }) => {
@@ -649,6 +664,14 @@ const AIChat: React.FC = () => {
             //TODO: Handle this in review mode
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
+        } else if ((response as any).type === "review_actions") {
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    newMessages[newMessages.length - 1].content += `\n\n<reviewactions></reviewactions>`;
+                }
+                return newMessages;
+            });
         } else if (type === "messages") {
             const messages = response.messages;
             messagesRef.current = messages;
@@ -778,6 +801,11 @@ const AIChat: React.FC = () => {
         attachments: Attachment[];
         metadata?: Record<string, any>;
     }) {
+        // Hide review actions when a new prompt is submitted
+        if (showReviewActions) {
+            await rpcClient.getAiPanelRpcClient().hideReviewActions();
+        }
+        
         // Clear previous generation refs
         currentDiagnosticsRef.current = [];
         functionsRef.current = [];
@@ -1497,6 +1525,9 @@ const AIChat: React.FC = () => {
                             const areTestsGenerated = segmentedContent.some(
                                 (segment) => segment.type === SegmentType.Progress
                             );
+                            const hasReviewActions = segmentedContent.some(
+                                (segment) => segment.type === SegmentType.ReviewActions
+                            );
                             return (
                                 <ChatMessage key={index}>
                                     {message.type !== "question" && message.type !== "label" && (
@@ -1548,7 +1579,7 @@ const AIChat: React.FC = () => {
                                                 }
                                                 return (
                                                     <CodeSection
-                                                        key={i}
+                                                        key={`code-${i}`}
                                                         codeSegments={codeSegments}
                                                         loading={isLoading}
                                                         handleAddAllCodeSegmentsToWorkspace={
@@ -1576,6 +1607,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.Progress) {
                                             return (
                                                 <ProgressTextSegment
+                                                    key={`progress-${i}`}
                                                     text={segment.text}
                                                     loading={segment.loading}
                                                     failed={segment.failed}
@@ -1584,6 +1616,7 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.ToolCall) {
                                             return (
                                                 <ToolCallSegment
+                                                    key={`tool-call-${i}`}
                                                     text={segment.text}
                                                     loading={segment.loading}
                                                     failed={segment.failed}
@@ -1593,6 +1626,7 @@ const AIChat: React.FC = () => {
                                             const isLastMessage = index === otherMessages.length - 1;
                                             return (
                                                 <TodoSection
+                                                    key={`todo-${i}`}
                                                     tasks={segment.tasks || []}
                                                     message={segment.message}
                                                     isLoading={isLoading && isLastMessage}
@@ -1601,7 +1635,15 @@ const AIChat: React.FC = () => {
                                         } else if (segment.type === SegmentType.SpecFetcher) {
                                             return (
                                                 <ConnectorGeneratorSegment
+                                                    key={`connector-generator-${i}`}
                                                     data={segment.specData}
+                                                    rpcClient={rpcClient}
+                                                />
+                                            );
+                                        } else if (segment.type === SegmentType.ReviewActions) {
+                                            return (
+                                                <ReviewActions
+                                                    key={`review-actions-${i}`}
                                                     rpcClient={rpcClient}
                                                 />
                                             );
@@ -1610,7 +1652,7 @@ const AIChat: React.FC = () => {
                                                 <AttachmentsContainer>
                                                     {segment.text.split(",").map((fileName, index) => (
                                                         <AttachmentBox
-                                                            key={index}
+                                                            key={`attachment-${i}-${index}`}
                                                             status={AttachmentStatus.Success}
                                                             fileName={fileName.trim()}
                                                             index={index}
@@ -1624,6 +1666,7 @@ const AIChat: React.FC = () => {
                                             // return <BallerinaCodeBlock key={i} code={segment.text} />;
                                             return (
                                                 <CodeSegment
+                                                    key={`code-segment-${i}`}
                                                     source={segment.text}
                                                     fileName={"Ballerina"}
                                                     language={"ballerina"}
@@ -1632,10 +1675,11 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.References) {
-                                            return <ReferenceDropdown key={i} links={JSON.parse(segment.text)} />;
+                                            return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
                                         } else if (segment.type === SegmentType.TestScenario) {
                                             return (
                                                 <AccordionItem
+                                                    key={`test-scenario-${i}`}
                                                     content={segment.text}
                                                     onDelete={onTestScenarioDelete}
                                                     isEnabled={
@@ -1658,6 +1702,7 @@ const AIChat: React.FC = () => {
                                             ) {
                                                 return (
                                                     <VSCodeButton
+                                                        key={`btn-${i}`}
                                                         title="Add a new test scenario"
                                                         appearance="secondary"
                                                         onClick={onTestScenarioAdd}
@@ -1674,7 +1719,7 @@ const AIChat: React.FC = () => {
                                                 isLoading
                                             ) {
                                                 return (
-                                                    <div style={{ display: "flex", gap: "10px" }}>
+                                                    <div key={`btn-group-${i}`} style={{ display: "flex", gap: "10px" }}>
                                                         <VSCodeButton
                                                             title="Generate Tests"
                                                             onClick={generateFunctionTests}
@@ -1698,7 +1743,7 @@ const AIChat: React.FC = () => {
                                                 !isLoading
                                             ) {
                                                 return (
-                                                    <div style={{ display: "flex", gap: "10px" }}>
+                                                    <div key={`btn-save-${i}`} style={{ display: "flex", gap: "10px" }}>
                                                         <VSCodeButton
                                                             title="Save Documentation"
                                                             onClick={saveDocumentation}
@@ -1719,20 +1764,20 @@ const AIChat: React.FC = () => {
                                                 segment.buttonType === "documentation_saved"
                                             ) {
                                                 return (
-                                                    <VSCodeButton title="Documentation has been saved" disabled>
+                                                    <VSCodeButton key={`btn-saved-${i}`} title="Documentation has been saved" disabled>
                                                         {"Saved"}
                                                     </VSCodeButton>
                                                 );
                                             }
                                         } else {
                                             if (message.type === "Error") {
-                                                return <ErrorBox key={i}>{segment.text}</ErrorBox>;
+                                                return <ErrorBox key={`error-${i}`}>{segment.text}</ErrorBox>;
                                             }
-                                            return <MarkdownRenderer key={i} markdownContent={segment.text} />;
+                                            return <MarkdownRenderer key={`markdown-${i}`} markdownContent={segment.text} />;
                                         }
                                     })}
-                                    {/* Show feedback bar only for the latest assistant message and when loading is complete */}
-                                    {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && (
+                                    {/* Show feedback bar only for the latest assistant message and when loading is complete, but not if review actions are present */}
+                                    {isAssistantMessage && isLatestAssistantMessage && !isLoading && !isCodeLoading && !hasReviewActions && (
                                         <FeedbackBar
                                             messageIndex={index}
                                             onFeedback={handleFeedback}
@@ -1744,6 +1789,12 @@ const AIChat: React.FC = () => {
                         })}
                         <div ref={messagesEndRef} />
                     </main>
+                    {/* Review Actions Component - positioned at bottom above input */}
+                    {showReviewActions && (
+                        <div style={{ padding: "10px 20px 0", borderTop: "1px solid var(--vscode-panel-border)" }}>
+                            <ReviewActions rpcClient={rpcClient} />
+                        </div>
+                    )}
                     {approvalRequest ? (
                         <ApprovalFooter
                             approvalType={approvalRequest.approvalType}

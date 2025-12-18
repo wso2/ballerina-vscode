@@ -20,8 +20,8 @@
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
-import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, OperationType } from "../..";
+import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
 
 // ==================================
 // General Interfaces
@@ -479,4 +479,30 @@ export interface ExecutionContext {
 
     /** Optional absolute path to workspace root (if multi-package workspace) */
     readonly workspacePath?: string;
+
+}
+
+export interface SemanticDiffRequest {
+    projectPath: string;
+}
+
+// Numeric enum values from the API
+export enum ChangeTypeEnum {
+    ADDITION = 0,
+    MODIFICATION = 1,
+    DELETION = 2
+}
+
+export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
+
+export interface SemanticDiff {
+    changeType: number; // API returns numeric value
+    nodeKind: number;   // API returns numeric value
+    uri: string;
+    lineRange: LineRange;
+}
+
+export interface SemanticDiffResponse {
+    loadDesignDiagrams: boolean;
+    semanticDiffs: SemanticDiff[];
 }

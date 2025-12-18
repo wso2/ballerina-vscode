@@ -210,7 +210,7 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 // Write Tool Execute Function
 // ============================================================================
 
-export function createWriteExecute(tempProjectPath: string, modifiedFiles?: string[]) {
+export function createWriteExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     content: string;
@@ -275,9 +275,9 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
 
     // Notify Language Server
     if (action === 'created') {
-      sendAgentDidOpen(tempProjectPath, file_path);
+      sendAgentDidOpen(tempProjectPath, projectPath, file_path);
     } else {
-      sendAgentDidChange(tempProjectPath, file_path);
+      sendAgentDidChange(tempProjectPath, projectPath, file_path);
     }
 
     console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
@@ -292,7 +292,7 @@ export function createWriteExecute(tempProjectPath: string, modifiedFiles?: stri
 // Edit Tool Execute Function
 // ============================================================================
 
-export function createEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
+export function createEditExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     old_string: string;
@@ -381,7 +381,7 @@ export function createEditExecute(tempProjectPath: string, modifiedFiles?: strin
     }
 
     // Notify Language Server of the change
-    sendAgentDidChange(tempProjectPath, file_path);
+    sendAgentDidChange(tempProjectPath, projectPath, file_path);
 
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
@@ -396,7 +396,7 @@ export function createEditExecute(tempProjectPath: string, modifiedFiles?: strin
 // Multi Edit Tool Execute Function
 // ============================================================================
 
-export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: string[]) {
+export function createMultiEditExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
   return async (args: {
     file_path: string;
     edits: Array<{
@@ -500,7 +500,7 @@ export function createMultiEditExecute(tempProjectPath: string, modifiedFiles?: 
     }
 
     // Notify Language Server of the change
-    sendAgentDidChange(tempProjectPath, file_path);
+    sendAgentDidChange(tempProjectPath, projectPath, file_path);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     return {
