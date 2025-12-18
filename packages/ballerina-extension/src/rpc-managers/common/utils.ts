@@ -142,7 +142,7 @@ async function downloadFile(url: string, filePath: string, progressCallback?: (d
         const response = await axios.get(url, {
             responseType: 'stream',
             headers: {
-                "User-Agent": "Mozilla/5.0"
+                "User-Agent": "axios"
             },
             onDownloadProgress: (progressEvent) => {
                 totalBytes = progressEvent.total ?? 0;
