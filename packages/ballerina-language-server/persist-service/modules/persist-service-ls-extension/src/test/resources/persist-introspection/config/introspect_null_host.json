@@ -1,0 +1,13 @@
+{
+  "description": "Database introspection test - null host",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "expectError": true,
+  "expectedErrorMessage": "host"
+}
