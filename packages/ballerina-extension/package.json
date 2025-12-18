@@ -717,25 +717,29 @@
                 "command": "ballerina.showTraceWindow",
                 "title": "Show Traces",
                 "icon": "$(list-tree)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing (Experimental)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.disableTracing",
                 "title": "Disable Tracing (Experimental)",
                 "category": "Ballerina",
-                "icon": "$(circle-slash)"
+                "icon": "$(circle-slash)",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.clearTraces",
                 "title": "Clear Traces (Experimental)",
                 "category": "Ballerina",
                 "icon": "$(clear-all)",
-                "hidden": true
+                "hidden": true,
+                "enablement": "isSupportedProject"
             }
         ],
         "views": {
