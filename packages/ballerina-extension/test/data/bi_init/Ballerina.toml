@@ -2,3 +2,6 @@
 org = "wso2"
 name = "bi_empty"
 version = "0.1.0"
+
+[build-options]
+sticky=false
