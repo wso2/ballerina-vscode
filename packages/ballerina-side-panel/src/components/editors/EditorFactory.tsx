@@ -87,7 +87,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         scopeFieldAddon
     } = props;
 
-    const showWithExpressionEditor = field.types.some(type => {
+    const showWithExpressionEditor = field.types?.some(type => {
         return type && (
             type.fieldType === "EXPRESSION" ||
             type.fieldType === "LV_EXPRESSION" ||

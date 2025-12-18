@@ -17,24 +17,20 @@
  */
 
 export enum Command {
-    Code = '/code',
-    Tests = '/tests',
+    // Tests = '/tests',
     DataMap = '/datamap',
     TypeCreator = '/typecreator',
-    Healthcare = '/healthcare',
+    // Healthcare = '/healthcare',
     Ask = '/ask',
     NaturalProgramming = '/natural-programming (experimental)',
     OpenAPI = '/openapi',
+    Agent = '/agent', // Internal use only - agent is the default behavior
     Doc = '/doc'
 }
 
 export enum TemplateId {
     // Shared
     Wildcard = 'wildcard',
-
-    // Command.Code
-    GenerateCode = 'generate-code',
-    GenerateFromReadme = 'generate-from-readme',
 
     // Command.Tests
     TestsForService = 'tests-for-service',
