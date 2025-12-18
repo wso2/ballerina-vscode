@@ -143,7 +143,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then(async (model) => {
                         console.log(">>> focus diagram flow model", model);
                         if (model?.flowModel) {
