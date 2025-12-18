@@ -180,7 +180,7 @@ export function ResourceAccordion(params: ResourceAccordionProps) {
     }
 
     return (
-        <AccordionContainer data-testid="service-design-view-resource">
+        <AccordionContainer data-testid="service-agent-view-resource">
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox>

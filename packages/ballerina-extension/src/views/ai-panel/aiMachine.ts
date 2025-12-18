@@ -18,11 +18,13 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import { createMachine, assign, interpret } from 'xstate';
-import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIUserToken, AIMachineSendableEvent, LoginMethod } from '@wso2/ballerina-core';
+import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIUserToken, AIMachineSendableEvent, LoginMethod, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { AiPanelWebview } from './webview';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, getLoginMethod } from '../../utils/ai/auth';
 import { checkToken, initiateInbuiltAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
+import * as vscode from 'vscode';
+import { notifyAiPromptUpdated } from '../../RPCLayer';
 
 export const USER_CHECK_BACKEND_URL = '/user/usage';
 
@@ -32,6 +34,10 @@ export const openAIWebview = (defaultprompt?: AIPanelPrompt) => {
         AiPanelWebview.currentPanel = new AiPanelWebview();
     } else {
         AiPanelWebview.currentPanel!.getWebview()?.reveal();
+        // Notify the webview to refetch the prompt since it's already open
+        if (defaultprompt) {
+            notifyAiPromptUpdated();
+        }
     }
 };
 
@@ -41,6 +47,41 @@ export const closeAIWebview = () => {
         AiPanelWebview.currentPanel = undefined;
     }
 };
+
+/**
+ * Typesafe wrapper function to open the AI Panel with an optional prompt.
+ *
+ * This function provides type safety when opening the AI Panel by ensuring that
+ * only valid AIPanelPrompt objects are passed as parameters.
+ *
+ * @param prompt - Optional prompt configuration for the AI Panel. Can be:
+ *   - `{ type: 'command-template', ... }` - Opens with a specific command template
+ *   - `{ type: 'text', text: string, planMode: boolean }` - Opens with raw text input
+ *   - `undefined` - Opens without any default prompt
+ *
+ * @example
+ * // Open with a command template
+ * openAIPanelWithPrompt({
+ *   type: 'command-template',
+ *   command: Command.Tests,
+ *   templateId: TemplateId.TestsForService,
+ * });
+ *
+ * @example
+ * // Open with text input (agent mode is the default)
+ * openAIPanelWithPrompt({
+ *   type: 'text',
+ *   text: 'Generate a REST API',
+ *   planMode: true
+ * });
+ *
+ * @example
+ * // Open empty panel
+ * openAIPanelWithPrompt();
+ */
+export function openAIPanelWithPrompt(prompt?: AIPanelPrompt): void {
+    vscode.commands.executeCommand(SHARED_COMMANDS.OPEN_AI_PANEL, prompt);
+}
 
 const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
     id: 'ballerina-ai',
