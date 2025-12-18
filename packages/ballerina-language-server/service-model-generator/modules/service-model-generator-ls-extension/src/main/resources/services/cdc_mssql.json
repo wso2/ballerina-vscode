@@ -181,7 +181,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^$|^\"\"$|^string `(|([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\]))`$|^\"([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\"$",
+          "patternErrorMessage": "Table must be in the format: <database>.<schema>.<table>. Use square brackets for names with dots (e.g., db.[schema.name].table)"
         },
         {
           "fieldType": "EXPRESSION",
