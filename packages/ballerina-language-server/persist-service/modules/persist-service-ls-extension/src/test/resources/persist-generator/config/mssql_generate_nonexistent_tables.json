@@ -1,0 +1,15 @@
+{
+  "description": "MSSQL persist client generation - nonexistent tables",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mssql",
+  "host": "localhost",
+  "port": 1434,
+  "user": "SA",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["nonexistent_table"],
+  "module": "test",
+  "expectError": true,
+  "expectedErrorMessage": "No entities found"
+}

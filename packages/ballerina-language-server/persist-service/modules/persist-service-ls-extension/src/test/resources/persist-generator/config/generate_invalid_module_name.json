@@ -1,0 +1,15 @@
+{
+  "description": "Persist client generation - invalid module name with special characters",
+  "testProjectFolder": "sample-project",
+  "name": "testdb",
+  "dbSystem": "mysql",
+  "host": "localhost",
+  "port": 3307,
+  "user": "root",
+  "password": "Test123#",
+  "database": "testdb",
+  "selectedTables": ["employees"],
+  "module": "invalid-module-name!@#",
+  "expectError": true,
+  "expectedErrorMessage": "module"
+}

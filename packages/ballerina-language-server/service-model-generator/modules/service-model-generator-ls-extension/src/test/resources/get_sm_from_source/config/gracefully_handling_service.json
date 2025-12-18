@@ -18,7 +18,7 @@
     "orgName": "ballerina",
     "packageName": "grpc",
     "listenerProtocol": "grpc",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.0.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_grpc_1.14.2.png",
     "documentation": {
       "metadata": {
         "label": "Description",
