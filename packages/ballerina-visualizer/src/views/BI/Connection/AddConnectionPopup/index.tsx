@@ -20,7 +20,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
+import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -640,48 +640,9 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                     </ConnectorOptionCard>
                                 )}
                                 {/* Temporary disable DB connection option if persist connection exists */}
-                                {connectorOptions.showDatabase && (
-                                    hasPersistConnection ? (
-                                        <Tooltip
-                                            content="Currently only one persist based DB connection is allowed. You can use pre-built connectors for DB connections."
-                                            position="top"
-                                        >
-                                            <ConnectorOptionCard
-                                                disabled={true}
-                                                onClick={undefined}
-                                            >
-                                                <ConnectorOptionIcon>
-                                                    <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                                </ConnectorOptionIcon>
-                                                <ConnectorOptionContent>
-                                                    <ConnectorOptionTitleContainer>
-                                                        <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
-                                                        <ExperimentalBadge>Experimental</ExperimentalBadge>
-                                                    </ConnectorOptionTitleContainer>
-                                                    <ConnectorOptionDescription>
-                                                        Enter credentials to introspect and discover database tables
-                                                    </ConnectorOptionDescription>
-                                                    <ConnectorOptionButtons>
-                                                        <ConnectorTypeLabel>
-                                                            MySQL
-                                                        </ConnectorTypeLabel>
-                                                        <ConnectorTypeLabel>
-                                                            MSSQL
-                                                        </ConnectorTypeLabel>
-                                                        <ConnectorTypeLabel>
-                                                            PostgreSQL
-                                                        </ConnectorTypeLabel>
-                                                    </ConnectorOptionButtons>
-                                                </ConnectorOptionContent>
-                                                <ArrowIcon>
-                                                    <Codicon name="chevron-right" />
-                                                </ArrowIcon>
-                                            </ConnectorOptionCard>
-                                        </Tooltip>
-                                    ) : (
-                                        <ConnectorOptionCard
-                                            onClick={handleDatabaseConnection}
-                                        >
+                                {connectorOptions.showDatabase && (() => {
+                                    const databaseCardContent = (
+                                        <>
                                             <ConnectorOptionIcon>
                                                 <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
                                             </ConnectorOptionIcon>
@@ -708,9 +669,36 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                             <ArrowIcon>
                                                 <Codicon name="chevron-right" />
                                             </ArrowIcon>
+                                        </>
+                                    );
+
+                                    const databaseCard = (
+                                        <ConnectorOptionCard
+                                            disabled={hasPersistConnection}
+                                            onClick={(e) => {
+                                                if (hasPersistConnection) {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    return;
+                                                }
+                                                handleDatabaseConnection();
+                                            }}
+                                        >
+                                            {databaseCardContent}
                                         </ConnectorOptionCard>
-                                    )
-                                )}
+                                    );
+
+                                    return hasPersistConnection ? (
+                                        <Tooltip
+                                            content="Currently only one persist based DB connection is allowed. You can use pre-built connectors for DB connections."
+                                            position="top"
+                                        >
+                                            {databaseCard}
+                                        </Tooltip>
+                                    ) : (
+                                        databaseCard
+                                    );
+                                })()}
                             </CreateConnectorOptions>
                         </Section>
                     )}
