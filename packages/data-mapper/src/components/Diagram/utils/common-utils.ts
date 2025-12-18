@@ -121,13 +121,13 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             }
         }
 
-        if (getGenericTypeKind(targetField.kind) !== getGenericTypeKind(sourceField.kind)) {
-            if (targetField.kind === TypeKind.String && isPrimitive(sourceField.kind)) {
-                return MappingType.PrimitiveToString;
-            }
-            if (isNumericType(sourceField.kind) && isNumericType(targetField.kind)) {
-                return MappingType.NumberToNumber;
-            }
+        if (targetField.kind !== sourceField.kind &&
+            (targetField.kind !== TypeKind.Byte || sourceField.kind !== TypeKind.String) &&
+            targetField.kind === getGenericTypeKind(targetField.kind) &&
+            sourceField.kind === getGenericTypeKind(sourceField.kind) &&
+            isPrimitive(targetField.kind) &&
+            isPrimitive(sourceField.kind)) {
+            return MappingType.ConvertiblePrimitives;
         }
 
         if ((sourceField.kind !== targetField.kind ||
