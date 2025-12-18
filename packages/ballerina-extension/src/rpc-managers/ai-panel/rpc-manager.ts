@@ -705,18 +705,16 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
-        return new Promise(async (resolve) => {
-            const context = StateMachine.context();
-            console.log(">>> requesting semantic diff from ls", JSON.stringify(params));
-            try {
-                const res: SemanticDiffResponse = await context.langClient.getSemanticDiff(params);
-                console.log(">>> semantic diff response from ls", JSON.stringify(res));
-                resolve(res);
-            } catch (error) {
-                console.log(">>> error in getting semantic diff", error);
-                resolve(undefined);
-            }
-        });
+        const context = StateMachine.context();
+        console.log(">>> requesting semantic diff from ls", JSON.stringify(params));
+        try {
+            const res: SemanticDiffResponse = await context.langClient.getSemanticDiff(params);
+            console.log(">>> semantic diff response from ls", JSON.stringify(res));
+            return res;
+        } catch (error) {
+            console.log(">>> error in getting semantic diff", error);
+            return undefined;
+        }
     }
 
     async acceptChanges(): Promise<void> {
