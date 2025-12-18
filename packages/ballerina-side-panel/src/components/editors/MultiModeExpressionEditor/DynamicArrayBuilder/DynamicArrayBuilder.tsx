@@ -98,7 +98,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         onOpenExpandedMode={props.expressionFieldProps.onOpenExpandedMode}
                         onRemove={props.expressionFieldProps.onRemove}
                         isInExpandedMode={props.expressionFieldProps.isInExpandedMode}
-                        configuration={getEditorConfiguration(primaryInputMode, primaryInputMode)}
+                        configuration={getEditorConfiguration(primaryInputMode)}
                     />
                     <S.DeleteButton
                         appearance="icon"
