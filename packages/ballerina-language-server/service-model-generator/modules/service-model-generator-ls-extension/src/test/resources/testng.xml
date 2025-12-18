@@ -23,7 +23,7 @@ under the License.
     <test name="trigger-model-test" parallel="false">
         <classes>
 <!--            <class name="io.ballerina.servicemodelgenerator.extension.GetServiceModelTest"/>-->
-<!--            <class name="io.ballerina.servicemodelgenerator.extension.GetListenerModelFromSourceTest"/>-->
+            <class name="io.ballerina.servicemodelgenerator.extension.GetListenerModelFromSourceTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.GetServiceModelFromSourceTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.GetServiceClassModelFromSourceTest"/>
             <class name="io.ballerina.servicemodelgenerator.extension.UpdateFunctionTest"/>

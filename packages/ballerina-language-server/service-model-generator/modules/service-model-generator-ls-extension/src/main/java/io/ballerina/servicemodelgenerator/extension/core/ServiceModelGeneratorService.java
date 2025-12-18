@@ -540,14 +540,11 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
             try {
                 Path filePath = Path.of(request.filePath());
 
-                Project project = this.workspaceManager.loadProject(filePath);
-                Package currentPackage = project.currentPackage();
-                Module module = currentPackage.module(ModuleName.from(currentPackage.packageName()));
-                SemanticModel semanticModel = PackageUtil.getCompilation(currentPackage)
-                        .getSemanticModel(module.moduleId());
-
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 Optional<Document> documentOpt = this.workspaceManager.document(filePath);
-                if (documentOpt.isEmpty()) {
+
+                if (documentOpt.isEmpty() || semanticModel.isEmpty()) {
                     return new ListenerFromSourceResponse();
                 }
 
@@ -556,7 +553,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 String orgName = request.codedata().getOrgName();
 
                 ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
-                return processListenerNode(node, orgName, semanticModel, moduleInfo);
+                return processListenerNode(node, orgName, semanticModel.get(), moduleInfo);
             } catch (Exception e) {
                 return new ListenerFromSourceResponse(e);
             }
