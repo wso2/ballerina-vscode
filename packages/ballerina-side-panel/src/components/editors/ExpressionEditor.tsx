@@ -721,8 +721,23 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 <Controller
                     control={control}
                     name={key}
-                    rules={{ required: required ?? (!field.optional && !field.placeholder) }}
-                    render={({ field: { name, value, onChange }, fieldState: { error } }) => (
+                    rules={(() => {
+                        const rules: any = {
+                            required: required ?? (!field.optional && !field.placeholder)
+                        };
+
+                        const patternType = field.types?.find(t => t.pattern);
+                        if (patternType?.pattern) {
+                            rules.pattern = {
+                                value: new RegExp(patternType.pattern),
+                                message: patternType.patternErrorMessage || "Invalid format"
+                            };
+                        }
+
+                        return rules;
+                    })()}
+                    render={({ field: { name, value, onChange }, fieldState: { error } }) => {
+                        return (
                         <div>
                             <ExpressionField
                                 field={field}
@@ -864,7 +879,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 />
                             )}
                         </div>
-                    )}
+                        );
+                    }}
                 />
             </S.Container>
             {showModeSwitchWarning && (
