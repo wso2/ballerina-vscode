@@ -71,7 +71,8 @@
             },
             "types": [
               {
-                "fieldType": "ACTION_OR_EXPRESSION"
+                "fieldType": "ACTION_OR_EXPRESSION",
+                "selected": true
               }
             ],
             "value": "originalAgent",
@@ -87,7 +88,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "reassignedAgent",
@@ -116,7 +118,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "ai:Agent",
@@ -208,8 +211,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt",
+                "typeMembers": [
+                  {
+                    "type": "SystemPrompt",
+                    "packageInfo": "ballerina:ai:1.8.0",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:SystemPrompt"
+                "ballerinaType": "ai:SystemPrompt",
+                "selected": false
               }
             ],
             "value": "{role: string `Assistant`, instructions: string `Help users with weather and time queries.`}",
@@ -231,7 +249,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:ModelProvider"
+                "ballerinaType": "ai:ModelProvider",
+                "selected": false
               }
             ],
             "value": "myModel",
@@ -253,11 +272,13 @@
             "types": [
               {
                 "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "selected": false
               }
             ],
             "placeholder": "[]",
@@ -278,11 +299,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "\"INFER_TOOL_COUNT\"|int"
+                "ballerinaType": "\"INFER_TOOL_COUNT\"|int",
+                "selected": false
               }
             ],
             "placeholder": "\"INFER_TOOL_COUNT\"",
@@ -303,11 +326,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -328,7 +353,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:Memory?"
+                "ballerinaType": "ai:Memory?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -352,11 +378,13 @@
                 "options": [
                   "LLM_FILTER",
                   "NO_FILTER"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:ToolLoadingStrategy"
+                "ballerinaType": "ai:ToolLoadingStrategy",
+                "selected": false
               }
             ],
             "placeholder": "\"LLM_FILTER\"",
@@ -376,7 +404,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "string",
@@ -394,7 +423,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "result1",
@@ -423,7 +453,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -439,7 +470,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Local",
@@ -458,7 +490,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": false
               }
             ],
             "value": "Assistant",
@@ -479,7 +512,8 @@
             },
             "types": [
               {
-                "fieldType": "TEXT"
+                "fieldType": "TEXT",
+                "selected": false
               }
             ],
             "value": "Help users with weather and time queries.",
@@ -500,7 +534,8 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION"
+                "fieldType": "EXPRESSION",
+                "selected": true
               }
             ],
             "value": "reassignedAgent",
@@ -517,11 +552,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"What's the weather in London?\"",
@@ -533,16 +570,7 @@
             "codedata": {
               "kind": "REQUIRED",
               "originalName": "query"
-            },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": true
-              }
-            ]
+            }
           },
           "sessionId": {
             "metadata": {
@@ -552,11 +580,13 @@
             "types": [
               {
                 "fieldType": "TEXT",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "string"
+                "ballerinaType": "string",
+                "selected": false
               }
             ],
             "placeholder": "\"\"",
@@ -568,15 +598,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "typeMembers": [
-              {
-                "type": "string",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"\""
           },
           "context": {
@@ -587,7 +608,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:Context"
+                "ballerinaType": "ai:Context",
+                "selected": false
               }
             ],
             "placeholder": "new ()",
@@ -599,15 +621,6 @@
               "kind": "DEFAULTABLE",
               "originalName": "context"
             },
-            "typeMembers": [
-              {
-                "type": "Context",
-                "packageInfo": "ballerina:ai:1.8.0",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "new ()"
           }
         },
@@ -651,7 +664,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -667,7 +681,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "myModel",
@@ -696,7 +711,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "ai:Wso2ModelProvider",
@@ -746,7 +762,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:ModelProvider"
+                "ballerinaType": "ai:ModelProvider",
+                "selected": true
               }
             ],
             "value": "myModel",
@@ -759,15 +776,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "model"
             },
-            "typeMembers": [
-              {
-                "type": "ModelProvider",
-                "packageInfo": "ballerina:ai:1.8.0",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "object {}"
           },
           "systemPrompt": {
@@ -777,8 +785,23 @@
             },
             "types": [
               {
+                "fieldType": "RECORD_MAP_EXPRESSION",
+                "ballerinaType": "ai:SystemPrompt",
+                "typeMembers": [
+                  {
+                    "type": "SystemPrompt",
+                    "packageInfo": "ballerina:ai:1.8.0",
+                    "packageName": "ai",
+                    "kind": "RECORD_TYPE",
+                    "selected": false
+                  }
+                ],
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:SystemPrompt"
+                "ballerinaType": "ai:SystemPrompt",
+                "selected": false
               }
             ],
             "value": "{role: string `Assistant`, instructions: string `Help users with weather and time queries.`}",
@@ -791,15 +814,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "systemPrompt"
             },
-            "typeMembers": [
-              {
-                "type": "SystemPrompt",
-                "packageInfo": "ballerina:ai:1.8.0",
-                "packageName": "ai",
-                "kind": "RECORD_TYPE",
-                "selected": true
-              }
-            ],
             "defaultValue": "{role: \"\", instructions: \"\"}"
           },
           "tools": {
@@ -810,11 +824,13 @@
             "types": [
               {
                 "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]"
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "selected": false
               }
             ],
             "placeholder": "[]",
@@ -826,15 +842,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "tools"
             },
-            "typeMembers": [
-              {
-                "type": "BaseToolKit|ai",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "ARRAY_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "[]"
           },
           "maxIter": {
@@ -845,11 +852,13 @@
             "types": [
               {
                 "fieldType": "NUMBER",
-                "ballerinaType": "int"
+                "ballerinaType": "int",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "\"INFER_TOOL_COUNT\"|int"
+                "ballerinaType": "\"INFER_TOOL_COUNT\"|int",
+                "selected": false
               }
             ],
             "placeholder": "\"INFER_TOOL_COUNT\"",
@@ -861,22 +870,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "maxIter"
             },
-            "typeMembers": [
-              {
-                "type": "\"INFER_TOOL_COUNT\"",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              },
-              {
-                "type": "int",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"INFER_TOOL_COUNT\""
           },
           "verbose": {
@@ -887,11 +880,13 @@
             "types": [
               {
                 "fieldType": "FLAG",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "boolean"
+                "ballerinaType": "boolean",
+                "selected": false
               }
             ],
             "placeholder": "false",
@@ -903,15 +898,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "verbose"
             },
-            "typeMembers": [
-              {
-                "type": "boolean",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "false"
           },
           "memory": {
@@ -922,7 +908,8 @@
             "types": [
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:Memory?"
+                "ballerinaType": "ai:Memory?",
+                "selected": false
               }
             ],
             "placeholder": "()",
@@ -934,22 +921,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "memory"
             },
-            "typeMembers": [
-              {
-                "type": "Memory",
-                "packageInfo": "ballerina:ai:1.8.0",
-                "packageName": "ai",
-                "kind": "OBJECT_TYPE",
-                "selected": false
-              },
-              {
-                "type": "()",
-                "packageInfo": "",
-                "packageName": "",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "()"
           },
           "toolLoadingStrategy": {
@@ -963,11 +934,13 @@
                 "options": [
                   "LLM_FILTER",
                   "NO_FILTER"
-                ]
+                ],
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
-                "ballerinaType": "ai:ToolLoadingStrategy"
+                "ballerinaType": "ai:ToolLoadingStrategy",
+                "selected": false
               }
             ],
             "placeholder": "\"LLM_FILTER\"",
@@ -979,15 +952,6 @@
               "kind": "INCLUDED_FIELD",
               "originalName": "toolLoadingStrategy"
             },
-            "typeMembers": [
-              {
-                "type": "ToolLoadingStrategy",
-                "packageInfo": "ballerina:ai:1.8.0",
-                "packageName": "ai",
-                "kind": "BASIC_TYPE",
-                "selected": false
-              }
-            ],
             "defaultValue": "\"LLM_FILTER\""
           },
           "checkError": {
@@ -997,7 +961,8 @@
             },
             "types": [
               {
-                "fieldType": "FLAG"
+                "fieldType": "FLAG",
+                "selected": true
               }
             ],
             "value": true,
@@ -1013,7 +978,8 @@
             },
             "types": [
               {
-                "fieldType": "ENUM"
+                "fieldType": "ENUM",
+                "selected": true
               }
             ],
             "value": "Global",
@@ -1029,7 +995,8 @@
             },
             "types": [
               {
-                "fieldType": "IDENTIFIER"
+                "fieldType": "IDENTIFIER",
+                "selected": true
               }
             ],
             "value": "originalAgent",
@@ -1058,7 +1025,8 @@
             },
             "types": [
               {
-                "fieldType": "TYPE"
+                "fieldType": "TYPE",
+                "selected": true
               }
             ],
             "value": "ai:Agent",
