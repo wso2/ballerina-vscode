@@ -155,14 +155,14 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     
         const a2aMenuItems: Item[] = [
             {
-                id: "a2a-direct",
-                label: getItemElement("a2a-direct", "Assign Directly", "arrow-right-solid"),
-                onClick: wrapWithProgress(onClickMapDirectly)
+                id: "a2a-inner",
+                label: getItemElement("a2a-inner", "Map Each Element", "bi-convert"),
+                onClick: wrapWithProgress(onClickMapIndividualElements)
             },
             {
-                id: "a2a-inner",
-                label: getItemElement("a2a-inner", "Map Each Element Individually", "bi-convert"),
-                onClick: wrapWithProgress(onClickMapIndividualElements)
+                id: "a2a-direct",
+                label: getItemElement("a2a-direct", "Assign As-Is", "warning", true),
+                onClick: wrapWithProgress(onClickMapDirectly)
             }
         ];
 
@@ -177,7 +177,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const defaultMenuItems: Item[] = [
             {
                 id: "direct",
-                label: getItemElement("direct", "Map Anyway", "warning", true),
+                label: getItemElement("direct", "Assign As-Is", "warning", true),
                 onClick: wrapWithProgress(onClickMapDirectly)
             }
         ];
@@ -267,7 +267,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function", "function-icon"),
                 onClick: wrapWithProgress(onClickMapWithCustomFn)
             });
-            if (pendingMappingType !== MappingType.ContainsUnions) {
+            if (pendingMappingType !== MappingType.ContainsUnions && 
+                pendingMappingType !== MappingType.ArrayToArray
+            ) {
                 menuItems.push({
                     id: "a2a-a2s-transform-func",
                     label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function", "dataMapper"),
