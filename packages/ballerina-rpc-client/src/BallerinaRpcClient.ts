@@ -51,6 +51,19 @@ import {
     currentThemeChanged,
     ChatNotify,
     onChatNotify,
+    sendAIChatStateEvent,
+    AIChatMachineEventType,
+    aiChatStateChanged,
+    AIChatMachineSendableEvent,
+    AIChatMachineStateValue,
+    getAIChatContext,
+    getAIChatUIHistory,
+    AIChatMachineContext,
+    UIChatHistoryMessage,
+    checkpointCaptured,
+    CheckpointCapturedPayload,
+    AIPanelPrompt,
+    promptUpdated,
     AIMachineSendableEvent,
     dependencyPullProgress,
     ProjectMigrationResult,
@@ -196,6 +209,30 @@ export class BallerinaRpcClient {
 
     sendAIStateEvent(event: AIMachineEventType | AIMachineSendableEvent) {
         this.messenger.sendRequest(sendAIStateEvent, HOST_EXTENSION, event);
+    }
+
+    onAIChatStateChanged(callback: (state: AIChatMachineStateValue) => void) {
+        this.messenger.onNotification(aiChatStateChanged, callback);
+    }
+
+    sendAIChatStateEvent(event: AIChatMachineEventType | AIChatMachineSendableEvent) {
+        this.messenger.sendRequest(sendAIChatStateEvent, HOST_EXTENSION, event);
+    }
+
+    getAIChatContext(): Promise<AIChatMachineContext> {
+        return this.messenger.sendRequest(getAIChatContext, HOST_EXTENSION);
+    }
+
+    getAIChatUIHistory(): Promise<UIChatHistoryMessage[]> {
+        return this.messenger.sendRequest(getAIChatUIHistory, HOST_EXTENSION);
+    }
+
+    onCheckpointCaptured(callback: (payload: CheckpointCapturedPayload) => void) {
+        this.messenger.onNotification(checkpointCaptured, callback);
+    }
+
+    onPromptUpdated(callback: () => void) {
+        this.messenger.onNotification(promptUpdated, callback);
     }
 
     onProjectContentUpdated(callback: (state: boolean) => void) {
