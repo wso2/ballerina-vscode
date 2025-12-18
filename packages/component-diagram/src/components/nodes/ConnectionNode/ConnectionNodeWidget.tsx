@@ -201,6 +201,7 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
                     <StyledConnectionIcon
                         url={model.node.icon || ""}
                         fallbackIcon={<Icon name="bi-connection" />}
+                        connectorType={(model.node as any).metadata?.connectorType}
                     />
                 </Circle>
                 <Header>

@@ -432,7 +432,13 @@ export async function findBallerinaPackageRoot(filePath: string) {
         return null;
     }
     
-    let currentFolderPath = path.dirname(filePath);
+    // Start with the path itself if it's a directory, otherwise start with its parent
+    let currentFolderPath: string;
+    try {
+        currentFolderPath = fs.statSync(filePath).isDirectory() ? filePath : path.dirname(filePath);
+    } catch {
+        currentFolderPath = path.dirname(filePath);
+    }
 
     while (currentFolderPath !== path.sep) {
         const isBallerinaPackage = await checkIsBallerinaPackage(Uri.parse(currentFolderPath));
