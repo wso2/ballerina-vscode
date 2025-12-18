@@ -151,6 +151,8 @@ export interface BaseType {
     ballerinaType?: string;
     selected: boolean;
     typeMembers?: PropertyTypeMemberInfo[];
+    minItems?: number; // minimum items for EXPRESSION_SET fields
+    defaultItems?: number; // default number of items for EXPRESSION_SET fields
 }
 
 export interface DropdownType extends BaseType {
