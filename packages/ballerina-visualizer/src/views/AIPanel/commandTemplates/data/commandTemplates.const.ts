@@ -21,53 +21,30 @@ import { AIPanelPrompt, Command, TemplateId } from "@wso2/ballerina-core/";
 
 // All command templates are defined here.
 export const commandTemplates = {
-    [Command.Code]: [
-        {
-            id: TemplateId.Wildcard,
-            text: '',
-            placeholders: [],
-        },
-        {
-            id: TemplateId.GenerateCode,
-            text: 'generate code for the use-case: <usecase>',
-            placeholders: [
-                {
-                    id: 'usecase',
-                    text: '<usecase>',
-                    multiline: true,
-                }
-            ],
-        },
-        {
-            id: TemplateId.GenerateFromReadme,
-            text: 'generate an integration according to the given Readme file',
-            placeholders: [],
-        },
-    ],
-    [Command.Tests]: [
-        {
-            id: TemplateId.TestsForService,
-            text: 'generate tests for <servicename> service',
-            placeholders: [
-                {
-                    id: 'servicename',
-                    text: '<servicename>',
-                    multiline: false,
-                }
-            ],
-        },
-        {
-            id: TemplateId.TestsForFunction,
-            text: 'generate tests for resource <method(space)path> function',
-            placeholders: [
-                {
-                    id: 'methodPath',
-                    text: '<method(space)path>',
-                    multiline: false,
-                }
-            ],
-        },
-    ],
+    // [Command.Tests]: [
+    //     {
+    //         id: TemplateId.TestsForService,
+    //         text: 'generate tests for <servicename> service',
+    //         placeholders: [
+    //             {
+    //                 id: 'servicename',
+    //                 text: '<servicename>',
+    //                 multiline: false,
+    //             }
+    //         ],
+    //     },
+    //     {
+    //         id: TemplateId.TestsForFunction,
+    //         text: 'generate tests for resource <method(space)path> function',
+    //         placeholders: [
+    //             {
+    //                 id: 'methodPath',
+    //                 text: '<method(space)path>',
+    //                 multiline: false,
+    //             }
+    //         ],
+    //     },
+    // ],
     [Command.DataMap]: [
         {
             id: TemplateId.MappingsForRecords,
@@ -115,13 +92,13 @@ export const commandTemplates = {
             placeholders: []
         }
     ],
-    [Command.Healthcare]: [
-        {
-            id: TemplateId.Wildcard,
-            text: '',
-            placeholders: [],
-        },
-    ],
+    // [Command.Healthcare]: [
+    //     {
+    //         id: TemplateId.Wildcard,
+    //         text: '',
+    //         placeholders: [],
+    //     },
+    // ],
     [Command.Ask]: [
         {
             id: TemplateId.Wildcard,
@@ -138,6 +115,9 @@ export const commandTemplates = {
             text: '',
             placeholders: [],
         },
+    ],
+    [Command.Agent]: [
+        // Internal use only - agent is the default behavior when no command is specified
     ],
     [Command.Doc]: [
         {
@@ -189,15 +169,14 @@ export const NATURAL_PROGRAMMING_TEMPLATES: TemplateDefinition[] = [
 // Suggested command templates are defined here.
 export const suggestedCommandTemplates: AIPanelPrompt[] = [
     {
-        type: 'command-template',
-        command: Command.Code,
-        templateId: TemplateId.Wildcard,
-        text: 'write a hello world http service',
+        type: "text",
+        text: "write a hello world http service",
+        planMode: false,
     },
     {
-        type: 'command-template',
+        type: "command-template",
         command: Command.Ask,
         templateId: TemplateId.Wildcard,
-        text: 'how to write a concurrent application?',
+        text: "how to write a concurrent application?",
     },
 ];

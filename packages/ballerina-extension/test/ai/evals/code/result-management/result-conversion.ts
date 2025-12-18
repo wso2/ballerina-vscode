@@ -22,7 +22,14 @@ import { FILES } from '../utils/constants';
  * Converts TestCaseResult to UsecaseResult format
  */
 export function convertTestResultToUsecaseResult(testResult: TestCaseResult, iteration?: number): UsecaseResult {
-    const files = extractSourceFilesFromContent(testResult.result.fullContent);
+    // Use generatedSources if available (actual .bal files from filesystem),
+    // otherwise fall back to parsing fullContent (backward compatibility)
+    const files = testResult.generatedSources
+        ? testResult.generatedSources.map(sf => ({
+            fileName: sf.filePath,  // Convert filePath to fileName for result types
+            content: sf.content
+          }))
+        : extractSourceFilesFromContent(testResult.result.fullContent);
 
     const diagnostics: DiagnosticMessage[] = testResult.result.diagnostics.map(diag => ({
         message: typeof diag === 'string' ? diag : (diag as { message?: string }).message || diag.toString(),
