@@ -585,7 +585,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 </PopupHeader>
                 <PopupContent>
                     <IntroText>
-                        {experimentalEnabled && !hasPersistConnection ? (
+                        {experimentalEnabled ? (
                             <>
                                 To establish your connection, first define a connector. You may create a custom connector using
                                 an API specification or by introspecting a database. Alternatively, you can select one of the
