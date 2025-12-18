@@ -108,7 +108,7 @@ function activateDocCommand() {
                 sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_DOC);
                 window.showErrorMessage(error.message);
             } else {
-                window.showErrorMessage("Unkown error occurred.");
+                window.showErrorMessage("Unknown error occurred.");
             }
         }
     });
