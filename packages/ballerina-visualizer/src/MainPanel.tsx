@@ -82,6 +82,7 @@ import { ServiceFunctionForm } from "./views/BI/ServiceFunctionForm";
 import ServiceConfigureView from "./views/BI/ServiceDesigner/ServiceConfigureView";
 import { WorkspaceOverview } from "./views/BI/WorkspaceOverview";
 import { SamplesView } from "./views/BI/SamplesView";
+import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 
@@ -617,6 +618,11 @@ const MainPanel = () => {
                                 currentFilePath={value.documentUri}
                                 projectPath={value.projectPath}
                             />
+                        );
+                        break;
+                    case MACHINE_VIEW.ReviewMode:
+                        setViewComponent(
+                            <ReviewMode projectPath={value.projectPath} />
                         );
                         break;
                     default:
