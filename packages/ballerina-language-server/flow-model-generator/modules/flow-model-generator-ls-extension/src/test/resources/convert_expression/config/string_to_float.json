@@ -1,0 +1,8 @@
+{
+  "description": "Convert string to float using float:fromString with error handling",
+  "output": "output.floatField",
+  "outputType": "float",
+  "expression": "input.stringField",
+  "expressionType": "string",
+  "convertedExpression": "(let float|error tmp = float:fromString(input.stringField) in (tmp is error ? 0.0f : tmp))"
+}

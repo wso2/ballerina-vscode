@@ -3388,6 +3388,7 @@ public class DataMapManager {
 
         return switch (typeString.toLowerCase(java.util.Locale.ROOT).trim()) {
             case "int" -> TypeDescKind.INT;
+            case "byte" -> TypeDescKind.BYTE;
             case "float" -> TypeDescKind.FLOAT;
             case "decimal" -> TypeDescKind.DECIMAL;
             case "string" -> TypeDescKind.STRING;
@@ -3398,29 +3399,59 @@ public class DataMapManager {
 
     /**
      * Generates the type conversion expression for converting between primitive types.
-     * Uses type casting with <> for all conversions except to string which uses .toString().
-     *
      * @param expression the original expression
+     * @param sourceKind the source type kind
      * @param targetKind the target type kind
      * @return the converted expression
      */
     private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+        // Convert any type to string using toString()
         if (targetKind == TypeDescKind.STRING) {
             return expression + ".toString()";
         }
 
-        String targetTypeName = switch (targetKind) {
-            case INT -> "int";
-            case FLOAT -> "float";
-            case DECIMAL -> "decimal";
-            default -> null;
-        };
-
-        if (targetTypeName != null &&
-                sourceKind != TypeDescKind.STRING && sourceKind != TypeDescKind.BOOLEAN) {
-            return "<" + targetTypeName + ">" + expression;
+        // Convert from string to other primitive types
+        if (sourceKind == TypeDescKind.STRING) {
+            return switch (targetKind) {
+                case INT -> String.format
+                        ("(let int|error tmp = int:fromString(%s) in (tmp is error ? 0 : tmp))", expression);
+                case FLOAT -> String.format
+                        ("(let float|error tmp = float:fromString(%s) in (tmp is error ? 0.0f : tmp))", expression);
+                case DECIMAL -> String.format
+                        ("(let decimal|error tmp = decimal:fromString(%s) in (tmp is error ? 0.0d : tmp))", expression);
+                case BOOLEAN -> String.format
+                        ("((%s == \"\") ? false : true)", expression);
+                default -> expression;
+            };
         }
 
-        return expression;
+        // Convert from boolean to numeric types
+        if (sourceKind == TypeDescKind.BOOLEAN) {
+            return switch (targetKind) {
+                case INT, BYTE -> String.format("(%s ? 1 : 0)", expression);
+                case FLOAT -> String.format("(%s ? 1.0f : 0.0f)", expression);
+                case DECIMAL -> String.format("(%s ? 1.0d : 0.0d)", expression);
+                default -> expression;
+            };
+        }
+
+        // Convert numeric types to boolean
+        if (targetKind == TypeDescKind.BOOLEAN) {
+            return switch (sourceKind) {
+                case INT, BYTE -> String.format("(%s != 0)", expression);
+                case FLOAT -> String.format("(%s != 0.0f)", expression);
+                case DECIMAL -> String.format("(%s != 0.0d)", expression);
+                default -> expression;
+            };
+        }
+
+        // Numeric type casting (int, byte, float, decimal)
+        return switch (targetKind) {
+            case INT -> "<int>" + expression;
+            case BYTE -> "<byte>" + expression;
+            case FLOAT -> "<float>" + expression;
+            case DECIMAL -> "<decimal>" + expression;
+            default -> expression;
+        };
     }
 }

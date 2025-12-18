@@ -18,6 +18,7 @@
 
 package io.ballerina.designmodelgenerator.core.model;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -37,6 +38,7 @@ public class Connection extends DesignGraphNode {
     private final Set<String> dependentFunctions;
     private final Set<String> dependentConnection;
     private String kind = ConnectionKind.CONNECTION.toString();
+    private Map<String, Object> metadata;
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon) {
         super(sortText);
@@ -46,6 +48,7 @@ public class Connection extends DesignGraphNode {
         this.icon = icon;
         this.dependentFunctions = new HashSet<>();
         this.dependentConnection = new HashSet<>();
+        this.metadata = null;
     }
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon,
@@ -57,6 +60,7 @@ public class Connection extends DesignGraphNode {
         this.icon = icon;
         this.dependentFunctions = new HashSet<>();
         this.dependentConnection = new HashSet<>();
+        this.metadata = null;
     }
 
     public Connection(String symbol, String sortText, Location location, Scope scope, String icon,
@@ -69,6 +73,7 @@ public class Connection extends DesignGraphNode {
         this.kind = kind.toString();
         this.dependentFunctions = new HashSet<>();
         this.dependentConnection = new HashSet<>();
+        this.metadata = null;
     }
 
     public enum Scope {
@@ -122,6 +127,13 @@ public class Connection extends DesignGraphNode {
         collectTransitiveDependencies(uuidToConnectionMap, visited, result);
         result.remove(this.getUuid());
         return result;
+    }
+
+    public void addMetadata(String key, Object value) {
+        if (this.metadata == null) {
+            this.metadata = new HashMap<>();
+        }
+        this.metadata.put(key, value);
     }
 
     private void collectTransitiveDependencies(Map<String, Connection> uuidToConnectionMap,

@@ -1,0 +1,8 @@
+{
+  "description": "Convert decimal to boolean using toString()",
+  "output": "output.booleanField",
+  "outputType": "boolean",
+  "expression": "decimal.decimalField",
+  "expressionType": "decimal",
+  "convertedExpression": "(decimal.decimalField != 0.0d)"
+}

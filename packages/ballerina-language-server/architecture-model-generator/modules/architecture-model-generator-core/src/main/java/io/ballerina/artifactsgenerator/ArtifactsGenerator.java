@@ -60,7 +60,7 @@ public class ArtifactsGenerator {
         Map<String, List<String>> newIdMap = new HashMap<>();
 
         Map<String, Map<String, Map<String, Artifact>>> categoryMap = new HashMap<>();
-        List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+        List<Artifact> artifacts = collectArtifactsFromSyntaxTree(projectPath, syntaxTree, semanticModel);
         artifacts.forEach(artifact -> {
             String category = Artifact.getCategory(artifact.type());
             String artifactId = artifact.id();
@@ -93,7 +93,8 @@ public class ArtifactsGenerator {
             Document document = defaultModule.document(documentId);
             Map<String, List<String>> idMap = new HashMap<>();
             SyntaxTree syntaxTree = document.syntaxTree();
-            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+            String projectPath = project.sourceRoot().toAbsolutePath().toString();
+            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(projectPath, syntaxTree, semanticModel);
             artifacts.forEach(artifact -> {
                 String category = Artifact.getCategory(artifact.type());
                 String artifactId = artifact.id();
@@ -132,7 +133,8 @@ public class ArtifactsGenerator {
             Map<String, List<String>> newArtifactsForDoc = new HashMap<>();
             Map<String, Map<String, Map<String, Artifact>>> documentDeltas = new HashMap<>();
 
-            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(syntaxTree, semanticModel);
+            String projectPath = project.sourceRoot().toAbsolutePath().toString();
+            List<Artifact> artifacts = collectArtifactsFromSyntaxTree(projectPath, syntaxTree, semanticModel);
             artifacts.forEach(artifact -> {
                 String category = Artifact.getCategory(artifact.type());
                 String artifactId = artifact.id();
@@ -165,13 +167,14 @@ public class ArtifactsGenerator {
         return combinedDeltas;
     }
 
-    private static List<Artifact> collectArtifactsFromSyntaxTree(SyntaxTree syntaxTree, SemanticModel semanticModel) {
+    private static List<Artifact> collectArtifactsFromSyntaxTree(String projectPath, SyntaxTree syntaxTree,
+                                                                 SemanticModel semanticModel) {
         List<Artifact> artifacts = new ArrayList<>();
         if (!syntaxTree.containsModulePart()) {
             return artifacts;
         }
         ModulePartNode rootNode = syntaxTree.rootNode();
-        ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(semanticModel);
+        ModuleNodeTransformer moduleNodeTransformer = new ModuleNodeTransformer(projectPath, semanticModel);
         rootNode.members().stream()
                 .map(member -> member.apply(moduleNodeTransformer))
                 .flatMap(Optional::stream)

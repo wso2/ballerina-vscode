@@ -184,6 +184,12 @@ import java.util.Stack;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME;
+import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistClientLabel;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiChunker;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiDataLoader;
@@ -195,6 +201,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelModule;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
  * Analyzes the source code and generates the flow model.
@@ -221,7 +228,7 @@ public class CodeAnalyzer extends NodeVisitor {
     private final Stack<NodeBuilder> flowNodeBuilderStack;
     private TypedBindingPatternNode typedBindingPatternNode;
     private static final String AI_AGENT = "ai";
-    public static final String ICON_PATH = CommonUtils.generateIcon("ballerina", "mcp", "0.4.2");
+    public static final String ICON_PATH = CommonUtils.generateIcon(BALLERINA_ORG_NAME, "mcp", "0.4.2");
     public static final String MCP_TOOL_KIT = "McpToolKit";
     public static final String MCP_SERVER = "MCP Server";
     public static final String NAME = "name";
@@ -393,8 +400,9 @@ public class CodeAnalyzer extends NodeVisitor {
         } else {
             startNode(NodeKind.REMOTE_ACTION_CALL, expressionNode.parent());
         }
+        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
-                classSymbol.getName().orElseThrow());
+                classSymbol.getName().orElseThrow(), metadataData);
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
@@ -706,7 +714,8 @@ public class CodeAnalyzer extends NodeVisitor {
 
     private void setFunctionProperties(String functionName, ExpressionNode expressionNode,
                                        RemoteMethodCallActionNode remoteMethodCallActionNode,
-                                       MethodSymbol functionSymbol, String objName) {
+                                       MethodSymbol functionSymbol, String objName,
+                                       Map<String, Object> metadataData) {
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(functionName)
                 .functionSymbol(functionSymbol)
@@ -725,7 +734,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 .object(objName)
                 .symbol(functionName)
                 .stepOut()
-                .properties().callConnection(expressionNode, Property.CONNECTION_KEY);
+                .properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         processFunctionSymbol(remoteMethodCallActionNode, remoteMethodCallActionNode.arguments(), functionSymbol,
                 functionData);
     }
@@ -832,6 +841,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .functionResultKind(FunctionData.Kind.RESOURCE);
         FunctionData functionData = functionDataBuilder.build();
 
+        Map<String, Object> metadataData = getPersistDataFromClient(classSymbol.get());
+
         nodeBuilder.symbolInfo(functionSymbol)
                 .metadata()
                     .label(functionName)
@@ -844,9 +855,22 @@ public class CodeAnalyzer extends NodeVisitor {
                     .resourcePath(resourcePathTemplate.resourcePathTemplate())
                     .stepOut()
                 .properties()
-                .callConnection(expressionNode, Property.CONNECTION_KEY)
+                .callConnection(expressionNode, Property.CONNECTION_KEY, metadataData)
                 .data(this.typedBindingPatternNode, false, new HashSet<>());
         processFunctionSymbol(clientResourceAccessActionNode, argumentNodes, functionSymbol, functionData);
+    }
+
+    private Map<String, Object> getPersistDataFromClient(ClassSymbol classSymbol) {
+        Map<String, Object> persistData;
+        if (isPersistClient(classSymbol, semanticModel)) {
+            persistData = new HashMap<>();
+            persistData.put(CONNECTOR_TYPE, PERSIST);
+            getPersistModelFilePath(project.sourceRoot())
+                    .ifPresent(modelFile -> persistData.put(PERSIST_MODEL_FILE, modelFile));
+        } else {
+            persistData = null;
+        }
+        return persistData;
     }
 
     private void addRemainingParamsToPropertyMap(Map<String, ParameterData> funcParamMap,
@@ -1375,7 +1399,8 @@ public class CodeAnalyzer extends NodeVisitor {
                 .semanticModel(semanticModel)
                 .name(NewConnectionBuilder.INIT_SYMBOL)
                 .functionResultKind(getFunctionResultKind(classSymbol))
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .project(project);
 
         FunctionData functionData;
         if (optMethodSymbol.isPresent()) {
@@ -1413,11 +1438,38 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
+        if (isPersistClient(semanticModel, functionData, name)) {
+            updatePersistRelatedMetadata(functionData, packageName);
+        }
+
         nodeBuilder.codedata()
                     .stepOut()
                 .properties()
                 .scope(connectionScope)
                 .checkError(true, NewConnectionBuilder.CHECK_ERROR_DOC, false);
+    }
+
+    /**
+     * Updates node metadata for persist-related database connections.
+     * <p>
+     * This method extracts the database type and name from the module name, which is expected to follow the pattern
+     * {@code <packageName>.<database-type>.<database-name>}. The substring after the package name should be in the
+     * format {@code <database-type>.<database-name>}, for example, {@code mysql.mydb}.
+     * <p>
+     * The method updates the node metadata with a label (e.g., "Mysql mydb"), sets the connector type to "persist",
+     * and adds the path to the persist model file.
+     *
+     * @param functionData the function data containing the module name
+     * @param packageName  the package name to strip from the module name
+     */
+    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
+        String moduleName = functionData.moduleName();
+        getPersistClientLabel(packageName, moduleName)
+                .ifPresent(label -> nodeBuilder.metadata().label(label));
+        nodeBuilder.metadata()
+                .addData(CONNECTOR_TYPE, PERSIST);
+        getPersistModelFilePath(project.sourceRoot())
+                .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
     }
 
     private NodeKind resolveNodeKind(ClassSymbol classSymbol) {
@@ -1745,7 +1797,8 @@ public class CodeAnalyzer extends NodeVisitor {
                     .symbol(functionName)
                     .object(classSymbol.getName().orElse(""));
         if (classSymbol.qualifiers().contains(Qualifier.CLIENT)) {
-            nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY);
+            Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
+            nodeBuilder.properties().callConnection(expressionNode, Property.CONNECTION_KEY, metadataData);
         } else {
             nodeBuilder.properties().callExpression(expressionNode, Property.CONNECTION_KEY);
         }
@@ -2589,7 +2642,7 @@ public class CodeAnalyzer extends NodeVisitor {
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
         TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)
-                semanticModel.types().getTypeByName("ballerina", "lang.object", "0.0.0", "RawTemplate").get();
+                semanticModel.types().getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate").get();
 
         TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);

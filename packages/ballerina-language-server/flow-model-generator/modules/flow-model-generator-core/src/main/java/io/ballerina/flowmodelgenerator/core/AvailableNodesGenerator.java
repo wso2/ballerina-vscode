@@ -69,9 +69,14 @@ import java.util.stream.Collectors;
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
+import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
  * Generates available nodes for a given position in the diagram.
@@ -440,9 +445,15 @@ public class AvailableNodesGenerator {
                 methods.add(node);
             }
 
-            Metadata metadata = new Metadata.Builder<>(null)
-                    .label(parentSymbolName)
-                    .build();
+            Metadata.Builder<?> metadataBuilder = new Metadata.Builder<>(null)
+                    .label(parentSymbolName);
+            if (isPersistClient(classSymbol, semanticModel)) {
+                metadataBuilder.addData(CONNECTOR_TYPE, PERSIST);
+                getPersistModelFilePath(pkg.project().sourceRoot())
+                        .ifPresent(modelFile -> metadataBuilder.addData(PERSIST_MODEL_FILE, modelFile));
+            }
+
+            Metadata metadata = metadataBuilder.build();
             return Optional.of(new Category(metadata, methods));
         } catch (RuntimeException ignored) {
             return Optional.empty();
