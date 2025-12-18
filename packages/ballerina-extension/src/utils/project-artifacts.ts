@@ -215,7 +215,11 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
             break;
         case DIRECTORY_MAP.CONNECTION:
-            entryValue.icon = icon;
+            if ((artifact as any).metadata?.connectorType === "persist") {
+                entryValue.icon = "bi-db";
+            } else {
+                entryValue.icon = icon;
+            }
             break;
         case DIRECTORY_MAP.RESOURCE:
             // Do things related to resource
