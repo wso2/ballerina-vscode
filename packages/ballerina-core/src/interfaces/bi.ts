@@ -81,6 +81,7 @@ export type Metadata = {
 export type NodeMetadata = {
     isDataMappedFunction?: boolean;
     isAgentTool?: boolean;
+    connectorType?: string;
     isIsolatedFunction?: boolean;
     tools?: ToolData[];
     model?: ToolData;

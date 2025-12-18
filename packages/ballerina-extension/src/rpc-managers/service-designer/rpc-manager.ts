@@ -61,7 +61,7 @@ import { window, workspace } from "vscode";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
-import { generateExamplePayload } from "../../features/ai/service/editor/payload-json/payload_json";
+import { generateExamplePayload } from "../../features/ai/payload-generator/payload_json";
 
 export class ServiceDesignerRpcManager implements ServiceDesignerAPI {
 

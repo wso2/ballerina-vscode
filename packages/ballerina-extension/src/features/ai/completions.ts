@@ -24,10 +24,7 @@ import {
 } from "./../telemetry";
 import { PALETTE_COMMANDS } from "./../project/cmds/cmd-runner";
 import { clearAuthCredentials, loginGithubCopilot } from '../../utils/ai/auth';
-import { RPCLayer } from "../../RPCLayer";
-// import { VisualizerWebview } from "../../views/visualizer/webview";
-import { AiPanelWebview } from "../../views/ai-panel/webview";
-import { ChatNotify, onChatNotify } from "@wso2/ballerina-core";
+// import { clearAllChatStates } from "../../views/ai-panel/chatStatePersistence";
 
 export function activateCopilotLoginCommand() {
     commands.registerCommand(PALETTE_COMMANDS.LOGIN_COPILOT, async () => {
@@ -48,5 +45,6 @@ export function activateCopilotLoginCommand() {
 export function resetBIAuth() {
     commands.registerCommand(PALETTE_COMMANDS.RESET_BI, async () => {
         await clearAuthCredentials();
+        // await clearAllChatStates();
     });
 }
