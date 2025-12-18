@@ -199,17 +199,12 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
     }
     getPlugins() {
         const numericOnly = EditorState.changeFilter.of(tr => {
-            let allow = true;
-            tr.changes.iterChanges((_fromA, _toA, _fromB, _toB, inserted) => {
-                const text = inserted.toString();
+            if (!tr.docChanged) {
+                return true;
+            }
 
-                if (!this.DECIMAL_INPUT_REGEX.test(text)) {
-                    allow = false;
-                    return;
-                }
-            });
-
-            return allow;
+            const nextValue = tr.newDoc.toString();
+            return this.DECIMAL_INPUT_REGEX.test(nextValue);
         });
 
         return [numericOnly];
