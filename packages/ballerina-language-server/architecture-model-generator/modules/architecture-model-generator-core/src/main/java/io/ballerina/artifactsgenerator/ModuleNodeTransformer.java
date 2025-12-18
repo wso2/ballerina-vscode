@@ -49,9 +49,14 @@ import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
+import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiMemoryStore;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
 
 /**
  * Transforms module nodes into artifacts based on the syntax node.
@@ -66,12 +71,14 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isAiVectorStore;
 public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
 
     private final SemanticModel semanticModel;
+    private final String projectPath;
 
     private static final String AUTOMATION_FUNCTION_NAME = "automation";
     private static final String MAIN_FUNCTION_NAME = "main";
 
-    public ModuleNodeTransformer(SemanticModel semanticModel) {
+    public ModuleNodeTransformer(String projectPath, SemanticModel semanticModel) {
         this.semanticModel = semanticModel;
+        this.projectPath = projectPath;
     }
 
     @Override
@@ -178,6 +185,12 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                 variableBuilder
                         .type(Artifact.Type.CONNECTION)
                         .icon(connection.get());
+                if (isPersistClient(connection.get(), semanticModel)) {
+                    variableBuilder
+                            .addMetadata(CONNECTOR_TYPE, PERSIST);
+                    getPersistModelFilePath(projectPath)
+                            .ifPresent(modelFile -> variableBuilder.addMetadata(PERSIST_MODEL_FILE, modelFile));
+                }
             } else {
                 variableBuilder.type(Artifact.Type.VARIABLE);
             }
