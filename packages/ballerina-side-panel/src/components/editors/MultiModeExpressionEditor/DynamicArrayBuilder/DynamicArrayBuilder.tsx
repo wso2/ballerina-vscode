@@ -17,7 +17,6 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import styled from '@emotion/styled';
 import { Button, Codicon, ErrorBanner } from '@wso2/ui-toolkit';
 import { ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
 import { InputMode } from "../ChipExpressionEditor/types";
@@ -25,37 +24,11 @@ import { getPrimaryInputType } from "@wso2/ballerina-core";
 import { getInputModeFromBallerinaType } from "../ChipExpressionEditor/utils";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
+import { S } from "../styles";
 
 interface DynamicArrayBuilderProps {
     value: string | any[];
     expressionFieldProps: ExpressionFieldProps;
-}
-
-export namespace S {
-    export const Container = styled.div({
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        fontFamily: 'var(--font-family)',
-    });
-
-    export const ItemContainer = styled.div({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    });
-
-    export const DeleteButton = styled(Button)({
-        padding: '4px',
-        minWidth: 'auto',
-        height: 'auto',
-    });
-
-    export const AddButton = styled(Button)({
-        alignSelf: 'flex-start',
-        padding: '4px 8px',
-        fontSize: '12px',
-    });
 }
 
 /**
@@ -71,7 +44,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET");
     const minItems = expressionSetType?.minItems ?? 1;
     const defaultItems = expressionSetType?.defaultItems ?? 1;
-    
+
     const [isInitialized, setIsInitialized] = useState(false);
     const currentValuesRef = useRef<string[]>([]);
 
@@ -123,27 +96,65 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         return getInitialValue();
     }, [value, isInitialized]);
 
-    // Validate minItems constraint
+    // Validate minItems constraint and pattern
     useEffect(() => {
         if (!isInitialized) return;
 
+        console.log('[DynamicArrayBuilder] Field key:', expressionFieldProps.field.key);
+        console.log('[DynamicArrayBuilder] Array values:', arrayValues);
+        console.log('[DynamicArrayBuilder] Expression set type:', expressionSetType);
+        console.log('[DynamicArrayBuilder] Pattern:', expressionSetType?.pattern);
+        console.log('[DynamicArrayBuilder] Pattern error message:', expressionSetType?.patternErrorMessage);
+
         const hasNonEmptyValues = arrayValues.some(v => v && v.trim() !== '');
+        console.log('[DynamicArrayBuilder] Has non-empty values:', hasNonEmptyValues);
+
+        // Check for pattern validation
+        const patternType = expressionSetType?.pattern ? expressionSetType : null;
+        let patternError: string | null = null;
+
+        if (patternType?.pattern && hasNonEmptyValues) {
+            const regex = new RegExp(patternType.pattern);
+            console.log('[DynamicArrayBuilder] Created regex:', regex);
+            const invalidItem = arrayValues.find(v => v && v.trim() !== '' && !regex.test(v));
+            console.log('[DynamicArrayBuilder] Invalid item found:', invalidItem);
+            if (invalidItem) {
+                patternError = patternType.patternErrorMessage || "Invalid format";
+            }
+        }
+
+        console.log('[DynamicArrayBuilder] Pattern error:', patternError);
 
         if (minItems > 0) {
             const isInvalid = arrayValues.length < minItems || !hasNonEmptyValues;
+            console.log('[DynamicArrayBuilder] Is invalid (minItems check):', isInvalid);
 
             if (isInvalid) {
                 setError(expressionFieldProps.field.key, {
                     type: 'required',
                     message: `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required with valid value${minItems > 1 ? 's' : ''}`
                 });
+            } else if (patternError) {
+                console.log('[DynamicArrayBuilder] Setting pattern error:', patternError);
+                setError(expressionFieldProps.field.key, {
+                    type: 'pattern',
+                    message: patternError
+                });
             } else {
+                console.log('[DynamicArrayBuilder] Clearing errors');
                 clearErrors(expressionFieldProps.field.key);
             }
+        } else if (patternError) {
+            console.log('[DynamicArrayBuilder] Setting pattern error (no minItems):', patternError);
+            setError(expressionFieldProps.field.key, {
+                type: 'pattern',
+                message: patternError
+            });
         } else {
+            console.log('[DynamicArrayBuilder] Clearing errors (no minItems, no pattern error)');
             clearErrors(expressionFieldProps.field.key);
         }
-    }, [arrayValues, minItems, expressionFieldProps.field.key, setError, clearErrors, isInitialized]);
+    }, [arrayValues, minItems, expressionFieldProps.field.key, setError, clearErrors, isInitialized, expressionSetType]);
 
     // Ensure minimum number of items are always visible
     useEffect(() => {
@@ -181,7 +192,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     };
 
     const primaryInputMode = useMemo(() => {
-        if (expressionFieldProps.field.types.length === 0) {
+        if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
@@ -227,13 +238,15 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <S.AddButton
+            <Button
                 onClick={handleAdd}
-                appearance="secondary"
+                appearance="icon"
             >
-                <Codicon name="add" />
-                Add Item
-            </S.AddButton>
+                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
+                    <Codicon name="add" />
+                    Add Item
+                </div>
+            </Button>
             {renderError()}
         </S.Container>
     );

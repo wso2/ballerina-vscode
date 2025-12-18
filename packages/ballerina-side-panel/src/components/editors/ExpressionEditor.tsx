@@ -443,14 +443,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             return;
         }
 
-        let selectedInputType = field?.types.find(type => type.selected) || field?.types[0];
-
-        let newInputMode = getInputModeFromTypes(selectedInputType);
-        if (!newInputMode) {
+        let selectedInputType = field?.types?.find(type => type.selected) || field?.types?.[0];
+        if (!selectedInputType) {
             setInputMode(InputMode.EXP);
             return;
         }
-        if (isModeSwitcherRestricted()) {
+        
+        let newInputMode = getInputModeFromTypes(selectedInputType);
+        if (!newInputMode) {
             setInputMode(InputMode.EXP);
             return;
         }
@@ -663,8 +663,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         : '';
 
     const isModeSwitcherRestricted = () => {
-        if (nodeInfo?.kind === "FOREACH") return true;
-        return false;
+        return !field.types || !(field.types.length > 1);
     };
 
     const isModeSwitcherAvailable = () => {
