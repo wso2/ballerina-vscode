@@ -4,5 +4,5 @@
   "outputType": "decimal",
   "expression": "input.stringField",
   "expressionType": "string",
-  "convertedExpression": "decimal:fromString(input.stringField) is error ? 0.0d : check decimal:fromString(input.stringField)"
+  "convertedExpression": "(let decimal|error tmp = decimal:fromString(input.stringField) in (tmp is error ? 0.0d : tmp))"
 }

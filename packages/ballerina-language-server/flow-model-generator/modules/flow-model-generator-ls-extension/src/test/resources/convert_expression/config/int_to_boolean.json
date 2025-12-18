@@ -1,0 +1,8 @@
+{
+  "description": "Convert int to boolean using toString()",
+  "output": "output.booleanField",
+  "outputType": "boolean",
+  "expression": "input.intField",
+  "expressionType": "int",
+  "convertedExpression": "(input.intField != 0)"
+}

@@ -3405,34 +3405,53 @@ public class DataMapManager {
      * @return the converted expression
      */
     private String getTypeConversionExpression(String expression, TypeDescKind sourceKind, TypeDescKind targetKind) {
+        // Convert any type to string using toString()
         if (targetKind == TypeDescKind.STRING) {
             return expression + ".toString()";
         }
 
+        // Convert from string to other primitive types
         if (sourceKind == TypeDescKind.STRING) {
             return switch (targetKind) {
-                case INT -> String.format("int:fromString(%s) is error ? 0 : check int:fromString(%s)",
-                        expression, expression);
-                case FLOAT -> String.format("float:fromString(%s) is error ? 0.0 : check float:fromString(%s)",
-                        expression, expression);
-                case DECIMAL -> String.format("decimal:fromString(%s) is error ? 0.0d : check decimal:fromString(%s)",
-                        expression, expression);
+                case INT -> String.format
+                        ("(let int|error tmp = int:fromString(%s) in (tmp is error ? 0 : tmp))", expression);
+                case FLOAT -> String.format
+                        ("(let float|error tmp = float:fromString(%s) in (tmp is error ? 0.0f : tmp))", expression);
+                case DECIMAL -> String.format
+                        ("(let decimal|error tmp = decimal:fromString(%s) in (tmp is error ? 0.0d : tmp))", expression);
+                case BOOLEAN -> String.format
+                        ("((%s == \"\") ? false : true)", expression);
                 default -> expression;
             };
         }
 
-        String targetTypeName = switch (targetKind) {
-            case INT -> "int";
-            case BYTE -> "byte";
-            case FLOAT -> "float";
-            case DECIMAL -> "decimal";
-            default -> null;
-        };
-
-        if (targetTypeName != null && sourceKind != TypeDescKind.BOOLEAN) {
-            return "<" + targetTypeName + ">" + expression;
+        // Convert from boolean to numeric types
+        if (sourceKind == TypeDescKind.BOOLEAN) {
+            return switch (targetKind) {
+                case INT, BYTE -> String.format("(%s ? 1 : 0)", expression);
+                case FLOAT -> String.format("(%s ? 1.0f : 0.0f)", expression);
+                case DECIMAL -> String.format("(%s ? 1.0d : 0.0d)", expression);
+                default -> expression;
+            };
         }
 
-        return expression;
+        // Convert numeric types to boolean
+        if (targetKind == TypeDescKind.BOOLEAN) {
+            return switch (sourceKind) {
+                case INT, BYTE -> String.format("(%s != 0)", expression);
+                case FLOAT -> String.format("(%s != 0.0f)", expression);
+                case DECIMAL -> String.format("(%s != 0.0d)", expression);
+                default -> expression;
+            };
+        }
+
+        // Numeric type casting (int, byte, float, decimal)
+        return switch (targetKind) {
+            case INT -> "<int>" + expression;
+            case BYTE -> "<byte>" + expression;
+            case FLOAT -> "<float>" + expression;
+            case DECIMAL -> "<decimal>" + expression;
+            default -> expression;
+        };
     }
 }

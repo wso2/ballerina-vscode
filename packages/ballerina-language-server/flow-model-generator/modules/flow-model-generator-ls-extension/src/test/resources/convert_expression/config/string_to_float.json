@@ -4,5 +4,5 @@
   "outputType": "float",
   "expression": "input.stringField",
   "expressionType": "string",
-  "convertedExpression": "float:fromString(input.stringField) is error ? 0.0 : check float:fromString(input.stringField)"
+  "convertedExpression": "(let float|error tmp = float:fromString(input.stringField) in (tmp is error ? 0.0f : tmp))"
 }
