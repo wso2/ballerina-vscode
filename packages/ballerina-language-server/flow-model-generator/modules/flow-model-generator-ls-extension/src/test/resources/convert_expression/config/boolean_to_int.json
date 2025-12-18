@@ -1,0 +1,8 @@
+{
+  "description": "Convert boolean to int using ternary expression",
+  "output": "output.intField",
+  "outputType": "int",
+  "expression": "input.boolField",
+  "expressionType": "boolean",
+  "convertedExpression": "(input.boolField ? 1 : 0)"
+}
