@@ -79,6 +79,8 @@ public class JsonToTypeMapper {
     private final boolean allowAdditionalFields;
     private final boolean asInlineType;
     private final boolean isNullAsOptional;
+    private String rootTypeName;
+    private String updatedRootTypeName;
 
     public JsonToTypeMapper(boolean allowAdditionalFields, boolean asInlineType, boolean isNullAsOptional,
                             String typePrefix, WorkspaceManager workspaceManager, Path filePath) {
@@ -102,7 +104,8 @@ public class JsonToTypeMapper {
         }
 
         String typeDefName = (name == null || name.isEmpty()) ? NEW_TYPE_NAME : name;
-
+        rootTypeName = escapeIdentifier(typeDefName.trim());
+        updatedRootTypeName = null;
         if (jsonElement.isJsonObject()) {
             generateForNestedStructures(jsonElement, name, false, null);
         } else if (jsonElement.isJsonArray()) {
@@ -174,6 +177,9 @@ public class JsonToTypeMapper {
     }
 
     private void insertIntoTypeDescMap(TypeDesc typeDesc, String typeName, String moveBefore) {
+        if (typeName.equals(rootTypeName)) {
+            typeName = updatedRootTypeName != null ? updatedRootTypeName : rootTypeName;
+        }
         if (moveBefore == null || moveBefore.equals(typeName)) {
             typeDefinitions.put(typeName, typeDesc);
             return;
@@ -222,8 +228,12 @@ public class JsonToTypeMapper {
 
             // Check again if type was created during processing (nested structure with same field)
             if (typeDefinitions.containsKey(recordTypeName)) {
-                recordFields.clear();
-                mergeWithExistingRecordFields(jsonObject, recordTypeName, recordFields);
+                if (recordTypeName.equals(rootTypeName)) {
+                    updatedRootTypeName = getNextAvailableTypeName(recordTypeName);
+                } else {
+                    recordFields.clear();
+                    mergeWithExistingRecordFields(jsonObject, recordTypeName, recordFields);
+                }
             }
         }
 
@@ -306,6 +316,35 @@ public class JsonToTypeMapper {
     private String getRecordName(String name) {
         String cap = StringUtils.capitalize(name);
         return (typePrefix == null || typePrefix.isEmpty()) ? cap : StringUtils.capitalize(typePrefix) + cap;
+    }
+
+    private String getNextAvailableTypeName(String baseName) {
+        int maxSuffix = 0;
+        String pattern = baseName + "_";
+
+        for (String existingType : typeDefinitions.keySet()) {
+            if (existingType.startsWith(pattern)) {
+                String suffixPart = existingType.substring(pattern.length());
+                try {
+                    int suffix = Integer.parseInt(suffixPart);
+                    maxSuffix = Math.max(maxSuffix, suffix);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        for (String existingType : existingFieldNamesSet) {
+            if (existingType.startsWith(pattern)) {
+                String suffixPart = existingType.substring(pattern.length());
+                try {
+                    int suffix = Integer.parseInt(suffixPart);
+                    maxSuffix = Math.max(maxSuffix, suffix);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
+
+        return String.format("%s_%02d", baseName, maxSuffix + 1);
     }
 
     private void mergeWithExistingRecordFields(JsonObject jsonObject, String recordName,
