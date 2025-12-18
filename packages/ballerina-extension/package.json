@@ -213,6 +213,11 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
+                "ballerina.ai.planMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the option for the Plan mode in Copilot."
+                },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,
@@ -232,6 +237,33 @@
                         "Trace request/response messages only",
                         "Trace request/response messages with parameters and content"
                     ]
+                },
+                "ballerina.copilot.checkpoints.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable checkpoint mechanism for copilot chat to restore previous states."
+                },
+                "ballerina.copilot.checkpoints.maxCount": {
+                    "type": "number",
+                    "default": 20,
+                    "description": "Maximum number of checkpoints to keep."
+                },
+                "ballerina.copilot.checkpoints.ignorePatterns": {
+                    "type": "array",
+                    "default": [
+                        ".git/**",
+                        "target/**",
+                        "build/**",
+                        "dist/**",
+                        ".vscode/**",
+                        "*.log"
+                    ],
+                    "description": "File patterns to ignore when creating checkpoints."
+                },
+                "ballerina.copilot.checkpoints.maxSnapshotSize": {
+                    "type": "number",
+                    "default": 52428800,
+                    "description": "Maximum snapshot size in bytes (default: 50MB)."
                 }
             }
         },
@@ -390,7 +422,7 @@
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
@@ -549,9 +581,14 @@
                 "category": "BI"
             },
             {
+                "command": "BI.project-explorer.refresh",
+                "title": "Refresh Ballerina",
+                "category": "BI"
+            },
+            {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "BI"
             },
             {
@@ -609,7 +646,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -630,7 +667,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -645,7 +682,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -994,8 +1031,8 @@
                     "fontCharacter": "\\f114"
                 }
             },
-            "distro-design-view": {
-                "description": "design-view",
+            "distro-agent-view": {
+                "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
                     "fontCharacter": "\\f16e"
@@ -1119,6 +1156,13 @@
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea77"
                 }
+            },
+            "distro-design-view": {
+                "description": "design-view",
+                "default": {
+                    "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
+                    "fontCharacter": "\\f16e"
+                }
             }
         },
         "uriHandler": {
@@ -1170,8 +1214,8 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^3.0.25",
-        "@ai-sdk/anthropic": "^2.0.20",
+        "@ai-sdk/amazon-bedrock": "^3.0.57",
+        "@ai-sdk/anthropic": "^2.0.45",
         "@iarna/toml": "^2.2.5",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
@@ -1182,7 +1226,7 @@
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/trace-visualizer": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^5.0.56",
+        "ai": "^5.0.101",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
