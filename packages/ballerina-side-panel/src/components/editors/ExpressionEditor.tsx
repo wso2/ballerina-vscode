@@ -442,40 +442,13 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.RECORD);
             return;
         }
-
-        let selectedInputType = field?.types?.find(type => type.selected) || field?.types?.[0];
+        if (field.types.length === 0) return;
+        let selectedInputType = field?.types.find(type => type.selected);
         if (!selectedInputType) {
-            setInputMode(InputMode.EXP);
-            return;
+            selectedInputType = field?.types[0];
         }
-        
-        let newInputMode = getInputModeFromTypes(selectedInputType);
-        if (!newInputMode) {
-            setInputMode(InputMode.EXP);
-            return;
-        }
-        switch (newInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (!isExpToTemplateSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-        }
-        setInputMode(newInputMode)
+        const inputMode = getInputModeFromTypes(selectedInputType);
+        setInputMode(inputMode)
     }, [field?.types, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
