@@ -91,7 +91,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     // Module names
     private static final String CDC_MODULE_NAME = "cdc";
     private static final String MSSQL_CDC_DRIVER_MODULE_NAME = "mssql.cdc.driver";
-    private static final String UNNAMED_IMPORT_SUFFIX = "as _";
+    private static final String UNNAMED_IMPORT_SUFFIX = " as _";
 
     // Property keys
     private static final String KEY_LISTENER_VAR_NAME = "listenerVarName";
@@ -151,6 +151,15 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
      */
     private record ListenerInfo(String name, String declaration) { }
 
+    /**
+     * Data holder for import information.
+     *
+     * @param org The organization name
+     * @param module The module name
+     * @param unnamed Whether the import is unnamed (i.e., uses "as _" suffix)
+     */
+    private record Import(String org, String module, boolean unnamed) { }
+
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         InputStream resourceStream = MssqlCdcServiceBuilder.class.getClassLoader()
@@ -185,10 +194,10 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         List<TextEdit> edits = new ArrayList<>();
 
         // Add necessary imports
-        String[] imports = {
-                CDC_MODULE_NAME,
-                serviceInitModel.getModuleName(),
-                MSSQL_CDC_DRIVER_MODULE_NAME + SPACE + UNNAMED_IMPORT_SUFFIX
+        Import[] imports = new Import[] {
+                new Import(BALLERINAX, CDC_MODULE_NAME, false),
+                new Import(serviceInitModel.getOrgName(),serviceInitModel.getModuleName(), false),
+                new Import(BALLERINAX, MSSQL_CDC_DRIVER_MODULE_NAME, true)
         };
         addImportTextEdits(modulePartNode, imports, edits);
 
@@ -208,6 +217,8 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
     private void formatInitModelForExistingListener(Set<String> listenerNames, Map<String, Value> properties) {
         Value configureListenerValue = properties.get(KEY_CONFIGURE_LISTENER);
+
+        updateListenerNameSuffix(listenerNames, properties);
 
         // fill the existing listeners values
         Value selectListenerTemplate = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
@@ -234,10 +245,24 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         listenerFields.forEach(properties::remove);
     }
 
-    private void addImportTextEdits(ModulePartNode modulePartNode, String[] modules, List<TextEdit> edits) {
-        for (String module : modules) {
-            if (!importExists(modulePartNode, BALLERINAX, module)) {
-                String importText = getImportStmt(BALLERINAX, module);
+    private void updateListenerNameSuffix(Set<String> listenerNames, Map<String, Value> properties) {
+        Value listenerVarName = properties.get(ServiceInitModel.KEY_LISTENER_VAR_NAME);
+        // add a number suffix if there are existing listeners
+        String baseListenerName = listenerVarName.getValue();
+        int suffix = listenerNames.size() + 1;
+        while (listenerNames.contains(baseListenerName + suffix)) {
+            suffix++;
+        }
+        listenerVarName.setValue(baseListenerName + suffix);
+    }
+
+    private void addImportTextEdits(ModulePartNode modulePartNode, Import[] imports, List<TextEdit> edits) {
+        for (Import im : imports) {
+            if (!importExists(modulePartNode, im.org(), im.module())) {
+                String importText = getImportStmt(im.org(), im.module());
+                if (im.unnamed()) {
+                    importText += UNNAMED_IMPORT_SUFFIX;
+                }
                 edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
         }

@@ -79,7 +79,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Username cannot be empty"
         },
         {
           "fieldType": "EXPRESSION",
@@ -107,7 +109,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Password cannot be empty"
         },
         {
           "fieldType": "EXPRESSION",
