@@ -135,7 +135,9 @@
           "fieldType": "EXPRESSION_SET",
           "ballerinaType": "string",
           "minItems": 1,
-          "defaultItems": 1
+          "defaultItems": 1,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Database name cannot be empty"
         }
       ],
       "enabled": true,
@@ -310,11 +312,13 @@
       "types": [
         {
           "fieldType": "TEXT",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "selected": true
         },
         {
           "fieldType": "EXPRESSION",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "selected": false
         }
       ],
       "enabled": true,
