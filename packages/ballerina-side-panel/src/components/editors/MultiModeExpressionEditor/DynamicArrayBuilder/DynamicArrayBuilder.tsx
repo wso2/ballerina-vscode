@@ -38,7 +38,7 @@ interface DynamicArrayBuilderProps {
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const { value, expressionFieldProps } = props;
     const { form } = useFormContext();
-    const { setValue, setError, clearErrors, formState: { errors } } = form;
+    const { setValue } = form;
 
     // Extract configuration from EXPRESSION_SET type definition
     const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET");
@@ -96,65 +96,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         return getInitialValue();
     }, [value, isInitialized]);
 
-    // Validate minItems constraint and pattern
-    useEffect(() => {
-        if (!isInitialized) return;
-
-        console.log('[DynamicArrayBuilder] Field key:', expressionFieldProps.field.key);
-        console.log('[DynamicArrayBuilder] Array values:', arrayValues);
-        console.log('[DynamicArrayBuilder] Expression set type:', expressionSetType);
-        console.log('[DynamicArrayBuilder] Pattern:', expressionSetType?.pattern);
-        console.log('[DynamicArrayBuilder] Pattern error message:', expressionSetType?.patternErrorMessage);
-
-        const hasNonEmptyValues = arrayValues.some(v => v && v.trim() !== '');
-        console.log('[DynamicArrayBuilder] Has non-empty values:', hasNonEmptyValues);
-
-        // Check for pattern validation
-        const patternType = expressionSetType?.pattern ? expressionSetType : null;
-        let patternError: string | null = null;
-
-        if (patternType?.pattern && hasNonEmptyValues) {
-            const regex = new RegExp(patternType.pattern);
-            console.log('[DynamicArrayBuilder] Created regex:', regex);
-            const invalidItem = arrayValues.find(v => v && v.trim() !== '' && !regex.test(v));
-            console.log('[DynamicArrayBuilder] Invalid item found:', invalidItem);
-            if (invalidItem) {
-                patternError = patternType.patternErrorMessage || "Invalid format";
-            }
-        }
-
-        console.log('[DynamicArrayBuilder] Pattern error:', patternError);
-
-        if (minItems > 0) {
-            const isInvalid = arrayValues.length < minItems || !hasNonEmptyValues;
-            console.log('[DynamicArrayBuilder] Is invalid (minItems check):', isInvalid);
-
-            if (isInvalid) {
-                setError(expressionFieldProps.field.key, {
-                    type: 'required',
-                    message: `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required with valid value${minItems > 1 ? 's' : ''}`
-                });
-            } else if (patternError) {
-                console.log('[DynamicArrayBuilder] Setting pattern error:', patternError);
-                setError(expressionFieldProps.field.key, {
-                    type: 'pattern',
-                    message: patternError
-                });
-            } else {
-                console.log('[DynamicArrayBuilder] Clearing errors');
-                clearErrors(expressionFieldProps.field.key);
-            }
-        } else if (patternError) {
-            console.log('[DynamicArrayBuilder] Setting pattern error (no minItems):', patternError);
-            setError(expressionFieldProps.field.key, {
-                type: 'pattern',
-                message: patternError
-            });
-        } else {
-            console.log('[DynamicArrayBuilder] Clearing errors (no minItems, no pattern error)');
-            clearErrors(expressionFieldProps.field.key);
-        }
-    }, [arrayValues, minItems, expressionFieldProps.field.key, setError, clearErrors, isInitialized, expressionSetType]);
 
     // Ensure minimum number of items are always visible
     useEffect(() => {
@@ -198,16 +139,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
 
-    const renderError = () => {
-        const error = errors[expressionFieldProps.field.key];
-        if (!error) return null;
-
-        const errorMessage = typeof error.message === 'string'
-            ? error.message
-            : String(error.message || 'Validation error');
-
-        return <ErrorBanner errorMsg={errorMessage} />;
-    };
 
     return (
         <S.Container>
@@ -247,7 +178,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                     Add Item
                 </div>
             </Button>
-            {renderError()}
         </S.Container>
     );
 };

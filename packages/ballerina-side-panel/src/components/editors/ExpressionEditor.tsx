@@ -725,8 +725,34 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             required: required ?? (!field.optional && !field.placeholder)
                         };
 
+                        const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET");
                         const patternType = field.types?.find(t => t.pattern);
-                        if (patternType?.pattern) {
+
+                        if (expressionSetType?.pattern) {
+                            // For EXPRESSION_SET (arrays), validate each item
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    if (!Array.isArray(value)) return true;
+
+                                    const regex = new RegExp(expressionSetType.pattern);
+                                    for (const item of value) {
+                                        if (!regex.test(item)) {
+                                            return expressionSetType.patternErrorMessage || "Invalid format";
+                                        }
+                                    }
+                                    return true;
+                                },
+                                minItems: (value: any) => {
+                                    if (!Array.isArray(value)) return true;
+                                    const minItems = expressionSetType.minItems ?? 0;
+                                    if (minItems > 0 && value.length < minItems) {
+                                        return `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required`;
+                                    }
+                                    return true;
+                                }
+                            };
+                        } else if (patternType?.pattern) {
+                            // For non-array fields, use regular pattern validation
                             rules.pattern = {
                                 value: new RegExp(patternType.pattern),
                                 message: patternType.patternErrorMessage || "Invalid format"
