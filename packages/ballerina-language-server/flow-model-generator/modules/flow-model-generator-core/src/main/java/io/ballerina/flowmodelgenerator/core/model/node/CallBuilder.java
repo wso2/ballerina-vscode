@@ -138,7 +138,8 @@ public abstract class CallBuilder extends NodeBuilder {
         // experience is designed and implemented.
         // Issue: https://github.com/wso2/product-ballerina-integrator/issues/2042
         // If the inferredType is a record type, add it as the value of the property if the value is not provided
-        if (value == null && CommonUtil.getRawType(paramData.typeSymbol()).typeKind().equals(TypeDescKind.RECORD)) {
+        if (value == null && paramData.typeSymbol() != null
+                && CommonUtil.getRawType(paramData.typeSymbol()).typeKind().equals(TypeDescKind.RECORD)) {
             // The value is same as the default value for inferred type parameter
             value = paramData.defaultValue();
         }
