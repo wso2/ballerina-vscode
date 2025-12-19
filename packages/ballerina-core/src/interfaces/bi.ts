@@ -81,6 +81,7 @@ export type Metadata = {
 export type NodeMetadata = {
     isDataMappedFunction?: boolean;
     isAgentTool?: boolean;
+    connectorType?: string;
     isIsolatedFunction?: boolean;
     tools?: ToolData[];
     model?: ToolData;
@@ -121,10 +122,59 @@ export type Imports = {
     [prefix: string]: string;
 };
 
+export type FormFieldInputType = "TEXT" |
+    "BOOLEAN" |
+    "IDENTIFIER" |
+    "SINGLE_SELECT" |
+    "MULTIPLE_SELECT" |
+    "TEXTAREA" |
+    "TEMPLATE" |
+    "TYPE" |
+    "EXPRESSION" |
+    "REPEATABLE_PROPERTY" |
+    "PARAM_MANAGER" |
+    "STRING" |
+    "FILE_SELECT" |
+    "ACTION_OR_EXPRESSION" |
+    "MULTIPLE_SELECT_LISTENER" |
+    "SINGLE_SELECT_LISTENER" |
+    "EXPRESSION_SET" |
+    "FLAG" |
+    "CHOICE"|
+    "LV_EXPRESSION" |
+    "RAW_TEMPLATE" |
+    "ai:Prompt";
+
+export interface BaseType {
+    fieldType: FormFieldInputType;
+    ballerinaType?: string;
+    selected: boolean;
+    typeMembers?: PropertyTypeMemberInfo[];
+}
+
+export interface DropdownType extends BaseType {
+    fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
+    options: string[];
+}
+
+export interface TemplateType extends BaseType {
+    template: Property;
+}
+
+export interface IdentifierType extends BaseType {
+    fieldType: "IDENTIFIER";
+    scope: Scope;
+}
+
+export type InputType =
+    | BaseType
+    | DropdownType
+    | TemplateType
+    | IdentifierType;
+
 export type Property = {
     metadata: Metadata;
     diagnostics?: Diagnostic;
-    valueType: string;
     value: string | string[] | ELineRange | NodeProperties | Property[];
     advanceProperties?: NodeProperties;
     optional: boolean;
@@ -132,9 +182,8 @@ export type Property = {
     advanced?: boolean;
     hidden?: boolean;
     placeholder?: string;
-    valueTypeConstraint?: string | string[];
+    types?: InputType[];
     codedata?: CodeData;
-    typeMembers?: PropertyTypeMemberInfo[];
     imports?: Imports;
     advancedValue?: string;
     modified?: boolean;
@@ -336,6 +385,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "auth"
     | "checkError"
     | "client"
     | "collection"
@@ -375,6 +425,7 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "toolKitName"
     | "tools"
     | "type"
     | "typeDescription"

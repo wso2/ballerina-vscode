@@ -24,9 +24,7 @@ import { FormField } from "../Form/types";
 import { capitalize, getValueForDropdown } from "./utils";
 import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
-import { PropertyModel } from "@wso2/ballerina-core";
 import { EditorFactory } from "./EditorFactory";
-import Form from "../Form";
 
 interface DropdownChoiceFormProps {
     field: FormField;

@@ -57,6 +57,8 @@ import {
     SubPanelView,
     NodeMetadata,
     Type,
+    getPrimaryInputType,
+    isTemplateType,
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -124,11 +126,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} connectorType={connectorType} />,
         items: items,
     };
 }
@@ -259,7 +262,7 @@ export function convertNodePropertyToFormField(
     const formField: FormField = {
         key,
         label: property.metadata?.label || "",
-        type: property.valueType,
+        type: getPrimaryInputType(property.types)?.fieldType ?? "",
         optional: property.optional,
         advanced: property.advanced,
         placeholder: property.placeholder,
@@ -270,11 +273,10 @@ export function convertNodePropertyToFormField(
         documentation: property.metadata?.description || "",
         value: getFormFieldValue(property, clientName),
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
-        valueType: property.valueType,
         items: getFormFieldItems(property, connections),
         itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
-        valueTypeConstraint: property.valueTypeConstraint,
+        types: property.types,
         lineRange: property?.codedata?.lineRange,
         metadata: property.metadata,
         codedata: property.codedata,
@@ -287,7 +289,7 @@ function isFieldEditable(expression: Property, connections?: FlowNode[], clientN
     if (
         connections &&
         clientName &&
-        expression.valueType === "Identifier" &&
+        getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" &&
         expression.metadata.label === "Connection"
     ) {
         return false;
@@ -296,30 +298,18 @@ function isFieldEditable(expression: Property, connections?: FlowNode[], clientN
 }
 
 function getFormFieldValue(expression: Property, clientName?: string) {
-    if (clientName && expression.valueType === "Identifier" && expression.metadata.label === "Connection") {
+    if (clientName && getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
         console.log(">>> client name as set field value", clientName);
         return clientName;
     }
     return expression.value as string;
 }
 
-function getFormFieldValueType(expression: Property): string | undefined {
-    if (Array.isArray(expression.valueTypeConstraint)) {
-        return undefined;
-    }
-
-    if (expression.valueTypeConstraint) {
-        return expression.valueTypeConstraint;
-    }
-
-    return expression.valueType;
-}
-
 function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
-    if (expression.valueType === "Identifier" && expression.metadata.label === "Connection") {
+    if (getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
         return connections.map((connection) => connection.properties?.variable?.value as string);
-    } else if (expression.valueType === "MULTIPLE_SELECT" || expression.valueType === "SINGLE_SELECT") {
-        return expression.valueTypeConstraint as string[];
+    } else if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
+        return expression.types?.map(inputType => inputType.ballerinaType) as string[];
     }
     return undefined;
 }
@@ -919,13 +909,18 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     const paramFields: FormField[] = [];
 
     // Create parameter fields
-    for (const [paramKey, param] of Object.entries((property.valueTypeConstraint as any).value as NodeProperties)) {
-        const paramField = convertNodePropertyToFormField(paramKey, param);
-        paramFields.push(paramField);
+    const primaryInputType = getPrimaryInputType(property.types);
+    if (isTemplateType(primaryInputType)) {
+        for (const [paramKey, param] of Object.entries((primaryInputType.template).value as NodeProperties)) {
+            const paramField = convertNodePropertyToFormField(paramKey, param);
+            paramFields.push(paramField);
+        }
     }
 
     // Set up parameter manager properties
-    formField.valueType = "PARAM_MANAGER";
+    if (formField.types && formField.types.length > 0) {
+        formField.types[0].fieldType = "PARAM_MANAGER";
+    }
     formField.type = "PARAM_MANAGER";
 
     // Create existing parameter values
@@ -969,7 +964,7 @@ export function convertConfig(properties: NodeProperties, skipKeys: string[] = [
         const property = properties[key as keyof NodeProperties];
         const formField = convertNodePropertyToFormField(key, property);
 
-        if (property.valueType === "REPEATABLE_PROPERTY") {
+        if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
             handleRepeatableProperty(property, formField);
         }
 

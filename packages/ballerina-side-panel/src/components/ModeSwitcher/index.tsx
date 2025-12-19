@@ -19,39 +19,38 @@
 import React, { useMemo } from 'react';
 import { Label, Slider, SwitchWrapper } from './styles';
 import { InputMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/types';
-import { getDefaultExpressionMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { getDefaultExpressionMode, getSecondaryMode } from '../editors/MultiModeExpressionEditor/ChipExpressionEditor/utils';
+import { InputType } from '@wso2/ballerina-core';
 
 interface ModeSwitcherProps {
     value: InputMode;
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
-    valueTypeConstraint: string | string[];
-    fieldKey?: string;
+    types: InputType[];
 }
 
-const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, valueTypeConstraint, fieldKey }) => {
-    const isChecked = value === InputMode.EXP;
-
+const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
     const defaultMode = useMemo(
-        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(valueTypeConstraint, fieldKey),
-        [valueTypeConstraint, isRecordTypeField, fieldKey]
+        () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(types),
+        [types, isRecordTypeField]
     );
 
-    const handlePrimaryModeClick = () => {
-        onChange(defaultMode);
-    };
-
-    const handleExpressionClick = () => {
-        onChange(InputMode.EXP);
-    };
+     const secondaryMode = useMemo(
+        () => isRecordTypeField ? InputMode.EXP : getSecondaryMode(types),
+        [types, isRecordTypeField]
+    );
+    const handleModeSwitch = (mode: InputMode) => {
+        onChange(mode);
+    }
+    const isChecked = value === secondaryMode;
 
     return (
         <SwitchWrapper>
-            <Slider checked={isChecked}>
-                <Label active={!isChecked} onClick={handlePrimaryModeClick}>{defaultMode}</Label>
-                <Label active={isChecked} onClick={handleExpressionClick}>Expression</Label>
-            </Slider>
-        </SwitchWrapper>
+                <Slider checked={isChecked}>
+                    <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
+                    <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
+                </Slider>
+            </SwitchWrapper>
     );
 };
 

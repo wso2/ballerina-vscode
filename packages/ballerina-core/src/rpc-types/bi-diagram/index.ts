@@ -97,7 +97,9 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    BIDesignModelRequest,
+    BIFlowModelRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -125,7 +127,7 @@ import {
 } from "./interfaces";
 
 export interface BIDiagramAPI {
-    getFlowModel: () => Promise<BIFlowModelResponse>;
+    getFlowModel: (params: BIFlowModelRequest) => Promise<BIFlowModelResponse>;
     getSourceCode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteFlowNode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteByComponentInfo: (params: BIDeleteByComponentInfoRequest) => Promise<BIDeleteByComponentInfoResponse>;
@@ -173,7 +175,7 @@ export interface BIDiagramAPI {
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
-    getDesignModel: () => Promise<BIDesignModelResponse>;
+    getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
