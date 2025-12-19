@@ -442,13 +442,20 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.RECORD);
             return;
         }
-        if (field?.types.length === 0) return;
+        if (field?.types.length === 0) {
+            setInputMode(InputMode.EXP);
+            return;
+        };
         let selectedInputType = field?.types.find(type => type.selected);
         if (!selectedInputType) {
             selectedInputType = field?.types[0];
         }
         const inputMode = getInputModeFromTypes(selectedInputType);
-        setInputMode(inputMode)
+        if (!inputMode) {
+            setInputMode(InputMode.EXP);
+            return;
+        };
+        setInputMode(inputMode);
     }, [field?.types, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
