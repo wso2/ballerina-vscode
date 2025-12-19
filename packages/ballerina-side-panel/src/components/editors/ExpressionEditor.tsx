@@ -442,7 +442,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(InputMode.RECORD);
             return;
         }
-        if (field.types.length === 0) return;
+        if (field?.types.length === 0) return;
         let selectedInputType = field?.types.find(type => type.selected);
         if (!selectedInputType) {
             selectedInputType = field?.types[0];
