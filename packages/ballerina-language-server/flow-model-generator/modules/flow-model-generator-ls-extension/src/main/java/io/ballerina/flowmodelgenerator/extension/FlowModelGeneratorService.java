@@ -32,7 +32,6 @@ import io.ballerina.flowmodelgenerator.core.EnclosedNodeFinder;
 import io.ballerina.flowmodelgenerator.core.ErrorHandlerGenerator;
 import io.ballerina.flowmodelgenerator.core.ModelGenerator;
 import io.ballerina.flowmodelgenerator.core.NodeTemplateGenerator;
-import io.ballerina.flowmodelgenerator.core.OpenApiServiceGenerator;
 import io.ballerina.flowmodelgenerator.core.SourceGenerator;
 import io.ballerina.flowmodelgenerator.core.SuggestedComponentService;
 import io.ballerina.flowmodelgenerator.core.SuggestedModelGenerator;
@@ -52,7 +51,6 @@ import io.ballerina.flowmodelgenerator.extension.request.FlowModelSourceGenerato
 import io.ballerina.flowmodelgenerator.extension.request.FlowModelSuggestedGenerationRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FlowNodeDeleteRequest;
 import io.ballerina.flowmodelgenerator.extension.request.FunctionDefinitionRequest;
-import io.ballerina.flowmodelgenerator.extension.request.OpenAPIServiceGenerationRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchNodesRequest;
 import io.ballerina.flowmodelgenerator.extension.request.SearchRequest;
 import io.ballerina.flowmodelgenerator.extension.request.ServiceFieldNodesRequest;
@@ -66,7 +64,6 @@ import io.ballerina.flowmodelgenerator.extension.response.FlowModelNodeTemplateR
 import io.ballerina.flowmodelgenerator.extension.response.FlowModelSourceGeneratorResponse;
 import io.ballerina.flowmodelgenerator.extension.response.FlowNodeDeleteResponse;
 import io.ballerina.flowmodelgenerator.extension.response.FunctionDefinitionResponse;
-import io.ballerina.flowmodelgenerator.extension.response.OpenApiServiceGenerationResponse;
 import io.ballerina.flowmodelgenerator.extension.response.SearchNodesResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -513,25 +510,6 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
                 response.setError(e);
             }
 
-            return response;
-        });
-    }
-
-    @JsonRequest
-    public CompletableFuture<OpenApiServiceGenerationResponse> generateServiceFromOpenApiContract(
-            OpenAPIServiceGenerationRequest request) {
-
-        return CompletableFuture.supplyAsync(() -> {
-            OpenApiServiceGenerationResponse response = new OpenApiServiceGenerationResponse();
-            try {
-                Path openApiContractPath = Path.of(request.openApiContractPath());
-                Path projectPath = Path.of(request.projectPath());
-                OpenApiServiceGenerator openApiServiceGenerator = new OpenApiServiceGenerator(openApiContractPath,
-                        projectPath, workspaceManagerProxy.get());
-                response.setTextEdits(openApiServiceGenerator.generateService(request.name(), request.listeners()));
-            } catch (Throwable e) {
-                response.setError(e);
-            }
             return response;
         });
     }
