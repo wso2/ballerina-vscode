@@ -1,0 +1,8 @@
+{
+  "description": "Convert byte to decimal using type casting",
+  "output": "output.decimalField",
+  "outputType": "decimal",
+  "expression": "input.byteField",
+  "expressionType": "byte",
+  "convertedExpression": "<decimal>input.byteField"
+}

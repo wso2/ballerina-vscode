@@ -97,8 +97,7 @@ import static io.ballerina.compiler.syntax.tree.SyntaxKind.NEW_KEYWORD;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.OPEN_PAREN_TOKEN;
 import static io.ballerina.compiler.syntax.tree.SyntaxKind.SEMICOLON_TOKEN;
 import static io.ballerina.modelgenerator.commons.CommonUtils.toPosition;
-import static io.ballerina.persist.utils.BalProjectUtils.populateEntities;
-import static io.ballerina.persist.utils.BalProjectUtils.populateEnums;
+import static io.ballerina.persist.utils.BalProjectUtils.getEntities;
 import static io.ballerina.projects.util.ProjectConstants.BALLERINA_TOML;
 
 /**
@@ -228,7 +227,7 @@ public class PersistClient {
             addTextEditForPersistModelFile(dataModels, textEditsMap, persistModelPath);
             // Need to reload since the current initial entity module does not have enums
             // and other details
-            entityModule = reloadEntityFromSyntaxTree(module, dataModels);
+            entityModule = getEntities(module, dataModels);
             addTextEditsForClientModuleSources(module, textEditsMap, entityModule);
             addTextEditForConfigurations(textEditsMap);
             addTextEditForConnectionClient(packageName, module, textEditsMap);
@@ -413,16 +412,6 @@ public class PersistClient {
         List<TextEdit> clientTextEdits = new ArrayList<>();
         clientTextEdits.add(new TextEdit(START_RANGE, Formatter.format(clientFile.toSourceCode())));
         textEditsMap.put(outputPath.resolve("persist_client.bal"), clientTextEdits);
-    }
-
-    private static Module reloadEntityFromSyntaxTree(String module, SyntaxTree dataModels)
-            throws IOException, BalException {
-        Module entityModule;
-        Module.Builder moduleBuilder = Module.newBuilder(module);
-        populateEnums(moduleBuilder, dataModels);
-        populateEntities(moduleBuilder, dataModels);
-        entityModule = moduleBuilder.build();
-        return entityModule;
     }
 
     private static void addTextEditForPersistModelFile(SyntaxTree dataModels, Map<Path, List<TextEdit>> textEditsMap,
