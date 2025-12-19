@@ -19,6 +19,7 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -34,6 +35,7 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
+import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
@@ -132,6 +134,15 @@ public abstract class CallBuilder extends NodeBuilder {
     public static void buildInferredTypeProperty(NodeBuilder nodeBuilder, ParameterData paramData, String value) {
         String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramData.name());
         String label = paramData.label();
+        // NOTE: This is added to improve user experience for persist client calls until the ideal user
+        // experience is designed and implemented.
+        // Issue: https://github.com/wso2/product-ballerina-integrator/issues/2042
+        // If the inferredType is a record type, add it as the value of the property if the value is not provided
+        if (value == null && paramData.typeSymbol() != null
+                && CommonUtil.getRawType(paramData.typeSymbol()).typeKind().equals(TypeDescKind.RECORD)) {
+            // The value is same as the default value for inferred type parameter
+            value = paramData.defaultValue();
+        }
         nodeBuilder.properties().custom()
                 .metadata()
                     .label(label == null || label.isEmpty() ? unescapedParamName : label)

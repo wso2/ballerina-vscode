@@ -53,6 +53,7 @@ import io.ballerina.compiler.api.symbols.TableTypeSymbol;
 import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
@@ -528,8 +529,9 @@ public class FunctionDataBuilder {
             for (String paramName : paramNameList) {
                 if (returnTypeMap.containsKey(paramName)) {
                     TypeSymbol typeDescriptor = returnTypeMap.get(paramName);
-                    String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeDescriptor);
-                    paramForTypeInfer = new ParamForTypeInfer(paramName, defaultValue,
+                    TypeSymbol typeSymbol = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+                    String defaultValue = getTypeSignature(typeSymbol);
+                    paramForTypeInfer = new ParamForTypeInfer(paramName, defaultValue, typeSymbol,
                             CommonUtils.getTypeSignature(semanticModel, CommonUtils.getRawType(typeDescriptor), true));
                     break;
                 }
@@ -743,9 +745,10 @@ public class FunctionDataBuilder {
         } else {
             if (paramForTypeInfer != null) {
                 if (paramForTypeInfer.paramName().equals(paramName)) {
-                    placeholder = paramForTypeInfer.type();
-                    defaultValue = paramForTypeInfer.type();
+                    placeholder = paramForTypeInfer.defaultValue();
+                    defaultValue = paramForTypeInfer.defaultValue();
                     paramType = paramForTypeInfer.type();
+                    typeSymbol = paramForTypeInfer.typeSymbol();
                     parameters.put(paramName, ParameterData.from(paramName, paramDescription,
                             getLabel(paramSymbol.annotAttachments(), paramName), paramType, placeholder, defaultValue,
                             ParameterData.Kind.PARAM_FOR_TYPE_INFER, optional, importStatements, typeSymbol));
@@ -1181,7 +1184,7 @@ public class FunctionDataBuilder {
 
 
 
-    private record ParamForTypeInfer(String paramName, String defaultValue, String type) {
+    private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
     }
 
     private record ReturnData(String returnType, ParamForTypeInfer paramForTypeInfer, boolean returnError,

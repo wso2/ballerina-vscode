@@ -90,6 +90,7 @@
             "selected": false
           }
         ],
+        "value": "record {|anydata...;|}",
         "placeholder": "record {|anydata...;|}",
         "optional": false,
         "editable": true,
