@@ -88,6 +88,10 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .object(codedata.object())
                 .symbol(functionData.name());
 
+        if (functionData.inferredReturnType()) {
+            codedata().inferredReturnType(functionData.returnType());
+        }
+
         setExpressionProperty(codedata);
 
         String resourcePath = functionData.resourcePath();
@@ -155,6 +159,10 @@ public class ResourceActionCallBuilder extends CallBuilder {
             }
         }
 
+        // Removing targetType from ignored keys to include it in function parameters
+        Set<String> ignoredKeysOtherThanTargetType = new HashSet<>(ignoredKeys);
+        ignoredKeysOtherThanTargetType.remove(TARGET_TYPE_KEY);
+
         return sourceBuilder.token()
                 .name(connection.get().toSourceCode())
                 .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
@@ -162,7 +170,7 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .keyword(SyntaxKind.DOT_TOKEN)
                 .name(sourceBuilder.flowNode.codedata().symbol())
                 .stepOut()
-                .functionParameters(flowNode, ignoredKeys)
+                .functionParameters(flowNode, ignoredKeysOtherThanTargetType)
                 .textEdit()
                 .acceptImportWithVariableType()
                 .build();

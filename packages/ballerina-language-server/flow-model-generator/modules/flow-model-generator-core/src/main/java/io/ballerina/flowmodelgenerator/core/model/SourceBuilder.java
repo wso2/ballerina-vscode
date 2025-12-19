@@ -474,6 +474,9 @@ public class SourceBuilder {
             boolean optional = prop.optional();
 
             if (kind.equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name())) {
+                // If we find a parameter for type inference, we skip it. But we need to mark missedDefaultValue
+                // as true to make the next arguments to be added as named args
+                missedDefaultValue = true;
                 continue;
             }
 
