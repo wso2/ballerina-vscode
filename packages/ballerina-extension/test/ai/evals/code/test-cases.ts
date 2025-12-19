@@ -259,9 +259,116 @@ export const testCasesForExistingSemanticErrors = [
   }
 ];
 
+export const langlibTestCases = [
+ {
+   // cloneWithType(), trim(), toLowerAscii(), toJson(), string.length(), indexOf(), substring(), message()
+   prompt: "Build a service that reads customer data from a JSON file, removes extra spaces from names, converts all email addresses to lowercase, filters out customers from blocked domains, and exports the cleaned data back to JSON format for CRM import.",
+   projectPath: "bi_init"
+ },
+ {
+   // toString(), fromBase64(), message(), fromBytes(), ‘join(), endsWith(), replaceAll(), message(), string.length()
+   prompt: "Develop an integration that receives base64 encoded files, decodes them to text, removes special characters, checks if filenames end with specific extensions, combines multiple file contents with separators, and uploads the merged data as JSON to cloud storage.",
+   projectPath: "bi_init"
+ },
+ {
+   // array.length(), indexOf(), subString(), push(), filter(), trim(), clone(), cloneReadOnly()
+   prompt: "Write a service that processes configuration files, checks which settings exist, lists all available parameter names, finds positions of delimiter characters, extracts values between delimiters, filters empty configurations, and creates typed copies for different environments.",
+   projectPath: "bi_init"
+ },
+ {
+   // findAll(), substring(), push(), findGroups(), string.length(), push(), startswith(), fromJsonString(), cloneWithType(), arr.length(), 
+   prompt: "Build an integration that scans HTML email content for all URLs, finds the first clickable link, counts total links and XML attachments, parses XML metadata, checks if URLs start with https, deserializes embedded JSON data with type safety, and measures the size of extracted collections.",
+   projectPath: "bi_init"
+ },
+ {
+   // toUpperAscii(), cloneReadOnly(), string.length(), 
+   prompt: "Create a service that reads product names from inventory, alphabetically compares and arranges them using unicode ordering, removes the oldest and newest entries, converts remaining names to uppercase, creates immutable copies, measures text lengths, and exports as an array structure.",
+   projectPath: "bi_init"
+ },
+ {
+   // trim(), replaceAll(), decimal:fromString(), float:fromString(), array:length(), .toString(), message(), push(), 
+   prompt: "Develop an API that reads scientific measurements from spreadsheets, converts text values to floating point numbers, applies exponential calculations for growth projections, parses currency amounts, validates data types match requirements, aggregates results, and returns JSON output after trimming whitespace.",
+   projectPath: "bi_init"
+ },
+ {
+   // length(), push(), split(), trim(), toLowerAscii(), includes(), keys(), removeAll(), unshift(), cloneReadOnly(), join() 
+   prompt: "Write an integration that processes comma-separated log entries, splits them into fields, checks for error keywords, removes sensitive configuration keys conditionally, clears entire cache when needed, prepends priority entries to the front, creates read-only snapshots, combines messages, and finds specific entry positions.",
+   projectPath: "bi_init"
+ },
+ {
+   // xml:fromString(), cloneWithType(), fromCodePointInt(), push(), int:fromString(), toString(), length(), message()
+   prompt: "Create a service that iterates through XML records from multiple files, merges them into a single document, deserializes typed JSON configurations, generates special unicode characters for formatting, converts character codes to strings, parses numeric IDs, retrieves associated metadata, and outputs combined JSON.",
+   projectPath: "bi_init"
+ },
+ {
+   // length(), toCodePointInt(), regexp:fromString(), isFullMatch(), matches(), matchAt(), substring(), push(), toLowerAscii(), trim(), getCodePoint(), fromCodePointInt() 
+   prompt: "Build a validation service that examines text input character by character, extracts unicode code points at specific positions, converts characters to numeric codes, validates entire strings match patterns, checks pattern matches at exact locations, filters valid entries, interprets yes/no flags, and generates text reports.",
+   projectPath: "bi_init"
+ },
+ {
+   // toLowerAscii(), startsWith(), substring(), int:fromHexString(), findAll(), push(), ensureType(), sort(), keys(), get(), length(), toString(), message()
+   prompt: "Develop a sensor data processor that reads hexadecimal encoded temperature values, converts them to readable float format, parses hex device IDs to integers, validates data packet sizes, orders readings chronologically, deserializes JSON metadata, extracts grouped sensor identifiers, and iterates through all key-value pairs for storage.",
+   projectPath: "bi_init"
+ },
+ {
+   // toLowerAscii(), findGroups(), length(), push(), substring(), toJson(), toStream(), stream.forEach(), sleep()
+   prompt: "Write a polling integration that waits 30 seconds between API calls, retrieves streaming data one record at a time, processes each stream item, normalizes email addresses to lowercase, captures all pattern groups from reference numbers, accumulates results in a collection, and serializes the batch to JSON.",
+   projectPath: "bi_init"
+ },
+ {
+   // message(), cause(), detail(), entries(), toString(), push(), length(), startsWith(), toCodePontInt(), int:fromString()
+   prompt: "Build a monitoring service that captures exception messages, traces root causes of failures, extracts detailed error information, filters errors starting with specific codes, converts error objects to readable text, parses XML error reports, and retrieves severity levels from configuration for alerting.",
+   projectPath: "bi_init"
+ },
+ {
+   // findAll(), decimal:fromString(), substring(), length(), regexp:fromString(), replace(), fromJsonString(), cloneWithType()
+   prompt: "Create a text processing service that replaces the first occurrence of placeholder tokens, substitutes all remaining placeholders, extracts specific text portions, aggregates numeric values found in content, calculates totals, deserializes typed JSON templates, combines processed segments, and counts final elements.",
+   projectPath: "bi_init"
+ },
+ {
+   // message(), findGroups(), findAllGroups(), toLowerAscii(), includes(), isFullMatch(), matchAt(), find(), substring(), find(), replace(), trim(), replaceAll(), push(), clone(), codePointCompare(), 
+   prompt: "Develop a log analysis tool that extracts first matching pattern groups from log lines, captures all pattern groups across entries, checks if lines contain error keywords, identifies lines starting with timestamps, filters relevant entries, sorts messages using unicode comparison, and processes all metadata key-value pairs.",
+   projectPath: "bi_init"
+ },
+ {
+   // stream.forEach(), push(), trim(), decimal:fromString(), close(), ‘join(), float:exp(), removeAll(), next(), toJson(), toJsonString(), toStream()
+   prompt: "Build a streaming data processor that properly closes data streams after use, retrieves next items individually, processes each stream element, aggregates values across the stream, converts results to JSON, combines text fragments with delimiters, clears temporary cache completely, and applies exponential transformations to metrics.",
+   projectPath: "bi_init"
+ },
+
+
+ // Langlib test cases for existing code
+ {
+   // toLowerAscii(), split(), push(), length(), substring() 
+   prompt: "Develop a resource function for processing customers that receives customer data via POST /customers/process endpoint. Parse the incoming JSON payload into typed customer records, export the processed customer data as formatted JSON output, and validate email domains are in lowercase format before storing the customer information.",
+   projectPath: "langlib_with_existing_code"
+ },
+ {
+   // message(), cloneWithType(), toJson(), toString(), join(), 
+   prompt: "Develop a resource function for the POST /customers endpoint that receives customer data. Parse the incoming JSON payload, convert it to a customer record type, serialize the customer data back to JSON format, and ensure all values are converted to string representations for logging.",
+   projectPath: "langlib_with_existing_code"
+ },
+ {
+   // cloneReadOnly(), hasKey(), toString(), toArray(), concat(), get(), ensureType(), push(), cloneWithType()
+   prompt: "Develop a resource function for the GET /orders/export endpoint that transforms XML order data into immutable structures, ensures product records cannot be modified after creation, and creates read-only order objects that preserve data consistency.",
+   projectPath: "langlib_with_existing_code"
+ },
+ {
+   // fromJsonString(), cloneWithType(), cloneReaadOnly(), stratsWith(), ensureType()
+   prompt: "Develop a resource function for the POST /config/validate endpoint that receives configuration data for validation and environment-specific handling. Parse incoming JSON configuration with type safety, validate data structures match expected formats, and create isolated configuration copies for different deployment environments.",
+   projectPath: "langlib_with_existing_code"
+ },
+   {
+   // fromJsonString(), cloneWithType(), length(), push(), message(), fromJsonStringWithType()
+   prompt: "Develop a resource function for the POST /payments/process endpoint that accepts payment transaction data. Parse the incoming JSON string payload into payment records, validate that payment IDs have the correct length, convert payment records to order-compatible format using type conversion, and capture detailed error messages when validation or conversion fails for proper logging and error response",
+   projectPath: "langlib_with_existing_code"
+ }
+];
+
 export let testCases = [];
 testCases.push(...initialTestCases);
 testCases.push(...httpTestCases);
 testCases.push(...textEditSpecializedTestCases);
 testCases.push(...testCasesForExistingProject); 
 testCases.push(...testCasesForExistingSemanticErrors);
+testCases.push(...langlibTestCases);

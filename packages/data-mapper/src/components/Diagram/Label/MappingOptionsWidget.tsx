@@ -20,12 +20,12 @@
 import React, { useMemo } from 'react';
 
 import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
-import { Codicon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
+import { Icon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -83,7 +83,6 @@ const a2aMenuStyles = {
 };
 
 const codiconStyles = {
-    color: 'var(--vscode-editorLightBulb-foreground)',
     marginRight: '10px'
 }
 
@@ -138,13 +137,17 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await mapSeqToX(link, context, (expr: string) => `${fn}(${expr})`);
         }
 
-        const getItemElement = (id: string, label: string) => {
+        const onClickConvertAndMap = async () => {
+            await convertAndMap(link, context);
+        }
+
+        const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
             return (
                 <div
                     className={classes.itemContainer}
                     key={id}
                 >
-                    <Codicon name="lightbulb" sx={codiconStyles} />
+                    <Icon isCodicon={isCodicon} name={iconName} sx={codiconStyles} />
                     {label}
                 </div>
             );
@@ -152,21 +155,29 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     
         const a2aMenuItems: Item[] = [
             {
-                id: "a2a-direct",
-                label: getItemElement("a2a-direct", "Map Input Array to Output Array"),
-                onClick: wrapWithProgress(onClickMapDirectly)
+                id: "a2a-inner",
+                label: getItemElement("a2a-inner", "Map Each Element", "bi-convert"),
+                onClick: wrapWithProgress(onClickMapIndividualElements)
             },
             {
-                id: "a2a-inner",
-                label: getItemElement("a2a-inner", "Map Array Elements Individually"),
-                onClick: wrapWithProgress(onClickMapIndividualElements)
+                id: "a2a-direct",
+                label: getItemElement("a2a-direct", "Assign As-Is", "warning", true),
+                onClick: wrapWithProgress(onClickMapDirectly)
+            }
+        ];
+
+        const convertMenuItems: Item[] = [
+            {
+                id: "convert-n-map",
+                label: getItemElement("convert-n-map", "Convert and Map", "refresh"),
+                onClick: wrapWithProgress(onClickConvertAndMap)
             }
         ];
     
         const defaultMenuItems: Item[] = [
             {
                 id: "direct",
-                label: getItemElement("direct", "Map Anyway"),
+                label: getItemElement("direct", "Assign As-Is", "warning", true),
                 onClick: wrapWithProgress(onClickMapDirectly)
             }
         ];
@@ -175,6 +186,16 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const aggregateFnsNumeric = ["sum", "avg", "min", "max"];
             const aggregateFnsString = ["string:'join"];
             const aggregateFnsCommon = ["first", "last"];
+
+            const iconsMap: Record<string, string> = {
+                sum: "sum",
+                avg: "graph-avg",
+                min: "graph-min",
+                max: "graph-max",
+                "string:'join": "bi-link",
+                first: "chevron-first",
+                last: "chevron-last"
+            };
     
             const sourcePort = link.getSourcePort() as InputOutputPortModel;
             const sourceType = sourcePort.attributes.field.kind;
@@ -185,7 +206,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             ...aggregateFnsCommon];
             const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
                 id: `a2s-collect-${fn}`,
-                label: getItemElement(`a2s-collect-${fn}`, `Aggregate using ${fn}`),
+                label: getItemElement(`a2s-collect-${fn}`, fn, iconsMap[fn]),
                 onClick: wrapWithProgress(async () => await onClick(fn))
             }));
             return a2sAggregateItems;
@@ -195,7 +216,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const a2sMenuItems: Item[] = [
                 {
                     id: "a2s-index",
-                    label: getItemElement("a2s-index", "Extract Single Element from Array"),
+                    label: getItemElement("a2s-index", "Extract Single Element from Array", "index-zero", true),
                     onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
                 }
     
@@ -208,7 +229,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
                 a2sMenuItems.push({
                     id: "a2s-aggregate",
-                    label: getItemElement("a2s-aggregate", "Aggregate and map"),
+                    label: getItemElement("a2s-aggregate", "Aggregate and map", "Aggregate"),
                     onClick: wrapWithProgress(onClickAggregateArray)
                 });
             }
@@ -226,6 +247,8 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     return genAggregateItems(onClickMapWithAggregateFn);
                 case MappingType.SeqToPrimitive:
                     return genAggregateItems(onClickMapSeqToPrimitive);
+                case MappingType.ConvertiblePrimitives:
+                    return [...convertMenuItems, ...defaultMenuItems];
                 default:
                     return defaultMenuItems;
             }
@@ -235,16 +258,19 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     
         if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
             pendingMappingType !== MappingType.SeqToPrimitive &&
-            pendingMappingType !== MappingType.SeqToArray) {
+            pendingMappingType !== MappingType.SeqToArray &&
+            pendingMappingType !== MappingType.ConvertiblePrimitives) {
             menuItems.push({
                 id: "a2a-a2s-custom-func",
-                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function"),
+                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function", "function-icon"),
                 onClick: wrapWithProgress(onClickMapWithCustomFn)
             });
-            if (pendingMappingType !== MappingType.ContainsUnions) {
+            if (pendingMappingType !== MappingType.ContainsUnions && 
+                pendingMappingType !== MappingType.ArrayToArray
+            ) {
                 menuItems.push({
                     id: "a2a-a2s-transform-func",
-                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function"),
+                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function", "dataMapper"),
                     onClick: wrapWithProgress(onClickMapWithTransformFn)
                 });
             }

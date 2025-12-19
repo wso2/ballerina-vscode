@@ -41,14 +41,14 @@ const Node = styled.div`
     color: ${ThemeColors.ON_SURFACE};
 `;
 
-const ClickableArea = styled.div`
+const ClickableArea = styled.div<{ readonly?: boolean }>`
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
     gap: 12px;
     width: 100%;
-    cursor: pointer;
+    cursor: ${(props) => props.readonly ? "default" : "pointer"};
 `;
 
 const Header = styled.div`
@@ -134,7 +134,7 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
-    const { onConnectionSelect, onDeleteComponent } = useDiagramContext();
+    const { onConnectionSelect, onDeleteComponent, readonly } = useDiagramContext();
     // TODO: fix this database icon hack with icon prop from node model
     const databaseNames = [
         "MySQL",
@@ -192,19 +192,21 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
         <Node>
             <LeftPortWidget port={model.getPort("in")!} engine={engine} />
             <ClickableArea
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
+                onMouseEnter={() => !readonly && setIsHovered(true)}
+                onMouseLeave={() => !readonly && setIsHovered(false)}
+                onMouseDown={!readonly ? handleMouseDown : undefined}
+                onMouseUp={!readonly ? handleMouseUp : undefined}
+                readonly={readonly}
             >
                 <Circle hovered={isHovered}>
                     <StyledConnectionIcon
                         url={model.node.icon || ""}
                         fallbackIcon={<Icon name="bi-connection" />}
+                        connectorType={(model.node as any).metadata?.connectorType}
                     />
                 </Circle>
                 <Header>
-                    <Title hovered={isHovered}>{getNodeTitle()}</Title>
+                    <Title hovered={!readonly && isHovered}>{getNodeTitle()}</Title>
                     <Description>{getNodeDescription()}</Description>
                 </Header>
                 <MenuButton 
@@ -212,6 +214,7 @@ export function ConnectionNodeWidget(props: ConnectionNodeWidgetProps) {
                     onClick={handleOnMenuClick}
                     onMouseDown={handleMenuMouseDown}
                     onMouseUp={handleMenuMouseUp}
+                    disabled={readonly}
                 >
                     <MoreVertIcon />
                 </MenuButton>

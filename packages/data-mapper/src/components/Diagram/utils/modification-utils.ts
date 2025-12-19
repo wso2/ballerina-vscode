@@ -176,6 +176,25 @@ export async function mapWithQuery(link: DataMapperLinkModel, clauseType: Result
 	expandArrayFn(context, [input], output, viewId);
 }
 
+export async function convertAndMap(link: DataMapperLinkModel, context: IDataMapperContext){
+	const sourcePort = link.getSourcePort();
+	const targetPort = link.getTargetPort();
+	if (!sourcePort || !targetPort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const targetPortModel = targetPort as InputOutputPortModel;
+
+	const input = sourcePortModel.attributes.fieldFQN;
+	const inputType = sourcePortModel.attributes.field.kind;
+	const outputType = targetPortModel.attributes.field.kind;
+	
+	const convertedExpression = await context.getConvertedExpression(input, inputType, outputType);
+
+	await createNewMapping(link, (_: string) => convertedExpression);
+}
+
 
 export async function mapSeqToArray(link: DataMapperLinkModel, context: IDataMapperContext){
 	const sourcePort = link.getSourcePort();
