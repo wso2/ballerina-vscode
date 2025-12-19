@@ -16,6 +16,13 @@
  * under the License.
  */
 
+import { DiagnosticEntry, UIChatHistoryMessage } from "@wso2/ballerina-core";
+
+export interface ChatIndexes {
+    integratedChatIndex: number;
+    previouslyIntegratedChatIndex: number;
+}
+
 const ONBOARDING_COUNTER_KEY = "onboardingCounter";
 
 export function incrementOnboardingOpens(): number {
@@ -27,4 +34,44 @@ export function incrementOnboardingOpens(): number {
 
 export function getOnboardingOpens(): number {
     return parseInt(localStorage.getItem(ONBOARDING_COUNTER_KEY) || "0", 10);
+}
+
+/**
+ * Convert chat history messages from backend format to UI format
+ */
+export function convertToUIMessages(messages: UIChatHistoryMessage[]) {
+    return messages.map((msg) => {
+        let role, type;
+        if (msg.role === "user") {
+            role = "User";
+            type = "user_message";
+        } else if (msg.role === "assistant") {
+            role = "Copilot";
+            type = "assistant_message";
+        }
+        return {
+            role: role,
+            type: type,
+            content: msg.content,
+            checkpointId: msg.checkpointId,
+            messageId: msg.messageId,
+        };
+    });
+}
+
+/**
+ * Check if diagnostics contain syntax errors (BCE codes < 2000)
+ */
+export function isContainsSyntaxError(diagnostics: DiagnosticEntry[]): boolean {
+    return diagnostics.some((diag) => {
+        if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
+            const match = diag.code.match(/^BCE(\d+)$/);
+            if (match) {
+                const codeNumber = Number(match[1]);
+                if (codeNumber < 2000) {
+                    return true;
+                }
+            }
+        }
+    });
 }

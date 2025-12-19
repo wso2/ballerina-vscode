@@ -38,11 +38,80 @@ export function getFunctionNodePosition(nodeProperties: NodeProperties, syntaxTr
 
 export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) {
     const workspaceEdit = new WorkspaceEdit();
-    const range = new Range(new Position(textEdit.range.start.line, textEdit.range.start.character),
-        new Position(textEdit.range.end.line, textEdit.range.end.character));
+    let { startLine, startChar, endLine, endChar } = {
+        startLine: textEdit.range.start.line,
+        startChar: textEdit.range.start.character,
+        endLine: textEdit.range.end.line,
+        endChar: textEdit.range.end.character
+    };
 
-    // Create the position and range
+    // Adjust position to skip header comments if inserting at the beginning of the file
+    if (startLine === 0) {
+        try {
+            const document = await workspace.openTextDocument(tomlPath);
+            ({ startLine, startChar, endLine, endChar } = adjustRangeForHeaderComments(
+                document.getText(),
+                textEdit.range
+            ));
+        } catch (error) {
+            console.warn('Could not read TOML file to check for header comments:', error);
+        }
+    }
+
+    const range = new Range(new Position(startLine, startChar), new Position(endLine, endChar));
     workspaceEdit.replace(tomlPath, range, textEdit.newText);
-    // Apply the edit
     await workspace.applyEdit(workspaceEdit);
+}
+
+/**
+ * Adjusts a text edit range to skip header comments in a TOML file.
+ * If the edit targets line 0, it will be moved after any header comments.
+ * @param content The content of the TOML file
+ * @param range The original range from the text edit
+ * @returns Adjusted position coordinates
+ */
+function adjustRangeForHeaderComments(
+    content: string,
+    range: { start: { line: number; character: number }; end: { line: number; character: number } }
+): { startLine: number; startChar: number; endLine: number; endChar: number } {
+    let { line: startLine, character: startChar } = range.start;
+    let { line: endLine, character: endChar } = range.end;
+
+    if (content.length > 0 && content.trimStart().startsWith('#')) {
+        const headerEndLine = findHeaderCommentEndLine(content);
+        if (headerEndLine > 0) {
+            if (endLine < headerEndLine || (endLine === 0 && endChar === 0)) {
+                endLine = headerEndLine;
+                endChar = 0;
+            }
+            startLine = headerEndLine;
+            startChar = 0;
+        }
+    }
+
+    return { startLine, startChar, endLine, endChar };
+}
+
+/**
+ * Find the end position of header comments in a TOML file.
+ * Header comments are consecutive lines starting with '#' at the beginning of the file.
+ * @param content The content of the TOML file
+ * @returns The line number after the header comments (0-based), or 0 if no header comments
+ */
+function findHeaderCommentEndLine(content: string): number {
+    const lines = content.split('\n');
+    let headerEndLine = 0;
+    
+    for (let i = 0; i < lines.length; i++) {
+        const trimmedLine = lines[i].trim();
+        // Continue if line is a comment or empty (part of header)
+        if (trimmedLine.startsWith('#') || trimmedLine === '') {
+            headerEndLine = i + 1;
+        } else {
+            // Stop at first non-comment, non-empty line
+            break;
+        }
+    }
+    
+    return headerEndLine;
 }
