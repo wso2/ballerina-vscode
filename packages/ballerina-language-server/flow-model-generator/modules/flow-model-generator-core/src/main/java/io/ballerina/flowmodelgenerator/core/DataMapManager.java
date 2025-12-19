@@ -1270,7 +1270,7 @@ public class DataMapManager {
     private MappingPort createSimpleMappingPort(String id, String name, String typeName, RefType type) {
         String portTypeName = resolveTypeName(typeName, type, true);
         MappingPort mappingPort = new MappingPort(id, name, portTypeName,
-                portTypeName.replaceAll("\\?", ""));
+                portTypeName.replace("\\?", ""));
         mappingPort.typeInfo = isExternalType(type) ? createTypeInfo(type) : null;
         return mappingPort;
     }

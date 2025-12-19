@@ -355,7 +355,7 @@ public class ReferenceType {
             return null;
         }
         RefType refType = new RefType(primitiveTypeName);
-        refType.typeName = (typeName.contains("?")) ? typeName : primitiveTypeName;
+        refType.typeName = (typeName != null && typeName.contains("?")) ? typeName : primitiveTypeName;
         return refType;
     }
 
