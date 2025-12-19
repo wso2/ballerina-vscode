@@ -25,52 +25,63 @@ import {
     sendTelemetryException,
     getMessageObject
 } from "../../telemetry";
-import { getCurrentBallerinaProject } from "../../../utils/project-utils";
+import { getCurrentBallerinaProject, getCurrentProjectRoot } from "../../../utils/project-utils";
 import { MESSAGES, PALETTE_COMMANDS, PROJECT_TYPE } from "./cmd-runner";
 import * as fs from 'fs';
 import { sep } from 'path';
+import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/common/utils";
+import { StateMachine } from "../../../stateMachine";
+import { ProjectInfo } from "@wso2/ballerina-core";
+import { selectPackageOrPrompt } from "../../../utils/command-utils";
 
 const CLOUD_CONFIG_FILE_NAME = `${sep}Cloud.toml`;
 
-export function activateCloudCommand() {
+function activateCloudCommand() {
     // register create Cloud.toml command handler
     commands.registerCommand(PALETTE_COMMANDS.CLOUD, async () => {
         try {
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_CLOUD, CMP_PROJECT_CLOUD);
 
-            if (window.activeTextEditor && window.activeTextEditor.document.languageId != LANGUAGE.BALLERINA) {
+            if (window.activeTextEditor && window.activeTextEditor.document.languageId !== LANGUAGE.BALLERINA) {
                 window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                 return;
             }
+ 
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            let { projectPath, projectInfo } = StateMachine.context();
 
-            const isDiagram: boolean = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram();
-           
-            const currentProject = isDiagram ? await
-                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
-                : await getCurrentBallerinaProject();
-
-            if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                if (currentProject.path) {
-                    let cloudTomlPath = currentProject.path + CLOUD_CONFIG_FILE_NAME;
-                    if (!fs.existsSync(cloudTomlPath)) {
-                        const commandArgs = {
-                            key: "uri",
-                            value: isDiagram ? extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString()
-                                : window.activeTextEditor!.document.uri.toString()
-                        };
-                        commands.executeCommand('ballerina.create.cloud.exec', commandArgs);
-                        outputChannel.appendLine(`Cloud.toml created in ${currentProject.path}`);
-                    } else {
-                        const message = `Cloud.toml already exists in the project.`;
-                        sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD,
-                            CMP_PROJECT_CLOUD, getMessageObject(message));
-                        window.showErrorMessage(message);
+            let targetPath = projectPath ?? "";
+            if (result.type !== "SINGLE_PROJECT") {
+                if (result.type === "MULTIPLE_PROJECTS") {
+                    const packageRoot = await getCurrentProjectRoot();
+                    if (!packageRoot) {
+                        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                        return;
                     }
+                    projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                    targetPath = projectInfo.projectPath ?? packageRoot;
+                } else if (result.type === "BALLERINA_WORKSPACE") {
+                    const selection = await getPackage(projectInfo, "Select the project to create Cloud.toml in");
+                    if (!selection) {
+                        return;
+                    }
+                    targetPath = selection;
                 }
+            }
+
+            let cloudTomlPath = targetPath + CLOUD_CONFIG_FILE_NAME;
+            if (projectInfo.projectPath && !fs.existsSync(cloudTomlPath)) {
+                const commandArgs = {
+                    key: "uri",
+                    value: window.activeTextEditor ? window.activeTextEditor!.document.uri.toString() : `file://${targetPath}/main.bal`,
+                };
+                commands.executeCommand('ballerina.create.cloud.exec', commandArgs);
+                outputChannel.appendLine(`Cloud.toml created in ${projectInfo.projectPath}`);
+                window.showInformationMessage(`Cloud.toml created at ${targetPath}`);
             } else {
-                const message = `Cloud.toml is not supported for single file projects.`;
-                sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD, CMP_PROJECT_CLOUD,
-                    getMessageObject(message));
+                const message = `Cloud.toml already exists in the project.`;
+                sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD,
+                    CMP_PROJECT_CLOUD, getMessageObject(message));
                 window.showErrorMessage(message);
             }
         } catch (error) {
@@ -78,8 +89,21 @@ export function activateCloudCommand() {
                 sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_CLOUD);
                 window.showErrorMessage(error.message);
             } else {
-                window.showErrorMessage("Unkown error occurred.");
+                window.showErrorMessage("Unknown error occurred.");
             }
         }
     });
 }
+
+async function getPackage(projectInfo: ProjectInfo, prompt: string): Promise<string | undefined> {
+    const packages = projectInfo?.children.map((child) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(packages, prompt);
+    if (!selectedPackage) {
+        return undefined;
+    }
+
+    return selectedPackage;
+}
+
+export { activateCloudCommand, getPackage };

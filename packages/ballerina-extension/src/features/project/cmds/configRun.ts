@@ -17,10 +17,16 @@
  */
 
 import { commands, languages, Uri, window, workspace } from "vscode";
-import { getRunCommand, PALETTE_COMMANDS, runCommand } from "./cmd-runner";
+import { getRunCommand, MESSAGES, PALETTE_COMMANDS, runCommand } from "./cmd-runner";
 import { extension } from "../../../BalExtensionContext";
 import { getConfigCompletions } from "../../config-generator/utils";
 import { BiDiagramRpcManager } from "../../../rpc-managers/bi-diagram/rpc-manager";
+import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/common/utils";
+import { StateMachine } from "../../../stateMachine";
+import { getCurrentProjectRoot } from "../../../utils/project-utils";
+import { getPackage } from "./cloud";
+import { ta } from "zod/v4/locales";
+;
 
 function activateConfigRunCommand() {
     // register the config view run command
@@ -28,8 +34,8 @@ function activateConfigRunCommand() {
         const currentProject = extension.ballerinaExtInstance.getDocumentContext().getCurrentProject();
         if (currentProject) {
             runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
-            getRunCommand(),
-            currentProject.path!);
+                getRunCommand(),
+                currentProject.path!);
             return;
         }
     });
@@ -37,18 +43,36 @@ function activateConfigRunCommand() {
     commands.registerCommand(PALETTE_COMMANDS.CONFIG_CREATE_COMMAND, async () => {
         try {
             // Open current config.toml or create a new config.toml if it does not exist
-            let projectPath: string;
-            if (window.activeTextEditor) {
-                projectPath = window.activeTextEditor.document.uri.fsPath;
-            } else if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
-                projectPath = workspace.workspaceFolders[0].uri.fsPath;
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            let { projectPath, projectInfo } = StateMachine.context();
+            
+            let targetPath = projectPath ?? "";
+            if (result.type !== "SINGLE_PROJECT") {
+                if (result.type === "MULTIPLE_PROJECTS") {
+                    const packageRoot = await getCurrentProjectRoot();
+                    if (!packageRoot) {
+                        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                        return;
+                    }
+                    projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                    targetPath = projectInfo.projectPath ?? packageRoot;
+                } else if (result.type === "BALLERINA_WORKSPACE") {
+                    const selection = await getPackage(projectInfo, "Select the project to create Config.toml in");
+                    if (!selection) {
+                        return;
+                    }
+                    targetPath = selection;
+                }
             }
-
             const biDiagramRpcManager = new BiDiagramRpcManager();
-            await biDiagramRpcManager.openConfigToml({ filePath: projectPath });
+            await biDiagramRpcManager.openConfigToml({ filePath: targetPath });
             return;
         } catch (error) {
-            throw new Error("Unable to create Config.toml file. Try again with a valid Ballerina file open in the editor.");
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unknown error occurred.");
+            }
         }
     });
 
@@ -61,6 +85,8 @@ function activateConfigRunCommand() {
             return suggestions;
         }
     });
+
+
 }
 
 export { activateConfigRunCommand };

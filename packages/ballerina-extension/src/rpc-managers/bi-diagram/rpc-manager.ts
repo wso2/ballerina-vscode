@@ -178,6 +178,7 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
+import { getCurrentBallerinaProject } from "../../utils/project-utils";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1001,10 +1002,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     // Function to open Config.toml
     async openConfigToml(params: OpenConfigTomlRequest): Promise<void> {
         return new Promise(async (resolve) => {
-            const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
+            console.log(">>> opening Config.toml at", params.filePath);
+            const currentProject: BallerinaProject | undefined = await getCurrentBallerinaProject(params.filePath);;
 
-            const configFilePath = path.join(StateMachine.context().projectPath, "Config.toml");
-            const ignoreFile = path.join(StateMachine.context().projectPath, ".gitignore");
+            const configFilePath = path.join(params.filePath, "Config.toml");
+            const ignoreFile = path.join(params.filePath, ".gitignore");
             const docLink = "https://ballerina.io/learn/provide-values-to-configurable-variables/#provide-via-toml-syntax";
             const uri = Uri.file(configFilePath);
 
