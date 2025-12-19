@@ -234,6 +234,12 @@ public class CodeAnalyzer extends NodeVisitor {
     public static final String NAME = "name";
     private static final String DATA_MAPPINGS_BAL = "data_mappings.bal";
 
+    // Agent field names
+    private static final String FIELD_TOOLS = "tools";
+    private static final String FIELD_MODEL = "model";
+    private static final String FIELD_SYSTEM_PROMPT = "systemPrompt";
+    private static final String FIELD_MEMORY = "memory";
+
     // Metadata data keys
     private static final String KIND_KEY = "kind";
     private static final String LABEL_KEY = "label";
@@ -402,7 +408,7 @@ public class CodeAnalyzer extends NodeVisitor {
         }
         Map<String, Object> metadataData = getPersistDataFromClient(classSymbol);
         setFunctionProperties(functionName, expressionNode, remoteMethodCallActionNode, functionSymbol,
-                classSymbol.getName().orElseThrow(), metadataData);
+                classSymbol.getName().orElse(""), metadataData);
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
@@ -417,23 +423,20 @@ public class CodeAnalyzer extends NodeVisitor {
             // Find the initialization expression for the field
             Optional<ExpressionNode> initExpr = findFieldInitExpression(fieldSymbol.get());
             if (initExpr.isPresent()) {
-                ImplicitNewExpressionNode newExpr = getNewExpr(initExpr.get());
-                agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
-                genAgentData(newExpr, classSymbol, agentData);
+                Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initExpr.get());
+                if (newExprOpt.isPresent()) {
+                    agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                    genAgentData(newExprOpt.get(), classSymbol, agentData);
+                }
             }
         } else {
             Optional<Symbol> symbol = semanticModel.symbol(expressionNode);
-            if (symbol.isEmpty()) {
-                throw new IllegalStateException("Symbol not found for the expression: " + expressionNode);
-            }
-            if (!(symbol.get() instanceof VariableSymbol variableSymbol)) {
-                throw new IllegalStateException("Expected a VariableSymbol but found: " +
-                        symbol.get().getClass().getSimpleName());
+            if (symbol.isEmpty() || !(symbol.get() instanceof VariableSymbol variableSymbol)) {
+                return;
             }
             Optional<Location> optLocation = variableSymbol.getLocation();
             if (optLocation.isEmpty()) {
-                throw new IllegalStateException("Location not found for the variable symbol: " +
-                        variableSymbol);
+                return;
             }
             Document document = CommonUtils.getDocument(project, optLocation.get());
             if (document == null) {
@@ -442,8 +445,7 @@ public class CodeAnalyzer extends NodeVisitor {
             Optional<NonTerminalNode> varNodeOpt =
                     CommonUtil.findNode(variableSymbol, document.syntaxTree());
             if (varNodeOpt.isEmpty()) {
-                throw new IllegalStateException("Variable node not found for the variable symbol: " +
-                        variableSymbol);
+                return;
             }
             NonTerminalNode varNode = varNodeOpt.get();
             ExpressionNode initializerExpr = getInitializerFromVariableNode(varNode);
@@ -460,8 +462,9 @@ public class CodeAnalyzer extends NodeVisitor {
                     }
                     scopeNode = scopeNode.parent();
                 }
-                ImplicitNewExpressionNode newExpressionNode = getNewExpr(initializerExpr);
-                genAgentData(newExpressionNode, classSymbol, agentData);
+                Optional<ImplicitNewExpressionNode> newExpressionNodeOpt = getNewExpr(initializerExpr);
+                newExpressionNodeOpt.ifPresent(
+                        implicitNewExpressionNode -> genAgentData(implicitNewExpressionNode, classSymbol, agentData));
             }
         }
     }
@@ -517,8 +520,7 @@ public class CodeAnalyzer extends NodeVisitor {
                               Map<String, String> agentData) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
-            throw new IllegalStateException("ParenthesizedArgList not found for the new expression: " +
-                    newExpressionNode);
+            return;
         }
         ExpressionNode toolsArg = null;
         ExpressionNode modelArg = null;
@@ -526,28 +528,43 @@ public class CodeAnalyzer extends NodeVisitor {
         ExpressionNode memory = null;
 
         for (FunctionArgumentNode arg : argList.get().arguments()) {
-            if (arg.kind() == SyntaxKind.NAMED_ARG) {
-                NamedArgumentNode namedArgumentNode = (NamedArgumentNode) arg;
-                if (namedArgumentNode.argumentName().name().text().equals("tools")) {
-                    toolsArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("model")) {
-                    modelArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("systemPrompt")) {
-                    systemPromptArg = namedArgumentNode.expression();
-                } else if (namedArgumentNode.argumentName().name().text().equals("memory")) {
-                    memory = namedArgumentNode.expression();
+            if (arg instanceof NamedArgumentNode namedArgumentNode) {
+                String argumentName = namedArgumentNode.argumentName().name().text();
+                switch (argumentName) {
+                    case FIELD_TOOLS -> toolsArg = namedArgumentNode.expression();
+                    case FIELD_MODEL -> modelArg = namedArgumentNode.expression();
+                    case FIELD_SYSTEM_PROMPT -> systemPromptArg = namedArgumentNode.expression();
+                    case FIELD_MEMORY -> memory = namedArgumentNode.expression();
+                    default -> {
+                    }
                 }
-                agentData.put(namedArgumentNode.argumentName().name().text(),
-                        namedArgumentNode.expression().toString().trim());
+                agentData.put(argumentName, namedArgumentNode.expression().toString().trim());
+            } else if (arg instanceof PositionalArgumentNode positionalArg) {
+                ExpressionNode expression = positionalArg.expression();
+                if (expression instanceof MappingConstructorExpressionNode mappingCtr) {
+                    SeparatedNodeList<MappingFieldNode> fields = mappingCtr.fields();
+                    for (MappingFieldNode field : fields) {
+                        if (!(field instanceof SpecificFieldNode specificField)) {
+                            continue;
+                        }
+                        Optional<ExpressionNode> valueExprOpt = specificField.valueExpr();
+                        if (valueExprOpt.isEmpty()) {
+                            continue;
+                        }
+                        String fieldName = specificField.fieldName().toString().trim();
+                        ExpressionNode valueExpr = valueExprOpt.get();
+                        switch (fieldName) {
+                            case FIELD_TOOLS -> toolsArg = valueExpr;
+                            case FIELD_MODEL -> modelArg = valueExpr;
+                            case FIELD_SYSTEM_PROMPT -> systemPromptArg = valueExpr;
+                            case FIELD_MEMORY -> memory = valueExpr;
+                            default -> {
+                            }
+                        }
+                        agentData.put(fieldName, valueExpr.toString().trim());
+                    }
+                }
             }
-        }
-        if (modelArg == null) {
-            throw new IllegalStateException("Model argument not found for the new expression: " +
-                    newExpressionNode);
-        }
-        if (systemPromptArg == null) {
-            throw new IllegalStateException("SystemPrompt argument not found for the new expression: " +
-                    newExpressionNode);
         }
 
         if (toolsArg != null && toolsArg.kind() == SyntaxKind.LIST_CONSTRUCTOR) {
@@ -582,7 +599,7 @@ public class CodeAnalyzer extends NodeVisitor {
             nodeBuilder.metadata().addData("tools", toolsData);
         }
 
-        if (systemPromptArg.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
+        if (systemPromptArg != null && systemPromptArg.kind() == SyntaxKind.MAPPING_CONSTRUCTOR) {
             MappingConstructorExpressionNode mappingCtrExprNode =
                     (MappingConstructorExpressionNode) systemPromptArg;
             SeparatedNodeList<MappingFieldNode> fields = mappingCtrExprNode.fields();
@@ -592,7 +609,11 @@ public class CodeAnalyzer extends NodeVisitor {
                     continue;
                 }
                 SpecificFieldNode specificFieldNode = (SpecificFieldNode) field;
-                ExpressionNode valueExpr = specificFieldNode.valueExpr().orElseThrow();
+                Optional<ExpressionNode> valueExprOpt = specificFieldNode.valueExpr();
+                if (valueExprOpt.isEmpty()) {
+                    continue;
+                }
+                ExpressionNode valueExpr = valueExprOpt.get();
                 String value;
                 if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
                     TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
@@ -631,9 +652,11 @@ public class CodeAnalyzer extends NodeVisitor {
                                     AiUtils.MEMORY_DEFAULT_VALUE)));
         }
 
-        ModelData modelUrl = getModelIconUrl(modelArg);
-        if (modelUrl != null) {
-            nodeBuilder.metadata().addData("model", modelUrl);
+        if (modelArg != null) {
+            ModelData modelUrl = getModelIconUrl(modelArg);
+            if (modelUrl != null) {
+                nodeBuilder.metadata().addData("model", modelUrl);
+            }
         }
 
         // Find the agent variable declaration to get the correct line range and source code
@@ -1150,22 +1173,22 @@ public class CodeAnalyzer extends NodeVisitor {
                                 String label = paramResult.label();
                                 buildPropertyType(customPropBuilder, paramResult, paramValue);
                                 customPropBuilder
-                                        .metadata()
-                                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
-                                            .description(paramResult.description())
+                                         .metadata()
+                                             .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                             .description(paramResult.description())
+                                             .stepOut()
+                                        .imports(paramResult.importStatements())
+                                        .value(value)
+                                        .placeholder(paramResult.placeholder())
+                                        .defaultValue(paramResult.defaultValue())
+                                        .editable()
+                                        .defaultable(paramResult.optional())
+                                        .codedata()
+                                            .kind(paramResult.kind().name())
+                                            .originalName(paramResult.name())
                                             .stepOut()
-                                       .imports(paramResult.importStatements())
-                                       .value(value)
-                                       .placeholder(paramResult.placeholder())
-                                       .defaultValue(paramResult.defaultValue())
-                                       .editable()
-                                       .defaultable(paramResult.optional())
-                                       .codedata()
-                                           .kind(paramResult.kind().name())
-                                           .originalName(paramResult.name())
-                                           .stepOut()
-                                       .stepOut()
-                                       .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+                                        .stepOut()
+                                        .addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
                             }
                         }
                         funcParamMap.remove(escapedParamName);
@@ -1418,7 +1441,7 @@ public class CodeAnalyzer extends NodeVisitor {
         nodeBuilder
                 .metadata()
                     .label(kind == NodeKind.NEW_CONNECTION ?
-                            ConnectorUtil.getConnectorName(name, packageName) : packageName)
+                        ConnectorUtil.getConnectorName(name, packageName) : packageName)
                     .description(functionData.description())
                     .icon(CommonUtils.generateIcon(org, packageName, functionData.version()))
                     .stepOut()
@@ -1456,8 +1479,8 @@ public class CodeAnalyzer extends NodeVisitor {
      * {@code <packageName>.<database-type>.<database-name>}. The substring after the package name should be in the
      * format {@code <database-type>.<database-name>}, for example, {@code mysql.mydb}.
      * <p>
-     * The method updates the node metadata with a label (e.g., "Mysql mydb"), sets the connector type to "persist",
-     * and adds the path to the persist model file.
+     * The method updates the node metadata with a label (e.g., "Mysql mydb"), sets the connector type to "persist", and
+     * adds the path to the persist model file.
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
@@ -1976,7 +1999,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 return null;
             }
             ModuleID id = optModule.get().id();
-            return new ModelData(optSymbol.get().getName().orElseThrow(),
+            return new ModelData(optSymbol.get().getName().orElse(""),
                     CommonUtils.generateIcon(id.moduleName(), id.packageName(), id.version()), symbolName.orElse(""));
         } else if (expressionNode.kind() == SyntaxKind.FIELD_ACCESS) {
             FieldAccessExpressionNode fieldAccessExpressionNode = (FieldAccessExpressionNode) expressionNode;
@@ -2462,21 +2485,23 @@ public class CodeAnalyzer extends NodeVisitor {
             FunctionSymbol functionSymbol = (FunctionSymbol) symbol;
             if (functionSymbol.nameEquals(name)) {
                 for (AnnotationAttachmentSymbol annotAttachment : functionSymbol.annotAttachments()) {
-                    if (annotAttachment.typeDescriptor().getName().orElseThrow().equals("display")) {
-                        Optional<ConstantValue> optAttachmentValue = annotAttachment.attachmentValue();
-                        if (optAttachmentValue.isEmpty()) {
-                            throw new IllegalStateException("Annotation attachment value not found");
-                        }
-                        ConstantValue attachmentValue = optAttachmentValue.get();
-                        if (attachmentValue.valueType().typeKind() != TypeDescKind.RECORD) {
-                            throw new IllegalStateException("Annotation attachment value is not a record");
-                        }
-                        HashMap<?, ?> valueMap = (HashMap<?, ?>) attachmentValue.value();
-                        if (valueMap.get("iconPath") == null) {
-                            throw new IllegalStateException("Icon path not found in the annotation attachment value");
-                        }
-                        return valueMap.get("iconPath").toString();
+                    Optional<String> annotName = annotAttachment.typeDescriptor().getName();
+                    if (annotName.isEmpty() || !annotName.get().equals("display")) {
+                        continue;
                     }
+                    Optional<ConstantValue> optAttachmentValue = annotAttachment.attachmentValue();
+                    if (optAttachmentValue.isEmpty()) {
+                        return "";
+                    }
+                    ConstantValue attachmentValue = optAttachmentValue.get();
+                    if (attachmentValue.valueType().typeKind() != TypeDescKind.RECORD) {
+                        return "";
+                    }
+                    HashMap<?, ?> valueMap = (HashMap<?, ?>) attachmentValue.value();
+                    if (valueMap.get("iconPath") == null) {
+                        return "";
+                    }
+                    return valueMap.get("iconPath").toString();
                 }
             }
         }
@@ -2506,15 +2531,29 @@ public class CodeAnalyzer extends NodeVisitor {
         return "";
     }
 
-    private ImplicitNewExpressionNode getNewExpr(ExpressionNode expressionNode) {
+    private Optional<ImplicitNewExpressionNode> getNewExpr(ExpressionNode expressionNode) {
         NonTerminalNode expr = expressionNode;
         if (expressionNode.kind() == SyntaxKind.CHECK_EXPRESSION) {
             expr = ((CheckExpressionNode) expr).expression();
         }
         if (expr.kind() == SyntaxKind.IMPLICIT_NEW_EXPRESSION) {
-            return (ImplicitNewExpressionNode) expr;
+            return Optional.of((ImplicitNewExpressionNode) expr);
         }
-        throw new IllegalStateException("Implicit new expression not found");
+
+        // Handle variable references - follow the reference to find the actual new expression
+        if (expr instanceof NameReferenceNode) {
+            return semanticModel.symbol(expr)
+                    .filter(s -> s instanceof VariableSymbol)
+                    .map(s -> (VariableSymbol) s)
+                    .flatMap(variableSymbol -> variableSymbol.getLocation()
+                            .flatMap(location -> Optional.ofNullable(CommonUtils.getDocument(project, location))
+                                    .flatMap(document -> CommonUtil.findNode(variableSymbol, document.syntaxTree())
+                                            .flatMap(varNode -> Optional.ofNullable(
+                                                            getInitializerFromVariableNode(varNode))
+                                                    .flatMap(this::getNewExpr)))));
+        }
+
+        return Optional.empty();
     }
 
     /**
