@@ -25,7 +25,6 @@ import { NODE_WIDTH } from "../../resources/constants";
 import { useDiagramContext } from "../DiagramContext";
 import AddCommentPopup from "../AddCommentPopup";
 import { Popover, ThemeColors } from "@wso2/ui-toolkit";
-import AddPromptPopup from "../AddPromptPopup";
 
 interface NodeLinkWidgetProps {
     link: NodeLinkModel;
@@ -51,17 +50,15 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
     const [isNodeButtonHovered, setIsNodeButtonHovered] = useState(false);
     const [isPromptButtonHovered, setIsPromptButtonHovered] = useState(false);
     const [commentAnchorEl, setCommentAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [promptAnchorEl, setPromptAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isCommentBoxOpen = Boolean(commentAnchorEl);
-    const isPromptBoxOpen = Boolean(promptAnchorEl);
 
     useEffect(() => {
-        setLockCanvas(isCommentBoxOpen || isPromptBoxOpen);
-    }, [isCommentBoxOpen, isPromptBoxOpen, setLockCanvas]);
+        setLockCanvas(isCommentBoxOpen);
+    }, [isCommentBoxOpen, setLockCanvas]);
 
     const showAddButton = link.showAddButton && !link.disabled;
     const shouldHighlight =
-        showAddButton && (isHovered || link.showButtonAlways || isPromptBoxOpen || isCommentBoxOpen);
+        showAddButton && (isHovered || link.showButtonAlways || isCommentBoxOpen);
     const linkColor = link.disabled
         ? ThemeColors.OUTLINE_VARIANT
         : isHovered && !readOnly
@@ -85,9 +82,14 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
         onAddNode(node, { startLine: target, endLine: target });
     };
 
-    const handleAddPrompt = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
+    const handleAddPrompt = () => {
         if (!onAddNodePrompt) {
             console.error(">>> NodeLinkWidget: handleAddPrompt: onAddNodePrompt not found");
+            return;
+        }
+        let node = link.getTopNode();
+        if (!node) {
+            console.error(">>> NodeLinkWidget: handleAddPrompt: top node not found");
             return;
         }
         const target = link.getTarget();
@@ -95,13 +97,8 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
             console.error(">>> NodeLinkWidget: handleAddPrompt: target not found");
             return;
         }
-        setPromptAnchorEl(event.currentTarget);
-        setCommentAnchorEl(null);
-    };
-
-    const handleClosePromptBox = () => {
-        setPromptAnchorEl(null);
-        setIsHovered(false);
+        // Directly open AI Chat with CodeContext instead of showing prompt popup
+        onAddNodePrompt(node, { startLine: target, endLine: target }, "");
     };
 
     const handleAddComment = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -110,7 +107,6 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
             return;
         }
         setCommentAnchorEl(event.currentTarget);
-        setPromptAnchorEl(null);
     };
 
     const handleCloseCommentBox = () => {
@@ -280,25 +276,6 @@ export const NodeLinkWidget: React.FC<NodeLinkWidgetProps> = ({ link, engine }) 
                         }}
                     >
                         <AddCommentPopup target={link.getTarget()} onClose={handleCloseCommentBox} />
-                    </Popover>
-                </foreignObject>
-            )}
-            {isPromptBoxOpen && (
-                <foreignObject>
-                    <Popover
-                        open={isPromptBoxOpen}
-                        anchorEl={promptAnchorEl}
-                        sx={{
-                            padding: 0,
-                            borderRadius: 0,
-                            backgroundColor: "unset",
-                        }}
-                    >
-                        <AddPromptPopup
-                            node={link.getTopNode()}
-                            target={link.getTarget()}
-                            onClose={handleClosePromptBox}
-                        />
                     </Popover>
                 </foreignObject>
             )}
