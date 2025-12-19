@@ -55,7 +55,7 @@ export interface TracerMachineContext {
     serverPid?: number;
     error?: string;
     startFailureReason?: string;
-    workspaceDirs?: string[];
+    currentProjectPath?: string;
     isDisabling?: boolean;
     traceServer?: TraceServer;
     taskExecution?: vscode.TaskExecution;
@@ -67,62 +67,47 @@ export interface TracerMachineContext {
  */
 function isTraceEnabledInProject(context: TracerMachineContext): Promise<{ isTraceEnabledInProject: boolean }> {
     return new Promise((resolve) => {
-        // Check if a file called trace_enabled.bal exists in any workspace dir
-        const traceEnabled = context.workspaceDirs?.some((workspaceDir) => {
-            return fs.existsSync(path.join(workspaceDir, 'trace_enabled.bal'));
-        }) ?? false;
+        // Check if a file called trace_enabled.bal exists in the current project path
+        const traceEnabled = fs.existsSync(path.join(context.currentProjectPath, 'trace_enabled.bal'));
 
         resolve({ isTraceEnabledInProject: traceEnabled });
     });
 }
 
 function enableTracingInProject(context: TracerMachineContext, event?: any): void {
-    console.log('enableTracingInProject called with context:', {
-        workspaceDirs: context.workspaceDirs,
-        hasWorkspaceDirs: !!context.workspaceDirs,
-        workspaceDirsLength: context.workspaceDirs?.length || 0
-    });
+    console.log('enableTracingInProject called with project path:', event?.projectPath);
 
-    if (!context.workspaceDirs || context.workspaceDirs.length === 0) {
-        console.error('enableTracingInProject: No workspace directories provided');
+    if (!event?.projectPath) {
+        console.error('enableTracingInProject: No project path provided');
         return;
     }
 
-    context.workspaceDirs.forEach((workspaceDir) => {
-        try {
-            const traceFilePath = path.join(workspaceDir, 'trace_enabled.bal');
-            fs.writeFileSync(traceFilePath, 'import ballerinax/idetraceprovider as _;');
-
-            setTracingConfig(workspaceDir);
-        } catch (error) {
-            console.error(`Failed to write trace_enabled.bal to ${workspaceDir}:`, error);
-        }
-    });
+    try {
+        const traceFilePath = path.join(event.projectPath, 'trace_enabled.bal');
+        fs.writeFileSync(traceFilePath, 'import ballerinax/idetraceprovider as _;');
+        setTracingConfig(event.projectPath);
+    } catch (error) {
+        console.error(`Failed to write trace_enabled.bal to ${event.projectPath}:`, error);
+    }
 }
 
 function disableTracingInProject(context: TracerMachineContext, event?: any): void {
-    console.log('disableTracingInProject called with context:', {
-        workspaceDirs: context.workspaceDirs,
-        hasWorkspaceDirs: !!context.workspaceDirs,
-        workspaceDirsLength: context.workspaceDirs?.length || 0
-    });
+    console.log('disableTracingInProject called with project path:', event?.projectPath);
 
-    if (!context.workspaceDirs || context.workspaceDirs.length === 0) {
-        console.error('disableTracingInProject: No workspace directories provided');
+    if (!event?.projectPath) {
+        console.error('disableTracingInProject: No project path provided');
         return;
     }
 
-    context.workspaceDirs.forEach((workspaceDir) => {
-        try {
-            const traceFilePath = path.join(workspaceDir, 'trace_enabled.bal');
-            if (fs.existsSync(traceFilePath)) {
-                fs.unlinkSync(traceFilePath);
-            }
-            removeTracingConfig(workspaceDir);
-        } catch (error) {
-            console.error(`Failed to disable tracing in ${workspaceDir}:`, error);
+    try {
+        const traceFilePath = path.join(event.projectPath, 'trace_enabled.bal');
+        if (fs.existsSync(traceFilePath)) {
+            fs.unlinkSync(traceFilePath);
         }
-    });
+        removeTracingConfig(event.projectPath);
+    } catch (error) {
+        console.error(`Failed to disable tracing in ${event.projectPath}:`, error);
+    }
 }
 
 function startServer(context: TracerMachineContext, event?: any): Thenable<vscode.TaskExecution> {
@@ -138,7 +123,7 @@ function stopServer(context: TracerMachineContext, event?: any): Promise<void> {
 /**
  * Creates a state machine for managing the tracing server lifecycle
  */
-function createTracerMachine(workspaceDirs?: string[]) {
+function createTracerMachine(projectPath?: string) {
     return createMachine<TracerMachineContext>(
         {
             /** @xstate-layout N4IgpgJg5mDOIC5QBcBOBDAxmVBZLAFgJYB2YAxAIIAi1A+gOoDyASgNIDKACpQMICiHANoAGALqJQABwD2sIsiIySkkAA9EARgBM2gMwA6TQBYRANgCsAdgAcFm2e0mANCACeWkVYMBOC3s1NHxsREWMLYzM9AF9o1zQsHHxMYjJyFn5cJgA1fkZWTh4BYXFVWXlFZVUNBB0vAz1g4z0RPWMrYzszVw9a7Vj4jGw8QlIwA1IFcghlcdIANxkAa3GE4eTUuZIFBAWZTHRKklExE7K5BSUVJHVEC00bIwe-MzNNKzM7HsROiwMOqx6SzaGwfXRAgYgNZJUZkCbbZDTWbwxYrAzQkYpMbwnZ7A5HE5CTQSG7lS5VG41d7GAxOczWETaaz+XTfBBmYw+AzWHyaBkWMJ8qyQjEbbGTRE4VAyVAGKQAG0OADMZQBbdFDGFYuES3YkRb4q6E0qki5HapaHyGUG6bQ+XT+EQCvRskIiXyRNpeKyhEQ+MwizWYzYGMAkdAAI3lkHI1AAkhxKAAhAAy-DOpoqVwtCCsugMZh9Zh8rXMVl5xjZmg5ZiMIk0jT8rRemkDiWD2LDkejEHS-AAYhkOAAJDPSM3ZymIWzeHxWyyhPS2dqV9yIRruvkmJdBV5LtvrWHjLtRyAGWA4eY4DjIGRSKQxjgAFUoLCfdA4-BYuRYY5AZPNKdcwsbQCyZUsHEZECbCrRlNAMYxdBsFc-TncIDy1EMTx7c9L2vZB0FQRQSCgJEdX1ZZViDMU4Wws8L1QK9UBvQjiKgPUDUOI1xD-ADJ1AKk-VAwFjFE6xAm0esXTXWpWm8d4QR9RDATMJ0MI7Wjw1PCBcMY-DWNIUipRlOVFWQFVUHVUUj1DLScIYpiWKIwyOP2LjlGNElxyzCkBM8e1-jaMSrAkqTXRCgt-QCRpNHrGd1Jo487PovDUH7dAiB7J8ZCcxEMifFgAE1eInXzblqKJDHLT5nV5VoHDZEt5LzBwrFsBslxsBKbLonSHJwdLMsgbLcr7AriuJc4fOuPyKr0Kr-TsZtYr0BqZK6AsWs5f1PidHxuu1JLuxSvTmIIojHyfJguA-L8fxK6ac0k7RawsecojeyxAhgmT7W8RCQTeCwgbUuIoWonrkr61KbzvKRDLIrZUSo9tEts47odO2H7xcvF3OOHiTW88kZvK57XvevRPvuB42UBf6kPaOSWneA6sKh3THNvHGSPIYzZQVZU1Q1VHIYxzn8Lh3GKMNDzCa8-9StJmpntnJdlOUgVbFdNoEOLDpC0ZODWzB6zDoMCAiFgDHyH4AA5ZM0wekmc2sKs2tAmw7X0HRAjeTo2exS3re0vtB0EUcicVx6gIbeCQrCN4Pdeawft6BsSwMGwSy9v1OmQ4xYjBkgZAgOBVDNzYppdoCAFpNDZFpQK+4xqxBCxgb+wPyIUavANm9o2Vb0CFJsea5zebQPm7o7tL7-jyv8bx-B0K1fSCPk2Q7917RBPwfDa4J+lNiHzd6iWzrhyB57Kmp7D+Fe7RaUIN4sRqve5cxdwCUwQv2k-RZnw5v1M6BkSI32Voge0jxCwbytNWSwwRGrBAQkhJ0QQC5WAsDPdG2kL6DSyjlc6yAIE5m3H8dqLQsHZycFPV0xZfBITHlTSSXscHnxAbla+mYa6zQeI4MCApORMlWiFNOiBQTwVHn4NoNhYp2nYcAmG3N4bgJ4f3MmQIuQcidP4FkIkdZ-G-sCcI5YAg4ODhjUhQFn4GFaHUVuC5VrIXdkELO2d5FWnuH4Iu0QgA */
@@ -149,22 +134,10 @@ function createTracerMachine(workspaceDirs?: string[]) {
                 serverPid: undefined,
                 error: undefined,
                 startFailureReason: undefined,
-                workspaceDirs: workspaceDirs || [],
+                currentProjectPath: projectPath,
                 isDisabling: false,
                 taskExecution: undefined,
                 taskTerminationListener: undefined
-            },
-            on: {
-                ADD_WORKSPACES: {
-                    actions: assign({
-                        workspaceDirs: (context, event) => [...context.workspaceDirs, (event as any).workspaceDir],
-                    }),
-                },
-                REMOVE_WORKSPACES: {
-                    actions: assign({
-                        workspaceDirs: (context, event) => context.workspaceDirs.filter((dir) => dir !== (event as any).workspaceDir),
-                    }),
-                },
             },
             states: {
                 /**
@@ -234,6 +207,9 @@ function createTracerMachine(workspaceDirs?: string[]) {
                                 target: 'disabled',
                                 actions: [
                                     disableTracingInProject,
+                                    assign({
+                                        currentProjectPath: undefined,
+                                    }),
                                 ],
                             },
                         ],
@@ -409,7 +385,12 @@ function createTracerMachine(workspaceDirs?: string[]) {
                     on: {
                         ENABLE: {
                             target: 'enabled',
-                            actions: enableTracingInProject,
+                            actions: [
+                                enableTracingInProject,
+                                assign({
+                                    currentProjectPath: (context, event) => (event as any).projectPath,
+                                })
+                            ]
                         },
                         REFRESH: {
                             target: 'init',
@@ -454,20 +435,11 @@ export const TracerMachine = {
     /**
      * Create and start the tracer machine with workspace directories
      */
-    initialize: (workspaceDirs?: string[]) => {
-        const machine = createTracerMachine(workspaceDirs);
+    initialize: (projectPath?: string) => {
+        const machine = createTracerMachine(projectPath);
         tracerService = interpret(machine) as ReturnType<typeof interpret>;
         tracerService.start();
     },
-
-    addWorkspace: (workspaceDir: string) => {
-        ensureInitialized().send({ type: 'ADD_WORKSPACES' }, { workspaceDir });
-    },
-
-    removeWorkspace: (workspaceDir: string) => {
-        ensureInitialized().send({ type: 'REMOVE_WORKSPACES' }, { workspaceDir });
-    },
-
 
     isEnabled: () => {
         const value = ensureInitialized().getSnapshot().value;
@@ -508,20 +480,20 @@ export const TracerMachine = {
         ensureInitialized().send({ type: 'STOP_SERVER' });
     },
 
-    enable: () => {
-        ensureInitialized().send({ type: 'ENABLE' });
+    enable: (projectPath: string) => {
+        ensureInitialized().send({ type: 'ENABLE', projectPath } as any);
     },
 
-    disable: () => {
-        ensureInitialized().send({ type: 'DISABLE' });
+    disable: (projectPath: string) => {
+        ensureInitialized().send({ type: 'DISABLE', projectPath } as any);
     },
 
-    refresh: (workspaceDirs?: string[]) => {
+    refresh: (projectPath?: string) => {
         const snapshot = ensureInitialized().getSnapshot();
         const context = snapshot.context as TracerMachineContext;
-        const currentWorkspaceDirs = context.workspaceDirs || [];
-        const updatedWorkspaceDirs = workspaceDirs || currentWorkspaceDirs;
-        const machine = createTracerMachine(updatedWorkspaceDirs);
+        const currentProjectPath = context.currentProjectPath;
+        const updatedProjectPath = projectPath || currentProjectPath;
+        const machine = createTracerMachine(updatedProjectPath);
         tracerService = interpret(machine) as ReturnType<typeof interpret>;
         tracerService.start();
     },
