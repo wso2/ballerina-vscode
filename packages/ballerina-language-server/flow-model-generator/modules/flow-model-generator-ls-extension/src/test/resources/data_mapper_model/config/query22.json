@@ -233,7 +233,7 @@
           {
             "name": "dept",
             "displayName": "dept",
-            "typeName": "string",
+            "typeName": "string?",
             "kind": "string",
             "optional": false
           }

@@ -81,7 +81,7 @@
           {
             "name": "id",
             "displayName": "id",
-            "typeName": "int",
+            "typeName": "int?",
             "kind": "int",
             "optional": true
           },
