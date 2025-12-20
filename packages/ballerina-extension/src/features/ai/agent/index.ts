@@ -112,13 +112,13 @@ export async function generateAgentCore(
 
     const tools = {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
-        [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION),
-        [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions),
+        [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION, eventHandler),
+        [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions, eventHandler),
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(tempProjectPath)),
+        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
+        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
+        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
+        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(eventHandler, tempProjectPath)),
         [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
     };
 
@@ -143,9 +143,6 @@ export async function generateAgentCore(
     const streamContext: StreamContext = {
         eventHandler,
         modifiedFiles,
-        accumulatedMessages: [],
-        currentAssistantContent: [],
-        selectedLibraries: [],
         tempProjectPath,
         projects,
         shouldCleanup,
@@ -160,6 +157,8 @@ export async function generateAgentCore(
 
     try {
         for await (const part of fullStream) {
+            // Let registry handle all events
+            // Message history is tracked automatically by SDK in response.messages
             await registry.handleEvent(part, streamContext);
         }
     } catch (e) {

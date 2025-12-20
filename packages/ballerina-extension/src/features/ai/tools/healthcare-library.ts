@@ -23,8 +23,24 @@ import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest } from "@wso2/bal
 import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../utils/ai-client";
 import { z } from "zod";
 import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
+import { CopilotEventHandler } from "../utils/events";
 
 export const HEALTHCARE_LIBRARY_PROVIDER_TOOL = "HealthcareLibraryProviderTool";
+
+/**
+ * Emits tool_result event for healthcare library provider (no filtering)
+ */
+function emitHealthcareLibraryToolResult(
+    eventHandler: CopilotEventHandler,
+    libraries: Library[]
+): void {
+    const libraryNames = libraries.map(lib => lib.name);
+    eventHandler({
+        type: "tool_result",
+        toolName: HEALTHCARE_LIBRARY_PROVIDER_TOOL,
+        toolOutput: libraryNames
+    });
+}
 
 const HealthcareLibraryProviderToolSchema = jsonSchema<{
     userPrompt: string;
@@ -39,10 +55,18 @@ const HealthcareLibraryProviderToolSchema = jsonSchema<{
     required: ["userPrompt"],
 });
 
-export async function HealthcareLibraryProviderTool(params: {
-    userPrompt: string;
-}): Promise<Library[]> {
+export async function HealthcareLibraryProviderTool(
+    params: { userPrompt: string },
+    eventHandler: CopilotEventHandler
+): Promise<Library[]> {
     try {
+        // Emit tool_call event
+        eventHandler({
+            type: "tool_call",
+            toolName: HEALTHCARE_LIBRARY_PROVIDER_TOOL,
+            toolInput: undefined
+        });
+
         const startTime = Date.now();
 
         const libraries = await getRelevantLibrariesAndFunctions({
@@ -54,19 +78,34 @@ export async function HealthcareLibraryProviderTool(params: {
                 .map((lib) => lib.name)
                 .join(", ")}, took ${(Date.now() - startTime) / 1000}s`
         );
+
+        // Emit tool_result event with all library names (no filtering)
+        emitHealthcareLibraryToolResult(eventHandler, libraries);
+
         return libraries;
     } catch (error) {
         console.error(`[HealthcareLibraryProviderTool] Error fetching libraries: ${error}`);
+
+        // Emit error result
+        eventHandler({
+            type: "tool_result",
+            toolName: HEALTHCARE_LIBRARY_PROVIDER_TOOL,
+            toolOutput: []
+        });
+
         return [];
     }
 }
 
 //TODO: Improve this description
-export function getHealthcareLibraryProviderTool(_libraryDescriptions: string) {
+export function getHealthcareLibraryProviderTool(
+    _libraryDescriptions: string,
+    eventHandler: CopilotEventHandler
+) {
     return tool({
         description: `Fetches detailed information about healthcare-specific Ballerina libraries along with their API documentation, including services, clients, functions, and filtered type definitions.
 
-** NOTE: 
+** NOTE:
 1. This Tool only has knowledge on healthcare libraries, you want general libraries, use ${LIBRARY_PROVIDER_TOOL} to retrieve those.
 
 This tool is specifically designed for healthcare integration use cases (FHIR, HL7v2, etc.) and provides:
@@ -92,7 +131,7 @@ You should only use this tool if the user query mentions,
             console.log(
                 `[HealthcareLibraryProviderTool] Called with prompt: ${input.userPrompt}`
             );
-            return await HealthcareLibraryProviderTool(input);
+            return await HealthcareLibraryProviderTool(input, eventHandler);
         },
     });
 }

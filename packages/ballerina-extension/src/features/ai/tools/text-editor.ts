@@ -22,6 +22,44 @@ import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../stateMachine";
 import { sendAgentDidOpen, sendAgentDidChange } from "../utils/project/ls-schema-notifications";
+import { CopilotEventHandler } from "../utils/events";
+
+// ============================================================================
+// Display Helper Functions
+// ============================================================================
+
+/**
+ * Emits tool_call event for file editing tools
+ */
+function emitFileToolCall(
+    eventHandler: CopilotEventHandler,
+    toolName: string,
+    file_path: string
+): void {
+    eventHandler({
+        type: "tool_call",
+        toolName,
+        toolInput: { fileName: file_path }
+    });
+}
+
+/**
+ * Emits tool_result event for file editing tools
+ */
+function emitFileToolResult(
+    eventHandler: CopilotEventHandler,
+    toolName: string,
+    result: TextEditorResult
+): void {
+    eventHandler({
+        type: "tool_result",
+        toolName,
+        toolOutput: {
+            success: result.success,
+            action: result.action
+        }
+    });
+}
 
 // ============================================================================
 // Types & Interfaces
@@ -35,6 +73,7 @@ interface ValidationResult {
 interface TextEditorResult {
   success: boolean;
   message: string;
+  action?: 'created' | 'updated';
   error?: string;
 }
 
@@ -210,33 +249,46 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 // Write Tool Execute Function
 // ============================================================================
 
-export function createWriteExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
+export function createWriteExecute(
+  eventHandler: CopilotEventHandler,
+  tempProjectPath: string,
+  projectPath: string,
+  modifiedFiles?: string[]
+) {
   return async (args: {
     file_path: string;
     content: string;
   }): Promise<TextEditorResult> => {
     const { file_path, content } = args;
+
+    // Emit tool_call event
+    emitFileToolCall(eventHandler, FILE_WRITE_TOOL_NAME, file_path);
+
     console.log(`[FileWriteTool] Writing to ${file_path}, content: ${content.substring(0, 50)}${content.length > 100 ? '... [truncated]' : ''}`);
 
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
       console.error(`[FileWriteTool] Invalid file path: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
+      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+      return result;
     }
 
     // Validate content is not empty
     if (!content || content.trim().length === 0) {
       console.error(`[FileWriteTool] Empty content provided for file: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: 'Content cannot be empty when writing a file.',
         error: `Error: ${ErrorMessages.EMPTY_CONTENT}`
       };
+      emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+      return result;
     }
 
     const fullPath = path.join(tempProjectPath, file_path);
@@ -249,11 +301,13 @@ export function createWriteExecute(tempProjectPath: string, projectPath: string,
       const existingContent = fs.readFileSync(fullPath, 'utf-8');
       if (existingContent.trim().length > 0) {
         console.error(`[FileWriteTool] File already exists with content: ${file_path}`);
-        return {
+        const result = {
           success: false,
           message: `File '${file_path}' already exists with content. Use file_edit or file_multi_edit to modify it instead.`,
           error: `Error: ${ErrorMessages.FILE_ALREADY_EXISTS}`
         };
+        emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+        return result;
       }
     }
 
@@ -271,7 +325,7 @@ export function createWriteExecute(tempProjectPath: string, projectPath: string,
     }
 
     const lineCount = content.split('\n').length;
-    const action = fileExists ? 'updated' : 'created';
+    const action: 'created' | 'updated' = fileExists ? 'updated' : 'created';
 
     // Notify Language Server
     if (action === 'created') {
@@ -281,10 +335,16 @@ export function createWriteExecute(tempProjectPath: string, projectPath: string,
     }
 
     console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
-    return {
+    const result = {
       success: true,
-      message: `Successfully ${action} file '${file_path}' with ${lineCount} line(s).`
+      message: `Successfully ${action} file '${file_path}' with ${lineCount} line(s).`,
+      action
     };
+
+    // Emit tool_result event
+    emitFileToolResult(eventHandler, FILE_WRITE_TOOL_NAME, result);
+
+    return result;
   };
 }
 
@@ -292,7 +352,12 @@ export function createWriteExecute(tempProjectPath: string, projectPath: string,
 // Edit Tool Execute Function
 // ============================================================================
 
-export function createEditExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
+export function createEditExecute(
+  eventHandler: CopilotEventHandler,
+  tempProjectPath: string,
+  projectPath: string,
+  modifiedFiles?: string[]
+) {
   return async (args: {
     file_path: string;
     old_string: string;
@@ -300,27 +365,35 @@ export function createEditExecute(tempProjectPath: string, projectPath: string, 
     replace_all?: boolean;
   }): Promise<TextEditorResult> => {
     const { file_path, old_string, new_string, replace_all = false } = args;
+
+    // Emit tool_call event
+    emitFileToolCall(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, file_path);
+
     console.log(`[FileEditTool] Editing ${file_path}, replacing '${old_string.substring(0, 50)}' with '${new_string.substring(0,50)}', replace_all: ${replace_all}`);
 
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
       console.error(`[FileEditTool] Invalid file path: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // Check if old_string and new_string are identical
     if (old_string === new_string) {
       console.error(`[FileEditTool] old_string and new_string are identical for file: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: 'old_string and new_string are identical. No changes to make.',
         error: `Error: ${ErrorMessages.IDENTICAL_STRINGS}`
       };
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     const fullPath = path.join(tempProjectPath, file_path);
@@ -328,11 +401,13 @@ export function createEditExecute(tempProjectPath: string, projectPath: string, 
     // Check if file exists
     if (!fs.existsSync(fullPath)) {
       console.error(`[FileEditTool] File not found: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: `File '${file_path}' not found. Use file_write to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // Read file content
@@ -344,21 +419,25 @@ export function createEditExecute(tempProjectPath: string, projectPath: string, 
     if (occurrenceCount === 0) {
       const preview = content.substring(0, PREVIEW_LENGTH);
       console.error(`[FileEditTool] No occurrences of old_string found in file: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: `String to replace was not found in '${file_path}'. Please verify the exact text to replace, including whitespace and indentation. \n File Preview: \n${preview + (content.length > PREVIEW_LENGTH ? '...' : '')}`,
         error: `Error: ${ErrorMessages.NO_MATCH_FOUND}`,
       };
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // If not replace_all, ensure exactly one match
     if (!replace_all && occurrenceCount > 1) {
       console.error(`[FileEditTool] Multiple occurrences (${occurrenceCount}) found for old_string in file: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: `Found ${occurrenceCount} occurrences of the text in '${file_path}'. Either make old_string more specific to match exactly one occurrence, or set replace_all to true to replace all occurrences.`,
         error: `Error: ${ErrorMessages.MULTIPLE_MATCHES}`,
       };
+      emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // Perform replacement
@@ -385,10 +464,15 @@ export function createEditExecute(tempProjectPath: string, projectPath: string, 
 
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
-    return {
+    const result = {
       success: true,
       message: `Successfully replaced ${replacedCount} occurrence(s) in '${file_path}'.`
     };
+
+    // Emit tool_result event
+    emitFileToolResult(eventHandler, FILE_SINGLE_EDIT_TOOL_NAME, result);
+
+    return result;
   };
 }
 
@@ -396,7 +480,12 @@ export function createEditExecute(tempProjectPath: string, projectPath: string, 
 // Multi Edit Tool Execute Function
 // ============================================================================
 
-export function createMultiEditExecute(tempProjectPath: string, projectPath: string, modifiedFiles?: string[]) {
+export function createMultiEditExecute(
+  eventHandler: CopilotEventHandler,
+  tempProjectPath: string,
+  projectPath: string,
+  modifiedFiles?: string[]
+) {
   return async (args: {
     file_path: string;
     edits: Array<{
@@ -406,27 +495,35 @@ export function createMultiEditExecute(tempProjectPath: string, projectPath: str
     }>;
   }): Promise<TextEditorResult> => {
     const { file_path, edits } = args;
+
+    // Emit tool_call event
+    emitFileToolCall(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, file_path);
+
     console.log(`[FileMultiEditTool] Editing ${file_path} with ${edits.length} edits.`);
 
     // Validate file path
     const pathValidation = validateFilePath(file_path);
     if (!pathValidation.valid) {
       console.error(`[FileMultiEditTool] Invalid file path: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: pathValidation.error!,
         error: `Error: ${ErrorMessages.INVALID_FILE_PATH}`
       };
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // Validate edits array
     if (!edits || edits.length === 0) {
       console.error(`[FileMultiEditTool] No edits provided for file: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: 'No edits provided. At least one edit is required.',
         error: `Error: ${ErrorMessages.NO_EDITS}`
       };
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     const fullPath = path.join(tempProjectPath, file_path);
@@ -434,11 +531,13 @@ export function createMultiEditExecute(tempProjectPath: string, projectPath: str
     // Check if file exists
     if (!fs.existsSync(fullPath)) {
       console.error(`[FileMultiEditTool] File not found: ${file_path}`);
-      return {
+      const result = {
         success: false,
         message: `File '${file_path}' not found. Use file_write to create new files.`,
         error: `Error: ${ErrorMessages.FILE_NOT_FOUND}`
       };
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // Read file content
@@ -484,11 +583,13 @@ export function createMultiEditExecute(tempProjectPath: string, projectPath: str
     // If there were validation errors, return them without applying any edits
     if (validationErrors.length > 0) {
       console.error(`[FileMultiEditTool] Validation errors:\n${validationErrors.join('\n')}`);
-      return {
+      const result = {
         success: false,
         message: `Multi-edit validation failed:\n${validationErrors.join('\n')}`,
         error: `Error: ${ErrorMessages.EDIT_FAILED}`,
       };
+      emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+      return result;
     }
 
     // All validations passed, content already has all edits applied
@@ -503,10 +604,15 @@ export function createMultiEditExecute(tempProjectPath: string, projectPath: str
     sendAgentDidChange(tempProjectPath, projectPath, file_path);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
-    return {
+    const result = {
       success: true,
       message: `Successfully applied ${edits.length} edit(s) to '${file_path}'.`
     };
+
+    // Emit tool_result event
+    emitFileToolResult(eventHandler, FILE_BATCH_EDIT_TOOL_NAME, result);
+
+    return result;
   };
 }
 
@@ -514,7 +620,10 @@ export function createMultiEditExecute(tempProjectPath: string, projectPath: str
 // Read Tool Execute Function
 // ============================================================================
 
-export function createReadExecute(tempProjectPath: string) {
+export function createReadExecute(
+  eventHandler: CopilotEventHandler,
+  tempProjectPath: string
+) {
   return async (args: {
     file_path: string;
     offset?: number;
