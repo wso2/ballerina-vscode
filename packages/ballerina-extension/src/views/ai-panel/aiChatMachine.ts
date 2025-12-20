@@ -327,6 +327,17 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 },
             },
         },
+        ResumingGeneration: {
+            entry: "saveChatState",
+            on: {
+                [AIChatMachineEventType.PLAN_GENERATED]: {
+                    target: "PlanReview",
+                    actions: assign({
+                        currentPlan: (_ctx, event) => event.payload.plan,
+                    }),
+                },
+            },
+        },
         ApprovedPlan: {
             entry: "saveChatState",
             on: {
@@ -518,7 +529,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
             on: {
                 [AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC]: [
                     {
-                        target: "GeneratingPlan",
+                        target: "ResumingGeneration",
                         cond: (ctx) => {
                             console.log("[State Machine] PROVIDE_CONNECTOR_SPEC: previousState =", ctx.previousState);
                             return ctx.previousState === "GeneratingPlan";
@@ -546,7 +557,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                 ],
                 [AIChatMachineEventType.SKIP_CONNECTOR_GENERATION]: [
                     {
-                        target: "GeneratingPlan",
+                        target: "ResumingGeneration",
                         cond: (ctx) => {
                             console.log(
                                 "[State Machine] SKIP_CONNECTOR_GENERATION: previousState =",
