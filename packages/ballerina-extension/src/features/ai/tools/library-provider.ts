@@ -19,6 +19,27 @@ import { GenerationType } from "../utils/libs/libraries";
 import { jsonSchema } from "ai";
 import { Library } from "../utils/libs/library-types";
 import { selectRequiredFunctions } from "../utils/libs/function-registry";
+import { CopilotEventHandler } from "../utils/events";
+import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+
+/**
+ * Emits tool_result event for library provider with filtering
+ */
+function emitLibraryToolResult(
+    eventHandler: CopilotEventHandler,
+    toolName: string,
+    libraries: Library[],
+    requestedLibraryNames: string[]
+): void {
+    const libraryNames = libraries.map(lib => lib.name);
+    const filteredNames = libraryNames.filter(name => requestedLibraryNames.includes(name));
+
+    eventHandler({
+        type: "tool_result",
+        toolName,
+        toolOutput: filteredNames
+    });
+}
 
 const LibraryProviderToolSchema = jsonSchema<{
     libraryNames: string[];
@@ -41,9 +62,17 @@ const LibraryProviderToolSchema = jsonSchema<{
 
 export async function LibraryProviderTool(
     params: { libraryNames: string[]; userPrompt: string },
-    generationType: GenerationType
+    generationType: GenerationType,
+    eventHandler: CopilotEventHandler
 ): Promise<Library[]> {
     try {
+        // Emit tool_call event
+        eventHandler({
+            type: "tool_call",
+            toolName: LIBRARY_PROVIDER_TOOL,
+            toolInput: undefined
+        });
+
         const startTime = Date.now();
         const libraries = await selectRequiredFunctions(params.userPrompt, params.libraryNames, generationType);
         console.log(
@@ -51,14 +80,30 @@ export async function LibraryProviderTool(
                 .map((lib) => lib.name)
                 .join(", ")}, took ${(Date.now() - startTime) / 1000}s`
         );
+
+        // Emit tool_result event with filtered library names
+        emitLibraryToolResult(eventHandler, LIBRARY_PROVIDER_TOOL, libraries, params.libraryNames);
+
         return libraries;
     } catch (error) {
         console.error(`[LibraryProviderTool] Error fetching libraries: ${error}`);
+
+        // Emit error result
+        eventHandler({
+            type: "tool_result",
+            toolName: LIBRARY_PROVIDER_TOOL,
+            toolOutput: []
+        });
+
         return [];
     }
 }
 
-export function getLibraryProviderTool(libraryDescriptions: string, generationType: GenerationType) {
+export function getLibraryProviderTool(
+    libraryDescriptions: string,
+    generationType: GenerationType,
+    eventHandler: CopilotEventHandler
+) {
     return tool({
         description: `Fetches detailed information about Ballerina libraries along with their API documentation, including services, clients, functions, and types.
 This tool analyzes a user query and returns **only the relevant** services, clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
@@ -90,7 +135,7 @@ name, description, type definitions (records, objects, enums, type aliases), cli
                     ", "
                 )} and prompt: ${input.userPrompt}`
             );
-            return await LibraryProviderTool(input, generationType);
+            return await LibraryProviderTool(input, generationType, eventHandler);
         },
     });
 }
