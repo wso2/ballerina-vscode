@@ -48,6 +48,14 @@ import {
     ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
+    SetAutoApproveRequest,
+    RestoreCheckpointRequest,
+    UpdateChatMessageRequest,
+    PlanApprovalRequest,
+    ApproveTaskRequest,
+    TaskDeclineRequest,
+    ConnectorSpecRequest,
+    ConnectorSpecCancelRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -118,4 +126,20 @@ export interface AIPanelAPI {
     declineChanges: () => Promise<void>;
     showReviewActions: () => Promise<void>;
     hideReviewActions: () => Promise<void>;
+    // ==================================
+    // Approval Related Functions (Human-in-the-Loop)
+    // ==================================
+    approvePlan: (params: PlanApprovalRequest) => Promise<void>;
+    declinePlan: (params: PlanApprovalRequest) => Promise<void>;
+    approveTask: (params: ApproveTaskRequest) => Promise<void>;
+    declineTask: (params: TaskDeclineRequest) => Promise<void>;
+    provideConnectorSpec: (params: ConnectorSpecRequest) => Promise<void>;
+    cancelConnectorSpec: (params: ConnectorSpecCancelRequest) => Promise<void>;
+    // ==================================
+    // Chat State Management
+    // ==================================
+    setAutoApprove: (params: SetAutoApproveRequest) => Promise<void>;
+    restoreCheckpoint: (params: RestoreCheckpointRequest) => Promise<void>;
+    clearChat: () => Promise<void>;
+    updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
 }

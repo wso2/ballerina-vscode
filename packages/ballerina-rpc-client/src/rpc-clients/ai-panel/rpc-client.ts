@@ -23,6 +23,9 @@ import {
     AIPanelAPI,
     AIPanelPrompt,
     AddFilesToProjectRequest,
+    ApproveTaskRequest,
+    ConnectorSpecCancelRequest,
+    ConnectorSpecRequest,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DocGenerationRequest,
@@ -35,6 +38,7 @@ import {
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
+    PlanApprovalRequest,
     PostProcessRequest,
     PostProcessResponse,
     ProcessContextTypeCreationRequest,
@@ -45,22 +49,32 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
+    SetAutoApproveRequest,
     SubmitFeedbackRequest,
+    TaskDeclineRequest,
     TestGenerationMentions,
     TestGeneratorIntermediaryState,
     TestPlanGenerationRequest,
+    UpdateChatMessageRequest,
     abortAIGeneration,
     abortTestGeneration,
     acceptChanges,
     addChatSummary,
     addFilesToProject,
     applyDoOnFailBlocks,
+    approvePlan,
+    approveTask,
+    cancelConnectorSpec,
     checkSyntaxError,
+    clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
     declineChanges,
+    declinePlan,
+    declineTask,
     deleteFromProject,
     fetchData,
     generateAgent,
@@ -101,11 +115,15 @@ import {
     postProcess,
     promptGithubAuthorize,
     promptWSO2AILogout,
+    provideConnectorSpec,
     readDeveloperMdFile,
     repairGeneratedCode,
+    restoreCheckpoint,
+    setAutoApprove,
     showReviewActions,
     showSignInAlert,
     submitFeedback,
+    updateChatMessage,
     updateDevelopmentDocument,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
@@ -340,10 +358,50 @@ export class AiPanelRpcClient implements AIPanelAPI {
     }
 
     showReviewActions(): Promise<void> {
-        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);  
+        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);
     }
 
     hideReviewActions(): Promise<void> {
         return this._messenger.sendRequest(hideReviewActions, HOST_EXTENSION);
+    }
+
+    approvePlan(params: PlanApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(approvePlan, HOST_EXTENSION, params);
+    }
+
+    declinePlan(params: PlanApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(declinePlan, HOST_EXTENSION, params);
+    }
+
+    approveTask(params: ApproveTaskRequest): Promise<void> {
+        return this._messenger.sendRequest(approveTask, HOST_EXTENSION, params);
+    }
+
+    declineTask(params: TaskDeclineRequest): Promise<void> {
+        return this._messenger.sendRequest(declineTask, HOST_EXTENSION, params);
+    }
+
+    provideConnectorSpec(params: ConnectorSpecRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    setAutoApprove(params: SetAutoApproveRequest): Promise<void> {
+        return this._messenger.sendRequest(setAutoApprove, HOST_EXTENSION, params);
+    }
+
+    restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
+        return this._messenger.sendRequest(restoreCheckpoint, HOST_EXTENSION, params);
+    }
+
+    clearChat(): Promise<void> {
+        return this._messenger.sendRequest(clearChat, HOST_EXTENSION);
+    }
+
+    updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
+        return this._messenger.sendRequest(updateChatMessage, HOST_EXTENSION, params);
     }
 }

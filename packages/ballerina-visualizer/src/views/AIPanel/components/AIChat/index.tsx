@@ -155,7 +155,7 @@ const AIChat: React.FC = () => {
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
 
-    const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
+    const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
@@ -232,10 +232,7 @@ const AIChat: React.FC = () => {
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
-            await rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.RESTORE_CHECKPOINT,
-                payload: { checkpointId }
-            });
+            await rpcClient.getAiPanelRpcClient().restoreCheckpoint({ checkpointId });
             const updatedMessages = await rpcClient.getAIChatUIHistory();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
@@ -336,7 +333,7 @@ const AIChat: React.FC = () => {
         });
     });
 
-    rpcClient?.onChatNotify((response: ChatNotify) => {
+    rpcClient?.onChatNotify(async (response: ChatNotify) => {
         // TODO: Need to handle the content as step blocks
         const type = response.type;
         if (type === "content_block") {
@@ -564,6 +561,8 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "task_approval_request") {
             setApprovalRequest({
+                type: "task_approval_request",
+                requestId: response.requestId,
                 approvalType: response.approvalType,
                 tasks: response.tasks,
                 taskDescription: response.taskDescription,
@@ -665,13 +664,7 @@ const AIChat: React.FC = () => {
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
         } else if ((response as any).type === "review_actions") {
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += `\n\n<reviewactions></reviewactions>`;
-                }
-                return newMessages;
-            });
+            setShowReviewActions(true);
         } else if (type === "messages") {
             const messages = response.messages;
             messagesRef.current = messages;
@@ -694,12 +687,9 @@ const AIChat: React.FC = () => {
             const messageId = response.messageId;
 
             // Update chat message in state machine with UI message
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
-                payload: {
-                    id: messageId,
-                    uiResponse: messages[messages.length - 1].content
-                }
+            await rpcClient.getAiPanelRpcClient().updateChatMessage({
+                messageId,
+                content: messages[messages.length - 1].content
             });
         } else if (type === "error") {
             console.log("Received error signal");
@@ -804,6 +794,7 @@ const AIChat: React.FC = () => {
         // Hide review actions when a new prompt is submitted
         if (showReviewActions) {
             await rpcClient.getAiPanelRpcClient().hideReviewActions();
+            setShowReviewActions(false);
         }
         
         // Clear previous generation refs
@@ -1164,12 +1155,17 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+        //TODO: Check why messageId is needed here
+        const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-        rpcClient.sendAIChatStateEvent({
-            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
-        });
+        console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
+        rpcClient.getAiPanelRpcClient().generateAgent({
+            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments, chatHistory: [], messageId
+        })
+        // rpcClient.sendAIChatStateEvent({
+        //     type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
+        //     payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
+        // });
     }
 
     async function handleStop() {
@@ -1186,21 +1182,17 @@ const AIChat: React.FC = () => {
         setShowSettings(true);
     }
 
-    function handleClearChat(): void {
-        setMessages((prevMessages) => []);
+    async function handleClearChat(): Promise<void> {
+        setMessages([]);
         setApprovalRequest(null);
 
-        rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
+        await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
-    const handleToggleAutoApprove = () => {
+    const handleToggleAutoApprove = async () => {
         const newValue = !isAutoApproveEnabled;
         setIsAutoApproveEnabled(newValue);
-        if (newValue) {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
-        } else {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
-        }
+        await rpcClient.getAiPanelRpcClient().setAutoApprove({ enabled: newValue });
     };
 
     const handleTogglePlanMode = () => {
@@ -1386,50 +1378,46 @@ const AIChat: React.FC = () => {
         });
     };
 
-    const handleApprovalApprove = (enableAutoApprove: boolean) => {
+    const handleApprovalApprove = async (enableAutoApprove: boolean) => {
         if (!approvalRequest) return;
 
-        if (enableAutoApprove && !isAutoApproveEnabled) {
-            setIsAutoApproveEnabled(true);
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
-        } else if (!enableAutoApprove && isAutoApproveEnabled) {
-            setIsAutoApproveEnabled(false);
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        // Update auto-approve setting
+        if (enableAutoApprove !== isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(enableAutoApprove);
+            await rpcClient.getAiPanelRpcClient().setAutoApprove({ enabled: enableAutoApprove });
         }
 
+        // Approve plan or task
         if (approvalRequest.approvalType === "plan") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.APPROVE_PLAN,
-                payload: {}
+            await rpcClient.getAiPanelRpcClient().approvePlan({
+                requestId: approvalRequest.requestId,
+                comment: undefined
             });
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.description === lastReviewTask?.description);
 
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.APPROVE_TASK,
-                payload: {
-                    lastApprovedTaskIndex: lastApprovedTaskIndex >= 0 ? lastApprovedTaskIndex : undefined
-                }
+            await rpcClient.getAiPanelRpcClient().approveTask({
+                requestId: approvalRequest.requestId,
+                approvedTaskDescription: lastReviewTask?.description
             });
         }
 
         setApprovalRequest(null);
     };
 
-    const handleApprovalReject = (comment: string) => {
+    const handleApprovalReject = async (comment: string) => {
         if (!approvalRequest) return;
 
         if (approvalRequest.approvalType === "plan") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.REJECT_PLAN,
-                payload: { comment }
+            await rpcClient.getAiPanelRpcClient().declinePlan({
+                requestId: approvalRequest.requestId,
+                comment
             });
         } else if (approvalRequest.approvalType === "completion") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.REJECT_TASK,
-                payload: { comment }
+            await rpcClient.getAiPanelRpcClient().declineTask({
+                requestId: approvalRequest.requestId,
+                comment
             });
         }
 
@@ -1792,7 +1780,10 @@ const AIChat: React.FC = () => {
                     {/* Review Actions Component - positioned at bottom above input */}
                     {showReviewActions && (
                         <div style={{ padding: "10px 20px 0", borderTop: "1px solid var(--vscode-panel-border)" }}>
-                            <ReviewActions rpcClient={rpcClient} />
+                            <ReviewActions
+                                rpcClient={rpcClient}
+                                onReviewActionsChange={setShowReviewActions}
+                            />
                         </div>
                     )}
                     {approvalRequest ? (

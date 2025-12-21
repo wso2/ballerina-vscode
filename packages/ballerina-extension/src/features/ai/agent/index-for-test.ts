@@ -16,7 +16,9 @@
 
 import { GenerateAgentCodeRequest, ExecutionContext } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../utils/events";
-import { generateAgentCore, createExecutionContext } from ".";
+import { createExecutionContext } from ".";
+import { AgentExecutor } from "../executors/agent/AgentExecutor";
+import { AIExecutionConfig } from "../executors/base/AICommandExecutor";
 
 /**
  * Parameters for test-mode code generation
@@ -42,7 +44,7 @@ export interface GenerateAgentForTestResult {
  * This function is specifically designed for evaluation and testing scenarios where:
  * - Tests create isolated project from template and pass its path
  * - This function creates an isolated ExecutionContext for each test
- * - generateAgentCore uses the isolated context (no StateMachine updates!)
+ * - Uses AgentExecutor directly (no state machine!)
  * - Changes are NOT integrated back to workspace (controlled by AI_TEST_ENV)
  * - Temp project is NOT cleaned up (AI_TEST_ENV prevents cleanup)
  * - Returns paths for validation and manual cleanup
@@ -65,11 +67,27 @@ export async function generateAgentForTest(
     }
 
     try {
+        // Create isolated ExecutionContext for this test
         const ctx: ExecutionContext = createExecutionContext(params.projectPath);
-        const tempProjectPath = await generateAgentCore(params, eventHandler, ctx);
+
+        // Create execution config
+        const config: AIExecutionConfig = {
+            executionContext: ctx,
+            eventHandler,
+            messageId: params.messageId || `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+            abortController: new AbortController()
+        };
+
+        // Create executor instance
+        const executor = new AgentExecutor(config, params);
+
+        // Execute with automatic lifecycle management
+        await executor.initialize();
+        const result = await executor.execute();
+        await executor.cleanup();
 
         return {
-            tempProjectPath,
+            tempProjectPath: result.tempProjectPath,
             isolatedProjectPath: params.projectPath
         };
     } catch (error) {

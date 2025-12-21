@@ -313,9 +313,10 @@ export function sendToolResultNotification(toolName: string, toolOutput?: any): 
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
+        requestId: requestId || `approval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         approvalType: approvalType,
         tasks: tasks,
         taskDescription: taskDescription,

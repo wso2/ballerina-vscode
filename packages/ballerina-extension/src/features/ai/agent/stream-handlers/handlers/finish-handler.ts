@@ -16,13 +16,13 @@
 
 import { StreamEventHandler, StreamFinishException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { Command, AIChatMachineEventType, ExecutionContext } from "@wso2/ballerina-core";
-import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
+import { Command, ExecutionContext } from "@wso2/ballerina-core";
 import { checkCompilationErrors } from "../../../tools/diagnostics-utils";
 import { integrateCodeToWorkspace } from "../../utils";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
+import { runtimeStateManager } from "../../../state/RuntimeStateManager";
 
 /**
  * Stored context data for code review actions
@@ -194,17 +194,13 @@ export class FinishHandler implements StreamEventHandler {
             messageId: context.messageId,
         });
 
-        // Show review actions component in the chat UI via state machine
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
-        });
+        // Show review actions component in the chat UI
+        runtimeStateManager.setShowReviewActions(true);
+        context.eventHandler({ type: "review_actions" });
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "stop", command: Command.Agent });
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.FINISH_EXECUTION,
-        });
 
         // Throw exception to exit stream loop and return tempProjectPath
         throw new StreamFinishException(context.tempProjectPath);

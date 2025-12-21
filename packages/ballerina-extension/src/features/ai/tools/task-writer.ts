@@ -17,8 +17,8 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../utils/events';
-import { Task, TaskStatus, TaskTypes, Plan, AIChatMachineEventType, AIChatMachineContext } from '@wso2/ballerina-core';
-import { AIChatStateMachine } from '../../../views/ai-panel/aiChatMachine';
+import { Task, TaskStatus, TaskTypes, Plan } from '@wso2/ballerina-core';
+import { runtimeStateManager } from '../state/RuntimeStateManager';
 import { integrateCodeToWorkspace } from '../agent/utils';
 import { checkCompilationErrors } from './diagnostics-utils';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
@@ -129,8 +129,7 @@ Rules:
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                const currentContext = AIChatStateMachine.context();
-                const existingPlan = currentContext.currentPlan;
+                const existingPlan = runtimeStateManager.getCurrentPlan();
                 const allTasks = mapInputToTasks(input);
 
                 console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
@@ -169,16 +168,12 @@ Rules:
                             approvalResult = await handleTaskCompletion(
                                 allTasks,
                                 newlyCompletedTasks,
-                                currentContext,
                                 eventHandler,
                                 tempProjectPath,
                                 modifiedFiles
                             );
                         }
                     } else if (taskCategories.inProgress.length > 0) {
-                        AIChatStateMachine.sendEvent({
-                            type: AIChatMachineEventType.START_TASK_EXECUTION,
-                        });
                         console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
                     }
                 }
@@ -276,42 +271,29 @@ async function handlePlanApproval(
 
     const plan = createPlan(allTasks);
 
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.PLAN_GENERATED,
-        payload: { plan }
-    });
+    // Store plan in runtime state
+    runtimeStateManager.setCurrentPlan(plan);
 
-    eventHandler({
-        type: "task_approval_request",
-        approvalType: "plan",
-        tasks: allTasks,
-        message: "Please review the implementation plan"
-    });
+    // Use ApprovalManager for plan approval (replaces state machine subscription)
+    const { approvalManager } = await import('../state/ApprovalManager');
+    const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
-    return new Promise((resolve) => {
-        const subscription = AIChatStateMachine.service().subscribe((state) => {
-            if (state.value === 'ApprovedPlan') {
-                console.log("[TaskWrite Tool] Plan approved");
-                subscription.unsubscribe();
-                resolve({ approved: true });
-            } else if (state.value === 'GeneratingPlan') {
-                const comment = state.context.currentApproval?.comment;
-                console.log("[TaskWrite Tool] Plan rejected");
-                subscription.unsubscribe();
-                resolve({ approved: false, comment });
-            }
-        });
-    });
+    const approvalPromise = approvalManager.requestPlanApproval(
+        requestId,
+        allTasks,
+        eventHandler
+    );
+
+    return approvalPromise;
 }
 
 async function handleTaskCompletion(
     allTasks: Task[],
     newlyCompletedTasks: Task[],
-    currentContext: AIChatMachineContext,
     eventHandler: CopilotEventHandler,
     tempProjectPath: string,
     modifiedFiles?: string[]
-): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
+): Promise<{ approved: boolean; comment?: string; approvedTaskDescription?: string }> {
     const lastCompletedTask = newlyCompletedTasks[newlyCompletedTasks.length - 1];
     console.log(`[TaskWrite Tool] Detected ${newlyCompletedTasks.length} newly completed task(s)`);
 
@@ -335,17 +317,10 @@ async function handleTaskCompletion(
         await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
     }
 
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.TASK_COMPLETED,
-    });
-
-    const isAutoApproveEnabled = currentContext.autoApproveEnabled === true;
+    const isAutoApproveEnabled = runtimeStateManager.isAutoApproveEnabled();
 
     if (isAutoApproveEnabled) {
         console.log(`[TaskWrite Tool] Auto-approval enabled`);
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.APPROVE_TASK,
-        });
         return { approved: true, approvedTaskDescription: lastCompletedTask.description };
     }
 
@@ -357,7 +332,7 @@ async function handleManualTaskApproval(
     newlyCompletedTasks: Task[],
     lastCompletedTask: Task,
     eventHandler: CopilotEventHandler
-): Promise<{ approved: boolean; comment?: string; approvedTaskDescription: string }> {
+): Promise<{ approved: boolean; comment?: string; approvedTaskDescription?: string }> {
     console.log(`[TaskWrite Tool] Manual approval mode`);
 
     const tasksForUI = allTasks.map(task => {
@@ -365,28 +340,19 @@ async function handleManualTaskApproval(
         return isNewlyCompleted ? { ...task, status: TaskStatus.REVIEW } : { ...task };
     });
 
-    eventHandler({
-        type: "task_approval_request",
-        approvalType: "completion",
-        tasks: tasksForUI,
-        taskDescription: lastCompletedTask.description,
-        message: `Please verify the completed work for: ${lastCompletedTask.description}`,
-    });
+    // Use ApprovalManager for task approval (replaces state machine subscription)
+    // requestTaskApproval will emit the task_approval_request event with requestId
+    const { approvalManager } = await import('../state/ApprovalManager');
+    const requestId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
-    return new Promise((resolve) => {
-        const subscription = AIChatStateMachine.service().subscribe((state) => {
-            if (state.value === "ApprovedTask") {
-                console.log(`[TaskWrite Tool] Task approved`);
-                subscription.unsubscribe();
-                resolve({ approved: true, approvedTaskDescription: lastCompletedTask.description });
-            } else if (state.value === "RejectedTask") {
-                const comment = state.context.currentApproval?.comment;
-                console.log("[TaskWrite Tool] Task rejected");
-                subscription.unsubscribe();
-                resolve({ approved: false, comment, approvedTaskDescription: lastCompletedTask.description });
-            }
-        });
-    });
+    const approvalPromise = approvalManager.requestTaskApproval(
+        requestId,
+        lastCompletedTask.description,
+        tasksForUI,
+        eventHandler
+    );
+
+    return approvalPromise;
 }
 
 function generateResultMessage(

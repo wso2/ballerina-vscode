@@ -27,11 +27,13 @@ import {
     BIIntelSecrets,
     BIModuleNodesRequest,
     BISourceCodeResponse,
+    Command,
     DeleteFromProjectRequest,
     DeveloperDocument,
     DiagnosticEntry,
     Diagnostics,
     DocGenerationRequest,
+    ExecutionContext,
     FetchDataRequest,
     FetchDataResponse,
     GenerateAgentCodeRequest,
@@ -52,12 +54,15 @@ import {
     RelevantLibrariesAndFunctionsResponse,
     RepairParams,
     RequirementSpecification,
+    RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
+    SetAutoApproveRequest,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest
+    TestPlanGenerationRequest,
+    UpdateChatMessageRequest,
 } from "@wso2/ballerina-core";
 import * as crypto from 'crypto';
 import * as fs from 'fs';
@@ -65,21 +70,20 @@ import * as os from 'os';
 import path from "path";
 import { workspace } from 'vscode';
 
-import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
 import { isNumber } from "lodash";
 import { ExtendedLangClient } from "src/core";
-import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
-import { getPendingReviewContext, clearPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
+import { clearPendingReviewContext, getPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
-import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
+import { runtimeStateManager } from '../../features/ai/state/RuntimeStateManager';
 import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
+import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
 import { GenerationType } from "../../features/ai/utils/libs/libraries";
 import { Library } from "../../features/ai/utils/libs/library-types";
@@ -638,36 +642,141 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'function',
-                params: params,
-                userMessage: `Generate mapping code for function: ${params.parameters.functionName}`
+        try {
+            // Import executor
+            const { FunctionMappingExecutor } = await import('../../features/ai/executors/datamapper/FunctionMappingExecutor');
+            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
+
+            // Create execution context from current state machine context
+            const stateMachineContext = StateMachine.context();
+            const executionContext: ExecutionContext = {
+                projectPath: stateMachineContext.projectPath,
+                workspacePath: stateMachineContext.workspacePath
+            };
+
+            // Create event handler
+            const eventHandler = createWebviewEventHandler(Command.DataMap);
+
+            // Generate unique message ID
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+            // Create abort controller
+            const abortController = new AbortController();
+
+            // Create executor config
+            const config = {
+                executionContext,
+                eventHandler,
+                messageId,
+                abortController
+            };
+
+            // Instantiate and execute
+            const executor = new FunctionMappingExecutor(config, params);
+
+            // Execute with lifecycle management
+            try {
+                await executor.initialize();
+                await executor.execute();
+            } finally {
+                await executor.cleanup();
             }
-        });
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateMappingCode:', error);
+            throw error;
+        }
     }
 
     async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'inline',
-                params: params,
-                userMessage: 'Generate inline mapping code'
+        try {
+            // Import executor
+            const { InlineMappingExecutor } = await import('../../features/ai/executors/datamapper/InlineMappingExecutor');
+            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
+
+            // Create execution context from current state machine context
+            const stateMachineContext = StateMachine.context();
+            const executionContext: ExecutionContext = {
+                projectPath: stateMachineContext.projectPath,
+                workspacePath: stateMachineContext.workspacePath
+            };
+
+            // Create event handler
+            const eventHandler = createWebviewEventHandler(Command.DataMap);
+
+            // Generate unique message ID
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+            // Create abort controller
+            const abortController = new AbortController();
+
+            // Create executor config
+            const config = {
+                executionContext,
+                eventHandler,
+                messageId,
+                abortController
+            };
+
+            // Instantiate and execute
+            const executor = new InlineMappingExecutor(config, params);
+
+            // Execute with lifecycle management
+            try {
+                await executor.initialize();
+                await executor.execute();
+            } finally {
+                await executor.cleanup();
             }
-        });
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
+            throw error;
+        }
     }
 
     async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'contextTypes',
-                params: params,
-                userMessage: 'Generate context types'
+        try {
+            // Import executor
+            const { ContextTypesExecutor } = await import('../../features/ai/executors/datamapper/ContextTypesExecutor');
+            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
+
+            // Create execution context from current state machine context
+            const stateMachineContext = StateMachine.context();
+            const executionContext: ExecutionContext = {
+                projectPath: stateMachineContext.projectPath,
+                workspacePath: stateMachineContext.workspacePath
+            };
+
+            // Create event handler
+            const eventHandler = createWebviewEventHandler(Command.TypeCreator);
+
+            // Generate unique message ID
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+            // Create abort controller
+            const abortController = new AbortController();
+
+            // Create executor config
+            const config = {
+                executionContext,
+                eventHandler,
+                messageId,
+                abortController
+            };
+
+            // Instantiate and execute
+            const executor = new ContextTypesExecutor(config, params);
+
+            // Execute with lifecycle management
+            try {
+                await executor.initialize();
+                await executor.execute();
+            } finally {
+                await executor.cleanup();
             }
-        });
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateContextTypes:', error);
+            throw error;
+        }
     }
 
     async openChatWindowWithCommand(): Promise<void> {
@@ -684,15 +793,50 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: {
-                prompt: params.usecase,
-                isPlanMode: params.isPlanMode ?? true,
-                codeContext: params.codeContext
+        try {
+            // Import executor
+            const { AgentExecutor } = await import('../../features/ai/executors/agent/AgentExecutor');
+            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
+
+            // Create execution context from current state machine context
+            const stateMachineContext = StateMachine.context();
+            const executionContext: ExecutionContext = {
+                projectPath: stateMachineContext.projectPath,
+                workspacePath: stateMachineContext.workspacePath
+            };
+
+            // Create event handler
+            const eventHandler = createWebviewEventHandler(Command.Agent);
+
+            // Generate unique message ID
+            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
+            // Create abort controller
+            const abortController = new AbortController();
+
+            // Create executor config
+            const config = {
+                executionContext,
+                eventHandler,
+                messageId,
+                abortController
+            };
+
+            // Instantiate and execute
+            const executor = new AgentExecutor(config, params);
+
+            // Execute with lifecycle management
+            try {
+                await executor.initialize();
+                await executor.execute();
+                return true;
+            } finally {
+                await executor.cleanup();
             }
-        });
-        return true;
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateAgent:', error);
+            throw error;
+        }
     }
 
     async openAIPanel(params: AIPanelPrompt): Promise<void> {
@@ -746,11 +890,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             
             clearPendingReviewContext();
-            
-            // Hide review actions component
-            AIChatStateMachine.sendEvent({
-                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
-            });
+
+            // Update runtime state
+            runtimeStateManager.setShowReviewActions(false);
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -778,11 +920,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
             
             clearPendingReviewContext();
-            
-            // Hide review actions component
-            AIChatStateMachine.sendEvent({
-                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
-            });
+
+            // Update runtime state
+            runtimeStateManager.setShowReviewActions(false);
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
@@ -790,15 +930,89 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showReviewActions(): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
-        });
+        runtimeStateManager.setShowReviewActions(true);
     }
 
     async hideReviewActions(): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
-        });
+        runtimeStateManager.setShowReviewActions(false);
+    }
+
+    async approvePlan(params: { requestId: string; comment?: string }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolvePlanApproval(params.requestId, true, params.comment);
+    }
+
+    async declinePlan(params: { requestId: string; comment?: string }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolvePlanApproval(params.requestId, false, params.comment);
+    }
+
+    async approveTask(params: { requestId: string; approvedTaskDescription?: string }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolveTaskApproval(params.requestId, true, undefined, params.approvedTaskDescription);
+    }
+
+    async declineTask(params: { requestId: string; comment?: string }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolveTaskApproval(params.requestId, false, params.comment);
+    }
+
+    async provideConnectorSpec(params: { requestId: string; spec: any }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolveConnectorSpec(params.requestId, true, params.spec);
+    }
+
+    async cancelConnectorSpec(params: { requestId: string; comment?: string }): Promise<void> {
+        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
+        approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
+    }
+
+    async setAutoApprove(params: SetAutoApproveRequest): Promise<void> {
+        runtimeStateManager.setAutoApproveEnabled(params.enabled);
+    }
+
+    async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
+        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
+        const projectId = await this.getProjectUuid();
+        const context = chatStateManager.loadState(projectId);
+
+        if (!context) {
+            throw new Error('No chat state found');
+        }
+
+        const checkpoint = context.checkpoints?.find(c => c.id === params.checkpointId);
+        if (!checkpoint) {
+            throw new Error(`Checkpoint ${params.checkpointId} not found`);
+        }
+
+        // Add fileAttachments field for type compatibility
+        const contextWithAttachments = { ...context, fileAttachments: [] };
+        await chatStateManager.restoreContextToCheckpoint(contextWithAttachments as any, params.checkpointId);
+    }
+
+    async clearChat(): Promise<void> {
+        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
+        const projectId = await this.getProjectUuid();
+        chatStateManager.clearState(projectId);
+        runtimeStateManager.clearState();
+    }
+
+    async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
+        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
+        const projectId = await this.getProjectUuid();
+        const context = chatStateManager.loadState(projectId);
+
+        if (!context) {
+            return;
+        }
+
+        const message = context.chatHistory?.find((m: any) => m.id === params.messageId);
+        if (message) {
+            message.content = params.content;
+            // Ensure fileAttachments field exists for type compatibility
+            const contextWithAttachments = { ...context, fileAttachments: [] };
+            chatStateManager.saveState(projectId, contextWithAttachments as any);
+        }
     }
 }
 
