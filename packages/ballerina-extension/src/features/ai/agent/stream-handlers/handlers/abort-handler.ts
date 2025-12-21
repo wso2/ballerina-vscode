@@ -16,8 +16,7 @@
 
 import { StreamEventHandler, StreamAbortException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { Command, AIChatMachineEventType } from "@wso2/ballerina-core";
-import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
+import { Command } from "@wso2/ballerina-core";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
@@ -61,9 +60,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "abort", command: Command.Agent });
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.FINISH_EXECUTION,
-        });
 
         // Throw exception to exit stream loop and return tempProjectPath
         throw new StreamAbortException(context.tempProjectPath);

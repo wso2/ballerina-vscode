@@ -309,6 +309,7 @@ export interface UsageMetricsEvent {
 
 export interface TaskApprovalRequest {
     type: "task_approval_request";
+    requestId: string;
     approvalType: "plan" | "completion";
     tasks: Task[];
     taskDescription?: string;

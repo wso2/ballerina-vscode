@@ -480,6 +480,8 @@ export interface ExecutionContext {
     /** Optional absolute path to workspace root (if multi-package workspace) */
     readonly workspacePath?: string;
 
+    /** Temporary project path (set by AICommandExecutor.initialize()) */
+    tempProjectPath?: string;
 }
 
 export interface SemanticDiffRequest {
@@ -505,4 +507,42 @@ export interface SemanticDiff {
 export interface SemanticDiffResponse {
     loadDesignDiagrams: boolean;
     semanticDiffs: SemanticDiff[];
+}
+
+export interface SetAutoApproveRequest {
+    enabled: boolean;
+}
+
+export interface RestoreCheckpointRequest {
+    checkpointId: string;
+}
+
+export interface UpdateChatMessageRequest {
+    messageId: string;
+    content: string;
+}
+
+export interface PlanApprovalRequest {
+    requestId: string;
+    comment?: string;
+}
+
+export interface ApproveTaskRequest {
+    requestId: string;
+    approvedTaskDescription?: string;
+}
+
+export interface TaskDeclineRequest {
+    requestId: string;
+    comment?: string;
+}
+
+export interface ConnectorSpecRequest {
+    requestId: string;
+    spec: any;
+}
+
+export interface ConnectorSpecCancelRequest {
+    requestId: string;
+    comment?: string;
 }

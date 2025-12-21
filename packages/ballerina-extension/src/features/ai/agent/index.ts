@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType, ExecutionContext} from "@wso2/ballerina-core";
+import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext} from "@wso2/ballerina-core";
 import { ModelMessage, stepCountIs, streamText } from "ai";
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
 import { getErrorMessage, populateHistoryForAgent } from "../utils/ai-utils";
@@ -27,7 +27,6 @@ import { sendAgentDidOpenForProjects } from "../utils/project/ls-schema-notifica
 import { getLibraryProviderTool } from "../tools/library-provider";
 import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
 import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../tools/healthcare-library";
-import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
 import { getTempProject as createTempProjectOfWorkspace } from "../utils/project/temp-project";
 import { getSystemPrompt, getUserPrompt } from "./prompts";
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
@@ -130,11 +129,6 @@ export async function generateAgentCore(
         stopWhen: stepCountIs(50),
         tools,
         abortSignal: AIPanelAbortController.getInstance().signal,
-    });
-
-
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.PLANNING_STARTED
     });
 
     eventHandler({ type: "start" });
