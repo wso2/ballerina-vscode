@@ -36,10 +36,16 @@ import { normalizeCodeContext } from './codeContextUtils';
 
 const cleanupOldCheckpoints = (checkpoints: Checkpoint[]): Checkpoint[] => {
     const config = getCheckpointConfig();
+    console.log(`[Checkpoint] cleanupOldCheckpoints called - current count: ${checkpoints.length}, maxCount: ${config.maxCount}`);
     if (checkpoints.length <= config.maxCount) {
+        console.log(`[Checkpoint] No cleanup needed - keeping all ${checkpoints.length} checkpoints`);
         return checkpoints;
     }
-    return checkpoints.slice(-config.maxCount);
+    const cleaned = checkpoints.slice(-config.maxCount);
+    console.log(`[Checkpoint] Cleaned up checkpoints - removed ${checkpoints.length - config.maxCount}, keeping ${cleaned.length}`);
+    console.log(`[Checkpoint] Removed checkpoint IDs:`, checkpoints.slice(0, checkpoints.length - config.maxCount).map(c => c.id));
+    console.log(`[Checkpoint] Remaining checkpoint IDs:`, cleaned.map(c => c.id));
+    return cleaned;
 };
 
 // Temp project management removed from state machine
@@ -59,13 +65,20 @@ const cleanupAction = (context: AIChatMachineContext): void => {
 const captureCheckpointAction = (context: AIChatMachineContext) => {
     const lastMessage = context.chatHistory[context.chatHistory.length - 1];
     if (!lastMessage) {
+        console.log('[Checkpoint] captureCheckpointAction - no last message, skipping');
         return;
     }
+
+    console.log(`[Checkpoint] captureCheckpointAction - capturing for message ${lastMessage.id}`);
+    console.log(`[Checkpoint] Current checkpoints before capture:`, context.checkpoints?.map(c => c.id) || []);
 
     captureWorkspaceSnapshot(lastMessage.id).then(checkpoint => {
         if (checkpoint) {
             lastMessage.checkpointId = checkpoint.id;
+            console.log(`[Checkpoint] Captured checkpoint ${checkpoint.id} for message ${lastMessage.id}`);
+            console.log(`[Checkpoint] Checkpoints before cleanup:`, [...(context.checkpoints || []), checkpoint].map(c => c.id));
             const updatedCheckpoints = cleanupOldCheckpoints([...(context.checkpoints || []), checkpoint]);
+            console.log(`[Checkpoint] Checkpoints after cleanup:`, updatedCheckpoints.map(c => c.id));
             context.checkpoints = updatedCheckpoints;
             saveChatState(context);
 
@@ -153,7 +166,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     operationType: (_ctx, event) => event.payload.operationType,
                     fileAttachments: (_ctx, event) => event.payload.fileAttachments ?? [],
                 }),
-                "captureCheckpoint",
+                // Note: captureCheckpoint is called in GeneratingPlan entry, not here to avoid duplicate
             ],
         },
         [AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST]: {
@@ -172,7 +185,7 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         params: event.payload.params
                     }),
                 }),
-                "captureCheckpoint",
+                // Note: captureCheckpoint is called in ExecutingDatamapper entry, not here to avoid duplicate
             ],
         },
         [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
