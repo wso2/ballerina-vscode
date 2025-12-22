@@ -157,8 +157,6 @@ export async function generateAgentCore(
 
     try {
         for await (const part of fullStream) {
-            // Let registry handle all events
-            // Message history is tracked automatically by SDK in response.messages
             await registry.handleEvent(part, streamContext);
         }
     } catch (e) {
