@@ -108,8 +108,6 @@ import {
     VisibleVariableTypes,
     ConfigVariableResponse,
     ConfigVariableRequest,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     ProjectDiagnosticsRequest,
     ProjectDiagnosticsResponse,
     MainFunctionParamsRequest,
@@ -388,8 +386,6 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
-    VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
-    UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
     UPDATE_CONFIG_VARIABLES_V2 = 'configEditorV2/updateConfigVariable',
     DELETE_CONFIG_VARIABLE_V2 = 'configEditorV2/deleteConfigVariable',
@@ -1127,14 +1123,6 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async generateServiceFromOAS(params: ServiceFromOASRequest): Promise<ServiceFromOASResponse> {
         return this.sendRequest<ServiceFromOASResponse>(EXTENDED_APIS.BI_GEN_OPEN_API, params);
-    }
-
-    async getConfigVariables(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
-        return this.sendRequest<ConfigVariableResponse>(EXTENDED_APIS.VIEW_CONFIG_VARIABLES, params);
-    }
-
-    async updateConfigVariables(params: UpdateConfigVariableRequest): Promise<UpdateConfigVariableResponse> {
-        return this.sendRequest<UpdateConfigVariableResponse>(EXTENDED_APIS.UPDATE_CONFIG_VARIABLES, params);
     }
 
     async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
