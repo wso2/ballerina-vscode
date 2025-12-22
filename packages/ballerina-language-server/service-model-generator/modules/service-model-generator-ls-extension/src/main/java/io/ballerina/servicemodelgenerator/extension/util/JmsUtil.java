@@ -683,10 +683,16 @@ public final class JmsUtil {
                 .selected(true)
                 .build();
 
+        PropertyType expressionType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.EXPRESSION)
+                .ballerinaType(typeConstraint)
+                .selected(false)
+                .build();
+
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
-                .types(List.of(propertyType))
+                .types(List.of(propertyType, expressionType))
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .enabled(true)
                 .editable(true)
