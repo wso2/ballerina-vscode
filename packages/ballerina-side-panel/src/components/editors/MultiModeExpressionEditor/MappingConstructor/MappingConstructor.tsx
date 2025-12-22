@@ -35,6 +35,11 @@ interface KeyValuePair {
     value: string;
 }
 
+/**
+ * Extracts key-value pairs from a map string representation.
+ * @param mapString - The string representation of the map, e.g., '{ key1: "value1", key2: "value2" }'.
+ * @returns An array of strings, each representing a key-value pair in the format 'key: "value"'.
+ */
 function extractMapEntries(mapString) {
     if (!mapString) {
         return [];
@@ -58,6 +63,14 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
     const [pairs, setPairs] = useState<KeyValuePair[]>([]);
     const [isAddMoreValid, setIsAddMoreValid] = useState(false);
 
+    const createFinalValue = (pairs: KeyValuePair[]) => {
+        const mapString = pairs
+            .filter(pair => pair.key.trim() !== "")
+            .map(pair => `${pair.key}: ${pair.value}`)
+            .join(', ');
+        return `{ ${mapString} }`;
+    }
+
     useEffect(() => {
         if (value !== createFinalValue(pairs)) {
             const entries: string[] = extractMapEntries(value);
@@ -71,7 +84,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
 
     useEffect(() => {
         const lastPair = pairs[pairs.length - 1];
-        const isValid = lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== ""
+        const isValid = pairs.length === 0 || (lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== "");
         setIsAddMoreValid(isValid);
     }, [JSON.stringify(pairs)]);
 
@@ -89,6 +102,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
     const handleKeyChange = (index: number, newKey: string) => {
         const updatedPairs = [...pairs];
         updatedPairs[index].key = newKey;
+        setPairs(updatedPairs)
         onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
     }
 
@@ -97,14 +111,6 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         updatedPairs[index].value = newValue;
         setPairs(updatedPairs);
         onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
-    }
-
-    const createFinalValue = (pairs: KeyValuePair[]) => {
-        const mapString = pairs
-            .filter(pair => pair.key.trim() !== "")
-            .map(pair => `${pair.key}: ${pair.value}`)
-            .join(', ');
-        return `{ ${mapString} }`;
     }
 
 
@@ -116,12 +122,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                     padding: "8px",
                     borderRadius: "8px",
                 }} key={index}>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px',
-                        flex: 1
-                    }}>
+                    <S.KeyValueContainer>
                         <S.Input
                             type="text"
                             value={pair.key}
@@ -145,7 +146,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                             isInExpandedMode={expressionFieldProps.isInExpandedMode}
                             configuration={new ChipExpressionEditorDefaultConfiguration()}
                         />
-                    </div>
+                    </S.KeyValueContainer>
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => handleDeletePair(index)}
