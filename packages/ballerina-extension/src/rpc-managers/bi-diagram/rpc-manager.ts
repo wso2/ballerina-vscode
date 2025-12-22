@@ -1539,7 +1539,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         if (!filePath && StateMachine.context()?.projectPath){
             const projectPath = StateMachine.context().projectPath;
             const ballerinaFiles = await getBallerinaFiles(Uri.file(projectPath).fsPath);
-            filePath = ballerinaFiles.at(0)
+            filePath = ballerinaFiles.at(0);
         }
 
         if (!filePath) {

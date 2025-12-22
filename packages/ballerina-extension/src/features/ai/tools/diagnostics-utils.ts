@@ -89,8 +89,6 @@ export async function checkCompilationErrors(
     tempProjectPath: string
 ): Promise<DiagnosticsCheckResult> {
     try {
-        console.log(`[DiagnosticsUtils] Checking Ballerina package for compilation errors`);
-
         // Get language client from state machine
         const langClient = StateMachine.langClient();
 
@@ -108,14 +106,17 @@ export async function checkCompilationErrors(
         const enrichedDiagnostics = transformDiagnosticsToEnriched(diagnostics);
 
         const errorCount = enrichedDiagnostics.length;
+        console.log(`[DiagnosticsUtils] Found ${errorCount} compilation error(s).`);
 
         if (errorCount === 0) {
+            console.log(`[DiagnosticsUtils] No compilation errors found.`);
             return {
                 diagnostics: [],
                 message: "No compilation errors found. Code compiles successfully.",
             };
         }
 
+        console.log(`[DiagnosticsUtils] Enriched Diagnostics:`, enrichedDiagnostics);
         return {
             diagnostics: enrichedDiagnostics,
             message: `Found ${errorCount} compilation error(s). Review and fix the errors before proceeding.`
