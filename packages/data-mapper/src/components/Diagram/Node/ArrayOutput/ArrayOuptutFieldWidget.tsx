@@ -40,6 +40,7 @@ import FieldActionWrapper from "../commons/FieldActionWrapper";
 import { addValue, removeMapping } from "../../utils/modification-utils";
 import { PrimitiveOutputElementWidget } from "../PrimitiveOutput/PrimitiveOutputElementWidget";
 import { OutputFieldPreviewWidget } from "./OutputFieldPreviewWidget";
+import { DataMapperLinkModel } from "../../Link";
 
 export interface ArrayOutputFieldWidgetProps {
     parentId: string;
@@ -111,9 +112,12 @@ export function ArrayOutputFieldWidget(props: ArrayOutputFieldWidgetProps) {
             portIn.setDescendantHasValue();
             isDisabled = true;
         }
-        if (portIn.attributes.parentModel && (
-            Object.entries(portIn.attributes.parentModel.links).length > 0
-                || portIn.attributes.parentModel.attributes.ancestorHasValue)
+        if (portIn?.attributes.parentModel && (
+            Object.values(portIn?.attributes.parentModel.links)
+                .filter((link) =>
+                    !((link as DataMapperLinkModel).isDashLink || (link as DataMapperLinkModel).pendingMappingType)
+                ).length > 0 ||
+            portIn?.attributes.parentModel.attributes.ancestorHasValue)
         ) {
             portIn.attributes.ancestorHasValue = true;
             isDisabled = true;
