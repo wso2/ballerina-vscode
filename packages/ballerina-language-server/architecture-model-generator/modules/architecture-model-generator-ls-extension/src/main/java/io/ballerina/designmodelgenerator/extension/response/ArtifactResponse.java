@@ -30,6 +30,8 @@ import java.util.Map;
 public class ArtifactResponse extends AbstractResponse {
 
     private String uri;
+    private String projectName;
+    private String moduleName;
     private Map<String, Map<String, Artifact>> artifacts;
 
     public Map<String, Map<String, Artifact>> getArtifacts() {
@@ -46,5 +48,20 @@ public class ArtifactResponse extends AbstractResponse {
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setProjectAndModuleName(String projectName, String moduleName) {
+        this.projectName = projectName;
+        if (projectName == null || !projectName.equals(moduleName)) {
+            this.moduleName = moduleName;
+        }
     }
 }

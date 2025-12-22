@@ -23,6 +23,7 @@ import io.ballerina.artifactsgenerator.ArtifactsGenerator;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.designmodelgenerator.extension.response.ArtifactsParams;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
 import org.ballerinalang.annotation.JavaSPIService;
 import org.ballerinalang.langserver.commons.DocumentServiceContext;
@@ -83,6 +84,8 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
             ArtifactGenerationDebouncer.getInstance().debounceProject(projectKey, () -> {
                 ArtifactsParams artifactsParams = new ArtifactsParams();
                 artifactsParams.setUri(projectKey);
+                artifactsParams.setProjectAndModuleName(project.currentPackage().packageName().value(),
+                        project.currentPackage().getDefaultModule().moduleName().moduleNamePart());
                 artifactsParams.setArtifacts(ArtifactsGenerator.projectArtifactChanges(project));
                 client.publishArtifacts(artifactsParams);
             });
@@ -96,10 +99,15 @@ public class PublishArtifactsSubscriber implements EventSubscriber {
             return;
         }
 
+        Optional<Module> currentModule = context.currentModule();
+        String projectName = currentModule.map(m -> m.packageInstance().packageName().value()).orElse(null);
+        String moduleName = currentModule.map(m -> m.moduleName().moduleNamePart()).orElse(null);
+
         // Use the debouncer to schedule the artifact generation
         ArtifactGenerationDebouncer.getInstance().debounceFile(context.fileUri(), projectKey, () -> {
             ArtifactsParams artifactsParams = new ArtifactsParams();
             artifactsParams.setUri(projectKey);
+            artifactsParams.setProjectAndModuleName(projectName, moduleName);
             artifactsParams.setArtifacts(
                     ArtifactsGenerator.artifactChanges(projectPath.toString(), syntaxTree.get(),
                             semanticModel.get()));

@@ -89,6 +89,10 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
                 Project project = workspaceManager.loadProject(projectPath);
                 response.setArtifacts(ArtifactsGenerator.artifacts(project));
                 response.setUri(request.projectPath());
+                String projectName = project.currentPackage().packageName().value();
+                String moduleName = workspaceManager.module(projectPath)
+                        .map(module -> module.moduleName().moduleNamePart()).orElse(null);
+                response.setProjectAndModuleName(projectName, moduleName);
             } catch (Throwable e) {
                 response.setError(e);
             }
