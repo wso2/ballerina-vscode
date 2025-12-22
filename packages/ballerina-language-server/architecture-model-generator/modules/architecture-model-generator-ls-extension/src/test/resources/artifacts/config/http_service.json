@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "http_service.bal",
+  "packageName": ".",
   "output": {
     "Connections": {
       "httpClient": {

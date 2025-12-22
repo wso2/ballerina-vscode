@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "rabbitmq.bal",
+  "packageName": ".",
   "output": {
     "Listeners": {
       "rabbitmqListener": {

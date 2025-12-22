@@ -1,0 +1,27 @@
+{
+  "description": "",
+  "source": "persist_proj/main.bal",
+  "packageName": "persist_project",
+  "output": {
+    "Entry Points": {
+      "automation": {
+        "id": "automation",
+        "location": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 2,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 1
+          }
+        },
+        "type": "AUTOMATION",
+        "name": "automation",
+        "scope": "Global",
+        "children": {}
+      }
+    }
+  }
+}

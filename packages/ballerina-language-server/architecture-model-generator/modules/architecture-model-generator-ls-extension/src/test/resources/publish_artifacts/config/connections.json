@@ -1,6 +1,7 @@
 {
   "source": "new/connections.bal",
   "description": "",
+  "packageName": "proj329",
   "output": {
     "Connections": {
       "updates": {

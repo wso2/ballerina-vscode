@@ -49,6 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -202,14 +203,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         }
 
         // Assert the published artifacts
-        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
-        if (!publishedArtifacts.equals(expectedArtifacts)) {
-            TestConfig updatedConfig =
-                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-//            updateConfig(configJsonPath, updatedConfig);
-            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
-        }
+        assertArtifacts(artifactsParams, testConfig, configJsonPath);
     }
 
     @Override
@@ -267,21 +261,10 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         Assert.assertEquals(artifactsParams.uri(), projectKey);
 
         // Verify delta changes contain only additions (no pre-existing artifacts)
-        Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
-        Assert.assertNotNull(publishedArtifacts, "Published artifacts should not be null");
-
         Path resourcesDir = configDir.getParent().resolve("resources");
         Path configJsonPath = resourcesDir.resolve("no_preexisting_project.json");
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
-        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
-
-        if (!publishedArtifacts.equals(expectedArtifacts)) {
-            TestConfig updatedConfig =
-                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-//             updateConfig(configJsonPath, updatedConfig);
-            compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
-            Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
-        }
+        assertArtifacts(artifactsParams, testConfig, configJsonPath);
     }
 
     @Test
@@ -354,9 +337,9 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         int firstArtifactCount = firstArtifacts.artifacts().size();
         int secondArtifactCount = secondArtifacts.artifacts().size();
         Assert.assertTrue((firstArtifactCount == 1 && secondArtifactCount == 3) ||
-                         (firstArtifactCount == 3 && secondArtifactCount == 1),
-                         String.format("Expected artifact counts to be 1 and 3, but got %d and %d",
-                                     firstArtifactCount, secondArtifactCount));
+                        (firstArtifactCount == 3 && secondArtifactCount == 1),
+                String.format("Expected artifact counts to be 1 and 3, but got %d and %d",
+                        firstArtifactCount, secondArtifactCount));
     }
 
     @Test
@@ -415,13 +398,22 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         Path resourcesDir = configDir.getParent().resolve("resources");
         Path configJsonPath = resourcesDir.resolve("existing_project.json");
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
+        assertArtifacts(artifactsParams, testConfig, configJsonPath);
+    }
 
-        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
+    private void assertArtifacts(ArtifactsParams artifactsParams, TestConfig testConfig, Path configJsonPath)
+            throws IOException {
         Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
-        if (!publishedArtifacts.equals(expectedArtifacts)) {
-            TestConfig updatedConfig =
-                    new TestConfig(testConfig.source(), testConfig.description(), publishedArtifacts);
-//             updateConfig(configJsonPath, updatedConfig);
+        Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
+        String packageName = artifactsParams.packageName();
+        String moduleName = artifactsParams.moduleName();
+
+        if (!publishedArtifacts.equals(expectedArtifacts) ||
+                !Objects.equals(packageName, testConfig.packageName()) ||
+                !Objects.equals(moduleName, testConfig.moduleName())) {
+            TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
+                    packageName, moduleName, publishedArtifacts);
+//            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
         }
@@ -456,7 +448,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         }
     }
 
-    private record TestConfig(String source, String description,
+    private record TestConfig(String source, String description, String packageName, String moduleName,
                               Map<String, Map<String, Map<String, Artifact>>> output) {
 
         public String description() {

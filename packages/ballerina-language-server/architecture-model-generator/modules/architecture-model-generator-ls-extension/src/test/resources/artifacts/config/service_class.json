@@ -1,6 +1,7 @@
 {
   "description": "Service class with resource methods test case",
   "source": "service_class.bal",
+  "packageName": ".",
   "output": {
     "Types": {
       "Album": {

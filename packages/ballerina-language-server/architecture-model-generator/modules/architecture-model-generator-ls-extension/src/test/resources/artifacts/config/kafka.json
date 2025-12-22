@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "kafka.bal",
+  "packageName": ".",
   "output": {
     "Types": {
       "Order": {

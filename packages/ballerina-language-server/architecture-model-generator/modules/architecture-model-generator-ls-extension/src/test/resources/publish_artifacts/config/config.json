@@ -1,9 +1,28 @@
 {
   "source": "new/config.bal",
   "description": "",
+  "packageName": "proj329",
   "output": {
     "Configurations": {
       "additions": {
+        "telegramToken": {
+          "id": "telegramToken",
+          "location": {
+            "fileName": "config.bal",
+            "startLine": {
+              "line": 1,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 1,
+              "offset": 38
+            }
+          },
+          "type": "CONFIGURABLE",
+          "name": "telegramToken",
+          "scope": "Global",
+          "children": {}
+        },
         "port": {
           "id": "port",
           "location": {
@@ -37,24 +56,6 @@
           },
           "type": "CONFIGURABLE",
           "name": "telegramChatId",
-          "scope": "Global",
-          "children": {}
-        },
-        "telegramToken": {
-          "id": "telegramToken",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 1,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 1,
-              "offset": 38
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "telegramToken",
           "scope": "Global",
           "children": {}
         }

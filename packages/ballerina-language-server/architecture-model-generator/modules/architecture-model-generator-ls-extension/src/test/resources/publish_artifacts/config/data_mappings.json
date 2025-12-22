@@ -1,6 +1,7 @@
 {
   "source": "new/data_mappings.bal",
   "description": "",
+  "packageName": "proj329",
   "output": {
     "Functions": {
       "deletions": {
