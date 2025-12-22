@@ -33,6 +33,7 @@ import { openView, StateMachine } from "../../stateMachine";
 import { getCurrentProjectRoot } from "../../utils/project-utils";
 import { requiresPackageSelection, selectPackageOrPrompt } from "../../utils/command-utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
+import { TracerMachine } from "../tracing";
 
 // File constants
 const FILE_NAMES = {
@@ -167,6 +168,9 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 
             await openMcpInspector(serviceUrl);
         } else {
+            // AI Agent service - start the tracing server if enabled
+            TracerMachine.startServer();
+
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             selectedService.port = selectedPort;
 
