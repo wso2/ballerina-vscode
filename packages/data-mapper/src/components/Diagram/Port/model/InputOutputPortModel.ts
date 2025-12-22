@@ -20,8 +20,9 @@ import { IOType, Mapping } from "@wso2/ballerina-core";
 
 import { DataMapperLinkModel, MappingType } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
-import { createNewMapping } from "../../utils/modification-utils";
+import { createNewMapping, mapSeqToX, mapWithJoin } from "../../utils/modification-utils";
 import { getMappingType, isPendingMappingRequired } from "../../utils/common-utils";
+import { DataMapperNodeModel } from "../../Node/commons/DataMapperNode";
 
 export interface InputOutputPortModelGenerics {
 	PORT: InputOutputPortModel;
@@ -75,6 +76,14 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				const mappingType = getMappingType(sourcePort, targetPort);
 				if (isPendingMappingRequired(mappingType)) {
 					// Source update behavior is determined by the user when connecting arrays.
+					if (mappingType === MappingType.ArrayJoin) {
+						mapWithJoin(lm);
+					}
+					return;
+				}
+				if (mappingType === MappingType.SeqToArray) {
+					const targetNode = targetPort.getNode() as DataMapperNodeModel;
+					await mapSeqToX(lm, targetNode.context, (expr: string) => `[${expr}]`);
 					return;
 				}
 
@@ -86,7 +95,7 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 	}
 
 	addLink(link: LinkModel<LinkModelGenerics>): void {
-		if (this.attributes.portType === 'IN'){
+		if (this.attributes.portType === 'IN' && (link as DataMapperLinkModel).pendingMappingType){
 			this.attributes.parentModel?.setDescendantHasValue();
 		}
 		super.addLink(link);

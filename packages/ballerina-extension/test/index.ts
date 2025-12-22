@@ -48,7 +48,10 @@ function _readCoverOptions(testsRoot: string): ITestRunnerOptions | undefined {
     }
 }
 
-function run(testsRoot: string, clb: any): any {
+function run(testsRoot: string, clb: any): void {
+    console.log("🔍 [TEST RUNNER] run() function called");
+    console.log("🔍 [TEST RUNNER] testsRoot:", testsRoot);
+
     // Enable source map support
     require("source-map-support").install();
 
@@ -60,16 +63,22 @@ function run(testsRoot: string, clb: any): any {
         coverageRunner.setupCoverage();
     }
 
-    // Glob test files
-    glob("**/**.test.js", { cwd: testsRoot }, (error, files): any => {
-        if (error) {
-            return clb(error);
-        }
+    console.log("🔍 [TEST RUNNER] Starting glob for test files...");
+
+    // Wrap async glob call to work with callback interface
+    (async () => {
         try {
+            // Glob test files - using promise-based API (glob v11+)
+            const files = await glob.glob("**/**.test.js", { cwd: testsRoot });
+
+            console.log("🔍 [TEST RUNNER] Glob completed");
+            console.log("🔍 [TEST RUNNER] Files found:", files?.length, files);
+
             // Fill into Mocha
             files.forEach((f): Mocha => {
                 return mocha.addFile(paths.join(testsRoot, f));
             });
+
             // Run the tests
             let failureCount = 0;
 
@@ -81,9 +90,10 @@ function run(testsRoot: string, clb: any): any {
                     clb(undefined, failureCount);
                 });
         } catch (error) {
+            console.log("🔍 [TEST RUNNER] Error occurred:", error);
             return clb(error);
         }
-    });
+    })();
 }
 exports.run = run;
 

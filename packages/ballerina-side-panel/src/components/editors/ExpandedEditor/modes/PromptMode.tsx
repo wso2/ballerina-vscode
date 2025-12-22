@@ -16,170 +16,146 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ThemeColors } from "@wso2/ui-toolkit";
-import { EditorModeWithPreviewProps } from "./types";
-import { MarkdownToolbar } from "../controls/MarkdownToolbar";
-import { MarkdownPreview } from "../controls/MarkdownPreview";
+import { EditorView as CodeMirrorView } from "@codemirror/view";
+import { EditorView as ProseMirrorView } from "prosemirror-view";
+import { EditorModeExpressionProps } from "./types";
+import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
+import { RichTextTemplateEditor } from "../../MultiModeExpressionEditor/RichTextTemplateEditor/RichTextTemplateEditor";
+import { RichTemplateMarkdownToolbar } from "../controls/RichTemplateMarkdownToolbar";
+import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolbar";
+import { ErrorBanner } from "@wso2/ui-toolkit";
+import { RawTemplateEditorConfig, StringTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
+import { getPrimaryInputType } from "@wso2/ballerina-core";
 
-const TextArea = styled.textarea`
+const ExpressionContainer = styled.div`
     width: 100%;
-    height: 100%;
-    padding: 12px !important;
-    fontSize: 13px;
-    font-family: var(--vscode-editor-font-family);
-    background: var(--input-background);
-    color: ${ThemeColors.ON_SURFACE};
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 0 0 4px 4px;
-    border-top: none;
-    resize: none;
-    outline: none;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
     box-sizing: border-box;
+    overflow: hidden;
 `;
 
-const TEXTAREA_ID = "prompt-textarea";
+const SIMPLE_PROMPT_FIELDS = ["query", "instructions", "role"];
 
-/**
- * Prompt mode editor - textarea with markdown toolbar and preview support
- */
-export const PromptMode: React.FC<EditorModeWithPreviewProps> = ({
+export const PromptMode: React.FC<EditorModeExpressionProps> = ({
     value,
     onChange,
-    isPreviewMode,
-    onTogglePreview,
-    field
+    field,
+    completions = [],
+    fileName,
+    targetLineRange,
+    sanitizedExpression,
+    extractArgsFromFunction,
+    getHelperPane,
+    rawExpression,
+    error,
+    formDiagnostics,
+    inputMode
 }) => {
-    /**
-     * Handles Enter key to automatically continue lists (similar to GitHub comments)
-     */
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.metaKey || e.altKey) {
-            return;
-        }
+    // Detect if this is a simple prompt field (text-only, no advanced features)
+    const isSimpleMode = SIMPLE_PROMPT_FIELDS.includes(field.key) && !getHelperPane;
 
-        const textarea = e.currentTarget;
-        const cursorPosition = textarea.selectionStart;
-        const textBeforeCursor = value.substring(0, cursorPosition);
-        const textAfterCursor = value.substring(cursorPosition);
+    const [isSourceView, setIsSourceView] = useState<boolean>(false);
+    const [codeMirrorView, setCodeMirrorView] = useState<CodeMirrorView | null>(null);
+    const [proseMirrorView, setProseMirrorView] = useState<ProseMirrorView | null>(null);
+    const [helperPaneToggle, setHelperPaneToggle] = useState<{
+        ref: React.RefObject<HTMLButtonElement>;
+        isOpen: boolean;
+        onClick: () => void;
+    } | null>(null);
+    const richToolbarRef = useRef<HTMLDivElement>(null);
+    const rawToolbarRef = useRef<HTMLDivElement>(null);
 
-        // Find the start of the current line
-        const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
-        const currentLine = textBeforeCursor.substring(lastNewlineIndex + 1);
-
-        // Check for unordered list (- or *)
-        const unorderedMatch = currentLine.match(/^(\s*)([-*])\s+(.*)$/);
-        if (unorderedMatch) {
-            const [, indent, marker, content] = unorderedMatch;
-
-            // If the list item is empty (just the marker), remove it and exit list mode
-            if (!content.trim()) {
-                e.preventDefault();
-                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue, cursorPosition);
-                // Set cursor position after both newlines
-                queueMicrotask(() => {
-                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                });
-                return;
-            }
-
-            // Continue the list
-            e.preventDefault();
-            const newValue = textBeforeCursor + '\n' + indent + marker + ' ' + textAfterCursor;
-            onChange(newValue, cursorPosition);
-            // Set cursor position after the list marker
-            queueMicrotask(() => {
-                const newCursorPos = cursorPosition + indent.length + marker.length + 2;
-                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            });
-            return;
-        }
-
-        // Check for ordered list (1., 2., etc.)
-        const orderedMatch = currentLine.match(/^(\s*)(\d+)\.\s+(.*)$/);
-        if (orderedMatch) {
-            const [, indent, number, content] = orderedMatch;
-
-            // If the list item is empty (just the number), remove it and exit list mode
-            if (!content.trim()) {
-                e.preventDefault();
-                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue, cursorPosition);
-                // Set cursor position after both newlines
-                queueMicrotask(() => {
-                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                });
-                return;
-            }
-
-            // Continue the list with incremented number
-            e.preventDefault();
-            const nextNumber = parseInt(number, 10) + 1;
-            const newValue = textBeforeCursor + '\n' + indent + nextNumber + '. ' + textAfterCursor;
-            onChange(newValue, cursorPosition);
-            // Set cursor position after the list marker
-            queueMicrotask(() => {
-                const newCursorPos = cursorPosition + indent.length + nextNumber.toString().length + 3;
-                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            });
-            return;
-        }
-
-        // Check for task list (- [ ] or - [x])
-        const taskMatch = currentLine.match(/^(\s*)([-*])\s+\[([ x])\]\s+(.*)$/);
-        if (taskMatch) {
-            const [, indent, marker, , content] = taskMatch;
-
-            // If the task item is empty, remove it and exit list mode
-            if (!content.trim()) {
-                e.preventDefault();
-                const newValue = textBeforeCursor.substring(0, lastNewlineIndex + 1) + '\n' + textAfterCursor;
-                onChange(newValue, cursorPosition);
-                // Set cursor position after both newlines
-                queueMicrotask(() => {
-                    textarea.selectionStart = textarea.selectionEnd = lastNewlineIndex + 2;
-                });
-                return;
-            }
-
-            // Continue the task list with unchecked box
-            e.preventDefault();
-            const newValue = textBeforeCursor + '\n' + indent + marker + ' [ ] ' + textAfterCursor;
-            onChange(newValue, cursorPosition);
-            // Set cursor position after the task marker
-            queueMicrotask(() => {
-                const newCursorPos = cursorPosition + indent.length + marker.length + 6;
-                textarea.selectionStart = textarea.selectionEnd = newCursorPos;
-            });
-            return;
-        }
+    // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
+    const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
+        onChange(updatedValue, updatedCursorPosition);
     };
 
-    const placeholder = field.placeholder && field.placeholder.trim() !== "" && field.placeholder.trim() !== "\"\""
-        ? field.placeholder
-        : "Enter your text here...";
+    const handleHelperPaneStateChange = (state: {
+        isOpen: boolean;
+        ref: React.RefObject<HTMLButtonElement>;
+        toggle: () => void;
+    }) => {
+        setHelperPaneToggle({
+            ref: state.ref,
+            isOpen: state.isOpen,
+            onClick: state.toggle
+        });
+    };
+
+    const handleToggleView = () => {
+        setIsSourceView(!isSourceView);
+    };
 
     return (
         <>
-            <MarkdownToolbar
-                textareaId={TEXTAREA_ID}
-                isPreviewMode={isPreviewMode}
-                onTogglePreview={() => onTogglePreview(!isPreviewMode)}
-            />
-            {isPreviewMode ? (
-                <MarkdownPreview content={value} />
+            {isSourceView ? (
+                <RawTemplateMarkdownToolbar
+                    ref={rawToolbarRef}
+                    editorView={codeMirrorView}
+                    isSourceView={isSourceView}
+                    onToggleView={handleToggleView}
+                    hideHelperPaneToggle={isSimpleMode}
+                    helperPaneToggle={helperPaneToggle || undefined}
+                />
             ) : (
-                <TextArea
-                    id={TEXTAREA_ID}
-                    value={value}
-                    onChange={(e) => onChange(e.target.value, e.target.selectionStart)}
-                    onKeyDown={handleKeyDown}
-                    placeholder={placeholder}
-                    autoFocus
+                <RichTemplateMarkdownToolbar
+                    ref={richToolbarRef}
+                    editorView={proseMirrorView}
+                    isSourceView={isSourceView}
+                    onToggleView={handleToggleView}
+                    hideHelperPaneToggle={isSimpleMode}
+                    helperPaneToggle={helperPaneToggle || undefined}
                 />
             )}
+            {isSourceView ? (
+                <ExpressionContainer>
+                    <ChipExpressionEditorComponent
+                        value={value}
+                        onChange={handleChange}
+                        completions={isSimpleMode ? [] : completions}
+                        sanitizedExpression={sanitizedExpression}
+                        fileName={fileName}
+                        targetLineRange={targetLineRange}
+                        extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
+                        getHelperPane={isSimpleMode ? undefined : getHelperPane}
+                        rawExpression={rawExpression}
+                        isInExpandedMode={true}
+                        isExpandedVersion={true}
+                        showHelperPaneToggle={false}
+                        onHelperPaneStateChange={handleHelperPaneStateChange}
+                        onEditorViewReady={setCodeMirrorView}
+                        toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
+                        enableListContinuation={true}
+                        inputMode={inputMode}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                    />
+                </ExpressionContainer>
+            ) : (
+                <ExpressionContainer>
+                    <RichTextTemplateEditor
+                        value={value}
+                        onChange={handleChange}
+                        completions={isSimpleMode ? [] : completions}
+                        fileName={fileName}
+                        targetLineRange={targetLineRange}
+                        extractArgsFromFunction={isSimpleMode ? undefined : extractArgsFromFunction}
+                        getHelperPane={isSimpleMode ? undefined : getHelperPane}
+                        onEditorViewReady={setProseMirrorView}
+                        onHelperPaneStateChange={handleHelperPaneStateChange}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                    />
+                </ExpressionContainer>
+            )
+            }
+            {error ?
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
+                formDiagnostics && formDiagnostics.length > 0 &&
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+            }
         </>
     );
 };

@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useState, RefObject } from "react";
 import { Flow, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
-import { CompletionItem } from "@wso2/ui-toolkit";
-import { ExpressionProperty, TextEdit } from "@wso2/ballerina-core";
+import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { ExpressionProperty, JoinProjectPathRequest, JoinProjectPathResponse, RecordTypeField, TextEdit, VisualizerLocation } from "@wso2/ballerina-core";
+import { HelperpaneOnChangeOptions, InputMode } from "@wso2/ballerina-side-panel";
 
 type CompletionConditionalProps = {
     completions: CompletionItem[];
@@ -28,7 +29,6 @@ type CompletionConditionalProps = {
         value: string,
         property: ExpressionProperty,
         offset: number,
-        invalidateCache: boolean,
         triggerCharacter?: string
     ) => Promise<void>;
 } | {
@@ -37,11 +37,32 @@ type CompletionConditionalProps = {
     retrieveCompletions?: never;
 }
 
+export type GetHelperPaneFunction = (
+    fieldKey: string,
+    exprRef: RefObject<FormExpressionEditorRef>,
+    anchorRef: RefObject<HTMLDivElement>,
+    defaultValue: string,
+    value: string,
+    onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+    changeHelperPaneState: (isOpen: boolean) => void,
+    helperPaneHeight: HelperPaneHeight,
+    recordTypeField?: RecordTypeField,
+    isAssignIdentifier?: boolean,
+    valueTypeConstraint?: string | string[],
+    inputMode?: InputMode
+) => JSX.Element;
+
 export type ExpressionContextProps = CompletionConditionalProps & {
     onCompletionItemSelect?: (value: string, additionalTextEdits?: TextEdit[]) => Promise<void>;
     onFocus?: () => void | Promise<void>;
     onBlur?: () => void | Promise<void>;
     onCancel?: () => void;
+    getHelperPane?: GetHelperPaneFunction;
+    getExpressionTokens?: (
+        expression: string,
+        filePath: string,
+        position: { line: number; offset: number }
+    ) => Promise<number[]>;
 }
 
 export interface DiagramContextState {
@@ -64,7 +85,7 @@ export interface DiagramContextState {
     removeBreakpoint?: (node: FlowNode) => void;
     onConnectionSelect?: (connectionName: string) => void;
     goToSource: (node: FlowNode) => void;
-    openView: (filePath: string, position: NodePosition) => void;
+    openView: (location: VisualizerLocation) => void;
     draftNode?: {
         override: boolean;
         showSpinner?: boolean;
@@ -93,7 +114,7 @@ export interface DiagramContextState {
     project?: {
         org: string;
         path: string;
-        getProjectPath?:(segments: string | string[]) => Promise<string>;
+        getProjectPath?: (props: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     };
     readOnly?: boolean;
     lockCanvas?: boolean;
@@ -106,22 +127,22 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     flow: { fileName: "", nodes: [], connections: [] },
     componentPanel: {
         visible: false,
-        show: () => {},
-        hide: () => {},
+        show: () => { },
+        hide: () => { },
     },
     showErrorFlow: false,
     expandedErrorHandler: undefined,
-    toggleErrorHandlerExpansion: () => {},
-    onAddNode: () => {},
-    onAddNodePrompt: () => {},
-    onDeleteNode: () => {},
-    onAddComment: () => {},
-    onNodeSelect: () => {},
-    onConnectionSelect: () => {},
-    goToSource: () => {},
-    addBreakpoint: () => {},
-    removeBreakpoint: () => {},
-    openView: () => {},
+    toggleErrorHandlerExpansion: () => { },
+    onAddNode: () => { },
+    onAddNodePrompt: () => { },
+    onDeleteNode: () => { },
+    onAddComment: () => { },
+    onNodeSelect: () => { },
+    onConnectionSelect: () => { },
+    goToSource: () => { },
+    addBreakpoint: () => { },
+    removeBreakpoint: () => { },
+    openView: () => { },
     draftNode: {
         override: true,
         showSpinner: false,
@@ -129,32 +150,32 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     },
     selectedNodeId: undefined,
     agentNode: {
-        onModelSelect: () => {},
-        onAddTool: () => {},
-        onAddMcpServer: () => {},
-        onSelectTool: () => {},
-        onSelectMcpToolkit: () => {},
-        onDeleteTool: () => {},
-        goToTool: () => {},
-        onSelectMemoryManager: () => {},
-        onDeleteMemoryManager: () => {},
+        onModelSelect: () => { },
+        onAddTool: () => { },
+        onAddMcpServer: () => { },
+        onSelectTool: () => { },
+        onSelectMcpToolkit: () => { },
+        onDeleteTool: () => { },
+        goToTool: () => { },
+        onSelectMemoryManager: () => { },
+        onDeleteMemoryManager: () => { },
     },
     aiNodes: {
-        onModelSelect: () => {},
+        onModelSelect: () => { },
     },
     suggestions: {
         fetching: false,
-        onAccept: () => {},
-        onDiscard: () => {},
+        onAccept: () => { },
+        onDiscard: () => { },
     },
     project: {
         org: "",
         path: "",
-        getProjectPath: () => Promise.resolve(""),
+        getProjectPath: () => Promise.resolve({ filePath: "", projectPath: "" }),
     },
     readOnly: false,
     lockCanvas: false,
-    setLockCanvas: (lock: boolean) => {},
+    setLockCanvas: (lock: boolean) => { },
     isUserAuthenticated: false,
     expressionContext: {
         completions: [],
@@ -167,7 +188,7 @@ export const useDiagramContext = () => React.useContext(DiagramContext);
 
 export function DiagramContextProvider(props: { children: React.ReactNode; value: DiagramContextState }) {
     const [lockCanvas, setLockCanvas] = useState(false);
-    
+
     const ctx = {
         ...props.value,
         lockCanvas,

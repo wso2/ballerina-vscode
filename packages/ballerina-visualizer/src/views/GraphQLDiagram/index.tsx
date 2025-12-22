@@ -79,13 +79,14 @@ const Path = styled.span`
 `;
 
 interface GraphQLDiagramProps {
+    projectPath: string;
     filePath: string;
     position: NodePosition;
     serviceIdentifier: string;
 }
 
 export function GraphQLDiagram(props: GraphQLDiagramProps) {
-    const { filePath, position, serviceIdentifier } = props;
+    const { projectPath, filePath, position, serviceIdentifier } = props;
     const { rpcClient } = useRpcContext();
     const queryClient = useQueryClient();
     const [isServiceEditorOpen, setIsServiceEditorOpen] = useState<boolean>(false);
@@ -388,7 +389,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
     return (
         <>
             <View>
-                <TopNavigationBar />
+                <TopNavigationBar projectPath={projectPath} />
                 {!focusedNodeId && (
                     <TitleBar
                         title="GraphQL"

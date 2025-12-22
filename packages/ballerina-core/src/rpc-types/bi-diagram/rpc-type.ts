@@ -30,8 +30,6 @@ import {
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ConfigVariableResponse,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     SignatureHelpRequest,
     SignatureHelpResponse,
     BIGetVisibleVariableTypesRequest,
@@ -97,9 +95,11 @@ import {
     VerifyTypeDeleteResponse,
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
-    ExpressionTokensRequest,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    BIDesignModelRequest,
+    BIFlowModelRequest,
+    ExpressionTokensRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -121,12 +121,14 @@ import {
     BuildMode,
     DevantMetadata,
     GeneratedClientSaveResponse,
-    AddProjectToWorkspaceRequest
+    AddProjectToWorkspaceRequest,
+    DeleteProjectRequest,
+    OpenReadmeRequest
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "bi-diagram";
-export const getFlowModel: RequestType<void, BIFlowModelResponse> = { method: `${_preFix}/getFlowModel` };
+export const getFlowModel: RequestType<BIFlowModelRequest, BIFlowModelResponse> = { method: `${_preFix}/getFlowModel` };
 export const getSourceCode: RequestType<BISourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/getSourceCode` };
 export const deleteFlowNode: RequestType<BISourceCodeRequest, UpdatedArtifactsResponse> = { method: `${_preFix}/deleteFlowNode` };
 export const deleteByComponentInfo: RequestType<BIDeleteByComponentInfoRequest, BIDeleteByComponentInfoResponse> = { method: `${_preFix}/deleteByComponentInfo` };
@@ -141,6 +143,7 @@ export const getEnclosedFunction: RequestType<BIGetEnclosedFunctionRequest, BIGe
 export const getNodeTemplate: RequestType<BINodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getNodeTemplate` };
 export const getAiSuggestions: RequestType<BIAiSuggestionsRequest, BIAiSuggestionsResponse> = { method: `${_preFix}/getAiSuggestions` };
 export const createProject: NotificationType<ProjectRequest> = { method: `${_preFix}/createProject` };
+export const deleteProject: NotificationType<DeleteProjectRequest> = { method: `${_preFix}/deleteProject` };
 export const addProjectToWorkspace: NotificationType<AddProjectToWorkspaceRequest> = { method: `${_preFix}/addProjectToWorkspace` };
 export const getWorkspaces: RequestType<void, WorkspacesResponse> = { method: `${_preFix}/getWorkspaces` };
 export const getProjectStructure: RequestType<void, ProjectStructureResponse> = { method: `${_preFix}/getProjectStructure` };
@@ -149,15 +152,14 @@ export const createComponent: RequestType<ComponentRequest, CreateComponentRespo
 export const handleReadmeContent: RequestType<ReadmeContentRequest, ReadmeContentResponse> = { method: `${_preFix}/handleReadmeContent` };
 export const getVisibleVariableTypes: RequestType<BIGetVisibleVariableTypesRequest, BIGetVisibleVariableTypesResponse> = { method: `${_preFix}/getVisibleVariableTypes` };
 export const getExpressionCompletions: RequestType<ExpressionCompletionsRequest, ExpressionCompletionsResponse> = { method: `${_preFix}/getExpressionCompletions` };
-export const getConfigVariables: RequestType<void, ConfigVariableResponse> = { method: `${_preFix}/getConfigVariables` };
-export const updateConfigVariables: RequestType<UpdateConfigVariableRequest, UpdateConfigVariableResponse> = { method: `${_preFix}/updateConfigVariables` };
+export const getDataMapperCompletions: RequestType<ExpressionCompletionsRequest, ExpressionCompletionsResponse> = { method: `${_preFix}/getDataMapperCompletions` };
 export const getConfigVariablesV2: RequestType<ConfigVariableRequest, ConfigVariableResponse> = { method: `${_preFix}/getConfigVariablesV2` };
 export const updateConfigVariablesV2: RequestType<UpdateConfigVariableRequestV2, UpdateConfigVariableResponseV2> = { method: `${_preFix}/updateConfigVariablesV2` };
 export const deleteConfigVariableV2: RequestType<DeleteConfigVariableRequestV2, DeleteConfigVariableResponseV2> = { method: `${_preFix}/deleteConfigVariableV2` };
 export const getConfigVariableNodeTemplate: RequestType<GetConfigVariableNodeTemplateRequest, BINodeTemplateResponse> = { method: `${_preFix}/getConfigVariableNodeTemplate` };
 export const getModuleNodes: RequestType<void, BIModuleNodesResponse> = { method: `${_preFix}/getModuleNodes` };
-export const getReadmeContent: RequestType<void, ReadmeContentResponse> = { method: `${_preFix}/getReadmeContent` };
-export const openReadme: NotificationType<void> = { method: `${_preFix}/openReadme` };
+export const getReadmeContent: RequestType<ReadmeContentRequest, ReadmeContentResponse> = { method: `${_preFix}/getReadmeContent` };
+export const openReadme: NotificationType<OpenReadmeRequest> = { method: `${_preFix}/openReadme` };
 export const renameIdentifier: NotificationType<RenameIdentifierRequest> = { method: `${_preFix}/renameIdentifier` };
 export const deployProject: RequestType<DeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployProject` };
 export const openAIChat: NotificationType<AIChatRequest> = { method: `${_preFix}/openAIChat` };
@@ -172,7 +174,7 @@ export const getFormDiagnostics: RequestType<FormDiagnosticsRequest, FormDiagnos
 export const getExpressionDiagnostics: RequestType<ExpressionDiagnosticsRequest, ExpressionDiagnosticsResponse> = { method: `${_preFix}/getExpressionDiagnostics` };
 export const formDidOpen: RequestType<FormDidOpenParams, void> = { method: `${_preFix}/formDidOpen` };
 export const formDidClose: RequestType<FormDidCloseParams, void> = { method: `${_preFix}/formDidClose` };
-export const getDesignModel: RequestType<void, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
+export const getDesignModel: RequestType<BIDesignModelRequest, BIDesignModelResponse> = { method: `${_preFix}/getDesignModel` };
 export const getTypes: RequestType<GetTypesRequest, GetTypesResponse> = { method: `${_preFix}/getTypes` };
 export const getType: RequestType<GetTypeRequest, GetTypeResponse> = { method: `${_preFix}/getType` };
 export const updateType: RequestType<UpdateTypeRequest, UpdateTypeResponse> = { method: `${_preFix}/updateType` };

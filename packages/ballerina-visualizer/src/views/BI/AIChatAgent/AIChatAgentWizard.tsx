@@ -89,7 +89,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
     const designModelRef = useRef<CDModel>(null);
 
     const init = async () => {
-        const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel();
+        const designModelResponse = await rpcClient.getBIDiagramRpcClient().getDesignModel({});
         designModelRef.current = designModelResponse.designModel;
     }
 
@@ -299,7 +299,7 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
     return (
         <View>
-            <TopNavigationBar />
+            <TopNavigationBar projectPath={projectPath.current} />
             <TitleBar
                 title="AI Chat Agent"
                 subtitle="Create a chattable AI agent using an LLM, prompts and tools."

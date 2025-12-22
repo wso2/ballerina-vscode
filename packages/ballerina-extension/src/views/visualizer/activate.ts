@@ -17,22 +17,37 @@
  */
 
 import * as vscode from 'vscode';
-import { PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
+import { MESSAGES, PALETTE_COMMANDS } from '../../features/project/cmds/cmd-runner';
 import { StateMachine, openView } from '../../stateMachine';
 import { extension } from '../../BalExtensionContext';
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, SHARED_COMMANDS } from '@wso2/ballerina-core';
-import { buildProjectArtifactsStructure } from '../../utils/project-artifacts';
-import { findBallerinaPackageRoot } from '../../utils';
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, NodePosition, ProjectInfo, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { buildProjectsStructure } from '../../utils/project-artifacts';
+import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from '../../utils';
+import { VisualizerWebview } from './webview';
+import { findWorkspaceTypeFromWorkspaceFolders } from '../../rpc-managers/common/utils';
+import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
+import { requiresPackageSelection, needsProjectDiscovery, selectPackageOrPrompt } from '../../utils/command-utils';
 
 export function activateSubscriptions() {
     const context = extension.context;
     context.subscriptions.push(
         vscode.commands.registerCommand(PALETTE_COMMANDS.SHOW_SOURCE, () => {
-            const path = StateMachine.context().documentUri;
+            const context = StateMachine.context();
+            const path = context.documentUri;
             if (!path) {
                 return;
             }
-            vscode.window.showTextDocument(vscode.Uri.file(path), { viewColumn: vscode.ViewColumn.Beside });
+
+            const showOptions: vscode.TextDocumentShowOptions = { viewColumn: vscode.ViewColumn.Beside };
+
+            const position = context.position;
+            if (position) {
+                const startPosition = new vscode.Position(position.startLine, position.startColumn);
+                const endPosition = new vscode.Position(position.endLine, position.endColumn);
+                showOptions.selection = new vscode.Range(startPosition, endPosition);
+            }
+
+            vscode.window.showTextDocument(vscode.Uri.file(path), showOptions);
         })
     );
 
@@ -45,49 +60,82 @@ export function activateSubscriptions() {
 
     // <------------- Shared Commands ------------>
     context.subscriptions.push(
-        vscode.commands.registerCommand(SHARED_COMMANDS.SHOW_VISUALIZER, async (path: string | vscode.Uri, position, resetHistory = false) => {
-            // Check if position is a LineRange object (has 'start' and 'end' keys)
-            let nodePosition: NodePosition = position;
-            if (position && typeof position === "object" && "start" in position && "end" in position) {
-                // Convert LineRange to NodePosition
-                nodePosition = {
-                    startLine: position.start.line,
-                    startColumn: position.start.character,
-                    endLine: position.end.line,
-                    endColumn: position.end.character
-                };
-            }
-            let documentPath = "";
-            if (path) {
-                if (typeof path === "string") {
-                    if (path.startsWith("file:")) {
-                        documentPath = vscode.Uri.parse(path).fsPath;
-                    } else {
-                        documentPath = vscode.Uri.file(path).fsPath;
+        vscode.commands.registerCommand(
+            SHARED_COMMANDS.SHOW_VISUALIZER,
+            async (
+                pathOrItem: string | vscode.Uri | vscode.TreeItem,
+                position,
+                resetHistory = false
+            ) => {
+                // Check if position is a LineRange object (has 'start' and 'end' keys)
+                let nodePosition: NodePosition = position;
+                if (position && typeof position === "object" && "start" in position && "end" in position) {
+                    // Convert LineRange to NodePosition
+                    nodePosition = {
+                        startLine: position.start.line,
+                        startColumn: position.start.character,
+                        endLine: position.end.line,
+                        endColumn: position.end.character
+                    };
+                }
+                let documentPath = "";
+                if (pathOrItem) {
+                    if (typeof pathOrItem === "string") {
+                        if (pathOrItem.startsWith("file:")) {
+                            documentPath = vscode.Uri.parse(pathOrItem).fsPath;
+                        } else {
+                            documentPath = vscode.Uri.file(pathOrItem).fsPath;
+                        }
+                    } else if (pathOrItem instanceof vscode.Uri) {
+                        documentPath = pathOrItem.fsPath;
                     }
-                } else if (path.fsPath) {
-                    documentPath = path.fsPath;
+                }
+
+                let projectPath = StateMachine.context().projectPath;
+                const projectRoot = await findBallerinaPackageRoot(documentPath);
+
+                const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+                if (isBallerinaWorkspace) {
+                    if (pathOrItem instanceof vscode.TreeItem) {
+                        openView(
+                            EVENT_TYPE.OPEN_VIEW,
+                            {
+                                projectPath: pathOrItem.resourceUri?.fsPath,
+                                view: MACHINE_VIEW.PackageOverview
+                            },
+                            true
+                        );
+                        return;
+                    }
+                    const documentUri = documentPath || vscode.window.activeTextEditor?.document.uri.fsPath;
+                    openView(
+                        EVENT_TYPE.OPEN_VIEW,
+                        {
+                            projectPath: projectRoot,
+                            documentUri: documentUri,
+                            position: nodePosition
+                        },
+                        true
+                    );
+                    return;
+                }
+
+                if (!projectPath || projectPath !== projectRoot) {
+                    // Initialize project structure if not already set by finding and loading the Ballerina project root
+                    // Can happen when the user opens a directory containing multiple Ballerina projects
+                    if (projectRoot) {
+                        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: projectRoot });
+                        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+                    }
+                }
+                
+                if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
+                    openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
+                } else {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BallerinaUpdateView }); // Redirect user to the ballerina update available page
                 }
             }
-
-            const projectPath = StateMachine.context().projectPath;
-            const projectRoot = await findBallerinaPackageRoot(documentPath);
-
-            if (!projectPath || projectPath !== projectRoot) {
-                // Initialize project structure if not already set by finding and loading the Ballerina project root
-                // Can happen when the user opens a directory containing multiple Ballerina projects
-                if (projectRoot) {
-                    await StateMachine.updateProjectRoot(projectRoot);
-                }
-            }
-            
-            if (StateMachine.langClient() && StateMachine.context().isBISupported) { // This is added since we can't fetch new diagram data without bi supported ballerina version
-                openView(EVENT_TYPE.OPEN_VIEW, { documentUri: documentPath || vscode.window.activeTextEditor?.document.uri.fsPath, position: nodePosition }, resetHistory);
-            } else {
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BallerinaUpdateView }); // Redirect user to the ballerina update available page
-            }
-
-        })
+        )
     );
 
     context.subscriptions.push(
@@ -98,7 +146,8 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS, () => {
-            return buildProjectArtifactsStructure(StateMachine.context().projectPath, StateMachine.langClient(), true);
+            console.log("Force updating project artifacts...");
+            return buildProjectsStructure(StateMachine.context().projectInfo, StateMachine.langClient(), true);
         })
     );
 
@@ -114,19 +163,101 @@ export function activateSubscriptions() {
 
     context.subscriptions.push(
         vscode.commands.registerCommand(SHARED_COMMANDS.OPEN_BI_NEW_PROJECT, () => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
+            const isWorkspaceSupported = isSupportedSLVersion(
+                extension.ballerinaExtInstance,
+                createVersionNumber(2201, 13, 0)
+            );
+
+            if (isBallerinaWorkspace && isWorkspaceSupported) {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
+            } else {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+            }
         })
     );
 
     context.subscriptions.push(
-        vscode.commands.registerCommand(BI_COMMANDS.OPEN_TYPE_DIAGRAM, () => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.TypeDiagram });
-        })
+        vscode.commands.registerCommand(BI_COMMANDS.OPEN_TYPE_DIAGRAM, handleOpenTypeDiagram)
     );
-
 
     StateMachine.service().onTransition((state) => {
         vscode.commands.executeCommand('setContext', 'showBalGoToSource', state.context?.documentUri !== undefined);
     });
 
 }
+
+// --- Type Diagram Command Helpers ---
+
+function openTypeDiagramView(projectPath?: string, resetHistory = false): void {
+    openView(
+        EVENT_TYPE.OPEN_VIEW,
+        { view: MACHINE_VIEW.TypeDiagram, projectPath },
+        resetHistory
+    );
+}
+
+async function openTypeDiagramForWorkspace(projectInfo: ProjectInfo): Promise<boolean> {
+    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to open type diagram");
+    if (!selectedPackage) {
+        return false;
+    }
+
+    openTypeDiagramView(selectedPackage);
+    return true;
+}
+
+async function tryOpenTypeDiagramForDiscoveredProject(): Promise<boolean> {
+    const workspaceType = await findWorkspaceTypeFromWorkspaceFolders();
+    const packageRoot = await getCurrentProjectRoot();
+
+    if (!packageRoot) {
+        return false;
+    }
+
+    if (workspaceType.type === "MULTIPLE_PROJECTS") {
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+        await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+        openTypeDiagramView(packageRoot, true);
+        return true;
+    }
+
+    if (workspaceType.type === "BALLERINA_WORKSPACE") {
+        openTypeDiagramView(packageRoot, true);
+        return true;
+    }
+
+    return false;
+}
+
+async function handleOpenTypeDiagram(): Promise<void> {
+    const { projectInfo, projectPath, view, workspacePath } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!vscode.window.activeTextEditor;
+
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    if (requiresPackageSelection(workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        await openTypeDiagramForWorkspace(projectInfo);
+        return;
+    }
+
+    if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+        try {
+            const success = await tryOpenTypeDiagramForDiscoveredProject();
+            if (!success) {
+                vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            }
+        } catch {
+            vscode.window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        }
+        return;
+    }
+
+    openTypeDiagramView();
+}
+
+// --- End Type Diagram Command Helpers ---

@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.6.1",
+    "version": "5.6.4",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -26,7 +26,6 @@
     "activationEvents": [
         "onStartupFinished",
         "onLanguage:ballerina",
-        "onCommand:ballerina.showExamples",
         "workspaceContains:**/Ballerina.toml",
         "onNotebook:ballerina-notebook",
         "onUri"
@@ -214,6 +213,11 @@
                     "default": true,
                     "description": "Enable AI suggestions in the Flow Diagram View."
                 },
+                "ballerina.ai.planMode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable the option for the Plan mode in Copilot."
+                },
                 "ballerina.showAdvancedAiNodes": {
                     "type": "boolean",
                     "default": false,
@@ -233,6 +237,34 @@
                         "Trace request/response messages only",
                         "Trace request/response messages with parameters and content"
                     ]
+                },
+                "ballerina.copilot.checkpoints.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable checkpoint mechanism for copilot chat to restore previous states."
+                },
+                "ballerina.copilot.checkpoints.maxCount": {
+                    "type": "number",
+                    "default": 3,
+                    "description": "Maximum number of checkpoints to keep."
+                },
+                "ballerina.copilot.checkpoints.ignorePatterns": {
+                    "type": "array",
+                    "default": [
+                        ".git/**",
+                        "target/**",
+                        "build/**",
+                        "dist/**",
+                        ".vscode/**",
+                        "*.log",
+                        ".DS_Store"
+                    ],
+                    "description": "File patterns to ignore when creating checkpoints."
+                },
+                "ballerina.copilot.checkpoints.maxSnapshotSize": {
+                    "type": "number",
+                    "default": 52428800,
+                    "description": "Maximum snapshot size in bytes (default: 50MB)."
                 }
             }
         },
@@ -349,11 +381,6 @@
         ],
         "commands": [
             {
-                "command": "ballerina.showExamples",
-                "title": "Show Examples",
-                "category": "Ballerina"
-            },
-            {
                 "command": "ballerina.project.build",
                 "title": "Build",
                 "category": "Ballerina"
@@ -366,11 +393,6 @@
             {
                 "command": "ballerina.create.cloud",
                 "title": "Create Cloud.toml",
-                "category": "Ballerina"
-            },
-            {
-                "command": "ballerina.login.copilot",
-                "title": "Authorize Github Copilot",
                 "category": "Ballerina"
             },
             {
@@ -389,22 +411,6 @@
                 "category": "Ballerina"
             },
             {
-                "command": "ballerina.new.module",
-                "title": "Add Module",
-                "category": "Ballerina",
-                "icon": "$(distro-new-module)"
-            },
-            {
-                "command": "ballerina.refreshPackageTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
-                "command": "ballerina.refreshExplorerTree",
-                "title": "Refresh",
-                "icon": "$(distro-refresh)"
-            },
-            {
                 "command": "ballerina.newFileExplorerTree",
                 "title": "New File",
                 "icon": "$(distro-new-file)"
@@ -415,27 +421,17 @@
                 "icon": "$(distro-new-folder)"
             },
             {
-                "command": "ballerina.deleteFileExplorerTree",
-                "title": "Delete",
-                "icon": "$(distro-delete)"
-            },
-            {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "Ballerina"
             },
             {
                 "command": "ballerina.force.update.artifacts",
-                "title": "Refresh",
+                "title": "Refresh Artifacts",
                 "icon": "$(distro-refresh)",
-                "category": "Ballerina"
-            },
-            {
-                "command": "ballerina.test.edit.case",
-                "title": "Edit test case",
-                "icon": "$(distro-design-view)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.project.run",
@@ -453,11 +449,6 @@
                     "dark": "./resources/images/icons/start-inverse.svg",
                     "light": "./resources/images/icons/start.svg"
                 }
-            },
-            {
-                "command": "ballerina.project.stop",
-                "title": "Stop",
-                "category": "Ballerina"
             },
             {
                 "command": "ballerina.source.debug",
@@ -530,7 +521,7 @@
             },
             {
                 "command": "ballerina.notebook.refreshVariableView",
-                "title": "Refresh",
+                "title": "Refresh Notebook Variables",
                 "icon": "$(distro-refresh)",
                 "category": "Ballerina",
                 "enablement": "isNotebookVariableViewEnabled"
@@ -598,7 +589,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "category": "BI"
             },
             {
@@ -611,7 +602,8 @@
                 "command": "BI.test.add.function",
                 "title": "Add test case",
                 "icon": "$(add)",
-                "category": "BI"
+                "category": "BI",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "BI.view.typeDiagram",
@@ -655,7 +647,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -676,14 +668,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-design-view)",
-                "group": "navigation",
-                "category": "BI"
-            },
-            {
-                "command": "BI.project-explorer.switch-project",
-                "title": "Switch Project",
-                "icon": "$(distro-switch-project)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -692,12 +677,13 @@
                 "title": "Add Project",
                 "icon": "$(add)",
                 "group": "navigation",
-                "category": "BI"
+                "category": "BI",
+                "when": "ballerina.bi.workspaceSupported"
             },
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-design-view)",
+                "icon": "$(distro-agent-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -721,28 +707,40 @@
                 "category": "BI"
             },
             {
+                "command": "BI.devant.push.cloud",
+                "title": "Save Changes in the cloud",
+                "icon": "$(save)",
+                "group": "navigation",
+                "category": "BI",
+                "enablement": "isBIProject && devant.editor"
+            },
+            {
                 "command": "ballerina.showTraceWindow",
                 "title": "Show Traces",
                 "icon": "$(list-tree)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing (Experimental)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.disableTracing",
                 "title": "Disable Tracing (Experimental)",
                 "category": "Ballerina",
-                "icon": "$(circle-slash)"
+                "icon": "$(circle-slash)",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.clearTraces",
                 "title": "Clear Traces (Experimental)",
                 "category": "Ballerina",
                 "icon": "$(clear-all)",
-                "hidden": true
+                "hidden": true,
+                "enablement": "isSupportedProject"
             }
         ],
         "views": {
@@ -777,7 +775,8 @@
             },
             {
                 "view": "testing",
-                "contents": "[Add Unit Test](command:BI.test.add.function)"
+                "contents": "[Add Unit Test](command:BI.test.add.function)",
+                "when": "isBIProject || isBallerinaProject"
             }
         ],
         "viewsContainers": {
@@ -821,7 +820,7 @@
                 },
                 {
                     "command": "BI.test.add.function",
-                    "when": "view == workbench.view.testing",
+                    "when": "(isBIProject || isBallerinaProject) && view == workbench.view.testing",
                     "group": "navigation"
                 },
                 {
@@ -900,6 +899,12 @@
                     "group": "navigation@3",
                     "title": "Debug Integration",
                     "when": "isBalVisualizerActive && isBIProject"
+                },
+                {
+                    "command": "BI.devant.push.cloud",
+                    "group": "navigation",
+                    "title": "Save Changes in the cloud",
+                    "when": "isBIProject && devant.editor"
                 }
             ],
             "notebook/toolbar": [
@@ -939,8 +944,16 @@
             ],
             "commandPalette": [
                 {
-                    "command": "ballerina.new.module",
-                    "when": "editorLangId != ballerina && !isBallerinaDiagram"
+                    "command": "BI.test.edit.function.def",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.test.edit.function",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.project-explorer.delete",
+                    "when": "false"
                 },
                 {
                     "command": "ballerina.show.source",
@@ -1023,25 +1036,25 @@
                     "fontCharacter": "\\f114"
                 }
             },
-            "distro-design-view": {
-                "description": "design-view",
+            "distro-agent-view": {
+                "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16e"
+                    "fontCharacter": "\\f175"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f11a"
+                    "fontCharacter": "\\f11c"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f171"
+                    "fontCharacter": "\\f178"
                 }
             },
             "distro-source-view": {
@@ -1055,7 +1068,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f133"
+                    "fontCharacter": "\\f136"
                 }
             },
             "distro-cached-rounded": {
@@ -1148,6 +1161,13 @@
                     "fontPath": "./resources/codicons/codicon.ttf",
                     "fontCharacter": "\\ea77"
                 }
+            },
+            "distro-design-view": {
+                "description": "design-view",
+                "default": {
+                    "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
+                    "fontCharacter": "\\f16e"
+                }
             }
         },
         "uriHandler": {
@@ -1187,29 +1207,31 @@
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
         "build-tm-grammar": "js-yaml grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.yaml > grammar/ballerina-grammar/syntaxes/ballerina.tmLanguage.json",
         "lint": "tslint --fix 'src/**/*{.ts,.tsx}'",
-        "package": "if [ $isPreRelease = true ]; then vsce package --no-dependencies --pre-release; else vsce package --no-dependencies; fi",
+        "package": "node ../../common-libs/scripts/package-vsix.js",
         "copyFonts": "copyfiles -f ./node_modules/@wso2/font-wso2-vscode/dist/* ./resources/font-wso2-vscode/dist/",
         "copyVSIX": "copyfiles *.vsix ./vsix",
         "copyVSIXToRoot": "copyfiles -f ./vsix/*.vsix ../../..",
         "download-ls": "node scripts/download-ls.js",
+        "download-ls:prerelease": "node scripts/download-ls.js --prerelease --replace",
         "build": "pnpm run compile && pnpm run lint && pnpm run postbuild",
         "rebuild": "pnpm run clean && pnpm run compile && pnpm run postbuild",
         "postbuild": "if [ \"$isPreRelease\" = \"true\" ]; then pnpm run download-ls --prerelease; else pnpm run download-ls; fi && pnpm run copyFonts && pnpm run copyJSLibs && pnpm run package && pnpm run copyVSIX",
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^3.0.25",
-        "@ai-sdk/anthropic": "^2.0.20",
+        "@ai-sdk/amazon-bedrock": "^3.0.57",
+        "@ai-sdk/anthropic": "^2.0.45",
+        "@iarna/toml": "^2.2.5",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
         "@vscode/vsce": "^3.7.0",
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-visualizer": "workspace:*",
-        "@wso2/trace-visualizer": "workspace:*",
         "@wso2/font-wso2-vscode": "workspace:*",
         "@wso2/syntax-tree": "workspace:*",
+        "@wso2/trace-visualizer": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^5.0.56",
+        "ai": "^5.0.101",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
@@ -1222,8 +1244,9 @@
         "node-fetch": "^3.3.2",
         "node-schedule": "^2.1.1",
         "portfinder": "^1.0.32",
+        "protobufjs": "^7.2.5",
         "source-map-support": "^0.5.21",
-        "toml": "^3.0.0",
+        "unzipper": "~0.12.3",
         "uuid": "^11.1.0",
         "vscode-debugadapter": "^1.51.0",
         "vscode-debugprotocol": "^1.51.0",
@@ -1237,8 +1260,7 @@
         "vscode-uri": "^3.0.8",
         "xml-js": "^1.6.11",
         "xstate": "^4.38.3",
-        "zod": "^4.1.8",
-        "protobufjs": "^7.2.5"
+        "zod": "^4.1.8"
     },
     "devDependencies": {
         "@sentry/webpack-plugin": "^1.20.1",
@@ -1254,9 +1276,9 @@
         "copyfiles": "^2.4.1",
         "cross-env": "^7.0.3",
         "decache": "^4.6.2",
-        "express": "^4.18.2",
+        "express": "^4.22.1",
         "istanbul": "^0.4.5",
-        "js-yaml": "^4.1.0",
+        "js-yaml": "^4.1.1",
         "jwt-decode": "^3.1.2",
         "keytar": "^7.9.0",
         "kill-port": "2.0.1",

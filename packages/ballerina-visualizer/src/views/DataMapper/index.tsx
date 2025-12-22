@@ -18,11 +18,13 @@
 
 import React from "react";
 
-import { CodeData, LinePosition } from "@wso2/ballerina-core";
-import { ErrorBoundary } from "@wso2/ui-toolkit";
+import { CodeData, LinePosition, NodePosition } from "@wso2/ballerina-core";
+import { DataMapperErrorBoundary } from "@wso2/ballerina-data-mapper";
 
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { DataMapperView } from "./DataMapperView";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { BALLERINA_INTEGRATOR_ISSUES_URL } from "../../utils/bi";
 
 export interface DataMapperProps {
     filePath: string;
@@ -35,12 +37,30 @@ export interface DataMapperProps {
 }
 
 export function DataMapper(props: DataMapperProps) {
+
+    const {rpcClient} = useRpcContext();
+
+    const goToSource = () => {
+        const lineRange = props.codedata.lineRange;
+        const position: NodePosition = {
+            startLine: lineRange?.startLine.line,
+            startColumn: lineRange?.startLine.offset,
+            endLine: lineRange?.endLine.line,
+            endColumn: lineRange?.endLine.offset,
+        };
+        rpcClient.getCommonRpcClient().goToSource({ position });
+    };
+
+    const onClose = props.onClose || (() => {
+        rpcClient.getVisualizerRpcClient()?.goBack();
+    });
+
     return (
         <>
-            <TopNavigationBar />
-            <ErrorBoundary errorMsg="Error while loading the Data Mapper">
-                <DataMapperView {...props} />
-            </ErrorBoundary>
+            <TopNavigationBar projectPath={props.projectPath}/>
+            <DataMapperErrorBoundary onClose={onClose} goToSource={goToSource} >
+                <DataMapperView {...props} goToSource={goToSource} onClose={onClose} />
+            </DataMapperErrorBoundary>
         </>
     );
 };

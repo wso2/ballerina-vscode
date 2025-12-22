@@ -20,11 +20,14 @@ import {
     ColorThemeKind,
     EVENT_TYPE,
     HistoryEntry,
+    JoinProjectPathRequest,
+    JoinProjectPathResponse,
     MACHINE_VIEW,
     OpenViewRequest,
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     SHARED_COMMANDS,
+    undo,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -45,7 +48,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         return new Promise(async (resolve) => {
             if (params.isPopup) {
                 const view = params.location.view;
-                if (view && view === MACHINE_VIEW.Overview) {
+                if (view && view === MACHINE_VIEW.PackageOverview) {
                     openPopupView(EVENT_TYPE.CLOSE_VIEW, params.location as PopupVisualizerLocation);
                 } else {
                     openPopupView(params.type, params.location as PopupVisualizerLocation);
@@ -67,8 +70,17 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     goHome(): void {
         history.clear();
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
         commands.executeCommand(SHARED_COMMANDS.FORCE_UPDATE_PROJECT_ARTIFACTS).then(() => {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview }, true);
+            openView(
+                EVENT_TYPE.OPEN_VIEW,
+                {
+                    view: isWithinBallerinaWorkspace
+                        ? MACHINE_VIEW.WorkspaceOverview
+                        : MACHINE_VIEW.PackageOverview
+                },
+                true
+            );
         });
     }
 
@@ -111,8 +123,8 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 const currentArtifact = await this.updateCurrentArtifactLocation({ artifacts: payload.data });
                 clearTimeout(timeoutId);
                 StateMachine.setReadyMode();
-                if (!currentArtifact) {
-                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                if (!currentArtifact && StateMachine.context().view !== MACHINE_VIEW.InlineDataMapper) {
+                    openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                     resolve("Undo successful"); // resolve the undo string
                 }
                 notifyCurrentWebview();
@@ -126,7 +138,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 console.log("No artifact update notification received within 10 seconds");
                 unsubscribe();
                 StateMachine.setReadyMode();
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                 reject(new Error("Operation timed out. Please try again."));
             }, 10000);
 
@@ -171,7 +183,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 console.log("No artifact update notification received within 10 seconds");
                 unsubscribe();
                 StateMachine.setReadyMode();
-                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.Overview });
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
                 reject(new Error("Operation timed out. Please try again."));
             }, 10000);
 
@@ -192,17 +204,35 @@ export class VisualizerRpcManager implements VisualizerAPI {
         undoRedoManager.commitBatchOperation(params.description);
     }
 
+    resetUndoRedoStack(): void {
+        undoRedoManager.reset();
+    }
+
     async getThemeKind(): Promise<ColorThemeKind> {
         return new Promise((resolve) => {
             resolve(window.activeColorTheme.kind);
         });
     }
 
-    async joinProjectPath(segments: string | string[]): Promise<string> {
+    async joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
         return new Promise((resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-            const filePath = Array.isArray(segments) ? Utils.joinPath(URI.file(projectPath), ...segments) : Utils.joinPath(URI.file(projectPath), segments);
-            resolve(filePath.fsPath);
+            let projectPath = StateMachine.context().projectPath;
+            // If code data is provided, try to find the project path from the project structure
+            if (params.codeData && params.codeData.packageName) {
+                const packageInfo = StateMachine.context().projectStructure.projects.find(project => {
+                    console.log(">>> project", project);
+                    return project.projectName === params.codeData.packageName;
+                });
+                if (packageInfo) {
+                    projectPath = packageInfo.projectPath;
+                }
+            }
+            if (!projectPath) {
+                resolve({ filePath: "", projectPath: "" });
+                return;
+            }
+            const filePath = Array.isArray(params.segments) ? Utils.joinPath(URI.file(projectPath), ...params.segments) : Utils.joinPath(URI.file(projectPath), params.segments);
+            resolve({ filePath: filePath.fsPath, projectPath: projectPath });
         });
     }
     async undoRedoState(): Promise<UndoRedoStateResponse> {
@@ -260,5 +290,20 @@ export class VisualizerRpcManager implements VisualizerAPI {
             }
             resolve(currentArtifact);
         });
+    }
+
+    reviewAccepted(): void {
+        // When user accepts changes in review mode, navigate back to normal view
+        console.log("Review accepted - changes will be kept");
+        // Navigate to package overview or appropriate view
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        openView(
+            EVENT_TYPE.OPEN_VIEW,
+            {
+                view: isWithinBallerinaWorkspace
+                    ? MACHINE_VIEW.WorkspaceOverview
+                    : MACHINE_VIEW.PackageOverview
+            }
+        );
     }
 }

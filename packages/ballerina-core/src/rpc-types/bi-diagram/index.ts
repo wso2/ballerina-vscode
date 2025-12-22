@@ -29,8 +29,6 @@ import {
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ConfigVariableResponse,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     SignatureHelpRequest,
     SignatureHelpResponse,
     BIGetVisibleVariableTypesRequest,
@@ -97,7 +95,9 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    BIDesignModelRequest,
+    BIFlowModelRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -119,11 +119,13 @@ import {
     BuildMode,
     DevantMetadata,
     GeneratedClientSaveResponse,
-    AddProjectToWorkspaceRequest
+    AddProjectToWorkspaceRequest,
+    DeleteProjectRequest,
+    OpenReadmeRequest
 } from "./interfaces";
 
 export interface BIDiagramAPI {
-    getFlowModel: () => Promise<BIFlowModelResponse>;
+    getFlowModel: (params: BIFlowModelRequest) => Promise<BIFlowModelResponse>;
     getSourceCode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteFlowNode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteByComponentInfo: (params: BIDeleteByComponentInfoRequest) => Promise<BIDeleteByComponentInfoResponse>;
@@ -138,6 +140,7 @@ export interface BIDiagramAPI {
     getNodeTemplate: (params: BINodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getAiSuggestions: (params: BIAiSuggestionsRequest) => Promise<BIAiSuggestionsResponse>;
     createProject: (params: ProjectRequest) => void;
+    deleteProject: (params: DeleteProjectRequest) => void;
     addProjectToWorkspace: (params: AddProjectToWorkspaceRequest) => void;
     getWorkspaces: () => Promise<WorkspacesResponse>;
     getProjectStructure: () => Promise<ProjectStructureResponse>;
@@ -146,15 +149,14 @@ export interface BIDiagramAPI {
     handleReadmeContent: (params: ReadmeContentRequest) => Promise<ReadmeContentResponse>;
     getVisibleVariableTypes: (params: BIGetVisibleVariableTypesRequest) => Promise<BIGetVisibleVariableTypesResponse>;
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
-    getConfigVariables: () => Promise<ConfigVariableResponse>;
-    updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
+    getDataMapperCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
     getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
     getConfigVariableNodeTemplate: (params: GetConfigVariableNodeTemplateRequest) => Promise<BINodeTemplateResponse>;
     getModuleNodes: () => Promise<BIModuleNodesResponse>;
-    getReadmeContent: () => Promise<ReadmeContentResponse>;
-    openReadme: () => void;
+    getReadmeContent: (params: ReadmeContentRequest) => Promise<ReadmeContentResponse>;
+    openReadme: (params: OpenReadmeRequest) => void;
     renameIdentifier: (params: RenameIdentifierRequest) => Promise<void>;
     deployProject: (params: DeploymentRequest) => Promise<DeploymentResponse>;
     openAIChat: (params: AIChatRequest) => void;
@@ -169,7 +171,7 @@ export interface BIDiagramAPI {
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
-    getDesignModel: () => Promise<BIDesignModelResponse>;
+    getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;

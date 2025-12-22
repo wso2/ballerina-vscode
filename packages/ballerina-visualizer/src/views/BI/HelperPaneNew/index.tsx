@@ -21,7 +21,9 @@ import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ExpandableList } from './Components/ExpandableList';
 import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { Documents } from './Views/Documents';
+import { DocumentConfig } from './Views/DocumentConfig';
+import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, FormExpressionEditorRef, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
@@ -34,8 +36,9 @@ import { POPUP_IDS, useModalStack } from '../../../Context';
 import { getDefaultValue } from './utils/types';
 import { EXPR_ICON_WIDTH } from '@wso2/ui-toolkit';
 import { HelperPaneIconType, getHelperPaneIcon } from './utils/iconUtils';
-import { HelperpaneOnChangeOptions } from '@wso2/ballerina-side-panel';
+import { HelperpaneOnChangeOptions, InputMode } from '@wso2/ballerina-side-panel';
 
+const AI_PROMPT_TYPE = "ai:Prompt";
 
 export type ValueCreationOption = {
     typeCheck: string | null;
@@ -62,10 +65,11 @@ export type HelperPaneNewProps = {
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
-    valueTypeConstraint?: string;
+    types?: InputType[];
     forcedValueTypeConstraint?: string;
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
+    inputMode?: InputMode;
 };
 
 const TitleContainer = styled.div`
@@ -88,13 +92,16 @@ const HelperPaneNewEl = ({
     selectedType,
     filteredCompletions,
     isInModal,
-    valueTypeConstraint,
+    types,
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
-    handleValueTypeConstChange
+    handleValueTypeConstChange,
+    inputMode
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
-    const currentMenuItemCount = valueTypeConstraint ? 5 : 4
+    const currentMenuItemCount = types ?
+        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
+        (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
 
     const { addModal } = useModalStack()
 
@@ -102,10 +109,10 @@ const HelperPaneNewEl = ({
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     useEffect(() => {
-        if (valueTypeConstraint?.length > 0) {
-            handleValueTypeConstChange(valueTypeConstraint)
+        if (types?.length > 0) {
+            handleValueTypeConstChange(getPrimaryInputType(types)?.ballerinaType);
         }
-    }, [valueTypeConstraint, forcedValueTypeConstraint])
+    }, [types, forcedValueTypeConstraint])
 
     const ifCTRLandUP = (e: KeyboardEvent) => {
         return (
@@ -253,22 +260,6 @@ const HelperPaneNewEl = ({
         )
     ];
 
-    const openRecordConfigView = () => {
-        addModal(
-            <div style={{ padding: '10px 10px' }}>
-                <ConfigureRecordPage
-                    fileName={fileName}
-                    targetLineRange={targetLineRange}
-                    onChange={handleChange}
-                    currentValue={currentValue}
-                    recordTypeField={recordTypeField}
-                    onClose={onClose}
-                />
-            </div>
-            , POPUP_IDS.RECORD_CONFIG, "Record Configuration", 600, 500);
-        onClose();
-    }
-
     return (
         <HelperPaneCustom anchorRef={anchorRef}>
             <HelperPaneCustom.Body>
@@ -278,15 +269,6 @@ const HelperPaneNewEl = ({
                             <ExpandableList >
 
                                 {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
-                                    recordTypeField ?
-                                        <SlidingPaneNavContainer onClick={openRecordConfigView}>
-                                            <ExpandableList.Item>
-                                                {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                    Create value
-                                                </Typography>
-                                            </ExpandableList.Item>
-                                        </SlidingPaneNavContainer> :
                                         <>
                                             {valueCreationOptions.length > 0 && (
                                                 <SlidingPaneNavContainer
@@ -324,7 +306,7 @@ const HelperPaneNewEl = ({
                                             Variables
                                         </Typography>
                                     </ExpandableList.Item>
-                                </SlidingPaneNavContainer>                                
+                                </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
                                     to="CONFIGURABLES"
@@ -349,6 +331,19 @@ const HelperPaneNewEl = ({
                                         </Typography>
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
+                                {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[5] = el}
+                                        to="DOCUMENTS"
+                                    >
+                                        <ExpandableList.Item>
+                                            {getHelperPaneIcon(HelperPaneIconType.DOCUMENT)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Documents
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
+                                )}
                             </ExpandableList>
 
                         </div>
@@ -372,6 +367,7 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             handleRetrieveCompletions={handleRetrieveCompletions}
                             onClose={onClose}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
 
@@ -388,6 +384,7 @@ const HelperPaneNewEl = ({
                             filteredCompletions={filteredCompletions}
                             currentValue={currentValue}
                             handleRetrieveCompletions={handleRetrieveCompletions}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
 
@@ -397,7 +394,7 @@ const HelperPaneNewEl = ({
                             fileName={fileName}
                             onChange={handleChange}
                             currentValue={currentValue}
-                            selectedType={valueTypeConstraint || forcedValueTypeConstraint || ''}
+                            selectedType={getPrimaryInputType(types)?.ballerinaType || forcedValueTypeConstraint || ''}
                             recordTypeField={recordTypeField}
                             valueCreationOptions={valueCreationOptions}
                             anchorRef={anchorRef} />
@@ -415,7 +412,8 @@ const HelperPaneNewEl = ({
                             onClose={onClose}
                             onChange={handleChange}
                             updateImports={updateImports}
-                            selectedType={selectedType} />
+                            selectedType={selectedType}
+                            inputMode={inputMode} />
                     </SlidingPane>
 
                     <SlidingPane name="CONFIGURABLES" paneWidth={300}>
@@ -429,6 +427,31 @@ const HelperPaneNewEl = ({
                             targetLineRange={targetLineRange}
                             isInModal={isInModal}
                             onClose={onClose}
+                            inputMode={inputMode}
+                        />
+                    </SlidingPane>
+
+                    {/* Documents Page */}
+                    <SlidingPane name="DOCUMENTS" paneWidth={300}>
+                        <SlidingPaneHeader>
+                            Documents
+                        </SlidingPaneHeader>
+                        <Documents />
+                    </SlidingPane>
+
+                    {/* Single Document Configuration Page - handles all document types */}
+                    <SlidingPane name="DOCUMENT_CONFIG" paneWidth={300}>
+                        <SlidingPaneHeader>
+                            Documents
+                        </SlidingPaneHeader>
+                        <DocumentConfig
+                            onChange={handleChange}
+                            onClose={onClose}
+                            targetLineRange={targetLineRange}
+                            filteredCompletions={filteredCompletions || []}
+                            currentValue={currentValue}
+                            handleRetrieveCompletions={handleRetrieveCompletions}
+                            inputMode={inputMode}
                         />
                     </SlidingPane>
                 </SlidingWindow>
@@ -477,7 +500,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
         selectedType,
         filteredCompletions,
         isInModal,
-        valueTypeConstraint,
+        types,
         forcedValueTypeConstraint,
         handleValueTypeConstChange,
     } = props;
@@ -502,10 +525,11 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             selectedType={selectedType}
             filteredCompletions={filteredCompletions}
             isInModal={isInModal}
-            valueTypeConstraint={valueTypeConstraint}
+            types={types}
             handleRetrieveCompletions={props.handleRetrieveCompletions}
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}
+            inputMode={props.inputMode}
         />
     );
 };

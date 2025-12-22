@@ -19,33 +19,68 @@
 import React from "react";
 import { useFormContext } from "../../context";
 import { ContextAwareExpressionEditorProps, ExpressionEditor } from "./ExpressionEditor";
+import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+
+interface TemplateConfig {
+    prefix: string;
+    suffix: string;
+}
+
+const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
+    "ai:Prompt": {
+        prefix: "`",
+        suffix: "`"
+    },
+    "string": {
+        prefix: "string `",
+        suffix: "`"
+    }
+};
+
+const getTemplateConfig = (inputTypes?: InputType[]): TemplateConfig => {
+    if (!inputTypes) {
+        return { prefix: "`", suffix: "`" };
+    }
+    const constraint = getPrimaryInputType(inputTypes)?.ballerinaType;
+    return TEMPLATE_CONFIGS[constraint] || { prefix: "`", suffix: "`" };
+};
 
 export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEditorProps) => {
     const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
+    const templateConfig = getTemplateConfig(props.field.types);
+
+    const getSanitizedExp = (value: string) => {
+        if (!value) {
+            return value;
+        }
+        const { prefix, suffix } = templateConfig;
+        if (value.startsWith(prefix) && value.endsWith(suffix)) {
+            return value.slice(prefix.length, -suffix.length);
+        }
+        return value;
+    };
+
+    const getRawExp = (value: string) => {
+        if (!value) {
+            return value;
+        }
+        const { prefix, suffix } = templateConfig;
+        if (!value.startsWith(prefix) && !value.endsWith(suffix)) {
+            return `${prefix}${value}${suffix}`;
+        }
+        return value;
+    };
 
     return (
         <ExpressionEditor
             fileName={fileName}
-            {...targetLineRange}
-            {...props}
+            targetLineRange={targetLineRange}
+            helperPaneZIndex={props.helperPaneZIndex}
             {...form}
             {...expressionEditor}
+            {...props}
             rawExpression={getRawExp}
             sanitizedExpression={getSanitizedExp}
         />
     );
-};
-
-const getSanitizedExp = (value: string) => {
-    if (value) {
-        return value.replace(/`/g, "");
-    }
-    return value;
-};
-
-const getRawExp = (value: string) => {
-    if (value && !value.startsWith("`") && !value.endsWith("`")) {
-        return `\`${value}\``;
-    }
-    return value;
 };

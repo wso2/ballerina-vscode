@@ -16,14 +16,16 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "@emotion/styled";
+import { keyframes } from "@emotion/css";
 import AIChatInput, { AIChatInputRef, TagOptions } from "../../AIChatInput";
 import { Input } from "../../AIChatInput/utils/inputUtils";
-import { AIPanelPrompt, Attachment, TemplateId } from "@wso2/ballerina-core";
+import { AIPanelPrompt, Attachment, TemplateId, CodeContext } from "@wso2/ballerina-core";
 import { commandTemplates, suggestedCommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
+import CodeContextCard from "../../CodeContextCard";
 
 export const FooterContainer = styled.footer({
     padding: "20px",
@@ -35,6 +37,53 @@ const SuggestedCommandsWrapper = styled.div({
     marginLeft: "2px",
     color: "var(--vscode-descriptionForeground)",
 });
+
+const bubbleAnimation = keyframes`
+    0% {
+        transform: translateY(3px);
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(-3px);
+        opacity: 1;
+    }
+`;
+
+const LoadingIndicatorContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background-color: var(--vscode-editor-background);
+    border-radius: 4px;
+    color: var(--vscode-input-placeholderForeground);
+    font-size: 13px;
+`;
+
+const Bubbles = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+
+    & > span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--vscode-input-placeholderForeground);
+        display: inline-block;
+        animation: ${bubbleAnimation} 1s infinite alternate;
+    }
+
+    & > span:nth-of-type(2) {
+        animation-delay: 0.2s;
+    }
+
+    & > span:nth-of-type(3) {
+        animation-delay: 0.4s;
+    }
+`;
 
 const renderPrompt = (item: AIPanelPrompt, index: number, aiChatInputRef: React.RefObject<AIChatInputRef>) => {
     if (!item) return null;
@@ -78,6 +127,8 @@ type FooterProps = {
     onStop: () => void;
     isLoading: boolean;
     showSuggestedCommands: boolean;
+    codeContext?: CodeContext;
+    onRemoveCodeContext?: () => void;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -89,13 +140,43 @@ const Footer: React.FC<FooterProps> = ({
     onStop,
     isLoading,
     showSuggestedCommands,
+    codeContext,
+    onRemoveCodeContext,
 }) => {
+    const [generatingText, setGeneratingText] = useState("Generating.");
+
+    useEffect(() => {
+        if (isLoading) {
+            const interval = setInterval(() => {
+                setGeneratingText((prev) => {
+                    if (prev === "Generating...") return "Generating.";
+                    return prev + ".";
+                });
+            }, 500);
+
+            return () => clearInterval(interval);
+        }
+    }, [isLoading]);
+
     return (
         <FooterContainer>
             {showSuggestedCommands && (
                 <SuggestedCommandsWrapper>
                     {suggestedCommandTemplates.map((item, index) => renderPrompt(item, index, aiChatInputRef))}
                 </SuggestedCommandsWrapper>
+            )}
+            {codeContext && onRemoveCodeContext && (
+                <CodeContextCard codeContext={codeContext} onRemove={onRemoveCodeContext} />
+            )}
+            {isLoading && (
+                <LoadingIndicatorContainer>
+                    <Bubbles>
+                        <span />
+                        <span />
+                        <span />
+                    </Bubbles>
+                    <span>{generatingText}</span>
+                </LoadingIndicatorContainer>
             )}
             <AIChatInput
                 ref={aiChatInputRef}

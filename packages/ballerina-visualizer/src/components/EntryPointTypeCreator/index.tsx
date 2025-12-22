@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { Type, TypeNodeKind, Member, PayloadContext } from "@wso2/ballerina-core";
+import { Type, TypeNodeKind, Member, PayloadContext, Imports } from "@wso2/ballerina-core";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import DynamicModal from "../../components/Modal";
@@ -33,7 +33,7 @@ export const Title = styled.div`
 interface EntryPointTypeCreatorProps {
     isOpen: boolean;
     onClose: () => void;
-    onTypeCreate: (type: Type | string) => void;
+    onTypeCreate: (type: Type | string, imports?: Imports) => void;
     initialTypeName?: string;
     modalTitle?: string;
     modalWidth?: number;
@@ -143,11 +143,11 @@ export function EntryPointTypeCreator(props: EntryPointTypeCreatorProps) {
         }));
     };
 
-    const onSaveType = (type: Type | string) => {
+    const onSaveType = (type: Type | string, imports?: Imports) => {
         // here on saveType if its the rootTypeEditor which is the rootFormTypeEditor we should trrigger onTypeCreate
         if (stack.length === 1) {
             // This is the root type editor, trigger onTypeCreate
-            onTypeCreate(type);
+            onTypeCreate(type, imports);
             // Close the modal by updating the state
             setTypeEditorState({
                 editingTypeId: undefined,

@@ -69,7 +69,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
         setLoading(true);
         // get agent file path
         const filePath = await rpcClient.getVisualizerLocation();
-        agentFilePath.current = await rpcClient.getVisualizerRpcClient().joinProjectPath("agents.bal");
+        agentFilePath.current = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['agents.bal'] })).filePath;
         setLoading(false);
     };
 
@@ -96,7 +96,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             placeholder: undefined,
             type: "IDENTIFIER",
             value: toolData?.name,
-            valueTypeConstraint: "string",
+            types: [{fieldType: "IDENTIFIER", ballerinaType: "string", selected: false }],
         },
         {
             key: "toolDescription",
@@ -106,7 +106,7 @@ export function ToolConfig(props: ToolConfigProps): JSX.Element {
             editable: true,
             documentation: "The description of the tool",
             value: toolData?.description,
-            valueTypeConstraint: "string",
+            types: [{fieldType: "TEXTAREA", ballerinaType: "string", selected: false }],
             enabled: true,
         },
     ];

@@ -28,6 +28,7 @@ import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { BaseNodeWidgetProps } from "../EntryNodeModel";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
+import { useClickWithDragTolerance } from "../../../../hooks/useClickWithDragTolerance";
 
 type GroupKey = "Query" | "Subscription" | "Mutation";
 
@@ -44,7 +45,7 @@ const getNodeDescription = (model: EntryNodeModel) => {
 function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any; }) {
     const { func, model, engine } = props;
     const [isHovered, setIsHovered] = useState(false);
-    const { onFunctionSelect } = useDiagramContext();
+    const { onFunctionSelect, readonly } = useDiagramContext();
 
     const handleOnClick = () => {
         onFunctionSelect(func);
@@ -54,9 +55,10 @@ function FunctionBox(props: { func: any; model: EntryNodeModel; engine: any; }) 
         <FunctionBoxWrapper>
             <StyledServiceBox
                 hovered={isHovered}
-                onClick={() => handleOnClick()}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                onClick={() => !readonly ? handleOnClick() : undefined}
+                onMouseEnter={() => !readonly && setIsHovered(true)}
+                onMouseLeave={() => !readonly && setIsHovered(false)}
+                readonly={readonly}
             >
                 {func.path && (
                     <Title hovered={isHovered}>
@@ -79,7 +81,7 @@ function GraphQLFunctionList(props: {
     onToggleCollapse: (group: GroupKey) => void;
 }) {
     const { group, functions, model, engine, collapsed, onToggleCollapse } = props;
-    const { expandedNodes, onToggleNodeExpansion } = useDiagramContext();
+    const { expandedNodes, onToggleNodeExpansion, readonly } = useDiagramContext();
 
     const accent = (() => {
         switch (group) {
@@ -112,7 +114,7 @@ function GraphQLFunctionList(props: {
                         aria-label={collapsed ? `Expand ${group}` : `Collapse ${group}`}
                         onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
-                            onToggleCollapse(group);
+                            !readonly && onToggleCollapse(group);
                         }}
                     >
                         {collapsed ? (
@@ -170,7 +172,8 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         graphQLGroupOpen,
         onServiceSelect,
         onDeleteComponent,
-        onToggleGraphQLGroup
+        onToggleGraphQLGroup,
+        readonly
     } = useDiagramContext();
 
     const isMenuOpen = Boolean(menuAnchorEl);
@@ -179,6 +182,8 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         onServiceSelect(model.node as CDService);
     };
 
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
+
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         event.stopPropagation();
         setMenuAnchorEl(event.currentTarget);
@@ -186,6 +191,14 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+    };
+
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
     };
 
     const menuItems: Item[] = [
@@ -230,18 +243,26 @@ export function GraphQLServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     return (
         <Node>
             <TopPortWidget port={model.getPort("in")!} engine={engine} />
-            <Box hovered={isHovered}>
+            <Box hovered={!readonly && isHovered}>
                 <ServiceBox
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    onClick={handleOnClick}
+                    onMouseEnter={() => !readonly && setIsHovered(true)}
+                    onMouseLeave={() => !readonly && setIsHovered(false)}
+                    onMouseDown={!readonly ? handleMouseDown : undefined}
+                    onMouseUp={!readonly ? handleMouseUp : undefined}
+                    readonly={readonly}
                 >
                     <IconWrapper><Icon name="bi-graphql" sx={{ color: "#e535ab" }} /></IconWrapper>
-                    <Header hovered={isHovered}>
+                    <Header hovered={!readonly && isHovered}>
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                    <MenuButton 
+                        appearance="icon" 
+                        onClick={!readonly ? handleOnMenuClick : undefined}
+                        onMouseDown={!readonly ? handleMenuMouseDown : undefined}
+                        onMouseUp={!readonly ? handleMenuMouseUp : undefined}
+                        disabled={readonly}
+                    >
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>

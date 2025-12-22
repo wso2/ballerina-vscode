@@ -256,15 +256,16 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
     };
 
     const getProjectListeners = () => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                const listeners = res.directoryMap[DIRECTORY_MAP.LISTENER];
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                const listeners = project?.directoryMap[DIRECTORY_MAP.LISTENER];
                 if (listeners.length > 0) {
                     setProjectListeners(listeners);
                 }
             });
+        });
     };
 
     const handleServiceEdit = async () => {
@@ -351,19 +352,19 @@ export function GraphqlServiceEditor(props: GraphqlServiceEditorProps) {
                 type: {
                     ...param.type,
                     value: param.type.value || "",
-                    valueType: param.type.valueType || "TYPE",
+                    types: param.type.types || [{fieldType: "TYPE", selected: false}],
                     isType: param.type.isType !== undefined ? param.type.isType : true,
                 },
                 name: {
                     ...param.name,
                     value: param.name.value || "",
-                    valueType: param.name.valueType || "IDENTIFIER",
+                    types: param.name.types || [{fieldType: "IDENTIFIER", selected: false}],
                     isType: param.name.isType !== undefined ? param.name.isType : false,
                 },
                 defaultValue: {
                     ...(param.defaultValue as PropertyModel),
                     value: (param.defaultValue as PropertyModel)?.value || "",
-                    valueType: (param.defaultValue as PropertyModel)?.valueType || "EXPRESSION",
+                    types: (param.defaultValue as PropertyModel)?.types || [{fieldType: "EXPRESSION", selected: false}],
                     isType: (param.defaultValue as PropertyModel)?.isType !== undefined ? (param.defaultValue as PropertyModel).isType : false,
                 },
             })),

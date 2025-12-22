@@ -207,7 +207,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
 
     const getServiceClassModel = async () => {
         if (!type) return;
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [type.codedata.lineRange.fileName] })).filePath;
         const serviceClassModelRequest: ModelFromCodeRequest = {
             filePath: currentFilePath,
             codedata: {
@@ -220,7 +220,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
         }
 
         const serviceClassModelResponse = await rpcClient.getBIDiagramRpcClient().getServiceClassModel(serviceClassModelRequest);
-        const serviceClassFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModelResponse.model.codedata.lineRange.fileName);
+        const serviceClassFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModelResponse.model.codedata.lineRange.fileName] })).filePath;
         setServiceClassFilePath(serviceClassFilePath);
         setServiceClassModel(serviceClassModelResponse.model);
     }
@@ -237,14 +237,14 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
             endColumn: func?.codedata?.lineRange?.endLine?.offset
         }
         const deleteAction: STModification = removeStatement(targetPosition);
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [type.codedata.lineRange.fileName] })).filePath;
         await applyModifications(rpcClient, [deleteAction], currentFilePath);
         getServiceClassModel();
     }
 
     const onFunctionImplement = async (func: FunctionModel) => {
         const lineRange: LineRange = func.codedata.lineRange;
-        const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(type.codedata.lineRange.fileName);
+        const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [type.codedata.lineRange.fileName] })).filePath;
         const nodePosition: NodePosition = {
             startLine: lineRange.startLine.line,
             startColumn: lineRange.startLine.offset,
@@ -265,7 +265,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
         try {
             setIsSaving(true);
             let artifacts;
-            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
+            const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModel.codedata.lineRange.fileName] })).filePath;
             if (isNew) {
                 artifacts = await rpcClient.getServiceDesignerRpcClient().addFunctionSourceCode({
                     filePath: currentFilePath,
@@ -326,7 +326,9 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
             // if resouce we need to update the models accessor value to get and valueType to Identifier
             if (lsResponse.function.accessor) {
                 lsResponse.function.accessor.value = 'get';
-                lsResponse.function.accessor.valueType = 'IDENTIFIER';
+                if (lsResponse.function.accessor.types?.[0]) {
+                    lsResponse.function.accessor.types[0].fieldType = 'IDENTIFIER';
+                }
             }
 
             setIsNew(true);
@@ -424,9 +426,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: serviceClassModel.properties["name"].metadata.label || "",
                             description: serviceClassModel.properties["name"].metadata.description || ""
                         },
-                        valueType: serviceClassModel.properties["name"].valueType || "IDENTIFIER",
+                        types: serviceClassModel.properties["name"].types?.map(type => ({...type, ballerinaType: "Global"})) || [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         value: serviceClassModel.properties["name"].value || "",
-                        valueTypeConstraint: "Global",
                         optional: serviceClassModel.properties["name"].optional || false,
                         editable: serviceClassModel.properties["name"].editable || true
                     } :
@@ -435,9 +436,8 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
                             label: "",
                             description: "",
                         },
-                        valueType: "IDENTIFIER",
+                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
                         value: "",
-                        valueTypeConstraint: "Global",
                         optional: false,
                         editable: true
                     }
@@ -485,7 +485,7 @@ export function GraphqlObjectViewer(props: GraphqlObjectViewerProps) {
 
             setServiceClassModel(updatedModel);
 
-            const currentFilePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(serviceClassModel.codedata.lineRange.fileName);
+            const currentFilePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [serviceClassModel.codedata.lineRange.fileName] })).filePath;
             await rpcClient.getBIDiagramRpcClient().updateServiceClass({
                 filePath: currentFilePath,
                 serviceClass: updatedModel

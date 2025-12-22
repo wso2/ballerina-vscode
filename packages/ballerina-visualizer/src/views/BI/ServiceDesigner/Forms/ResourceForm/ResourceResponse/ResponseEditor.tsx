@@ -21,7 +21,7 @@ import { useEffect, useState, useRef } from 'react';
 
 import { Divider, OptionProps, Typography } from '@wso2/ui-toolkit';
 import { EditorContainer, EditorContent } from '../../../styles';
-import { LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
+import { getPrimaryInputType, LineRange, PropertyModel, StatusCodeResponse, VisibleTypeItem, VisibleTypesResponse } from '@wso2/ballerina-core';
 import { TypeHelperContext } from '../../../../../../constants';
 import { getDefaultResponse, getTitleFromStatusCodeAndType, HTTP_METHOD } from '../../../utils';
 import { FormField, FormImports, FormValues } from '@wso2/ballerina-side-panel';
@@ -55,8 +55,8 @@ export function ResponseEditor(props: ParamProps) {
     useEffect(() => {
         rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({ filePath: undefined, context: TypeHelperContext.HTTP_STATUS_CODE }).then((res) => {
             setResponseCodes(res);
-            rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-                setFilePath(filePath);
+            rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+                setFilePath(response.filePath);
             });
         });
     }, []);
@@ -69,7 +69,7 @@ export function ResponseEditor(props: ParamProps) {
         const converted: FormField = {
             key: "",
             label: property.metadata.label,
-            type: property.valueType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             optional: property.optional,
             editable: property.editable,
             enabled: property.enabled,
@@ -78,7 +78,7 @@ export function ResponseEditor(props: ParamProps) {
             value: property.value,
             items: property.items || items,
             diagnostics: property.diagnostics,
-            valueTypeConstraint: property.valueTypeConstraint,
+            types: property.types,
         }
         return converted;
     }

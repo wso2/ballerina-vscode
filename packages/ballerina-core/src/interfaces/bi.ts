@@ -81,6 +81,7 @@ export type Metadata = {
 export type NodeMetadata = {
     isDataMappedFunction?: boolean;
     isAgentTool?: boolean;
+    connectorType?: string;
     isIsolatedFunction?: boolean;
     tools?: ToolData[];
     model?: ToolData;
@@ -121,10 +122,60 @@ export type Imports = {
     [prefix: string]: string;
 };
 
+export type FormFieldInputType = "TEXT" |
+    "BOOLEAN" |
+    "IDENTIFIER" |
+    "SINGLE_SELECT" |
+    "MULTIPLE_SELECT" |
+    "TEXTAREA" |
+    "TEMPLATE" |
+    "TYPE" |
+    "EXPRESSION" |
+    "REPEATABLE_PROPERTY" |
+    "PARAM_MANAGER" |
+    "STRING" |
+    "FILE_SELECT" |
+    "ACTION_OR_EXPRESSION" |
+    "MULTIPLE_SELECT_LISTENER" |
+    "SINGLE_SELECT_LISTENER" |
+    "EXPRESSION_SET" |
+    "FLAG" |
+    "CHOICE"|
+    "LV_EXPRESSION" |
+    "RAW_TEMPLATE" |
+    "ai:Prompt" |
+    "RECORD_MAP_EXPRESSION";
+
+export interface BaseType {
+    fieldType: FormFieldInputType;
+    ballerinaType?: string;
+    selected: boolean;
+    typeMembers?: PropertyTypeMemberInfo[];
+}
+
+export interface DropdownType extends BaseType {
+    fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
+    options: string[];
+}
+
+export interface TemplateType extends BaseType {
+    template: Property;
+}
+
+export interface IdentifierType extends BaseType {
+    fieldType: "IDENTIFIER";
+    scope: Scope;
+}
+
+export type InputType =
+    | BaseType
+    | DropdownType
+    | TemplateType
+    | IdentifierType;
+
 export type Property = {
     metadata: Metadata;
     diagnostics?: Diagnostic;
-    valueType: string;
     value: string | string[] | ELineRange | NodeProperties | Property[];
     advanceProperties?: NodeProperties;
     optional: boolean;
@@ -132,9 +183,8 @@ export type Property = {
     advanced?: boolean;
     hidden?: boolean;
     placeholder?: string;
-    valueTypeConstraint?: string | string[];
+    types?: InputType[];
     codedata?: CodeData;
-    typeMembers?: PropertyTypeMemberInfo[];
     imports?: Imports;
     advancedValue?: string;
     modified?: boolean;
@@ -256,21 +306,49 @@ export enum FUNCTION_TYPE {
     ALL = "all",
 }
 
-export interface ProjectStructureResponse {
+/**
+ * Represents the directory structure of artifacts in a project.
+ */
+export type ProjectDirectoryMap = {
+    [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
+    [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
+};
+
+/**
+ * Represents a single project's structure with its artifacts organized by directory type.
+ */
+export interface ProjectStructure {
     projectName: string;
-    directoryMap: {
-        [DIRECTORY_MAP.SERVICE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AUTOMATION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LISTENER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONNECTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.TYPE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.CONFIGURABLE]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.DATA_MAPPER]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.NP_FUNCTION]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.AGENTS]: ProjectStructureArtifactResponse[];
-        [DIRECTORY_MAP.LOCAL_CONNECTORS]: ProjectStructureArtifactResponse[];
-    };
+    projectPath?: string;
+    projectTitle?: string;
+    directoryMap: ProjectDirectoryMap;
+}
+
+/**
+ * Unified response structure for both single projects and multi-project workspaces.
+ * 
+ * For single project:
+ * - workspaceName: undefined
+ * - projects: array with single project
+ * 
+ * For workspace with multiple projects:
+ * - workspaceName: name of the workspace
+ * - projects: array with multiple projects
+ */
+export interface ProjectStructureResponse {
+    workspaceName?: string;
+    workspaceTitle?: string;
+    workspacePath?: string;
+    projects: ProjectStructure[];
 }
 
 export interface ProjectStructureArtifactResponse {
@@ -308,6 +386,7 @@ export type DiagramLabel = "On Fail" | "Body";
 
 export type NodePropertyKey =
     | "agentType"
+    | "auth"
     | "checkError"
     | "client"
     | "collection"
@@ -347,6 +426,7 @@ export type NodePropertyKey =
     | "store"
     | "systemPrompt"
     | "targetType"
+    | "toolKitName"
     | "tools"
     | "type"
     | "typeDescription"

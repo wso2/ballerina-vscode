@@ -23,7 +23,7 @@ import { DocumentIdentifier, LinePosition, LineRange, NOT_SUPPORTED_TYPE, Positi
 import { BallerinaConnectorInfo, BallerinaExampleCategory, BallerinaModuleResponse, BallerinaModulesRequest, BallerinaTrigger, BallerinaTriggerInfo, BallerinaConnector, ExecutorPosition, ExpressionRange, JsonToRecordMapperDiagnostic, MainTriggerModifyRequest, NoteBookCellOutputValue, NotebookCellMetaInfo, OASpec, PackageSummary, PartialSTModification, ResolvedTypeForExpression, ResolvedTypeForSymbol, STModification, SequenceModel, SequenceModelDiagnostic, ServiceTriggerModifyRequest, SymbolDocumentation, XMLToRecordConverterDiagnostic, TypeField, ComponentInfo } from "./ballerina";
 import { ModulePart, STNode } from "@wso2/syntax-tree";
 import { CodeActionParams, DefinitionParams, DocumentSymbolParams, ExecuteCommandParams, InitializeParams, InitializeResult, LocationLink, RenameParams } from "vscode-languageserver-protocol";
-import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind } from "./bi";
+import { Category, Flow, FlowNode, CodeData, ConfigVariable, FunctionNode, Property, PropertyTypeMemberInfo, DIRECTORY_MAP, Imports, NodeKind, InputType } from "./bi";
 import { ConnectorRequest, ConnectorResponse } from "../rpc-types/connector-wizard/interfaces";
 import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
@@ -474,13 +474,36 @@ export interface GetDataMapperCodedataResponse {
 export interface PropertyRequest {
     filePath: string;
     codedata: CodeData;
-    propertyKey: string,
     targetField: string;
+}
+
+export interface FieldPropertyRequest extends PropertyRequest {
     fieldId: string;
 }
 
 export interface PropertyResponse {
     property: Property;
+}
+
+export interface ClausePositionRequest {
+    filePath: string;
+    codedata: CodeData;
+    targetField: string;
+    index: number;
+}
+
+export interface ClausePositionResponse {
+    position: LinePosition;
+}
+
+export interface ConvertExpressionRequest {
+     outputType: string;
+     expression: string;
+     expressionType: string;
+}
+
+export interface ConvertExpressionResponse {
+    convertedExpression: string;
 }
 
 export interface GraphqlDesignServiceParams {
@@ -636,8 +659,7 @@ export interface Codedata {
 export interface ValueProperty {
     metadata?: TestFunctionMetadata;
     codedata?: Codedata;
-    valueType?: string;
-    valueTypeConstraint?: any;
+    types: InputType[];
     originalName?: string;
     value?: any;
     placeholder?: string;
@@ -810,9 +832,9 @@ export interface TypeBindingPair {
 
 // <------------ BI INTERFACES --------->
 export interface BIFlowModelRequest {
-    filePath: string;
-    startLine: LinePosition;
-    endLine: LinePosition;
+    filePath?: string;
+    startLine?: LinePosition;
+    endLine?: LinePosition;
     forceAssign?: boolean;
 }
 
@@ -832,6 +854,7 @@ export interface BISourceCodeRequest {
     flowNode: FlowNode | FunctionNode;
     isConnector?: boolean;
     isFunctionNodeUpdate?: boolean;
+    isHelperPaneChange?: boolean;
 }
 
 export type BISourceCodeResponse = {
@@ -986,15 +1009,6 @@ export type ConfigVariableResponse = {
     errorMsg?: any;
 }
 
-export interface UpdateConfigVariableRequest {
-    configFilePath: string;
-    configVariable: ConfigVariable;
-}
-
-export interface UpdateConfigVariableResponse {
-
-}
-
 export interface UpdateConfigVariableRequestV2 {
     configFilePath: string;
     configVariable: FlowNode | FunctionNode;
@@ -1043,7 +1057,7 @@ export interface BICopilotContextResponse {
 }
 
 export interface BIDesignModelRequest {
-    projectPath: string;
+    projectPath?: string;
 }
 
 export type BIDesignModelResponse = {
@@ -1243,6 +1257,14 @@ export interface ImportIntegrationRequest {
     orgName: string;
     sourcePath: string;
     parameters?: Record<string, any>;
+}
+
+export interface ProjectMigrationResult {
+    projectName: string;
+    textEdits: {
+        [key: string]: string;
+    };
+    report: string;
 }
 
 export interface ImportIntegrationResponse {
@@ -1889,6 +1911,11 @@ export enum ARTIFACT_TYPE {
     Variables = "Variables"
 }
 
+export enum PROJECT_KIND {
+    WORKSPACE_PROJECT = "WORKSPACE_PROJECT",
+    BUILD_PROJECT = "BUILD_PROJECT"
+}
+
 export interface Artifacts {
     [ARTIFACT_TYPE.Functions]: Record<string, BaseArtifact>;
     [ARTIFACT_TYPE.Connections]: Record<string, BaseArtifact>;
@@ -1908,9 +1935,25 @@ export interface ArtifactsNotification {
 export interface ProjectArtifactsRequest {
     projectPath: string;
 }
+
 export interface ProjectArtifacts {
     artifacts: Artifacts;
 }
+
+export interface ProjectInfoRequest {
+    projectPath: string;
+}
+
+export interface ProjectInfo {
+    projectKind: PROJECT_KIND;
+    name?: string;
+    title?: string;
+    orgName?: string;
+    org?: string;
+    version?: string;
+    projectPath?: string;
+    children?: ProjectInfo[];
+};
 
 // <------------ BI INTERFACES --------->
 
@@ -1932,8 +1975,6 @@ export interface BIInterface extends BaseLangClientInterface {
     getSequenceDiagramModel: (params: SequenceModelRequest) => Promise<SequenceModelResponse>;
     generateServiceFromOAS: (params: ServiceFromOASRequest) => Promise<ServiceFromOASResponse>;
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
-    getConfigVariables: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
-    updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
     getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
@@ -2009,5 +2050,6 @@ export interface ExtendedLangClientInterface extends BIInterface {
     updateStatusBar(): void;
     getDidOpenParams(): DidOpenParams;
     getProjectArtifacts(params: ProjectArtifactsRequest): Promise<ProjectArtifacts>;
+    getProjectInfo(params: ProjectInfoRequest): Promise<ProjectInfo>;
     openConfigToml(params: OpenConfigTomlRequest): Promise<void>;
 }

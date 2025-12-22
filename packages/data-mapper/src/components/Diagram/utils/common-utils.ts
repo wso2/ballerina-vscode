@@ -18,7 +18,7 @@
 import { PortModel } from "@projectstorm/react-diagrams-core";
 
 import { InputOutputPortModel, ValueType } from "../Port";
-import { getDMTypeDim, getTypeName, isPrimitive } from "./type-utils";
+import { getDMTypeDim, getGenericTypeKind, getTypeName, isNumericType, isPrimitive } from "./type-utils";
 import { DataMapperLinkModel, MappingType } from "../Link";
 
 import { IOType, Mapping, TypeKind } from "@wso2/ballerina-core";
@@ -31,7 +31,6 @@ import {
     InputNode,
     OBJECT_OUTPUT_NODE_TYPE,
     PRIMITIVE_OUTPUT_NODE_TYPE,
-    PrimitiveOutputNode,
     QueryOutputNode
 } from "../Node";
 import { IDataMapperContext } from "../../../utils/DataMapperContext/DataMapperContext";
@@ -66,7 +65,7 @@ export function hasChildMappingsForInput(mappings: Mapping[], inputId: string): 
 }
 
 export function isPendingMappingRequired(mappingType: MappingType): boolean {
-    return mappingType !== MappingType.Default;
+    return mappingType !== MappingType.Default && mappingType !== MappingType.SeqToArray;
 }
 
 export function getMappingType(sourcePort: PortModel, targetPort: PortModel): MappingType {
@@ -77,7 +76,6 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         sourcePort.attributes.field
     ) {
 
-        
         const targetNode = targetPort.getNode();
         if (targetNode instanceof QueryOutputNode && targetNode.outputType.kind !== TypeKind.Array) {
             return MappingType.ArrayToSingletonAggregate;
@@ -97,14 +95,39 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
         if (sourceField.kind === TypeKind.Union || targetField.kind === TypeKind.Union) {
             return MappingType.ContainsUnions;
         }
+
+        if (sourceField.isSeq) {
+            if (isPrimitive(targetField.kind)){
+                return MappingType.SeqToPrimitive;
+            }
+            if (targetField.kind === TypeKind.Array) {
+                return MappingType.SeqToArray;
+            }
+        }
             
         const sourceDim = getDMTypeDim(sourceField);
         const targetDim = getDMTypeDim(targetField);
 
         if (sourceDim > 0) {
             const dimDelta = sourceDim - targetDim;
-            if (dimDelta == 0) return MappingType.ArrayToArray;
-            if (dimDelta > 0) return MappingType.ArrayToSingleton;
+            if (dimDelta == 0) {
+                if(targetPort.attributes.portName.endsWith(".#")) {
+                    return MappingType.ArrayJoin;
+                }
+                return MappingType.ArrayToArray;
+            }
+            if (dimDelta > 0) {
+                return MappingType.ArrayToSingleton;
+            }
+        }
+
+        if (targetField.kind !== sourceField.kind &&
+            (targetField.kind !== TypeKind.Byte || sourceField.kind !== TypeKind.String) &&
+            targetField.kind === getGenericTypeKind(targetField.kind) &&
+            sourceField.kind === getGenericTypeKind(sourceField.kind) &&
+            isPrimitive(targetField.kind) &&
+            isPrimitive(sourceField.kind)) {
+            return MappingType.ConvertiblePrimitives;
         }
 
         if ((sourceField.kind !== targetField.kind ||
@@ -218,7 +241,7 @@ export function getErrorKind(node: DataMapperNodeModel): ErrorNodeKind {
 	}
 }
 
-export function expandArrayFn(context: IDataMapperContext, inputId: string, outputId: string, viewId: string): void {
+export function expandArrayFn(context: IDataMapperContext, inputIds: string[], outputId: string, viewId: string): void {
 
     const { addView, views } = context;
     
@@ -242,7 +265,7 @@ export function expandArrayFn(context: IDataMapperContext, inputId: string, outp
     // Create base view properties
     const baseView: View = {
         label: label,
-        sourceField: inputId,
+        sourceFields: inputIds,
         targetField: targetField
     };
 
