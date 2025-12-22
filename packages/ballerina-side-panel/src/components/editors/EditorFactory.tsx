@@ -93,7 +93,9 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "LV_EXPRESSION" ||
             type.fieldType === "ACTION_OR_EXPRESSION" ||
             type.fieldType === "TEXT" ||
-            type.fieldType === "EXPRESSION_SET"
+            type.fieldType === "EXPRESSION_SET" ||
+            type.fieldType === "SINGLE_SELECT" ||
+            type.fieldType === "RECORD_MAP_EXPRESSION"
         );
     });
     
@@ -135,8 +137,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
-    } else if (field.type === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
-        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
             <ActionTypeEditor
