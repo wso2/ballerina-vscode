@@ -67,9 +67,12 @@ export interface TracerMachineContext {
  */
 function isTraceEnabledInProject(context: TracerMachineContext): Promise<{ isTraceEnabledInProject: boolean }> {
     return new Promise((resolve) => {
+        if (!context.currentProjectPath) {
+            resolve({ isTraceEnabledInProject: false });
+            return;
+        }
         // Check if a file called trace_enabled.bal exists in the current project path
         const traceEnabled = fs.existsSync(path.join(context.currentProjectPath, 'trace_enabled.bal'));
-
         resolve({ isTraceEnabledInProject: traceEnabled });
     });
 }
