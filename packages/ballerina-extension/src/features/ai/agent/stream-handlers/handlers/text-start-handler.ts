@@ -19,9 +19,7 @@ import { StreamContext } from "../stream-context";
 
 /**
  * Handles text-start events from the stream.
- * Emits a newline to the UI and initializes a text block in the current assistant content.
- *
- * Note: This fixes the duplicate "text-start" case bug that existed in the original switch statement.
+ * Emits a newline to the UI to mark the start of a text block.
  */
 export class TextStartHandler implements StreamEventHandler {
     readonly eventType = "text-start";
@@ -31,7 +29,6 @@ export class TextStartHandler implements StreamEventHandler {
     }
 
     async handle(part: any, context: StreamContext): Promise<void> {
-        context.currentAssistantContent.push({ type: "text", text: "" });
         context.eventHandler({ type: "content_block", content: " \n" });
     }
 }
