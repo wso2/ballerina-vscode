@@ -18,7 +18,6 @@
 
 import { RefObject } from 'react';
 import { FormExpressionEditorRef, HelperPane, HelperPaneHeight } from '@wso2/ui-toolkit';
-import { ConfigurablePage } from './ConfigurablePage';
 import { FunctionsPage } from './FunctionsPage';
 import { SuggestionsPage } from './SuggestionsPage';
 import { ConfigureRecordPage } from './ConfigureRecordPage';
@@ -142,13 +141,6 @@ const HelperPaneEl = ({
                                 onClose={onClose}
                                 onChange={handleChange}
                                 updateImports={updateImports}
-                            />
-                        </HelperPane.PanelView>
-                    )}
-                    {!isAssignIdentifier && (
-                        <HelperPane.PanelView id={recordTypeField ? 3 : 2}>
-                            <ConfigurablePage
-                                onChange={handleChange}
                             />
                         </HelperPane.PanelView>
                     )}

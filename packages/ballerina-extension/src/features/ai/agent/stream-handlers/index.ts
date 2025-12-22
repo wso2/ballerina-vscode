@@ -23,16 +23,9 @@ export * from "./stream-event-handler";
 export * from "./stream-context";
 export * from "./stream-event-registry";
 
-// Helper functions
-export * from "./handlers/helper-functions";
-
-// Simple event handlers
+// Event handlers
 export * from "./handlers/text-delta-handler";
 export * from "./handlers/text-start-handler";
-
-// Complex event handlers
-export * from "./handlers/tool-call-handler";
-export * from "./handlers/tool-result-handler";
 
 // Lifecycle handlers
 export * from "./handlers/error-handler";
