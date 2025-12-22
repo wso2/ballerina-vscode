@@ -19,16 +19,25 @@
 import { commands, window } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
-import { GenerateCodeRequest, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
+import { ProcessMappingParametersRequest } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from './utils/events';
 import { addConfigFile, getConfigFilePath } from './utils';
-import { StateMachine } from "../../stateMachine";
-import { CONFIGURE_DEFAULT_MODEL_COMMAND, DEFAULT_PROVIDER_ADDED, LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT } from './constants';
-import { REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../..//utils/ai/auth';
+import {
+    CONFIGURE_DEFAULT_MODEL_COMMAND,
+    DEFAULT_PROVIDER_ADDED,
+    LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL,
+    SIGN_IN_BI_COPILOT
+} from './constants';
+import {
+    REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
+} from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
 import { generateMappingCodeCore } from './data-mapper';
 import { generateAgentForTest, GenerateAgentForTestParams } from './agent/index-for-test';
+import { resolveProjectPath } from '../../utils/project-utils';
+import { MESSAGES } from '../project';
 
 export let langClient: ExtendedLangClient;
 
@@ -86,10 +95,14 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
         });
     }
 
-    const projectPath = StateMachine.context().projectPath;
-
     commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async () => {
-        const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);
+        const targetPath = await resolveProjectPath("Select an integration to configure default model");
+        if (!targetPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        const configPath = await getConfigFilePath(ballerinaExternalInstance, targetPath);
         if (configPath !== null) {
             try {
                 const result = await addConfigFile(configPath);
