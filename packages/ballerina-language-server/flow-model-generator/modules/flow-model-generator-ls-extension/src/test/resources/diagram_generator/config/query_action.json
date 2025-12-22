@@ -239,12 +239,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Unknown error occured\"",
@@ -379,7 +379,7 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION_SET",
@@ -389,7 +389,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string|string[]",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"localhost:9092\"",

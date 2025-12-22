@@ -98,12 +98,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/pears\"",
@@ -131,7 +131,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"pear\"",
@@ -390,7 +390,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"pear\"",
@@ -567,12 +567,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/food\"",

@@ -155,7 +155,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"western red apple\"",
@@ -474,12 +474,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string?",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"application/json\"",
@@ -692,7 +692,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"green apple\"",
@@ -960,7 +960,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"green apple\"",
@@ -1232,7 +1232,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"red apple\"",
@@ -1501,7 +1501,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"red apple\"",
@@ -1769,7 +1769,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"green apple\"",
@@ -1963,12 +1963,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/food\"",

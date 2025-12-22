@@ -19,6 +19,7 @@
 package io.ballerina.servicemodelgenerator.extension.model;
 
 import com.google.gson.JsonPrimitive;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -140,6 +141,10 @@ public class Value {
     }
 
     public String getValue() {
+        return CommonUtils.extractLiteralFromStringTemplate(getValueString());
+    }
+
+    public String getValueString() {
         if (Objects.nonNull(values) && !values.isEmpty()) {
             if (values.getFirst() instanceof String) {
                 return String.join(", ", values.stream().map(v -> (String) v).toList());
