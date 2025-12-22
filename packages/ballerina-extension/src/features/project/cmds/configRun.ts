@@ -25,8 +25,6 @@ import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/com
 import { StateMachine } from "../../../stateMachine";
 import { getCurrentProjectRoot } from "../../../utils/project-utils";
 import { getPackage } from "./cloud";
-import { ta } from "zod/v4/locales";
-;
 
 function activateConfigRunCommand() {
     // register the config view run command
