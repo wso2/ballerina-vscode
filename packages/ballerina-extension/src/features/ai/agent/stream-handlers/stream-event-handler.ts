@@ -40,48 +40,6 @@ export interface StreamEventHandler {
 }
 
 /**
- * Base interface for tool call dispatchers.
- * Dispatchers handle tool-specific logic for tool-call events.
- */
-export interface ToolCallDispatcher {
-    /**
-     * The tools this dispatcher can handle
-     */
-    readonly supportedTools: string[];
-
-    /**
-     * Checks if this dispatcher can handle the given tool
-     */
-    canHandle(toolName: string): boolean;
-
-    /**
-     * Dispatches the tool call to the appropriate handler
-     */
-    dispatch(part: any, context: StreamContext): void;
-}
-
-/**
- * Base interface for tool result dispatchers.
- * Dispatchers handle tool-specific logic for tool-result events.
- */
-export interface ToolResultDispatcher {
-    /**
-     * The tools this dispatcher can handle
-     */
-    readonly supportedTools: string[];
-
-    /**
-     * Checks if this dispatcher can handle the given tool
-     */
-    canHandle(toolName: string): boolean;
-
-    /**
-     * Dispatches the tool result to the appropriate handler
-     */
-    dispatch(part: any, result: any, context: StreamContext): void;
-}
-
-/**
  * Custom exception thrown by error handler to signal stream termination
  */
 export class StreamErrorException extends Error {
