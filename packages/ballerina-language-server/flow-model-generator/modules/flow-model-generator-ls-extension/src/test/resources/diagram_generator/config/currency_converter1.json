@@ -1951,12 +1951,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"error occured\"",
@@ -2177,12 +2177,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"https://api.exchangeratesapi.io/latest\"",

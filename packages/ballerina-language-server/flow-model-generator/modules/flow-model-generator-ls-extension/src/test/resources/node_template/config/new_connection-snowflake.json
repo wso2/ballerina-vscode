@@ -14,7 +14,7 @@
     "metadata": {
       "label": "Snowflake",
       "description": "Represents a Snowflake database client.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_snowflake_2.2.1.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -23,7 +23,7 @@
       "packageName": "snowflake",
       "object": "Client",
       "symbol": "init",
-      "version": "2.2.0",
+      "version": "2.2.1",
       "isNew": true
     },
     "returning": false,
@@ -121,7 +121,7 @@
             "typeMembers": [
               {
                 "type": "Options",
-                "packageInfo": "ballerinax:snowflake:2.2.0",
+                "packageInfo": "ballerinax:snowflake:2.2.1",
                 "packageName": "snowflake",
                 "kind": "RECORD_TYPE",
                 "selected": false

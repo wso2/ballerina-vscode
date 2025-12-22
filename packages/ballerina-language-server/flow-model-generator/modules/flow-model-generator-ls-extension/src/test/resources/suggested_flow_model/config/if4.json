@@ -359,12 +359,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is greater than y\"",
@@ -467,12 +467,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is equal to y\"",
@@ -617,12 +617,12 @@
                               {
                                 "fieldType": "TEXT",
                                 "ballerinaType": "string",
-                                "selected": false
+                                "selected": true
                               },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "string",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"x is equal to 10\"",
@@ -725,12 +725,12 @@
                               {
                                 "fieldType": "TEXT",
                                 "ballerinaType": "string",
-                                "selected": false
+                                "selected": true
                               },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "string",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"x is not equal to 10\"",

@@ -455,12 +455,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Sum is greater than 30\"",
@@ -635,12 +635,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is greater than y\"",
@@ -742,12 +742,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is equal to y\"",
