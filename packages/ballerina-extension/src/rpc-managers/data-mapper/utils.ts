@@ -478,7 +478,7 @@ function processInputRoots(model: DMModel): IOType[] {
     const inputs: IORoot[] = [];
     const focusInputs: Record<string, IOTypeField> = {};
     for (const input of model.inputs) {
-        if (input.focusExpression) {
+        if (input.focusExpression && (input.isIterationVariable || input.isSeq || input.isGroupingKey)) {
             focusInputs[input.focusExpression] = input as IOTypeField;
         } else {
             inputs.push(input);
