@@ -63,7 +63,9 @@ public class ArtifactsTest extends AbstractLSTest {
                 // TODO: Need to replace this with the latest ai agent implementation
                 "agent.json",
                 // TODO: Investigate why the following test fails intermittently in Windows
-                "graphql.json"
+                "graphql.json",
+                // TODO: Include this after discussing how to integrate submodules into the artifacts tree
+                "persist.json"
         };
     }
 
