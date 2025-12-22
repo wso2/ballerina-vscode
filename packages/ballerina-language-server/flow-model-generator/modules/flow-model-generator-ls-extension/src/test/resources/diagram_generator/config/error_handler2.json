@@ -233,12 +233,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"/western/oranges\"",
@@ -615,12 +615,12 @@
                               {
                                 "fieldType": "TEXT",
                                 "ballerinaType": "string",
-                                "selected": false
+                                "selected": true
                               },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "string",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"/log\"",
@@ -648,7 +648,7 @@
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "http:RequestMessage",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"Error occurred while getting the response\"",
@@ -1002,12 +1002,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"http://localhost:9090\"",

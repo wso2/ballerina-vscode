@@ -99,12 +99,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/bananas\"",
@@ -132,7 +132,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"red banana\"",
@@ -352,12 +352,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/bananas\"",
@@ -385,7 +385,7 @@
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"green banana\"",
@@ -581,12 +581,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/food\"",

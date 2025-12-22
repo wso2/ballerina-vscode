@@ -146,12 +146,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Count is greater than 20\"",
@@ -284,12 +284,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string|log:PrintableRawTemplate",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"Getting apples\"",
@@ -668,12 +668,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Failed to get the response\"",
@@ -823,12 +823,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Response: \"",
@@ -966,12 +966,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"http://localhost:9090\"",
