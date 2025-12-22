@@ -276,17 +276,17 @@ export const langlibTestCases = [
    projectPath: "bi_init"
  },
  {
-   // findAll(), substring(), push(), findGroups(), string.length(), push(), startswith(), fromJsonString(), cloneWithType(), arr.length(), 
+   // findAll(), substring(), push(), findGroups(), string.length(), push(), startswith(), fromJsonString(), cloneWithType(), arr.length() 
    prompt: "Build an integration that scans HTML email content for all URLs, finds the first clickable link, counts total links and XML attachments, parses XML metadata, checks if URLs start with https, deserializes embedded JSON data with type safety, and measures the size of extracted collections.",
    projectPath: "bi_init"
  },
  {
-   // toUpperAscii(), cloneReadOnly(), string.length(), 
+   // toUpperAscii(), cloneReadOnly(), string.length() 
    prompt: "Create a service that reads product names from inventory, alphabetically compares and arranges them using unicode ordering, removes the oldest and newest entries, converts remaining names to uppercase, creates immutable copies, measures text lengths, and exports as an array structure.",
    projectPath: "bi_init"
  },
  {
-   // trim(), replaceAll(), decimal:fromString(), float:fromString(), array:length(), .toString(), message(), push(), 
+   // trim(), replaceAll(), decimal:fromString(), float:fromString(), array:length(), .toString(), message(), push() 
    prompt: "Develop an API that reads scientific measurements from spreadsheets, converts text values to floating point numbers, applies exponential calculations for growth projections, parses currency amounts, validates data types match requirements, aggregates results, and returns JSON output after trimming whitespace.",
    projectPath: "bi_init"
  },
@@ -326,7 +326,7 @@ export const langlibTestCases = [
    projectPath: "bi_init"
  },
  {
-   // message(), findGroups(), findAllGroups(), toLowerAscii(), includes(), isFullMatch(), matchAt(), find(), substring(), find(), replace(), trim(), replaceAll(), push(), clone(), codePointCompare(), 
+   // message(), findGroups(), findAllGroups(), toLowerAscii(), includes(), isFullMatch(), matchAt(), find(), substring(), find(), replace(), trim(), replaceAll(), push(), clone(), codePointCompare() 
    prompt: "Develop a log analysis tool that extracts first matching pattern groups from log lines, captures all pattern groups across entries, checks if lines contain error keywords, identifies lines starting with timestamps, filters relevant entries, sorts messages using unicode comparison, and processes all metadata key-value pairs.",
    projectPath: "bi_init"
  },
@@ -344,7 +344,7 @@ export const langlibTestCases = [
    projectPath: "langlib_with_existing_code"
  },
  {
-   // message(), cloneWithType(), toJson(), toString(), join(), 
+   // message(), cloneWithType(), toJson(), toString(), join() 
    prompt: "Develop a resource function for the POST /customers endpoint that receives customer data. Parse the incoming JSON payload, convert it to a customer record type, serialize the customer data back to JSON format, and ensure all values are converted to string representations for logging.",
    projectPath: "langlib_with_existing_code"
  },
