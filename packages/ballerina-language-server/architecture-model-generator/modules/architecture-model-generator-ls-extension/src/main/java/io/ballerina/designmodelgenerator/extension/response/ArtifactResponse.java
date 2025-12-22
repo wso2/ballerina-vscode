@@ -30,7 +30,7 @@ import java.util.Map;
 public class ArtifactResponse extends AbstractResponse {
 
     private String uri;
-    private String projectName;
+    private String packageName;
     private String moduleName;
     private Map<String, Map<String, Artifact>> artifacts;
 
@@ -50,8 +50,8 @@ public class ArtifactResponse extends AbstractResponse {
         this.uri = uri;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public String getPackageName() {
+        return packageName;
     }
 
     public String getModuleName() {
@@ -59,7 +59,7 @@ public class ArtifactResponse extends AbstractResponse {
     }
 
     public void setProjectAndModuleName(String projectName, String moduleName) {
-        this.projectName = projectName;
+        this.packageName = projectName;
         if (projectName == null || !projectName.equals(moduleName)) {
             this.moduleName = moduleName;
         }

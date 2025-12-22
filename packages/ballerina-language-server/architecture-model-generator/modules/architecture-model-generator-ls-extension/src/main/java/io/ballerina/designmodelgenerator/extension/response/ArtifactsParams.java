@@ -30,7 +30,7 @@ import java.util.Map;
 public class ArtifactsParams {
 
     private String uri;
-    private String projectName;
+    private String packageName;
     private String moduleName;
     Map<String, Map<String, Map<String, Artifact>>> artifacts;
 
@@ -39,7 +39,7 @@ public class ArtifactsParams {
     }
 
     public void setProjectAndModuleName(String projectName, String moduleName) {
-        this.projectName = projectName;
+        this.packageName = projectName;
         if (projectName == null || !projectName.equals(moduleName)) {
             this.moduleName = moduleName;
         }
@@ -54,8 +54,8 @@ public class ArtifactsParams {
         return uri;
     }
 
-    public String projectName() {
-        return projectName;
+    public String packageName() {
+        return packageName;
     }
 
     public String moduleName() {

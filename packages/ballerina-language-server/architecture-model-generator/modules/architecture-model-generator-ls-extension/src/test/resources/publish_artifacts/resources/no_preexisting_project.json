@@ -1,6 +1,7 @@
 {
   "source": "old/config.bal",
   "description": "Test reload project without pre-existing artifacts",
+  "packageName": "proj329",
   "output": {
     "Connections": {
       "additions": {

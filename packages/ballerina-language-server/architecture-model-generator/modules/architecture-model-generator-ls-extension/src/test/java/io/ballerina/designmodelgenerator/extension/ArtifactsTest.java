@@ -44,7 +44,7 @@ public class ArtifactsTest extends AbstractLSTest {
         ArtifactsRequest request = new ArtifactsRequest(getSourcePath(testConfig.source()));
         JsonObject artifactsResponse = getResponseAndCloseFile(request, testConfig.source);
         JsonObject artifact = artifactsResponse.getAsJsonObject("artifacts");
-        String packageName = getStringValue(artifactsResponse, "projectName");
+        String packageName = getStringValue(artifactsResponse, "packageName");
         String moduleName = getStringValue(artifactsResponse, "moduleName");
 
         if (!artifact.equals(testConfig.output()) || !Objects.equals(packageName, testConfig.packageName()) ||

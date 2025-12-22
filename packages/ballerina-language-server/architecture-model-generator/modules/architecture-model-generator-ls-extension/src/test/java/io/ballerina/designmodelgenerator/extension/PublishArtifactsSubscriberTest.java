@@ -41,7 +41,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -50,6 +49,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -405,9 +405,14 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
             throws IOException {
         Map<String, Map<String, Map<String, Artifact>>> publishedArtifacts = artifactsParams.artifacts();
         Map<String, Map<String, Map<String, Artifact>>> expectedArtifacts = testConfig.output();
-        if (!publishedArtifacts.equals(expectedArtifacts)) {
+        String packageName = artifactsParams.packageName();
+        String moduleName = artifactsParams.moduleName();
+
+        if (!publishedArtifacts.equals(expectedArtifacts) ||
+                !Objects.equals(packageName, testConfig.packageName()) ||
+                !Objects.equals(moduleName, testConfig.moduleName())) {
             TestConfig updatedConfig = new TestConfig(testConfig.source(), testConfig.description(),
-                    artifactsParams.projectName(), artifactsParams.moduleName(), publishedArtifacts);
+                    packageName, moduleName, publishedArtifacts);
 //            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(gson.toJsonTree(publishedArtifacts), gson.toJsonTree(expectedArtifacts));
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.source(), configJsonPath));
@@ -443,7 +448,7 @@ public class PublishArtifactsSubscriberTest extends AbstractLSTest {
         }
     }
 
-    private record TestConfig(String source, String description, String projectName, String moduleName,
+    private record TestConfig(String source, String description, String packageName, String moduleName,
                               Map<String, Map<String, Map<String, Artifact>>> output) {
 
         public String description() {
