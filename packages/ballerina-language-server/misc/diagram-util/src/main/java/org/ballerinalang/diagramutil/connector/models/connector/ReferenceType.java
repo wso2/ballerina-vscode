@@ -121,7 +121,7 @@ public class ReferenceType {
     public static RefType fromSemanticSymbol(TypeSymbol symbol, String name, ModuleID moduleID,
                                              List<Symbol> typeDefSymbols) {
         TypeDescKind kind = symbol.typeKind();
-        RefType primitiveType = getPrimitiveType(kind);
+        RefType primitiveType = getPrimitiveType(kind, name);
         if (primitiveType != null) {
             return primitiveType;
         }
@@ -222,7 +222,7 @@ public class ReferenceType {
             if (typeSymbols.size() == 1) {
                 TypeSymbol soleTypeSymbol = typeSymbols.getFirst();
                 ModuleID soleModuleId = getModuleID(soleTypeSymbol, moduleID);
-                String soleTypeName = soleTypeSymbol.getName().orElse("") + "?";
+                String soleTypeName = soleTypeSymbol.getName().orElse(soleTypeSymbol.signature()) + "?";
                 return fromSemanticSymbol(soleTypeSymbol, soleTypeName, soleModuleId, typeDefSymbols);
             }
             RefUnionType unionType = new RefUnionType(name);
@@ -349,13 +349,13 @@ public class ReferenceType {
         return filteredMembers;
     }
 
-    private static RefType getPrimitiveType(TypeDescKind kind) {
+    private static RefType getPrimitiveType(TypeDescKind kind, String typeName) {
         String primitiveTypeName = getPrimitiveTypeName(kind);
         if (primitiveTypeName == null) {
             return null;
         }
         RefType refType = new RefType(primitiveTypeName);
-        refType.typeName = primitiveTypeName;
+        refType.typeName = (typeName != null && typeName.contains("?")) ? typeName : primitiveTypeName;
         return refType;
     }
 
