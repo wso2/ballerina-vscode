@@ -134,9 +134,7 @@ async function resolveTracingTargetPath(promptMessage: string): Promise<string |
         await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
     } else if (projectRoot && projectRoot !== projectPath) {
         targetPath = await getCurrentProjectRoot();
-        if (projectRoot && projectRoot !== projectPath) {
-            await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
-        }
+        await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
     }
 
     return targetPath;
