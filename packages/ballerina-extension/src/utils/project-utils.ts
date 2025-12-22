@@ -24,7 +24,7 @@ import { BallerinaProject } from "@wso2/ballerina-core";
 import { readFileSync } from 'fs';
 import { dirname, sep } from 'path';
 import { parseTomlToConfig } from '../features/config-generator/utils';
-import { MESSAGES, PROJECT_TYPE } from "../features/project";
+import { PROJECT_TYPE } from "../features/project";
 import { StateMachine } from "../stateMachine";
 import { VisualizerWebview } from "../views/visualizer/webview";
 import { findBallerinaPackageRoot } from "./file-utils";
@@ -268,7 +268,7 @@ async function resolveProjectPath(promptMessage?: string): Promise<string | unde
         
             return packageRoot;
         } catch {
-            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return undefined;
         }
     }
 
