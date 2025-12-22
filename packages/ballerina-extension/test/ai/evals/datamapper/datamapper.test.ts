@@ -159,7 +159,7 @@ async function setupTestEnvironment(): Promise<void> {
     }
 }
 
-suite.only("AI Datamapper Tests Suite", () => {
+suite.skip("AI Datamapper Tests Suite", () => {
 
     suiteSetup(async function (): Promise<void> {
         await setupTestEnvironment();

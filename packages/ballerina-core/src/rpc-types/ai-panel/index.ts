@@ -15,9 +15,40 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DataMapperModelResponse } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import {
+    GetFromFileRequest,
+    DeleteFromProjectRequest,
+    ProjectSource,
+    ProjectDiagnostics,
+    PostProcessRequest,
+    PostProcessResponse,
+    FetchDataRequest,
+    FetchDataResponse,
+    TestGenerationMentions,
+    AIChatSummary,
+    DeveloperDocument,
+    RequirementSpecification,
+    LLMDiagnostics,
+    AIPanelPrompt,
+    AIMachineSnapshot,
+    SubmitFeedbackRequest,
+    RelevantLibrariesAndFunctionsRequest,
+    GenerateOpenAPIRequest,
+    GenerateCodeRequest,
+    GenerateAgentCodeRequest,
+    TestPlanGenerationRequest,
+    TestGeneratorIntermediaryState,
+    RepairParams,
+    RelevantLibrariesAndFunctionsResponse,
+    DocGenerationRequest,
+    AddFilesToProjectRequest,
+    MetadataWithAttachments,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
+} from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
@@ -31,7 +62,6 @@ export interface AIPanelAPI {
     getDefaultPrompt: () => Promise<AIPanelPrompt>;
     getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
     fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    addToProject: (params: AddToProjectRequest) => Promise<boolean>;
     getFromFile: (params: GetFromFileRequest) => Promise<string>;
     getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
     deleteFromProject: (params: DeleteFromProjectRequest) => void;
@@ -43,13 +73,7 @@ export interface AIPanelAPI {
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
     generateMappingCode: (params: ProcessMappingParametersRequest) => void;
     generateInlineMappingCode: (params: MetadataWithAttachments) => void;
-    // Test-generator related functions
-    getGeneratedTests: (params: TestGenerationRequest) => Promise<TestGenerationResponse>;
-    getTestDiagnostics: (params: TestGenerationResponse) => Promise<ProjectDiagnostics>;
-    getServiceSourceForName: (params: string) => Promise<string>;
-    getResourceSourceForMethodAndPath: (params: string) => Promise<string>;
     getServiceNames: () => Promise<TestGenerationMentions>;
-    getResourceMethodAndPaths: () => Promise<TestGenerationMentions>;
     abortTestGeneration: () => void;
     applyDoOnFailBlocks: () => void;
     postProcess: (params: PostProcessRequest) => Promise<PostProcessResponse>;
@@ -59,19 +83,22 @@ export interface AIPanelAPI {
     showSignInAlert: () => Promise<boolean>;
     markAlertShown: () => void;
     getFromDocumentation: (params: string) => Promise<string>;
-    isRequirementsSpecificationFileExist:(params: string) => Promise<boolean>;
-    getDriftDiagnosticContents:(params: string) => Promise<LLMDiagnostics>;
-    addChatSummary:(params: AIChatSummary) => Promise<boolean>;
-    handleChatSummaryError:(params: string) => void;
-    isNaturalProgrammingDirectoryExists:(params: string) => Promise<boolean>;
-    readDeveloperMdFile:(params: string) => Promise<string>;
-    updateDevelopmentDocument:(params: DeveloperDocument) => void;
-    updateRequirementSpecification:(params: RequirementSpecification) => void;
-    createTestDirecoryIfNotExists:(params: string) => void;
+    isRequirementsSpecificationFileExist: (params: string) => Promise<boolean>;
+    getDriftDiagnosticContents: () => Promise<LLMDiagnostics>;
+    addChatSummary: (params: AIChatSummary) => Promise<boolean>;
+    handleChatSummaryError: (params: string) => void;
+    isNaturalProgrammingDirectoryExists: (params: string) => Promise<boolean>;
+    readDeveloperMdFile: (params: string) => Promise<string>;
+    updateDevelopmentDocument: (params: DeveloperDocument) => void;
+    updateRequirementSpecification: (params: RequirementSpecification) => void;
+    createTestDirecoryIfNotExists: () => void;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
-    getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
+    getRelevantLibrariesAndFunctions: (
+        params: RelevantLibrariesAndFunctionsRequest
+    ) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateCode: (params: GenerateCodeRequest) => void;
+    generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
     repairGeneratedCode: (params: RepairParams) => void;
     generateTestPlan: (params: TestPlanGenerationRequest) => void;
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
@@ -83,4 +110,12 @@ export interface AIPanelAPI {
     getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
+    openAIPanel: (params: AIPanelPrompt) => Promise<void>;
+    isPlanModeFeatureEnabled: () => Promise<boolean>;
+    // AI schema related functions
+    getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
+    acceptChanges: () => Promise<void>;
+    declineChanges: () => Promise<void>;
+    showReviewActions: () => Promise<void>;
+    hideReviewActions: () => Promise<void>;
 }

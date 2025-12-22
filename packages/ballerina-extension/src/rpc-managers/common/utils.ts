@@ -18,10 +18,23 @@
 
 import * as os from 'os';
 import { NodePosition } from "@wso2/syntax-tree";
-import { Position, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
-import { TextEdit } from "@wso2/ballerina-core";
+import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
+import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
+import axios from 'axios';
+import fs from 'fs';
+import {
+    checkIsBallerinaPackage,
+    checkIsBallerinaWorkspace,
+    getBallerinaPackages,
+    hasMultipleBallerinaPackages
+} from '../../utils';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
+
+interface ProgressMessage {
+    message: string;
+    increment?: number;
+}
 
 export function getUpdatedSource(
     statement: string,
@@ -79,7 +92,7 @@ export async function askFilePath() {
         canSelectMany: false,
         defaultUri: Uri.file(os.homedir()),
         filters: {
-            'Files': ['yaml', 'json', 'yml', 'graphql']
+            'Files': ['yaml', 'json', 'yml', 'graphql', 'wsdl']
         },
         title: "Select a file",
     });
@@ -110,4 +123,130 @@ export async function applyBallerinaTomlEdit(tomlPath: Uri, textEdit: TextEdit) 
         } else {
         }
     });
+}
+
+export async function selectSampleDownloadPath(): Promise<string> {
+    const folderPath = await window.showOpenDialog({ title: 'Sample download directory', canSelectFolders: true, canSelectFiles: false, openLabel: 'Select Folder' });
+    if (folderPath && folderPath.length > 0) {
+        const newlySelectedFolder = folderPath[0].fsPath;
+        return newlySelectedFolder;
+    }
+    return "";
+}
+
+async function downloadFile(url: string, filePath: string, progressCallback?: (downloadProgress: any) => void) {
+    const writer = fs.createWriteStream(filePath);
+    let totalBytes = 0;
+    try {
+        const response = await axios.get(url, {
+            responseType: 'stream',
+            headers: {
+                "User-Agent": "axios"
+            },
+            onDownloadProgress: (progressEvent) => {
+                totalBytes = progressEvent.total ?? 0;
+                if (totalBytes === 0) {
+                    // Cannot calculate progress without total size
+                    return;
+                }
+                const formatSize = (sizeInBytes: number) => {
+                    const sizeInKB = sizeInBytes / 1024;
+                    if (sizeInKB < 1024) {
+                        return `${Math.floor(sizeInKB)} KB`;
+                    } else {
+                        return `${Math.floor(sizeInKB / 1024)} MB`;
+                    }
+                };
+                const progress = {
+                    percentage: Math.round((progressEvent.loaded * 100) / totalBytes),
+                    downloadedAmount: formatSize(progressEvent.loaded),
+                    downloadSize: formatSize(totalBytes)
+                };
+                if (progressCallback) {
+                    progressCallback(progress);
+                }
+            }
+        });
+        response.data.pipe(writer);
+        await new Promise<void>((resolve, reject) => {
+            writer.on('finish', () => {
+                writer.close();
+                resolve();
+            });
+
+            writer.on('error', (error) => {
+                reject(error);
+            });
+        });
+    } catch (error) {
+        window.showErrorMessage(`Error while downloading the file: ${error}`);
+        throw error;
+    }
+}
+
+export async function handleDownloadFile(rawFileLink: string, defaultDownloadsPath: string, progress: Progress<ProgressMessage>) {
+    const handleProgress = (progressPercentage) => {
+        progress.report({ message: "Downloading file...", increment: progressPercentage });
+    };
+    try {
+        await downloadFile(rawFileLink, defaultDownloadsPath, handleProgress);
+    } catch (error) {
+        window.showErrorMessage(`Failed to download file: ${error}`);
+    }
+    progress.report({ message: "Download finished" });
+}
+
+export function findWorkspaceTypeFromProjectInfo(projectInfo: ProjectInfo): WorkspaceTypeResponse {
+    const projectType = projectInfo.projectKind;
+    switch (projectType) {
+        case PROJECT_KIND.WORKSPACE_PROJECT:
+            return { type: "BALLERINA_WORKSPACE" };
+        case PROJECT_KIND.BUILD_PROJECT:
+            return { type: "SINGLE_PROJECT" };
+        default:
+            return { type: "UNKNOWN" };
+    }
+}
+
+export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<WorkspaceTypeResponse> {
+    const workspaceFolders = workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        throw new Error("No workspaces found.");
+    }
+
+    if (workspaceFolders.length > 1) {
+        let balPackagesCount = 0;
+        for (const folder of workspaceFolders) {
+            const packages = await getBallerinaPackages(folder.uri);
+            balPackagesCount += packages.length;
+        }
+
+        const isWorkspaceFile = workspace.workspaceFile?.scheme === "file";
+        if (balPackagesCount > 1) {
+            return isWorkspaceFile
+                ? { type: "VSCODE_WORKSPACE" }
+                : { type: "MULTIPLE_PROJECTS" };
+        }
+    } else if (workspaceFolders.length === 1) {
+        const workspaceFolderPath = workspaceFolders[0].uri.fsPath;
+
+        const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceFolderPath));
+        if (isBallerinaWorkspace) {
+            return { type: "BALLERINA_WORKSPACE" };
+        }
+
+        const isBallerinaPackage = await checkIsBallerinaPackage(Uri.file(workspaceFolderPath));
+        if (isBallerinaPackage) {
+            return { type: "SINGLE_PROJECT" };
+        }
+
+        const hasMultiplePackages = await hasMultipleBallerinaPackages(Uri.file(workspaceFolderPath));
+        if (hasMultiplePackages) {
+            return { type: "MULTIPLE_PROJECTS" };
+        }
+
+        return { type: "UNKNOWN" };
+    }
+
+    return { type: "UNKNOWN" };
 }

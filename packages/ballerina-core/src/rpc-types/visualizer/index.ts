@@ -19,7 +19,7 @@
 import { HistoryEntry } from "../../history";
 import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
-import { AddToUndoStackRequest, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
+import { AddToUndoStackRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
 
 export interface VisualizerAPI {
     openView: (params: OpenViewRequest) => void;
@@ -32,7 +32,9 @@ export interface VisualizerAPI {
     redo: (count: number) => Promise<string>;
     addToUndoStack: (params: AddToUndoStackRequest) => void;
     undoRedoState: () => Promise<UndoRedoStateResponse>;
-    joinProjectPath: (segments: string | string[]) => Promise<string>;
+    resetUndoRedoStack: () => void;
+    joinProjectPath: (params: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
+    reviewAccepted: () => void;
 }

@@ -18,11 +18,12 @@
 
 import React, { useState } from "react";
 import { CDService } from "@wso2/ballerina-core";
-import { Button, Item, Menu, MenuItem, Popover, Icon } from "@wso2/ui-toolkit";
+import { Item, Menu, MenuItem, Popover, Icon } from "@wso2/ui-toolkit";
 import { useDiagramContext } from "../../../DiagramContext";
 import { MoreVertIcon } from "../../../../resources/icons/nodes/MoreVertIcon";
 import { getEntryNodeFunctionPortName } from "../../../../utils/diagram";
 import { BaseNodeWidgetProps, EntryNodeModel } from "../EntryNodeModel";
+import { useClickWithDragTolerance } from "../../../../hooks/useClickWithDragTolerance";
 import {
     Node,
     Box,
@@ -52,7 +53,7 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
 
-    const { onFunctionSelect, onDeleteComponent } = useDiagramContext();
+    const { onFunctionSelect, onDeleteComponent, readonly } = useDiagramContext();
     const isMenuOpen = Boolean(menuAnchorEl);
 
     const serviceFunctions = [];
@@ -69,6 +70,8 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
         }
     };
 
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
+
     const handleOnMenuClick = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
         event.stopPropagation();
         setMenuAnchorEl(event.currentTarget);
@@ -76,6 +79,14 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
 
     const handleOnMenuClose = () => {
         setMenuAnchorEl(null);
+    };
+
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
     };
 
     const menuItems: Item[] = [
@@ -88,16 +99,24 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
             <TopPortWidget port={model.getPort("in")!} engine={engine} />
             <Box hovered={isHovered}>
                 <ServiceBox
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    onClick={handleOnClick}
+                    onMouseEnter={() => !readonly && setIsHovered(true)}
+                    onMouseLeave={() => !readonly && setIsHovered(false)}
+                    onMouseDown={!readonly ? handleMouseDown : undefined}
+                    onMouseUp={!readonly ? handleMouseUp : undefined}
+                    readonly={readonly}
                 >
                     <IconWrapper><Icon name="bi-ai-agent" /></IconWrapper>
-                    <Header hovered={isHovered}>
+                    <Header hovered={isHovered} inactive={readonly}>
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
-                    <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                    <MenuButton 
+                        appearance="icon" 
+                        onClick={!readonly ? handleOnMenuClick : undefined}
+                        onMouseDown={!readonly ? handleMenuMouseDown : undefined}
+                        onMouseUp={!readonly ? handleMenuMouseUp : undefined}
+                        disabled={readonly}
+                    >
                         <MoreVertIcon />
                     </MenuButton>
                 </ServiceBox>

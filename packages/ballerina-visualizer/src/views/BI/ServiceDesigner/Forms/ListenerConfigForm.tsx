@@ -20,11 +20,9 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { ListenerModel, LineRange, RecordTypeField, PropertyModel, PropertyTypeMemberInfo, Property } from "@wso2/ballerina-core";
+import { ListenerModel, LineRange, RecordTypeField, Property, getPrimaryInputType } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
-import { FormHeader } from "../../../../components/FormHeader";
 import { getImportsForProperty } from "../../../../utils/bi";
 
 const Container = styled.div`
@@ -72,8 +70,8 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
     useEffect(() => {
         const recordTypeFields: RecordTypeField[] = Object.entries(listenerModel.properties)
             .filter(([_, property]) =>
-                property.typeMembers &&
-                property.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                getPrimaryInputType(property.types)?.typeMembers &&
+                getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
             )
             .map(([key, property]) => ({
                 key,
@@ -83,20 +81,20 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                         label: property.metadata?.label || key,
                         description: property.metadata?.description || ''
                     },
-                    valueType: property?.valueType || 'string',
+                    types: property?.types || [{ fieldType: 'STRING' }],
                     diagnostics: {
                         hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                         diagnostics: property.diagnostics
                     }
                 } as Property,
-                recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
         console.log(">>> recordTypeFields", recordTypeFields);
         setRecordTypeFields(recordTypeFields);
 
         listenerModel && setListenerFields(convertConfig(listenerModel));
-        rpcClient.getVisualizerRpcClient().joinProjectPath('main.bal').then((filePath) => {
-            setFilePath(filePath);
+        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+            setFilePath(response.filePath);
         });
     }, [listenerModel]);
 
@@ -194,14 +192,13 @@ function convertConfig(listener: ListenerModel): FormField[] {
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: expression.valueType,
+            type: getPrimaryInputType(expression.types)?.fieldType,
             documentation: expression?.metadata.description || "",
-            valueType: expression.valueTypeConstraint,
             editable: expression.editable,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
             value: expression.value,
-            valueTypeConstraint: expression.valueTypeConstraint,
+            types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
             items: expression.items,

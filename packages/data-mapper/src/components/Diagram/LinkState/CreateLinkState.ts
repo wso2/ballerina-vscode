@@ -29,8 +29,8 @@ import { getMappingType, handleExpand, isExpandable, isPendingMappingRequired } 
 import { removePendingMappingTempLinkIfExists } from '../utils/link-utils';
 import { useDMExpressionBarStore } from '../../../store/store';
 import { IntermediatePortModel } from '../Port/IntermediatePort';
-import { LinkConnectorNode } from '../Node/LinkConnector/LinkConnectorNode';
 import { isQueryHeaderPort } from '../utils/port-utils';
+import { ClauseConnectorNode, LinkConnectorNode } from '../Node';
 /**
  * This state is controlling the creation of a link.
  */
@@ -97,13 +97,13 @@ export class CreateLinkState extends State<DiagramEngine> {
 							// select the target port of the link to create a mapping
 							const targetPort = (element as DataMapperLinkModel).getTargetPort();
 
-							if (targetPort instanceof InputOutputPortModel && !isQueryHeaderPort(targetPort)) {
+							if (targetPort instanceof InputOutputPortModel) {
 								element = targetPort;
 							}
 
 							if (targetPort instanceof IntermediatePortModel) {
 								const parentNode = targetPort.getNode();
-								if (parentNode instanceof LinkConnectorNode) {
+								if (parentNode instanceof LinkConnectorNode || parentNode instanceof ClauseConnectorNode) {
 									element = parentNode.targetMappedPort;
 								}
 							}
@@ -120,7 +120,7 @@ export class CreateLinkState extends State<DiagramEngine> {
 						this.clearState();
 						this.eject();
 					} else if (element instanceof PortModel && !this.sourcePort) {
-						if (element instanceof InputOutputPortModel && !isQueryHeaderPort(element)) {
+						if (element instanceof InputOutputPortModel) {
 							if (element.attributes.portType === "OUT") {
 								this.sourcePort = element;
 								element.fireEvent({}, "mappingStartedFrom");
@@ -135,14 +135,14 @@ export class CreateLinkState extends State<DiagramEngine> {
 									context: (element.getNode() as DataMapperNodeModel).context
 								}));
 								this.link = link;
-							} else if (!isValueConfig) {
+							} else if (!isValueConfig && !isQueryHeaderPort(element)) {
 								element.fireEvent({}, "expressionBarFocused");
 								this.clearState();
 								this.eject();
 							}
 						}
 					} else if (element instanceof PortModel && this.sourcePort && element !== this.sourcePort) {
-						if ((element instanceof InputOutputPortModel && !isQueryHeaderPort(element))) {
+						if ((element instanceof InputOutputPortModel)) {
 							if (element.attributes.portType === "IN") {
 								let isDisabled = false;
 								if (element instanceof InputOutputPortModel) {

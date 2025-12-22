@@ -28,8 +28,12 @@ export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
 	ArrayToSingletonAggregate = "array-singleton-aggregate",
+	ArrayJoin = "array-join",
 	Incompatible = "incompatible",
 	ContainsUnions = "contains-unions",
+	SeqToPrimitive = "seq-primitive",
+	SeqToArray = "seq-array",
+	ConvertiblePrimitives = "conv-primitives",
 	Default = undefined // This is for non-array mappings currently
 }
 

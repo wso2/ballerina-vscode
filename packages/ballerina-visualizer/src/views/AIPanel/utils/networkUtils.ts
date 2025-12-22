@@ -83,6 +83,25 @@ export function abortFetchWithAuth() {
     }
 }
 
+/**
+ * Convert a ReadableStream to a string
+ */
+export async function streamToString(stream: ReadableStream<Uint8Array>): Promise<string> {
+    const reader = stream.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let result = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+            break;
+        }
+        result += decoder.decode(value, { stream: true });
+    }
+
+    return result;
+}
+
 function isErrorWithMessage(error: unknown): error is { message: string } {
     return typeof error === 'object' && error !== null && 'message' in error;
 }

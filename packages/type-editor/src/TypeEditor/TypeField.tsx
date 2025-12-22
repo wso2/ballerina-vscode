@@ -122,6 +122,8 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
             const [moduleName, typeName] = value.split(':');
             if (moduleName && typeName) {
                 // Valid module:Type format, skip validation
+                setTypeError("");
+                onValidationError?.(false);
                 return;
             }
         }
@@ -160,7 +162,7 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
                         label: "",
                         description: "",
                     },
-                    valueType: "TYPE",
+                    types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }],
                     value: "",
                     optional: false,
                     editable: true

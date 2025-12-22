@@ -51,7 +51,23 @@ import {
     currentThemeChanged,
     ChatNotify,
     onChatNotify,
-    AIMachineSendableEvent
+    sendAIChatStateEvent,
+    AIChatMachineEventType,
+    aiChatStateChanged,
+    AIChatMachineSendableEvent,
+    AIChatMachineStateValue,
+    getAIChatContext,
+    getAIChatUIHistory,
+    AIChatMachineContext,
+    UIChatHistoryMessage,
+    checkpointCaptured,
+    CheckpointCapturedPayload,
+    AIPanelPrompt,
+    promptUpdated,
+    AIMachineSendableEvent,
+    dependencyPullProgress,
+    ProjectMigrationResult,
+    onMigratedProject
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -195,6 +211,30 @@ export class BallerinaRpcClient {
         this.messenger.sendRequest(sendAIStateEvent, HOST_EXTENSION, event);
     }
 
+    onAIChatStateChanged(callback: (state: AIChatMachineStateValue) => void) {
+        this.messenger.onNotification(aiChatStateChanged, callback);
+    }
+
+    sendAIChatStateEvent(event: AIChatMachineEventType | AIChatMachineSendableEvent) {
+        this.messenger.sendRequest(sendAIChatStateEvent, HOST_EXTENSION, event);
+    }
+
+    getAIChatContext(): Promise<AIChatMachineContext> {
+        return this.messenger.sendRequest(getAIChatContext, HOST_EXTENSION);
+    }
+
+    getAIChatUIHistory(): Promise<UIChatHistoryMessage[]> {
+        return this.messenger.sendRequest(getAIChatUIHistory, HOST_EXTENSION);
+    }
+
+    onCheckpointCaptured(callback: (payload: CheckpointCapturedPayload) => void) {
+        this.messenger.onNotification(checkpointCaptured, callback);
+    }
+
+    onPromptUpdated(callback: () => void) {
+        this.messenger.onNotification(promptUpdated, callback);
+    }
+
     onProjectContentUpdated(callback: (state: boolean) => void) {
         this.messenger.onNotification(projectContentUpdated, callback);
     }
@@ -235,6 +275,14 @@ export class BallerinaRpcClient {
 
     onMigrationToolStateChanged(callback: (state: string) => void) {
         this.messenger.onNotification(onMigrationToolStateChanged, callback);
+    }
+
+    onDependencyPullProgress(callback: (message: string) => void) {
+        this.messenger.onNotification(dependencyPullProgress, callback);
+    }
+
+    onMigratedProject(callback: (result: ProjectMigrationResult) => void) {
+        this.messenger.onNotification(onMigratedProject, callback);
     }
 
     getPopupVisualizerState(): Promise<PopupVisualizerLocation> {

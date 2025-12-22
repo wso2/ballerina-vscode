@@ -34,12 +34,13 @@ export function AutomationPanel(props: AutomationPanelProps) {
     const { rpcClient } = useRpcContext();
 
     useEffect(() => {
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getProjectStructure()
-            .then((res) => {
-                setAutomationExists(res.directoryMap[DIRECTORY_MAP.AUTOMATION].length > 0);
+        rpcClient.getVisualizerLocation().then((location) => {
+            const projectPath = location.projectPath;
+            rpcClient.getBIDiagramRpcClient().getProjectStructure().then((res) => {
+                const project = res.projects.find(project => project.projectPath === projectPath);
+                setAutomationExists(project?.directoryMap[DIRECTORY_MAP.AUTOMATION].length > 0);
             });
+        });
     }, []);
 
     const outOfScope = props.scope && (props.scope !== SCOPE.AUTOMATION && props.scope !== SCOPE.ANY);

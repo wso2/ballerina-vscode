@@ -100,8 +100,14 @@ export interface RecordsInWorkspaceMentions {
 }
 
 export interface ReadmeContentRequest {
-    read: boolean
+    projectPath: string;
+    read?: boolean
     content?: string;
+}
+
+export interface OpenReadmeRequest {
+    projectPath: string;
+    isWorkspaceReadme?: boolean;
 }
 
 export interface ReadmeContentResponse {
@@ -153,8 +159,8 @@ export interface CurrentBreakpointsResponse {
 }
 
 export interface AIChatRequest {
-    scafold: boolean;
     readme: boolean;
+    planMode: boolean;
 }
 
 export interface ImportStatements {
@@ -186,4 +192,8 @@ export interface DevantMetadata {
 
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
+}
+
+export interface DeleteProjectRequest {
+    projectPath: string;
 }

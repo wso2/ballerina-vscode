@@ -34,7 +34,12 @@ import {
     Imports,
     CodeData,
     LinePosition,
-    NodeProperties
+    NodeProperties,
+    ExpressionCompletionsRequest,
+    ExpressionCompletionsResponse,
+    InputType,
+    getPrimaryInputType,
+    Diagnostic
 } from "@wso2/ballerina-core";
 import {
     FormField,
@@ -43,7 +48,8 @@ import {
     ExpressionFormField,
     FormExpressionEditorProps,
     FormImports,
-    HelperpaneOnChangeOptions
+    HelperpaneOnChangeOptions,
+    InputMode
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -64,6 +70,7 @@ import { FormTypeEditor } from "../../TypeEditor";
 import { getTypeHelper } from "../../TypeHelper";
 import { EXPRESSION_EXTRACTION_REGEX, TypeHelperContext } from "../../../../constants";
 import { getHelperPaneNew } from "../../HelperPaneNew";
+import { ConfigureRecordPage } from "../../HelperPaneNew/Views/RecordConfigModal";
 import React from "react";
 import { BreadcrumbContainer, BreadcrumbItem, BreadcrumbSeparator } from "../FormGenerator";
 import { EditorContext, StackItem } from "@wso2/type-editor";
@@ -87,6 +94,7 @@ interface FormProps {
     onCancel?: () => void;
     editForm?: boolean;
     isGraphqlEditor?: boolean;
+    isDataMapperEditor?: boolean;
     onSubmit: (data: FormValues, formImports?: FormImports, importsCodedata?: CodeData) => void;
     isSaving?: boolean;
     isActiveSubPanel?: boolean;
@@ -110,6 +118,7 @@ interface FormProps {
     changeOptionalFieldTitle?: string;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     hideSaveButton?: boolean;
+    customDiagnosticFilter?: (diagnostics: Diagnostic[]) => Diagnostic[];
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -125,6 +134,7 @@ export function FormGeneratorNew(props: FormProps) {
         onSubmit,
         isSaving,
         isGraphqlEditor,
+        isDataMapperEditor,
         openSubPanel,
         updatedExpressionField,
         resetUpdatedExpressionField,
@@ -141,7 +151,8 @@ export function FormGeneratorNew(props: FormProps) {
         injectedComponents,
         changeOptionalFieldTitle,
         onChange,
-        hideSaveButton
+        hideSaveButton,
+        customDiagnosticFilter
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -169,6 +180,17 @@ export function FormGeneratorNew(props: FormProps) {
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
 
     const { addModal, closeModal, popModal } = useModalStack();
+
+    // State to manage record config page modal
+    const [recordConfigPageState, setRecordConfigPageState] = useState<{
+        isOpen: boolean;
+        fieldKey?: string;
+        currentValue?: string;
+        recordTypeField?: RecordTypeField;
+        onChangeCallback?: (value: string) => void;
+    }>({
+        isOpen: false
+    });
 
     //stack for recursive type creation
     const [stack, setStack] = useState<StackItem[]>([{
@@ -394,11 +416,11 @@ export function FormGeneratorNew(props: FormProps) {
             });
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -437,7 +459,7 @@ export function FormGeneratorNew(props: FormProps) {
                         .sort((a, b) => a.sortText.localeCompare(b.sortText));
                 } else {
                     const { lineOffset, charOffset } = calculateExpressionOffsets(value, offset);
-                    let completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                    const completionRequest: ExpressionCompletionsRequest = {
                         filePath: fileName,
                         context: {
                             expression: value,
@@ -451,7 +473,14 @@ export function FormGeneratorNew(props: FormProps) {
                             triggerKind: triggerCharacter ? 2 : 1,
                             triggerCharacter: triggerCharacter as TriggerCharacter
                         }
-                    });
+                    };
+
+                    let completions: ExpressionCompletionsResponse;
+                    if (!isDataMapperEditor) {
+                        completions = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions(completionRequest);
+                    } else {
+                        completions = await rpcClient.getBIDiagramRpcClient().getDataMapperCompletions(completionRequest);
+                    }
 
                     // Convert completions to the ExpressionEditor format
                     let convertedCompletions: CompletionItem[] = [];
@@ -508,7 +537,7 @@ export function FormGeneratorNew(props: FormProps) {
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                valueTypeConstraint?: string,
+                types?: InputType[],
                 fieldKey?: string
             ) => {
                 let context: TypeHelperContext | undefined;
@@ -519,22 +548,22 @@ export function FormGeneratorNew(props: FormProps) {
                 let visibleTypes = typesCache.current.get(typesCacheKey);
 
                 if (!visibleTypes) {
-                    let types;
+                    let visibleTypesResponse;
                     if (isGraphqlEditor && fieldKey && context) {
-                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                        visibleTypesResponse = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: fileName,
                             context: context,
                         });
                     } else {
-                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                        visibleTypesResponse = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                             filePath: fileName,
                             position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                            ...(getPrimaryInputType(types)?.ballerinaType && { typeConstraint: getPrimaryInputType(types)?.ballerinaType })
                         });
                     }
 
-                    const isFetchingTypesForDM = valueTypeConstraint === "json";
-                    visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
+                    const isFetchingTypesForDM = getPrimaryInputType(types)?.ballerinaType === "json";
+                    visibleTypes = convertToVisibleTypes(visibleTypesResponse, isFetchingTypesForDM);
                     typesCache.current.set(typesCacheKey, visibleTypes);
                 }
                 setTypes(visibleTypes);
@@ -556,8 +585,8 @@ export function FormGeneratorNew(props: FormProps) {
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string, fieldKey?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint, fieldKey);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, types?: InputType[], fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, types, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -624,6 +653,10 @@ export function FormGeneratorNew(props: FormProps) {
                         let uniqueDiagnostics = removeDuplicateDiagnostics(response.diagnostics);
                         // HACK: filter unknown module and undefined type diagnostics for local connections
                         uniqueDiagnostics = filterUnsupportedDiagnostics(uniqueDiagnostics);
+                        // Apply custom diagnostic filter if provided
+                        if (customDiagnosticFilter) {
+                            uniqueDiagnostics = customDiagnosticFilter(uniqueDiagnostics);
+                        }
 
                         setDiagnosticsInfo({ key, diagnostics: uniqueDiagnostics });
                     }
@@ -636,7 +669,7 @@ export function FormGeneratorNew(props: FormProps) {
             },
             250
         ),
-        [rpcClient, fileName, targetLineRange]
+        [rpcClient, fileName, targetLineRange, customDiagnosticFilter]
     );
 
     const handleGetHelperPane = (
@@ -650,7 +683,8 @@ export function FormGeneratorNew(props: FormProps) {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string,
+        types?: InputType[],
+        inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
             debouncedRetrieveCompletions.cancel();
@@ -676,16 +710,17 @@ export function FormGeneratorNew(props: FormProps) {
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
-            valueTypeConstraint: valueTypeConstraint,
+            types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
             handleValueTypeConstChange: handleValueTypeConstChange,
             forcedValueTypeConstraint: valueTypeConstraints,
+            inputMode: inputMode,
         });
     };
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -717,7 +752,7 @@ export function FormGeneratorNew(props: FormProps) {
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            valueTypeConstraint: valueTypeConstraint,
+            types: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
@@ -862,6 +897,22 @@ export function FormGeneratorNew(props: FormProps) {
         })
     }
 
+    const openRecordConfigPage = (fieldKey: string, currentValue: string, recordTypeField: RecordTypeField, onChangeCallback: (value: string) => void) => {
+        setRecordConfigPageState({
+            isOpen: true,
+            fieldKey,
+            currentValue,
+            recordTypeField,
+            onChangeCallback
+        });
+    };
+
+    const closeRecordConfigPage = () => {
+        setRecordConfigPageState({
+            isOpen: false
+        });
+    };
+
     const expressionEditor = useMemo(() => {
         return {
             completions: filteredCompletions,
@@ -880,9 +931,10 @@ export function FormGeneratorNew(props: FormProps) {
             onCompletionItemSelect: handleCompletionItemSelect,
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
-            helperPaneOrigin: "vertical",
-            helperPaneHeight: "default",
-        } as FormExpressionEditorProps;
+            onOpenRecordConfigPage: openRecordConfigPage,
+            helperPaneOrigin: "vertical" as const,
+            helperPaneHeight: "default" as const,
+        } satisfies FormExpressionEditorProps;
     }, [
         filteredCompletions,
         filteredTypes,
@@ -890,9 +942,13 @@ export function FormGeneratorNew(props: FormProps) {
         extractArgsFromFunction,
         handleGetVisibleTypes,
         handleGetHelperPane,
+        handleGetTypeHelper,
+        handleExpressionFormDiagnostics,
         handleCompletionItemSelect,
         handleExpressionEditorBlur,
-        handleExpressionEditorCancel
+        handleExpressionEditorCancel,
+        openRecordConfigPage,
+        types,
     ]);
 
     const handleSubmit = (values: FormValues) => {
@@ -975,6 +1031,44 @@ export function FormGeneratorNew(props: FormProps) {
                     </div>
                 </DynamicModal>)
             }
+            {recordConfigPageState.isOpen &&
+                recordConfigPageState.fieldKey &&
+                recordConfigPageState.recordTypeField &&
+                recordConfigPageState.onChangeCallback && (
+                    <DynamicModal
+                        width={800}
+                        height={600}
+                        anchorRef={undefined}
+                        title="Record Configuration"
+                        openState={recordConfigPageState.isOpen}
+                        setOpenState={(isOpen: boolean) => {
+                            if (!isOpen) {
+                                closeRecordConfigPage();
+                            }
+                        }}
+                    >
+                        <ConfigureRecordPage
+                            fileName={fileName}
+                            targetLineRange={targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined}
+                            onChange={(value: string, isRecordConfigureChange: boolean) => {
+                                recordConfigPageState.onChangeCallback!(value);
+                            }}
+                            currentValue={recordConfigPageState.currentValue || ""}
+                            recordTypeField={recordConfigPageState.recordTypeField}
+                            onClose={closeRecordConfigPage}
+                            getHelperPane={handleGetHelperPane}
+                            field={fieldsValues.find(f => f.key === recordConfigPageState.fieldKey)}
+                            triggerCharacters={TRIGGER_CHARACTERS}
+                            formContext={{
+                                expressionEditor: expressionEditor,
+                                popupManager: popupManager,
+                                nodeInfo: {
+                                    kind: selectedNode || "EXPRESSION"
+                                }
+                            }}
+                        />
+                    </DynamicModal>
+                )}
         </EditorContext.Provider>
     );
 }

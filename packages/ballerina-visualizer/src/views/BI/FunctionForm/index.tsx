@@ -17,12 +17,11 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties, Property, NodePropertyKey, DIRECTORY_MAP, ProjectStructureArtifactResponse, MACHINE_VIEW, EVENT_TYPE } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -111,12 +110,13 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
+            const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }
-            if (field.key === "parameters") {
-                if ((field.valueTypeConstraint as any).value.parameterDescription) {
-                    (field.valueTypeConstraint as any).value.parameterDescription.type = "TEXTAREA";
+            if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
+                if ((primaryInputType.template as any).value.parameterDescription) {
+                    (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                 }
             }
         });
@@ -126,7 +126,7 @@ export function FunctionForm(props: FunctionFormProps) {
 
     const getFunctionNode = async (kind: NodeKind) => {
         setIsLoading(true);
-        const filePath = await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        const filePath = (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
         const res = await rpcClient
             .getBIDiagramRpcClient()
             .getNodeTemplate({
@@ -243,8 +243,9 @@ export function FunctionForm(props: FunctionFormProps) {
             const properties = functionNodeCopy.properties as NodeProperties;
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
-                    if (property.valueType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = property.valueTypeConstraint;
+                    if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
+                        const primaryType = getPrimaryInputType(property.types);
+                        const baseConstraint = primaryType?.ballerinaType;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
@@ -367,7 +368,7 @@ export function FunctionForm(props: FunctionFormProps) {
         <View>
             {!isPopup &&
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar
                         title={formType.current}
                         subtitle={titleSubtitle}

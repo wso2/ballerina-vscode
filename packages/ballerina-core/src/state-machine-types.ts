@@ -20,9 +20,9 @@ import { NotificationType, RequestType } from "vscode-messenger-common";
 import { NodePosition, STNode } from "@wso2/syntax-tree";
 import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
-import { Type } from "./interfaces/extended-lang-client";
+import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -63,7 +63,8 @@ export enum SCOPE {
 export type VoidCommands = "OPEN_LOW_CODE" | "OPEN_PROJECT" | "CREATE_PROJECT";
 
 export enum MACHINE_VIEW {
-    Overview = "Overview",
+    PackageOverview = "Overview",
+    WorkspaceOverview = "Workspace Overview",
     BallerinaUpdateView = "Ballerina Update View",
     SequenceDiagram = "Sequence Diagram",
     ServiceDesigner = "Service Designer",
@@ -98,7 +99,9 @@ export enum MACHINE_VIEW {
     AIAgentDesigner = "AI Agent Designer",
     AIChatAgentWizard = "AI Chat Agent Wizard",
     ResolveMissingDependencies = "Resolve Missing Dependencies",
-    ServiceFunctionForm = "Service Function Form"
+    ServiceFunctionForm = "Service Function Form",
+    BISamplesView = "BI Samples View",
+    ReviewMode = "Review Mode SKIP"
 }
 
 export interface MachineEvent {
@@ -123,12 +126,14 @@ export interface VisualizerLocation {
     documentUri?: string;
     projectPath?: string;
     workspacePath?: string;
+    projectInfo?: ProjectInfo;
     identifier?: string;
     parentIdentifier?: string;
     artifactType?: DIRECTORY_MAP;
     position?: NodePosition;
     syntaxTree?: STNode;
     isBI?: boolean;
+    isInDevant?: boolean;
     focusFlowDiagramView?: FocusFlowDiagramView;
     serviceType?: string;
     type?: Type;
@@ -144,6 +149,7 @@ export interface VisualizerLocation {
     version?: string;
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
+    reviewData?: ReviewModeData;
 }
 
 export interface ArtifactInfo {
@@ -169,6 +175,21 @@ export interface VisualizerMetadata {
 export interface DataMapperMetadata {
     name: string;
     codeData: CodeData;
+}
+
+export interface ReviewViewItem {
+    type: 'component' | 'flow';
+    filePath: string;
+    position: NodePosition;
+    projectPath: string;
+    label?: string;
+}
+
+export interface ReviewModeData {
+    views: ReviewViewItem[];
+    currentIndex: number;
+    onAccept?: string;
+    onReject?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
@@ -198,12 +219,17 @@ export type ChatNotify =
     | CodeDiagnostics
     | CodeMessages
     | ChatStop
+    | ChatAbort
+    | SaveChat
     | ChatError
     | ToolCall
     | ToolResult
     | EvalsToolResult
     | UsageMetricsEvent
-    | GeneratedSourcesEvent;
+    | TaskApprovalRequest
+    | GeneratedSourcesEvent
+    | ConnectorGenerationNotification
+    | CodeReviewActions;
 
 export interface ChatStart {
     type: "start";
@@ -236,6 +262,17 @@ export interface ChatStop {
     command: Command | undefined;
 }
 
+export interface ChatAbort {
+    type: "abort";
+    command: Command | undefined;
+}
+
+export interface SaveChat {
+    type: "save_chat";
+    command: Command | undefined;
+    messageId: string;
+}
+
 export interface ChatError {
     type: "error";
     content: string;
@@ -244,12 +281,13 @@ export interface ChatError {
 export interface ToolCall {
     type: "tool_call";
     toolName: string;
+    toolInput?: any;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
-    toolOutput: any;
+    toolOutput?: any;
 }
 
 export interface EvalsToolResult {
@@ -269,9 +307,46 @@ export interface UsageMetricsEvent {
     };
 }
 
+export interface TaskApprovalRequest {
+    type: "task_approval_request";
+    approvalType: "plan" | "completion";
+    tasks: Task[];
+    taskDescription?: string;
+    message?: string;
+}
+
 export interface GeneratedSourcesEvent {
     type: "generated_sources";
     fileArray: SourceFile[];
+}
+
+export interface ConnectorGenerationNotification {
+    type: "connector_generation_notification";
+    requestId: string;
+    stage: "requesting_input" | "input_received" | "generating" | "generated" | "skipped" | "error";
+    serviceName?: string;
+    serviceDescription?: string;
+    spec?: {
+        version: string;
+        title: string;
+        description?: string;
+        baseUrl?: string;
+        endpointCount: number;
+        methods: string[];
+    };
+    connector?: {
+        moduleName: string;
+        importStatement: string;
+    };
+    error?: {
+        message: string;
+        code: string;
+    };
+    message: string;
+}
+
+export interface CodeReviewActions {
+    type: "review_actions";
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
@@ -279,9 +354,12 @@ export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
+export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };
 export const projectContentUpdated: NotificationType<boolean> = { method: 'projectContentUpdated' };
+export const promptUpdated: NotificationType<void> = { method: 'promptUpdated' };
 export const getVisualizerLocation: RequestType<void, VisualizerLocation> = { method: 'getVisualizerLocation' };
 export const webviewReady: NotificationType<void> = { method: `webviewReady` };
+export const dependencyPullProgress: NotificationType<string> = { method: 'dependencyPullProgress' };
 
 // Artifact updated request and notification
 export const onArtifactUpdatedNotification: NotificationType<ProjectStructureArtifactResponse[]> = { method: 'onArtifactUpdatedNotification' };
@@ -343,19 +421,193 @@ export type AIMachineSendableEvent =
         : { type: K; payload: AIMachineEventMap[K] }
     }[keyof AIMachineEventMap];
 
+export type AIChatMachineStateValue =
+    | 'Idle'
+    | 'Initiating'
+    | 'GeneratingPlan'
+    | 'ResumingGeneration'
+    | 'PlanReview'
+    | 'ApprovedPlan'
+    | 'ExecutingTask'
+    | 'ExecutingDatamapper'
+    | 'TaskReview'
+    | 'ApprovedTask'
+    | 'RejectedTask'
+    | 'WaitingForConnectorSpec'
+    | 'Completed'
+    | 'PartiallyCompleted'
+    | 'Error';
+
+export enum AIChatMachineEventType {
+    SUBMIT_AGENT_PROMPT = 'SUBMIT_AGENT_PROMPT',
+    SUBMIT_DATAMAPPER_REQUEST = 'SUBMIT_DATAMAPPER_REQUEST',
+    UPDATE_CHAT_MESSAGE = 'UPDATE_CHAT_MESSAGE',
+    RESET = 'RESET',
+    PLANNING_STARTED = 'PLANNING_STARTED',
+    DATAMAPPER_GENERATION_STARTED = 'DATAMAPPER_GENERATION_STARTED',
+    PLAN_GENERATED = 'PLAN_GENERATED',
+    APPROVE_PLAN = 'APPROVE_PLAN',
+    REJECT_PLAN = 'REJECT_PLAN',
+    START_TASK_EXECUTION = 'START_TASK_EXECUTION',
+    TASK_COMPLETED = 'TASK_COMPLETED',
+    FINISH_EXECUTION = 'FINISH_EXECUTION',
+    APPROVE_TASK = 'APPROVE_TASK',
+    ENABLE_AUTO_APPROVE = 'ENABLE_AUTO_APPROVE',
+    DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
+    REJECT_TASK = 'REJECT_TASK',
+    RESTORE_STATE = 'RESTORE_STATE',
+    RESTORE_CHECKPOINT = 'RESTORE_CHECKPOINT',
+    ERROR = 'ERROR',
+    RETRY = 'RETRY',
+    CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
+    PROVIDE_CONNECTOR_SPEC = 'PROVIDE_CONNECTOR_SPEC',
+    SKIP_CONNECTOR_GENERATION = 'SKIP_CONNECTOR_GENERATION',
+    SHOW_REVIEW_ACTIONS = 'SHOW_REVIEW_ACTIONS',
+    HIDE_REVIEW_ACTIONS = 'HIDE_REVIEW_ACTIONS',
+}
+
+export interface ChatMessage {
+    id: string;
+    content: string;
+    uiResponse: string;
+    modelMessages: any[];
+    timestamp: number;
+    checkpointId?: string;
+}
+
+export interface Checkpoint {
+    id: string;
+    messageId: string;
+    timestamp: number;
+    workspaceSnapshot: { [filePath: string]: string };
+    fileList: string[];
+    snapshotSize: number;
+}
+
+/**
+ * Task status enum
+ */
+export enum TaskStatus {
+    PENDING = "pending",
+    IN_PROGRESS = "in_progress",
+    COMPLETED = "completed",
+    REVIEW = "review"
+}
+
+export enum TaskTypes {
+    SERVICE_DESIGN = "service_design",
+    CONNECTIONS_INIT = "connections_init",
+    IMPLEMENTATION = "implementation"
+}
+
+/**
+ * Task interface representing a single implementation task
+ */
+export interface Task {
+    description: string;
+    status: TaskStatus;
+    type : TaskTypes;
+}
+
+export interface Plan {
+    id: string;
+    tasks: Task[];
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface Question {
+    id: string;
+    question: string;
+    context?: string;
+    timestamp: number;
+}
+
+export interface UserApproval {
+    comment?: string;
+}
+
+export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+
+export interface AIChatMachineContext {
+    chatHistory: ChatMessage[];
+    currentPlan?: Plan;
+    currentTaskIndex: number;
+    currentQuestion?: Question;
+    errorMessage?: string;
+    sessionId?: string;
+    projectId?: string;
+    currentApproval?: UserApproval;
+    autoApproveEnabled?: boolean;
+    isPlanMode?: boolean;
+    codeContext?: CodeContext;
+    fileAttachments: FileAttatchment[];
+    currentSpec?: {
+        requestId: string;
+        spec?: any;
+        provided?: boolean;
+        skipped?: boolean;
+        comment?: string;
+    };
+    previousState?: AIChatMachineStateValue;
+    checkpoints?: Checkpoint[];
+    // Generation type field
+    generationType?: 'agent' | 'datamapper';
+    // Command execution fields
+    commandType?: string;
+    modifiedFiles?: string[];
+    commandParams?: any;
+    // Review actions state
+    showReviewActions?: boolean;
+    operationType?: OperationType;
+}
+
+export type AIChatMachineSendableEvent =
+    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType, fileAttachments?: FileAttatchment[] } }
+    | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
+    | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
+    | { type: AIChatMachineEventType.PLANNING_STARTED }
+    | { type: AIChatMachineEventType.DATAMAPPER_GENERATION_STARTED }
+    | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
+    | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
+    | { type: AIChatMachineEventType.REJECT_PLAN; payload: { comment?: string } }
+    | { type: AIChatMachineEventType.START_TASK_EXECUTION }
+    | { type: AIChatMachineEventType.TASK_COMPLETED }
+    | { type: AIChatMachineEventType.FINISH_EXECUTION }
+    | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
+    | { type: AIChatMachineEventType.ENABLE_AUTO_APPROVE }
+    | { type: AIChatMachineEventType.DISABLE_AUTO_APPROVE }
+    | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
+    | { type: AIChatMachineEventType.RESET }
+    | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
+    | { type: AIChatMachineEventType.RESTORE_CHECKPOINT; payload: { checkpointId: string } }
+    | { type: AIChatMachineEventType.ERROR; payload: { message: string } }
+    | { type: AIChatMachineEventType.RETRY }
+    | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
+    | { type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC; payload: { requestId: string; spec: any; inputMethod: 'file' | 'paste' | 'url'; sourceIdentifier?: string } }
+    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } }
+    | { type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS }
+    | { type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS };
+
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
+    DEVANT_ENV = 'devant_env',
     AWS_BEDROCK = 'aws_bedrock'
 }
 
-interface BIIntelSecrets {
+export interface BIIntelSecrets {
     accessToken: string;
     refreshToken: string;
 }
 
-interface AnthropicKeySecrets {
+export interface AnthropicKeySecrets {
     apiKey: string;
+}
+
+export interface DevantEnvSecrets {
+    accessToken: string;
+    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
@@ -375,12 +627,22 @@ export type AuthCredentials =
         secrets: AnthropicKeySecrets;
     }
     | {
+        loginMethod: LoginMethod.DEVANT_ENV;
+        secrets: DevantEnvSecrets;
+    }
+    | {
         loginMethod: LoginMethod.AWS_BEDROCK;
         secrets: AwsBedrockSecrets;
     };
 
 export interface AIUserToken {
-    token: string; // For BI Intel, this is the access token and for Anthropic, this is the API key
+    credentials: AuthCredentials;
+    usageToken?: string;
+    metadata?: {
+        lastRefresh?: string;
+        expiresAt?: string;
+        [key: string]: any;
+    };
 }
 
 export interface AIMachineContext {
@@ -396,6 +658,35 @@ export enum ColorThemeKind {
     HighContrastLight = 4
 }
 
+export interface UIChatHistoryMessage {
+    role: "user" | "assistant";
+    content: string;
+    checkpointId?: string;
+    messageId?: string;
+}
+
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
 export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };
+
+export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { method: 'aiChatStateChanged' };
+export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
+export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
+export const getAIChatUIHistory: RequestType<void, UIChatHistoryMessage[]> = { method: 'getAIChatUIHistory' };
+
+export interface CheckpointCapturedPayload {
+    messageId: string;
+    checkpointId: string;
+}
+export const checkpointCaptured: NotificationType<CheckpointCapturedPayload> = { method: 'checkpointCaptured' };
+
+// Connector Generator RPC methods
+export interface ConnectorGeneratorResponsePayload {
+    requestId: string;
+    action: 'provide' | 'skip';
+    spec?: any;
+    inputMethod?: 'file' | 'paste' | 'url';
+    sourceIdentifier?: string;
+    comment?: string;
+}
+export const sendConnectorGeneratorResponse: RequestType<ConnectorGeneratorResponsePayload, void> = { method: 'sendConnectorGeneratorResponse' };

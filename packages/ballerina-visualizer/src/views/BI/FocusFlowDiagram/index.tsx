@@ -19,11 +19,9 @@
 import { debounce } from "lodash";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import {
-    Category as PanelCategory,
-} from "@wso2/ballerina-side-panel";
+import { Category as PanelCategory } from "@wso2/ballerina-side-panel";
 import styled from "@emotion/styled";
-import { MemoizedDiagram } from "@wso2/bi-diagram";
+import { MemoizedDiagram, GetHelperPaneFunction } from "@wso2/bi-diagram";
 import {
     BIAvailableNodesRequest,
     Flow,
@@ -61,6 +59,7 @@ import { View, ProgressRing, ProgressIndicator, ThemeColors, CompletionItem } fr
 import { EXPRESSION_EXTRACTION_REGEX } from "../../../constants";
 import { ConnectionKind } from "../../../components/ConnectionSelector";
 import { SidePanelView } from "../FlowDiagram/PanelManager";
+import { createPromptHelperPane } from "./utils";
 
 const Container = styled.div`
     width: 100%;
@@ -144,7 +143,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then(async (model) => {
                         console.log(">>> focus diagram flow model", model);
                         if (model?.flowModel) {
@@ -274,7 +273,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                         label: "Comment",
                         description: "Comment to describe the flow",
                     },
-                    valueType: "STRING",
                     value: `\n${comment}\n\n`, // HACK: add extra new lines to get last position right
                     optional: false,
                     advanced: false,
@@ -406,11 +404,12 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         rpcClient.getBIDiagramRpcClient().removeBreakpointFromSource(request);
     };
 
-    const handleOpenView = async (filePath: string, position: NodePosition) => {
-        console.log(">>> open view: ", { filePath, position });
+    const handleOpenView = async (location: VisualizerLocation) => {
+        console.log(">>> open view: ", { location });
         const context: VisualizerLocation = {
-            documentUri: filePath,
-            position: position,
+            documentUri: location.documentUri,
+            position: location.position,
+            projectPath: location.projectPath || undefined,
         };
         await rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: context });
     };
@@ -430,7 +429,6 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 value: string,
                 property: ExpressionProperty,
                 offset: number,
-                invalidateCache: boolean,
                 triggerCharacter?: string
             ) => {
                 let expressionCompletions: CompletionItem[] = [];
@@ -440,8 +438,7 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 if (
                     completions.length > 0 &&
                     !triggerCharacter &&
-                    parentContent === prevCompletionFetchText.current &&
-                    !invalidateCache
+                    parentContent === prevCompletionFetchText.current
                 ) {
                     expressionCompletions = completions
                         .filter((completion) => {
@@ -510,10 +507,9 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
             value: string,
             property: ExpressionProperty,
             offset: number,
-            invalidateCache: boolean,
             triggerCharacter?: string
         ) => {
-            await debouncedRetrieveCompletions(value, property, offset, invalidateCache, triggerCharacter);
+            await debouncedRetrieveCompletions(value, property, offset, triggerCharacter);
 
             if (triggerCharacter) {
                 await debouncedRetrieveCompletions.flush();
@@ -532,6 +528,18 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         }
         debouncedRetrieveCompletions.cancel();
         handleExpressionEditorCancel();
+    };
+
+    const handleGetExpressionTokens = async (
+        expression: string,
+        fileName: string,
+        position: { line: number; offset: number }
+    ): Promise<number[]> => {
+        return rpcClient.getBIDiagramRpcClient().getExpressionTokens({
+            expression: expression,
+            filePath: fileName,
+            position: position
+        });
     };
 
     const handleExpressionEditorBlur = () => {
@@ -592,6 +600,46 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
         setShowProgressIndicator(false);
     };
 
+    const createHelperPane = useCallback<GetHelperPaneFunction>((
+        fieldKey,
+        exprRef,
+        anchorRef,
+        defaultValue,
+        value,
+        onChange,
+        changeHelperPaneState,
+        helperPaneHeight,
+        recordTypeField,
+        isAssignIdentifier,
+        valueTypeConstraint,
+        inputMode
+    ) => {
+        if (!selectedNode || !model) {
+            return <></>;
+        }
+
+        return createPromptHelperPane({
+            selectedNode,
+            model,
+            fieldKey,
+            exprRef,
+            anchorRef,
+            defaultValue,
+            value,
+            onChange,
+            changeHelperPaneState,
+            helperPaneHeight,
+            recordTypeField,
+            valueTypeConstraint,
+            inputMode,
+            completions,
+            filteredCompletions,
+            projectPath,
+            rpcClient,
+            debouncedRetrieveCompletions
+        });
+    }, [model, projectPath, completions, filteredCompletions, debouncedRetrieveCompletions, rpcClient, selectedNode]);
+
     const memoizedDiagramProps = useMemo(
         () => ({
             model: flowModel,
@@ -610,13 +658,15 @@ export function BIFocusFlowDiagram(props: BIFocusFlowDiagramProps) {
                 retrieveCompletions: handleRetrieveCompletions,
                 onCompletionItemSelect: handleCompletionItemSelect,
                 onBlur: handleExpressionEditorBlur,
-                onCancel: handleExpressionEditorCancel
+                onCancel: handleExpressionEditorCancel,
+                getHelperPane: createHelperPane,
+                getExpressionTokens: handleGetExpressionTokens
             },
             aiNodes: {
                 onModelSelect: handleOnEditNPFunctionModel,
             },
         }),
-        [flowModel, projectPath, breakpointInfo, filteredCompletions]
+        [flowModel, projectPath, breakpointInfo, filteredCompletions, createHelperPane, handleGetExpressionTokens]
     );
 
     return (

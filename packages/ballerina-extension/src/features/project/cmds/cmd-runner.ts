@@ -50,7 +50,6 @@ export const PALETTE_COMMANDS = {
     SHOW_DIAGRAM: 'ballerina.show.diagram',
     SHOW_SOURCE: 'ballerina.show.source',
     SHOW_ARCHITECTURE_VIEW: 'ballerina.view.architectureView',
-    SHOW_EXAMPLES: 'ballerina.showExamples',
     REFRESH_SHOW_ARCHITECTURE_VIEW: "ballerina.view.architectureView.refresh",
     RUN_CONFIG: 'ballerina.project.run.config',
     CONFIG_CREATE_COMMAND: 'ballerina.project.config.create',
@@ -67,11 +66,14 @@ export const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 export enum BALLERINA_COMMANDS {
     TEST = "test", BUILD = "build", FORMAT = "format", RUN = "run", RUN_WITH_WATCH = "run --watch", DOC = "doc",
     ADD = "add", OTHER = "other", PACK = "pack", RUN_WITH_EXPERIMENTAL = "run --experimental",
-    BUILD_WITH_EXPERIMENTAL = "build --experimental",
+    BUILD_WITH_EXPERIMENTAL = "build --experimental", PACK_WITH_EXPERIMENTAL = "pack --experimental",
 }
 
 export enum PROJECT_TYPE {
-    SINGLE_FILE = "SINGLE_FILE_PROJECT", BUILD_PROJECT = "BUILD_PROJECT", BALR_PROJECT = "BALR_PROJECT"
+    SINGLE_FILE = "SINGLE_FILE_PROJECT",
+    BUILD_PROJECT = "BUILD_PROJECT",
+    BALR_PROJECT = "BALR_PROJECT",
+    WORKSPACE = "WORKSPACE_PROJECT"
 }
 
 export enum COMMAND_OPTIONS {
@@ -82,12 +84,13 @@ export enum MESSAGES {
     NOT_SUPPORT = "Ballerina version is not supported by the VSCode plugin.",
     MODULE_NAME = "Enter module name.",
     SELECT_OPTION = "Select a build option.",
-    NOT_IN_PROJECT = "Current file does not belong to a ballerina project.",
+    NOT_IN_PROJECT = "Current file does not belong to a Ballerina project.",
     INVALID_PACK = "Only a Ballerina package can be packed.",
     INVALID_JSON = "Invalid JSON String",
     INVALID_JSON_RESPONSE = "JSON response is invalid.",
     INVALID_XML = "Invalid XML String",
-    INVALID_XML_RESPONSE = "XML response is invalid."
+    INVALID_XML_RESPONSE = "XML response is invalid.",
+    NO_PROJECT_FOUND = "No Ballerina project found."
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';
@@ -204,3 +207,4 @@ export function getRunCommand(): BALLERINA_COMMANDS {
     }
     return BALLERINA_COMMANDS.RUN;
 }
+

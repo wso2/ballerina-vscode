@@ -31,12 +31,13 @@ import { ClockIcon, ListenIcon } from "../../../resources";
 import { useDiagramContext } from "../../DiagramContext";
 import { CDListener } from "@wso2/ballerina-core";
 import { MoreVertIcon } from "../../../resources/icons/nodes/MoreVertIcon";
+import { useClickWithDragTolerance } from "../../../hooks/useClickWithDragTolerance";
 
 type NodeStyleProp = {
     hovered: boolean;
     inactive?: boolean;
 };
-const Node = styled.div<NodeStyleProp>`
+const Node = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -44,14 +45,14 @@ const Node = styled.div<NodeStyleProp>`
     height: ${LISTENER_NODE_HEIGHT}px;
     width: ${LISTENER_NODE_WIDTH}px;
     color: ${ThemeColors.ON_SURFACE};
-    cursor: pointer;
 `;
 
-const Row = styled.div<NodeStyleProp>`
+const ClickableArea = styled.div<{ readonly?: boolean }>`
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
     gap: 12px;
+    cursor: ${(props) => props.readonly ? "default" : "pointer"};
 `;
 
 const Header = styled.div`
@@ -130,14 +131,15 @@ export interface NodeWidgetProps extends Omit<ListenerNodeWidgetProps, "children
 export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     const { model, engine } = props;
     const [isHovered, setIsHovered] = React.useState(false);
-    const { onListenerSelect, onDeleteComponent } = useDiagramContext();
+    const { onListenerSelect, onDeleteComponent, readonly } = useDiagramContext();
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
-
 
     const handleOnClick = () => {
         onListenerSelect(model.node as CDListener);
     };
+
+    const { handleMouseDown, handleMouseUp } = useClickWithDragTolerance(handleOnClick);
 
     const getNodeIcon = () => {
         if (model.node.type === AUTOMATION_LISTENER) {
@@ -172,6 +174,14 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
         setMenuAnchorEl(null);
     };
 
+    const handleMenuMouseDown = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
+    const handleMenuMouseUp = (event: React.MouseEvent) => {
+        event.stopPropagation();
+    };
+
     const menuItems: Item[] = [
         { id: "edit", label: "Edit", onClick: () => handleOnClick() },
 
@@ -181,27 +191,34 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     ];
 
     return (
-        <Node
-            hovered={isHovered}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onClick={handleOnClick}
-        >
-            <Row hovered={isHovered}>
+        <Node>
+            <ClickableArea
+                onMouseEnter={() => !readonly && setIsHovered(true)}
+                onMouseLeave={() => !readonly && setIsHovered(false)}
+                onMouseDown={!readonly ? handleMouseDown : undefined}
+                onMouseUp={!readonly ? handleMouseUp : undefined}
+                readonly={readonly}
+            >
                 <Circle hovered={isHovered}>
                     <LeftPortWidget port={model.getPort("in")!} engine={engine} />
                     <Icon>{getNodeIcon()}</Icon>
 
                     <RightPortWidget port={model.getPort("out")!} engine={engine} />
                 </Circle>
-                <MenuButton appearance="icon" onClick={handleOnMenuClick}>
+                <MenuButton 
+                    appearance="icon" 
+                    onClick={handleOnMenuClick}
+                    onMouseDown={!readonly ? handleMenuMouseDown : undefined}
+                    onMouseUp={!readonly ? handleMenuMouseUp : undefined}
+                    disabled={readonly}
+                >
                     <MoreVertIcon />
                 </MenuButton>
                 <Header>
                     <Title hovered={isHovered}>{getNodeTitle()}</Title>
                     <Description>{getNodeDescription()}</Description>
                 </Header>
-            </Row>
+            </ClickableArea>
 
             <Popover
                 open={isMenuOpen}

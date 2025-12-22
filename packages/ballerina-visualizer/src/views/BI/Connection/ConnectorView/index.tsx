@@ -91,6 +91,7 @@ const StyledSearchInput = styled(SearchBox)`
 `;
 
 interface ConnectorViewProps {
+    projectPath: string;
     fileName: string;
     targetLinePosition: LinePosition;
     onSelectConnector: (connector: AvailableNode) => void;
@@ -103,6 +104,7 @@ interface ConnectorViewProps {
 
 export function ConnectorView(props: ConnectorViewProps) {
     const {
+        projectPath,
         fileName,
         targetLinePosition,
         onSelectConnector,
@@ -277,7 +279,7 @@ export function ConnectorView(props: ConnectorViewProps) {
         <ViewWrapper isHalfView={hideTitle}>
             {isFullView && (
                 <>
-                    <TopNavigationBar />
+                    <TopNavigationBar projectPath={projectPath} />
                     <TitleBar title="Connectors" subtitle="Select a connector to integrate with external services" />
                 </>
             )}

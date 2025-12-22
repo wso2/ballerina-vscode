@@ -16,12 +16,12 @@
 
 import { TestEventResult, TestUseCase, TestCaseResult } from '../types';
 import { evaluateCodeWithLLM, LLMEvaluationResult } from './evaluator-utils';
-import { SourceFiles } from '@wso2/ballerina-core';
+import { SourceFile } from '@wso2/ballerina-core';
 
 /**
  * Validates test result based on error events and diagnostics
  */
-export async function validateTestResult(result: TestEventResult, useCase: TestUseCase, initialSources: SourceFiles[], finalSources: SourceFiles[]): Promise<TestCaseResult> {
+export async function validateTestResult(result: TestEventResult, useCase: TestUseCase, initialSources: SourceFile[], finalSources: SourceFile[]): Promise<TestCaseResult> {
     const validationDetails = {
         noErrorCheck: true,
         noDiagnosticsCheck: true
@@ -49,6 +49,7 @@ export async function validateTestResult(result: TestEventResult, useCase: TestU
         passed,
         failureReason: failureReason || undefined,
         validationDetails,
-        evaluationResult: evaluation
+        evaluationResult: evaluation,
+        generatedSources: finalSources
     };
 }

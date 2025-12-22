@@ -27,7 +27,6 @@ import DataMapperDiagram from "../Diagram/Diagram";
 import { DataMapperHeader } from "./Header/DataMapperHeader";
 import { DataMapperNodeModel } from "../Diagram/Node/commons/DataMapperNode";
 import { IONodeInitVisitor } from "../../visitors/IONodeInitVisitor";
-import { DataMapperErrorBoundary } from "./ErrorBoundary";
 import { traverseNode } from "../../utils/model-utils";
 import { View } from "./Views/DataMapperView";
 import {
@@ -41,7 +40,6 @@ import {
 import { KeyboardNavigationManager } from "../../utils/keyboard-navigation-manager";
 import { DataMapperEditorProps } from "../../index";
 import { ErrorNodeKind } from "./Error/RenderingError";
-import { IOErrorComponent } from "./Error/DataMapperError";
 import { IntermediateNodeInitVisitor } from "../../visitors/IntermediateNodeInitVisitor";
 import {
     LinkConnectorNode,
@@ -128,7 +126,6 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         applyModifications,
         onClose,
         onRefresh,
-        onReset,
         onEdit,
         addArrayElement,
         handleView,
@@ -139,10 +136,13 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         generateForm,
         addClauses,
         deleteClause,
+        getClausePosition,
         mapWithCustomFn,
         mapWithTransformFn,
         goToFunction,
         enrichChildFields,
+        genUniqueName,
+        getConvertedExpression,
         undoRedoGroup
     } = props;
     const {
@@ -150,15 +150,13 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         hasInputsOutputsChanged = false
     } = modelState;
 
-    const initialView = [{
+    const initialView: View[] = [{
         label: model.output.name,
         targetField: name
     }];
 
     const [views, dispatch] = useReducer(viewsReducer, initialView);
     const [nodes, setNodes] = useState<DataMapperNodeModel[]>([]);
-    const [errorKind, setErrorKind] = useState<ErrorNodeKind>();
-    const [hasInternalError, setHasInternalError] = useState(false);
 
     const { isSMConfigPanelOpen, resetSubMappingConfig } = useDMSubMappingConfigPanelStore(
         useShallow(state => ({
@@ -189,6 +187,19 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     const resetView = useCallback((newData: View) => {
         dispatch({ type: ActionType.RESET_VIEW, payload: { view: newData } });
     }, [resetSearchStore]);
+
+    const handleOnReset = useCallback(async () => {
+        const targetField = views[views.length - 1].targetField;
+        const outputIds = targetField.split('.');
+
+        let output: string;
+        while ((output = outputIds.pop()) === '0');
+        
+        await deleteMapping(
+            { output, expression: undefined },
+            targetField
+        );
+    }, [views, deleteMapping]);
 
     useEffect(() => {
         const lastView = views[views.length - 1];
@@ -228,17 +239,20 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             const context = new DataMapperContext(
                 model, 
                 views, 
+                hasInputsOutputsChanged,
                 addView, 
                 applyModifications, 
                 addArrayElement,
-                hasInputsOutputsChanged,
                 convertToQuery,
                 deleteMapping,
                 deleteSubMapping,
+                addClauses,
                 mapWithCustomFn,
                 mapWithTransformFn,
                 goToFunction,
-                enrichChildFields
+                enrichChildFields,
+                genUniqueName,
+                getConvertedExpression
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
@@ -268,7 +282,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             ]);
         } catch (error) {
             console.error("Error generating nodes:", error);
-            setHasInternalError(true);
+            throw error;
         }
     };
 
@@ -304,7 +318,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     };
 
     const handleErrors = (kind: ErrorNodeKind) => {
-        setErrorKind(kind);
+        throw new Error("Diagram rendering error:" + kind);
     };
 
     const autoMapWithAI = async () => {
@@ -323,51 +337,48 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
     }
 
     return (
-        <DataMapperErrorBoundary hasError={hasInternalError} onClose={onClose}>
-            <div className={classes.root}>
-                {model && (
-                    <DataMapperHeader
-                        views={views}
-                        reusable={reusable}
-                        switchView={switchView}
-                        hasEditDisabled={!!errorKind}
-                        onClose={handleOnClose}
-                        onBack={handleOnBack}
-                        onRefresh={onRefresh}
-                        onReset={onReset}
-                        onEdit={onEdit}
-                        autoMapWithAI={autoMapWithAI}
-                        undoRedoGroup={undoRedoGroup}
+        <div className={classes.root}>
+            {model && (
+                <DataMapperHeader
+                    views={views}
+                    reusable={reusable}
+                    switchView={switchView}
+                    onClose={handleOnClose}
+                    onBack={handleOnBack}
+                    onRefresh={onRefresh}
+                    onReset={handleOnReset}
+                    onEdit={onEdit}
+                    autoMapWithAI={autoMapWithAI}
+                    undoRedoGroup={undoRedoGroup}
+                />
+            )}
+            {nodes.length > 0 && (
+                <>
+                    <DataMapperDiagram
+                        nodes={nodes}
+                        onError={handleErrors}
                     />
-                )}
-                {errorKind && <IOErrorComponent errorKind={errorKind} classes={classes} />}
-                {nodes.length > 0 && !errorKind && (
-                    <>
-                        <DataMapperDiagram
-                            nodes={nodes}
-                            onError={handleErrors}
+                    {isSMConfigPanelOpen && (
+                        <SubMappingConfigForm
+                            views={views}
+                            updateView={editView}
+                            addSubMapping={addNewSubMapping}
+                            generateForm={generateForm}
                         />
-                        {isSMConfigPanelOpen && (
-                            <SubMappingConfigForm
-                                views={views}
-                                updateView={editView}
-                                addSubMapping={addNewSubMapping}
-                                generateForm={generateForm}
-                            />
-                        )}
-                        {isQueryClausesPanelOpen && (
-                            <ClausesPanel
-                                query={model.query}
-                                targetField={views[views.length - 1].targetField}
-                                addClauses={addClauses}
-                                deleteClause={deleteClause}
-                                generateForm={generateForm}
-                            />
-                        )}
-                    </>
-                )}
-                
-            </div>
-        </DataMapperErrorBoundary>
-    )
+                    )}
+                    {isQueryClausesPanelOpen && (
+                        <ClausesPanel
+                            query={model.query}
+                            targetField={views[views.length - 1].targetField}
+                            addClauses={addClauses}
+                            deleteClause={deleteClause}
+                            getClausePosition={getClausePosition}
+                            generateForm={generateForm}
+                            genUniqueName={genUniqueName}
+                        />
+                    )}
+                </>
+            )}
+        </div>
+    );
 }

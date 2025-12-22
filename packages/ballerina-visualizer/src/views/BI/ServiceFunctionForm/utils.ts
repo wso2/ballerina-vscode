@@ -17,9 +17,10 @@
  */
 
 
-import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, ConfigProperties, NodePosition, DIRECTORY_MAP, getPrimaryInputType } from '@wso2/ballerina-core';
 import { FormField, Parameter, FormValues, FormImports } from '@wso2/ballerina-side-panel';
 import { getImportsForProperty } from '../../../utils/bi';
+import { BallerinaRpcClient } from '@wso2/ballerina-rpc-client';
 
 type ServiceFunctionError = {
     type: 'LOAD_ERROR' | 'SAVE_ERROR' | 'VALIDATION_ERROR';
@@ -27,9 +28,9 @@ type ServiceFunctionError = {
     originalError?: unknown;
 };
 
-const resolveFilePath = async (rpcClient: any, fileName: string): Promise<string> => {
+const resolveFilePath = async (rpcClient: BallerinaRpcClient, fileName: string): Promise<string> => {
     try {
-        return await rpcClient.getVisualizerRpcClient().joinProjectPath(fileName);
+        return (await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: [fileName] })).filePath;
     } catch (error) {
         throw new Error(`Failed to resolve file path for ${fileName}`);
     }
@@ -55,8 +56,8 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             optional: typeField?.optional ?? false,
             type: {
                 value: param.formValues['type'] as string,
-                valueType: typeField?.valueType,
                 isType: true,
+                types: typeField?.types,
                 optional: typeField?.optional,
                 advanced: typeField?.advanced,
                 addNewButton: false,
@@ -66,7 +67,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             name: {
                 value: param.formValues['variable'] as string,
-                valueType: nameField?.valueType,
+                types: nameField?.types,
                 isType: false,
                 optional: nameField?.optional,
                 advanced: nameField?.advanced,
@@ -76,7 +77,7 @@ const getFunctionParametersList = (params: Parameter[], model: FunctionModel | n
             },
             defaultValue: {
                 value: param.formValues['defaultable'],
-                valueType: defaultField?.valueType || 'string',
+                types: defaultField?.types,
                 isType: false,
                 optional: defaultField?.optional,
                 advanced: defaultField?.advanced,
@@ -93,14 +94,13 @@ function convertParameterToFormField(key: string, param: ParameterModel): FormFi
     return {
         key: key === "defaultValue" ? "defaultable" : key === "name" ? "variable" : key,
         label: param.metadata?.label,
-        type: param.valueType || 'string',
+        type: getPrimaryInputType(param.types)?.fieldType || 'string',
         optional: param.optional || false,
         editable: param.editable || false,
         advanced: key === "defaultValue" ? true : param.advanced,
         documentation: param.metadata?.description || '',
         value: param.value || '',
-        valueType: param.valueType,
-        valueTypeConstraint: param?.valueTypeConstraint || '',
+        types: param?.types || [],
         enabled: param.enabled ?? true,
         lineRange: param?.codedata?.lineRange
     };

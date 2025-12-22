@@ -21,8 +21,11 @@ import {
     AddArrayElementRequest,
     AddClausesRequest,
     AddSubMappingRequest,
-    AllDataMapperSourceRequest,
+    ClausePositionRequest,
+    ClausePositionResponse,
     ClearTypeCacheResponse,
+    ConvertExpressionRequest,
+    ConvertExpressionResponse,
     ConvertToQueryRequest,
     DMModelRequest,
     DataMapperAPI,
@@ -34,6 +37,7 @@ import {
     DeleteMappingRequest,
     DeleteSubMappingRequest,
     ExpandedDMModelResponse,
+    FieldPropertyRequest,
     GetDataMapperCodedataRequest,
     GetDataMapperCodedataResponse,
     GetSubMappingCodedataRequest,
@@ -54,10 +58,13 @@ import {
     deleteClause,
     deleteMapping,
     deleteSubMapping,
+    getClausePosition,
+    getConvertedExpression,
     getDataMapperCodedata,
     getDataMapperModel,
     getDataMapperSource,
     getExpandedDMFromDMModel,
+    getFieldProperty,
     getInitialIDMSource,
     getProcessTypeReference,
     getProperty,
@@ -140,12 +147,24 @@ export class DataMapperRpcClient implements DataMapperAPI {
         return this._messenger.sendRequest(getProperty, HOST_EXTENSION, params);
     }
 
+    getFieldProperty(params: FieldPropertyRequest): Promise<PropertyResponse> {
+        return this._messenger.sendRequest(getFieldProperty, HOST_EXTENSION, params);
+    }
+
+    getClausePosition(params: ClausePositionRequest): Promise<ClausePositionResponse> {
+        return this._messenger.sendRequest(getClausePosition, HOST_EXTENSION, params);
+    }
+
     getExpandedDMFromDMModel(params: DMModelRequest): Promise<ExpandedDMModelResponse> {
         return this._messenger.sendRequest(getExpandedDMFromDMModel, HOST_EXTENSION, params);
     }
 
     getProcessTypeReference(params: ProcessTypeReferenceRequest): Promise<ProcessTypeReferenceResponse> {
         return this._messenger.sendRequest(getProcessTypeReference, HOST_EXTENSION, params);
+    }
+
+    getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
+        return this._messenger.sendRequest(getConvertedExpression, HOST_EXTENSION, params);
     }
 
     clearTypeCache(): Promise<ClearTypeCacheResponse> {
