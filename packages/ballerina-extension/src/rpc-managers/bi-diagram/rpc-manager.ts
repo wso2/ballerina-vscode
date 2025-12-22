@@ -992,7 +992,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async openConfigToml(params: OpenConfigTomlRequest): Promise<void> {
         return new Promise(async (resolve) => {
             console.log(">>> opening Config.toml at", params.filePath);
-            const currentProject: BallerinaProject | undefined = await getCurrentBallerinaProject(params.filePath);;
+            const currentProject: BallerinaProject | undefined = await getCurrentBallerinaProject(params.filePath);
 
             const configFilePath = path.join(params.filePath, "Config.toml");
             const ignoreFile = path.join(params.filePath, ".gitignore");
