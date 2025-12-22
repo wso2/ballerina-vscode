@@ -129,7 +129,7 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             FlowModelGeneratorResponse response = new FlowModelGeneratorResponse();
             try {
-                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                Path filePath = PathUtil.convertUriStringToPath(request.filePath());
                 // Obtain the semantic model and the document
                 WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.filePath());
                 Project project = workspaceManager.loadProject(filePath);

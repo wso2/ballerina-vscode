@@ -79,7 +79,7 @@ public class BallerinaRunnerService implements ExtendedLanguageServerService {
             try {
                 ProjectDiagnosticsResponse projectDiagnosticsResponse = new ProjectDiagnosticsResponse();
                 String filePathUri = request.getProjectRootIdentifier().getUri();
-                Path filePath = PathUtil.getPathFromUriEncodeString(filePathUri);
+                Path filePath = PathUtil.convertUriStringToPath(filePathUri);
 
                 // Obtain the semantic model and the document
                 WorkspaceManager workspaceManager = workspaceManagerProxy.get(filePathUri);

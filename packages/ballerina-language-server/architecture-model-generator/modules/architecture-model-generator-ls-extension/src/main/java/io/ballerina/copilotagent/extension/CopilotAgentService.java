@@ -60,7 +60,7 @@ public class CopilotAgentService implements ExtendedLanguageServerService {
     public CompletableFuture<SemanticDiffResponse> getSemanticDiff(SemanticDiffRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             SemanticDiffResponse response = new SemanticDiffResponse();
-            Path path = PathUtil.getPathFromUriEncodeString(request.projectPath());
+            Path path = PathUtil.convertUriStringToPath(request.projectPath());
             Project originalProject;
             Project shadowProject;
             try {
