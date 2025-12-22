@@ -27,9 +27,6 @@ export interface StreamContext {
 
     // Shared mutable state (accumulated during stream processing)
     modifiedFiles: string[];
-    accumulatedMessages: any[];
-    currentAssistantContent: any[];
-    selectedLibraries: string[];
 
     // Configuration (immutable during stream)
     tempProjectPath: string;
@@ -38,7 +35,7 @@ export interface StreamContext {
     messageId: string;
     userMessageContent: any;
 
-    // Response promise (for abort/finish handling)
+    // Response promise (for message history and abort/finish handling)
     response: Promise<any>;
 
     // Execution context (for workspace integration)
