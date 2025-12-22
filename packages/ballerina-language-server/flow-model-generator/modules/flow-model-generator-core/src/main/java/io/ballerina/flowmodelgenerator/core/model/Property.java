@@ -250,7 +250,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
-        return value.toString();
+        return CommonUtils.extractLiteralFromStringTemplate(value.toString());
     }
 
     // Enum for backward compatibility

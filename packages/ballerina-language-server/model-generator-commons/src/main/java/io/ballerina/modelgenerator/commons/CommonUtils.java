@@ -46,12 +46,15 @@ import io.ballerina.compiler.syntax.tree.ChildNodeList;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
+import io.ballerina.compiler.syntax.tree.InterpolationNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
+import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -128,6 +131,8 @@ public class CommonUtils {
     public static final String AI_AZURE = "ai.azure";
     public static final List<String> AI_MODULE_NAMES = List.of(AI_OPENAI, AI_ANTHROPIC, AI_DEEPSEEK,
             AI_MISTRAL, AI_OLLAMA, AI_AZURE);
+
+    private static final String DOUBLE_QUOTE = "\"";
 
     /**
      * Removes the quotes from the given string.
@@ -1303,5 +1308,41 @@ public class CommonUtils {
      */
     public static String removeQuotedIdentifier(String identifier) {
         return identifier.startsWith("'") ? identifier.substring(1) : identifier;
+    }
+
+    /**
+     * Extracts the literal content from a Ballerina string template if it does not contain interpolations.
+     *
+     * <p>This method analyzes string templates (e.g., string `Hello`) and extracts the literal content
+     * if no interpolations are present. If interpolations exist (e.g., `string Hello ${name}`),
+     * the original value is returned unchanged.
+     *
+     * @param value the string template value to process
+     * @return the extracted literal content wrapped in double quotes if no interpolations are found,
+     *         or the original value if it contains interpolations or is not a valid string template
+     */
+    public static String extractLiteralFromStringTemplate(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
+        if (!pattern.matcher(value).matches()) {
+            return value;
+        }
+
+        TemplateExpressionNode exprNode = (TemplateExpressionNode) NodeParser.parseExpression(value);
+        boolean hasInterpolations = exprNode.content().stream()
+                .anyMatch(node -> node instanceof InterpolationNode);
+
+        if (hasInterpolations) {
+            return value;
+        }
+
+        String content = exprNode.content().size() == 1
+                ? exprNode.content().get(0).toString().trim()
+                : exprNode.toString().trim();
+
+        return DOUBLE_QUOTE + content + DOUBLE_QUOTE;
     }
 }

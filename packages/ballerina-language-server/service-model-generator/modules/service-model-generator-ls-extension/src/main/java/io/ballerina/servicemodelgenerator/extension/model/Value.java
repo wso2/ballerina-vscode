@@ -19,15 +19,12 @@
 package io.ballerina.servicemodelgenerator.extension.model;
 
 import com.google.gson.JsonPrimitive;
-import io.ballerina.compiler.syntax.tree.InterpolationNode;
-import io.ballerina.compiler.syntax.tree.NodeParser;
-import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 
@@ -144,20 +141,7 @@ public class Value {
     }
 
     public String getValue() {
-        String value = getValueString();
-        Pattern pattern = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
-        boolean matches = pattern.matcher(value != null ? value : "").matches();
-        if (!matches) {
-            return value;
-        }
-        TemplateExpressionNode exprNode = (TemplateExpressionNode) NodeParser.parseExpression(value);
-        boolean hasInterpolations  = exprNode.content().stream().anyMatch(node -> node instanceof InterpolationNode);
-        if (hasInterpolations) {
-            return value;
-        }
-        String content = exprNode.content().size() == 1 ? exprNode.content().get(0).toString().trim()
-                : exprNode.toString().trim();
-        return DOUBLE_QUOTE + content + DOUBLE_QUOTE;
+        return CommonUtils.extractLiteralFromStringTemplate(getValueString());
     }
 
     public String getValueString() {
