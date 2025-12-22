@@ -109,9 +109,7 @@ import {
     SignatureHelpRequest,
     SignatureHelpResponse,
     SourceEditResponse,
-    UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
-    UpdateConfigVariableResponse,
     UpdateConfigVariableResponseV2,
     UpdateImportsRequest,
     UpdateImportsResponse,
@@ -154,7 +152,6 @@ import {
     getAvailableVectorStores,
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
-    getConfigVariables,
     getConfigVariablesV2,
     getDataMapperCompletions,
     getDesignModel,
@@ -197,7 +194,6 @@ import {
     search,
     searchNodes,
     updateClassField,
-    updateConfigVariables,
     updateConfigVariablesV2,
     updateImports,
     updateRecordConfig,
@@ -314,14 +310,6 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getDataMapperCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
         return this._messenger.sendRequest(getDataMapperCompletions, HOST_EXTENSION, params);
-    }
-
-    getConfigVariables(): Promise<ConfigVariableResponse> {
-        return this._messenger.sendRequest(getConfigVariables, HOST_EXTENSION);
-    }
-
-    updateConfigVariables(params: UpdateConfigVariableRequest): Promise<UpdateConfigVariableResponse> {
-        return this._messenger.sendRequest(updateConfigVariables, HOST_EXTENSION, params);
     }
 
     getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {

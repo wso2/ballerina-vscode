@@ -27,7 +27,7 @@ export interface CheckpointConfig {
 
 export const DEFAULT_CHECKPOINT_CONFIG: CheckpointConfig = {
     enabled: true,
-    maxCount: 20,
+    maxCount: 3,
     ignorePatterns: [
         'node_modules/**',
         '.git/**',

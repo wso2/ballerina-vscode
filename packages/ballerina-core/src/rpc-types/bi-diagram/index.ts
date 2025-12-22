@@ -29,8 +29,6 @@ import {
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ConfigVariableResponse,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     SignatureHelpRequest,
     SignatureHelpResponse,
     BIGetVisibleVariableTypesRequest,
@@ -152,8 +150,6 @@ export interface BIDiagramAPI {
     getVisibleVariableTypes: (params: BIGetVisibleVariableTypesRequest) => Promise<BIGetVisibleVariableTypesResponse>;
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
     getDataMapperCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
-    getConfigVariables: () => Promise<ConfigVariableResponse>;
-    updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
     getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;

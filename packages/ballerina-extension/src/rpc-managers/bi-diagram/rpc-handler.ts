@@ -79,7 +79,6 @@ import {
     getBreakpointInfo,
     getConfigVariableNodeTemplate,
     GetConfigVariableNodeTemplateRequest,
-    getConfigVariables,
     getConfigVariablesV2,
     getDataMapperCompletions,
     getDesignModel,
@@ -139,9 +138,7 @@ import {
     ServiceClassSourceRequest,
     SignatureHelpRequest,
     updateClassField,
-    UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
-    updateConfigVariables,
     updateConfigVariablesV2,
     updateImports,
     UpdateImportsRequest,
@@ -186,8 +183,6 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getVisibleVariableTypes, (args: BIGetVisibleVariableTypesRequest) => rpcManger.getVisibleVariableTypes(args));
     messenger.onRequest(getExpressionCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getExpressionCompletions(args));
     messenger.onRequest(getDataMapperCompletions, (args: ExpressionCompletionsRequest) => rpcManger.getDataMapperCompletions(args));
-    messenger.onRequest(getConfigVariables, () => rpcManger.getConfigVariables());
-    messenger.onRequest(updateConfigVariables, (args: UpdateConfigVariableRequest) => rpcManger.updateConfigVariables(args));
     messenger.onRequest(getConfigVariablesV2, (args: ConfigVariableRequest) => rpcManger.getConfigVariablesV2(args));
     messenger.onRequest(updateConfigVariablesV2, (args: UpdateConfigVariableRequestV2) => rpcManger.updateConfigVariablesV2(args));
     messenger.onRequest(deleteConfigVariableV2, (args: DeleteConfigVariableRequestV2) => rpcManger.deleteConfigVariableV2(args));
