@@ -65,31 +65,9 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, async () => {
-
-        const { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
-        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
-        const hasActiveTextEditor = !!vscode.window.activeTextEditor;
-        const currentBallerinaFile = tryGetCurrentBallerinaFile();
-        const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
-
-        let targetPath = projectPath ?? "";
-
-        if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
-            const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
-            const selectedPackage = await selectPackageOrPrompt(
-                availablePackages,
-                "Select a package to enable tracing"
-            );
-            if (!selectedPackage) {
-                return;
-            }
-            targetPath = selectedPackage;
-            await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
-        } else if (!!projectRoot && projectRoot !== projectPath) {
-            targetPath = await getCurrentProjectRoot();
-            if (!!projectRoot && projectRoot !== projectPath) {
-                await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
-            }
+        const targetPath = await resolveTracingTargetPath("Select a package to enable tracing");
+        if (!targetPath) {
+            return;
         }
 
         TracerMachine.enable(targetPath);
@@ -98,31 +76,9 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
     });
 
     const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, async () => {
-
-        const { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
-        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
-        const hasActiveTextEditor = !!vscode.window.activeTextEditor;
-        const currentBallerinaFile = tryGetCurrentBallerinaFile();
-        const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
-
-        let targetPath = projectPath ?? "";
-
-        if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
-            const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
-            const selectedPackage = await selectPackageOrPrompt(
-                availablePackages,
-                "Select a package to enable tracing"
-            );
-            if (!selectedPackage) {
-                return;
-            }
-            targetPath = selectedPackage;
-            await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
-        } else if (!!projectRoot && projectRoot !== projectPath) {
-            targetPath = await getCurrentProjectRoot();
-            if (!!projectRoot && projectRoot !== projectPath) {
-                await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
-            }
+        const targetPath = await resolveTracingTargetPath("Select a package to disable tracing");
+        if (!targetPath) {
+            return;
         }
         TracerMachine.disable(targetPath);
     });
@@ -151,6 +107,39 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         showTraceDetailsCommand,
         treeDataProvider
     );
+}
+
+/**
+ * Resolves the target project path for tracing operations.
+ * Handles package selection when required and updates the state machine accordingly.
+ * @param promptMessage - The message to display when prompting for package selection
+ * @returns The resolved target path, or undefined if the user cancelled the selection
+ */
+async function resolveTracingTargetPath(promptMessage: string): Promise<string | undefined> {
+    const { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!vscode.window.activeTextEditor;
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    let targetPath = projectPath ?? "";
+
+    if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+        const selectedPackage = await selectPackageOrPrompt(availablePackages, promptMessage);
+        if (!selectedPackage) {
+            return undefined;
+        }
+        targetPath = selectedPackage;
+        await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+    } else if (projectRoot && projectRoot !== projectPath) {
+        targetPath = await getCurrentProjectRoot();
+        if (projectRoot && projectRoot !== projectPath) {
+            await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
+        }
+    }
+
+    return targetPath;
 }
 
 /**
