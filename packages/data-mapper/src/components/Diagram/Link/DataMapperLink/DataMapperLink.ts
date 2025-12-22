@@ -33,8 +33,7 @@ export enum MappingType {
 	ContainsUnions = "contains-unions",
 	SeqToPrimitive = "seq-primitive",
 	SeqToArray = "seq-array",
-	PrimitiveToString = "primitive-string",
-	NumberToNumber = "number-number", // Ex: decimal to int
+	ConvertiblePrimitives = "conv-primitives",
 	Default = undefined // This is for non-array mappings currently
 }
 
