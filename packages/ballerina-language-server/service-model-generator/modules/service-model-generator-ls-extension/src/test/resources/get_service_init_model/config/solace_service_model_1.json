@@ -390,6 +390,11 @@
                 }
               ],
               "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "solace:SecureSocket",
+              "selected": false
             }
           ],
           "enabled": true,
