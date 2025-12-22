@@ -48,7 +48,7 @@
         "kind": "array",
         "focusExpression": "arr1.m2",
         "ref": "802102543",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

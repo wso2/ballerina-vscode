@@ -95,7 +95,7 @@
         "kind": "record",
         "focusExpression": "arr3Item",
         "ref": "-788289410",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

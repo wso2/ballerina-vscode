@@ -40,8 +40,8 @@
         "typeName": "SecondaryPhones",
         "kind": "record",
         "focusExpression": "u.info.secondaryPhones",
-        "isIterableVariable": true,
-        "ref": "-782972947"
+        "ref": "-782972947",
+        "isIterationVariable": true
       },
       {
         "name": "email",
@@ -49,7 +49,7 @@
         "typeName": "string",
         "kind": "string",
         "focusExpression": "u.info.emails",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

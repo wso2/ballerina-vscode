@@ -57,7 +57,7 @@
         "kind": "record",
         "focusExpression": "newSecondaryPhones",
         "ref": "-782972947",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

@@ -51,7 +51,7 @@
         "kind": "record",
         "focusExpression": "l2Item.l3Arr",
         "ref": "83688130",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

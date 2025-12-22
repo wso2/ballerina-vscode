@@ -81,7 +81,7 @@
         "kind": "record",
         "focusExpression": "bank.userInfo",
         "ref": "1889977605",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

@@ -102,8 +102,8 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "BBB",
-        "isIterableVariable": true,
-        "ref": "-2143678211"
+        "ref": "-2143678211",
+        "isIterationVariable": true
       },
       {
         "fields": [],
@@ -112,8 +112,8 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "CCC",
-        "isIterableVariable": true,
-        "ref": "-2143678211"
+        "ref": "-2143678211",
+        "isIterationVariable": true
       }
     ],
     "output": {
