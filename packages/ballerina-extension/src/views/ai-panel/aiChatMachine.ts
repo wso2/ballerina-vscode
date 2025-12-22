@@ -166,7 +166,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                     operationType: (_ctx, event) => event.payload.operationType,
                     fileAttachments: (_ctx, event) => event.payload.fileAttachments ?? [],
                 }),
-                // Note: captureCheckpoint is called in GeneratingPlan entry, not here to avoid duplicate
             ],
         },
         [AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST]: {
@@ -185,7 +184,6 @@ const chatMachine = createMachine<AIChatMachineContext, AIChatMachineSendableEve
                         params: event.payload.params
                     }),
                 }),
-                // Note: captureCheckpoint is called in ExecutingDatamapper entry, not here to avoid duplicate
             ],
         },
         [AIChatMachineEventType.UPDATE_CHAT_MESSAGE]: {
