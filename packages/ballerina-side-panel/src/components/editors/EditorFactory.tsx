@@ -93,7 +93,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "LV_EXPRESSION" ||
             type.fieldType === "ACTION_OR_EXPRESSION" ||
             type.fieldType === "TEXT" ||
-            type.fieldType === "EXPRESSION_SET"
+            type.fieldType === "EXPRESSION_SET" ||
+            type.fieldType === "RECORD_MAP_EXPRESSION"
         );
     });
     
