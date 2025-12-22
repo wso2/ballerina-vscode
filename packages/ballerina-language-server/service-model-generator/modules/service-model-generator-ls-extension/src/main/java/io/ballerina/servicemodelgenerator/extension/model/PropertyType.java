@@ -258,7 +258,7 @@ public class PropertyType {
 
     private static Value.FieldType findMatchingValueType(Node node) {
         return switch (node.kind()) {
-            case STRING_TEMPLATE_EXPRESSION -> Value.FieldType.TEXT;
+            case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> Value.FieldType.TEXT;
             case NUMERIC_LITERAL -> Value.FieldType.NUMBER;
             case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> Value.FieldType.FLAG;
             case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> Value.FieldType.EXPRESSION_SET;
