@@ -17,15 +17,13 @@
 import { StreamEventRegistry } from "./stream-event-registry";
 import { TextDeltaHandler } from "./handlers/text-delta-handler";
 import { TextStartHandler } from "./handlers/text-start-handler";
-import { ToolCallHandler } from "./handlers/tool-call-handler";
-import { ToolResultHandler } from "./handlers/tool-result-handler";
 import { ErrorHandler } from "./handlers/error-handler";
 import { AbortHandler } from "./handlers/abort-handler";
 import { FinishHandler } from "./handlers/finish-handler";
 
 /**
  * Creates and configures a StreamEventRegistry for the agent service.
- * Registers all 7 event handlers in the appropriate order.
+ * Registers all event handlers in the appropriate order.
  *
  * @returns A configured StreamEventRegistry ready for use
  */
@@ -35,8 +33,6 @@ export function createAgentEventRegistry(): StreamEventRegistry {
     // Register all handlers
     registry.register(new TextDeltaHandler());
     registry.register(new TextStartHandler());
-    registry.register(new ToolCallHandler());
-    registry.register(new ToolResultHandler());
     registry.register(new ErrorHandler());
     registry.register(new AbortHandler());
     registry.register(new FinishHandler());
