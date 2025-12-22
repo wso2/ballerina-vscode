@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 /**
  * Tests for getting the artifacts for a package.
@@ -43,9 +44,13 @@ public class ArtifactsTest extends AbstractLSTest {
         ArtifactsRequest request = new ArtifactsRequest(getSourcePath(testConfig.source()));
         JsonObject artifactsResponse = getResponseAndCloseFile(request, testConfig.source);
         JsonObject artifact = artifactsResponse.getAsJsonObject("artifacts");
+        String packageName = getStringValue(artifactsResponse, "projectName");
+        String moduleName = getStringValue(artifactsResponse, "moduleName");
 
-        if (!artifact.equals(testConfig.output())) {
-            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.source(), artifact);
+        if (!artifact.equals(testConfig.output()) || !Objects.equals(packageName, testConfig.packageName()) ||
+                !Objects.equals(moduleName, testConfig.moduleName())) {
+            TestConfig updatedConfig = new TestConfig(testConfig.description(), testConfig.source(), packageName,
+                    moduleName, artifact);
 //            updateConfig(configJsonPath, updatedConfig);
             compareJsonElements(artifact, testConfig.output());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
@@ -82,6 +87,16 @@ public class ArtifactsTest extends AbstractLSTest {
         return "artifacts";
     }
 
-    public record TestConfig(String description, String source, JsonObject output) {
+    private static String getStringValue(JsonObject jsonObject, String key) {
+        return jsonObject.get(key) != null && !jsonObject.get(key).isJsonNull() ?
+                jsonObject.get(key).getAsString() : null;
+    }
+
+    public record TestConfig(String description, String source, String packageName, String moduleName,
+                             JsonObject output) {
+
+        public String description() {
+            return description == null ? "" : description;
+        }
     }
 }
