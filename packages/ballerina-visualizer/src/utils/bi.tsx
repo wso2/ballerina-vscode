@@ -126,11 +126,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} connectorType={connectorType} />,
         items: items,
     };
 }
@@ -917,7 +918,7 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     }
 
     // Set up parameter manager properties
-    if (formField.types.length > 0) {
+    if (formField.types && formField.types.length > 0) {
         formField.types[0].fieldType = "PARAM_MANAGER";
     }
     formField.type = "PARAM_MANAGER";

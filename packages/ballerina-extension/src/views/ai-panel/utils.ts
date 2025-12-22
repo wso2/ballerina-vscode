@@ -25,7 +25,7 @@ import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod, exchangeStsToken, getAuthCredentials } from '../../utils/ai/auth';
 import { DEVANT_STS_TOKEN_CONFIG } from '../../features/ai/utils';
-import { getBedrockRegionalPrefix } from '../../features/ai/service/connection';
+import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
 import { getDevantStsToken } from '../../features/devant/activator';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';

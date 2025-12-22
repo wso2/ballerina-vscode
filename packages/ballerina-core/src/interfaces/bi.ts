@@ -82,6 +82,7 @@ export type Metadata = {
 export type NodeMetadata = {
     isDataMappedFunction?: boolean;
     isAgentTool?: boolean;
+    connectorType?: string;
     isIsolatedFunction?: boolean;
     tools?: ToolData[];
     model?: ToolData;
@@ -145,7 +146,8 @@ export type FormFieldInputType = "TEXT" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
-    "REPEATABLE_PROPERTY";
+    "REPEATABLE_PROPERTY" |
+    "RECORD_MAP_EXPRESSION";
 
 export interface BaseType {
     fieldType: FormFieldInputType;

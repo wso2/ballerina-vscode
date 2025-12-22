@@ -42,10 +42,13 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
 };
 
 export const getInputModeFromTypes = (inputType: InputType): InputMode => {
-    if (!inputType || !inputType) return;
+    if (!inputType) return;
 
+    if (inputType.fieldType === "EXPRESSION") {
+        return InputMode.EXP;
+    }
     if (inputType.fieldType === "SINGLE_SELECT") {
-        return InputMode.ENUM;
+        return InputMode.DROPDOWN;
     }
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
@@ -62,6 +65,10 @@ export const getInputModeFromBallerinaType = (ballerinaType: string): InputMode 
 export const getDefaultExpressionMode = (inputTypes: InputType[]): InputMode => {
     const primaryInputType = getPrimaryInputType(inputTypes);
     return getInputModeFromTypes(primaryInputType);
+}
+export const getSecondaryMode = (inputTypes: InputType[]): InputMode => {
+    const secondaryInputType = inputTypes?.length ? inputTypes[inputTypes.length - 1] : undefined;
+    return getInputModeFromTypes(secondaryInputType);
 }
 
 export const getAbsoluteColumnOffset = (value: string, line: number, column: number) => {
