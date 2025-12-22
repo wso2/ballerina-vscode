@@ -71,8 +71,6 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
     const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, () => {
         TracerMachine.enable();
-        // Focus the VS Code panel section
-        vscode.commands.executeCommand('workbench.action.focusPanel');
         // Reveal/focus the ballerina-traceView (shows trace panel in panel)
         vscode.commands.executeCommand('workbench.view.extension.ballerina-traceView');
     });
