@@ -48,7 +48,7 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
         return InputMode.EXP;
     }
     if (inputType.fieldType === "SINGLE_SELECT") {
-        return InputMode.ENUM;
+        return InputMode.DROPDOWN;
     }
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
