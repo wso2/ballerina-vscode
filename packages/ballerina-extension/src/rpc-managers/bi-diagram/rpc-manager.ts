@@ -123,9 +123,7 @@ import {
     SignatureHelpResponse,
     SourceEditResponse,
     TextEdit,
-    UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
-    UpdateConfigVariableResponse,
     UpdateConfigVariableResponseV2,
     UpdateImportsRequest,
     UpdateImportsResponse,
@@ -924,30 +922,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 .catch((error) => {
                     reject("Error fetching data mapper completions from ls");
                 });
-        });
-    }
-
-    async getConfigVariables(): Promise<ConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-            const variables = await StateMachine.langClient().getConfigVariables({ projectPath: projectPath }) as ConfigVariableResponse;
-            resolve(variables);
-        });
-    }
-
-    async updateConfigVariables(params: UpdateConfigVariableRequest): Promise<UpdateConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const req: UpdateConfigVariableRequest = params;
-
-            if (!fs.existsSync(params.configFilePath)) {
-
-                // Create config.bal if it doesn't exist
-                writeBallerinaFileDidOpen(params.configFilePath, "\n");
-            }
-
-            const response = await StateMachine.langClient().updateConfigVariables(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Update' });
-            resolve(response);
         });
     }
 
