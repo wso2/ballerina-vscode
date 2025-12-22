@@ -133,6 +133,7 @@ public class CommonUtils {
             AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     private static final String DOUBLE_QUOTE = "\"";
+    private static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
 
     /**
      * Removes the quotes from the given string.
@@ -1326,8 +1327,7 @@ public class CommonUtils {
             return null;
         }
 
-        Pattern pattern = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
-        if (!pattern.matcher(value).matches()) {
+        if (!STRING_TEMPLATE_PATTERN.matcher(value).matches()) {
             return value;
         }
 
