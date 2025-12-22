@@ -373,12 +373,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"http://example.com\"",
@@ -793,12 +793,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"http://example.com\"",
