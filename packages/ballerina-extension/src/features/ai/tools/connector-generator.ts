@@ -34,6 +34,7 @@ import { AIChatMachineEventType } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
 import { langClient } from "../activator";
 import { applyTextEdits } from "../agent/utils";
+import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -44,12 +45,12 @@ const SpecFetcherInputSchema = z.object({
 
 export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
-        description: `Generates Ballerina connector modules from OpenAPI specifications for services not available in LibraryProviderTool.
+        description: `
+Generates a connector for an external service by deriving the service contract from user-provided specifications. Use this tool only when the service contract is unclear or missing, and the target service is not a well-established platform with an existing SDK or connector
 
 Use this tool when:
-- You need a connector for an internal/custom API or third-party service without Ballerina support
-- LibraryProviderTool does not have the service you need
-- You are implementing HTTP client integrations during service_design or connections_init tasks
+1. The target service is custom, internal, or niche, and unlikely to be covered by existing libraries.
+2. When the ${LIBRARY_PROVIDER_TOOL} does not have a connector for the target service.
 
 The tool will:
 1. Request OpenAPI spec from user (supports JSON and YAML formats)
@@ -65,8 +66,8 @@ Returns complete connector information (DO NOT read files, use the returned cont
   * The content field contains the entire generated code - use it directly without reading files
 
 # Example
-**Query**: Integrate with Acme Corp's custom REST API for order management.
-**Tool Call**: Call with serviceName: "Acme Corp API", serviceDescription: "Order management REST API"
+**Query**: Write a passthrough service for Foo service.
+**Tool Call**: Call with serviceName: "Foo API", serviceDescription: "Foo API"
 **Result**: Returns importStatement and generatedFiles with complete content → Use importStatement in your code`,
         inputSchema: SpecFetcherInputSchema,
         execute: async (input: SpecFetcherInput): Promise<SpecFetcherResult> => {
