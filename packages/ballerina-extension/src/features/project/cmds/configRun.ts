@@ -24,7 +24,11 @@ import { BiDiagramRpcManager } from "../../../rpc-managers/bi-diagram/rpc-manage
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/common/utils";
 import { StateMachine } from "../../../stateMachine";
 import { getCurrentProjectRoot } from "../../../utils/project-utils";
-import { getPackage } from "./cloud";
+import { needsProjectDiscovery, requiresPackageSelection, selectPackageOrPrompt } from "../../../utils/command-utils";
+import { tryGetCurrentBallerinaFile } from "../../../utils/project-utils";
+import { findBallerinaPackageRoot } from "../../../utils/file-utils";
+import { discoverProjectPath } from "./doc";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
 
 function activateConfigRunCommand() {
     // register the config view run command
@@ -42,26 +46,41 @@ function activateConfigRunCommand() {
         try {
             // Open current config.toml or create a new config.toml if it does not exist
             const result = await findWorkspaceTypeFromWorkspaceFolders();
-            let { projectPath, projectInfo } = StateMachine.context();
-            
+            let { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+            const hasActiveTextEditor = !!window.activeTextEditor;
+            const currentBallerinaFile = tryGetCurrentBallerinaFile();
+            const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
             let targetPath = projectPath ?? "";
-            if (result.type !== "SINGLE_PROJECT") {
-                if (result.type === "MULTIPLE_PROJECTS") {
-                    const packageRoot = await getCurrentProjectRoot();
-                    if (!packageRoot) {
-                        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+
+            if (result.type === "MULTIPLE_PROJECTS") {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+                projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                targetPath = projectInfo.projectPath ?? packageRoot;
+            } else if (result.type === "BALLERINA_WORKSPACE") {
+                if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+                    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+                    const selectedPackage = await selectPackageOrPrompt(
+                        availablePackages,
+                        "Select the project to create Config.toml in"
+                    );
+                    if (!selectedPackage) {
                         return;
                     }
-                    projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
-                    targetPath = projectInfo.projectPath ?? packageRoot;
-                } else if (result.type === "BALLERINA_WORKSPACE") {
-                    const selection = await getPackage(projectInfo, "Select the project to create Config.toml in");
-                    if (!selection) {
-                        return;
-                    }
-                    targetPath = selection;
+                    targetPath = selectedPackage;
+                    await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+                } else if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+                    targetPath = await discoverProjectPath();
+                } else {
+                    targetPath = await getCurrentProjectRoot();
                 }
             }
+
             const biDiagramRpcManager = new BiDiagramRpcManager();
             await biDiagramRpcManager.openConfigToml({ filePath: targetPath });
             return;
