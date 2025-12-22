@@ -82,8 +82,6 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         valueRef.current = value;
     }, [value]);
 
-    console.log("MappingConstructor value changed:", value);
-
     useEffect(() => {
         const pairs = getPairsFromValue(value);
         const lastPair = pairs[pairs.length - 1];
