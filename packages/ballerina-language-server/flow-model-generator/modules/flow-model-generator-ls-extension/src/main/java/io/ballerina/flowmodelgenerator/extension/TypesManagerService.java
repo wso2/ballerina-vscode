@@ -120,7 +120,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeListResponse response = new TypeListResponse();
             try {
-                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                Path filePath = PathUtil.convertUriStringToPath(request.filePath());
                 WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
                 workspaceManager.loadProject(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
@@ -149,7 +149,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeResponse response = new TypeResponse();
             try {
-                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                Path filePath = PathUtil.convertUriStringToPath(request.filePath());
                 WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
                 workspaceManager.loadProject(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);
@@ -183,7 +183,7 @@ public class TypesManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             TypeResponse response = new TypeResponse();
             try {
-                Path filePath = PathUtil.getPathFromUriEncodeString(request.filePath());
+                Path filePath = PathUtil.convertUriStringToPath(request.filePath());
                 WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
                 workspaceManager.loadProject(filePath);
                 Optional<Document> document = workspaceManager.document(filePath);

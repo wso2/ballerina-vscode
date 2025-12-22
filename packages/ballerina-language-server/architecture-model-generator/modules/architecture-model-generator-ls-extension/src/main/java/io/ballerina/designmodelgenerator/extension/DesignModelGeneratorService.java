@@ -66,7 +66,7 @@ public class DesignModelGeneratorService implements ExtendedLanguageServerServic
         return CompletableFuture.supplyAsync(() -> {
             GetDesignModelResponse response = new GetDesignModelResponse();
             try {
-                Path filePath = PathUtil.getPathFromUriEncodeString(request.projectPath());
+                Path filePath = PathUtil.convertUriStringToPath(request.projectPath());
                 WorkspaceManager workspaceManager = workspaceManagerProxy.get(request.projectPath());
                 Project project = workspaceManager.loadProject(filePath);
                 DesignModelGenerator designModelGenerator = new DesignModelGenerator(project.currentPackage());
