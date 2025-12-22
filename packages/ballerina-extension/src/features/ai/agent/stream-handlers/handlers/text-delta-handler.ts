@@ -16,11 +16,10 @@
 
 import { StreamEventHandler } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { accumulateTextContent } from "./helper-functions";
 
 /**
  * Handles text-delta events from the stream.
- * Accumulates text content and emits content_block events to the UI.
+ * Emits content_block events to the UI for display.
  */
 export class TextDeltaHandler implements StreamEventHandler {
     readonly eventType = "text-delta";
@@ -32,6 +31,5 @@ export class TextDeltaHandler implements StreamEventHandler {
     async handle(part: any, context: StreamContext): Promise<void> {
         const textPart = part.text;
         context.eventHandler({ type: "content_block", content: textPart });
-        accumulateTextContent(context.currentAssistantContent, textPart);
     }
 }
