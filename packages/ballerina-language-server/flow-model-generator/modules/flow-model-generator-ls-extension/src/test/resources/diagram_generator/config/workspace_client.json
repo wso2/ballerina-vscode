@@ -120,12 +120,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"https://api.example.com\"",
@@ -323,12 +323,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"CUST001\"",

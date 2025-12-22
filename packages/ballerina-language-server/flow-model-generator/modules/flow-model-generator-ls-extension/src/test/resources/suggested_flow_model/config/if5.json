@@ -423,12 +423,12 @@
                               {
                                 "fieldType": "TEXT",
                                 "ballerinaType": "string",
-                                "selected": false
+                                "selected": true
                               },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "string",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"x is even\"",
@@ -531,12 +531,12 @@
                               {
                                 "fieldType": "TEXT",
                                 "ballerinaType": "string",
-                                "selected": false
+                                "selected": true
                               },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "string",
-                                "selected": true
+                                "selected": false
                               }
                             ],
                             "value": "\"x is odd\"",
@@ -623,12 +623,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is greater than y\"",
@@ -731,12 +731,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"x is equal to y\"",

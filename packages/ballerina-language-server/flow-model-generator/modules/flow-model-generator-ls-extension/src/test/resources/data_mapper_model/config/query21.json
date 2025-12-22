@@ -108,8 +108,8 @@
         "typeName": "Person",
         "kind": "record",
         "focusExpression": "personList",
-        "isIterableVariable": true,
-        "ref": "887620673"
+        "ref": "887620673",
+        "isIterationVariable": true
       },
       {
         "fields": [],
@@ -118,8 +118,8 @@
         "typeName": "Department",
         "kind": "record",
         "focusExpression": "deptList",
-        "isIterableVariable": true,
-        "ref": "-954444226"
+        "ref": "-954444226",
+        "isIterationVariable": true
       }
     ],
     "output": {
@@ -257,7 +257,7 @@
           {
             "name": "dept",
             "displayName": "dept",
-            "typeName": "string",
+            "typeName": "string?",
             "kind": "string",
             "optional": false
           }

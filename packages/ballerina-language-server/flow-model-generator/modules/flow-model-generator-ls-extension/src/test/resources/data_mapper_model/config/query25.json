@@ -77,8 +77,8 @@
         "typeName": "Elephant[]",
         "kind": "array",
         "focusExpression": "AAA",
-        "isIterableVariable": true,
-        "ref": "115957393"
+        "ref": "115957393",
+        "isIterationVariable": true
       },
       {
         "fields": [],
@@ -87,8 +87,8 @@
         "typeName": "Elephant",
         "kind": "record",
         "focusExpression": "aaa",
-        "isIterableVariable": true,
-        "ref": "-2143678211"
+        "ref": "-2143678211",
+        "isIterationVariable": true
       }
     ],
     "output": {

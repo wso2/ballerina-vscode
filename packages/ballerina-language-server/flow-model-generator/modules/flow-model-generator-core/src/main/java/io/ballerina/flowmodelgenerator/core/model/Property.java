@@ -250,7 +250,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
-        return value.toString();
+        return CommonUtils.extractLiteralFromStringTemplate(value.toString());
     }
 
     // Enum for backward compatibility
@@ -727,7 +727,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         // need to handle the enums separately
         private ValueType findMatchingValueType(Node node) {
             return switch (node.kind()) {
-                case STRING_TEMPLATE_EXPRESSION -> ValueType.TEXT;
+                case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
                 case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;

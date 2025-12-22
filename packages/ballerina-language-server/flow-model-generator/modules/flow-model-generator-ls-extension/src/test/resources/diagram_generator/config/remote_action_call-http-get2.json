@@ -99,12 +99,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/bananas\"",
@@ -296,12 +296,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/bananas\"",
@@ -444,12 +444,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/bananas\"",
@@ -618,12 +618,12 @@
               {
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               }
             ],
             "value": "\"/food\"",

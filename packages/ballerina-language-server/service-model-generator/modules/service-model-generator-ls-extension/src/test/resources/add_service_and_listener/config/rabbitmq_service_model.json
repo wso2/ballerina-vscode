@@ -61,7 +61,7 @@
         "placeholder": "\"myQueue\"",
         "valueType": "EXPRESSION",
         "valueTypeConstraint": "string",
-        "value": "\"myQueue\"",
+        "value": "string `myQueue`",
         "items": [],
         "typeMembers": [],
         "enabled": true,

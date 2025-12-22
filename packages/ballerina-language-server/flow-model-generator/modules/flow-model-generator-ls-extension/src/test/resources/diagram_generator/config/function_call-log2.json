@@ -169,12 +169,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Error: \"",
@@ -310,12 +310,12 @@
                       {
                         "fieldType": "TEXT",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string|log:PrintableRawTemplate",
-                        "selected": true
+                        "selected": false
                       }
                     ],
                     "value": "\"Error: \"",

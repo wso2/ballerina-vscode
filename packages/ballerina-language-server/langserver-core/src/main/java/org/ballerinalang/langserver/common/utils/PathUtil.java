@@ -40,7 +40,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -100,19 +99,22 @@ public final class PathUtil {
     }
 
     /**
-     * Get the path from given string URI by encoding spaces.
+     * Convert the given URI string to Path. This method handles URIs with no scheme as well.
      *
      * @param fileUri file uri
      * @return Path from the URI
      */
-    public static Path getPathFromUriEncodeString(String fileUri) {
+    public static Path convertUriStringToPath(String fileUri) {
         URI uri = getEncodedURIPath(fileUri);
 
         if (uri.getScheme() == null) {
             String path = Path.of(uri).toString().replaceAll("%20", " ");
             return Path.of(path);
         }
-        return Path.of(Paths.get(uri).toString().replaceAll("%20", " "));
+
+        Path uriPath = Path.of(URI.create("file://" + uri.getPath()));
+        String convertedUri = uriPath.toString().replaceAll("%20", " ");
+        return Path.of(convertedUri);
     }
 
     /**
