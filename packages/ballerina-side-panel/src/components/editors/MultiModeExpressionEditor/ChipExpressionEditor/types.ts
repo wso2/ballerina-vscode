@@ -24,7 +24,7 @@ export enum InputMode {
   NUMBER = "Number",
   BOOLEAN = "Boolean",
   SQL = "SQL",
-  ENUM = "Enum",
+  DROPDOWN = "Dropdown",
   ARRAY = "Array",
   PROMPT = "Prompt",
   MAP = "Map"

@@ -425,6 +425,7 @@ export type AIChatMachineStateValue =
     | 'Idle'
     | 'Initiating'
     | 'GeneratingPlan'
+    | 'ResumingGeneration'
     | 'PlanReview'
     | 'ApprovedPlan'
     | 'ExecutingTask'
