@@ -48,7 +48,7 @@
         "kind": "record",
         "focusExpression": "myTypes1",
         "ref": "819315698",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

@@ -39,7 +39,7 @@
         "typeName": "string",
         "kind": "string",
         "focusExpression": "v1.k",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

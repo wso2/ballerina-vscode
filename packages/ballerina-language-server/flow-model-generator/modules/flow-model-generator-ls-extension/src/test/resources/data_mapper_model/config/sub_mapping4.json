@@ -55,7 +55,7 @@
         "kind": "record",
         "focusExpression": "userInfo",
         "ref": "1889977605",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {
