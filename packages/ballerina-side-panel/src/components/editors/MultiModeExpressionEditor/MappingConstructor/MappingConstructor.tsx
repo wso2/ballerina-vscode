@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { S } from '../styles';
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
@@ -26,7 +26,7 @@ import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEdito
 interface MappingConstructorProps {
     label: string;
     value: string;
-    onChange: (updated: string, updatedCursorPosition: number) => void;
+    onChange: (updated: string) => void;
     expressionFieldProps: ExpressionFieldProps;
 }
 
@@ -45,8 +45,8 @@ function extractMapEntries(mapString) {
         return [];
     }
 
-    // Matches text in format =>  key: "value"
-    const ENTRY_REGEX = /(\w+)\s*:\s*"([^"]*)"/g;
+    // Matches text in format =>  key: "value" (key can be empty)
+    const ENTRY_REGEX = /(\w*)\s*:\s*"([^"]*)"/g;
 
     const entries = [];
     let match;
@@ -58,65 +58,65 @@ function extractMapEntries(mapString) {
     return entries;
 }
 
+const createFinalValue = (pairs: KeyValuePair[]) => {
+    const mapString = pairs
+        .map(pair => `${pair.key}: ${pair.value}`)
+        .join(', ');
+    return `{ ${mapString} }`;
+}
+
+const getPairsFromValue = (value: string): KeyValuePair[] => {
+    const entries: string[] = extractMapEntries(value);
+    return entries.map(entry => {
+        const [key, val] = entry.split(':').map(part => part.trim());
+        return { key, value: val };
+    });
+}
 
 export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
-    const [pairs, setPairs] = useState<KeyValuePair[]>([]);
     const [isAddMoreValid, setIsAddMoreValid] = useState(false);
+    const valueRef = useRef(value);
 
-    const createFinalValue = (pairs: KeyValuePair[]) => {
-        const mapString = pairs
-            .filter(pair => pair.key.trim() !== "")
-            .map(pair => `${pair.key}: ${pair.value}`)
-            .join(', ');
-        return `{ ${mapString} }`;
-    }
-
+    // Keep ref updated with latest value
     useEffect(() => {
-        if (value !== createFinalValue(pairs)) {
-            const entries: string[] = extractMapEntries(value);
-            const initialPairs: KeyValuePair[] = entries.map(entry => {
-                const [key, val] = entry.split(':').map(part => part.trim());
-                return { key, value: val };
-            });
-            setPairs(initialPairs);
-        }
+        valueRef.current = value;
     }, [value]);
 
+    console.log("MappingConstructor value changed:", value);
+
     useEffect(() => {
+        const pairs = getPairsFromValue(value);
         const lastPair = pairs[pairs.length - 1];
         const isValid = pairs.length === 0 || (lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== "");
         setIsAddMoreValid(isValid);
-    }, [JSON.stringify(pairs)]);
+    }, [value]);
 
-    const handleAddPair = () => {
-        const updatedPairs = [...pairs, { key: ``, value: '""' }];
-        setPairs(updatedPairs);
-    }
+    const handleAddPair = useCallback(() => {
+        const updatedPairs = [...getPairsFromValue(valueRef.current), { key: ``, value: '""' }];
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleDeletePair = (index: number) => {
-        const updatedPairs = pairs.filter((_, i) => i !== index);
-        setPairs(updatedPairs);
-        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
-    }
+    const handleDeletePair = useCallback((index: number) => {
+        const updatedPairs = getPairsFromValue(valueRef.current).filter((_, i) => i !== index);
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleKeyChange = (index: number, newKey: string) => {
-        const updatedPairs = [...pairs];
+    const handleKeyChange = useCallback((index: number, newKey: string) => {
+        const updatedPairs = getPairsFromValue(valueRef.current);
         updatedPairs[index].key = newKey;
-        setPairs(updatedPairs)
-        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
-    }
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleValueChange = (index: number, newValue: string) => {
-        const updatedPairs = [...pairs];
+    const handleValueChange = useCallback((index: number, newValue: string) => {
+        const updatedPairs = getPairsFromValue(valueRef.current);
         updatedPairs[index].value = newValue;
-        setPairs(updatedPairs);
-        onChange(createFinalValue(updatedPairs), createFinalValue(updatedPairs).length);
-    }
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
 
     return (
         <S.Container>
-            {pairs.map((pair, index) => (
+            {getPairsFromValue(value).map((pair, index) => (
                 <S.ItemContainer style={{
                     border: "1px solid var(--dropdown-border)",
                     padding: "8px",
