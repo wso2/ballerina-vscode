@@ -20,15 +20,15 @@
 import { FunctionDefinition } from "@wso2/syntax-tree";
 import { AIMachineContext, AIMachineStateValue } from "../../state-machine-types";
 import { Command, TemplateId } from "../../interfaces/ai-panel";
-import { AllDataMapperSourceRequest, DataMapperSourceResponse, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
-import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements } from "../..";
+import { AllDataMapperSourceRequest, ExtendedDataMapperMetadata } from "../../interfaces/extended-lang-client";
+import { ComponentInfo, DataMapperMetadata, Diagnostics, DMModel, ImportStatements, LinePosition, LineRange, OperationType } from "../..";
 
 // ==================================
 // General Interfaces
 // ==================================
 export type AIPanelPrompt =
-    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Map<string, string>; metadata?: Record<string, any> }
-    | { type: 'text'; text: string }
+    | { type: 'command-template'; command: Command; templateId: TemplateId; text?: string; params?: Record<string, string>; metadata?: Record<string, any> }
+    | { type: 'text'; text: string; planMode: boolean; codeContext?: CodeContext }
     | undefined;
 
 export interface AIMachineSnapshot {
@@ -90,6 +90,12 @@ export interface DiagnosticEntry {
     code?: string;
 }
 
+export interface AddToProjectRequest {
+    filePath: string;
+    content: string;
+    isTestCode: boolean;
+}
+
 export interface AddFilesToProjectRequest {
     fileChanges: FileChanges[];
 }
@@ -119,7 +125,6 @@ export interface MetadataWithAttachments {
 }
 
 export interface InlineMappingsSourceResult {
-    sourceResponse: DataMapperSourceResponse;
     allMappingsRequest: AllDataMapperSourceRequest;
     tempFileMetadata: ExtendedDataMapperMetadata;
     tempDir: string;
@@ -296,7 +301,6 @@ export interface DeveloperDocument {
 }
 
 export interface RequirementSpecification {
-    filepath: string;
     content: string;
 }
 
@@ -380,12 +384,26 @@ export interface FileAttatchment {
     content: string;
 }
 
-export type OperationType = "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
+export type CodeContext =
+    | { type: 'addition'; position: LinePosition, filePath: string }
+    | { type: 'selection'; startPosition: LinePosition; endPosition: LinePosition, filePath: string };
+
 export interface GenerateCodeRequest {
     usecase: string;
     chatHistory: ChatEntry[];
     operationType: OperationType;
     fileAttachmentContents: FileAttatchment[];
+    codeContext?: CodeContext;
+}
+
+export interface GenerateAgentCodeRequest {
+    usecase: string;
+    chatHistory: any[];
+    operationType?: OperationType;
+    fileAttachmentContents: FileAttatchment[];
+    messageId: string;
+    isPlanMode: boolean;
+    codeContext?: CodeContext;
 }
 
 export interface RepairParams {
@@ -438,3 +456,53 @@ export interface DocGenerationRequest {
 
 export const GENERATE_TEST_AGAINST_THE_REQUIREMENT = "Generate tests against the requirements";
 export const GENERATE_CODE_AGAINST_THE_REQUIREMENT = "Generate code based on the requirements";
+
+// ==================================
+// Execution Context
+// ==================================
+
+/**
+ * Execution context for AI code generation operations.
+ *
+ * Contains project path information needed for code generation without
+ * depending on global StateMachine state. This enables:
+ * - Parallel test execution with isolated contexts
+ * - Explicit path dependencies
+ * - Better testability and code clarity
+ *
+ * @property projectPath - Absolute path to the active Ballerina project/package
+ * @property workspacePath - Optional absolute path to workspace root (for multi-package workspaces)
+ */
+export interface ExecutionContext {
+    /** Absolute path to the current Ballerina project */
+    readonly projectPath: string;
+
+    /** Optional absolute path to workspace root (if multi-package workspace) */
+    readonly workspacePath?: string;
+
+}
+
+export interface SemanticDiffRequest {
+    projectPath: string;
+}
+
+// Numeric enum values from the API
+export enum ChangeTypeEnum {
+    ADDITION = 0,
+    MODIFICATION = 1,
+    DELETION = 2
+}
+
+export type ChangeType = "ADDITION" | "MODIFICATION" | "DELETION";
+
+export interface SemanticDiff {
+    changeType: number; // API returns numeric value
+    nodeKind: number;   // API returns numeric value
+    uri: string;
+    lineRange: LineRange;
+}
+
+export interface SemanticDiffResponse {
+    loadDesignDiagrams: boolean;
+    semanticDiffs: SemanticDiff[];
+}

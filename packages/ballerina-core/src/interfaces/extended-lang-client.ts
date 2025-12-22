@@ -832,9 +832,9 @@ export interface TypeBindingPair {
 
 // <------------ BI INTERFACES --------->
 export interface BIFlowModelRequest {
-    filePath: string;
-    startLine: LinePosition;
-    endLine: LinePosition;
+    filePath?: string;
+    startLine?: LinePosition;
+    endLine?: LinePosition;
     forceAssign?: boolean;
 }
 
@@ -1009,15 +1009,6 @@ export type ConfigVariableResponse = {
     errorMsg?: any;
 }
 
-export interface UpdateConfigVariableRequest {
-    configFilePath: string;
-    configVariable: ConfigVariable;
-}
-
-export interface UpdateConfigVariableResponse {
-
-}
-
 export interface UpdateConfigVariableRequestV2 {
     configFilePath: string;
     configVariable: FlowNode | FunctionNode;
@@ -1066,7 +1057,7 @@ export interface BICopilotContextResponse {
 }
 
 export interface BIDesignModelRequest {
-    projectPath: string;
+    projectPath?: string;
 }
 
 export type BIDesignModelResponse = {
@@ -1977,8 +1968,6 @@ export interface BIInterface extends BaseLangClientInterface {
     getSequenceDiagramModel: (params: SequenceModelRequest) => Promise<SequenceModelResponse>;
     generateServiceFromOAS: (params: ServiceFromOASRequest) => Promise<ServiceFromOASResponse>;
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
-    getConfigVariables: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
-    updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
     getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
