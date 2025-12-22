@@ -103,7 +103,7 @@
         "kind": "array",
         "focusExpression": "myTypes3",
         "ref": "2079019383",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

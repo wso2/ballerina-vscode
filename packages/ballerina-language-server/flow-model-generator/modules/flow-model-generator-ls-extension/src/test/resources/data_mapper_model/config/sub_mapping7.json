@@ -56,8 +56,8 @@
         "typeName": "InRoot",
         "kind": "record",
         "focusExpression": "input",
-        "isIterableVariable": true,
-        "ref": "694571155"
+        "ref": "694571155",
+        "isIterationVariable": true
       }
     ],
     "output": {

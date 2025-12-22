@@ -39,7 +39,7 @@
         "typeName": "string",
         "kind": "string",
         "focusExpression": "u.info.secondaryPhones",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

@@ -58,7 +58,7 @@
         "kind": "record",
         "focusExpression": "m2Item",
         "ref": "-371017088",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

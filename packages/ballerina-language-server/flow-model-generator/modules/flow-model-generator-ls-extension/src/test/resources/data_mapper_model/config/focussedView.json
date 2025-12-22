@@ -49,7 +49,7 @@
         "kind": "record",
         "focusExpression": "input.people",
         "ref": "887620673",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {

@@ -104,7 +104,7 @@
         "kind": "record",
         "focusExpression": "myType3",
         "ref": "819315698",
-        "isIterableVariable": true
+        "isIterationVariable": true
       }
     ],
     "output": {
