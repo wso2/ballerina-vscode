@@ -76,6 +76,7 @@
         "displayName": "aaa",
         "typeName": "Elephant[]",
         "kind": "array",
+        "category": "local-variable",
         "focusExpression": "AAA",
         "ref": "115957393",
         "isIterationVariable": true
@@ -86,6 +87,7 @@
         "displayName": "bbb",
         "typeName": "Elephant",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "aaa",
         "ref": "-2143678211",
         "isIterationVariable": true

@@ -38,6 +38,7 @@
         "displayName": "kItem",
         "typeName": "string",
         "kind": "string",
+        "category": "local-variable",
         "focusExpression": "v1.k",
         "isIterationVariable": true
       }

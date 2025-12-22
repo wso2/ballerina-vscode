@@ -46,6 +46,7 @@
         "displayName": "m2Item",
         "typeName": "MyType2[]",
         "kind": "array",
+        "category": "local-variable",
         "focusExpression": "arr1.m2",
         "ref": "802102543",
         "isIterationVariable": true

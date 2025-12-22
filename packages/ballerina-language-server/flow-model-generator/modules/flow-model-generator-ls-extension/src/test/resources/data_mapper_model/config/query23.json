@@ -39,6 +39,7 @@
         "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "u.info.secondaryPhones",
         "ref": "-782972947",
         "isSeq": true,
@@ -49,7 +50,9 @@
         "displayName": "code",
         "typeName": "string",
         "kind": "string",
-        "focusExpression": "secondaryPhonesItem.code"
+        "category": "local-variable",
+        "focusExpression": "secondaryPhonesItem.code",
+        "isGroupingKey": true
       }
     ],
     "output": {

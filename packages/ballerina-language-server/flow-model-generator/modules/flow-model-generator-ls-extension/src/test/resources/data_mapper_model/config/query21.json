@@ -107,6 +107,7 @@
         "displayName": "person",
         "typeName": "Person",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "personList",
         "ref": "887620673",
         "isIterationVariable": true
@@ -117,6 +118,7 @@
         "displayName": "dept",
         "typeName": "Department",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "deptList",
         "ref": "-954444226",
         "isIterationVariable": true
