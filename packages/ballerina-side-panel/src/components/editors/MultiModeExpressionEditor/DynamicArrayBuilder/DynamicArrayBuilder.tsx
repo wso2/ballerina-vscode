@@ -25,6 +25,7 @@ import { getPrimaryInputType } from "@wso2/ballerina-core";
 import { getInputModeFromBallerinaType, getInputModeFromTypes } from "../ChipExpressionEditor/utils";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
+import { S } from "../styles";
 
 interface DynamicArrayBuilderProps {
     label: string;
@@ -33,62 +34,14 @@ interface DynamicArrayBuilderProps {
     expressionFieldProps: ExpressionFieldProps;
 }
 
-export namespace S {
-    export const Container = styled.div({
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        fontFamily: 'var(--font-family)',
-    });
-
-    export const Label = styled.label({
-        color: 'var(--vscode-editor-foreground)',
-        fontSize: '13px',
-        fontWeight: 'bold',
-    });
-
-    export const ItemContainer = styled.div({
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    });
-
-    export const Input = styled.input({
-        flex: 1,
-        padding: '4px 8px',
-        border: `1px solid ${ThemeColors.OUTLINE}`,
-        borderRadius: '4px',
-        backgroundColor: 'var(--vscode-input-background)',
-        color: 'var(--vscode-input-foreground)',
-        fontSize: '13px',
-        fontFamily: 'var(--vscode-editor-font-family)',
-        '&:focus': {
-            outline: `1px solid ${ThemeColors.PRIMARY}`,
-            borderColor: ThemeColors.PRIMARY,
-        },
-    });
-
-    export const DeleteButton = styled(Button)({
-        padding: '4px',
-        minWidth: 'auto',
-        height: 'auto',
-    });
-
-    export const AddButton = styled(Button)({
-        alignSelf: 'flex-start',
-        padding: '4px 8px',
-        fontSize: '12px',
-    });
-}
-
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const { label, value, onChange, expressionFieldProps } = props;
     const { form } = useFormContext();
     const { setValue, getValues } = form;
-    
+
     // Use a ref to track the current editing state to avoid stale closures
     const currentValuesRef = useRef<string[]>(Array.isArray(value) ? value : [""]);
-    
+
     // Update ref when prop changes from parent (e.g., opening in edit mode)
     useEffect(() => {
         currentValuesRef.current = Array.isArray(value) ? value : [""];
@@ -122,14 +75,13 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     };
 
     const primaryInputMode = useMemo(() => {
-        if (expressionFieldProps.field.types.length === 0) {
+        if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
     return (
         <S.Container>
-            <S.Label>{label}</S.Label>
             {arrayValues.map((value, index) => (
                 <S.ItemContainer key={`${expressionFieldProps.field.key}-${index}`}>
                     <ChipExpressionEditorComponent
@@ -152,17 +104,19 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         appearance="icon"
                         onClick={() => handleDelete(index)}
                     >
-                        <Codicon name="trash" />
+                        <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <S.AddButton
+            <Button
                 onClick={handleAdd}
-                appearance="secondary"
+                appearance="icon"
             >
-                <Codicon name="add" />
-                Add Item
-            </S.AddButton>
+                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
+                    <Codicon name="add" />
+                    Add Item
+                </div>
+            </Button>
         </S.Container>
     );
 };

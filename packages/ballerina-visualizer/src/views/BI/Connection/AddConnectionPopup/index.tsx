@@ -20,7 +20,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
+import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -73,7 +73,8 @@ const CreateConnectorOptions = styled.div`
     gap: 16px;
 `;
 
-const ConnectorOptionCard = styled.div`
+const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
+    position: relative;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -81,12 +82,15 @@ const ConnectorOptionCard = styled.div`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
-    cursor: pointer;
+    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
     transition: all 0.2s ease;
+    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
 
     &:hover {
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
-        border-color: ${ThemeColors.PRIMARY};
+        background-color: ${(props: { disabled?: boolean }) =>
+        props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${(props: { disabled?: boolean }) =>
+        props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
     }
 `;
 
@@ -108,11 +112,29 @@ const ConnectorOptionContent = styled.div`
     gap: 8px;
 `;
 
+const ConnectorOptionTitleContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+`;
+
 const ConnectorOptionTitle = styled(Typography)`
     font-size: 14px;
     font-weight: 600;
     color: ${ThemeColors.ON_SURFACE};
     margin: 0;
+`;
+
+const ExperimentalBadge = styled(Typography)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    padding: 4px;
+    border-radius: 4px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    margin: 0;
+    display: inline-block;
 `;
 
 const ConnectorOptionDescription = styled(Typography)`
@@ -226,12 +248,12 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
             }
             try {
                 const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-                
+
                 const hasDatabaseConnection = res.flowModel.connections?.some((connection) => {
                     const metadataData = connection.metadata?.data as any;
                     return metadataData?.connectorType === "persist";
                 });
-                
+
                 setHasPersistConnection(hasDatabaseConnection || false);
             } catch (error) {
                 console.error(">>> Error checking for existing database connection", error);
@@ -512,8 +534,8 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
     const getConnectorCreationOptions = () => {
         if (!searchText || searchText.trim() === "") {
-            // No search - show both options (database only if experimental and no existing DB connection)
-            return { showApiSpec: true, showDatabase: experimentalEnabled && !hasPersistConnection };
+            // No search - show both options (database shown disabled if hasPersistConnection)
+            return { showApiSpec: true, showDatabase: experimentalEnabled };
         }
 
         const lowerSearchText = searchText.toLowerCase().trim();
@@ -537,7 +559,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
         // If search matches database keywords, show only database option
         if (isDatabaseSearch && !isApiSearch) {
-            return { showApiSpec: false, showDatabase: experimentalEnabled && !hasPersistConnection };
+            return { showApiSpec: false, showDatabase: experimentalEnabled };
         }
 
         // If search matches API keywords, show only API spec option
@@ -546,7 +568,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         }
 
         // If both or neither match, show both options
-        return { showApiSpec: true, showDatabase: experimentalEnabled && !hasPersistConnection };
+        return { showApiSpec: true, showDatabase: experimentalEnabled };
     };
 
     const connectorOptions = getConnectorCreationOptions();
@@ -563,7 +585,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 </PopupHeader>
                 <PopupContent>
                     <IntroText>
-                        {experimentalEnabled && !hasPersistConnection ? (
+                        {experimentalEnabled ? (
                             <>
                                 To establish your connection, first define a connector. You may create a custom connector using
                                 an API specification or by introspecting a database. Alternatively, you can select one of the
@@ -591,7 +613,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                     {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
                         <Section>
-                            <SectionTitle variant="h4">CREATE NEW CONNECTOR</SectionTitle>
+                            <SectionTitle variant="h4">Create New Connector</SectionTitle>
                             <CreateConnectorOptions>
                                 {connectorOptions.showApiSpec && (
                                     <ConnectorOptionCard onClick={handleApiSpecConnection}>
@@ -617,40 +639,73 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                         </ArrowIcon>
                                     </ConnectorOptionCard>
                                 )}
-                                {connectorOptions.showDatabase && !hasPersistConnection && (
-                                    <ConnectorOptionCard onClick={handleDatabaseConnection}>
-                                        <ConnectorOptionIcon>
-                                            <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                        </ConnectorOptionIcon>
-                                        <ConnectorOptionContent>
-                                            <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
-                                            <ConnectorOptionDescription>
-                                                Enter credentials to introspect and discover database tables
-                                            </ConnectorOptionDescription>
-                                            <ConnectorOptionButtons>
-                                                <ConnectorTypeLabel>
-                                                    MySQL
-                                                </ConnectorTypeLabel>
-                                                <ConnectorTypeLabel>
-                                                    MSSQL
-                                                </ConnectorTypeLabel>
-                                                <ConnectorTypeLabel>
-                                                    PostgreSQL
-                                                </ConnectorTypeLabel>
-                                            </ConnectorOptionButtons>
-                                        </ConnectorOptionContent>
-                                        <ArrowIcon>
-                                            <Codicon name="chevron-right" />
-                                        </ArrowIcon>
-                                    </ConnectorOptionCard>
-                                )}
+                                {/* Temporary disable DB connection option if persist connection exists */}
+                                {connectorOptions.showDatabase && (() => {
+                                    const databaseCardContent = (
+                                        <>
+                                            <ConnectorOptionIcon>
+                                                <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                            </ConnectorOptionIcon>
+                                            <ConnectorOptionContent>
+                                                <ConnectorOptionTitleContainer>
+                                                    <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
+                                                    <ExperimentalBadge>Experimental</ExperimentalBadge>
+                                                </ConnectorOptionTitleContainer>
+                                                <ConnectorOptionDescription>
+                                                    Enter credentials to introspect and discover database tables
+                                                </ConnectorOptionDescription>
+                                                <ConnectorOptionButtons>
+                                                    <ConnectorTypeLabel>
+                                                        MySQL
+                                                    </ConnectorTypeLabel>
+                                                    <ConnectorTypeLabel>
+                                                        MSSQL
+                                                    </ConnectorTypeLabel>
+                                                    <ConnectorTypeLabel>
+                                                        PostgreSQL
+                                                    </ConnectorTypeLabel>
+                                                </ConnectorOptionButtons>
+                                            </ConnectorOptionContent>
+                                            <ArrowIcon>
+                                                <Codicon name="chevron-right" />
+                                            </ArrowIcon>
+                                        </>
+                                    );
+
+                                    const databaseCard = (
+                                        <ConnectorOptionCard
+                                            disabled={hasPersistConnection}
+                                            onClick={(e) => {
+                                                if (hasPersistConnection) {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    return;
+                                                }
+                                                handleDatabaseConnection();
+                                            }}
+                                        >
+                                            {databaseCardContent}
+                                        </ConnectorOptionCard>
+                                    );
+
+                                    return hasPersistConnection ? (
+                                        <Tooltip
+                                            content="Currently only one persist based DB connection is allowed. You can use pre-built connectors for DB connections."
+                                            position="top"
+                                        >
+                                            {databaseCard}
+                                        </Tooltip>
+                                    ) : (
+                                        databaseCard
+                                    );
+                                })()}
                             </CreateConnectorOptions>
                         </Section>
                     )}
 
                     <Section>
                         <SectionHeader>
-                            <SectionTitle variant="h4">PRE-BUILT CONNECTORS</SectionTitle>
+                            <SectionTitle variant="h4">Pre-built Connectors</SectionTitle>
                             <FilterButtons>
                                 <FilterButton
                                     active={filterType === "All"}
