@@ -1,6 +1,7 @@
 {
-  "source": "functions.bal",
   "description": "",
+  "source": "functions.bal",
+  "packageName": ".",
   "output": {
     "Functions": {
       "add": {
@@ -18,60 +19,6 @@
         },
         "type": "FUNCTION",
         "name": "add",
-        "scope": "Global",
-        "children": {}
-      },
-      "sayHello": {
-        "id": "sayHello",
-        "location": {
-          "fileName": "functions.bal",
-          "startLine": {
-            "line": 3,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 5,
-            "offset": 1
-          }
-        },
-        "type": "FUNCTION",
-        "name": "sayHello",
-        "scope": "Global",
-        "children": {}
-      },
-      "fn\\#with\\-Identifiers": {
-        "id": "fn\\#with\\-Identifiers",
-        "location": {
-          "fileName": "functions.bal",
-          "startLine": {
-            "line": 47,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 49,
-            "offset": 1
-          }
-        },
-        "type": "FUNCTION",
-        "name": "fn#with-Identifiers",
-        "scope": "Global",
-        "children": {}
-      },
-      "divideAndRemainder": {
-        "id": "divideAndRemainder",
-        "location": {
-          "fileName": "functions.bal",
-          "startLine": {
-            "line": 18,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 22,
-            "offset": 1
-          }
-        },
-        "type": "FUNCTION",
-        "name": "divideAndRemainder",
         "scope": "Global",
         "children": {}
       },
@@ -93,6 +40,60 @@
         "scope": "Global",
         "children": {}
       },
+      "divide": {
+        "id": "divide",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 39,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 44,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "divide",
+        "scope": "Global",
+        "children": {}
+      },
+      "divideAndRemainder": {
+        "id": "divideAndRemainder",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 18,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 22,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "divideAndRemainder",
+        "scope": "Global",
+        "children": {}
+      },
+      "fn\\#with\\-Identifiers": {
+        "id": "fn\\#with\\-Identifiers",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 47,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 49,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "fn#with-Identifiers",
+        "scope": "Global",
+        "children": {}
+      },
       "greet": {
         "id": "greet",
         "location": {
@@ -111,6 +112,24 @@
         "scope": "Global",
         "children": {}
       },
+      "sayHello": {
+        "id": "sayHello",
+        "location": {
+          "fileName": "functions.bal",
+          "startLine": {
+            "line": 3,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 5,
+            "offset": 1
+          }
+        },
+        "type": "FUNCTION",
+        "name": "sayHello",
+        "scope": "Global",
+        "children": {}
+      },
       "sum": {
         "id": "sum",
         "location": {
@@ -126,24 +145,6 @@
         },
         "type": "FUNCTION",
         "name": "sum",
-        "scope": "Global",
-        "children": {}
-      },
-      "divide": {
-        "id": "divide",
-        "location": {
-          "fileName": "functions.bal",
-          "startLine": {
-            "line": 39,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 44,
-            "offset": 1
-          }
-        },
-        "type": "FUNCTION",
-        "name": "divide",
         "scope": "Global",
         "children": {}
       }

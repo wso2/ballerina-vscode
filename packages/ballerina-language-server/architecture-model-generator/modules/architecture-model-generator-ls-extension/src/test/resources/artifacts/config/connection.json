@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "connection.bal",
+  "packageName": ".",
   "output": {
     "Connections": {
       "graphQlConnection": {

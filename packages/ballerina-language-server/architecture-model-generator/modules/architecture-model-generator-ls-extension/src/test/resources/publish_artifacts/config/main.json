@@ -1,6 +1,7 @@
 {
   "source": "new/main.bal",
   "description": "",
+  "packageName": "proj329",
   "output": {
     "Variables": {
       "updates": {

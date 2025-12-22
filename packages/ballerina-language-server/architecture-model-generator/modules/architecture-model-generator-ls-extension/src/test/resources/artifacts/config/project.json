@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "project_1",
+  "packageName": "multi_component",
   "output": {
     "Connections": {
       "httpClient": {

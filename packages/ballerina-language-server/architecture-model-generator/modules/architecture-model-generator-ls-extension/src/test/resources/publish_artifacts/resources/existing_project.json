@@ -1,7 +1,32 @@
 {
   "source": "new/config.bal",
   "description": "Test reload project with pre-existing artifacts",
+  "packageName": "proj329",
   "output": {
+    "Connections": {
+      "updates": {
+        "httpEp": {
+          "id": "httpEp",
+          "location": {
+            "fileName": "connections.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 64
+            }
+          },
+          "type": "CONNECTION",
+          "name": "httpEp",
+          "scope": "Global",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png",
+          "module": "http",
+          "children": {}
+        }
+      }
+    },
     "Variables": {
       "updates": {
         "_telegramAgentAgent": {
@@ -92,30 +117,6 @@
           "type": "VARIABLE",
           "name": "_telegramAgentModel",
           "scope": "Global",
-          "children": {}
-        }
-      }
-    },
-    "Connections": {
-      "updates": {
-        "httpEp": {
-          "id": "httpEp",
-          "location": {
-            "fileName": "connections.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 64
-            }
-          },
-          "type": "CONNECTION",
-          "name": "httpEp",
-          "scope": "Global",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png",
-          "module": "http",
           "children": {}
         }
       }
@@ -440,6 +441,64 @@
         }
       }
     },
+    "Configurations": {
+      "additions": {
+        "telegramToken": {
+          "id": "telegramToken",
+          "location": {
+            "fileName": "config.bal",
+            "startLine": {
+              "line": 1,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 1,
+              "offset": 38
+            }
+          },
+          "type": "CONFIGURABLE",
+          "name": "telegramToken",
+          "scope": "Global",
+          "children": {}
+        },
+        "port": {
+          "id": "port",
+          "location": {
+            "fileName": "config.bal",
+            "startLine": {
+              "line": 0,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 0,
+              "offset": 26
+            }
+          },
+          "type": "CONFIGURABLE",
+          "name": "port",
+          "scope": "Global",
+          "children": {}
+        },
+        "telegramChatId": {
+          "id": "telegramChatId",
+          "location": {
+            "fileName": "config.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 39
+            }
+          },
+          "type": "CONFIGURABLE",
+          "name": "telegramChatId",
+          "scope": "Global",
+          "children": {}
+        }
+      }
+    },
     "Entry Points": {
       "additions": {
         "-611373993": {
@@ -509,64 +568,6 @@
         },
         "-611384068": {
           "id": "-611384068",
-          "children": {}
-        }
-      }
-    },
-    "Configurations": {
-      "additions": {
-        "telegramToken": {
-          "id": "telegramToken",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 1,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 1,
-              "offset": 38
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "telegramToken",
-          "scope": "Global",
-          "children": {}
-        },
-        "port": {
-          "id": "port",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 0,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 0,
-              "offset": 26
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "port",
-          "scope": "Global",
-          "children": {}
-        },
-        "telegramChatId": {
-          "id": "telegramChatId",
-          "location": {
-            "fileName": "config.bal",
-            "startLine": {
-              "line": 2,
-              "offset": 0
-            },
-            "endLine": {
-              "line": 2,
-              "offset": 39
-            }
-          },
-          "type": "CONFIGURABLE",
-          "name": "telegramChatId",
-          "scope": "Global",
           "children": {}
         }
       }

@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "tcp.bal",
+  "packageName": ".",
   "output": {
     "Types": {
       "TcpEchoService": {
