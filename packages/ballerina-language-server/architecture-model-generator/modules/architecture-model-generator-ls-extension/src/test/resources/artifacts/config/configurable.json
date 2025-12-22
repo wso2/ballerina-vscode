@@ -1,6 +1,7 @@
 {
-  "source": "configurable.bal",
   "description": "",
+  "source": "configurable.bal",
+  "packageName": ".",
   "output": {
     "Types": {
       "User": {
@@ -23,24 +24,6 @@
       }
     },
     "Configurations": {
-      "maxRetries": {
-        "id": "maxRetries",
-        "location": {
-          "fileName": "configurable.bal",
-          "startLine": {
-            "line": 4,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 4,
-            "offset": 32
-          }
-        },
-        "type": "CONFIGURABLE",
-        "name": "maxRetries",
-        "scope": "Global",
-        "children": {}
-      },
       "apiUrl": {
         "id": "apiUrl",
         "location": {
@@ -56,6 +39,24 @@
         },
         "type": "CONFIGURABLE",
         "name": "apiUrl",
+        "scope": "Global",
+        "children": {}
+      },
+      "defaultSettings": {
+        "id": "defaultSettings",
+        "location": {
+          "fileName": "configurable.bal",
+          "startLine": {
+            "line": 32,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 32,
+            "offset": 41
+          }
+        },
+        "type": "CONFIGURABLE",
+        "name": "defaultSettings",
         "scope": "Global",
         "children": {}
       },
@@ -77,6 +78,24 @@
         "scope": "Global",
         "children": {}
       },
+      "maxRetries": {
+        "id": "maxRetries",
+        "location": {
+          "fileName": "configurable.bal",
+          "startLine": {
+            "line": 4,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 4,
+            "offset": 32
+          }
+        },
+        "type": "CONFIGURABLE",
+        "name": "maxRetries",
+        "scope": "Global",
+        "children": {}
+      },
       "serverConfig": {
         "id": "serverConfig",
         "location": {
@@ -92,24 +111,6 @@
         },
         "type": "CONFIGURABLE",
         "name": "serverConfig",
-        "scope": "Global",
-        "children": {}
-      },
-      "users": {
-        "id": "users",
-        "location": {
-          "fileName": "configurable.bal",
-          "startLine": {
-            "line": 19,
-            "offset": 0
-          },
-          "endLine": {
-            "line": 22,
-            "offset": 2
-          }
-        },
-        "type": "CONFIGURABLE",
-        "name": "users",
         "scope": "Global",
         "children": {}
       },
@@ -131,21 +132,21 @@
         "scope": "Global",
         "children": {}
       },
-      "defaultSettings": {
-        "id": "defaultSettings",
+      "users": {
+        "id": "users",
         "location": {
           "fileName": "configurable.bal",
           "startLine": {
-            "line": 32,
+            "line": 19,
             "offset": 0
           },
           "endLine": {
-            "line": 32,
-            "offset": 41
+            "line": 22,
+            "offset": 2
           }
         },
         "type": "CONFIGURABLE",
-        "name": "defaultSettings",
+        "name": "users",
         "scope": "Global",
         "children": {}
       }

@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "type.bal",
+  "packageName": ".",
   "output": {
     "Types": {
       "AppError": {

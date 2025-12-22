@@ -24,16 +24,25 @@ import java.util.Map;
 
 /**
  * Represents parameters for publishing artifacts notification.
- * 
+ *
  * @since 1.0.0
  */
 public class ArtifactsParams {
 
     private String uri;
+    private String packageName;
+    private String moduleName;
     Map<String, Map<String, Map<String, Artifact>>> artifacts;
 
     public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public void setProjectAndModuleName(String projectName, String moduleName) {
+        this.packageName = projectName;
+        if (projectName == null || !projectName.equals(moduleName)) {
+            this.moduleName = moduleName;
+        }
     }
 
     public void setArtifacts(
@@ -43,6 +52,14 @@ public class ArtifactsParams {
 
     public String uri() {
         return uri;
+    }
+
+    public String packageName() {
+        return packageName;
+    }
+
+    public String moduleName() {
+        return moduleName;
     }
 
     public Map<String, Map<String, Map<String, Artifact>>> artifacts() {

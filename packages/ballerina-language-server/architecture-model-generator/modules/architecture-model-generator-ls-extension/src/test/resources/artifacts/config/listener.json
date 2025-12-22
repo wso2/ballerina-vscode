@@ -1,6 +1,7 @@
 {
   "description": "",
   "source": "listener.bal",
+  "packageName": ".",
   "output": {
     "Listeners": {
       "httpDefaultListener": {
