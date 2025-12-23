@@ -245,7 +245,7 @@
                 },
                 "ballerina.copilot.checkpoints.maxCount": {
                     "type": "number",
-                    "default": 20,
+                    "default": 3,
                     "description": "Maximum number of checkpoints to keep."
                 },
                 "ballerina.copilot.checkpoints.ignorePatterns": {
@@ -256,7 +256,8 @@
                         "build/**",
                         "dist/**",
                         ".vscode/**",
-                        "*.log"
+                        "*.log",
+                        ".DS_Store"
                     ],
                     "description": "File patterns to ignore when creating checkpoints."
                 },

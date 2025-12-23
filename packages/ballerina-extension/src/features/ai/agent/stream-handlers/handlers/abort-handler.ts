@@ -36,18 +36,14 @@ export class AbortHandler implements StreamEventHandler {
     async handle(part: any, context: StreamContext): Promise<void> {
         console.log("[Agent] Aborted by user.");
 
+        // Get message history from SDK's response.messages
         let messagesToSave: any[] = [];
         try {
             const partialResponse = await context.response;
             messagesToSave = partialResponse.messages || [];
         } catch (error) {
-            if (context.currentAssistantContent.length > 0) {
-                context.accumulatedMessages.push({
-                    role: "assistant",
-                    content: context.currentAssistantContent,
-                });
-            }
-            messagesToSave = context.accumulatedMessages;
+            console.warn("[AbortHandler] Could not retrieve partial response messages:", error);
+            messagesToSave = [];
         }
 
         // Add user message to inform about abort and file reversion
