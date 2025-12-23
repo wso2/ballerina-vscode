@@ -17,15 +17,11 @@
  */
 
 import { useQueryClient, useQuery } from "@tanstack/react-query";
-import {
-    AvailableNode,
-    DIRECTORY_MAP,
-    findDevantScopeByModule,
-    PackageTomlValues,
-} from "@wso2/ballerina-core";
+import { AvailableNode, DIRECTORY_MAP, findDevantScopeByModule, PackageTomlValues } from "@wso2/ballerina-core";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
+import { ICmdParamsBase, ICreateDirCtxCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import React, { useContext, FC, ReactNode, useEffect, useState } from "react";
 
 const defaultPlatformExtContext: {
@@ -36,18 +32,20 @@ const defaultPlatformExtContext: {
     workspacePath: string;
     projectToml?: { values: Partial<PackageTomlValues>; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
-    deployableArtifacts?: { exists: boolean, refetch: () => void };
+    deployableArtifacts?: { exists: boolean; refetch: () => void };
+    onLinkDevantProject: () => void;
     initConnector: {
-        connector?: AvailableNode,
+        connector?: AvailableNode;
         setConnector?: (node: AvailableNode) => void;
-    }
+    };
 } = {
     platformExtState: { components: [], isLoggedIn: false },
     refetchProjectInfo: () => {},
+    onLinkDevantProject: () => {},
     devantConsoleUrl: "",
     projectPath: "",
     workspacePath: "",
-    initConnector: {}
+    initConnector: {},
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -62,12 +60,14 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const platformRpcClient = rpcClient.getPlatformRpcClient();
     const [newConnectorNode, setNewConnectorNode] = useState<AvailableNode>();
 
-    const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery({
-        queryKey: ["project-info"],
-        queryFn: () => rpcClient.getVisualizerLocation(),
-        select: (data) => ({ projectPath: data.projectPath, workspacePath: data.workspacePath}),
-        refetchOnWindowFocus: true,
-    });
+    const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery(
+        {
+            queryKey: ["project-info"],
+            queryFn: () => rpcClient.getVisualizerLocation(),
+            select: (data) => ({ projectPath: data.projectPath, workspacePath: data.workspacePath }),
+            refetchOnWindowFocus: true,
+        }
+    );
 
     const { data: projectToml, refetch: refetchToml } = useQuery({
         queryKey: ["project-toml", visualizerLocation.projectPath],
@@ -81,16 +81,16 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         select: (projectStructure) => {
             if (!projectStructure) return false;
 
-            const project = projectStructure.projects.find(project => project.projectPath === visualizerLocation.projectPath);
+            const project = projectStructure.projects.find(
+                (project) => project.projectPath === visualizerLocation.projectPath
+            );
             if (!project) return false;
 
             const services = project.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
             const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION] ?? [];
 
             const hasAutomation = automation.length > 0;
-            const hasServiceScopes = services
-                .map((s) => findDevantScopeByModule(s?.moduleName))
-                .some(Boolean);
+            const hasServiceScopes = services.map((s) => findDevantScopeByModule(s?.moduleName)).some(Boolean);
 
             return hasAutomation || hasServiceScopes;
         },
@@ -108,10 +108,54 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         });
     }, []);
 
-     const { data: devantConsoleUrl = "" } = useQuery({
+    const { data: devantConsoleUrl = "" } = useQuery({
         queryKey: ["devant-url"],
         queryFn: () => platformRpcClient.getDevantConsoleUrl(),
     });
+
+    const onLinkDevantProject = () => {
+        if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
+            rpcClient
+                .getCommonRpcClient()
+                .showInformationModal({
+                    message: "Please login to Devant in order to use Devant Connections",
+                    items: ["Login"],
+                })
+                .then((resp) => {
+                    if (resp === "Login") {
+                        platformRpcClient.deployIntegrationInDevant();
+                    } else if (resp === "Associate Project") {
+                        rpcClient.getCommonRpcClient().executeCommand({
+                            commands: [PlatformExtCommandIds.SignIn, { extName: "Devant" } as ICmdParamsBase],
+                        });
+                    }
+                });
+        } else {
+            rpcClient
+                .getCommonRpcClient()
+                .showInformationModal({
+                    message:
+                        "To use Devant connections, you can either deploy your source code now or associate this directory with an existing Devant project where you plan to deploy later.",
+                    items: ["Deploy Now", "Associate Project"],
+                })
+                .then((resp) => {
+                    if (resp === "Deploy Now") {
+                        platformRpcClient.deployIntegrationInDevant();
+                    } else if (resp === "Associate Project") {
+                        rpcClient.getCommonRpcClient().executeCommand({
+                            commands: [
+                                PlatformExtCommandIds.CreateDirectoryContext,
+                                {
+                                    extName: "Devant",
+                                    skipComponentExistCheck: true,
+                                    fsPath: visualizerLocation.workspacePath || visualizerLocation?.projectPath,
+                                } as ICreateDirCtxCmdParams,
+                            ],
+                        });
+                    }
+                });
+        }
+    };
 
     // todo: avoid passing refetch functions via context
     return (
@@ -126,12 +170,13 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                 },
                 deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
                 devantConsoleUrl,
-                workspacePath: visualizerLocation.workspacePath,
-                projectPath: visualizerLocation.projectPath,
+                workspacePath: visualizerLocation?.workspacePath,
+                projectPath: visualizerLocation?.projectPath,
                 refetchProjectInfo,
                 platformRpcClient,
+                onLinkDevantProject,
                 projectToml: { values: projectToml, refresh: refetchToml },
-                initConnector: { connector: newConnectorNode, setConnector: setNewConnectorNode }
+                initConnector: { connector: newConnectorNode, setConnector: setNewConnectorNode },
             }}
         >
             {children}

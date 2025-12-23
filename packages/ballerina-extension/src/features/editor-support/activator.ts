@@ -17,7 +17,7 @@
  */
 
 import { isSupportedVersion, VERSION } from "../../utils";
-import { commands, debug, DebugConfiguration, ProgressLocation, Uri, window, workspace, WorkspaceFolder } from "vscode";
+import { commands, debug, DebugConfiguration, Uri, window, workspace, WorkspaceFolder } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { ReadOnlyContentProvider } from "./readonly-content-provider";
 import * as gitStatus from "./git-status";
@@ -70,6 +70,7 @@ export function activate(ballerinaExtInstance: BallerinaExtension) {
         });
     }
 }
+
 
 export async function startDebugging(uri: Uri, testDebug: boolean = false, suggestTryit: boolean = false, noDebugMode: boolean = false): Promise<boolean> {
     const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(uri);
