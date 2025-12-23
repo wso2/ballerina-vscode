@@ -60,9 +60,26 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
     const [dynamicRecordTypeFields, setDynamicRecordTypeFields] = useState<RecordTypeField[]>([]);
 
-    // Add useEffect to set initial values
+    // Reset to first option when field.choices changes (parent CHOICE changed)
+    useEffect(() => {
+        // Find the first enabled choice
+        const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
+        if (enabledChoiceIndex !== -1) {
+            const newSelectedOption = enabledChoiceIndex + 1;
+            if (newSelectedOption !== selectedOption) {
+                setSelectedOption(newSelectedOption);
+                setValue(field.key, enabledChoiceIndex);
+            }
+        }
+    }, [field.choices]);
+
+    // Add useEffect to set initial values and react to choice changes
     useEffect(() => {
         const realValue = selectedOption - 1;
+        // Validate that the realValue is within bounds
+        if (realValue < 0 || realValue >= field.choices.length) {
+            return;
+        }
         const property = field.choices[realValue];
         const { formFields, recordTypeFieldsForChoice } = convertConfig(property);
         setDynamicFields(formFields);
@@ -74,7 +91,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 }
             });
         }
-    }, [selectedOption]);
+    }, [selectedOption, field.choices]);
 
     const convertConfig = (model: PropertyModel): { formFields: FormField[], recordTypeFieldsForChoice: RecordTypeField[] } => {
         const formFields: FormField[] = [];
