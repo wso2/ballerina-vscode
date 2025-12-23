@@ -26,6 +26,7 @@ import { getInputModeFromBallerinaType, getInputModeFromTypes } from "../ChipExp
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 interface DynamicArrayBuilderProps {
     label: string;
@@ -75,7 +76,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     };
 
     const primaryInputMode = useMemo(() => {
-        if (expressionFieldProps.field.types.length === 0) {
+        if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)
@@ -98,7 +99,10 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         onOpenExpandedMode={props.expressionFieldProps.onOpenExpandedMode}
                         onRemove={props.expressionFieldProps.onRemove}
                         isInExpandedMode={props.expressionFieldProps.isInExpandedMode}
-                        configuration={getEditorConfiguration(primaryInputMode)}
+                        //HACK: always use Expression mode for array items. this should be fixed to 
+                        //show the type related editor in the field editor and the whole editor should 
+                        //have a switch to show the array editor mode and the expression mode.
+                        configuration={new ChipExpressionEditorDefaultConfiguration()}
                     />
                     <S.DeleteButton
                         appearance="icon"

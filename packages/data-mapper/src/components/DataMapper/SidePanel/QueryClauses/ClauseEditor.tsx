@@ -87,7 +87,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+        types: [{ fieldType: "EXPRESSION", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -99,7 +99,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the order",
         value: clauseProps?.order ?? "",
-        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+        types: [{ fieldType: "ENUM", ballerinaType: "Global", selected: false }],
         enabled: true,
         items: ["ascending", "descending"]
     }
@@ -112,7 +112,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+        types: [{ fieldType: "EXPRESSION", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 
@@ -124,7 +124,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
-        types: [{ fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+        types: [{ fieldType: "DM_JOIN_CLAUSE_RHS_EXPRESSION", ballerinaType: "Global", selected: false }],
         enabled: true,
     }
 

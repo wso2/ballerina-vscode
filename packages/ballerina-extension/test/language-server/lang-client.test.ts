@@ -802,7 +802,7 @@ suite.skip("Language Server Tests", function () {
         });
     });
 
-    test.only("Test get completion", function (done): void {
+    test("Test get completion", function (done): void {
         const uri = Uri.file(join(PROJECT_ROOT, 'hello_world.bal'));
         commands.executeCommand('vscode.open', uri).then(() => {
             langClient.getCompletion({

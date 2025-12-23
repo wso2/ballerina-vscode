@@ -14,8 +14,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Library, Client, RemoteFunction, ResourceFunction } from "../../../../src/features/ai/service/libs/libs_types";
-import { GetFunctionResponse, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "../../../../src/features/ai/service/libs/funcs_inter_types";
+import { Library, Client, RemoteFunction, ResourceFunction } from "../../../features/ai/utils/libs/library-types";
+import { GetFunctionResponse, MinifiedClient, MinifiedRemoteFunction, MinifiedResourceFunction } from "../../../features/ai/utils/libs/function-types";
 
 /**
  * Transforms a Library to GetFunctionResponse format for testing
