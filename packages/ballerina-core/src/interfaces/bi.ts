@@ -147,7 +147,10 @@ export type FormFieldInputType = "TEXT" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
-    "RECORD_MAP_EXPRESSION";
+    "MAPPING_EXPRESSION_SET" |
+    "RECORD_MAP_EXPRESSION" | 
+    "ENUM" |
+    "DM_JOIN_CLAUSE_RHS_EXPRESSION";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
