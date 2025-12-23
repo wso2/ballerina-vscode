@@ -36,6 +36,7 @@ import { StateMachine } from "../../../stateMachine";
 import { createAgentEventRegistry } from "./stream-handlers/create-agent-event-registry";
 import { StreamContext } from "./stream-handlers/stream-context";
 import { StreamErrorException, StreamAbortException, StreamFinishException } from "./stream-handlers/stream-event-handler";
+import { getPendingReviewContext } from "./stream-handlers/handlers/finish-handler";
 
 // ==================================
 // ExecutionContext Factory Functions
@@ -77,13 +78,30 @@ export async function generateAgentCore(
 ): Promise<string> {
     const messageId = params.messageId;
 
-    const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
-    const shouldCleanup = !process.env.AI_TEST_ENV;
+    // Check if we're in review mode and reuse existing temp project
+    const pendingReview = getPendingReviewContext();
+    let tempProjectPath: string;
+    let shouldCleanup: boolean;
+
+    if (pendingReview) {
+        // Reuse existing temp project from review mode
+        tempProjectPath = pendingReview.tempProjectPath;
+        shouldCleanup = pendingReview.shouldCleanup;
+        console.log(`[Agent] Reusing existing temp project from review mode: ${tempProjectPath}`);
+    } else {
+        // Create new temp project from workspace
+        tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
+        shouldCleanup = !process.env.AI_TEST_ENV;
+        console.log(`[Agent] Created new temp project: ${tempProjectPath}`);
+    }
+
     const projectPath = ctx.projectPath;
 
     const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
-    // Send didOpen for all initial project files
-    sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+    // Send didOpen for all initial project files only if creating new temp (not reusing)
+    if (!pendingReview) {
+        sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+    }
 
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
