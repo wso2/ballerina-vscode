@@ -16,37 +16,19 @@
  * under the License.
  */
 
-import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../base/AICommandExecutor';
+import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
 import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType } from '@wso2/ballerina-core';
 import { ModelMessage, stepCountIs, streamText } from 'ai';
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../../utils/ai-client';
-import { populateHistoryForAgent } from '../../utils/ai-utils';
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from '../../tools/task-writer';
-import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from '../../tools/diagnostics';
-import {
-    createBatchEditTool,
-    createEditExecute,
-    createEditTool,
-    createMultiEditExecute,
-    createReadExecute,
-    createReadTool,
-    createWriteExecute,
-    createWriteTool,
-    FILE_BATCH_EDIT_TOOL_NAME,
-    FILE_READ_TOOL_NAME,
-    FILE_SINGLE_EDIT_TOOL_NAME,
-    FILE_WRITE_TOOL_NAME
-} from '../../tools/text-editor';
-import { sendAgentDidOpenForProjects } from '../../utils/project/ls-schema-notifications';
-import { getLibraryProviderTool } from '../../tools/library-provider';
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from '../../utils/libs/libraries';
-import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from '../../tools/healthcare-library';
-import { getSystemPrompt, getUserPrompt } from '../../agent/prompts';
-import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from '../../tools/connector-generator';
-import { getProjectSource } from '../../utils/project/temp-project';
-import { createAgentEventRegistry } from '../../agent/stream-handlers/create-agent-event-registry';
-import { StreamContext } from '../../agent/stream-handlers/stream-context';
-import { StreamErrorException, StreamAbortException, StreamFinishException } from '../../agent/stream-handlers/stream-event-handler';
+import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
+import { populateHistoryForAgent } from '../utils/ai-utils';
+import { sendAgentDidOpenForProjects } from '../utils/project/ls-schema-notifications';
+import { getSystemPrompt, getUserPrompt } from './prompts';
+import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
+import { createToolRegistry } from './tool-registry';
+import { getProjectSource } from '../utils/project/temp-project';
+import { createAgentEventRegistry } from './stream-handlers/create-agent-event-registry';
+import { StreamContext } from './stream-handlers/stream-context';
+import { StreamErrorException, StreamAbortException, StreamFinishException } from './stream-handlers/stream-event-handler';
 
 /**
  * AgentExecutor - Executes agent-based code generation with tools and streaming
@@ -116,41 +98,15 @@ export class AgentExecutor extends AICommandExecutor {
                 : "- No libraries available";
 
             // Create tools
-            const tools = {
-                [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
-                    this.config.eventHandler,
-                    tempProjectPath,
-                    modifiedFiles
-                ),
-                [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(
-                    libraryDescriptions,
-                    GenerationType.CODE_GENERATION,
-                    this.config.eventHandler
-                ),
-                [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(
-                    libraryDescriptions,
-                    this.config.eventHandler
-                ),
-                [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(
-                    this.config.eventHandler,
-                    tempProjectPath,
-                    projects[0].projectName,
-                    modifiedFiles
-                ),
-                [FILE_WRITE_TOOL_NAME]: createWriteTool(
-                    createWriteExecute(this.config.eventHandler, tempProjectPath, projectPath, modifiedFiles)
-                ),
-                [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(
-                    createEditExecute(this.config.eventHandler, tempProjectPath, projectPath, modifiedFiles)
-                ),
-                [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(
-                    createMultiEditExecute(this.config.eventHandler, tempProjectPath, projectPath, modifiedFiles)
-                ),
-                [FILE_READ_TOOL_NAME]: createReadTool(
-                    createReadExecute(this.config.eventHandler, tempProjectPath)
-                ),
-                [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
-            };
+            const tools = createToolRegistry({
+                eventHandler: this.config.eventHandler,
+                tempProjectPath,
+                projectPath,
+                modifiedFiles,
+                projects,
+                libraryDescriptions,
+                generationType: GenerationType.CODE_GENERATION,
+            });
 
             // Stream LLM response
             const { fullStream, response } = streamText({

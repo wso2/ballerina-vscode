@@ -81,7 +81,7 @@ import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { runtimeStateManager } from '../../features/ai/state/RuntimeStateManager';
-import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
+import { getSelectedLibraries } from "../../features/ai/agent/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
@@ -794,8 +794,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
         try {
+            const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
+
+            if (!isPlanModeEnabled) {
+                params.isPlanMode = false;
+            }
             // Import executor
-            const { AgentExecutor } = await import('../../features/ai/executors/agent/AgentExecutor');
+            const { AgentExecutor } = await import('../../features/ai/agent/AgentExecutor');
             const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
 
             // Create execution context from current state machine context

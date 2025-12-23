@@ -15,15 +15,15 @@
 // under the License.
 
 import { generateObject, ModelMessage, tool } from "ai";
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
 import { jsonSchema } from "ai";
-import { Library } from "../utils/libs/library-types";
-import { selectRequiredFunctions } from "../utils/libs/function-registry";
+import { Library } from "../../utils/libs/library-types";
+import { selectRequiredFunctions } from "../../utils/libs/function-registry";
 import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest } from "@wso2/ballerina-core";
-import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../utils/ai-client";
+import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../../utils/ai-client";
 import { z } from "zod";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
-import { CopilotEventHandler } from "../utils/events";
+import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
+import { CopilotEventHandler } from "../../utils/events";
 
 export const HEALTHCARE_LIBRARY_PROVIDER_TOOL = "HealthcareLibraryProviderTool";
 

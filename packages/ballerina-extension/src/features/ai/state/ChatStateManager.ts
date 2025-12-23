@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { sessionStorage } from '../../../views/ai-panel/chatStateStorage';
+import { sessionStorage, StoredChatState } from '../../../views/ai-panel/chatStateStorage';
 import { Checkpoint, ChatMessage, AIChatMachineContext } from '@wso2/ballerina-core/lib/state-machine-types';
 import { captureWorkspaceSnapshot, restoreWorkspaceSnapshot } from '../../../views/ai-panel/checkpoint/checkpointUtils';
 import { getCheckpointConfig } from '../../../views/ai-panel/checkpoint/checkpointConfig';
@@ -60,7 +60,7 @@ export class ChatStateManager {
      * @param projectId - Project identifier
      * @returns Stored chat state or undefined if not found
      */
-    loadState(projectId: string) {
+    loadState(projectId: string): StoredChatState | undefined {
         return sessionStorage.load(projectId);
     }
 

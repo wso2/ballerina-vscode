@@ -23,7 +23,7 @@ import { getAnthropicClient, ANTHROPIC_HAIKU, fetchWithAuth } from "../utils/ai-
 import { z } from 'zod';
 import { tool } from 'ai';
 import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
-import { getSelectedLibraries } from "../tools/healthcare-library";
+import { getSelectedLibraries } from "../agent/tools/healthcare-library";
 
 interface Document {
     document: string;

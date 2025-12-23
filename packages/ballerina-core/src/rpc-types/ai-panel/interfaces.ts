@@ -398,7 +398,6 @@ export interface GenerateCodeRequest {
 
 export interface GenerateAgentCodeRequest {
     usecase: string;
-    chatHistory: any[];
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
     messageId: string;

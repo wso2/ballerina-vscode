@@ -23,7 +23,7 @@ import { AIChatMachineContext, Checkpoint, Plan, ChatMessage } from '@wso2/balle
  * Data is stored in memory and cleared when VSCode window closes
  */
 
-interface StoredChatState {
+export interface StoredChatState {
     chatHistory: ChatMessage[];
     currentPlan?: Plan;
     currentTaskIndex: number;

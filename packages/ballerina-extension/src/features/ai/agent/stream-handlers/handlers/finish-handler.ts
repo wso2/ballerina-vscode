@@ -17,7 +17,7 @@
 import { StreamEventHandler, StreamFinishException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
 import { Command, ExecutionContext } from "@wso2/ballerina-core";
-import { checkCompilationErrors } from "../../../tools/diagnostics-utils";
+import { checkCompilationErrors } from "../../tools/diagnostics-utils";
 import { integrateCodeToWorkspace } from "../../utils";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
