@@ -16,7 +16,6 @@
  * under the License.
  */
 import * as vscode from "vscode";
-import * as path from 'path';
 import { URI, Utils } from "vscode-uri";
 import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
@@ -103,7 +102,13 @@ export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotifi
     const isWithinProject = URI
         .parse(publishedArtifacts.uri).fsPath.toLowerCase()
         .includes(projectUri.fsPath.toLowerCase());
-    if (currentProjectStructure && isWithinProject) {
+
+    const isSubmodule = publishedArtifacts?.moduleName;
+
+    const persistDir = Utils.joinPath(projectUri, 'persist').fsPath.toLowerCase();
+    const isInPersistDir = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(persistDir);
+    
+    if (currentProjectStructure && isWithinProject && !isSubmodule && !isInPersistDir) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Publish a notification to the artifact handler
