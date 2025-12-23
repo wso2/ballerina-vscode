@@ -80,9 +80,8 @@ import {
 import { DiagramSkeleton } from "../../../components/Skeletons";
 import { AI_COMPONENT_PROGRESS_MESSAGE, AI_COMPONENT_PROGRESS_MESSAGE_TIMEOUT, GET_DEFAULT_MODEL_PROVIDER, LOADING_MESSAGE } from "../../../constants";
 import { useMutation } from "@tanstack/react-query";
-import { ConnectionListItem, ICmdParamsBase } from "@wso2/wso2-platform-core";
+import { ConnectionListItem } from "@wso2/wso2-platform-core";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
-import { ICreateDirCtxCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 
 const Container = styled.div`
     width: 100%;
@@ -170,47 +169,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, projectToml, workspacePath, initConnector } = usePlatformExtContext()
-
-    const onLinkDevantProject = () => {
-        if (!platformExtState?.isLoggedIn && platformExtState?.hasPossibleComponent) {
-            rpcClient
-                .getCommonRpcClient()
-                .showInformationModal({
-                    message: "Please login to Devant in order to use Devant Connections",
-                    items: ["Login"],
-                })
-                .then((resp) => {
-                    if (resp === "Login") {
-                        platformRpcClient.deployIntegrationInDevant();
-                    } else if (resp === "Associate Project") {
-                        rpcClient.getCommonRpcClient().executeCommand({
-                            commands: [PlatformExtCommandIds.SignIn, { extName: "Devant" } as ICmdParamsBase],
-                        });
-                    }
-                });
-        } else {
-            rpcClient
-                .getCommonRpcClient()
-                .showInformationModal({
-                    message:
-                        "To use Devant connections, you can either deploy your source code now or associate this directory with an existing Devant project where you plan to deploy later.",
-                    items: ["Deploy Now", "Associate Project"],
-                })
-                .then((resp) => {
-                    if (resp === "Deploy Now") {
-                        platformRpcClient.deployIntegrationInDevant();
-                    } else if (resp === "Associate Project") {
-                        rpcClient.getCommonRpcClient().executeCommand({
-                            commands: [
-                                PlatformExtCommandIds.CreateDirectoryContext,
-                                { extName: "Devant", skipComponentExistCheck: true, fsPath: workspacePath || projectPath } as ICreateDirCtxCmdParams,
-                            ],
-                        });
-                    }
-                });
-        }
-    };
+    const { platformExtState, platformRpcClient, projectToml, onLinkDevantProject, initConnector } = usePlatformExtContext()
 
     const enrichedCategories = useMemo(()=>{
          return  enrichCategoryWithDevant(platformExtState?.isLoggedIn, platformExtState?.selectedContext, projectToml?.values, platformExtState?.devantConns?.list, categories, importingConn)

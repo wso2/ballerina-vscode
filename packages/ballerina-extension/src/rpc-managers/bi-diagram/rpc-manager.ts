@@ -1100,38 +1100,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    /*
-    async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
-        const scopes = params.integrationTypes;
-
-        let integrationType: SCOPE;
-
-        if (scopes.length === 1) {
-            integrationType = scopes[0];
-        } else {
-            // Show a quick pick to select deployment option
-            const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
-            });
-            integrationType = selectedScope as SCOPE;
-        }
-
-        if (!integrationType) {
-            return { isCompleted: true };
-        }
-
-        const deployementParams: ICreateComponentCmdParams = {
-            integrationType: integrationType as any,
-            buildPackLang: "ballerina", // Example language
-            name: path.basename(StateMachine.context().projectPath),
-            componentDir: StateMachine.context().projectPath,
-            extName: "Devant"
-        };
-        commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
-
-        return { isCompleted: true };
-    }
-    */
 
     openAIChat(params: AIChatRequest): void {
         if (params.readme) {

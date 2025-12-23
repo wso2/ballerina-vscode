@@ -183,32 +183,6 @@ export const addConnection = async (
     return { connName: candidate, connFileUri: connectionBalFileUri };
 };
 
-/*
-const getDevantConnectorInitKey = async (moduleName: string): Promise<string> => {
-    const generatedTypes = path.join(StateMachine.context().projectPath, "generated", moduleName, "types.bal");
-    if (fs.existsSync(generatedTypes)) {
-        const stClientTypes = (await StateMachine.context().langClient.getSyntaxTree({
-            documentIdentifier: { uri: Uri.file(generatedTypes).toString() },
-        })) as SyntaxTree;
-
-        const apiKeyConfigType = (stClientTypes?.syntaxTree as ModulePart)?.members?.find(
-            (member) => STKindChecker.isTypeDefinition(member) && member?.typeName?.value === "ApiKeysConfig"
-        ) as TypeDefinition;
-        if (apiKeyConfigType) {
-            const apiKeyConfigField =
-                STKindChecker.isRecordTypeDesc(apiKeyConfigType.typeDescriptor) &&
-                (apiKeyConfigType.typeDescriptor?.fields?.find(
-                    (field) => STKindChecker.isRecordField(field) && field.fieldName?.value === "Choreo-API-Key"
-                ) as RecordField);
-            if (apiKeyConfigField) {
-                return "Choreo-API-Key";
-            }
-        }
-    }
-    return "choreoAPIKey";
-};
-*/
-
 const getYamlString = (yamlString: string) => {
     try {
         if (/%[0-9A-Fa-f]{2}/.test(yamlString)) {
