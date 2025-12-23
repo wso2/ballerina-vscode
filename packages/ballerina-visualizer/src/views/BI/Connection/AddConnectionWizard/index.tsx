@@ -43,10 +43,7 @@ import { HelperView } from "../../HelperView";
 import { BodyText } from "../../../styles";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
 import FormGeneratorNew from "../../Forms/FormGeneratorNew";
-import { MarketplaceItem } from "@wso2/wso2-platform-core";
-import { DevantConnectorPanel } from "../DevantConnections/DevantConnectorPanel";
 import { FormSubmitOptions } from "../../FlowDiagram";
-import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const Container = styled.div`
     width: 100%;
@@ -100,7 +97,6 @@ enum WizardStep {
     CONNECTOR_LIST = "connector-list",
     CONNECTION_CONFIG = "connection-config",
     GENERATE_CONNECTOR = "generate-connector",
-    DEVANT_CONNECTOR = "devant-connector"
 }
 
 enum PullingStatus {
@@ -128,7 +124,7 @@ interface AddConnectionWizardProps {
 export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const { projectPath, fileName, target, onClose, isPopupScreen, openCustomConnectorView } = props;
     const { rpcClient } = useRpcContext();
-    const { initConnector } = usePlatformExtContext();
+
     const [currentStep, setCurrentStep] = useState<WizardStep>(WizardStep.CONNECTOR_LIST);
     const [pullingStatus, setPullingStatus] = useState<PullingStatus>(PullingStatus.FETCHING);
     const [savingFormStatus, setSavingFormStatus] = useState<SavingFormStatus>(undefined);
@@ -139,7 +135,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
     const [fetchingInfo, setFetchingInfo] = useState<boolean>(false);
     const [connectorsViewKey, setConnectorsViewKey] = useState(0);
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
-    const [selectedDevantConnector, setSelectedDevantConnector] = useState<MarketplaceItem>()
     const [genConnectorFields, setGenConnectorFields] = useState<FormField[]>([
         {
             key: `module`,
@@ -236,21 +231,9 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         }
     };
 
-    useEffect(()=>{
-        if(initConnector.connector){
-            handleOnSelectConnector(initConnector.connector);
-            initConnector.setConnector(undefined)
-        }
-    },[handleOnSelectConnector, initConnector])
-
     const handleOnAddGeneratedConnector = () => {
         setCurrentStep(WizardStep.GENERATE_CONNECTOR);
     };
-
-    const onSelectDevantConnector = (item: MarketplaceItem) => {
-        setSelectedDevantConnector(item);
-        setCurrentStep(WizardStep.DEVANT_CONNECTOR)
-    }
 
     const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
@@ -337,8 +320,8 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                 )
             );
         } else {
-            handleOnBack();//
-            setConnectorsViewKey((prev) => prev + 1);//
+            handleOnBack();
+            setConnectorsViewKey((prev) => prev + 1);
         }
     };
 
@@ -397,7 +380,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                     onAddGeneratedConnector={handleOnAddGeneratedConnector}
                     onClose={onClose}
                     openCustomConnectorView={openCustomConnectorView}
-                    onSelectDevantConnector={onSelectDevantConnector}
                 />
             ) : (
                 currentStep === WizardStep.CONNECTOR_LIST && (
@@ -415,14 +397,13 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                                 onAddGeneratedConnector={handleOnAddGeneratedConnector}
                                 onClose={onClose}
                                 isPopupView={true}
-                                onSelectDevantConnector={onSelectDevantConnector}
                             />
                         </PopupContainer>
                     </>
                 )
             )}
-            {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) || currentStep === WizardStep.DEVANT_CONNECTOR && (
-                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 1500 }} />
+            {(currentStep === WizardStep.CONNECTION_CONFIG || currentStep === WizardStep.GENERATE_CONNECTOR) && (
+                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 2000 }} />
             )}
             {currentStep === WizardStep.CONNECTION_CONFIG && (
                 <PanelContainer
@@ -534,29 +515,6 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
                         )}
                     </>
                 </PanelContainer>
-            )}
-
-            {currentStep === WizardStep.DEVANT_CONNECTOR && (
-                 <DevantConnectorPanel 
-                    onClose={()=>{
-                        setCurrentStep(WizardStep.CONNECTOR_LIST)
-                        setSelectedDevantConnector(undefined);
-                    }}
-                     onCreate={(params)=>{
-                        if (params.connectionNode) {
-                            handleOnSelectConnector(params.connectionNode);
-                        } else if(params.connectionName){
-                            setCurrentStep(WizardStep.CONNECTOR_LIST)
-                            setSelectedDevantConnector(undefined)
-                            if(onClose){
-                                onClose({ recentIdentifier: params.connectionName, artifactType: DIRECTORY_MAP.CONNECTION })
-                            }else{
-                                gotoHome();
-                            }
-                        }
-                    }}
-                    selectedItem={selectedDevantConnector}
-                />
             )}
         </Container>
     );

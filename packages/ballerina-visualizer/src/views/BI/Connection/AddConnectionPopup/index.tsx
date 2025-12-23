@@ -29,6 +29,7 @@ import ConnectionConfigurationPopup from "../ConnectionConfigurationPopup";
 import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
 import { BodyTinyInfo } from "../../../styles";
 import { PopupOverlay, PopupContainer, PopupHeader, PopupTitle, CloseButton } from "../styles";
+import { DevantConnectorListPopup } from "../DevantConnections/DevantConnectorListPopup";
 
 const PopupContent = styled.div`
     flex: 1;
@@ -202,7 +203,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
     const [filterType, setFilterType] = useState<"All" | "Standard" | "Organization">("All");
-    const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | null>(null);
+    const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | "devant-list" | null>(null);
     const [selectedConnector, setSelectedConnector] = useState<AvailableNode | null>(null);
     const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
     const [hasPersistConnection, setHasPersistConnection] = useState<boolean>(false);
@@ -368,6 +369,11 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         setWizardStep("api");
     };
 
+    const handleOpenListDevantConnections = () => {
+        // Navigate to Devant connections list
+        setWizardStep("devant-list");
+    };
+
     const handleSelectConnector = (connector: AvailableNode) => {
         if (!connector.codedata) {
             console.error(">>> Error selecting connector. No codedata found");
@@ -496,6 +502,20 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         );
     }
 
+     if (wizardStep === "devant-list") {
+        return (
+            <>
+                <DevantConnectorListPopup 
+                    projectPath={projectPath}
+                    fileName={fileName}
+                    target={target}
+                    onClose={handleCloseWizard}
+                    onBack={handleBackToConnectorList}
+                />
+            </>
+        );
+    }
+
     const handleClosePopup = () => {
         if (onNavigateToOverview) {
             onNavigateToOverview();
@@ -588,65 +608,85 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                             size={60}
                         />
                     </SearchContainer>
-
-                    {(connectorOptions.showApiSpec || connectorOptions.showDatabase) && (
-                        <Section>
-                            <SectionTitle variant="h4">Create New Connector</SectionTitle>
-                            <CreateConnectorOptions>
-                                {connectorOptions.showApiSpec && (
-                                    <ConnectorOptionCard onClick={handleApiSpecConnection}>
-                                        <ConnectorOptionIcon>
-                                            <Icon name="bi-api-spec" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                        </ConnectorOptionIcon>
-                                        <ConnectorOptionContent>
-                                            <ConnectorOptionTitle>Connect via API Specification</ConnectorOptionTitle>
-                                            <ConnectorOptionDescription>
-                                                Import an OpenAPI or WSDL file to create a connector
-                                            </ConnectorOptionDescription>
-                                            <ConnectorOptionButtons>
-                                                <ConnectorTypeLabel>
-                                                    OpenAPI
-                                                </ConnectorTypeLabel>
-                                                <ConnectorTypeLabel>
-                                                    WSDL
-                                                </ConnectorTypeLabel>
-                                            </ConnectorOptionButtons>
-                                        </ConnectorOptionContent>
-                                        <ArrowIcon>
-                                            <Codicon name="chevron-right" />
-                                        </ArrowIcon>
-                                    </ConnectorOptionCard>
-                                )}
-                                {connectorOptions.showDatabase && !hasPersistConnection && (
-                                    <ConnectorOptionCard onClick={handleDatabaseConnection}>
-                                        <ConnectorOptionIcon>
-                                            <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                        </ConnectorOptionIcon>
-                                        <ConnectorOptionContent>
-                                            <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
-                                            <ConnectorOptionDescription>
-                                                Enter credentials to introspect and discover database tables
-                                            </ConnectorOptionDescription>
-                                            <ConnectorOptionButtons>
-                                                <ConnectorTypeLabel>
-                                                    MySQL
-                                                </ConnectorTypeLabel>
-                                                <ConnectorTypeLabel>
-                                                    MSSQL
-                                                </ConnectorTypeLabel>
-                                                <ConnectorTypeLabel>
-                                                    PostgreSQL
-                                                </ConnectorTypeLabel>
-                                            </ConnectorOptionButtons>
-                                        </ConnectorOptionContent>
-                                        <ArrowIcon>
-                                            <Codicon name="chevron-right" />
-                                        </ArrowIcon>
-                                    </ConnectorOptionCard>
-                                )}
-                            </CreateConnectorOptions>
-                        </Section>
-                    )}
+                    
+                    <Section>
+                        <SectionTitle variant="h4">Create New Connector</SectionTitle>
+                        <CreateConnectorOptions>
+                            {connectorOptions.showApiSpec && (
+                                <ConnectorOptionCard onClick={handleApiSpecConnection}>
+                                    <ConnectorOptionIcon>
+                                        <Icon name="bi-api-spec" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                    </ConnectorOptionIcon>
+                                    <ConnectorOptionContent>
+                                        <ConnectorOptionTitle>Connect via API Specification</ConnectorOptionTitle>
+                                        <ConnectorOptionDescription>
+                                            Import an OpenAPI or WSDL file to create a connector
+                                        </ConnectorOptionDescription>
+                                        <ConnectorOptionButtons>
+                                            <ConnectorTypeLabel>
+                                                OpenAPI
+                                            </ConnectorTypeLabel>
+                                            <ConnectorTypeLabel>
+                                                WSDL
+                                            </ConnectorTypeLabel>
+                                        </ConnectorOptionButtons>
+                                    </ConnectorOptionContent>
+                                    <ArrowIcon>
+                                        <Codicon name="chevron-right" />
+                                    </ArrowIcon>
+                                </ConnectorOptionCard>
+                            )}
+                            {connectorOptions.showDatabase && !hasPersistConnection && (
+                                <ConnectorOptionCard onClick={handleDatabaseConnection}>
+                                    <ConnectorOptionIcon>
+                                        <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                    </ConnectorOptionIcon>
+                                    <ConnectorOptionContent>
+                                        <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
+                                        <ConnectorOptionDescription>
+                                            Enter credentials to introspect and discover database tables
+                                        </ConnectorOptionDescription>
+                                        <ConnectorOptionButtons>
+                                            <ConnectorTypeLabel>
+                                                MySQL
+                                            </ConnectorTypeLabel>
+                                            <ConnectorTypeLabel>
+                                                MSSQL
+                                            </ConnectorTypeLabel>
+                                            <ConnectorTypeLabel>
+                                                PostgreSQL
+                                            </ConnectorTypeLabel>
+                                        </ConnectorOptionButtons>
+                                    </ConnectorOptionContent>
+                                    <ArrowIcon>
+                                        <Codicon name="chevron-right" />
+                                    </ArrowIcon>
+                                </ConnectorOptionCard>
+                            )}
+                            <ConnectorOptionCard onClick={handleOpenListDevantConnections}>
+                                <ConnectorOptionIcon>
+                                    <Icon name="Devant" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                </ConnectorOptionIcon>
+                                <ConnectorOptionContent>
+                                    <ConnectorOptionTitle>Connect via Devant</ConnectorOptionTitle>
+                                    <ConnectorOptionDescription>
+                                        Select APIs deployed in Devant or third party dependencies with managed configurations
+                                    </ConnectorOptionDescription>
+                                    <ConnectorOptionButtons>
+                                        <ConnectorTypeLabel>
+                                            Internal APIs
+                                        </ConnectorTypeLabel>
+                                        <ConnectorTypeLabel>
+                                            Third Party APIs
+                                        </ConnectorTypeLabel>
+                                    </ConnectorOptionButtons>
+                                </ConnectorOptionContent>
+                                <ArrowIcon>
+                                    <Codicon name="chevron-right" />
+                                </ArrowIcon>
+                            </ConnectorOptionCard>
+                        </CreateConnectorOptions>
+                    </Section>
 
                     <Section>
                         <SectionHeader>
