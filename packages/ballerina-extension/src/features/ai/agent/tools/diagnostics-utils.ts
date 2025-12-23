@@ -1,6 +1,6 @@
 import { DiagnosticEntry, Diagnostics } from '@wso2/ballerina-core';
-import { checkProjectDiagnostics, isModuleNotFoundDiagsExist as resolveModuleNotFoundDiagnostics } from '../../../rpc-managers/ai-panel/repair-utils';
-import { StateMachine } from '../../../stateMachine';
+import { checkProjectDiagnostics, isModuleNotFoundDiagsExist as resolveModuleNotFoundDiagnostics } from '../../../../rpc-managers/ai-panel/repair-utils';
+import { StateMachine } from '../../../../stateMachine';
 import * as path from 'path';
 
 /**

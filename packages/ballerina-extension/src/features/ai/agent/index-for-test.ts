@@ -17,7 +17,7 @@
 import { GenerateAgentCodeRequest, ExecutionContext } from "@wso2/ballerina-core";
 import { CopilotEventHandler } from "../utils/events";
 import { createExecutionContext } from ".";
-import { AgentExecutor } from "../executors/agent/AgentExecutor";
+import { AgentExecutor } from "./AgentExecutor";
 import { AIExecutionConfig } from "../executors/base/AICommandExecutor";
 
 /**

@@ -111,40 +111,40 @@ export abstract class AICommandExecutor {
      * Cleanup execution by sending didClose notifications and removing temp project
      */
     async cleanup(): Promise<void> {
-        const tempProjectPath = this.config.executionContext.tempProjectPath;
+        // const tempProjectPath = this.config.executionContext.tempProjectPath;
 
-        if (!tempProjectPath) {
-            console.warn('[AICommandExecutor] No temp project path found, skipping cleanup');
-            return;
-        }
+        // if (!tempProjectPath) {
+        //     console.warn('[AICommandExecutor] No temp project path found, skipping cleanup');
+        //     return;
+        // }
 
-        if (!this.shouldCleanup) {
-            console.log(`[AICommandExecutor] Skipping cleanup (test environment), temp project preserved at: ${tempProjectPath}`);
-            return;
-        }
+        // if (!this.shouldCleanup) {
+        //     console.log(`[AICommandExecutor] Skipping cleanup (test environment), temp project preserved at: ${tempProjectPath}`);
+        //     return;
+        // }
 
-        try {
-            console.log(`[AICommandExecutor] Cleaning up temp project: ${tempProjectPath}`);
+        // try {
+        //     console.log(`[AICommandExecutor] Cleaning up temp project: ${tempProjectPath}`);
 
-            // Find all .bal files in temp project for didClose notifications
-            const balFiles = this.findAllBalFiles(tempProjectPath);
+        //     // Find all .bal files in temp project for didClose notifications
+        //     const balFiles = this.findAllBalFiles(tempProjectPath);
 
-            if (balFiles.length > 0) {
-                console.log(`[AICommandExecutor] Sending didClose for ${balFiles.length} files`);
-                sendAgentDidCloseBatch(tempProjectPath, balFiles);
+        //     if (balFiles.length > 0) {
+        //         console.log(`[AICommandExecutor] Sending didClose for ${balFiles.length} files`);
+        //         sendAgentDidCloseBatch(tempProjectPath, balFiles);
 
-                // Small delay to ensure LS processes didClose
-                await new Promise(resolve => setTimeout(resolve, 300));
-            }
+        //         // Small delay to ensure LS processes didClose
+        //         await new Promise(resolve => setTimeout(resolve, 300));
+        //     }
 
-            // Remove temp project directory
-            cleanupTempProject(tempProjectPath);
+        //     // Remove temp project directory
+        //     cleanupTempProject(tempProjectPath);
 
-            console.log(`[AICommandExecutor] Cleanup completed`);
-        } catch (error) {
-            console.error('[AICommandExecutor] Failed to cleanup:', error);
-            // Don't throw - cleanup failure shouldn't break the flow
-        }
+        //     console.log(`[AICommandExecutor] Cleanup completed`);
+        // } catch (error) {
+        //     console.error('[AICommandExecutor] Failed to cleanup:', error);
+        //     // Don't throw - cleanup failure shouldn't break the flow
+        // }
     }
 
     /**

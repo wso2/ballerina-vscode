@@ -15,12 +15,12 @@
 // under the License.
 
 import { tool } from "ai";
-import { GenerationType } from "../utils/libs/libraries";
+import { GenerationType } from "../../utils/libs/libraries";
 import { jsonSchema } from "ai";
-import { Library } from "../utils/libs/library-types";
-import { selectRequiredFunctions } from "../utils/libs/function-registry";
-import { CopilotEventHandler } from "../utils/events";
-import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+import { Library } from "../../utils/libs/library-types";
+import { selectRequiredFunctions } from "../../utils/libs/function-registry";
+import { CopilotEventHandler } from "../../utils/events";
+import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
 
 /**
  * Emits tool_result event for library provider with filtering
