@@ -20,16 +20,13 @@ import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, FlowNode, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Button, Codicon, ProgressRing, SearchBox, SplitView, ThemeColors, TreeViewItem, Typography, Drawer, Overlay } from "@wso2/ui-toolkit";
+import { Button, Codicon, ProgressRing, SearchBox, SplitView, ThemeColors, TreeViewItem, Typography, View } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { BodyText, BodyTinyInfo, TopBar } from "../../../styles";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import { TitleBar } from "../../../../components/TitleBar";
 import { TopNavigationBar } from "../../../../components/TopNavigationBar";
-import { MarketplaceItem } from "@wso2/wso2-platform-core";
-import { DevantConnectorList } from "../DevantConnections/DevantConnectorList";
-import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const ViewWrapper = styled.div<{ isHalfView?: boolean }>`
     display: flex;
@@ -98,7 +95,6 @@ interface ConnectorViewProps {
     fileName: string;
     targetLinePosition: LinePosition;
     onSelectConnector: (connector: AvailableNode) => void;
-    onSelectDevantConnector: (item: MarketplaceItem) => void;
     onAddGeneratedConnector: () => void;
     onClose?: () => void;
     hideTitle?: boolean;
@@ -106,15 +102,12 @@ interface ConnectorViewProps {
     isPopupView?: boolean;
 }
 
-type ConnectorTypeCategory = "LocalConnectors" | "StandardLibrary" | "CurrentOrg" | "DevantConnectors"
-
 export function ConnectorView(props: ConnectorViewProps) {
     const {
         projectPath,
         fileName,
         targetLinePosition,
         onSelectConnector,
-        onSelectDevantConnector,
         onAddGeneratedConnector,
         onClose,
         hideTitle,
@@ -122,14 +115,13 @@ export function ConnectorView(props: ConnectorViewProps) {
         isPopupView
     } = props;
     const { rpcClient } = useRpcContext();
-    const { projectToml } = usePlatformExtContext();
 
     const [connectors, setConnectors] = useState<Category[]>([]);
     const [searchText, setSearchText] = useState<string>("");
     const [isSearching, setIsSearching] = useState(false);
     const [fetchingInfo, setFetchingInfo] = useState(false);
-    const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<ConnectorTypeCategory>(
-        openCustomConnectorView? "LocalConnectors" : "StandardLibrary"
+    const [selectedConnectorCategory, setSelectedConnectorCategory] = useState<string>(
+        openCustomConnectorView ? "LocalConnectors" : "StandardLibrary"
     );
 
     useEffect(() => {
@@ -210,16 +202,12 @@ export function ConnectorView(props: ConnectorViewProps) {
         setSearchText(text);
     };
 
-    const handleCategoryChange = (category: ConnectorTypeCategory) => {
+    const handleCategoryChange = (category: string) => {
         if (category !== selectedConnectorCategory) {
             setSelectedConnectorCategory(category);
             getConnectors(category === "CurrentOrg" ? true : false);
         }
     };
-
-    const isDevantConnector = (module: string) => {
-        return projectToml.values?.tool?.openapi?.some(item=>item.targetModule === module && item.remoteId)
-    }
 
     const filterItems = (items: Item[]): Item[] => {
         return items
@@ -234,10 +222,9 @@ export function ConnectorView(props: ConnectorViewProps) {
                     const lowerCaseTitle = item.metadata.label.toLowerCase();
                     const lowerCaseDescription = item.metadata.description?.toLowerCase() || "";
                     const lowerCaseSearchText = searchText.toLowerCase();
-                     if (
-                        (lowerCaseTitle.includes(lowerCaseSearchText) ||
-                            lowerCaseDescription.includes(lowerCaseSearchText)) &&
-                        !isDevantConnector(item.codedata?.module)
+                    if (
+                        lowerCaseTitle.includes(lowerCaseSearchText) ||
+                        lowerCaseDescription.includes(lowerCaseSearchText)
                     ) {
                         return item;
                     }
@@ -288,13 +275,6 @@ export function ConnectorView(props: ConnectorViewProps) {
     const isFullView = onClose === undefined;
     const isLoading = isSearching || fetchingInfo;
 
-    const categoryItems:{key: ConnectorTypeCategory,label: string}[] = [
-        {label: "Standard Library", key:"StandardLibrary"},
-        {label: "Organization's Connectors", key:"CurrentOrg"},
-        {label: "Custom Connectors", key:"LocalConnectors"},
-        {label: "Devant Connectors", key:"DevantConnectors"}
-    ]
-
     return (
         <ViewWrapper isHalfView={hideTitle}>
             {isFullView && (
@@ -334,195 +314,244 @@ export function ConnectorView(props: ConnectorViewProps) {
 
                 <SplitView sx={{ height: "100%", overflow: "hidden" }} defaultWidths={[20, 80]}>
                     <div style={{ marginTop: "24px", minWidth: "220px" }}>
-                        {categoryItems.map(item=>
-                            <TreeViewItem
-                                key={item.key}
-                                id={item.key}
-                                sx={{
-                                    backgroundColor: 'transparent',
-                                    height: '25px',
-                                    border: selectedConnectorCategory === item.key
-                                        ? '1px solid var(--vscode-focusBorder)'
-                                        : 'none'
+                        <TreeViewItem
+                            key={`StandardLibrary`}
+                            id={`StandardLibrary`}
+                            sx={{
+                                backgroundColor: 'transparent',
+                                height: '25px',
+                                border: selectedConnectorCategory === "StandardLibrary"
+                                    ? '1px solid var(--vscode-focusBorder)'
+                                    : 'none'
+                            }}
+                            selectedId={`StandardLibrary`}
+                        >
+                            <TreeViewItemContent
+                                isLoading={isLoading}
+                                onClick={(e) => {
+                                    handleCategoryChange("StandardLibrary");
                                 }}
-                                selectedId={item.key}
                             >
-                                <TreeViewItemContent
-                                    isLoading={isLoading}
-                                    onClick={() => handleCategoryChange(item.key)}
+                                <Typography
+                                    variant="body3"
+                                    sx={{
+                                        fontWeight: selectedConnectorCategory === "StandardLibrary"
+                                            ? 'bold' : 'normal'
+                                    }}
                                 >
-                                    <Typography
-                                        variant="body3"
-                                        sx={{
-                                            fontWeight: selectedConnectorCategory === item.key
-                                                ? 'bold' : 'normal'
-                                        }}
-                                    >
-                                        {item.label}
-                                    </Typography>
-                                </TreeViewItemContent>
-                            </TreeViewItem>
-                        )}
+                                    {'Standard Libraries'}
+                                </Typography>
+                            </TreeViewItemContent>
+                        </TreeViewItem>
+                        <TreeViewItem
+                            key={`CurrentOrg`}
+                            id={`CurrentOrg`}
+                            sx={{
+                                backgroundColor: 'transparent',
+                                height: '25px',
+                                border: selectedConnectorCategory === "CurrentOrg"
+                                    ? '1px solid var(--vscode-focusBorder)'
+                                    : 'none'
+                            }}
+                            selectedId={`CurrentOrg`}
+                        >
+                            <TreeViewItemContent
+                                isLoading={isLoading}
+                                onClick={(e) => {
+                                    handleCategoryChange("CurrentOrg");
+                                }}
+                            >
+                                <Typography
+                                    variant="body3"
+                                    sx={{
+                                        fontWeight: selectedConnectorCategory === "CurrentOrg"
+                                            ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    {'Organization\'s Connectors'}
+                                </Typography>
+                            </TreeViewItemContent>
+                        </TreeViewItem>
+                        <TreeViewItem
+                            key={`LocalConnectors`}
+                            id={`LocalConnectors`}
+                            sx={{
+                                backgroundColor: 'transparent',
+                                height: '25px',
+                                border: selectedConnectorCategory === "LocalConnectors"
+                                    ? '1px solid var(--vscode-focusBorder)'
+                                    : 'none'
+                            }}
+                            selectedId={`LocalConnectors`}
+                        >
+                            <TreeViewItemContent
+                                isLoading={isLoading}
+                                onClick={(e) => {
+                                    handleCategoryChange("LocalConnectors");
+                                }}
+                            >
+                                <Typography
+                                    variant="body3"
+                                    sx={{
+                                        fontWeight: selectedConnectorCategory === "LocalConnectors"
+                                            ? 'bold' : 'normal'
+                                    }}
+                                >
+                                    {'Custom Connectors'}
+                                </Typography>
+                            </TreeViewItemContent>
+                        </TreeViewItem>
                     </div>
                     <ListContainer isPopupView={isPopupView}>
-                        {(() => {
-                            switch (selectedConnectorCategory) {
-                                case "DevantConnectors":
-                                    return <DevantConnectorList search={searchText} onSelectDevantConnector={onSelectDevantConnector}/>;
-                                default:
-                                    return <>
-                                            {selectedConnectorCategory === "CurrentOrg" && (
+                        {selectedConnectorCategory === "CurrentOrg" && (
+                            <LabelRow>
+                                <Typography variant="h3">{'Organization\'s Connectors'}</Typography>
+                            </LabelRow>
+                        )}
+                        {isLoading && (
+                            <ListContainer>
+                                <div
+                                    style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}
+                                >
+                                    <ProgressRing />
+                                </div>
+                            </ListContainer>
+                        )}
+                        {selectedConnectorCategory === "CurrentOrg" && filteredCategories.length === 0 && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginTop: '140px' }}>
+                                <BodyTinyInfo style={{ textAlign: "center" }}>
+                                    No connectors found in your organization. You can create and publish connectors to Ballerina Central.
+                                </BodyTinyInfo>
+                                <BodyTinyInfo style={{ textAlign: "center", color: 'var(--vscode-descriptionForeground)' }}>
+                                    Learn how to{' '}
+                                    <span
+                                        style={{
+                                            color: 'var(--vscode-textLink-foreground)',
+                                            cursor: 'pointer',
+                                            textDecoration: 'underline'
+                                        }}
+                                        onClick={() => {
+                                            openLearnMoreURL();
+                                        }}
+                                    >
+                                        publish packages to Ballerina Central
+                                    </span>
+                                </BodyTinyInfo>
+                            </div>
+                        )}
+                        {/* Default connectors of LS is hardcoded and is sent with categories with item field */}
+                        {!isLoading && filteredCategories && filteredCategories.length > 0 && (
+                            <div>
+                                {filteredCategories[0]?.items ? (
+                                    filteredCategories.map((category, index) => {
+                                        const isLocalConnectorCategory = category.metadata.label === "Local";
+                                        const itemCount = category.items?.length || 0;
+                                        const isLocalConnectorsEmpty = isLocalConnectorCategory && itemCount === 0;
+                                        const label = category.metadata.label === "Local" ? "Custom Connectors" : category.metadata.label;
+
+                                        if (!isLocalConnectorCategory && (!category.items || category.items.length === 0)) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <div key={category.metadata.label + index}>
                                                 <LabelRow>
-                                                    <Typography variant="h3">{'Organization\'s Connectors'}</Typography>
-                                                </LabelRow>
-                                            )}
-                                            {isLoading && (
-                                                <ListContainer>
-                                                    <div
-                                                        style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}
-                                                    >
-                                                        <ProgressRing />
-                                                    </div>
-                                                </ListContainer>
-                                            )}
-                                            {selectedConnectorCategory === "CurrentOrg" && filteredCategories.length === 0 && (
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginTop: '140px' }}>
-                                                    <BodyTinyInfo style={{ textAlign: "center" }}>
-                                                        No connectors found in your organization. You can create and publish connectors to Ballerina Central.
-                                                    </BodyTinyInfo>
-                                                    <BodyTinyInfo style={{ textAlign: "center", color: 'var(--vscode-descriptionForeground)' }}>
-                                                        Learn how to{' '}
-                                                        <span
-                                                            style={{
-                                                                color: 'var(--vscode-textLink-foreground)',
-                                                                cursor: 'pointer',
-                                                                textDecoration: 'underline'
-                                                            }}
-                                                            onClick={() => {
-                                                                openLearnMoreURL();
-                                                            }}
+                                                    <Typography variant="h3">{label}</Typography>
+                                                    {isLocalConnectorCategory && (
+                                                        <Button
+                                                            appearance="icon"
+                                                            tooltip={"Add a Connector from OpenAPI"}
+                                                            onClick={onAddGeneratedConnector}
                                                         >
-                                                            publish packages to Ballerina Central
-                                                        </span>
-                                                    </BodyTinyInfo>
-                                                </div>
-                                            )}
-                                            {/* Default connectors of LS is hardcoded and is sent with categories with item field */}
-                                            {!isLoading && filteredCategories && filteredCategories.length > 0 && (
-                                                <div>
-                                                    {filteredCategories[0]?.items ? (
-                                                        filteredCategories.map((category, index) => {
-                                                            const isLocalConnectorCategory = category.metadata.label === "Local";
-                                                            const itemCount = category.items?.length || 0;
-                                                            const isLocalConnectorsEmpty = isLocalConnectorCategory && itemCount === 0;
-                                                            const label = category.metadata.label === "Local" ? "Custom Connectors" : category.metadata.label;
-
-                                                            if (!isLocalConnectorCategory && (!category.items || category.items.length === 0)) {
-                                                                return null;
-                                                            }
-
-                                                            return (
-                                                                <div key={category.metadata.label + index}>
-                                                                    <LabelRow>
-                                                                        <Typography variant="h3">{label}</Typography>
-                                                                        {isLocalConnectorCategory && (
-                                                                            <Button
-                                                                                appearance="icon"
-                                                                                tooltip={"Add a Connector from OpenAPI"}
-                                                                                onClick={onAddGeneratedConnector}
-                                                                            >
-                                                                                <Codicon name="add" />
-                                                                            </Button>
-                                                                        )}
-                                                                    </LabelRow>
-                                                                    {isLocalConnectorsEmpty ? (
-                                                                        <>
-                                                                            <BodyTinyInfo>
-                                                                                Generate connector using OpenAPI spec
-                                                                            </BodyTinyInfo>
-                                                                            <BodyTinyInfo style={{ fontSize: '12px', color: 'var(--vscode-descriptionForeground)' }}>
-                                                                                Can’t find what you need in the standard connectors? Create a custom connector using an OpenAPI specification.
-                                                                            </BodyTinyInfo>
-                                                                            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: '40px' }}>
-
-                                                                                <Button
-                                                                                    sx={{ display: 'flex', justifySelf: 'flex-end' }}
-                                                                                    appearance="primary"
-                                                                                    onClick={onAddGeneratedConnector}
-                                                                                >
-                                                                                    <Codicon name="add" sx={{ marginRight: 5 }} />
-                                                                                    Generate a connector
-                                                                                </Button>
-                                                                            </div>
-                                                                        </>
-                                                                    ) : (
-                                                                        <GridContainer isHalfView={hideTitle}>
-                                                                            {category.items?.map((connector, index) => {
-                                                                                return (
-                                                                                    <ButtonCard
-                                                                                        id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
-                                                                                        key={connector.metadata.label + index}
-                                                                                        title={connector.metadata.label}
-                                                                                        description={
-                                                                                            (connector as AvailableNode).codedata.org +
-                                                                                            " / " +
-                                                                                            (connector as AvailableNode).codedata.module
-                                                                                        }
-                                                                                        truncate={true}
-                                                                                        icon={
-                                                                                            connector.metadata.icon ? (
-                                                                                                <ConnectorIcon
-                                                                                                    url={connector.metadata.icon}
-                                                                                                />
-                                                                                            ) : (
-                                                                                                <Codicon name="package" />
-                                                                                            )
-                                                                                        }
-                                                                                        onClick={() => {
-                                                                                            onSelectConnector(connector as AvailableNode);
-                                                                                        }}
-                                                                                    />
-                                                                                );
-                                                                            })}
-                                                                        </GridContainer>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })
-                                                    ) : (
-                                                        <GridContainer isHalfView={hideTitle}>
-                                                            {connectors.map((item, index) => {
-                                                                const connector = item as Item;
-                                                                return (
-                                                                    <ButtonCard
-                                                                        id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
-                                                                        key={connector.metadata.label + index}
-                                                                        title={connector.metadata.label}
-                                                                        description={
-                                                                            (connector as AvailableNode).codedata.org +
-                                                                            " / " +
-                                                                            (connector as AvailableNode).codedata.module
-                                                                        }
-                                                                        icon={
-                                                                            connector.metadata.icon ? (
-                                                                                <ConnectorIcon url={connector.metadata.icon} />
-                                                                            ) : (
-                                                                                <Codicon name="package" />
-                                                                            )
-                                                                        }
-                                                                        onClick={() => {
-                                                                            onSelectConnector(connector as AvailableNode);
-                                                                        }}
-                                                                    />
-                                                                );
-                                                            })}
-                                                        </GridContainer>
+                                                            <Codicon name="add" />
+                                                        </Button>
                                                     )}
-                                                </div>
-                                            )}
-                                    </>;
-                            }
-                        })()}
+                                                </LabelRow>
+                                                {isLocalConnectorsEmpty ? (
+                                                    <>
+                                                        <BodyTinyInfo>
+                                                            Generate connector using OpenAPI spec
+                                                        </BodyTinyInfo>
+                                                        <BodyTinyInfo style={{ fontSize: '12px', color: 'var(--vscode-descriptionForeground)' }}>
+                                                            Can’t find what you need in the standard connectors? Create a custom connector using an OpenAPI specification.
+                                                        </BodyTinyInfo>
+                                                        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: '40px' }}>
+
+                                                            <Button
+                                                                sx={{ display: 'flex', justifySelf: 'flex-end' }}
+                                                                appearance="primary"
+                                                                onClick={onAddGeneratedConnector}
+                                                            >
+                                                                <Codicon name="add" sx={{ marginRight: 5 }} />
+                                                                Generate a connector
+                                                            </Button>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <GridContainer isHalfView={hideTitle}>
+                                                        {category.items?.map((connector, index) => {
+                                                            return (
+                                                                <ButtonCard
+                                                                    id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
+                                                                    key={connector.metadata.label + index}
+                                                                    title={connector.metadata.label}
+                                                                    description={
+                                                                        (connector as AvailableNode).codedata.org +
+                                                                        " / " +
+                                                                        (connector as AvailableNode).codedata.module
+                                                                    }
+                                                                    truncate={true}
+                                                                    icon={
+                                                                        connector.metadata.icon ? (
+                                                                            <ConnectorIcon
+                                                                                url={connector.metadata.icon}
+                                                                            />
+                                                                        ) : (
+                                                                            <Codicon name="package" />
+                                                                        )
+                                                                    }
+                                                                    onClick={() => {
+                                                                        onSelectConnector(connector as AvailableNode);
+                                                                    }}
+                                                                />
+                                                            );
+                                                        })}
+                                                    </GridContainer>
+                                                )}
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <GridContainer isHalfView={hideTitle}>
+                                        {connectors.map((item, index) => {
+                                            const connector = item as Item;
+                                            return (
+                                                <ButtonCard
+                                                    id={`connector-${connector.metadata.label.replace(/[ .]/g, "-").toLowerCase()}`}
+                                                    key={connector.metadata.label + index}
+                                                    title={connector.metadata.label}
+                                                    description={
+                                                        (connector as AvailableNode).codedata.org +
+                                                        " / " +
+                                                        (connector as AvailableNode).codedata.module
+                                                    }
+                                                    icon={
+                                                        connector.metadata.icon ? (
+                                                            <ConnectorIcon url={connector.metadata.icon} />
+                                                        ) : (
+                                                            <Codicon name="package" />
+                                                        )
+                                                    }
+                                                    onClick={() => {
+                                                        onSelectConnector(connector as AvailableNode);
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </GridContainer>
+                                )}
+                            </div>
+                        )}
                     </ListContainer>
                 </SplitView>
             </Container>

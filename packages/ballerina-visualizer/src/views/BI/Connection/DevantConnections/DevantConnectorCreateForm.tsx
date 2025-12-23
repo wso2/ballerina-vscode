@@ -16,39 +16,26 @@
  * under the License.
  */
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-    type ComponentKind,
-    type ConnectionListItem,
     type MarketplaceItem,
     type MarketplaceItemSchema,
-    type Organization,
     type Project,
     ServiceInfoVisibilityEnum,
     capitalizeFirstLetter,
 } from "@wso2/wso2-platform-core";
 import React, { ReactNode, useEffect, useState, type FC } from "react";
-import { type SubmitHandler, useForm } from "react-hook-form";
+import { UseFormReturn, useForm, SubmitHandler } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
-import { Dropdown, TextField, Button, Typography, Codicon, LinkButton, ThemeColors, CheckBox } from "@wso2/ui-toolkit";
+import { Dropdown, TextField, Codicon, LinkButton, ThemeColors, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
-import { AvailableNode } from "@wso2/ballerina-core";
+import { useMutation } from "@tanstack/react-query";
 
 interface Props {
     item: MarketplaceItem;
-    project: Project;
-    onCreate: (params: { connectionName?: string; connectionNode?: AvailableNode }) => void;
-    onShowInfo: () => void;
-    isShowingInfo: boolean;
+    visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
+    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>
 }
-
-const HeaderWrap = styled.div`
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-`;
 
 const Row = styled.div<{}>`
     display: flex;
@@ -96,7 +83,7 @@ const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Proj
 };
 
 const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []) => {
-    if(item.isThirdParty){
+    if(item?.isThirdParty){
         return ServiceInfoVisibilityEnum.Public;
     }
     if (visibilities.includes(ServiceInfoVisibilityEnum.Project)) {
@@ -109,6 +96,9 @@ const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []
 };
 
 const getPossibleSchemas = (item: MarketplaceItem, selectedVisibility: string, connectionSchemas: MarketplaceItemSchema[] = []) => {
+    if(!item){
+        return [];
+    }
     // If third party, return schemas without filtering
     if(item.isThirdParty){
         return item.connectionSchemas
@@ -132,28 +122,80 @@ const getPossibleSchemas = (item: MarketplaceItem, selectedVisibility: string, c
     return schemasFiltered;
 };
 
-interface CreateConnectionForm {
+export interface CreateConnectionForm {
     name?: string;
     visibility?: string;
     schemaId?: string;
     isProjectLevel?: boolean;
 }
 
-export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo, isShowingInfo, onCreate }) => {
-    const { platformRpcClient, platformExtState } = usePlatformExtContext();
-    const [showAdvancedSection, setShowAdvancedSection] = useState(false);
+/**
+ * Custom hook to manage the Devant connector form logic
+ */
+export const useDevantConnectorForm = (
+    selectedDevantConnector: MarketplaceItem | undefined,
+    onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void
+) => {
+    const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
-    const visibilities = getPossibleVisibilities(item, project);
-
+    const visibilities = getPossibleVisibilities(selectedDevantConnector, platformExtState?.selectedContext?.project);
+    
     const form = useForm<CreateConnectionForm>({
         mode: "all",
         defaultValues: {
-            name: item.name,
-            visibility: getInitialVisibility(item, visibilities),
+            name: selectedDevantConnector?.name,
+            visibility: getInitialVisibility(selectedDevantConnector, visibilities),
             schemaId: "",
             isProjectLevel: false,
         },
     });
+
+    useEffect(() => {
+        form.reset({
+            name: selectedDevantConnector?.name,
+            visibility: getInitialVisibility(selectedDevantConnector, visibilities),
+            schemaId: "",
+            isProjectLevel: false,
+        });
+    }, [selectedDevantConnector]);
+
+    const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
+        mutationFn: (data: CreateConnectionForm) =>
+            platformRpcClient?.createDevantComponentConnection({
+                marketplaceItem: selectedDevantConnector,
+                params: {
+                    name: data.name,
+                    schemaId: data.schemaId,
+                    visibility: data.visibility,
+                    isProjectLevel: data.isProjectLevel,
+                },
+            }),
+        onSuccess: (data) => {
+            if (onSuccess) {
+                onSuccess(data);
+            }
+        },
+    });
+
+    const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
+
+    return {
+        form,
+        visibilities,
+        isCreatingConnection,
+        onSubmit,
+    };
+};
+
+interface Props {
+    item: MarketplaceItem;
+    visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
+    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>
+}
+
+export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities }) => {
+    const { platformExtState } = usePlatformExtContext();
+    const [showAdvancedSection, setShowAdvancedSection] = useState(false);
 
     const selectedVisibility = form.watch("visibility");
 
@@ -164,22 +206,6 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
             form.setValue("schemaId", schemas[0].id);
         }
     }, [schemas]);
-
-    const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
-        mutationFn: (data: CreateConnectionForm) =>
-            platformRpcClient?.createDevantComponentConnection({
-                marketplaceItem: item,
-                params: {
-                    name: data.name,
-                    schemaId: data.schemaId,
-                    visibility: data.visibility,
-                    isProjectLevel: data.isProjectLevel,
-                },
-            }),
-        onSuccess: (data) => onCreate(data),
-    });
-
-    const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
     const isProjectLevel = form.watch("isProjectLevel");
 
@@ -244,12 +270,6 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
 
     return (
         <>
-            <HeaderWrap>
-                <Typography variant="body3">{item.name}</Typography>
-                <Button disabled={isShowingInfo} onClick={onShowInfo} appearance="icon">
-                    Details
-                </Button>
-            </HeaderWrap>
             <FormStyles.Container>
                 <FormStyles.Row>
                     <TextField
@@ -309,11 +329,6 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, project, onShowInfo
 
                 {showAdvancedSection && advancedConfigItems}
 
-                <FormStyles.Footer>
-                    <Button onClick={form.handleSubmit(onSubmit)} disabled={isCreatingConnection}>
-                        {isCreatingConnection ? "Creating..." : "Create"}
-                    </Button>
-                </FormStyles.Footer>
             </FormStyles.Container>
         </>
     );
