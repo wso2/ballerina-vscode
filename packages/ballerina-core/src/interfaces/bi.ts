@@ -144,7 +144,9 @@ export type FormFieldInputType = "TEXT" |
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
-    "RECORD_MAP_EXPRESSION";
+    "RECORD_MAP_EXPRESSION" | 
+    "ENUM" |
+    "DM_JOIN_CLAUSE_RHS_EXPRESSION";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
