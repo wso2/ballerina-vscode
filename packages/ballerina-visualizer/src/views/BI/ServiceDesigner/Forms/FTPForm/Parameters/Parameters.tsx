@@ -53,13 +53,16 @@ const ParamName = styled.span`
 `;
 
 const ParamType = styled.span`
-    font-size: 13px;
+    font-size: 12px;
     color: var(--vscode-descriptionForeground, #888);
     background: var(--vscode-editorWidget-background, #f5f5f5);
     border-radius: 4px;
     padding: 2px 8px;
     letter-spacing: 0.1px;
-    width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 `;
 
 const HeaderLabel = styled.div<CSSObject>`
@@ -116,12 +119,6 @@ export function Parameters(props: ParametersProps) {
                         const isStreamEnabled = streamEnabled === true;
                         const hasDataBinding = param.kind === "DATA_BINDING";
 
-                        // const formattedTypeValue = formatParameterLabel(
-                        //     param.type.value,
-                        //     hasStreamProperty,
-                        //     isStreamEnabled,
-                        //     hasDataBinding
-                        // );
                         const formattedTypeValue = param.type.value;
 
                         const label = (
