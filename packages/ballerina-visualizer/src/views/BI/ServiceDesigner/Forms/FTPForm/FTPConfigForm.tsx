@@ -19,45 +19,62 @@
 import React from "react";
 import { SidePanelBody } from "@wso2/ui-toolkit";
 import ButtonCard from "../../../../../components/ButtonCard";
+import { ServiceModel } from "@wso2/ballerina-core";
 
 import { EditorContentColumn } from "../../styles";
 
 interface FunctionConfigFormProps {
     onBack?: () => void;
     isSaving: boolean;
-    onSubmit?: () => void;
+    onSubmit?: (selectedHandler: string) => void;
+    serviceModel: ServiceModel;
 }
 
 export function FunctionConfigForm(props: FunctionConfigFormProps) {
 
-    const { onBack, onSubmit,isSaving } = props;
+    const { onBack, onSubmit, isSaving, serviceModel } = props;
 
     const events = [
         { name: 'onCreate', description: 'Triggered when a new file is created' },
         { name: 'onDelete', description: 'Triggered when a file is deleted' }
     ];
 
-    const handleEventClick = () => {
+    // Check if all functions with a specific metadata.label are enabled
+    const hasAvailableFunctions = (handlerType: string) => {
+        const functionsWithHandler = serviceModel.functions?.filter(fn => fn.metadata?.label === handlerType) || [];
+        if (functionsWithHandler.length === 0) return false;
+
+        // Return true if there's at least one non-enabled function
+        return functionsWithHandler.some(fn => !fn.enabled);
+    };
+
+    const handleEventClick = (handlerName: string) => {
         // if (onBack) {
         //     onBack();
         // }
-        
-        onSubmit && onSubmit();
+
+        onSubmit && onSubmit(handlerName);
     };
+
+    // Filter events to only show those with available functions
+    const availableEvents = events.filter(event => hasAvailableFunctions(event.name));
 
     return (
         <SidePanelBody>
             <EditorContentColumn>
-                {events.map((event, index) => (
-                    <ButtonCard
-                        key={event.name}
-                        id={`event-card-${index}`}
-                        title={event.name}
-                        tooltip={event.description}
-                        onClick={handleEventClick}
-                        disabled={isSaving}
-                    />
-                ))}
+                {availableEvents.map((event, index) => {
+                    const handleClick = () => handleEventClick(event.name);
+                    return (
+                        <ButtonCard
+                            key={event.name}
+                            id={`event-card-${index}`}
+                            title={event.name}
+                            tooltip={event.description}
+                            onClick={handleClick}
+                            disabled={isSaving}
+                        />
+                    );
+                })}
             </EditorContentColumn>
         </SidePanelBody>
     );

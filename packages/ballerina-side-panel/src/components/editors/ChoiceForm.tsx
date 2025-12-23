@@ -83,13 +83,13 @@ export function ChoiceForm(props: ChoiceFormProps) {
         for (const key in model.properties) {
             const expression = model.properties[key];
 
-            console.log(`>>> Processing property: ${key}`, {
-                valueType: expression.valueType,
-                valueTypeConstraint: expression.valueTypeConstraint,
-                hasTypeMembers: !!expression.typeMembers,
-                typeMembersLength: expression.typeMembers?.length || 0,
-                typeMembers: expression.typeMembers
-            });
+            // console.log(`>>> Processing property: ${key}`, {
+            //     valueType: expression.valueType,
+            //     valueTypeConstraint: expression.valueTypeConstraint,
+            //     hasTypeMembers: !!expression.typeMembers,
+            //     typeMembersLength: expression.typeMembers?.length || 0,
+            //     typeMembers: expression.typeMembers
+            // });
 
             let items = undefined;
             if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
@@ -115,20 +115,18 @@ export function ChoiceForm(props: ChoiceFormProps) {
             formFields.push(formField);
 
             // If this property has typeMembers, create a RecordTypeField for it
-            if (expression.typeMembers && expression.typeMembers.length > 0) {
-
+            const primaryType = getPrimaryInputType(expression.types);
+            if (primaryType?.typeMembers && primaryType.typeMembers.length > 0) {
                 const recordTypeField: RecordTypeField = {
                     key: key,
                     property: {
                         metadata: expression.metadata || { label: "", description: "" },
-                        valueType: expression.valueType || "EXPRESSION",
                         value: expression.value || "",
                         optional: expression.optional || false,
                         editable: expression.editable !== undefined ? expression.editable : true,
-                        valueTypeConstraint: expression.valueTypeConstraint,
-                        typeMembers: expression.typeMembers
+                        types: expression.types
                     },
-                    recordTypeMembers: expression.typeMembers
+                    recordTypeMembers: primaryType.typeMembers.filter(member => member.kind === "RECORD_TYPE")
                 };
                 recordTypeFieldsForChoice.push(recordTypeField);
             } 

@@ -59,14 +59,14 @@ export function ParamEditor(props: ParamProps) {
         fields.push({
             key: `type`,
             label: 'Type',
-            type: param.type.valueType,
+            type: typeof param.type.types[0] === 'string' ? param.type.types[0] : 'json',
+            types: param.type.types,
             optional: false,
             editable: true,
             documentation: '',
             enabled: param.type?.enabled,
             value: param.type.value || "json",
-            defaultValue: "json",
-            valueTypeConstraint: ""
+            defaultValue: "json"
         });
 
         setCurrentFields(fields);

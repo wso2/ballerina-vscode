@@ -215,6 +215,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [selectedHandler, setSelectedHandler] = useState<FunctionModel>(undefined);
 
     const [initFunction, setInitFunction] = useState<FunctionModel>(undefined);
+    const [selectedFTPHandler, setSelectedFTPHandler] = useState<string>(undefined);
 
     const handleCloseInitFunction = () => {
         setInitFunction(undefined);
@@ -238,6 +239,19 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             return;
         }
     }
+
+    // Check if there are any available FTP handlers (onCreate or onDelete) that are not yet enabled
+    const hasAvailableFTPHandlers = () => {
+        if (!serviceModel?.functions) return false;
+
+        const onCreateFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onCreate');
+        const onDeleteFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onDelete');
+
+        const hasAvailableOnCreate = onCreateFunctions.length > 0 && onCreateFunctions.some(fn => !fn.enabled);
+        const hasAvailableOnDelete = onDeleteFunctions.length > 0 && onDeleteFunctions.some(fn => !fn.enabled);
+
+        return hasAvailableOnCreate || hasAvailableOnDelete;
+    };
 
     useEffect(() => {
         if (!serviceModel || isPositionChanged(prevPosition.current, position)) {
@@ -436,7 +450,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             });
     };
 
-    const handleNewFTPFunction = () => {
+    const handleNewFTPFunction = (selectedHandler: string) => {
         // rpcClient
         //     .getServiceDesignerRpcClient()
         //     .getFunctionModel({ type: "ftp", functionName: "remote" })
@@ -446,6 +460,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         //         setIsNew(true);
         //         setShowForm(true);
         //     });
+        setSelectedFTPHandler(selectedHandler);
         setShowForm(true);
         // handleNewFunctionClose();
         handleFunctionConfigClose();
@@ -980,9 +995,9 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                 {enabledHandlers.length > 10 && (
                                                     <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                                 )}
-                                                {!haveServiceTypeName && enabledHandlers.length > 0 && (
+                                                {!haveServiceTypeName && enabledHandlers.length > 0 && hasAvailableFTPHandlers() && (
                                                     <Button appearance="primary" tooltip="Add Handler" onClick={onSelectAddHandler}>
-                                                        <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
+                                                        <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Handler</ButtonText>
                                                     </Button>
                                                 )}
                                             </ActionGroup>
@@ -1327,9 +1342,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                 >
                                     <FTPConfigForm
                                         isSaving={isSaving}
-                                        // serviceModel={serviceModel}
+                                        serviceModel={serviceModel}
                                         onSubmit={handleNewFTPFunction}
-                                        // onSelect={onHandlerSelected}
                                         onBack={handleFunctionConfigClose}
                                     />
                                 </PanelContainer>
@@ -1365,6 +1379,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         isSaving={isSaving}
                                         onSave={handleFunctionSubmit}
                                         onClose={handleNewFunctionClose}
+                                        selectedHandler={selectedFTPHandler}
                                     />
                                 </PanelContainer>
                             )}
