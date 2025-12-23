@@ -203,7 +203,10 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "VIEW") {
         // Skip this property
         return <></>;
-    } else if (field.type === "REPEATABLE_PROPERTY" && isTemplateType(getPrimaryInputType(field.types))) {
+    } else if (
+        (field.type === "PARAM_MANAGER") ||
+        (field.type === "REPEATABLE_PROPERTY" && isTemplateType(getPrimaryInputType(field.types)))
+    ) {
         return <ParamManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     } else if (field.type === "REPEATABLE_PROPERTY") {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
