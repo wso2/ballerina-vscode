@@ -16,7 +16,7 @@
 
 import { StreamEventHandler, StreamFinishException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { Command, AIChatMachineEventType, ExecutionContext, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { Command, AIChatMachineEventType, ExecutionContext, EVENT_TYPE, MACHINE_VIEW, refreshReviewMode } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
 import { checkCompilationErrors } from "../../../tools/diagnostics-utils";
 import { integrateCodeToWorkspace } from "../../utils";
@@ -24,6 +24,8 @@ import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-n
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
 import { openView } from "../../../../../stateMachine";
+import { RPCLayer } from "../../../../../RPCLayer";
+import { VisualizerWebview } from "../../../../../views/visualizer/webview";
 
 /**
  * Stored context data for code review actions
@@ -215,6 +217,13 @@ export class FinishHandler implements StreamEventHandler {
         // Automatically open review mode
         openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode });
         console.log("[Finish Handler] Automatically opened review mode");
+
+        // Notify ReviewMode component to refresh its data
+        // This is important for when review mode is already open and we need to reload semantic diff
+        setTimeout(() => {
+            RPCLayer._messenger.sendNotification(refreshReviewMode, { type: 'webview', webviewType: VisualizerWebview.viewType });
+            console.log("[Finish Handler] Sent refresh notification to review mode");
+        }, 100);
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
