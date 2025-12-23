@@ -24,6 +24,7 @@ import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceMode
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
 import { has } from 'lodash';
+import { Description } from '@headlessui/react';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
@@ -273,11 +274,22 @@ export function FTPForm(props: FTPFormProps) {
     };
 
     const handleDeleteContentSchema = () => {
-        // Disable the DATA_BINDING parameter and set canDataBind to false
+        // Disable the DATA_BINDING parameter and reset to placeholder
         const updatedParameters = functionModel.parameters.map((p) => {
             if (p.kind === "DATA_BINDING") {
-                p.type.value = p.type.placeholder;
-                return { ...p, enabled: true };
+                // If stream property exists and is enabled, use selectType to apply proper wrapper
+                const resetValue = hasStreamProperty && functionModel.properties.stream.enabled
+                    ? selectType(p.type.placeholder, functionModel.properties.stream.enabled)
+                    : p.type.placeholder;
+
+                return {
+                    ...p,
+                    type: {
+                        ...p.type,
+                        value: resetValue
+                    },
+                    enabled: true
+                };
             }
             return p;
         });
@@ -339,7 +351,7 @@ export function FTPForm(props: FTPFormProps) {
                 <EditorContentColumn>
 
                     {/* File Configuration Section - Only show for onCreate handler */}
-                    {selectedHandler === 'onCreate' && (
+                    {(selectedHandler === 'onCreate'|| functionModel?.metadata?.label === 'onCreate') && (
                         <FileConfigContainer>
                             <FileConfigSection>
                                 <FileConfigContent>
@@ -358,7 +370,7 @@ export function FTPForm(props: FTPFormProps) {
                                     {/* Define Content Schema Button or Display - only show if canDataBind property exists */}
                                     {dataBindingParam && (
                                         (withoutStreamType(dataBindingParam.type?.value)===withoutStreamType(dataBindingParam.type?.placeholder)) ? (
-                                            <AddButtonWrapper>
+                                            <AddButtonWrapper style={{ marginTop: '16px' }}>
                                                 <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
                                                     <LinkButton onClick={onAddContentSchemaClick}>
                                                         <Codicon name="add" />
@@ -367,7 +379,7 @@ export function FTPForm(props: FTPFormProps) {
                                                 </Tooltip>
                                             </AddButtonWrapper>
                                         ) : (
-                                            <div>
+                                            <div style={{ marginTop: '16px' }}>
                                                 <Typography variant="body2" sx={{ marginBottom: 8 }}>
                                                     Content Schema
                                                 </Typography>
@@ -433,7 +445,7 @@ export function FTPForm(props: FTPFormProps) {
                             </FileConfigSection>
                         </FileConfigContainer>
                     )}
-                    {(fileInfoParameter || callerParameter) && selectedHandler === 'onCreate' ? <Divider /> : null}
+                    {(fileInfoParameter || callerParameter) && (selectedHandler === 'onCreate' || functionModel?.metadata?.label === 'onCreate') ? <Divider /> : null}
                                 
                     {/* File Metadata Section */}
                     {fileInfoParameter && (
@@ -452,12 +464,9 @@ export function FTPForm(props: FTPFormProps) {
                                         });
                                         handleParamChange(updatedParameters);
                                     }}
-                                    sx={{ marginTop: 0 }}
+                                    sx={{ marginTop: 0 , description: parameterConfig.fileInfo.description}}
                                 />
                             </CheckBoxGroup>
-                            <Typography variant="body2" sx={{ marginLeft: '24px', marginTop: '4px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                {parameterConfig.fileInfo.description}
-                            </Typography>
                         </>
                     )}
 
@@ -477,12 +486,9 @@ export function FTPForm(props: FTPFormProps) {
                                         });
                                         handleParamChange(updatedParameters);
                                     }}
-                                    sx={{ marginTop: 0 }}
+                                    sx={{ marginTop: 0, description: parameterConfig.caller.description }}
                                 />
                             </CheckBoxGroup>
-                            <Typography variant="body2" sx={{ marginLeft: '24px', marginTop: '4px', color: ThemeColors.ON_SURFACE_VARIANT }}>
-                                {parameterConfig.caller.description}
-                            </Typography>
                         </>
                     )}
                 </EditorContentColumn>
