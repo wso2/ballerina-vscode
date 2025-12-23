@@ -409,7 +409,13 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
                 "selected": false
               }
             ],
@@ -431,7 +437,13 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
                 "selected": false
               }
             ],

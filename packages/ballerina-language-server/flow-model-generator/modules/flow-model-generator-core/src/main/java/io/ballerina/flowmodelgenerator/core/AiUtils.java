@@ -91,6 +91,7 @@ public class AiUtils {
     private static final String INIT_METHOD = "init";
 
     public static final String MEMORY_DEFAULT_VALUE = "10";
+    public static final String AI_PROMPT_TYPE = "ai:Prompt";
 
     static {
         versionToFeatures.put("1.0.0",
@@ -271,7 +272,16 @@ public class AiUtils {
                     .stepOut()
                 .value(value != null && !value.isEmpty() ? value : "")
                 .defaultValue("")
-                .type(Property.ValueType.TEXT)
+                .type()
+                    .fieldType(Property.ValueType.PROMPT)
+                    .ballerinaType("string")
+                    .selected(true)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType("string")
+                    .selected(false)
+                    .stepOut()
                 .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
                 .editable()
