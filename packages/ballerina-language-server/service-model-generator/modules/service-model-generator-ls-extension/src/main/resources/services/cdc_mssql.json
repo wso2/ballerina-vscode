@@ -74,7 +74,7 @@
         "originalName": "username"
       },
       "placeholder": "",
-      "value": "\"\"",
+      "value": "",
       "types": [
         {
           "fieldType": "TEXT",
@@ -102,7 +102,7 @@
         "originalName": "password"
       },
       "placeholder": "",
-      "value": "\"\"",
+      "value": "",
       "types": [
         {
           "fieldType": "TEXT",
@@ -176,7 +176,7 @@
         "originalName": "tables"
       },
       "placeholder": "",
-      "value": "\"\"",
+      "value": "",
       "types": [
         {
           "fieldType": "TEXT",
@@ -304,7 +304,7 @@
         "originalName": "databaseInstance"
       },
       "placeholder": "",
-      "value": "\"\"",
+      "value": "",
       "types": [
         {
           "fieldType": "TEXT",
