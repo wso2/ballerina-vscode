@@ -44,4 +44,7 @@ export class ChipExpressionEditorDefaultConfiguration {
     getAdornment() {
         return (FXButton)
     }
+    getIsValueCompatible(value: string): boolean {
+        return true;
+    }
 }
