@@ -917,12 +917,6 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
         }
     }
 
-    // Set up parameter manager properties
-    if (formField.types && formField.types.length > 0) {
-        formField.types[0].fieldType = "PARAM_MANAGER";
-    }
-    formField.type = "PARAM_MANAGER";
-
     // Create existing parameter values
     const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
         createParameterValue(index, paramValueKey, paramValue as any) // TODO: Fix this any type with actual type
