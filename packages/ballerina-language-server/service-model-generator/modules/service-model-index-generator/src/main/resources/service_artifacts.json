@@ -385,7 +385,7 @@
     },
     {
       "name": "ftp",
-      "version": "2.13.0",
+      "version": "2.16.0",
       "serviceTypeSkipList": [
         "Service"
       ],

@@ -16,8 +16,13 @@
       },
       "enabled": true,
       "editable": true,
-      "value": "",
-      "valueType": "CHOICE",
+      "value": 0,
+      "types": [
+        {
+          "fieldType": "CHOICE",
+          "selected": true
+        }
+      ],
       "isType": false,
       "placeholder": "",
       "optional": false,
@@ -45,6 +50,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"127.0.0.1\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "placeholder": "\"127.0.0.1\"",
@@ -62,6 +79,18 @@
               "enabled": true,
               "editable": true,
               "value": "21",
+              "types": [
+                {
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "int",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "int",
               "placeholder": "21",
@@ -79,6 +108,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"/\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
@@ -97,7 +138,12 @@
               "enabled": true,
               "editable": true,
               "value": 0,
-              "valueType": "CHOICE",
+              "types": [
+                {
+                  "fieldType": "CHOICE",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": false,
@@ -124,6 +170,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -142,6 +200,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -195,6 +265,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"127.0.0.1\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "placeholder": "\"127.0.0.1\"",
@@ -212,6 +294,18 @@
               "enabled": true,
               "editable": true,
               "value": "21",
+              "types": [
+                {
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "int",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "int",
               "placeholder": "21",
@@ -229,6 +323,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"/\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
@@ -247,7 +353,12 @@
               "enabled": true,
               "editable": true,
               "value": 0,
-              "valueType": "CHOICE",
+              "types": [
+                {
+                  "fieldType": "CHOICE",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": false,
@@ -274,6 +385,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -292,6 +415,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -310,6 +445,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "string",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -362,6 +509,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"127.0.0.1\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "placeholder": "\"127.0.0.1\"",
@@ -379,6 +538,18 @@
               "enabled": true,
               "editable": true,
               "value": "21",
+              "types": [
+                {
+                  "fieldType": "NUMBER",
+                  "ballerinaType": "int",
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "int",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "int",
               "placeholder": "21",
@@ -396,6 +567,18 @@
               "enabled": true,
               "editable": true,
               "value": "\"/\"",
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": true
+                },
+                {
+                  "fieldType": "IDENTIFIER",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
@@ -414,7 +597,12 @@
               "enabled": true,
               "editable": true,
               "value": 0,
-              "valueType": "CHOICE",
+              "types": [
+                {
+                  "fieldType": "CHOICE",
+                  "selected": true
+                }
+              ],
               "isType": false,
               "placeholder": "",
               "optional": false,
@@ -441,6 +629,17 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -459,6 +658,17 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "TEXT",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
@@ -477,6 +687,18 @@
                     "enabled": true,
                     "editable": true,
                     "value": "",
+                    "types": [
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "ftp:SecureSocket",
+                        "selected": true
+                      },
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "ballerinaType": "ftp:SecureSocket",
+                        "selected": false
+                      }
+                    ],
                     "valueType": "EXPRESSION",
                     "valueTypeConstraint": "ftp:SecureSocket",
                     "typeMembers": [

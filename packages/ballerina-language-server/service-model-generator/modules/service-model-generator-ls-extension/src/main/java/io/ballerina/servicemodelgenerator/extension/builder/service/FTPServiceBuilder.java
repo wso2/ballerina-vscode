@@ -7,6 +7,7 @@ import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -51,6 +52,9 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getImportStmt;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.importExists;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServiceDocs;
 
 public class FTPServiceBuilder extends AbstractServiceBuilder {
 
@@ -110,13 +114,13 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();
-        listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new({\n");
-        listenerDeclaration.append("    protocol: ftp:").append(selectedProtocol).append(",\n");
-        listenerDeclaration.append("    host: \"").append(host).append("\",\n");
+        listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new(\n");
+        listenerDeclaration.append("    protocol= ftp:").append(selectedProtocol).append(",\n");
+        listenerDeclaration.append("    host= \"").append(host).append("\",\n");
 
         // Add authentication configuration if any auth details are provided
         if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
-            listenerDeclaration.append("    auth: {\n");
+            listenerDeclaration.append("    auth= {\n");
 
             // Add credentials block if username or password is provided
             if (!username.isEmpty() || !password.isEmpty()) {
@@ -139,7 +143,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             // Add private key configuration if provided
             if (!privateKey.isEmpty()) {
-                listenerDeclaration.append("        privateKey: {\n");
+                listenerDeclaration.append("        privateKey= {\n");
                 listenerDeclaration.append("            path: \"").append(privateKey).append("\"\n");
                 listenerDeclaration.append("        }");
 
@@ -153,14 +157,14 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             // Add secure socket configuration if provided (for FTPS)
             if (!secureSocket.isEmpty()) {
-                listenerDeclaration.append("        secureSocket: ").append(secureSocket).append("\n");
+                listenerDeclaration.append("        secureSocket= ").append(secureSocket).append("\n");
             }
 
             listenerDeclaration.append("    },\n");
         }
 
-        listenerDeclaration.append("    port: ").append(port).append(",\n");
-        listenerDeclaration.append("    path: \"").append(folderPath).append("\"\n");
+        listenerDeclaration.append("    port= ").append(port).append(",\n");
+        listenerDeclaration.append("    path= \"").append(folderPath).append("\"\n");
         listenerDeclaration.append("});");
 
         if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
@@ -261,9 +265,20 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         if (service.isEmpty()) {
             return null;
         }
+
+
+
         Service serviceModel = service.get();
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         SemanticModel semanticModel = context.semanticModel();
+        Codedata codedata = new Codedata.Builder()
+                .setLineRange(serviceNode.lineRange())
+                .setOrgName(context.orgName())
+                .setPackageName(context.packageName())
+                .setModuleName(context.moduleName())
+                .build();
+        serviceModel.setCodedata(codedata);
+
         List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
 
         // Enable specific functions in serviceModel if they match enabled functions in functionsInSource
@@ -350,7 +365,12 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         // Add readOnly metadata extraction (same logic as parent class)
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
-
+        // Populate additional service properties
+        populateListenerInfo(serviceModel, serviceNode);
+        updateServiceDocs(serviceNode, serviceModel);
+        updateAnnotationAttachmentProperty(serviceNode, serviceModel);
+        updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+//        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
         return serviceModel;
     }
 
