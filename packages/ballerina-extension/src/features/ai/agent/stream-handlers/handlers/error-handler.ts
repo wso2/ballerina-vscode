@@ -19,6 +19,7 @@ import { StreamContext } from "../stream-context";
 import { getErrorMessage } from "../../../utils/ai-utils";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
+import { clearPendingReviewContext, getPendingReviewContext } from "./finish-handler";
 
 /**
  * Handles error events from the stream.
@@ -38,6 +39,13 @@ export class ErrorHandler implements StreamEventHandler {
         if (context.shouldCleanup) {
             sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
             cleanupTempProject(context.tempProjectPath);
+        }
+
+        // Clear pending review context if it exists and matches this temp project
+        const pendingReview = getPendingReviewContext();
+        if (pendingReview && pendingReview.tempProjectPath === context.tempProjectPath) {
+            console.log("[Error Handler] Clearing review context due to error");
+            clearPendingReviewContext();
         }
 
         context.eventHandler({ type: "error", content: getErrorMessage(error) });
