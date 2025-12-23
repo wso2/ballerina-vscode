@@ -179,6 +179,8 @@ export interface IOTypeField {
     ref?: string;
     focusExpression?: string;
     isSeq?: boolean;
+    isIterationVariable?: boolean;
+    isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
 }
 
