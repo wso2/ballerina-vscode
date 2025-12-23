@@ -19,40 +19,7 @@
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
 import { ChipExpressionEditorComponent, ChipExpressionEditorComponentProps } from "../ChipExpressionEditor/components/ChipExpressionEditor";
-import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
-import { EditorState } from "@codemirror/state";
-
-class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
-    showHelperPane() {
-        return false;
-    }
-    getAdornment() {
-        return () => null;
-    }
-    getPlugins() {
-        const numericOnly = EditorState.changeFilter.of(tr => {
-            let allow = true;
-            tr.changes.iterChanges((_fromA, _toA, _fromB, _toB, inserted) => {
-                const text = inserted.toString();
-
-                if (!/^[0-9.]*$/.test(text)) {
-                    allow = false;
-                    return;
-                }
-
-                if ((text.match(/\./g) || []).length > 1) {
-                    allow = false;
-                    return;
-                }
-            });
-
-            return allow;
-        });
-
-        return [numericOnly];
-
-    }
-}
+import { NumberExpressionEditorConfig } from "../Configurations";
 
 export const NumberExpressionEditor: React.FC<ChipExpressionEditorComponentProps> = (props) => {
 
