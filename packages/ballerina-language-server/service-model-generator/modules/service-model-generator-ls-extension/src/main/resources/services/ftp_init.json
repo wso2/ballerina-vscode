@@ -5,9 +5,9 @@
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.15.1",
+  "version": "2.16.0",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png",
   "properties": {
     "designApproach": {
       "metadata": {
@@ -365,7 +365,7 @@
               "advanced": true,
               "choices": [{
                 "metadata": {
-                  "label": "Basic Authentication",
+                  "label": "Certificate Based Authentication",
                   "description": ""
                 },
                 "enabled": true,
@@ -410,36 +410,6 @@
                   "userName": {
                     "metadata": {
                       "label": "Username",
-                      "description": ""
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "",
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "",
-                    "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
-                  },
-                  "password": {
-                    "metadata": {
-                      "label": "Password",
                       "description": ""
                     },
                     "enabled": true,

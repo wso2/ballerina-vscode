@@ -114,58 +114,57 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();
-        listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new(\n");
-        listenerDeclaration.append("    protocol= ftp:").append(selectedProtocol).append(",\n");
-        listenerDeclaration.append("    host= \"").append(host).append("\",\n");
+        listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new(");
+        listenerDeclaration.append("protocol= ftp:").append(selectedProtocol).append(", ");
+        listenerDeclaration.append("host= \"").append(host).append("\", ");
 
         // Add authentication configuration if any auth details are provided
         if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
-            listenerDeclaration.append("    auth= {\n");
+            listenerDeclaration.append("auth= { ");
 
             // Add credentials block if username or password is provided
             if (!username.isEmpty() || !password.isEmpty()) {
-                listenerDeclaration.append("        credentials: {\n");
+                listenerDeclaration.append("credentials: { ");
                 if (!username.isEmpty()) {
-                    listenerDeclaration.append("            username: \"").append(username).append("\",\n");
+                    listenerDeclaration.append("username: \"").append(username).append("\", ");
                 }
                 if (!password.isEmpty()) {
-                    listenerDeclaration.append("            password: \"").append(password).append("\"\n");
+                    listenerDeclaration.append("password: \"").append(password).append("\" ");
                 }
-                listenerDeclaration.append("        }");
+                listenerDeclaration.append("}");
 
                 // Add comma if private key or secure socket is also present
                 if (!privateKey.isEmpty() || !secureSocket.isEmpty()) {
-                    listenerDeclaration.append(",\n");
+                    listenerDeclaration.append(", ");
                 } else {
-                    listenerDeclaration.append("\n");
+                    listenerDeclaration.append(" ");
                 }
             }
 
             // Add private key configuration if provided
             if (!privateKey.isEmpty()) {
-                listenerDeclaration.append("        privateKey= {\n");
-                listenerDeclaration.append("            path: \"").append(privateKey).append("\"\n");
-                listenerDeclaration.append("        }");
+                listenerDeclaration.append("privateKey: { ");
+                listenerDeclaration.append("path: \"").append(privateKey).append("\" ");
+                listenerDeclaration.append("}");
 
                 // Add comma if secure socket is also present
                 if (!secureSocket.isEmpty()) {
-                    listenerDeclaration.append(",\n");
+                    listenerDeclaration.append(", ");
                 } else {
-                    listenerDeclaration.append("\n");
+                    listenerDeclaration.append(" ");
                 }
             }
 
-            // Add secure socket configuration if provided (for FTPS)
             if (!secureSocket.isEmpty()) {
-                listenerDeclaration.append("        secureSocket= ").append(secureSocket).append("\n");
+                listenerDeclaration.append("secureSocket: ").append(secureSocket).append(" ");
             }
-
-            listenerDeclaration.append("    },\n");
+            listenerDeclaration.append("}, ");
         }
 
-        listenerDeclaration.append("    port= ").append(port).append(",\n");
-        listenerDeclaration.append("    path= \"").append(folderPath).append("\"\n");
-        listenerDeclaration.append("});");
+
+        listenerDeclaration.append("port= ").append(port).append(", ");
+        listenerDeclaration.append("path= \"").append(folderPath).append("\" ");
+        listenerDeclaration.append(");");
 
         if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
             return new OpenApiServiceGenerator(Path.of(serviceInitModel.getOpenAPISpec().getValue()),
