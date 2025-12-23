@@ -55,7 +55,7 @@ export async function extractMappingDetails(
   if (hasProvidedRecords) {
     if (existingFunctionMatch.match) {
       throw new Error(
-        `"${parameters.functionName}" function already exists. Please provide a valid function name.`
+        `${parameters.functionName} function already exists. Please provide a valid function name.`
       );
     }
     inputParams = parameters.inputRecord;
@@ -63,7 +63,7 @@ export async function extractMappingDetails(
   } else {
     if (!existingFunctionMatch.match || !existingFunctionMatch.functionDefNode) {
       throw new Error(
-        `"${parameters.functionName}" function was not found. Please provide a valid function name.`
+        `${parameters.functionName} function was not found. Please provide a valid function name.`
       );
     }
 
