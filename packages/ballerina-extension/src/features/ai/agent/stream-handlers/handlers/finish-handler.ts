@@ -182,11 +182,23 @@ export class FinishHandler implements StreamEventHandler {
             diagnostics: finalDiagnostics.diagnostics
         });
 
+        // Check if we're updating an existing review context
+        const existingContext = getPendingReviewContext();
+        let accumulatedModifiedFiles = context.modifiedFiles;
+        
+        if (existingContext && existingContext.tempProjectPath === context.tempProjectPath) {
+            // Accumulate modified files from previous prompts
+            const existingFiles = new Set(existingContext.modifiedFiles);
+            const newFiles = new Set(context.modifiedFiles);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...newFiles]));
+            console.log(`[Finish Handler] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingContext.modifiedFiles.length} existing + ${context.modifiedFiles.length} new)`);
+        }
+
         // Store context data for later use by accept/decline/review actions
         // This will be used by RPC methods to access temp project data
         setPendingReviewContext({
             tempProjectPath: context.tempProjectPath,
-            modifiedFiles: context.modifiedFiles,
+            modifiedFiles: accumulatedModifiedFiles,
             ctx: context.ctx,
             projects: context.projects,
             shouldCleanup: context.shouldCleanup,
