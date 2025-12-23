@@ -16,13 +16,14 @@
 
 import { StreamEventHandler, StreamFinishException } from "../stream-event-handler";
 import { StreamContext } from "../stream-context";
-import { Command, AIChatMachineEventType, ExecutionContext } from "@wso2/ballerina-core";
+import { Command, AIChatMachineEventType, ExecutionContext, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine";
 import { checkCompilationErrors } from "../../../tools/diagnostics-utils";
 import { integrateCodeToWorkspace } from "../../utils";
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
+import { openView } from "../../../../../stateMachine";
 
 /**
  * Stored context data for code review actions
@@ -210,6 +211,10 @@ export class FinishHandler implements StreamEventHandler {
         AIChatStateMachine.sendEvent({
             type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
         });
+
+        // Automatically open review mode
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode });
+        console.log("[Finish Handler] Automatically opened review mode");
 
         // Update and save chat
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
