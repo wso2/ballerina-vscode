@@ -402,6 +402,57 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
         }
     };
 
+    /**
+     * Recursively updates CHOICE field selections in the model
+     *
+     * @param properties The properties object to search through
+     * @param fieldKey The key of the field that changed
+     * @param value The new value
+     * @returns true if the field was found and updated
+     */
+    const updateChoiceInModel = (properties: { [key: string]: PropertyModel }, fieldKey: string, value: any): boolean => {
+        // Check if the field exists at this level
+        if (properties[fieldKey]) {
+            const property = properties[fieldKey];
+            if (getPrimaryInputType(property.types)?.fieldType === "CHOICE" && property.choices) {
+                property.value = value as string;
+                property.choices.forEach((choice, index) => {
+                    choice.enabled = (Number(value) === index);
+                });
+                return true;
+            }
+        }
+
+        // Search in nested choice properties
+        for (const key in properties) {
+            const property = properties[key];
+            if (property.choices) {
+                for (const choice of property.choices) {
+                    if (choice.properties && updateChoiceInModel(choice.properties, fieldKey, value)) {
+                        return true;
+                    }
+                }
+            }
+            // Also check nested properties (for CONDITIONAL_FIELDS, etc.)
+            if (property.properties && updateChoiceInModel(property.properties, fieldKey, value)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const handleOnChange = (fieldKey: string, value: any) => {
+        // Try to update the CHOICE field in the model (recursively)
+        const wasUpdated = updateChoiceInModel(model.properties, fieldKey, value);
+
+        if (wasUpdated) {
+            // Regenerate form fields to reflect the nested structure changes
+            const updatedFormFields = mapPropertiesToFormFields(model.properties);
+            setFormFields(updatedFormFields);
+        }
+    };
+
     const handleOnSubmit = async (data: FormValues, formImports: FormImports) => {
         setIsSaving(true);
         formFields.forEach(val => {
@@ -514,6 +565,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                                 isSaving={isSaving}
                                                 nestedForm={true}
                                                 onSubmit={handleOnSubmit}
+                                                onChange={handleOnChange}
                                                 preserveFieldOrder={true}
                                                 recordTypeFields={recordTypeFields}
                                                 submitText="Create"
