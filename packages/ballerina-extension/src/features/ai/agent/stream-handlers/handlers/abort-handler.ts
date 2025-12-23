@@ -21,6 +21,7 @@ import { AIChatStateMachine } from "../../../../../views/ai-panel/aiChatMachine"
 import { sendAgentDidCloseForProjects } from "../../../utils/project/ls-schema-notifications";
 import { cleanupTempProject } from "../../../utils/project/temp-project";
 import { updateAndSaveChat } from "../../../utils/events";
+import { clearPendingReviewContext, getPendingReviewContext } from "./finish-handler";
 
 /**
  * Handles abort events from the stream.
@@ -57,6 +58,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         if (context.shouldCleanup) {
             sendAgentDidCloseForProjects(context.tempProjectPath, context.projects);
             cleanupTempProject(context.tempProjectPath);
+        }
+
+        // Clear pending review context if it exists and matches this temp project
+        const pendingReview = getPendingReviewContext();
+        if (pendingReview && pendingReview.tempProjectPath === context.tempProjectPath) {
+            console.log("[Abort Handler] Clearing review context due to abort");
+            clearPendingReviewContext();
         }
 
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
