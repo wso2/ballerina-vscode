@@ -166,9 +166,14 @@
                           "value": "\"default\"",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -185,9 +190,14 @@
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -223,9 +233,14 @@
                           "value": "\"solace\"",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -242,9 +257,14 @@
                           "value": "\"SolaceGSS\"",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -314,8 +334,14 @@
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
+                              "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -332,9 +358,14 @@
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -351,9 +382,14 @@
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "TEXT",
                               "ballerinaType": "string",
                               "selected": true
+                            },
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "string",
+                              "selected": false
                             }
                           ],
                           "enabled": true,
@@ -403,10 +439,15 @@
                           "type": "SecureSocket",
                           "packageInfo": "ballerinax:solace:0.3.0",
                           "kind": "RECORD_TYPE",
-                          "selected": false
+                          "selected": true
                         }
                       ],
                       "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "solace:SecureSocket",
+                      "selected": false
                     }
                   ],
                   "enabled": true,
@@ -461,9 +502,14 @@
                   "value": "\"test-queue\"",
                   "types": [
                     {
-                      "fieldType": "EXPRESSION",
+                      "fieldType": "TEXT",
                       "ballerinaType": "string",
                       "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
                     }
                   ],
                   "enabled": true,
@@ -499,9 +545,14 @@
                   "value": "\"test/topic\"",
                   "types": [
                     {
-                      "fieldType": "EXPRESSION",
+                      "fieldType": "TEXT",
                       "ballerinaType": "string",
                       "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
                     }
                   ],
                   "enabled": true,
@@ -518,9 +569,14 @@
                   "value": "\"default\"",
                   "types": [
                     {
-                      "fieldType": "EXPRESSION",
+                      "fieldType": "TEXT",
                       "ballerinaType": "string",
                       "selected": true
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
                     }
                   ],
                   "enabled": true,

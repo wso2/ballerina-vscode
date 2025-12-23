@@ -353,14 +353,7 @@ public final class JmsUtil {
                                                Map<String, Value> additionalTopicProperties) {
         // Build Queue choice
         Map<String, Value> queueProps = new LinkedHashMap<>();
-        queueProps.put("queueName", new Value.ValueBuilder()
-                .metadata(queueNameLabel, queueNameDesc)
-                .value(queueDefaultValue)
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .build());
+        queueProps.put("queueName", buildStringProperty(queueNameLabel, queueNameDesc, queueDefaultValue, "", false));
 
         Value queueChoice = new Value.ValueBuilder()
                 .metadata(queueLabel, queueDesc)
@@ -373,24 +366,10 @@ public final class JmsUtil {
 
         // Build Topic choice
         Map<String, Value> topicProps = new LinkedHashMap<>();
-        topicProps.put("topicName", new Value.ValueBuilder()
-                .metadata(topicNameLabel, topicNameDesc)
-                .value(topicDefaultValue)
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .build());
+        topicProps.put("topicName", buildStringProperty(topicNameLabel, topicNameDesc, topicDefaultValue, "", false));
 
-        topicProps.put("subscriberName", new Value.ValueBuilder()
-                .metadata("Subscriber Name", "The name to be used for the subscription.")
-                .value("\"default\"")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        topicProps.put("subscriberName", buildStringProperty(
+                "Subscriber Name", "The name to be used for the subscription.", "\"default\"", "", true));
 
         topicProps.put("durable", new Value.ValueBuilder()
                 .metadata("Durable Subscriber", "Persist subscription when disconnected.")
@@ -537,24 +516,11 @@ public final class JmsUtil {
     public static Value buildAuthenticationChoice() {
         // Build Basic Authentication choice
         Map<String, Value> basicAuthProps = new LinkedHashMap<>();
-        basicAuthProps.put("username", new Value.ValueBuilder()
-                .metadata("Username", "Username for broker authentication")
-                .value("\"default\"")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("default")
-                .enabled(true)
-                .editable(true)
-                .build());
+        basicAuthProps.put("username", buildStringProperty(
+                "Username", "Username for broker authentication", "\"default\"", "default", false));
 
-        basicAuthProps.put("password", new Value.ValueBuilder()
-                .metadata("Password", "Password for broker authentication")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        basicAuthProps.put("password", buildStringProperty(
+                "Password", "Password for broker authentication", "", "", true));
 
         Value basicAuthChoice = new Value.ValueBuilder()
                 .metadata("Basic Authentication", "Username and password authentication")
@@ -567,25 +533,11 @@ public final class JmsUtil {
 
         // Build Kerberos Authentication choice
         Map<String, Value> kerberosAuthProps = new LinkedHashMap<>();
-        kerberosAuthProps.put("serviceName", new Value.ValueBuilder()
-                .metadata("Service Name", "Kerberos service name.")
-                .value("\"solace\"")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("solace")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        kerberosAuthProps.put("serviceName", buildStringProperty(
+                "Service Name", "Kerberos service name.", "\"solace\"", "solace", true));
 
-        kerberosAuthProps.put("jaasLoginContext", new Value.ValueBuilder()
-                .metadata("JAAS Login Context", "JAAS login context name.")
-                .value("\"SolaceGSS\"")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("SolaceGSS")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        kerberosAuthProps.put("jaasLoginContext", buildStringProperty(
+                "JAAS Login Context", "JAAS login context name.", "\"SolaceGSS\"", "SolaceGSS", true));
 
         kerberosAuthProps.put("mutualAuthentication", new Value.ValueBuilder()
                 .metadata("Mutual Authentication", "Enable Kerberos mutual authentication.")
@@ -616,34 +568,14 @@ public final class JmsUtil {
 
         // Build OAuth 2.0 Authentication choice
         Map<String, Value> oauth2AuthProps = new LinkedHashMap<>();
-        oauth2AuthProps.put("issuer", new Value.ValueBuilder()
-                .metadata("Issuer", "OAuth 2.0 issuer identifier URI")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION)))
-                .setPlaceholder("https://auth.example.com")
-                .enabled(true)
-                .editable(true)
-                .build());
+        oauth2AuthProps.put("issuer", buildStringProperty(
+                "Issuer", "OAuth 2.0 issuer identifier URI", "", "https://auth.example.com", false));
 
-        oauth2AuthProps.put("accessToken", new Value.ValueBuilder()
-                .metadata("Access Token", "OAuth 2.0 access token for authentication")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        oauth2AuthProps.put("accessToken", buildStringProperty(
+                "Access Token", "OAuth 2.0 access token for authentication", "", "", true));
 
-        oauth2AuthProps.put("oidcToken", new Value.ValueBuilder()
-                .metadata("OIDC Token", "OpenID Connect ID token for authentication")
-                .value("")
-                .types(List.of(PropertyType.types(Value.FieldType.EXPRESSION, "string")))
-                .setPlaceholder("")
-                .enabled(true)
-                .editable(true)
-                .optional(true)
-                .build());
+        oauth2AuthProps.put("oidcToken", buildStringProperty(
+                "OIDC Token", "OpenID Connect ID token for authentication", "", "", true));
 
         Value oauth2AuthChoice = new Value.ValueBuilder()
                 .metadata("OAuth 2.0 Authentication", "OAuth 2.0 token-based authentication")
@@ -700,6 +632,32 @@ public final class JmsUtil {
     }
 
     /**
+     * Builds a Value property supporting both TEXT and EXPRESSION types for string values. This is a utility method for
+     * creating properties that can accept either literal text or Ballerina expressions.
+     *
+     * @param label       the display label for the property.
+     * @param description the description for the property.
+     * @param value       the default value for the property.
+     * @param placeholder the placeholder text for the property.
+     * @param optional    whether the property is optional.
+     * @return Value configured with TEXT and EXPRESSION types.
+     */
+    public static Value buildStringProperty(String label, String description, String value, String placeholder,
+                                            boolean optional) {
+        Value.ValueBuilder builder = new Value.ValueBuilder()
+                .metadata(label, description)
+                .value(value)
+                .types(List.of(PropertyType.types(Value.FieldType.TEXT, VALUE_TYPE_STRING),
+                        PropertyType.types(Value.FieldType.EXPRESSION, VALUE_TYPE_STRING)))
+                .setPlaceholder(placeholder)
+                .enabled(true)
+                .editable(true)
+                .optional(optional);
+
+        return builder.build();
+    }
+
+    /**
      * Builds a property with type members that support the create value option. This is a generic utility method for
      * building expression properties with type metadata.
      *
@@ -715,19 +673,26 @@ public final class JmsUtil {
                                                      String typeName, String packageInfo, String kind, String value,
                                                      boolean optional) {
         List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo(typeName, packageInfo, kind, false)
+                new PropertyTypeMemberInfo(typeName, packageInfo, kind, true)
         );
 
         PropertyType propertyType = new PropertyType.Builder()
                 .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
                 .ballerinaType(typeConstraint)
                 .setMembers(typeMembers)
+                .selected(true)
+                .build();
+
+        PropertyType expressionType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.EXPRESSION)
+                .ballerinaType(typeConstraint)
+                .selected(false)
                 .build();
 
         return new Value.ValueBuilder()
                 .metadata(label, description)
                 .value(value)
-                .types(List.of(propertyType))
+                .types(List.of(propertyType, expressionType))
                 .setCodedata(new Codedata(null, ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD))
                 .enabled(true)
                 .editable(true)
