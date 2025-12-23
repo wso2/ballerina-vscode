@@ -28,11 +28,20 @@ import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
 import { isFormValid } from "./utils";
 
+const PageWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    padding: 40px 120px;
+    box-sizing: border-box;
+    overflow: hidden;
+`;
+
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
-    margin: 80px 120px;
     max-width: 600px;
+    overflow: hidden;
 `;
 
 const TitleContainer = styled.div`
@@ -40,12 +49,22 @@ const TitleContainer = styled.div`
     align-items: center;
     gap: 8px;
     margin-bottom: 32px;
+    flex-shrink: 0;
+`;
+
+const ScrollableContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    min-height: 0;
 `;
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
+    padding-top: 16px;
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
 `;
 
 const IconButton = styled.div`
@@ -110,28 +129,32 @@ export function ProjectForm() {
     };
 
     return (
-        <FormContainer>
-            <TitleContainer>
-                <IconButton onClick={goBack}>
-                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-                </IconButton>
-                <Typography variant="h2">Create Your Integration</Typography>
-            </TitleContainer>
+        <PageWrapper>
+            <FormContainer>
+                <TitleContainer>
+                    <IconButton onClick={goBack}>
+                        <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                    </IconButton>
+                    <Typography variant="h2">Create Your Integration</Typography>
+                </TitleContainer>
 
-            <ProjectFormFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-            />
+                <ScrollableContent>
+                    <ProjectFormFields
+                        formData={formData}
+                        onFormDataChange={handleFormDataChange}
+                    />
+                </ScrollableContent>
 
-            <ButtonWrapper>
-                <Button
-                    disabled={!isFormValid(formData)}
-                    onClick={handleCreateProject}
-                    appearance="primary"
-                >
-                    {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
-                </Button>
-            </ButtonWrapper>
-        </FormContainer>
+                <ButtonWrapper>
+                    <Button
+                        disabled={!isFormValid(formData)}
+                        onClick={handleCreateProject}
+                        appearance="primary"
+                    >
+                        {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                    </Button>
+                </ButtonWrapper>
+            </FormContainer>
+        </PageWrapper>
     );
 }
