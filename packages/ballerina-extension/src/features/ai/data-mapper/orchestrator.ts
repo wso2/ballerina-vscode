@@ -668,7 +668,6 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
         await generateMappingCodeCore(mappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during mapping code generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }
@@ -1002,7 +1001,6 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
         await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during inline mapping code generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }
@@ -1106,7 +1104,6 @@ export async function generateContextTypes(typeCreationRequest: ProcessContextTy
         await generateContextTypesCore(typeCreationRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during context type creation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }
