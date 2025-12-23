@@ -136,4 +136,4 @@ async function discoverProjectPath(): Promise<string | undefined> {
     return undefined;
 }
 
-export { activateDocCommand };
+export { activateDocCommand, discoverProjectPath };
