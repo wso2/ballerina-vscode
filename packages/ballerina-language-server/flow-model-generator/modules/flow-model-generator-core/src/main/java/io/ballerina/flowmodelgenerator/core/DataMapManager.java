@@ -284,6 +284,7 @@ public class DataMapManager {
                             new HashMap<>(), references);
                     mappingPort.setFocusExpression(expression.toString().trim());
                     mappingPort.setIsIterationVariable(true);
+                    mappingPort.category = "local-variable";
                     NonTerminalNode parent = matchingNode.queryExpr().parent();
                     SyntaxKind parentKind = parent.kind();
                     while (parentKind != SyntaxKind.LOCAL_VAR_DECL && parentKind != SyntaxKind.MODULE_VAR_DECL
@@ -387,7 +388,7 @@ public class DataMapManager {
                     String varName = letVarDecl.typedBindingPattern().bindingPattern().toSourceCode().trim();
                     String expression = letVarDecl.expression().toSourceCode().trim();
                     addClauseVariable(varName, expression, letVarDecl, clauseDefinedVars, inputPorts,
-                            semanticModel, typeDefSymbols, references);
+                            semanticModel, typeDefSymbols, references, false);
                 }
             } else if (clauseKind == SyntaxKind.GROUP_BY_CLAUSE) {
                 hasGroupBy = true;
@@ -402,7 +403,7 @@ public class DataMapManager {
                         String expression = groupVarDecl.expression().toSourceCode().trim();
                         groupingKeyNames.add(varName);
                         addClauseVariable(varName, expression, bindingPattern, clauseDefinedVars, inputPorts,
-                                semanticModel, typeDefSymbols, references);
+                                semanticModel, typeDefSymbols, references, true);
                     }
                 }
             }
@@ -420,7 +421,8 @@ public class DataMapManager {
 
     private void addClauseVariable(String varName, String expression, Node node, Set<String> clauseDefinedVars,
                                    List<MappingPort> inputPorts, SemanticModel semanticModel,
-                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references) {
+                                   List<Symbol> typeDefSymbols, Map<String, MappingPort> references,
+                                   boolean isGroupingKey) {
         clauseDefinedVars.add(varName);
         Optional<Symbol> varSymbol = semanticModel.symbol(node);
         if (varSymbol.isPresent()) {
@@ -428,6 +430,10 @@ public class DataMapManager {
                     Objects.requireNonNull(ReferenceType.fromSemanticSymbol(varSymbol.get(),
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.focusExpression = expression;
+            mappingPort.category = "local-variable";
+            if (isGroupingKey) {
+                mappingPort.isGroupingKey = true;
+            }
             inputPorts.add(mappingPort);
         }
     }
@@ -504,6 +510,7 @@ public class DataMapManager {
                             typeDefSymbols)), new HashMap<>(), references);
             mappingPort.setFocusExpression(clauseExpr);
             mappingPort.setIsIterationVariable(true);
+            mappingPort.category = "local-variable";
             inputPorts.add(mappingPort);
         }
     }
@@ -2918,6 +2925,7 @@ public class DataMapManager {
         TypeInfo typeInfo;
         Boolean isSeq;
         Boolean isIterationVariable;
+        Boolean isGroupingKey;
 
         MappingPort(String typeName, String kind) {
             this.typeName = typeName;
@@ -3016,6 +3024,10 @@ public class DataMapManager {
 
         Boolean getIsIterationVariable() {
             return this.isIterationVariable;
+        }
+
+        Boolean getIsGroupingKey() {
+            return this.isGroupingKey;
         }
 
         public String getFocusExpression() {

@@ -124,6 +124,7 @@
         "displayName": "myType3",
         "typeName": "MyType[]",
         "kind": "array",
+        "category": "local-variable",
         "focusExpression": "myTypes3",
         "ref": "2079019383",
         "isIterationVariable": true

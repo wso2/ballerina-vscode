@@ -79,6 +79,7 @@
         "displayName": "info",
         "typeName": "UserInfo",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "bank.userInfo",
         "ref": "1889977605",
         "isIterationVariable": true

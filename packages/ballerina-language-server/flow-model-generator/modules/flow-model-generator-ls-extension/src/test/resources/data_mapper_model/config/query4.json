@@ -39,6 +39,7 @@
         "displayName": "secondaryPhonesItem",
         "typeName": "SecondaryPhones",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "u.info.secondaryPhones",
         "ref": "-782972947",
         "isIterationVariable": true
@@ -48,6 +49,7 @@
         "displayName": "email",
         "typeName": "string",
         "kind": "string",
+        "category": "local-variable",
         "focusExpression": "u.info.emails",
         "isIterationVariable": true
       }

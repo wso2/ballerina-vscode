@@ -49,6 +49,7 @@
         "displayName": "l3ArrItem",
         "typeName": "record {|int l4_1; string l4_2; anydata...;|}",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "l2Item.l3Arr",
         "ref": "83688130",
         "isIterationVariable": true
