@@ -40,6 +40,7 @@ import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEdit
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
+import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
 
 export interface ExpressionFieldProps {
     field: FormField;
@@ -146,18 +147,28 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         isInExpandedMode
     } = props;
 
-    if ( inputMode === InputMode.ARRAY) {
+    if (Array.isArray(value)) {
+        if (inputMode === InputMode.ARRAY) {
+            return (
+                <DynamicArrayBuilder
+                    value={value}
+                    label={field.label}
+                    onChange={(val) => onChange(val, val.length)}
+                    expressionFieldProps={props}
+                />
+            );
+        }
+        throw new Error(`Unsupported editor for input mode: ${inputMode}`);
+    }
+    if (inputMode === InputMode.MAP) {
         return (
-            <DynamicArrayBuilder
+            <MappingConstructor
                 value={value}
                 label={field.label}
                 onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
             />
         );
-    }
-    if (Array.isArray(value)) {
-        throw new Error(`Invalid value type: expected a string but received an array for input mode ${inputMode}`);
     }
 
     const primaryInputType = getPrimaryInputType(field.types || []);
