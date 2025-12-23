@@ -536,28 +536,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
-    const isExpToBooleanSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        return ["true", "false"].includes(expValue.trim().toLowerCase())
-    }
-
-    const isExpToTemplateSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('`') && trimmed.endsWith('`')) return true;
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
-    }
-
-    const isExpToTextSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined || expValue.length === 0) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-            const content = trimmed.slice(1, -1);
-            return !/(?<!\\)"/.test(content);
-        }
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
+    const isSwitchToPrimaryModeSafe = (expValue: string) => {
+        if (!expValue) return true;
+        const primaryInputType = getPrimaryInputType(field.types);
+        const primaryInputMode = getInputModeFromTypes(primaryInputType);
+        const valueConfigObject = getEditorConfiguration(primaryInputMode);
+        return valueConfigObject.getIsValueCompatible(expValue);
     }
 
     const handleModeChange = (value: InputMode) => {
