@@ -1247,7 +1247,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(true);
-        savingDraft();
+        // TODO: Uncomment this when the draft added with AI agent is implemented
+        // savingDraft(); 
         const noFormSubmitOptions = !options ||
             (
                 options?.closeSidePanel === undefined
