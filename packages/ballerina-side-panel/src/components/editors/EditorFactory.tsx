@@ -29,8 +29,6 @@ import { ParamManagerEditor } from "../ParamManager/ParamManager";
 import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
 import { CheckBoxEditor } from "./CheckBoxEditor";
-import { ArrayEditor } from "./ArrayEditor";
-import { MapEditor } from "./MapEditor";
 import { ChoiceForm } from "./ChoiceForm";
 import { FormMapEditor } from "./FormMapEditor";
 import { TextAreaEditor } from "./TextAreaEditor";
@@ -111,18 +109,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "MAPPING_EXPRESSION_SET") {
-        return (
-            <MapEditor
-                field={field}
-                label={"Add Another Key-Value Pair"}
-                openSubPanel={openSubPanel}
-                subPanelView={subPanelView}
-                handleOnFieldFocus={handleOnFieldFocus}
-                autoFocus={autoFocus}
-                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-            />
-        );
     } else if (field.type === "FLAG") {
         return <CheckBoxEditor field={field} />;
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
