@@ -20,7 +20,6 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
-import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
@@ -34,15 +33,12 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.eclipse.lsp4j.TextEdit;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
-import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROPERTY_BASE_PATH;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.DatabindUtil.addDataBindingParam;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabledChoiceProperty;
@@ -58,6 +54,8 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
     public static final String TYPE_PREFIX = "RabbitMQAnydataMessage";
     private static final String ON_MESSAGE = "onMessage";
     private static final String ON_REQUEST = "onRequest";
+
+    private static final List<String> LISTENER_CONFIG_KEYS = List.of(KEY_LISTENER_VAR_NAME, "host", "port");
 
     /**
      * Filters the RabbitMQ service functions to ensure that only one of `onMessage` or `onRequest` is present. If both
@@ -114,8 +112,9 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
         }
         applyEnabledChoiceProperty(context.serviceInitModel(), KEY_CONFIGURE_LISTENER);
         ListenerDTO listenerDTO;
-        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
-            listenerDTO = new ListenerDTO(RABBITMQ, properties.get(KEY_EXISTING_LISTENER).getValue(), "");
+        if (ListenerUtil.shouldUseExistingListener(properties)) {
+            String listenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerDTO = new ListenerDTO(RABBITMQ, listenerName, "");
         } else {
             listenerDTO = buildListenerDTO(context);
         }
@@ -129,67 +128,13 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
                 context.semanticModel(), context.project());
         if (!listeners.isEmpty()) {
             Map<String, Value> properties = serviceInitModel.getProperties();
-            Value listenerVarNameProperty = properties.remove(KEY_LISTENER_VAR_NAME);
-            Value host = properties.remove("host");
-            Value port = properties.remove("port");
-            Value basePath = properties.remove("basePath");
-            Value createNewListenerChoice = buildCreateNewListenerChoice(listenerVarNameProperty, host, port);
-            Value useExistingListenerChoice = buildUseExistingListenerChoice(listeners);
-
-            Value choicesProperty = new Value.ValueBuilder()
-                    .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
-                    .value(true)
-                    .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
-                    .enabled(true)
-                    .editable(true)
-                    .setAdvanced(true)
-                    .build();
-            choicesProperty.setChoices(List.of(useExistingListenerChoice, createNewListenerChoice));
+            Map<String, Value> listenerProps = ListenerUtil.removeAndCollectListenerProperties(
+                    properties, LISTENER_CONFIG_KEYS);
+            Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(
+                    listenerProps, listeners, "RabbitMQ");
             properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
-            properties.put(PROPERTY_BASE_PATH, basePath);
         }
         return serviceInitModel;
-    }
-
-    private Value buildCreateNewListenerChoice(Value listenerVarNameProperty, Value host, Value port) {
-        Map<String, Value> newListenerProps = new LinkedHashMap<>();
-        newListenerProps.put("host", host);
-        newListenerProps.put("port", port);
-        newListenerProps.put(KEY_LISTENER_VAR_NAME, listenerVarNameProperty);
-        return new Value.ValueBuilder()
-                .metadata("Create New Listener", "Create a new RabbitMQ listener")
-                .value("true")
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(false)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(newListenerProps)
-                .build();
-    }
-
-    private Value buildUseExistingListenerChoice(Set<String> listeners) {
-        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
-        List<String> items = listeners.stream().toList();
-        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
-        Value existingListenerOptions = new Value.ValueBuilder()
-                .metadata("Select Listener", "Select from the existing RabbitMQ listeners")
-                .value(items.getFirst())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .build();
-        existingListenerProps.put(KEY_EXISTING_LISTENER, existingListenerOptions);
-
-        return new Value.ValueBuilder()
-                .metadata("Use Existing Listener", "Use Existing Listener")
-                .value("true")
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(false)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(existingListenerProps)
-                .build();
     }
 
     @Override
