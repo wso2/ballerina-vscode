@@ -690,7 +690,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
                                     return hasPersistConnection ? (
                                         <Tooltip
-                                            content="Currently only one persist based DB connection is allowed. You can use pre-built connectors for DB connections."
+                                            content="Currently, only one database connection with schema introspection is supported per project. Use pre-built connectors to connect to other databases."
                                             position="top"
                                         >
                                             {databaseCard}

@@ -28,19 +28,19 @@ interface AutoMapButtonProps {
     disabled?: boolean;
 }
 
-export default function EditButton(props: AutoMapButtonProps) {
+export default function ConfigButton(props: AutoMapButtonProps) {
     const { onClick, disabled } = props;
     const showText = useMediaQuery('(min-width:800px)');
 
     return (
-        <Tooltip content={"Edit data mapping name, inputs and output"} position="bottom-start">
+        <Tooltip content={"Configure data mapping name, inputs and output"} position="bottom-start">
             <Button
                 onClick={onClick}
                 appearance="secondary"
                 disabled={disabled}
             >
-                <Icon name="bi-edit" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
-                {showText ? 'Edit' : null}
+                <Icon name="bi-settings" sx={{ marginRight: 5, width: 16, height: 16, fontSize: 14 }} />
+                {showText ? 'Configure' : null}
             </Button>
         </Tooltip>
     );

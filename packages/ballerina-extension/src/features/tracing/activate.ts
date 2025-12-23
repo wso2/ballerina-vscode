@@ -21,6 +21,11 @@ import { TracerMachine } from './tracer-machine';
 import { TraceTreeDataProvider } from './trace-tree-view';
 import { TraceServer, Trace } from './trace-server';
 import { TraceDetailsWebview } from './trace-details-webview';
+import { StateMachine } from '../../stateMachine';
+import { VisualizerWebview } from '../../views/visualizer/webview';
+import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from '../../utils/project-utils';
+import { findBallerinaPackageRoot } from '../../utils';
+import { requiresPackageSelection, selectPackageOrPrompt } from '../../utils/command-utils';
 
 export const TRACE_WINDOW_COMMAND = 'ballerina.showTraceWindow';
 export const ENABLE_TRACING_COMMAND = 'ballerina.enableTracing';
@@ -33,18 +38,8 @@ let treeDataProvider: TraceTreeDataProvider | undefined;
 let treeView: vscode.TreeView<vscode.TreeItem> | undefined;
 
 export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
-    const workspaceDirs: string[] = [];
-    try {
-        const folders = vscode.workspace.workspaceFolders;
-        if (folders && folders.length > 0) {
-            workspaceDirs.push(...folders.map(folder => folder.uri.fsPath));
-        }
-    } catch (_) {
-        // ignore
-    }
-
     // Initialize TracerMachine
-    TracerMachine.initialize(workspaceDirs.length > 0 ? workspaceDirs : undefined);
+    TracerMachine.initialize(StateMachine.context().projectPath);
 
     // Create TreeDataProvider
     treeDataProvider = new TraceTreeDataProvider();
@@ -69,14 +64,23 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         await showTraceWindow();
     });
 
-    const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, () => {
-        TracerMachine.enable();
+    const enableTracingCommand = vscode.commands.registerCommand(ENABLE_TRACING_COMMAND, async () => {
+        const targetPath = await resolveTracingTargetPath("Select a package to enable tracing");
+        if (!targetPath) {
+            return;
+        }
+
+        TracerMachine.enable(targetPath);
         // Reveal/focus the ballerina-traceView (shows trace panel in panel)
         vscode.commands.executeCommand('workbench.view.extension.ballerina-traceView');
     });
 
-    const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, () => {
-        TracerMachine.disable();
+    const disableTracingCommand = vscode.commands.registerCommand(DISABLE_TRACING_COMMAND, async () => {
+        const targetPath = await resolveTracingTargetPath("Select a package to disable tracing");
+        if (!targetPath) {
+            return;
+        }
+        TracerMachine.disable(targetPath);
     });
 
     const clearTracesCommand = vscode.commands.registerCommand(CLEAR_TRACES_COMMAND, () => {
@@ -103,6 +107,37 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
         showTraceDetailsCommand,
         treeDataProvider
     );
+}
+
+/**
+ * Resolves the target project path for tracing operations.
+ * Handles package selection when required and updates the state machine accordingly.
+ * @param promptMessage - The message to display when prompting for package selection
+ * @returns The resolved target path, or undefined if the user cancelled the selection
+ */
+async function resolveTracingTargetPath(promptMessage: string): Promise<string | undefined> {
+    const { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!vscode.window.activeTextEditor;
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    let targetPath = projectPath ?? "";
+
+    if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+        const selectedPackage = await selectPackageOrPrompt(availablePackages, promptMessage);
+        if (!selectedPackage) {
+            return undefined;
+        }
+        targetPath = selectedPackage;
+        await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+    } else if (projectRoot && projectRoot !== projectPath) {
+        targetPath = await getCurrentProjectRoot();
+        await StateMachine.updateProjectRootAndInfo(targetPath, projectInfo);
+    }
+
+    return targetPath;
 }
 
 /**
