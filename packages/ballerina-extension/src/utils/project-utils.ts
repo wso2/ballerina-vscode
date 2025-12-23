@@ -26,6 +26,10 @@ import { dirname, sep } from 'path';
 import { parseTomlToConfig } from '../features/config-generator/utils';
 import { PROJECT_TYPE } from "../features/project";
 import { StateMachine } from "../stateMachine";
+import { VisualizerWebview } from "../views/visualizer/webview";
+import { findBallerinaPackageRoot } from "./file-utils";
+import { needsProjectDiscovery, requiresPackageSelection, selectPackageOrPrompt } from "./command-utils";
+import { findWorkspaceTypeFromWorkspaceFolders } from "../rpc-managers/common/utils";
 
 const BALLERINA_TOML_REGEX = `**${sep}Ballerina.toml`;
 const BALLERINA_FILE_REGEX = `**${sep}*.bal`;
@@ -220,6 +224,57 @@ function getWorkspaceRoot(): string | undefined {
     return workspace.workspaceFolders?.[0]?.uri.fsPath;
 }
 
+/**
+ * Resolves the project path based on the current context and updates the state machine accordingly.
+ * @param promptMessage - The message to display when prompting for package selection
+ * @returns The resolved project path or undefined if no project path is available
+ */
+async function resolveProjectPath(promptMessage?: string): Promise<string | undefined> {
+    const { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!window.activeTextEditor;
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
+
+    let targetPath = projectPath ?? "";
+
+    if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+        const selectedPackage = await selectPackageOrPrompt(availablePackages, promptMessage);
+        if (!selectedPackage) {
+            return undefined;
+        }
+        targetPath = selectedPackage;
+        await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+    } else if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+        try {
+            const workspaceType = await findWorkspaceTypeFromWorkspaceFolders();
+            const packageRoot = await getCurrentProjectRoot();
+        
+            if (!packageRoot) {
+                return undefined;
+            }
+        
+            if (workspaceType.type === "MULTIPLE_PROJECTS") {
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                return packageRoot;
+            }
+        
+            if (workspaceType.type === "BALLERINA_WORKSPACE") {
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                return packageRoot;
+            }
+        
+            return packageRoot;
+        } catch {
+            return undefined;
+        }
+    }
+
+    return targetPath;
+}
+
 export {
     addToWorkspace,
     getCurrentBallerinaProject,
@@ -227,5 +282,6 @@ export {
     getCurrenDirectoryPath,
     selectBallerinaProjectForDebugging,
     getCurrentProjectRoot,
-    getWorkspaceRoot
+    getWorkspaceRoot,
+    resolveProjectPath
 };

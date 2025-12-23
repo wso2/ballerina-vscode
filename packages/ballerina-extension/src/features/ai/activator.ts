@@ -19,16 +19,25 @@
 import { commands, window } from 'vscode';
 import { BallerinaExtension, ExtendedLangClient } from '../../core';
 import { activateCopilotLoginCommand, resetBIAuth } from './completions';
-import { generateCodeCore } from './service/code/code';
-import { GenerateCodeRequest, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
-import { CopilotEventHandler } from './service/event';
+import { ProcessMappingParametersRequest } from '@wso2/ballerina-core';
+import { CopilotEventHandler } from './utils/events';
 import { addConfigFile, getConfigFilePath } from './utils';
-import { StateMachine } from "../../stateMachine";
-import { CONFIGURE_DEFAULT_MODEL_COMMAND, DEFAULT_PROVIDER_ADDED, LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT } from './constants';
-import { REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../..//utils/ai/auth';
+import {
+    CONFIGURE_DEFAULT_MODEL_COMMAND,
+    DEFAULT_PROVIDER_ADDED,
+    LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL,
+    SIGN_IN_BI_COPILOT
+} from './constants';
+import {
+    REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
+} from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
-import { generateMappingCodeCore } from './service/datamapper/datamapper';
+import { generateMappingCodeCore } from './data-mapper';
+import { generateAgentForTest, GenerateAgentForTestParams } from './agent/index-for-test';
+import { resolveProjectPath } from '../../utils/project-utils';
+import { MESSAGES } from '../project';
 
 export let langClient: ExtendedLangClient;
 
@@ -40,8 +49,8 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
-        commands.registerCommand('ballerina.test.ai.generateCodeCore', async (params: GenerateCodeRequest, testEventHandler: CopilotEventHandler) => {
-            await generateCodeCore(params, testEventHandler);
+        commands.registerCommand('ballerina.test.ai.generateAgentForTest', async (params: GenerateAgentForTestParams, testEventHandler: CopilotEventHandler) => {
+            return await generateAgentForTest(params, testEventHandler);
         });
 
         commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {
@@ -54,12 +63,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             getSelectedLibraries,
             getRelevantLibrariesAndFunctions,
             GenerationType
-        } = require('./service/libs/libs');
+        } = require('./utils/libraries');
         const {
             selectRequiredFunctions,
             getMaximizedSelectedLibs,
             toMaximizedLibrariesFromLibJson
-        } = require('./service/libs/funcs');
+        } = require('./utils/function-registry');
 
         commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
             return await getAllLibraries(generationType);
@@ -86,10 +95,14 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
         });
     }
 
-    const projectPath = StateMachine.context().projectPath;
+    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async () => {
+        const targetPath = await resolveProjectPath("Select an integration to configure default model");
+        if (!targetPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
 
-    commands.registerCommand(CONFIGURE_DEFAULT_MODEL_COMMAND, async (...args: any[]) => {
-        const configPath = await getConfigFilePath(ballerinaExternalInstance, projectPath);
+        const configPath = await getConfigFilePath(ballerinaExternalInstance, targetPath);
         if (configPath !== null) {
             try {
                 const result = await addConfigFile(configPath);
