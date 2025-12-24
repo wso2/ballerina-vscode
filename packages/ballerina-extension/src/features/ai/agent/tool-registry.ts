@@ -2,6 +2,7 @@
  * Tool registry factory extracted from AgentExecutor.
  */
 import { ProjectSource } from '@wso2/ballerina-core';
+import { CopilotEventHandler } from '../utils/events';
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from './tools/task-writer';
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from './tools/diagnostics';
 import {
@@ -24,7 +25,7 @@ import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } fr
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/connector-generator';
 
 export interface ToolRegistryOptions {
-    eventHandler: any;
+    eventHandler: CopilotEventHandler;
     tempProjectPath: string;
     projectPath?: string;
     modifiedFiles: string[];

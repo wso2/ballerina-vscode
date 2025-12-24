@@ -44,7 +44,7 @@ export class ContextTypesExecutor extends AICommandExecutor<ProcessContextTypeCr
      * 4. Base class handles immediate cleanup
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.tempProjectPath!;
+        const tempProjectPath = this.config.executionContext.tempProjectPath!;
 
         try {
             // Call existing core function with params from config

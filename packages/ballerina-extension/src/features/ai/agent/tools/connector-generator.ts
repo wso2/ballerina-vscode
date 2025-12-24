@@ -33,6 +33,7 @@ import { CopilotEventHandler } from "../../utils/events";
 import { langClient } from "../../activator";
 import { applyTextEdits } from "../utils";
 import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { approvalManager } from '../../state/ApprovalManager';
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -362,8 +363,6 @@ async function waitForUserResponse(
     eventHandler: CopilotEventHandler
 ): Promise<{ provided: boolean; spec?: any; comment?: string }> {
     // Use ApprovalManager for connector spec approval (replaces state machine subscription)
-    const { approvalManager } = await import('../../state/ApprovalManager');
-
     return approvalManager.requestConnectorSpec(requestId, eventHandler);
 }
 

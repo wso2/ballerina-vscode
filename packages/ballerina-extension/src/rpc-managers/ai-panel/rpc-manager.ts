@@ -102,6 +102,17 @@ import { fetchData } from "./utils/fetch-data-utils";
 import { AICommandConfig } from "../../features/ai/executors/base/AICommandExecutor";
 import { createWebviewEventHandler } from "../../features/ai/utils/events";
 
+import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
+import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
+import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
+import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { AgentExecutor } from '../../features/ai/agent/AgentExecutor';
+import { createExecutionContextFromStateMachine } from '../../features/ai/agent/index';
+import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
+import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { chatStateManager } from '../../features/ai/state/ChatStateManager';
+
 /**
  * Factory function to create unified executor configuration
  * Eliminates repetitive config creation in RPC methods
@@ -684,8 +695,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
             });
 
-            // Import and execute
-            const { FunctionMappingExecutor } = await import('../../features/ai/executors/datamapper/FunctionMappingExecutor');
             await new FunctionMappingExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateMappingCode:', error);
@@ -701,8 +710,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
             });
 
-            // Import and execute
-            const { InlineMappingExecutor } = await import('../../features/ai/executors/datamapper/InlineMappingExecutor');
             await new InlineMappingExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
@@ -718,8 +725,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
             });
 
-            // Import and execute
-            const { ContextTypesExecutor } = await import('../../features/ai/executors/datamapper/ContextTypesExecutor');
             await new ContextTypesExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateContextTypes:', error);
@@ -749,7 +754,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             // Check for pending review to reuse temp project path
-            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
             const workspaceId = StateMachine.context().projectPath;
             const threadId = params.threadId || 'default';
             const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
@@ -762,8 +766,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 existingTempPath: pendingReview?.reviewState.tempProjectPath
             });
 
-            // Import and execute AgentExecutor
-            const { AgentExecutor } = await import('../../features/ai/agent/AgentExecutor');
             await new AgentExecutor(config).run();
 
             return true;
@@ -797,10 +799,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async acceptChanges(): Promise<void> {
         try {
-            // Import chatStateStorage
-            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
-            const { createExecutionContextFromStateMachine } = await import('../../features/ai/agent/index');
-
             // Get workspace ID and thread ID
             const ctx = createExecutionContextFromStateMachine();
             const workspaceId = ctx.projectPath;
@@ -818,7 +816,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Integrate code to workspace if there are modified files
             if (latestReview.reviewState.modifiedFiles.length > 0) {
-                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
                 const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
                 await integrateCodeToWorkspace(
                     latestReview.reviewState.tempProjectPath!,
@@ -829,7 +826,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             }
 
             // Cleanup temp project
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
             if (!process.env.AI_TEST_ENV) {
                 cleanupTempProject(latestReview.reviewState.tempProjectPath!);
             }
@@ -848,10 +844,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async declineChanges(): Promise<void> {
         try {
-            // Import chatStateStorage
-            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
-            const { createExecutionContextFromStateMachine } = await import('../../features/ai/agent/index');
-
             // Get workspace ID and thread ID
             const ctx = createExecutionContextFromStateMachine();
             const workspaceId = ctx.projectPath;
@@ -868,7 +860,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.log(`[Review Actions] Declining generation ${latestReview.id}`);
 
             // Cleanup temp project immediately (without integrating changes)
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
             if (!process.env.AI_TEST_ENV) {
                 cleanupTempProject(latestReview.reviewState.tempProjectPath!);
             }
@@ -894,32 +885,26 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async approvePlan(params: { requestId: string; comment?: string }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolvePlanApproval(params.requestId, true, params.comment);
     }
 
     async declinePlan(params: { requestId: string; comment?: string }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolvePlanApproval(params.requestId, false, params.comment);
     }
 
     async approveTask(params: { requestId: string; approvedTaskDescription?: string }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolveTaskApproval(params.requestId, true, undefined, params.approvedTaskDescription);
     }
 
     async declineTask(params: { requestId: string; comment?: string }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolveTaskApproval(params.requestId, false, params.comment);
     }
 
     async provideConnectorSpec(params: { requestId: string; spec: any }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolveConnectorSpec(params.requestId, true, params.spec);
     }
 
     async cancelConnectorSpec(params: { requestId: string; comment?: string }): Promise<void> {
-        const { approvalManager } = await import('../../features/ai/state/ApprovalManager');
         approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
     }
 
@@ -928,7 +913,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
-        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
         const projectId = await this.getProjectUuid();
         const context = chatStateManager.loadState(projectId);
 
@@ -947,14 +931,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async clearChat(): Promise<void> {
-        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
         const projectId = await this.getProjectUuid();
         chatStateManager.clearState(projectId);
         runtimeStateManager.clearState();
     }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
-        const { chatStateManager } = await import('../../features/ai/state/ChatStateManager');
         const projectId = await this.getProjectUuid();
         const context = chatStateManager.loadState(projectId);
 
