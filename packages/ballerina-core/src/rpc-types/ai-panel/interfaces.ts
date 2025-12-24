@@ -400,7 +400,7 @@ export interface GenerateAgentCodeRequest {
     usecase: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
-    chatHistory: any[];
+    threadId?: string;  // Optional thread ID (defaults to "default")
     messageId: string;
     isPlanMode: boolean;
     codeContext?: CodeContext;

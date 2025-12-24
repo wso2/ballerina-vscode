@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../base/AICommandExecutor';
+import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../base/AICommandExecutor';
 import { Command, MetadataWithAttachments } from '@wso2/ballerina-core';
 import { generateInlineMappingCodeCore } from '../../data-mapper/orchestrator';
 
@@ -27,30 +27,29 @@ import { generateInlineMappingCodeCore } from '../../data-mapper/orchestrator';
  * - Generates inline mapping expression (no function wrapper)
  * - Used for variable assignments
  * - AI-powered with repair
+ * - Immediate cleanup (no review mode)
  */
-export class InlineMappingExecutor extends AICommandExecutor {
-    private params: MetadataWithAttachments;
-
-    constructor(config: AIExecutionConfig, params: MetadataWithAttachments) {
+export class InlineMappingExecutor extends AICommandExecutor<MetadataWithAttachments> {
+    constructor(config: AICommandConfig<MetadataWithAttachments>) {
         super(config);
-        this.params = params;
     }
 
     /**
      * Execute inline mapping generation
      *
      * Flow:
-     * 1. Create temp project (inherited from base)
+     * 1. Temp project created by base class
      * 2. Call existing generateInlineMappingCodeCore with event handler
      * 3. Return modified files
+     * 4. Base class handles immediate cleanup
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.config.executionContext.tempProjectPath!;
+        const tempProjectPath = this.tempProjectPath!;
 
         try {
-            // Call existing core function
+            // Call existing core function with params from config
             const result = await generateInlineMappingCodeCore(
-                this.params,
+                this.config.params,
                 this.config.eventHandler,
                 this.config.messageId
             );
@@ -61,7 +60,7 @@ export class InlineMappingExecutor extends AICommandExecutor {
                 sourceFiles: result.sourceFiles,
             };
         } catch (error) {
-            this.handleError(error);
+            // Error handling done by base class in run()
             return {
                 tempProjectPath,
                 modifiedFiles: [],

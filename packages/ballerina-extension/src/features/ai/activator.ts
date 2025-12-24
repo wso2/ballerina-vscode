@@ -33,11 +33,30 @@ import {
     TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
-import { AIMachineEventType } from '@wso2/ballerina-core';
+import { AIMachineEventType, GenerateAgentCodeRequest, ExecutionContext } from '@wso2/ballerina-core';
 import { generateMappingCodeCore } from './data-mapper';
-import { generateAgentForTest, GenerateAgentForTestParams } from './agent/index-for-test';
 import { resolveProjectPath } from '../../utils/project-utils';
 import { MESSAGES } from '../project';
+import { AICommandConfig } from './executors/base/AICommandExecutor';
+import { AgentExecutor } from './agent/AgentExecutor';
+
+/**
+ * Parameters for test-mode code generation
+ */
+export interface GenerateAgentForTestParams extends GenerateAgentCodeRequest {
+    /** Path to the isolated test project (created by eval from template) */
+    projectPath: string;
+}
+
+/**
+ * Result returned from test-mode code generation
+ */
+export interface GenerateAgentForTestResult {
+    /** Path to the temp project where code was generated (created by getTempProject) */
+    tempProjectPath: string;
+    /** Path to the isolated test project (source) */
+    isolatedProjectPath: string;
+}
 
 export let langClient: ExtendedLangClient;
 
@@ -49,8 +68,42 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
 
     // Register commands in test environment to test the AI features
     if (process.env.AI_TEST_ENV) {
-        commands.registerCommand('ballerina.test.ai.generateAgentForTest', async (params: GenerateAgentForTestParams, testEventHandler: CopilotEventHandler) => {
-            return await generateAgentForTest(params, testEventHandler);
+        commands.registerCommand('ballerina.test.ai.generateAgentForTest', async (params: GenerateAgentForTestParams, testEventHandler: CopilotEventHandler): Promise<GenerateAgentForTestResult> => {
+
+            try {
+                // Create isolated ExecutionContext for this test
+                const ctx: ExecutionContext = {
+                    projectPath: params.projectPath,
+                    workspacePath: params.projectPath
+                };
+
+                // Create config using new AICommandConfig pattern
+                const config: AICommandConfig<GenerateAgentCodeRequest> = {
+                    executionContext: ctx,
+                    eventHandler: testEventHandler,
+                    messageId: params.messageId || `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                    abortController: new AbortController(),
+                    params,
+                    // No chat storage in test mode
+                    chatStorage: undefined,
+                    // Immediate cleanup (AI_TEST_ENV prevents actual deletion)
+                    lifecycle: {
+                        cleanupStrategy: 'immediate'
+                    }
+                };
+
+                // Execute using new run() method
+                const executor = new AgentExecutor(config);
+                const result = await executor.run();
+
+                return {
+                    tempProjectPath: result.tempProjectPath,
+                    isolatedProjectPath: params.projectPath
+                };
+            } catch (error) {
+                console.error(`[Test Mode] Generation failed for project ${params.projectPath}:`, error);
+                throw error;
+            }
         });
 
         commands.registerCommand('ballerina.test.ai.generatemappingCodecore', async (params: ProcessMappingParametersRequest, testEventHandler: CopilotEventHandler) => {

@@ -16,92 +16,408 @@
  * under the License.
  */
 
-import { AIChatMachineContext, Checkpoint, Plan, ChatMessage } from '@wso2/ballerina-core/lib/state-machine-types';
+import {
+    WorkspaceChatState,
+    ChatThread,
+    Generation,
+    GenerationMetadata,
+    GenerationReviewState,
+} from '@wso2/ballerina-core/lib/state-machine-types';
+import * as crypto from 'crypto';
 
 /**
- * Session-only storage for ChatState
- * Data is stored in memory and cleared when VSCode window closes
+ * Thread-based ChatStateStorage
+ *
+ * Single source of truth for all copilot chat state.
+ * Stores workspace -> threads -> generations hierarchy.
+ * Session-only storage (cleared when VSCode closes).
  */
+class ChatStateStorage {
+    // In-memory storage: workspaceId -> WorkspaceChatState
+    private storage: Map<string, WorkspaceChatState> = new Map();
 
-export interface StoredChatState {
-    chatHistory: ChatMessage[];
-    currentPlan?: Plan;
-    currentTaskIndex: number;
-    sessionId?: string;
-    projectId: string;
-    checkpoints: Checkpoint[];
-    savedAt: number;
-}
-
-class ChatStateSessionStorage {
-    // In-memory storage map: projectId -> ChatState
-    private storage: Map<string, StoredChatState> = new Map();
+    // ============================================
+    // Workspace Management
+    // ============================================
 
     /**
-     * Save chat state for a project
+     * Initialize workspace state (creates default thread if needed)
+     * @param workspaceId Workspace identifier
+     * @returns Workspace state
      */
-    save(projectId: string, context: AIChatMachineContext): void {
-        const stateToSave: StoredChatState = {
-            chatHistory: context.chatHistory,
-            currentPlan: context.currentPlan,
-            currentTaskIndex: context.currentTaskIndex,
-            sessionId: context.sessionId,
-            projectId: context.projectId || projectId,
-            checkpoints: context.checkpoints || [],
-            savedAt: Date.now(),
-        };
+    initializeWorkspace(workspaceId: string): WorkspaceChatState {
+        let workspaceState = this.storage.get(workspaceId);
 
-        this.storage.set(projectId, stateToSave);
+        if (!workspaceState) {
+            // Create default thread
+            const defaultThread: ChatThread = {
+                id: 'default',
+                name: 'Default Thread',
+                generations: [],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            };
+
+            workspaceState = {
+                workspaceId,
+                threads: new Map([[defaultThread.id, defaultThread]]),
+                activeThreadId: defaultThread.id,
+            };
+
+            this.storage.set(workspaceId, workspaceState);
+            console.log(`[ChatStateStorage] Initialized workspace: ${workspaceId} with default thread`);
+        }
+
+        return workspaceState;
     }
 
     /**
-     * Load chat state for a project
+     * Get workspace state
+     * @param workspaceId Workspace identifier
+     * @returns Workspace state or undefined
      */
-    load(projectId: string): StoredChatState | undefined {
-        return this.storage.get(projectId);
+    getWorkspaceState(workspaceId: string): WorkspaceChatState | undefined {
+        return this.storage.get(workspaceId);
     }
 
     /**
-     * Clear state for a specific project
+     * Clear workspace state
+     * @param workspaceId Workspace identifier
      */
-    clear(projectId: string): void {
-        this.storage.delete(projectId);
+    clearWorkspace(workspaceId: string): void {
+        this.storage.delete(workspaceId);
+        console.log(`[ChatStateStorage] Cleared workspace: ${workspaceId}`);
     }
 
     /**
-     * Clear all stored states
+     * Clear all workspace states
      */
     clearAll(): void {
         this.storage.clear();
+        console.log('[ChatStateStorage] Cleared all workspaces');
+    }
+
+    // ============================================
+    // Thread Management (Minimal)
+    // ============================================
+
+    /**
+     * Get or create a thread by ID
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Thread
+     */
+    getOrCreateThread(workspaceId: string, threadId: string): ChatThread {
+        const workspace = this.initializeWorkspace(workspaceId);
+        let thread = workspace.threads.get(threadId);
+
+        if (!thread) {
+            thread = {
+                id: threadId,
+                name: threadId === 'default' ? 'Default Thread' : `Thread ${threadId}`,
+                generations: [],
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+            };
+            workspace.threads.set(threadId, thread);
+            workspace.activeThreadId = threadId;
+            console.log(`[ChatStateStorage] Created thread: ${threadId} in workspace: ${workspaceId}`);
+        }
+
+        return thread;
     }
 
     /**
-     * Get all project IDs with saved states
+     * Get active thread
+     * @param workspaceId Workspace identifier
+     * @returns Active thread or undefined
      */
-    getAllProjectIds(): string[] {
-        return Array.from(this.storage.keys());
+    getActiveThread(workspaceId: string): ChatThread | undefined {
+        const workspace = this.storage.get(workspaceId);
+        if (!workspace) {
+            return undefined;
+        }
+        return workspace.threads.get(workspace.activeThreadId);
+    }
+
+    // ============================================
+    // Generation Management
+    // ============================================
+
+    /**
+     * Add a new generation to a thread
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param userPrompt User's prompt
+     * @param metadata Generation metadata
+     * @param id Optional generation ID (if not provided, generates new one)
+     * @returns Created generation
+     */
+    addGeneration(
+        workspaceId: string,
+        threadId: string,
+        userPrompt: string,
+        metadata: Partial<GenerationMetadata>,
+        id?: string
+    ): Generation {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+
+        const generation: Generation = {
+            id: id || this.generateId(),
+            userPrompt,
+            modelMessages: [],
+            uiResponse: '',
+            timestamp: Date.now(),
+            reviewState: {
+                status: 'pending',
+                modifiedFiles: [],
+            },
+            currentTaskIndex: -1,
+            metadata: {
+                isPlanMode: metadata.isPlanMode || false,
+                operationType: metadata.operationType,
+                generationType: metadata.generationType || 'agent',
+                commandType: metadata.commandType,
+            },
+        };
+
+        thread.generations.push(generation);
+        thread.updatedAt = Date.now();
+
+        console.log(`[ChatStateStorage] Added generation: ${generation.id} to thread: ${threadId}`);
+        return generation;
     }
 
     /**
-     * Get memory usage statistics
+     * Update a generation
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     * @param updates Partial updates to generation
      */
-    getStats(): { projectCount: number; totalCheckpoints: number; estimatedSizeMB: number } {
-        let totalCheckpoints = 0;
+    updateGeneration(
+        workspaceId: string,
+        threadId: string,
+        generationId: string,
+        updates: Partial<Generation>
+    ): void {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const generation = thread.generations.find(g => g.id === generationId);
+
+        if (!generation) {
+            console.error(`[ChatStateStorage] Generation not found: ${generationId}`);
+            return;
+        }
+
+        // Apply updates
+        Object.assign(generation, updates);
+        thread.updatedAt = Date.now();
+
+        console.log(`[ChatStateStorage] Updated generation: ${generationId}`);
+    }
+
+    /**
+     * Get a specific generation
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     * @returns Generation or undefined
+     */
+    getGeneration(
+        workspaceId: string,
+        threadId: string,
+        generationId: string
+    ): Generation | undefined {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        return thread.generations.find(g => g.id === generationId);
+    }
+
+    /**
+     * Get all generations for a thread
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Array of generations
+     */
+    getGenerations(workspaceId: string, threadId: string): Generation[] {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        return thread.generations;
+    }
+
+    // ============================================
+    // Chat History (for LLM)
+    // ============================================
+
+    /**
+     * Get chat history for LLM (model messages only)
+     * Includes ALL generations (pending, under_review, accepted)
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Array of model messages for LLM context
+     */
+    getChatHistoryForLLM(workspaceId: string, threadId: string): any[] {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const messages: any[] = [];
+
+        for (const generation of thread.generations) {
+            if (generation.modelMessages && generation.modelMessages.length > 0) {
+                messages.push(...generation.modelMessages);
+            }
+        }
+
+        console.log(`[ChatStateStorage] Retrieved ${messages.length} model messages for thread: ${threadId}`);
+        return messages;
+    }
+
+    // ============================================
+    // Review State Management
+    // ============================================
+
+    /**
+     * Get pending review generation (latest with 'under_review' status)
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Generation or undefined
+     */
+    getPendingReviewGeneration(
+        workspaceId: string,
+        threadId: string
+    ): Generation | undefined {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+
+        // Find the LATEST generation with 'under_review' status
+        // Iterate in reverse to get the most recent one
+        for (let i = thread.generations.length - 1; i >= 0; i--) {
+            const generation = thread.generations[i];
+            if (generation.reviewState.status === 'under_review') {
+                console.log(`[ChatStateStorage] Found pending review generation: ${generation.id}`);
+                return generation;
+            }
+        }
+
+        console.log(`[ChatStateStorage] No pending review generation in thread: ${threadId}`);
+        return undefined;
+    }
+
+    /**
+     * Update review state for a generation
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     * @param state Review state updates
+     */
+    updateReviewState(
+        workspaceId: string,
+        threadId: string,
+        generationId: string,
+        state: Partial<GenerationReviewState>
+    ): void {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const generation = thread.generations.find(g => g.id === generationId);
+
+        if (!generation) {
+            console.error(`[ChatStateStorage] Generation not found for review update: ${generationId}`);
+            return;
+        }
+
+        Object.assign(generation.reviewState, state);
+        thread.updatedAt = Date.now();
+
+        console.log(`[ChatStateStorage] Updated review state for generation: ${generationId}, status: ${generation.reviewState.status}`);
+    }
+
+    /**
+     * Accept all reviews in a thread
+     * Marks ALL 'under_review' generations as 'accepted'
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     */
+    acceptAllReviews(workspaceId: string, threadId: string): void {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        let count = 0;
+
+        for (const generation of thread.generations) {
+            if (generation.reviewState.status === 'under_review') {
+                generation.reviewState.status = 'accepted';
+                count++;
+            }
+        }
+
+        thread.updatedAt = Date.now();
+        console.log(`[ChatStateStorage] Accepted ${count} review(s) in thread: ${threadId}`);
+    }
+
+    /**
+     * Decline all reviews in a thread
+     * Marks ALL 'under_review' generations as 'error'
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     */
+    declineAllReviews(workspaceId: string, threadId: string): void {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        let count = 0;
+
+        for (const generation of thread.generations) {
+            if (generation.reviewState.status === 'under_review') {
+                generation.reviewState.status = 'error';
+                generation.reviewState.errorMessage = 'Declined by user';
+                count++;
+            }
+        }
+
+        thread.updatedAt = Date.now();
+        console.log(`[ChatStateStorage] Declined ${count} review(s) in thread: ${threadId}`);
+    }
+
+    // ============================================
+    // Utilities
+    // ============================================
+
+    /**
+     * Generate a unique ID
+     * @returns Unique string ID
+     */
+    private generateId(): string {
+        return `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+    }
+
+    /**
+     * Get storage statistics
+     */
+    getStats(): {
+        workspaceCount: number;
+        totalThreads: number;
+        totalGenerations: number;
+        estimatedSizeMB: number;
+    } {
+        let totalThreads = 0;
+        let totalGenerations = 0;
         let estimatedSize = 0;
 
-        for (const state of this.storage.values()) {
-            totalCheckpoints += state.checkpoints?.length || 0;
-            // Rough estimate of size
-            estimatedSize += JSON.stringify(state).length;
+        for (const workspace of this.storage.values()) {
+            totalThreads += workspace.threads.size;
+
+            for (const thread of workspace.threads.values()) {
+                totalGenerations += thread.generations.length;
+            }
+
+            // Rough estimate of size (serialize to JSON)
+            estimatedSize += JSON.stringify({
+                workspaceId: workspace.workspaceId,
+                threads: Array.from(workspace.threads.values()),
+            }).length;
         }
 
         return {
-            projectCount: this.storage.size,
-            totalCheckpoints,
+            workspaceCount: this.storage.size,
+            totalThreads,
+            totalGenerations,
             estimatedSizeMB: estimatedSize / (1024 * 1024)
         };
     }
 }
 
-// Singleton instance
-export const sessionStorage = new ChatStateSessionStorage();
+// Singleton export
+export const chatStateStorage = new ChatStateStorage();
+
+// Keep legacy export for backward compatibility during migration
+export const sessionStorage = chatStateStorage;

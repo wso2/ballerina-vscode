@@ -25,9 +25,10 @@ import * as path from 'path';
 import { sendAgentDidCloseBatch } from '../../utils/project/ls-schema-notifications';
 
 /**
- * Configuration required to execute an AI command
+ * Unified configuration for all AI command executors
+ * Consolidates execution config and command-specific parameters into single object
  */
-export interface AIExecutionConfig {
+export interface AICommandConfig<TParams = any> {
     /** Execution context with original workspace paths */
     executionContext: ExecutionContext;
     /** Event handler for communicating with frontend */
@@ -35,6 +36,33 @@ export interface AIExecutionConfig {
     /** Unique message ID for this execution */
     messageId: string;
     /** Abort controller for cancellation */
+    abortController: AbortController;
+    /** Command-specific parameters */
+    params: TParams;
+
+    /** Optional chat storage configuration */
+    chatStorage?: {
+        workspaceId: string;
+        threadId: string;
+        enabled: boolean;
+    };
+
+    /** Optional lifecycle configuration */
+    lifecycle?: {
+        /** Existing temp path to reuse (for review continuation) */
+        existingTempPath?: string;
+        /** Cleanup strategy: 'immediate' (DataMapper) or 'review' (Agent) */
+        cleanupStrategy: 'immediate' | 'review';
+    };
+}
+
+/**
+ * @deprecated Use AICommandConfig instead. This alias is kept for gradual migration.
+ */
+export interface AIExecutionConfig {
+    executionContext: ExecutionContext;
+    eventHandler: CopilotEventHandler;
+    messageId: string;
     abortController: AbortController;
 }
 
@@ -55,42 +83,116 @@ export interface AIExecutionResult {
 /**
  * Base executor class for all AI commands
  *
- * Provides common lifecycle management:
- * - initialize(): Creates temp project, sets ExecutionContext.tempProjectPath
- * - abstract execute(): Each command implements its own execution logic
- * - cleanup(): Sends didClose notifications and removes temp project
+ * Provides unified lifecycle management with template method pattern:
+ * - run(): Single method that handles full lifecycle (init, execute, cleanup)
+ * - Template stages: chat storage → temp project → execute → cleanup
+ * - Optional chat storage integration for multi-turn conversations
+ * - Configurable cleanup strategies (immediate vs review mode)
  */
-export abstract class AICommandExecutor {
-    protected config: AIExecutionConfig;
-    protected shouldCleanup: boolean;
-    protected startTime?: number;
-    protected endTime?: number;
+export abstract class AICommandExecutor<TParams = any> {
+    protected config: AICommandConfig<TParams>;
+    protected tempProjectPath?: string;
+    protected chatStorageRef?: any; // Dynamic import type
 
-    constructor(config: AIExecutionConfig) {
+    constructor(config: AICommandConfig<TParams>) {
         this.config = config;
-        // Don't cleanup in test environment (for debugging)
-        this.shouldCleanup = !process.env.AI_TEST_ENV;
     }
 
     /**
-     * Initialize execution by creating temp project
-     * Sets ExecutionContext.tempProjectPath for use in execute()
+     * Main execution method - handles full lifecycle with template pattern
+     *
+     * Stages:
+     * 1. Initialize chat storage (if enabled)
+     * 2. Initialize temp project (create or reuse)
+     * 3. Execute command logic (abstract method)
+     * 4. Perform cleanup (strategy-dependent)
+     *
+     * @returns Execution result with temp path and modified files
      */
-    async initialize(): Promise<void> {
+    async run(): Promise<AIExecutionResult> {
         try {
-            console.log(`[AICommandExecutor] Initializing for message ${this.config.messageId}`);
+            console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.messageId}`);
 
-            // Create temp project from workspace
-            const { path: tempProjectPath } = await getTempProject(this.config.executionContext);
+            // Stage 1: Chat storage initialization
+            await this.initializeChatStorage();
 
-            // Update execution context with temp project path
-            this.config.executionContext.tempProjectPath = tempProjectPath;
+            // Stage 2: Temp project initialization
+            await this.initializeTempProject();
 
-            console.log(`[AICommandExecutor] Temp project created at: ${tempProjectPath}`);
+            // Stage 3: Command execution
+            const result = await this.execute();
+
+            // Stage 4: Cleanup
+            await this.performCleanup(result);
+
+            console.log(`[AICommandExecutor] Completed ${this.getCommandType()} execution: ${this.config.messageId}`);
+            return result;
+
         } catch (error) {
-            console.error('[AICommandExecutor] Failed to initialize:', error);
+            await this.handleExecutionError(error);
             throw error;
         }
+    }
+
+    /**
+     * Stage 1: Initialize chat storage (if enabled)
+     * Sets up chat storage reference and initializes workspace/thread
+     */
+    protected async initializeChatStorage(): Promise<void> {
+        if (!this.config.chatStorage?.enabled) {
+            console.log(`[AICommandExecutor] Chat storage disabled, skipping initialization`);
+            return;
+        }
+
+        try {
+            // Dynamic import to avoid circular dependencies
+            const { chatStateStorage } = await import('../../../../views/ai-panel/chatStateStorage');
+            this.chatStorageRef = chatStateStorage;
+
+            const { workspaceId, threadId } = this.config.chatStorage;
+
+            // Initialize workspace and thread
+            chatStateStorage.getOrCreateThread(workspaceId, threadId);
+
+            console.log(`[AICommandExecutor] Chat storage initialized: workspace=${workspaceId}, thread=${threadId}`);
+        } catch (error) {
+            console.error('[AICommandExecutor] Failed to initialize chat storage:', error);
+            // Don't throw - chat storage is optional
+        }
+    }
+
+    /**
+     * Stage 2: Initialize temp project (create new or reuse existing)
+     * Sets tempProjectPath and updates execution context
+     */
+    protected async initializeTempProject(): Promise<void> {
+        const lifecycle = this.config.lifecycle;
+
+        // Check if we should reuse existing temp project
+        if (lifecycle?.existingTempPath) {
+            this.tempProjectPath = lifecycle.existingTempPath;
+            this.config.executionContext.tempProjectPath = lifecycle.existingTempPath;
+            console.log(`[AICommandExecutor] Reusing temp project: ${lifecycle.existingTempPath}`);
+            return;
+        }
+
+        // Create new temp project
+        try {
+            const { path: tempPath } = await getTempProject(this.config.executionContext);
+            this.tempProjectPath = tempPath;
+            this.config.executionContext.tempProjectPath = tempPath;
+            console.log(`[AICommandExecutor] Created temp project: ${tempPath}`);
+        } catch (error) {
+            console.error('[AICommandExecutor] Failed to create temp project:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * @deprecated Use run() instead. Kept for backward compatibility.
+     */
+    async initialize(): Promise<void> {
+        await this.initializeTempProject();
     }
 
     /**
@@ -108,59 +210,125 @@ export abstract class AICommandExecutor {
     protected abstract getCommandType(): Command;
 
     /**
-     * Cleanup execution by sending didClose notifications and removing temp project
+     * Stage 4: Perform cleanup based on strategy
      */
-    async cleanup(): Promise<void> {
-        // const tempProjectPath = this.config.executionContext.tempProjectPath;
+    protected async performCleanup(result: AIExecutionResult): Promise<void> {
+        const strategy = this.config.lifecycle?.cleanupStrategy || 'immediate';
 
-        // if (!tempProjectPath) {
-        //     console.warn('[AICommandExecutor] No temp project path found, skipping cleanup');
-        //     return;
-        // }
-
-        // if (!this.shouldCleanup) {
-        //     console.log(`[AICommandExecutor] Skipping cleanup (test environment), temp project preserved at: ${tempProjectPath}`);
-        //     return;
-        // }
-
-        // try {
-        //     console.log(`[AICommandExecutor] Cleaning up temp project: ${tempProjectPath}`);
-
-        //     // Find all .bal files in temp project for didClose notifications
-        //     const balFiles = this.findAllBalFiles(tempProjectPath);
-
-        //     if (balFiles.length > 0) {
-        //         console.log(`[AICommandExecutor] Sending didClose for ${balFiles.length} files`);
-        //         sendAgentDidCloseBatch(tempProjectPath, balFiles);
-
-        //         // Small delay to ensure LS processes didClose
-        //         await new Promise(resolve => setTimeout(resolve, 300));
-        //     }
-
-        //     // Remove temp project directory
-        //     cleanupTempProject(tempProjectPath);
-
-        //     console.log(`[AICommandExecutor] Cleanup completed`);
-        // } catch (error) {
-        //     console.error('[AICommandExecutor] Failed to cleanup:', error);
-        //     // Don't throw - cleanup failure shouldn't break the flow
-        // }
+        if (strategy === 'immediate') {
+            await this.cleanupImmediate();
+        } else if (strategy === 'review') {
+            await this.cleanupForReview(result);
+        }
     }
 
     /**
-     * Handle errors during execution
-     * Emits error event to frontend
-     *
-     * @param error - Error that occurred
+     * Immediate cleanup - removes temp project right away
+     * Used by DataMapper executors
      */
-    protected handleError(error: any): void {
-        const errorMsg = getErrorMessage(error);
-        console.error(`[AICommandExecutor] Error: ${errorMsg}`, error);
+    protected async cleanupImmediate(): Promise<void> {
+        if (!this.tempProjectPath) {
+            console.log(`[AICommandExecutor] No temp project to cleanup`);
+            return;
+        }
 
+        // Skip in test environment
+        if (process.env.AI_TEST_ENV) {
+            console.log(`[AICommandExecutor] Skipping cleanup (test mode): ${this.tempProjectPath}`);
+            return;
+        }
+
+        try {
+            console.log(`[AICommandExecutor] Immediate cleanup: ${this.tempProjectPath}`);
+
+            // Send didClose notifications for .bal files
+            const balFiles = this.findAllBalFiles(this.tempProjectPath);
+            if (balFiles.length > 0) {
+                sendAgentDidCloseBatch(this.tempProjectPath, balFiles);
+                await new Promise(resolve => setTimeout(resolve, 300)); // Let LS process
+            }
+
+            // Remove temp project
+            cleanupTempProject(this.tempProjectPath);
+            console.log(`[AICommandExecutor] Cleanup completed`);
+        } catch (error) {
+            console.error('[AICommandExecutor] Cleanup failed:', error);
+            // Don't throw - cleanup failure shouldn't break flow
+        }
+    }
+
+    /**
+     * Review mode cleanup - persists temp project for user review
+     * Used by AgentExecutor. Subclasses can override for custom behavior.
+     */
+    protected async cleanupForReview(result: AIExecutionResult): Promise<void> {
+        console.log(`[AICommandExecutor] Review mode - temp project persisted: ${this.tempProjectPath}`);
+        // No immediate cleanup - temp persists for review
+        // Actual cleanup happens when user accepts/declines via RPC
+    }
+
+    /**
+     * @deprecated Use run() instead. Kept for backward compatibility.
+     */
+    async cleanup(): Promise<void> {
+        // No-op - cleanup is now handled by performCleanup() in run()
+    }
+
+    /**
+     * Handle execution errors
+     * Emits error event and attempts cleanup
+     */
+    protected async handleExecutionError(error: any): Promise<void> {
+        const errorMsg = getErrorMessage(error);
+        console.error(`[AICommandExecutor] Error in ${this.getCommandType()}:`, errorMsg, error);
+
+        // Emit error event to frontend
         this.config.eventHandler({
             type: "error",
             content: errorMsg
         });
+
+        // Attempt cleanup on error
+        if (this.tempProjectPath && !process.env.AI_TEST_ENV) {
+            try {
+                cleanupTempProject(this.tempProjectPath);
+            } catch (cleanupError) {
+                console.warn(`[AICommandExecutor] Failed to cleanup after error:`, cleanupError);
+            }
+        }
+    }
+
+    /**
+     * Get chat history from storage (helper for executors)
+     * @returns Array of chat messages, or empty array if storage disabled
+     */
+    protected getChatHistory(): any[] {
+        if (!this.chatStorageRef || !this.config.chatStorage?.enabled) {
+            return [];
+        }
+
+        const { workspaceId, threadId } = this.config.chatStorage;
+        return this.chatStorageRef.getChatHistoryForLLM(workspaceId, threadId);
+    }
+
+    /**
+     * Add generation to chat storage (helper for executors)
+     * @param userPrompt - User's prompt/request
+     * @param metadata - Generation metadata (operation type, etc.)
+     */
+    protected addGeneration(userPrompt: string, metadata: any): any {
+        if (!this.chatStorageRef || !this.config.chatStorage?.enabled) {
+            return;
+        }
+
+        const { workspaceId, threadId } = this.config.chatStorage;
+        return this.chatStorageRef.addGeneration(
+            workspaceId,
+            threadId,
+            userPrompt,
+            metadata,
+            this.config.messageId
+        );
     }
 
     /**

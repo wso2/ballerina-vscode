@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType } from '@wso2/ballerina-core';
+import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
+import { Command, GenerateAgentCodeRequest, ProjectSource } from '@wso2/ballerina-core';
 import { ModelMessage, stepCountIs, streamText } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent } from '../utils/ai-utils';
@@ -34,17 +34,15 @@ import { StreamErrorException, StreamAbortException, StreamFinishException } fro
  * AgentExecutor - Executes agent-based code generation with tools and streaming
  *
  * Features:
- * - Multi-turn conversation with LLM
+ * - Multi-turn conversation with LLM using chat storage
+ * - Review mode (temp project persists until user accepts/declines)
  * - Tool execution (TaskWrite, FileEdit, Diagnostics, etc.)
  * - Stream event processing
  * - Plan approval workflow (via ApprovalManager in TaskWrite tool)
  */
-export class AgentExecutor extends AICommandExecutor {
-    private params: GenerateAgentCodeRequest;
-
-    constructor(config: AIExecutionConfig, params: GenerateAgentCodeRequest) {
+export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
+    constructor(config: AICommandConfig<GenerateAgentCodeRequest>) {
         super(config);
-        this.params = params;
     }
 
     /**
@@ -52,36 +50,54 @@ export class AgentExecutor extends AICommandExecutor {
      *
      * Flow:
      * 1. Get project sources from temp directory
-     * 2. Send didOpen notifications to Language Server
-     * 3. Build LLM messages (system + history + user)
-     * 4. Create tools (TaskWrite, FileEdit, Diagnostics, etc.)
-     * 5. Stream LLM response and process events
-     * 6. Return modified files
+     * 2. Send didOpen notifications (skip if reusing temp)
+     * 3. Add generation to chat storage (if enabled)
+     * 4. Get chat history from storage (if enabled)
+     * 5. Build LLM messages (system + history + user)
+     * 6. Create tools (TaskWrite, FileEdit, Diagnostics, etc.)
+     * 7. Stream LLM response and process events
+     * 8. Return modified files
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.config.executionContext.tempProjectPath!;
+        const tempProjectPath = this.tempProjectPath!;
         const projectPath = this.config.executionContext.projectPath;
+        const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
 
         try {
-            // Get project sources from temp directory
+            // 1. Get project sources from temp directory
             const projects: ProjectSource[] = await getProjectSource(
-                this.params.operationType,
+                params.operationType,
                 this.config.executionContext
             );
 
-            // Send didOpen for all initial project files
-            sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+            // 2. Send didOpen only if creating NEW temp (not reusing for review continuation)
+            if (!this.config.lifecycle?.existingTempPath) {
+                sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+            } else {
+                console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
+            }
 
-            // Build messages
-            const historyMessages = populateHistoryForAgent(this.params.chatHistory);
+            // 3. Add generation to chat storage (if enabled)
+            this.addGeneration(params.usecase, {
+                isPlanMode: params.isPlanMode,
+                operationType: params.operationType,
+                generationType: 'agent',
+            });
+
+            // 4. Get chat history from storage (if enabled)
+            const chatHistory = this.getChatHistory();
+            console.log(`[AgentExecutor] Using ${chatHistory.length} chat history messages`);
+
+            // 5. Build LLM messages with history
+            const historyMessages = populateHistoryForAgent(chatHistory);
             const cacheOptions = await getProviderCacheControl();
-            const userMessageContent = getUserPrompt(this.params, tempProjectPath, projects);
+            const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
 
             const allMessages: ModelMessage[] = [
                 {
                     role: "system",
-                    content: getSystemPrompt(projects, this.params.operationType),
+                    content: getSystemPrompt(projects, params.operationType),
                     providerOptions: cacheOptions,
                 },
                 ...historyMessages,
@@ -128,7 +144,7 @@ export class AgentExecutor extends AICommandExecutor {
                 modifiedFiles,
                 tempProjectPath,
                 projects,
-                shouldCleanup: this.shouldCleanup,
+                shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.messageId,
                 userMessageContent,
                 response,
@@ -162,7 +178,8 @@ export class AgentExecutor extends AICommandExecutor {
                 modifiedFiles,
             };
         } catch (error) {
-            this.handleError(error);
+            // Error handling is done by base class in run()
+            // Just return result with error
             return {
                 tempProjectPath,
                 modifiedFiles,

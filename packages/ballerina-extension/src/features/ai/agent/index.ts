@@ -14,35 +14,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, ExecutionContext} from "@wso2/ballerina-core";
-import { ModelMessage, stepCountIs, streamText } from "ai";
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
-import { getErrorMessage, populateHistoryForAgent } from "../utils/ai-utils";
-import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
-import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "./tools/diagnostics";
-import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
-import { sendAgentDidOpenForProjects } from "../utils/project/ls-schema-notifications";
-import { getLibraryProviderTool } from "./tools/library-provider";
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
-import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "./tools/healthcare-library";
-import { getTempProject as createTempProjectOfWorkspace } from "../utils/project/temp-project";
-import { getSystemPrompt, getUserPrompt } from "./prompts";
-import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
-import { getProjectSource } from "../utils/project/temp-project";
+/**
+ * @deprecated This file is deprecated. All agent functionality has been moved to AgentExecutor.
+ *
+ * - For production use: Import AgentExecutor from './AgentExecutor' and use it via RPC manager
+ * - For tests: Import from './index-for-test'
+ *
+ * This file is kept only for the factory functions used by tests.
+ */
+
+import { ExecutionContext } from "@wso2/ballerina-core";
 import { StateMachine } from "../../../stateMachine";
-import { createAgentEventRegistry } from "./stream-handlers/create-agent-event-registry";
-import { StreamContext } from "./stream-handlers/stream-context";
-import { StreamErrorException, StreamAbortException, StreamFinishException } from "./stream-handlers/stream-event-handler";
 
 // ==================================
 // ExecutionContext Factory Functions
+// (Kept for test compatibility)
 // ==================================
 
 /**
  * Creates an ExecutionContext from StateMachine's current state.
- * Used by production RPC handlers to create context from current UI state.
+ * Used by tests to create context from current UI state.
  *
  * @returns ExecutionContext with paths from StateMachine
  */
@@ -67,112 +58,4 @@ export function createExecutionContext(
     workspacePath?: string
 ): ExecutionContext {
     return { projectPath, workspacePath };
-}
-
-export async function generateAgentCore(
-    params: GenerateAgentCodeRequest,
-    eventHandler: CopilotEventHandler,
-    ctx: ExecutionContext
-): Promise<string> {
-    const messageId = params.messageId;
-
-    const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
-    const shouldCleanup = !process.env.AI_TEST_ENV;
-    const projectPath = ctx.projectPath;
-
-    const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
-    // Send didOpen for all initial project files
-    sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
-
-    const historyMessages = populateHistoryForAgent(params.chatHistory);
-
-    const cacheOptions = await getProviderCacheControl();
-
-    const modifiedFiles: string[] = [];
-
-    const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
-    const allMessages: ModelMessage[] = [
-        {
-            role: "system",
-            content: getSystemPrompt(projects, params.operationType),
-            providerOptions: cacheOptions,
-        },
-        ...historyMessages,
-        {
-            role: "user",
-            content: userMessageContent,
-        },
-    ];
-
-    const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    const libraryDescriptions = allLibraries.length > 0
-        ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
-        : "- No libraries available";
-
-    const tools = {
-        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
-        [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION, eventHandler),
-        [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions, eventHandler),
-        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(eventHandler, tempProjectPath)),
-        [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
-    };
-
-    const { fullStream, response } = streamText({
-        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxOutputTokens: 8192,
-        temperature: 0,
-        messages: allMessages,
-        stopWhen: stepCountIs(50),
-        tools,
-        abortSignal: AIPanelAbortController.getInstance().signal,
-    });
-
-    eventHandler({ type: "start" });
-
-    // Create stream context for handlers
-    const streamContext: StreamContext = {
-        eventHandler,
-        modifiedFiles,
-        tempProjectPath,
-        projects,
-        shouldCleanup,
-        messageId,
-        userMessageContent,
-        response,
-        ctx,
-    };
-
-    // Create event registry
-    const registry = createAgentEventRegistry();
-
-    try {
-        for await (const part of fullStream) {
-            await registry.handleEvent(part, streamContext);
-        }
-    } catch (e) {
-        //TODO: Refactor
-        if (e instanceof StreamErrorException ||
-            e instanceof StreamAbortException ||
-            e instanceof StreamFinishException) {
-            return e.tempProjectPath;
-        }
-        throw e;
-    }
-
-    return tempProjectPath;
-}
-
-export async function generateAgent(params: GenerateAgentCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler(Command.Agent);
-    try {
-        const ctx = createExecutionContextFromStateMachine();
-        await generateAgentCore(params, eventHandler, ctx);
-    } catch (error) {
-        console.error("Error during agent generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
-    }
 }

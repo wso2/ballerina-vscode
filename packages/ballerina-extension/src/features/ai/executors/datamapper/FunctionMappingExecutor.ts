@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../base/AICommandExecutor';
+import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../base/AICommandExecutor';
 import { Command, ProcessMappingParametersRequest } from '@wso2/ballerina-core';
 import { generateMappingCodeCore } from '../../data-mapper/orchestrator';
 
@@ -27,31 +27,29 @@ import { generateMappingCodeCore } from '../../data-mapper/orchestrator';
  * - Generates Ballerina function for data transformation
  * - Uses DM Model for input/output analysis
  * - AI-powered mapping generation with repair
- * - Integration with workspace
+ * - Immediate cleanup (no review mode)
  */
-export class FunctionMappingExecutor extends AICommandExecutor {
-    private params: ProcessMappingParametersRequest;
-
-    constructor(config: AIExecutionConfig, params: ProcessMappingParametersRequest) {
+export class FunctionMappingExecutor extends AICommandExecutor<ProcessMappingParametersRequest> {
+    constructor(config: AICommandConfig<ProcessMappingParametersRequest>) {
         super(config);
-        this.params = params;
     }
 
     /**
      * Execute function mapping generation
      *
      * Flow:
-     * 1. Create temp project (inherited from base)
+     * 1. Temp project created by base class
      * 2. Call existing generateMappingCodeCore with event handler
      * 3. Return modified files
+     * 4. Base class handles immediate cleanup
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.config.executionContext.tempProjectPath!;
+        const tempProjectPath = this.tempProjectPath!;
 
         try {
-            // Call existing core function
+            // Call existing core function with params from config
             const result = await generateMappingCodeCore(
-                this.params,
+                this.config.params,
                 this.config.eventHandler,
                 this.config.messageId
             );
@@ -62,7 +60,7 @@ export class FunctionMappingExecutor extends AICommandExecutor {
                 sourceFiles: result.sourceFiles,
             };
         } catch (error) {
-            this.handleError(error);
+            // Error handling done by base class in run()
             return {
                 tempProjectPath,
                 modifiedFiles: [],

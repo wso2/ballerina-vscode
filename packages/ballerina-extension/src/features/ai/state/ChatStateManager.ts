@@ -16,17 +16,17 @@
  * under the License.
  */
 
-import { sessionStorage, StoredChatState } from '../../../views/ai-panel/chatStateStorage';
+import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { Checkpoint, ChatMessage, AIChatMachineContext } from '@wso2/ballerina-core/lib/state-machine-types';
 import { captureWorkspaceSnapshot, restoreWorkspaceSnapshot } from '../../../views/ai-panel/checkpoint/checkpointUtils';
 import { getCheckpointConfig } from '../../../views/ai-panel/checkpoint/checkpointConfig';
 import { notifyCheckpointCaptured } from '../../../RPCLayer';
 
 /**
- * ChatStateManager - Global singleton for managing chat state and checkpoints
+ * @deprecated ChatStateManager is deprecated in favor of direct chatStateStorage usage
  *
- * Internally project-scoped using Map<projectId, state> for thread-safe parallel testing.
- * Wraps existing ChatStateSessionStorage and adds checkpoint management.
+ * This class provides backward compatibility for checkpoint management.
+ * New code should use chatStateStorage directly with the thread-based architecture.
  */
 export class ChatStateManager {
     private static instance: ChatStateManager;
@@ -43,54 +43,66 @@ export class ChatStateManager {
     }
 
     // ============================================
-    // Chat State Management
+    // Chat State Management (Compatibility Stubs)
     // ============================================
 
     /**
-     * Save chat state for a project
-     * @param projectId - Project identifier (typically hash of workspace path)
-     * @param context - AI chat machine context to save
+     * @deprecated Use chatStateStorage.getWorkspaceState() instead
      */
     saveState(projectId: string, context: AIChatMachineContext): void {
-        sessionStorage.save(projectId, context);
+        // No-op: State is now managed automatically by chatStateStorage
+        console.warn('[ChatStateManager] saveState is deprecated - state managed by chatStateStorage');
     }
 
     /**
-     * Load chat state for a project
-     * @param projectId - Project identifier
-     * @returns Stored chat state or undefined if not found
+     * @deprecated Use chatStateStorage.getWorkspaceState() instead
      */
-    loadState(projectId: string): StoredChatState | undefined {
-        return sessionStorage.load(projectId);
+    loadState(projectId: string): any {
+        // Return workspace state for compatibility
+        const workspace = chatStateStorage.getWorkspaceState(projectId);
+        if (!workspace) {
+            return undefined;
+        }
+
+        // Return a compatible structure
+        return {
+            chatHistory: [],
+            checkpoints: [],
+        };
     }
 
     /**
-     * Clear chat state for a specific project
-     * @param projectId - Project identifier
+     * @deprecated Use chatStateStorage.clearWorkspace() instead
      */
     clearState(projectId: string): void {
-        sessionStorage.clear(projectId);
+        chatStateStorage.clearWorkspace(projectId);
     }
 
     /**
-     * Clear all chat states across all projects
+     * @deprecated Use chatStateStorage.clearAll() instead
      */
     clearAllStates(): void {
-        sessionStorage.clearAll();
+        chatStateStorage.clearAll();
     }
 
     /**
-     * Get all project IDs with saved states
+     * @deprecated Not supported in new architecture
      */
     getAllProjectIds(): string[] {
-        return sessionStorage.getAllProjectIds();
+        console.warn('[ChatStateManager] getAllProjectIds is deprecated');
+        return [];
     }
 
     /**
      * Get memory usage statistics
      */
     getStats(): { projectCount: number; totalCheckpoints: number; estimatedSizeMB: number } {
-        return sessionStorage.getStats();
+        const stats = chatStateStorage.getStats();
+        return {
+            projectCount: stats.workspaceCount,
+            totalCheckpoints: 0, // Checkpoints not tracked separately anymore
+            estimatedSizeMB: stats.estimatedSizeMB
+        };
     }
 
     // ============================================

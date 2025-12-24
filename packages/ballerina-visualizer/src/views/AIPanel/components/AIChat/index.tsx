@@ -1203,7 +1203,7 @@ const AIChat: React.FC = () => {
 
         console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments, chatHistory: [], messageId
+            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments, messageId
         })
         // rpcClient.sendAIChatStateEvent({
         //     type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
