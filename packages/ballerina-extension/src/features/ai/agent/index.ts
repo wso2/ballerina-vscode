@@ -20,6 +20,7 @@ import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from 
 import { getErrorMessage, populateHistoryForAgent } from "../utils/ai-utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
 import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
+import * as fs from 'fs';
 import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from "../tools/task-writer";
 import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../tools/diagnostics";
 import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../tools/text-editor";
@@ -36,6 +37,7 @@ import { StateMachine } from "../../../stateMachine";
 import { createAgentEventRegistry } from "./stream-handlers/create-agent-event-registry";
 import { StreamContext } from "./stream-handlers/stream-context";
 import { StreamErrorException, StreamAbortException, StreamFinishException } from "./stream-handlers/stream-event-handler";
+import { getPendingReviewContext, clearPendingReviewContext } from "./stream-handlers/handlers/finish-handler";
 
 // ==================================
 // ExecutionContext Factory Functions
@@ -77,13 +79,42 @@ export async function generateAgentCore(
 ): Promise<string> {
     const messageId = params.messageId;
 
-    const tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
-    const shouldCleanup = !process.env.AI_TEST_ENV;
+    // Check if we're in review mode and reuse existing temp project
+    const pendingReview = getPendingReviewContext();
+    let tempProjectPath: string;
+    let shouldCleanup: boolean;
+    let isReusingTempProject = false;
+
+    if (pendingReview) {
+        // Validate that the temp project directory still exists
+        if (fs.existsSync(pendingReview.tempProjectPath)) {
+            // Reuse existing temp project from review mode
+            tempProjectPath = pendingReview.tempProjectPath;
+            shouldCleanup = pendingReview.shouldCleanup;
+            isReusingTempProject = true;
+            console.log(`[Agent] Reusing existing temp project from review mode: ${tempProjectPath}`);
+        } else {
+            // Temp project was deleted externally - clear stale context and create new
+            console.warn(`[Agent] Temp project no longer exists: ${pendingReview.tempProjectPath}. Creating new temp project.`);
+            clearPendingReviewContext();
+            tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
+            shouldCleanup = !process.env.AI_TEST_ENV;
+            console.log(`[Agent] Created new temp project after validation failure: ${tempProjectPath}`);
+        }
+    } else {
+        // Create new temp project from workspace
+        tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
+        shouldCleanup = !process.env.AI_TEST_ENV;
+        console.log(`[Agent] Created new temp project: ${tempProjectPath}`);
+    }
+
     const projectPath = ctx.projectPath;
 
     const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
-    // Send didOpen for all initial project files
-    sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+    // Send didOpen for all initial project files only if creating new temp (not reusing)
+    if (!isReusingTempProject) {
+        sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+    }
 
     const historyMessages = populateHistoryForAgent(params.chatHistory);
 
