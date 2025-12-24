@@ -87,6 +87,8 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
     public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
 
+    public static final String DESCRIPTION = "Executes the agent for a given user query.";
+
     static final Set<String> AGENT_PARAMS_TO_HIDE =
             Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL, Property.TYPE_KEY, Property.VARIABLE_KEY);
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
@@ -107,6 +109,7 @@ public class AgentCallBuilder extends CallBuilder {
     @Override
     public void setConcreteConstData() {
         codedata().node(NodeKind.AGENT_CALL);
+        metadata().description(DESCRIPTION);
     }
 
     @Override
