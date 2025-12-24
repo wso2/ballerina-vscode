@@ -35,7 +35,6 @@ import {
 import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
 import {  ClauseEditor } from "./ClauseEditor";
 import { DMFormProps, IntermediateClause, IntermediateClauseType, LinePosition } from "@wso2/ballerina-core";
-import { set } from "lodash";
 
 export interface ClauseItemProps {
     index: number;
