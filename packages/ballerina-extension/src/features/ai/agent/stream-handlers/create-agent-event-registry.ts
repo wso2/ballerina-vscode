@@ -33,7 +33,6 @@ export function createAgentEventRegistry(): StreamEventRegistry {
     // Register all handlers
     registry.register(new TextDeltaHandler());
     registry.register(new TextStartHandler());
-    // ToolCallHandler and ToolResultHandler removed - message accumulation moved to main stream loop
     registry.register(new ErrorHandler());
     registry.register(new AbortHandler());
     registry.register(new FinishHandler());

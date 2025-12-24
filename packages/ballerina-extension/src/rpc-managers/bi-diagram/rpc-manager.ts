@@ -123,9 +123,7 @@ import {
     SignatureHelpResponse,
     SourceEditResponse,
     TextEdit,
-    UpdateConfigVariableRequest,
     UpdateConfigVariableRequestV2,
-    UpdateConfigVariableResponse,
     UpdateConfigVariableResponseV2,
     UpdateImportsRequest,
     UpdateImportsResponse,
@@ -177,6 +175,7 @@ import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
+import { getCurrentBallerinaProject } from "../../utils/project-utils";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -927,30 +926,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
-    async getConfigVariables(): Promise<ConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const projectPath = StateMachine.context().projectPath;
-            const variables = await StateMachine.langClient().getConfigVariables({ projectPath: projectPath }) as ConfigVariableResponse;
-            resolve(variables);
-        });
-    }
-
-    async updateConfigVariables(params: UpdateConfigVariableRequest): Promise<UpdateConfigVariableResponse> {
-        return new Promise(async (resolve) => {
-            const req: UpdateConfigVariableRequest = params;
-
-            if (!fs.existsSync(params.configFilePath)) {
-
-                // Create config.bal if it doesn't exist
-                writeBallerinaFileDidOpen(params.configFilePath, "\n");
-            }
-
-            const response = await StateMachine.langClient().updateConfigVariables(req) as BISourceCodeResponse;
-            await updateSourceCode({ textEdits: response.textEdits, artifactData: { artifactType: DIRECTORY_MAP.CONFIGURABLE }, description: 'Config Variable Update' });
-            resolve(response);
-        });
-    }
-
     async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
         return new Promise(async (resolve) => {
             const projectPath = StateMachine.context().projectPath;
@@ -1016,10 +991,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     // Function to open Config.toml
     async openConfigToml(params: OpenConfigTomlRequest): Promise<void> {
         return new Promise(async (resolve) => {
-            const currentProject: BallerinaProject | undefined = await getCurrentBIProject(params.filePath);
+            console.log(">>> opening Config.toml at", params.filePath);
+            const currentProject: BallerinaProject | undefined = await getCurrentBallerinaProject(params.filePath);
 
-            const configFilePath = path.join(StateMachine.context().projectPath, "Config.toml");
-            const ignoreFile = path.join(StateMachine.context().projectPath, ".gitignore");
+            const configFilePath = path.join(params.filePath, "Config.toml");
+            const ignoreFile = path.join(params.filePath, ".gitignore");
             const docLink = "https://ballerina.io/learn/provide-values-to-configurable-variables/#provide-via-toml-syntax";
             const uri = Uri.file(configFilePath);
 
