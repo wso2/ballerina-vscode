@@ -23,6 +23,7 @@ import { integrateCodeToWorkspace } from '../utils';
 import { checkCompilationErrors } from './diagnostics-utils';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
 import { createExecutionContextFromStateMachine } from '..';
+import { approvalManager } from '../../state/ApprovalManager';
 
 export const TASK_WRITE_TOOL_NAME = "TaskWrite";
 
@@ -275,7 +276,6 @@ async function handlePlanApproval(
     runtimeStateManager.setCurrentPlan(plan);
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
-    const { approvalManager } = await import('../../state/ApprovalManager');
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     const approvalPromise = approvalManager.requestPlanApproval(
@@ -342,7 +342,6 @@ async function handleManualTaskApproval(
 
     // Use ApprovalManager for task approval (replaces state machine subscription)
     // requestTaskApproval will emit the task_approval_request event with requestId
-    const { approvalManager } = await import('../../state/ApprovalManager');
     const requestId = `task-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
     const approvalPromise = approvalManager.requestTaskApproval(

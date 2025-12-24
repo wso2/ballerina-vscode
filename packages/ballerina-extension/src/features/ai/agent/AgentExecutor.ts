@@ -18,17 +18,19 @@
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
 import { Command, GenerateAgentCodeRequest, ProjectSource } from '@wso2/ballerina-core';
-import { ModelMessage, stepCountIs, streamText } from 'ai';
+import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
-import { populateHistoryForAgent } from '../utils/ai-utils';
-import { sendAgentDidOpenForProjects } from '../utils/project/ls-schema-notifications';
+import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
+import { sendAgentDidOpenForProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
-import { getProjectSource } from '../utils/project/temp-project';
-import { createAgentEventRegistry } from './stream-handlers/create-agent-event-registry';
+import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
 import { StreamContext } from './stream-handlers/stream-context';
-import { StreamErrorException, StreamAbortException, StreamFinishException } from './stream-handlers/stream-event-handler';
+import { checkCompilationErrors } from './tools/diagnostics-utils';
+import { updateAndSaveChat } from '../utils/events';
+import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { runtimeStateManager } from '../state/RuntimeStateManager';
 
 /**
  * AgentExecutor - Executes agent-based code generation with tools and streaming
@@ -59,7 +61,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
      * 8. Return modified files
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.tempProjectPath!;
+        const tempProjectPath = this.config.executionContext.tempProjectPath!;
         const projectPath = this.config.executionContext.projectPath;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
@@ -142,7 +144,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const streamContext: StreamContext = {
                 eventHandler: this.config.eventHandler,
                 modifiedFiles,
-                tempProjectPath,
                 projects,
                 shouldCleanup: false, // Review mode - don't cleanup immediately
                 messageId: this.config.messageId,
@@ -151,26 +152,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 ctx: this.config.executionContext,
             };
 
-            // Create event registry
-            const registry = createAgentEventRegistry();
-
-            // Process stream events
-            try {
-                for await (const part of fullStream) {
-                    // Let registry handle all events
-                    // Message history is tracked automatically by SDK in response.messages
-                    await registry.handleEvent(part, streamContext);
-                }
-            } catch (e) {
-                // Handle stream exceptions (error, abort, finish)
-                if (e instanceof StreamErrorException ||
-                    e instanceof StreamAbortException ||
-                    e instanceof StreamFinishException) {
-                    // These are expected flow control exceptions
-                    console.log(`[AgentExecutor] Stream ended: ${e.constructor.name}`);
-                } else {
-                    throw e;
-                }
+            // Process stream events - NATIVE V6 PATTERN
+            for await (const part of fullStream) {
+                await this.handleStreamPart(part, streamContext);
             }
 
             return {
@@ -186,6 +170,115 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 error: error as Error,
             };
         }
+    }
+
+    /**
+     * Handles individual stream events from the AI SDK.
+     */
+    private async handleStreamPart(
+        part: TextStreamPart<any>,
+        context: StreamContext
+    ): Promise<void> {
+        switch (part.type) {
+            case "text-delta":
+                context.eventHandler({
+                    type: "content_block",
+                    content: part.text
+                });
+                break;
+
+            case "text-start":
+                context.eventHandler({
+                    type: "content_block",
+                    content: " \n"
+                });
+                break;
+
+            case "error":
+                const error = part.error instanceof Error ? part.error : new Error(String(part.error));
+                await this.handleStreamError(error, context);
+                throw error;
+
+            case "finish":
+                await this.handleStreamFinish(context);
+                break;
+
+            default:
+                // Tool calls/results handled automatically by SDK
+                break;
+        }
+    }
+
+    /**
+     * Handles stream errors with cleanup.
+     */
+    private async handleStreamError(error: Error, context: StreamContext): Promise<void> {
+        console.error("[Agent] Stream error:", error);
+
+        const tempProjectPath = context.ctx.tempProjectPath!;
+        if (context.shouldCleanup) {
+            sendAgentDidCloseForProjects(tempProjectPath, context.projects);
+            cleanupTempProject(tempProjectPath);
+        }
+
+        context.eventHandler({
+            type: "error",
+            content: getErrorMessage(error)
+        });
+    }
+
+    /**
+     * Handles stream completion - runs diagnostics and updates chat state.
+     */
+    private async handleStreamFinish(context: StreamContext): Promise<void> {
+        const finalResponse = await context.response;
+        const assistantMessages = finalResponse.messages || [];
+        const tempProjectPath = context.ctx.tempProjectPath!;
+
+        // Run final diagnostics
+        const finalDiagnostics = await checkCompilationErrors(tempProjectPath);
+        context.eventHandler({
+            type: "diagnostics",
+            diagnostics: finalDiagnostics.diagnostics
+        });
+
+        // Update chat state storage
+        await this.updateChatState(context, assistantMessages, tempProjectPath);
+
+        // Emit UI events
+        await this.emitReviewActions(context);
+    }
+
+    /**
+     * Updates chat state storage with generation results.
+     */
+    private async updateChatState(
+        context: StreamContext,
+        assistantMessages: any[],
+        tempProjectPath: string
+    ): Promise<void> {
+        const workspaceId = context.ctx.projectPath;
+        const threadId = 'default';
+
+        chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+            status: 'under_review',
+            tempProjectPath,
+            modifiedFiles: context.modifiedFiles,
+        });
+
+        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
+            modelMessages: assistantMessages,
+        });
+    }
+
+    /**
+     * Emits review actions and chat save events to UI.
+     */
+    private async emitReviewActions(context: StreamContext): Promise<void> {
+        runtimeStateManager.setShowReviewActions(true);
+        context.eventHandler({ type: "review_actions" });
+        updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
+        context.eventHandler({ type: "stop", command: Command.Agent });
     }
 
     protected getCommandType(): Command {

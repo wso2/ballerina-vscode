@@ -18,6 +18,7 @@
 
 import { ExecutionContext, Command } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../utils/events';
+import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { getErrorMessage } from '../../utils/ai-utils';
 import * as fs from 'fs';
@@ -91,7 +92,6 @@ export interface AIExecutionResult {
  */
 export abstract class AICommandExecutor<TParams = any> {
     protected config: AICommandConfig<TParams>;
-    protected tempProjectPath?: string;
     protected chatStorageRef?: any; // Dynamic import type
 
     constructor(config: AICommandConfig<TParams>) {
@@ -146,7 +146,6 @@ export abstract class AICommandExecutor<TParams = any> {
 
         try {
             // Dynamic import to avoid circular dependencies
-            const { chatStateStorage } = await import('../../../../views/ai-panel/chatStateStorage');
             this.chatStorageRef = chatStateStorage;
 
             const { workspaceId, threadId } = this.config.chatStorage;
@@ -170,7 +169,6 @@ export abstract class AICommandExecutor<TParams = any> {
 
         // Check if we should reuse existing temp project
         if (lifecycle?.existingTempPath) {
-            this.tempProjectPath = lifecycle.existingTempPath;
             this.config.executionContext.tempProjectPath = lifecycle.existingTempPath;
             console.log(`[AICommandExecutor] Reusing temp project: ${lifecycle.existingTempPath}`);
             return;
@@ -179,7 +177,6 @@ export abstract class AICommandExecutor<TParams = any> {
         // Create new temp project
         try {
             const { path: tempPath } = await getTempProject(this.config.executionContext);
-            this.tempProjectPath = tempPath;
             this.config.executionContext.tempProjectPath = tempPath;
             console.log(`[AICommandExecutor] Created temp project: ${tempPath}`);
         } catch (error) {
@@ -227,29 +224,30 @@ export abstract class AICommandExecutor<TParams = any> {
      * Used by DataMapper executors
      */
     protected async cleanupImmediate(): Promise<void> {
-        if (!this.tempProjectPath) {
+        const tempProjectPath = this.config.executionContext.tempProjectPath;
+        if (!tempProjectPath) {
             console.log(`[AICommandExecutor] No temp project to cleanup`);
             return;
         }
 
         // Skip in test environment
         if (process.env.AI_TEST_ENV) {
-            console.log(`[AICommandExecutor] Skipping cleanup (test mode): ${this.tempProjectPath}`);
+            console.log(`[AICommandExecutor] Skipping cleanup (test mode): ${tempProjectPath}`);
             return;
         }
 
         try {
-            console.log(`[AICommandExecutor] Immediate cleanup: ${this.tempProjectPath}`);
+            console.log(`[AICommandExecutor] Immediate cleanup: ${tempProjectPath}`);
 
             // Send didClose notifications for .bal files
-            const balFiles = this.findAllBalFiles(this.tempProjectPath);
+            const balFiles = this.findAllBalFiles(tempProjectPath);
             if (balFiles.length > 0) {
-                sendAgentDidCloseBatch(this.tempProjectPath, balFiles);
+                sendAgentDidCloseBatch(tempProjectPath, balFiles);
                 await new Promise(resolve => setTimeout(resolve, 300)); // Let LS process
             }
 
             // Remove temp project
-            cleanupTempProject(this.tempProjectPath);
+            cleanupTempProject(tempProjectPath);
             console.log(`[AICommandExecutor] Cleanup completed`);
         } catch (error) {
             console.error('[AICommandExecutor] Cleanup failed:', error);
@@ -262,7 +260,7 @@ export abstract class AICommandExecutor<TParams = any> {
      * Used by AgentExecutor. Subclasses can override for custom behavior.
      */
     protected async cleanupForReview(result: AIExecutionResult): Promise<void> {
-        console.log(`[AICommandExecutor] Review mode - temp project persisted: ${this.tempProjectPath}`);
+        console.log(`[AICommandExecutor] Review mode - temp project persisted: ${this.config.executionContext.tempProjectPath}`);
         // No immediate cleanup - temp persists for review
         // Actual cleanup happens when user accepts/declines via RPC
     }
@@ -289,9 +287,10 @@ export abstract class AICommandExecutor<TParams = any> {
         });
 
         // Attempt cleanup on error
-        if (this.tempProjectPath && !process.env.AI_TEST_ENV) {
+        const tempProjectPath = this.config.executionContext.tempProjectPath;
+        if (tempProjectPath && !process.env.AI_TEST_ENV) {
             try {
-                cleanupTempProject(this.tempProjectPath);
+                cleanupTempProject(tempProjectPath);
             } catch (cleanupError) {
                 console.warn(`[AICommandExecutor] Failed to cleanup after error:`, cleanupError);
             }
