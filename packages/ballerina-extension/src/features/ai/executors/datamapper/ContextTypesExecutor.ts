@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AICommandExecutor, AIExecutionConfig, AIExecutionResult } from '../base/AICommandExecutor';
+import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../base/AICommandExecutor';
 import { Command, ProcessContextTypeCreationRequest } from '@wso2/ballerina-core';
 import { generateContextTypesCore } from '../../data-mapper/orchestrator';
 
@@ -27,30 +27,29 @@ import { generateContextTypesCore } from '../../data-mapper/orchestrator';
  * - Generates Ballerina types from JSON/XML/CSV attachments
  * - Used for creating type definitions
  * - AI-powered type inference
+ * - Immediate cleanup (no review mode)
  */
-export class ContextTypesExecutor extends AICommandExecutor {
-    private params: ProcessContextTypeCreationRequest;
-
-    constructor(config: AIExecutionConfig, params: ProcessContextTypeCreationRequest) {
+export class ContextTypesExecutor extends AICommandExecutor<ProcessContextTypeCreationRequest> {
+    constructor(config: AICommandConfig<ProcessContextTypeCreationRequest>) {
         super(config);
-        this.params = params;
     }
 
     /**
      * Execute context type generation
      *
      * Flow:
-     * 1. Create temp project (inherited from base)
+     * 1. Temp project created by base class
      * 2. Call existing generateContextTypesCore with event handler
      * 3. Return modified files
+     * 4. Base class handles immediate cleanup
      */
     async execute(): Promise<AIExecutionResult> {
-        const tempProjectPath = this.config.executionContext.tempProjectPath!;
+        const tempProjectPath = this.tempProjectPath!;
 
         try {
-            // Call existing core function
+            // Call existing core function with params from config
             const result = await generateContextTypesCore(
-                this.params,
+                this.config.params,
                 this.config.eventHandler,
                 this.config.messageId
             );
@@ -61,7 +60,7 @@ export class ContextTypesExecutor extends AICommandExecutor {
                 sourceFiles: result.sourceFiles,
             };
         } catch (error) {
-            this.handleError(error);
+            // Error handling done by base class in run()
             return {
                 tempProjectPath,
                 modifiedFiles: [],

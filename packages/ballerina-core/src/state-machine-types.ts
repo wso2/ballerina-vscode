@@ -485,6 +485,102 @@ export interface Checkpoint {
     snapshotSize: number;
 }
 
+// ==================================
+// Thread-Based Chat State Types
+// ==================================
+
+/**
+ * Review state for a generation
+ */
+export interface GenerationReviewState {
+    /** Status of the generation review */
+    status: 'pending' | 'under_review' | 'accepted' | 'error';
+    /** Temp project path while under review (shared across generations in same thread) */
+    tempProjectPath?: string;
+    /** Files modified in this specific generation */
+    modifiedFiles: string[];
+    /** Error message if status is 'error' */
+    errorMessage?: string;
+}
+
+/**
+ * Metadata for a generation
+ */
+export interface GenerationMetadata {
+    /** Whether this was a plan mode generation */
+    isPlanMode: boolean;
+    /** Operation type for the generation */
+    operationType?: OperationType;
+    /** Generation type (agent or datamapper) */
+    generationType?: 'agent' | 'datamapper';
+    /** Command type if triggered by command */
+    commandType?: string;
+}
+
+/**
+ * Generation represents a single user prompt + complete AI response cycle
+ * Contains all data needed to render UI and pass to LLM
+ */
+export interface Generation {
+    /** Unique generation ID */
+    id: string;
+    /** User prompt content */
+    userPrompt: string;
+    /** Model messages from AI SDK (for LLM context) */
+    modelMessages: any[];
+    /** UI response formatted for display */
+    uiResponse: string;
+    /** Timestamp when generation started */
+    timestamp: number;
+
+    /** Review state (embedded, not separate context) */
+    reviewState: GenerationReviewState;
+
+    /** Checkpoint linked to this generation (optional) */
+    checkpoint?: Checkpoint;
+    /** Plan associated with this generation (optional) */
+    plan?: Plan;
+    /** Current task index for plan execution */
+    currentTaskIndex: number;
+    /** File attachments for this generation */
+    fileAttachments?: FileAttatchment[];
+    /** Code context for this generation */
+    codeContext?: CodeContext;
+    /** Generation metadata */
+    metadata: GenerationMetadata;
+}
+
+/**
+ * Thread represents a conversation with multiple generations
+ */
+export interface ChatThread {
+    /** Unique thread ID */
+    id: string;
+    /** Display name for thread */
+    name: string;
+    /** Array of generations in chronological order */
+    generations: Generation[];
+    /** Session ID for backend correlation */
+    sessionId?: string;
+    /** Thread creation timestamp */
+    createdAt: number;
+    /** Last update timestamp */
+    updatedAt: number;
+}
+
+/**
+ * Workspace-level storage container
+ * One per workspace, contains multiple threads
+ */
+export interface WorkspaceChatState {
+    /** Workspace/project identifier (hash of workspace path) */
+    workspaceId: string;
+    /** Map of thread ID to thread */
+    threads: Map<string, ChatThread>;
+    /** Currently active thread ID */
+    activeThreadId: string;
+}
+
 /**
  * Task status enum
  */

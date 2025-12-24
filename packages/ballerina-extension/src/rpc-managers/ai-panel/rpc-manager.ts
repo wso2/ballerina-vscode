@@ -33,7 +33,6 @@ import {
     DiagnosticEntry,
     Diagnostics,
     DocGenerationRequest,
-    ExecutionContext,
     FetchDataRequest,
     FetchDataResponse,
     GenerateAgentCodeRequest,
@@ -76,7 +75,6 @@ import { getServiceDeclarationNames } from "../../../src/features/ai/documentati
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
-import { clearPendingReviewContext, getPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
@@ -101,6 +99,43 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
+import { AICommandConfig } from "../../features/ai/executors/base/AICommandExecutor";
+import { createWebviewEventHandler } from "../../features/ai/utils/events";
+
+/**
+ * Factory function to create unified executor configuration
+ * Eliminates repetitive config creation in RPC methods
+ */
+function createExecutorConfig<TParams>(
+    params: TParams,
+    options: {
+        command: Command;
+        chatStorageEnabled?: boolean;
+        cleanupStrategy?: 'immediate' | 'review';
+        existingTempPath?: string;
+    }
+): AICommandConfig<TParams> {
+    const ctx = StateMachine.context();
+    return {
+        executionContext: {
+            projectPath: ctx.projectPath,
+            workspacePath: ctx.workspacePath
+        },
+        eventHandler: createWebviewEventHandler(options.command),
+        messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        abortController: new AbortController(),
+        params,
+        chatStorage: options.chatStorageEnabled ? {
+            workspaceId: ctx.projectPath,
+            threadId: 'default',
+            enabled: true,
+        } : undefined,
+        lifecycle: {
+            cleanupStrategy: options.cleanupStrategy || 'immediate',
+            existingTempPath: options.existingTempPath,
+        }
+    };
+}
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -643,44 +678,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
         try {
-            // Import executor
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.DataMap,
+                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+            });
+
+            // Import and execute
             const { FunctionMappingExecutor } = await import('../../features/ai/executors/datamapper/FunctionMappingExecutor');
-            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
-
-            // Create execution context from current state machine context
-            const stateMachineContext = StateMachine.context();
-            const executionContext: ExecutionContext = {
-                projectPath: stateMachineContext.projectPath,
-                workspacePath: stateMachineContext.workspacePath
-            };
-
-            // Create event handler
-            const eventHandler = createWebviewEventHandler(Command.DataMap);
-
-            // Generate unique message ID
-            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-
-            // Create abort controller
-            const abortController = new AbortController();
-
-            // Create executor config
-            const config = {
-                executionContext,
-                eventHandler,
-                messageId,
-                abortController
-            };
-
-            // Instantiate and execute
-            const executor = new FunctionMappingExecutor(config, params);
-
-            // Execute with lifecycle management
-            try {
-                await executor.initialize();
-                await executor.execute();
-            } finally {
-                await executor.cleanup();
-            }
+            await new FunctionMappingExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateMappingCode:', error);
             throw error;
@@ -689,44 +695,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
         try {
-            // Import executor
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.DataMap,
+                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+            });
+
+            // Import and execute
             const { InlineMappingExecutor } = await import('../../features/ai/executors/datamapper/InlineMappingExecutor');
-            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
-
-            // Create execution context from current state machine context
-            const stateMachineContext = StateMachine.context();
-            const executionContext: ExecutionContext = {
-                projectPath: stateMachineContext.projectPath,
-                workspacePath: stateMachineContext.workspacePath
-            };
-
-            // Create event handler
-            const eventHandler = createWebviewEventHandler(Command.DataMap);
-
-            // Generate unique message ID
-            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-
-            // Create abort controller
-            const abortController = new AbortController();
-
-            // Create executor config
-            const config = {
-                executionContext,
-                eventHandler,
-                messageId,
-                abortController
-            };
-
-            // Instantiate and execute
-            const executor = new InlineMappingExecutor(config, params);
-
-            // Execute with lifecycle management
-            try {
-                await executor.initialize();
-                await executor.execute();
-            } finally {
-                await executor.cleanup();
-            }
+            await new InlineMappingExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
             throw error;
@@ -735,44 +712,15 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
         try {
-            // Import executor
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.TypeCreator,
+                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+            });
+
+            // Import and execute
             const { ContextTypesExecutor } = await import('../../features/ai/executors/datamapper/ContextTypesExecutor');
-            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
-
-            // Create execution context from current state machine context
-            const stateMachineContext = StateMachine.context();
-            const executionContext: ExecutionContext = {
-                projectPath: stateMachineContext.projectPath,
-                workspacePath: stateMachineContext.workspacePath
-            };
-
-            // Create event handler
-            const eventHandler = createWebviewEventHandler(Command.TypeCreator);
-
-            // Generate unique message ID
-            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-
-            // Create abort controller
-            const abortController = new AbortController();
-
-            // Create executor config
-            const config = {
-                executionContext,
-                eventHandler,
-                messageId,
-                abortController
-            };
-
-            // Instantiate and execute
-            const executor = new ContextTypesExecutor(config, params);
-
-            // Execute with lifecycle management
-            try {
-                await executor.initialize();
-                await executor.execute();
-            } finally {
-                await executor.cleanup();
-            }
+            await new ContextTypesExecutor(config).run();
         } catch (error) {
             console.error('[RPC Manager] Error in generateContextTypes:', error);
             throw error;
@@ -799,45 +747,26 @@ export class AiPanelRpcManager implements AIPanelAPI {
             if (!isPlanModeEnabled) {
                 params.isPlanMode = false;
             }
-            // Import executor
+
+            // Check for pending review to reuse temp project path
+            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
+            const workspaceId = StateMachine.context().projectPath;
+            const threadId = params.threadId || 'default';
+            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.Agent,
+                chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
+                cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
+                existingTempPath: pendingReview?.reviewState.tempProjectPath
+            });
+
+            // Import and execute AgentExecutor
             const { AgentExecutor } = await import('../../features/ai/agent/AgentExecutor');
-            const { createWebviewEventHandler } = await import('../../features/ai/utils/events');
+            await new AgentExecutor(config).run();
 
-            // Create execution context from current state machine context
-            const stateMachineContext = StateMachine.context();
-            const executionContext: ExecutionContext = {
-                projectPath: stateMachineContext.projectPath,
-                workspacePath: stateMachineContext.workspacePath
-            };
-
-            // Create event handler
-            const eventHandler = createWebviewEventHandler(Command.Agent);
-
-            // Generate unique message ID
-            const messageId = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
-
-            // Create abort controller
-            const abortController = new AbortController();
-
-            // Create executor config
-            const config = {
-                executionContext,
-                eventHandler,
-                messageId,
-                abortController
-            };
-
-            // Instantiate and execute
-            const executor = new AgentExecutor(config, params);
-
-            // Execute with lifecycle management
-            try {
-                await executor.initialize();
-                await executor.execute();
-                return true;
-            } finally {
-                await executor.cleanup();
-            }
+            return true;
         } catch (error) {
             console.error('[RPC Manager] Error in generateAgent:', error);
             throw error;
@@ -867,34 +796,47 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async acceptChanges(): Promise<void> {
-        const reviewContext = getPendingReviewContext();
-        
-        if (!reviewContext) {
-            console.warn("[Review Actions] No pending review context found for accept");
-            return;
-        }
-
         try {
-            // Integrate code to workspace if there are modified files
-            if (reviewContext.modifiedFiles.length > 0) {
-                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
-                const modifiedFilesSet = new Set(reviewContext.modifiedFiles);
-                await integrateCodeToWorkspace(reviewContext.tempProjectPath, modifiedFilesSet, reviewContext.ctx);
-                console.log(`[Review Actions] Integrated ${reviewContext.modifiedFiles.length} file(s) to workspace`);
+            // Import chatStateStorage
+            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
+            const { createExecutionContextFromStateMachine } = await import('../../features/ai/agent/index');
+
+            // Get workspace ID and thread ID
+            const ctx = createExecutionContextFromStateMachine();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get LATEST generation under review
+            const latestReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+            if (!latestReview) {
+                console.warn("[Review Actions] No pending review generation found for accept");
+                return;
             }
 
-            // Cleanup
-            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
-            
-            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (reviewContext.shouldCleanup) {
-                cleanupTempProject(reviewContext.tempProjectPath);
+            console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
+
+            // Integrate code to workspace if there are modified files
+            if (latestReview.reviewState.modifiedFiles.length > 0) {
+                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
+                const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
+                await integrateCodeToWorkspace(
+                    latestReview.reviewState.tempProjectPath!,
+                    modifiedFilesSet,
+                    ctx
+                );
+                console.log(`[Review Actions] Integrated ${latestReview.reviewState.modifiedFiles.length} file(s) to workspace`);
             }
-            
-            clearPendingReviewContext();
+
+            // Cleanup temp project
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            if (!process.env.AI_TEST_ENV) {
+                cleanupTempProject(latestReview.reviewState.tempProjectPath!);
+            }
+
+            // Mark ALL under_review generations as accepted
+            chatStateStorage.acceptAllReviews(workspaceId, threadId);
+            console.log("[Review Actions] Marked all under_review generations as accepted");
 
             // Update runtime state
             runtimeStateManager.setShowReviewActions(false);
@@ -905,26 +847,35 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async declineChanges(): Promise<void> {
-        const reviewContext = getPendingReviewContext();
-        
-        if (!reviewContext) {
-            console.warn("[Review Actions] No pending review context found for decline");
-            return;
-        }
-
         try {
-            // Just cleanup without integrating changes
-            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
-            
-            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (reviewContext.shouldCleanup) {
-                cleanupTempProject(reviewContext.tempProjectPath);
+            // Import chatStateStorage
+            const { chatStateStorage } = await import('../../views/ai-panel/chatStateStorage');
+            const { createExecutionContextFromStateMachine } = await import('../../features/ai/agent/index');
+
+            // Get workspace ID and thread ID
+            const ctx = createExecutionContextFromStateMachine();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get LATEST generation under review
+            const latestReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+            if (!latestReview) {
+                console.warn("[Review Actions] No pending review generation found for decline");
+                return;
             }
-            
-            clearPendingReviewContext();
+
+            console.log(`[Review Actions] Declining generation ${latestReview.id}`);
+
+            // Cleanup temp project immediately (without integrating changes)
+            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
+            if (!process.env.AI_TEST_ENV) {
+                cleanupTempProject(latestReview.reviewState.tempProjectPath!);
+            }
+
+            // Mark ALL under_review generations as error/declined
+            chatStateStorage.declineAllReviews(workspaceId, threadId);
+            console.log("[Review Actions] Marked all under_review generations as declined");
 
             // Update runtime state
             runtimeStateManager.setShowReviewActions(false);

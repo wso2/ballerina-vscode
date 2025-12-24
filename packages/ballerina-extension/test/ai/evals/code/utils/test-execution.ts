@@ -21,7 +21,7 @@ import { validateTestResult } from './test-validation';
 import { VSCODE_COMMANDS } from './constants';
 import { SourceFile } from "@wso2/ballerina-core";
 import { createIsolatedTestProject, cleanupIsolatedTestProject, extractSourceFiles, IsolatedProjectResult } from './test-project-utils';
-import { GenerateAgentForTestParams, GenerateAgentForTestResult } from '../../../../../src/features/ai/agent/index-for-test';
+import { GenerateAgentForTestParams, GenerateAgentForTestResult } from "../../../../../src/features/ai/activator";
 
 /**
  * Executes a single test case and returns the result
@@ -51,7 +51,6 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
         // The command will set StateMachine.context().projectPath internally
         const params: GenerateAgentForTestParams = {
             usecase: useCase.usecase,
-            chatHistory: [],
             operationType: useCase.operationType,
             fileAttachmentContents: useCase.fileAttachments ? [...useCase.fileAttachments] : [],
             messageId: `test-${useCase.id}-${Date.now()}`,
