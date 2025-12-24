@@ -106,7 +106,7 @@ export interface AIPanelAPI {
     ) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateCode: (params: GenerateCodeRequest) => void;
-    generateAgent: (params: ) => Promise<boolean>;
+    generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
     repairGeneratedCode: (params: RepairParams) => void;
     generateTestPlan: (params: TestPlanGenerationRequest) => void;
     generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;

@@ -278,7 +278,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     useEffect(() => {
         if (model) {
-            const hasPropertiesWithChoices = model?.moduleName === "http" &&
+            const hasPropertiesWithChoices =
                 Object.values(model.properties).some(property => property.choices);
 
             if (hasPropertiesWithChoices) {

@@ -154,6 +154,7 @@ const AIChat: React.FC = () => {
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
+    const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
 
@@ -237,6 +238,16 @@ const AIChat: React.FC = () => {
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
 
+            // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
+            const context = await rpcClient.getAIChatContext();
+            if (context && context.checkpoints) {
+                const checkpointIds = context.checkpoints.map(cp => cp.id);
+                console.log("[Checkpoint] After restore - available checkpoint IDs:", checkpointIds);
+                setAvailableCheckpointIds(new Set(checkpointIds));
+            } else {
+                console.log("[Checkpoint] After restore - no checkpoints in context");
+            }
+
             setIsLoading(false);
             setIsCodeLoading(false);
             setTestGenIntermediaryState(null);
@@ -259,6 +270,14 @@ const AIChat: React.FC = () => {
                 }
                 if (context && context.showReviewActions !== undefined) {
                     setShowReviewActions(context.showReviewActions);
+                }
+                // Update available checkpoint IDs
+                if (context && context.checkpoints) {
+                    const checkpointIds = context.checkpoints.map(cp => cp.id);
+                    console.log("[Checkpoint] Initializing available checkpoint IDs:", checkpointIds);
+                    setAvailableCheckpointIds(new Set(checkpointIds));
+                } else {
+                    console.log("[Checkpoint] No checkpoints found during initialization");
                 }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
@@ -311,12 +330,20 @@ const AIChat: React.FC = () => {
             if (context && context.showReviewActions !== undefined) {
                 setShowReviewActions(context.showReviewActions);
             }
+            // Update available checkpoint IDs
+            if (context && context.checkpoints) {
+                const checkpointIds = context.checkpoints.map(cp => cp.id);
+                console.log("[Checkpoint] State changed - updating available checkpoint IDs:", checkpointIds);
+                setAvailableCheckpointIds(new Set(checkpointIds));
+            } else {
+                console.log("[Checkpoint] State changed - no checkpoints in context");
+            }
         } catch (error) {
             console.error("[AIChat] Failed to update review actions state:", error);
         }
     });
 
-    rpcClient?.onCheckpointCaptured((payload: { messageId: string; checkpointId: string }) => {
+    rpcClient?.onCheckpointCaptured(async (payload: { messageId: string; checkpointId: string }) => {
         setMessages((prevMessages) => {
             const updatedMessages = [...prevMessages];
             for (let i = updatedMessages.length - 1; i >= 0; i--) {
@@ -331,6 +358,22 @@ const AIChat: React.FC = () => {
             }
             return updatedMessages;
         });
+
+        // Update available checkpoint IDs after a new checkpoint is captured
+        // This ensures the set reflects any cleanup of old checkpoints (maxCount enforcement)
+        try {
+            const context = await rpcClient.getAIChatContext();
+            if (context && context.checkpoints) {
+                const checkpointIds = context.checkpoints.map(cp => cp.id);
+                console.log("[Checkpoint] Checkpoint captured - new checkpoint ID:", payload.checkpointId);
+                console.log("[Checkpoint] Available checkpoint IDs after capture:", checkpointIds);
+                setAvailableCheckpointIds(new Set(checkpointIds));
+            } else {
+                console.log("[Checkpoint] Checkpoint captured but no checkpoints in context");
+            }
+        } catch (error) {
+            console.error("[AIChat] Failed to update available checkpoint IDs:", error);
+        }
     });
 
     rpcClient?.onChatNotify(async (response: ChatNotify) => {
@@ -1523,13 +1566,18 @@ const AIChat: React.FC = () => {
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
                                             checkpointButton={
-                                                message.role === "User" && message.checkpointId ? (
-                                                    <CheckpointButton
-                                                        checkpointId={message.checkpointId}
-                                                        onRestore={handleCheckpointRestore}
-                                                        disabled={isLoading}
-                                                    />
-                                                ) : undefined
+                                                message.role === "User" && message.checkpointId ? (() => {
+                                                    const isCheckpointAvailable = availableCheckpointIds.has(message.checkpointId);
+                                                    const isDisabled = isLoading || !isCheckpointAvailable;
+                                                    console.log(`[Checkpoint] Rendering button - checkpointId: ${message.checkpointId}, isAvailable: ${isCheckpointAvailable}, isLoading: ${isLoading}, isDisabled: ${isDisabled}, availableIds:`, Array.from(availableCheckpointIds));
+                                                    return (
+                                                        <CheckpointButton
+                                                            checkpointId={message.checkpointId}
+                                                            onRestore={handleCheckpointRestore}
+                                                            disabled={isDisabled}
+                                                        />
+                                                    );
+                                                })() : undefined
                                             }
                                         />
                                     )}

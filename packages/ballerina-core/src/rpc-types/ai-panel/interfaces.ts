@@ -400,6 +400,7 @@ export interface GenerateAgentCodeRequest {
     usecase: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
+    chatHistory: any[];
     messageId: string;
     isPlanMode: boolean;
     codeContext?: CodeContext;

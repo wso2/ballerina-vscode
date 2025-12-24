@@ -70,7 +70,6 @@ export async function LibraryProviderTool(
         eventHandler({
             type: "tool_call",
             toolName: LIBRARY_PROVIDER_TOOL,
-            toolInput: undefined
         });
 
         const startTime = Date.now();

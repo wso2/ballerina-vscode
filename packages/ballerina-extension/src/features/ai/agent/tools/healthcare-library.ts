@@ -64,7 +64,6 @@ export async function HealthcareLibraryProviderTool(
         eventHandler({
             type: "tool_call",
             toolName: HEALTHCARE_LIBRARY_PROVIDER_TOOL,
-            toolInput: undefined
         });
 
         const startTime = Date.now();
