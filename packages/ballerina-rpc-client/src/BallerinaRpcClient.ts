@@ -67,7 +67,8 @@ import {
     AIMachineSendableEvent,
     dependencyPullProgress,
     ProjectMigrationResult,
-    onMigratedProject
+    onMigratedProject,
+    refreshReviewMode
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -295,5 +296,9 @@ export class BallerinaRpcClient {
 
     onThemeChanged(callback: (kind: ColorThemeKind) => void) {
         this.messenger.onNotification(currentThemeChanged, callback);
+    }
+
+    onRefreshReviewMode(callback: () => void) {
+        this.messenger.onNotification(refreshReviewMode, callback);
     }
 }
