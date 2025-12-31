@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_VIEW, refreshReviewMode } from '@wso2/ballerina-core';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -30,6 +30,9 @@ import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { openView } from '../../../stateMachine';
+import { RPCLayer } from '../../../RPCLayer';
+import { VisualizerWebview } from '../../../views/visualizer/webview';
 
 /**
  * AgentExecutor - Executes agent-based code generation with tools and streaming
@@ -155,8 +158,52 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             };
 
             // Process stream events - NATIVE V6 PATTERN
-            for await (const part of fullStream) {
-                await this.handleStreamPart(part, streamContext);
+            try {
+                for await (const part of fullStream) {
+                    await this.handleStreamPart(part, streamContext);
+                }
+            } catch (error: any) {
+                // Handle abort specifically
+                if (error.name === 'AbortError' || this.config.abortController.signal.aborted) {
+                    console.log("[AgentExecutor] Aborted by user.");
+
+                    // Get partial messages from SDK
+                    let messagesToSave: any[] = [];
+                    try {
+                        const partialResponse = await response;
+                        messagesToSave = partialResponse.messages || [];
+                    } catch (e) {
+                        console.warn("[AgentExecutor] Could not retrieve partial response messages:", e);
+                    }
+
+                    // Add abort notification message
+                    messagesToSave.push({
+                        role: "user",
+                        content: `<abort_notification>
+Generation stopped by user. The last in-progress task was not saved. Files have been reverted to the previous completed task state. Please redo the last task if needed.
+</abort_notification>`,
+                    });
+
+                    // Update generation with partial messages
+                    const workspaceId = this.config.executionContext.projectPath;
+                    const threadId = 'default';
+                    chatStateStorage.updateGeneration(workspaceId, threadId, this.config.messageId, {
+                        modelMessages: messagesToSave,
+                    });
+
+                    // Clear review state
+                    const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+                    if (pendingReview && pendingReview.id === this.config.messageId) {
+                        console.log("[AgentExecutor] Clearing review state due to abort");
+                        chatStateStorage.declineAllReviews(workspaceId, threadId);
+                    }
+
+                    // Send abort event
+                    this.config.eventHandler({ type: "abort", command: Command.Agent });
+                }
+
+                // Re-throw for base class error handling
+                throw error;
             }
 
             return {
@@ -213,6 +260,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
     /**
      * Handles stream errors with cleanup.
+     * Clears review state to prevent stale data.
      */
     private async handleStreamError(error: Error, context: StreamContext): Promise<void> {
         console.error("[Agent] Stream error:", error);
@@ -221,6 +269,19 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         if (context.shouldCleanup) {
             sendAgentDidCloseForProjects(tempProjectPath, context.projects);
             cleanupTempProject(tempProjectPath);
+        }
+
+        // Clear review state for this generation
+        const workspaceId = context.ctx.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+        if (pendingReview && pendingReview.id === context.messageId) {
+            console.log("[AgentExecutor] Clearing review state due to error");
+            chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
+                status: 'error',
+                errorMessage: getErrorMessage(error),
+            });
         }
 
         context.eventHandler({
@@ -253,6 +314,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
     /**
      * Updates chat state storage with generation results.
+     * Includes accumulated modified files tracking across review continuations.
      */
     private async updateChatState(
         context: StreamContext,
@@ -262,15 +324,41 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const workspaceId = context.ctx.projectPath;
         const threadId = 'default';
 
+        // Check if we're updating an existing review context
+        const existingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        let accumulatedModifiedFiles = context.modifiedFiles;
+
+        if (existingReview && existingReview.reviewState.tempProjectPath === tempProjectPath) {
+            // Accumulate modified files from previous prompts
+            const existingFiles = new Set(existingReview.reviewState.modifiedFiles || []);
+            const newFiles = new Set(context.modifiedFiles);
+            accumulatedModifiedFiles = Array.from(new Set([...existingFiles, ...newFiles]));
+            console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
+        }
+
+        // Update chat state storage with accumulated files
         chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
-            modifiedFiles: context.modifiedFiles,
+            modifiedFiles: accumulatedModifiedFiles,
         });
 
         chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
             modelMessages: assistantMessages,
         });
+
+        // Automatically open review mode
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode });
+        console.log("[AgentExecutor] Automatically opened review mode");
+
+        // Notify ReviewMode component to refresh its data
+        setTimeout(() => {
+            RPCLayer._messenger.sendNotification(refreshReviewMode, {
+                type: 'webview',
+                webviewType: VisualizerWebview.viewType
+            });
+            console.log("[AgentExecutor] Sent refresh notification to review mode");
+        }, 100);
     }
 
     /**

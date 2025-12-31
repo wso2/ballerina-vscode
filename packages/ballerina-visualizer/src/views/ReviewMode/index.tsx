@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { SemanticDiffResponse, SemanticDiff, ChangeTypeEnum } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -190,54 +190,65 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const currentView =
         views.length > 0 && currentIndex >= 0 && currentIndex < views.length ? views[currentIndex] : null;
 
+    // Extracted reusable function to load semantic diff data
+    const loadSemanticDiff = useCallback(async () => {
+        try {
+            setIsLoading(true);
+            const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
+            console.log("[ReviewMode] semanticDiff Response:", semanticDiffResponse);
+            setSemanticDiffData(semanticDiffResponse);
+
+            const allViews: ReviewView[] = [];
+
+            // If loadDesignDiagrams is true, add component diagram as first view
+            if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
+                // Component diagram shows the entire project design, not a specific file/position
+                // We use the first diff's file just as a reference, but the actual diagram
+                // loads the entire design model for the project
+                allViews.push({
+                    type: DiagramType.COMPONENT,
+                    filePath: projectPath, // Use project path instead of specific file
+                    position: {
+                        startLine: 0,
+                        endLine: 0,
+                        startColumn: 0,
+                        endColumn: 0,
+                    },
+                    projectPath,
+                    label: "Design Diagram",
+                });
+            }
+
+            // Convert all semantic diffs to flow diagram views
+            const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
+                const view = convertToReviewView(diff, projectPath);
+                return view;
+            });
+            allViews.push(...flowViews);
+
+            setViews(allViews);
+            setCurrentIndex(0);
+        } catch (error) {
+            console.error("[Review Mode] Error fetching semantic diff:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [rpcClient, projectPath]);
+
     // Fetch semantic diff data on mount
     useEffect(() => {
-        const loadSemanticDiff = async () => {
-            try {
-                setIsLoading(true);
-                const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
-                console.log("[ReviewMode] semanticDiff Response:", semanticDiffResponse);
-                setSemanticDiffData(semanticDiffResponse);
+        loadSemanticDiff();
+    }, [loadSemanticDiff]);
 
-                const allViews: ReviewView[] = [];
-
-                // If loadDesignDiagrams is true, add component diagram as first view
-                if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
-                    // Component diagram shows the entire project design, not a specific file/position
-                    // We use the first diff's file just as a reference, but the actual diagram
-                    // loads the entire design model for the project
-                    allViews.push({
-                        type: DiagramType.COMPONENT,
-                        filePath: projectPath, // Use project path instead of specific file
-                        position: {
-                            startLine: 0,
-                            endLine: 0,
-                            startColumn: 0,
-                            endColumn: 0,
-                        },
-                        projectPath,
-                        label: "Design Diagram",
-                    });
-                }
-
-                // Convert all semantic diffs to flow diagram views
-                const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
-                    const view = convertToReviewView(diff, projectPath);
-                    return view;
-                });
-                allViews.push(...flowViews);
-
-                setViews(allViews);
-                setCurrentIndex(0);
-            } catch (error) {
-                console.error("[Review Mode] Error fetching semantic diff:", error);
-            } finally {
-                setIsLoading(false);
-            }
+    // Listen for refresh notifications from the extension and reload data
+    useEffect(() => {
+        const handleRefresh = () => {
+            console.log("[ReviewMode] Received refresh notification from extension - reloading semantic diff");
+            loadSemanticDiff();
         };
 
-        loadSemanticDiff();
-    }, [projectPath, rpcClient]);
+        rpcClient.onRefreshReviewMode(handleRefresh);
+    }, [rpcClient, loadSemanticDiff]);
 
     // Set metadata for component diagram when view changes
     useEffect(() => {

@@ -83,18 +83,45 @@ class ChatStateStorage {
 
     /**
      * Clear workspace state
+     * Cleans up any pending review temp projects before clearing.
      * @param workspaceId Workspace identifier
      */
     clearWorkspace(workspaceId: string): void {
+        // Cleanup pending review temp projects before clearing
+        const workspace = this.storage.get(workspaceId);
+        if (workspace) {
+            for (const [threadId, thread] of workspace.threads) {
+                const pendingReview = this.getPendingReviewGeneration(workspaceId, threadId);
+                if (pendingReview?.reviewState.tempProjectPath) {
+                    console.log(`[ChatStateStorage] Cleaning up pending review temp project: ${pendingReview.reviewState.tempProjectPath}`);
+
+                    // Cleanup temp directory
+                    if (!process.env.AI_TEST_ENV) {
+                        const { cleanupTempProject } = require('../../features/ai/utils/project/temp-project');
+                        try {
+                            cleanupTempProject(pendingReview.reviewState.tempProjectPath);
+                        } catch (error) {
+                            console.error(`[ChatStateStorage] Error cleaning up temp project:`, error);
+                        }
+                    }
+                }
+            }
+        }
+
         this.storage.delete(workspaceId);
         console.log(`[ChatStateStorage] Cleared workspace: ${workspaceId}`);
     }
 
     /**
      * Clear all workspace states
+     * Cleans up temp projects for each workspace before clearing.
      */
     clearAll(): void {
-        this.storage.clear();
+        // Clear each workspace individually to trigger cleanup logic
+        const workspaceIds = Array.from(this.storage.keys());
+        for (const workspaceId of workspaceIds) {
+            this.clearWorkspace(workspaceId);
+        }
         console.log('[ChatStateStorage] Cleared all workspaces');
     }
 
