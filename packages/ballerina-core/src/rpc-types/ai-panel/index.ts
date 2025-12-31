@@ -48,7 +48,6 @@ import {
     ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
-    SetAutoApproveRequest,
     RestoreCheckpointRequest,
     UpdateChatMessageRequest,
     PlanApprovalRequest,
@@ -124,8 +123,6 @@ export interface AIPanelAPI {
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
     acceptChanges: () => Promise<void>;
     declineChanges: () => Promise<void>;
-    showReviewActions: () => Promise<void>;
-    hideReviewActions: () => Promise<void>;
     // ==================================
     // Approval Related Functions (Human-in-the-Loop)
     // ==================================
@@ -138,7 +135,6 @@ export interface AIPanelAPI {
     // ==================================
     // Chat State Management
     // ==================================
-    setAutoApprove: (params: SetAutoApproveRequest) => Promise<void>;
     restoreCheckpoint: (params: RestoreCheckpointRequest) => Promise<void>;
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;

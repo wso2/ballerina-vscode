@@ -76,7 +76,6 @@ import {
     getServiceNames,
     getShadowDiagnostics,
     handleChatSummaryError,
-    hideReviewActions,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isPlanModeFeatureEnabled,
@@ -103,9 +102,6 @@ import {
     restoreCheckpoint,
     RestoreCheckpointRequest,
     SemanticDiffRequest,
-    setAutoApprove,
-    SetAutoApproveRequest,
-    showReviewActions,
     showSignInAlert,
     submitFeedback,
     SubmitFeedbackRequest,
@@ -177,15 +173,12 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
     messenger.onNotification(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onNotification(declineChanges, () => rpcManger.declineChanges());
-    messenger.onNotification(showReviewActions, () => rpcManger.showReviewActions());
-    messenger.onNotification(hideReviewActions, () => rpcManger.hideReviewActions());
     messenger.onNotification(approvePlan, (args: PlanApprovalRequest) => rpcManger.approvePlan(args));
     messenger.onNotification(declinePlan, (args: PlanApprovalRequest) => rpcManger.declinePlan(args));
     messenger.onNotification(approveTask, (args: ApproveTaskRequest) => rpcManger.approveTask(args));
     messenger.onNotification(declineTask, (args: TaskDeclineRequest) => rpcManger.declineTask(args));
     messenger.onNotification(provideConnectorSpec, (args: ConnectorSpecRequest) => rpcManger.provideConnectorSpec(args));
     messenger.onNotification(cancelConnectorSpec, (args: ConnectorSpecCancelRequest) => rpcManger.cancelConnectorSpec(args));
-    messenger.onNotification(setAutoApprove, (args: SetAutoApproveRequest) => rpcManger.setAutoApprove(args));
     messenger.onNotification(restoreCheckpoint, (args: RestoreCheckpointRequest) => rpcManger.restoreCheckpoint(args));
     messenger.onNotification(clearChat, () => rpcManger.clearChat());
     messenger.onNotification(updateChatMessage, (args: UpdateChatMessageRequest) => rpcManger.updateChatMessage(args));

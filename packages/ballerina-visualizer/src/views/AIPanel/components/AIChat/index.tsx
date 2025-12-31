@@ -268,9 +268,6 @@ const AIChat: React.FC = () => {
                 if (context && context.autoApproveEnabled !== undefined) {
                     setIsAutoApproveEnabled(context.autoApproveEnabled);
                 }
-                if (context && context.showReviewActions !== undefined) {
-                    setShowReviewActions(context.showReviewActions);
-                }
                 // Update available checkpoint IDs
                 if (context && context.checkpoints) {
                     const checkpointIds = context.checkpoints.map(cp => cp.id);
@@ -327,9 +324,6 @@ const AIChat: React.FC = () => {
         // Update context when state changes
         try {
             const context = await rpcClient.getAIChatContext();
-            if (context && context.showReviewActions !== undefined) {
-                setShowReviewActions(context.showReviewActions);
-            }
             // Update available checkpoint IDs
             if (context && context.checkpoints) {
                 const checkpointIds = context.checkpoints.map(cp => cp.id);
@@ -836,7 +830,6 @@ const AIChat: React.FC = () => {
     }) {
         // Hide review actions when a new prompt is submitted
         if (showReviewActions) {
-            await rpcClient.getAiPanelRpcClient().hideReviewActions();
             setShowReviewActions(false);
         }
         
@@ -1232,10 +1225,9 @@ const AIChat: React.FC = () => {
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
-    const handleToggleAutoApprove = async () => {
+    const handleToggleAutoApprove = () => {
         const newValue = !isAutoApproveEnabled;
         setIsAutoApproveEnabled(newValue);
-        await rpcClient.getAiPanelRpcClient().setAutoApprove({ enabled: newValue });
     };
 
     const handleTogglePlanMode = () => {
@@ -1424,10 +1416,9 @@ const AIChat: React.FC = () => {
     const handleApprovalApprove = async (enableAutoApprove: boolean) => {
         if (!approvalRequest) return;
 
-        // Update auto-approve setting
+        // Update auto-approve setting (managed locally in visualizer)
         if (enableAutoApprove !== isAutoApproveEnabled) {
             setIsAutoApproveEnabled(enableAutoApprove);
-            await rpcClient.getAiPanelRpcClient().setAutoApprove({ enabled: enableAutoApprove });
         }
 
         // Approve plan or task

@@ -52,7 +52,6 @@ import {
     RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
-    SetAutoApproveRequest,
     SubmitFeedbackRequest,
     TaskDeclineRequest,
     TestGenerationMentions,
@@ -103,7 +102,6 @@ import {
     getServiceNames,
     getShadowDiagnostics,
     handleChatSummaryError,
-    hideReviewActions,
     isCopilotSignedIn,
     isNaturalProgrammingDirectoryExists,
     isPlanModeFeatureEnabled,
@@ -119,8 +117,6 @@ import {
     readDeveloperMdFile,
     repairGeneratedCode,
     restoreCheckpoint,
-    setAutoApprove,
-    showReviewActions,
     showSignInAlert,
     submitFeedback,
     updateChatMessage,
@@ -357,14 +353,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(declineChanges, HOST_EXTENSION);
     }
 
-    showReviewActions(): Promise<void> {
-        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);
-    }
-
-    hideReviewActions(): Promise<void> {
-        return this._messenger.sendRequest(hideReviewActions, HOST_EXTENSION);
-    }
-
     approvePlan(params: PlanApprovalRequest): Promise<void> {
         return this._messenger.sendRequest(approvePlan, HOST_EXTENSION, params);
     }
@@ -387,10 +375,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
-    }
-
-    setAutoApprove(params: SetAutoApproveRequest): Promise<void> {
-        return this._messenger.sendRequest(setAutoApprove, HOST_EXTENSION, params);
     }
 
     restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
