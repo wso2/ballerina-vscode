@@ -590,7 +590,7 @@ export function ActionTypeEditor(props: ActionTypeEditorProps) {
                     })()
                     }
                 </S.Header>
-                {field.types &&
+                {getPrimaryInputType(field.types)?.ballerinaType &&
                     <S.Type
                         isVisible={focused}
                         title={getPrimaryInputType(field.types)?.ballerinaType}

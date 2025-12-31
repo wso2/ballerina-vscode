@@ -18,7 +18,7 @@
  */
 
 import { NodePosition } from "@wso2/syntax-tree";
-import { CodeData, FlowNode, Metadata } from "../../interfaces/bi";
+import { CodeData, FlowNode, InputType, Metadata } from "../../interfaces/bi";
 
 export interface AgentTool {
     toolName: string;
@@ -101,8 +101,7 @@ export interface McpToolUpdateRequest {
 
 export interface ToolParameters {
     metadata: Metadata;
-    valueType: string;
-    valueTypeConstraint: ValueTypeConstraint;
+    types: InputType[];
     value: ToolParametersValue;
     optional: boolean;
     editable: boolean;

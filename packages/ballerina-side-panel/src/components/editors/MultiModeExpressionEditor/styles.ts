@@ -77,4 +77,11 @@ export namespace S {
         borderRadius: '4px',
         backgroundColor: 'rgba(0, 122, 204, 0.3)'
     });
+
+    export const KeyValueContainer = styled.div({
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+        flex: 1,
+    });
 }

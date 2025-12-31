@@ -397,6 +397,7 @@ const MainPanel = () => {
                         }
                         setViewComponent(
                             <DataMapper
+                                key={value?.dataMapperMetadata?.name}
                                 filePath={value.documentUri}
                                 codedata={value?.dataMapperMetadata?.codeData}
                                 name={value?.dataMapperMetadata?.name}
