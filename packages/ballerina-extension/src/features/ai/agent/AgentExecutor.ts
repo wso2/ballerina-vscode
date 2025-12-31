@@ -30,7 +30,6 @@ import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
-import { runtimeStateManager } from '../state/RuntimeStateManager';
 
 /**
  * AgentExecutor - Executes agent-based code generation with tools and streaming
@@ -124,6 +123,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 projects,
                 libraryDescriptions,
                 generationType: GenerationType.CODE_GENERATION,
+                workspaceId: this.config.executionContext.projectPath,
+                generationId: this.config.messageId,
+                threadId: 'default',
             });
 
             // Stream LLM response
@@ -275,7 +277,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        runtimeStateManager.setShowReviewActions(true);
         context.eventHandler({ type: "review_actions" });
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "stop", command: Command.Agent });

@@ -50,7 +50,6 @@ import {
     ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
-    SetAutoApproveRequest,
     RestoreCheckpointRequest,
     UpdateChatMessageRequest,
     PlanApprovalRequest,
@@ -117,15 +116,12 @@ export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `$
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
 export const acceptChanges: NotificationType<void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: NotificationType<void> = { method: `${_preFix}/declineChanges` };
-export const showReviewActions: NotificationType<void> = { method: `${_preFix}/showReviewActions` };
-export const hideReviewActions: NotificationType<void> = { method: `${_preFix}/hideReviewActions` };
 export const approvePlan: NotificationType<PlanApprovalRequest> = { method: `${_preFix}/approvePlan` };
 export const declinePlan: NotificationType<PlanApprovalRequest> = { method: `${_preFix}/declinePlan` };
 export const approveTask: NotificationType<ApproveTaskRequest> = { method: `${_preFix}/approveTask` };
 export const declineTask: NotificationType<TaskDeclineRequest> = { method: `${_preFix}/declineTask` };
 export const provideConnectorSpec: NotificationType<ConnectorSpecRequest> = { method: `${_preFix}/provideConnectorSpec` };
 export const cancelConnectorSpec: NotificationType<ConnectorSpecCancelRequest> = { method: `${_preFix}/cancelConnectorSpec` };
-export const setAutoApprove: NotificationType<SetAutoApproveRequest> = { method: `${_preFix}/setAutoApprove` };
 export const restoreCheckpoint: NotificationType<RestoreCheckpointRequest> = { method: `${_preFix}/restoreCheckpoint` };
 export const clearChat: NotificationType<void> = { method: `${_preFix}/clearChat` };
 export const updateChatMessage: NotificationType<UpdateChatMessageRequest> = { method: `${_preFix}/updateChatMessage` };

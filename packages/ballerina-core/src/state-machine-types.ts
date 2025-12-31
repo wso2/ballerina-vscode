@@ -229,7 +229,8 @@ export type ChatNotify =
     | TaskApprovalRequest
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
-    | CodeReviewActions;
+    | CodeReviewActions
+    | PlanUpdated;
 
 export interface ChatStart {
     type: "start";
@@ -348,6 +349,11 @@ export interface ConnectorGenerationNotification {
 
 export interface CodeReviewActions {
     type: "review_actions";
+}
+
+export interface PlanUpdated {
+    type: "plan_updated";
+    plan: Plan;
 }
 
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
@@ -654,8 +660,6 @@ export interface AIChatMachineContext {
     commandType?: string;
     modifiedFiles?: string[];
     commandParams?: any;
-    // Review actions state
-    showReviewActions?: boolean;
     operationType?: OperationType;
 }
 

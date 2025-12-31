@@ -509,10 +509,6 @@ export interface SemanticDiffResponse {
     semanticDiffs: SemanticDiff[];
 }
 
-export interface SetAutoApproveRequest {
-    enabled: boolean;
-}
-
 export interface RestoreCheckpointRequest {
     checkpointId: string;
 }

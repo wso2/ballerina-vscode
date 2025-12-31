@@ -56,7 +56,6 @@ import {
     RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
-    SetAutoApproveRequest,
     SubmitFeedbackRequest,
     TestGenerationMentions,
     TestGeneratorIntermediaryState,
@@ -75,13 +74,14 @@ import { getServiceDeclarationNames } from "../../../src/features/ai/documentati
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
+import { getSelectedLibraries } from "../../features/ai/agent/tools/healthcare-library";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
+import { AICommandConfig } from "../../features/ai/executors/base/AICommandExecutor";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
-import { runtimeStateManager } from '../../features/ai/state/RuntimeStateManager';
-import { getSelectedLibraries } from "../../features/ai/agent/tools/healthcare-library";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
+import { createWebviewEventHandler } from "../../features/ai/utils/events";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
 import { GenerationType } from "../../features/ai/utils/libs/libraries";
 import { Library } from "../../features/ai/utils/libs/library-types";
@@ -99,19 +99,17 @@ import {
 import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
-import { AICommandConfig } from "../../features/ai/executors/base/AICommandExecutor";
-import { createWebviewEventHandler } from "../../features/ai/utils/events";
 
-import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
-import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
-import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
-import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { AgentExecutor } from '../../features/ai/agent/AgentExecutor';
 import { createExecutionContextFromStateMachine } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
-import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
+import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
+import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
+import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
 import { approvalManager } from '../../features/ai/state/ApprovalManager';
-import { chatStateManager } from '../../features/ai/state/ChatStateManager';
+import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
+import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 
 /**
  * Factory function to create unified executor configuration
@@ -833,9 +831,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as accepted
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
-
-            // Update runtime state
-            runtimeStateManager.setShowReviewActions(false);
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -867,21 +862,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
-
-            // Update runtime state
-            runtimeStateManager.setShowReviewActions(false);
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
         }
-    }
-
-    async showReviewActions(): Promise<void> {
-        runtimeStateManager.setShowReviewActions(true);
-    }
-
-    async hideReviewActions(): Promise<void> {
-        runtimeStateManager.setShowReviewActions(false);
     }
 
     async approvePlan(params: { requestId: string; comment?: string }): Promise<void> {
@@ -908,49 +892,66 @@ export class AiPanelRpcManager implements AIPanelAPI {
         approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
     }
 
-    async setAutoApprove(params: SetAutoApproveRequest): Promise<void> {
-        runtimeStateManager.setAutoApproveEnabled(params.enabled);
-    }
-
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
-        const projectId = await this.getProjectUuid();
-        const context = chatStateManager.loadState(projectId);
+        // Get workspace and thread identifiers
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = 'default'; // Using default thread for now
 
-        if (!context) {
-            throw new Error('No chat state found');
-        }
+        // Find the checkpoint
+        const found = chatStateStorage.findCheckpoint(workspaceId, threadId, params.checkpointId);
 
-        const checkpoint = context.checkpoints?.find(c => c.id === params.checkpointId);
-        if (!checkpoint) {
+        if (!found) {
             throw new Error(`Checkpoint ${params.checkpointId} not found`);
         }
 
-        // Add fileAttachments field for type compatibility
-        const contextWithAttachments = { ...context, fileAttachments: [] };
-        await chatStateManager.restoreContextToCheckpoint(contextWithAttachments as any, params.checkpointId);
+        const { checkpoint } = found;
+
+        // 1. Restore workspace files from checkpoint snapshot
+        await restoreWorkspaceSnapshot(checkpoint);
+
+        // 2. Truncate thread history to this checkpoint
+        const restored = chatStateStorage.restoreThreadToCheckpoint(
+            workspaceId,
+            threadId,
+            params.checkpointId
+        );
+
+        if (!restored) {
+            throw new Error('Failed to restore thread to checkpoint');
+        }
+
+        console.log(`[RPC] Successfully restored checkpoint ${params.checkpointId}`);
     }
 
     async clearChat(): Promise<void> {
-        const projectId = await this.getProjectUuid();
-        chatStateManager.clearState(projectId);
-        runtimeStateManager.clearState();
+        // Get workspace identifier
+        const workspaceId = StateMachine.context().projectPath;
+
+        // Clear the workspace (all threads)
+        chatStateStorage.clearWorkspace(workspaceId);
+
+        console.log(`[RPC] Cleared chat for workspace: ${workspaceId}`);
     }
 
     async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
-        const projectId = await this.getProjectUuid();
-        const context = chatStateManager.loadState(projectId);
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = 'default';
 
-        if (!context) {
+        // The messageId is actually a generation ID
+        // This is called when streaming completes to save the final UI-formatted response
+        const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.messageId);
+
+        if (!generation) {
+            console.warn(`[RPC] Generation ${params.messageId} not found in thread ${threadId}`);
             return;
         }
 
-        const message = context.chatHistory?.find((m: any) => m.id === params.messageId);
-        if (message) {
-            message.content = params.content;
-            // Ensure fileAttachments field exists for type compatibility
-            const contextWithAttachments = { ...context, fileAttachments: [] };
-            chatStateManager.saveState(projectId, contextWithAttachments as any);
-        }
+        // Update the UI response with the final formatted content
+        chatStateStorage.updateGeneration(workspaceId, threadId, params.messageId, {
+            uiResponse: params.content
+        });
+
+        console.log(`[RPC] Updated generation ${params.messageId} UI response`);
     }
 }
 

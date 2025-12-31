@@ -32,15 +32,21 @@ export interface ToolRegistryOptions {
     projects: ProjectSource[];
     libraryDescriptions: string;
     generationType: GenerationType;
+    workspaceId: string;
+    generationId: string;
+    threadId?: string;
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, projectPath, modifiedFiles, projects, libraryDescriptions, generationType } = opts;
+    const { eventHandler, tempProjectPath, projectPath, modifiedFiles, projects, libraryDescriptions, generationType, workspaceId, generationId, threadId } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
             tempProjectPath,
-            modifiedFiles
+            modifiedFiles,
+            workspaceId,
+            generationId,
+            threadId || 'default'
         ),
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(
             libraryDescriptions,

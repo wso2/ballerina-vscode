@@ -18,7 +18,7 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import { CopilotEventHandler } from '../../utils/events';
 import { Task, TaskStatus, TaskTypes, Plan } from '@wso2/ballerina-core';
-import { runtimeStateManager } from '../../state/RuntimeStateManager';
+import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { integrateCodeToWorkspace } from '../utils';
 import { checkCompilationErrors } from './diagnostics-utils';
 import { DIAGNOSTICS_TOOL_NAME } from './diagnostics';
@@ -45,7 +45,14 @@ const TaskWriteInputSchema = z.object({
 
 export type TaskWriteInput = z.infer<typeof TaskWriteInputSchema>;
 
-export function createTaskWriteTool(eventHandler: CopilotEventHandler, tempProjectPath: string, modifiedFiles?: string[]) {
+export function createTaskWriteTool(
+    eventHandler: CopilotEventHandler,
+    tempProjectPath: string,
+    modifiedFiles: string[] | undefined,
+    workspaceId: string,
+    generationId: string,
+    threadId: string = 'default'
+) {
     return tool({
         description: `Create and update implementation tasks for the design plan.
 ## Task Ordering:
@@ -130,7 +137,8 @@ Rules:
         inputSchema: TaskWriteInputSchema,
         execute: async (input: TaskWriteInput): Promise<TaskWriteResult> => {
             try {
-                const existingPlan = runtimeStateManager.getCurrentPlan();
+                const generation = chatStateStorage.getGeneration(workspaceId, threadId, generationId);
+                const existingPlan = generation?.plan;
                 const allTasks = mapInputToTasks(input);
 
                 console.log(`[TaskWrite Tool] Received ${allTasks.length} task(s)`);
@@ -160,7 +168,7 @@ Rules:
                     const needsPlanApproval = (isNewPlan || isPlanRemodification) && taskCategories.inProgress.length === 0;
                     if (needsPlanApproval) {
                         approvalType = "plan";
-                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler);
+                        approvalResult = await handlePlanApproval(allTasks, isPlanRemodification, eventHandler, workspaceId, generationId, threadId);
                     } else if (taskCategories.completed.length > 0 && taskCategories.inProgress.length === 0) {
                         const newlyCompletedTasks = detectNewlyCompletedTasks(taskCategories.completed, existingPlan);
 
@@ -266,14 +274,20 @@ function createPlan(allTasks: Task[]): Plan {
 async function handlePlanApproval(
     allTasks: Task[],
     isPlanRemodification: boolean,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    workspaceId: string,
+    generationId: string,
+    threadId: string
 ): Promise<{ approved: boolean; comment?: string }> {
     console.log(`[TaskWrite Tool] ${isPlanRemodification ? 'Plan remodified' : 'Plan created'}`);
 
     const plan = createPlan(allTasks);
 
-    // Store plan in runtime state
-    runtimeStateManager.setCurrentPlan(plan);
+    // Store plan in ChatStateStorage with the generation
+    chatStateStorage.updateGeneration(workspaceId, threadId, generationId, { plan });
+
+    // Notify visualizer of plan update
+    eventHandler({ type: 'plan_updated', plan });
 
     // Use ApprovalManager for plan approval (replaces state machine subscription)
     const requestId = `plan-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
@@ -317,13 +331,7 @@ async function handleTaskCompletion(
         await integrateCodeToWorkspace(tempProjectPath, modifiedFilesSet, ctx);
     }
 
-    const isAutoApproveEnabled = runtimeStateManager.isAutoApproveEnabled();
-
-    if (isAutoApproveEnabled) {
-        console.log(`[TaskWrite Tool] Auto-approval enabled`);
-        return { approved: true, approvedTaskDescription: lastCompletedTask.description };
-    }
-
+    // Always request manual approval - visualizer will auto-respond if auto-approve is enabled
     return handleManualTaskApproval(allTasks, newlyCompletedTasks, lastCompletedTask, eventHandler);
 }
 

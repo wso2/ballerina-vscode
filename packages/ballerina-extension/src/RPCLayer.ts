@@ -38,6 +38,7 @@ import { StateMachinePopup } from './stateMachinePopup';
 import { registerAiAgentRpcHandlers } from './rpc-managers/ai-agent/rpc-handler';
 import { registerConnectorWizardRpcHandlers } from './rpc-managers/connector-wizard/rpc-handler';
 import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diagram/rpc-handler';
+import { chatStateStorage } from './views/ai-panel/chatStateStorage';
 import { registerDataMapperRpcHandlers } from './rpc-managers/data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
@@ -96,17 +97,24 @@ export class RPCLayer {
         // ----- AI Webview RPC Methods
         registerAiPanelRpcHandlers(RPCLayer._messenger);
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
-        // AIChatStateMachine removed - using event-driven architecture with RuntimeStateManager/ChatStateManager
+        // AIChatStateMachine removed - using event-driven architecture with ChatStateStorage
         RPCLayer._messenger.onRequest(sendAIChatStateEvent, (_event: AIChatMachineEventType | AIChatMachineSendableEvent) => {
             // No-op: State machine removed, events handled directly by executors
         });
         RPCLayer._messenger.onRequest(getAIChatContext, () => {
-            // Stub: Return minimal context for backward compatibility
+            const ctx = StateMachine.context();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get latest generation's plan from ChatStateStorage
+            const thread = chatStateStorage.getActiveThread(workspaceId);
+            const latestGeneration = thread?.generations[thread.generations.length - 1];
+
             return {
-                chatHistory: [],
-                currentPlan: undefined,
-                projectPath: '',
-                workspacePath: undefined
+                chatHistory: chatStateStorage.getChatHistoryForLLM(workspaceId, threadId),
+                currentPlan: latestGeneration?.plan,
+                projectPath: ctx.projectPath,
+                workspacePath: ctx.workspacePath,
             };
         });
         RPCLayer._messenger.onRequest(getAIChatUIHistory, () => {

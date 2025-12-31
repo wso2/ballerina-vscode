@@ -22,6 +22,7 @@ import {
     Generation,
     GenerationMetadata,
     GenerationReviewState,
+    Checkpoint,
 } from '@wso2/ballerina-core/lib/state-machine-types';
 import * as crypto from 'crypto';
 
@@ -366,6 +367,116 @@ class ChatStateStorage {
 
         thread.updatedAt = Date.now();
         console.log(`[ChatStateStorage] Declined ${count} review(s) in thread: ${threadId}`);
+    }
+
+    // ============================================
+    // Checkpoint Management
+    // ============================================
+
+    /**
+     * Get all checkpoints for a thread (across all generations)
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Array of checkpoints in chronological order
+     */
+    getCheckpoints(workspaceId: string, threadId: string): Checkpoint[] {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const checkpoints: Checkpoint[] = [];
+
+        for (const generation of thread.generations) {
+            if (generation.checkpoint) {
+                checkpoints.push(generation.checkpoint);
+            }
+        }
+
+        return checkpoints;
+    }
+
+    /**
+     * Find checkpoint by ID
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param checkpointId Checkpoint identifier
+     * @returns Checkpoint and its generation, or undefined
+     */
+    findCheckpoint(
+        workspaceId: string,
+        threadId: string,
+        checkpointId: string
+    ): { checkpoint: Checkpoint; generation: Generation } | undefined {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+
+        for (const generation of thread.generations) {
+            if (generation.checkpoint?.id === checkpointId) {
+                return { checkpoint: generation.checkpoint, generation };
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Add checkpoint to a generation
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param generationId Generation identifier
+     * @param checkpoint Checkpoint to add
+     */
+    addCheckpointToGeneration(
+        workspaceId: string,
+        threadId: string,
+        generationId: string,
+        checkpoint: Checkpoint
+    ): void {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+        const generation = thread.generations.find(g => g.id === generationId);
+
+        if (!generation) {
+            console.error(`[ChatStateStorage] Generation not found: ${generationId}`);
+            return;
+        }
+
+        generation.checkpoint = checkpoint;
+        thread.updatedAt = Date.now();
+
+        console.log(`[ChatStateStorage] Added checkpoint ${checkpoint.id} to generation ${generationId}`);
+    }
+
+    /**
+     * Restore thread to a checkpoint (truncate generations after checkpoint)
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param checkpointId Checkpoint identifier
+     * @returns true if restored, false if checkpoint not found
+     */
+    restoreThreadToCheckpoint(
+        workspaceId: string,
+        threadId: string,
+        checkpointId: string
+    ): boolean {
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+
+        // Find the generation containing this checkpoint
+        let checkpointGenerationIndex = -1;
+        for (let i = 0; i < thread.generations.length; i++) {
+            if (thread.generations[i].checkpoint?.id === checkpointId) {
+                checkpointGenerationIndex = i;
+                break;
+            }
+        }
+
+        if (checkpointGenerationIndex === -1) {
+            console.error(`[ChatStateStorage] Checkpoint ${checkpointId} not found in thread ${threadId}`);
+            return false;
+        }
+
+        // Truncate generations after the checkpoint
+        // Keep the generation WITH the checkpoint, remove everything after
+        thread.generations = thread.generations.slice(0, checkpointGenerationIndex + 1);
+        thread.updatedAt = Date.now();
+
+        console.log(`[ChatStateStorage] Restored thread to checkpoint ${checkpointId}, kept ${thread.generations.length} generation(s)`);
+        return true;
     }
 
     // ============================================
