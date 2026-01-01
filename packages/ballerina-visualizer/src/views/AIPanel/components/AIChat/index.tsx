@@ -233,7 +233,10 @@ const AIChat: React.FC = () => {
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
+            // Call backend to restore checkpoint (files + chat history)
             await rpcClient.getAiPanelRpcClient().restoreCheckpoint({ checkpointId });
+
+            // Fetch updated messages from backend
             const updatedMessages = await rpcClient.getAIChatUIHistory();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
@@ -242,12 +245,10 @@ const AIChat: React.FC = () => {
             const context = await rpcClient.getAIChatContext();
             if (context && context.checkpoints) {
                 const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] After restore - available checkpoint IDs:", checkpointIds);
                 setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] After restore - no checkpoints in context");
             }
 
+            // Reset UI state
             setIsLoading(false);
             setIsCodeLoading(false);
             setTestGenIntermediaryState(null);
@@ -256,6 +257,7 @@ const AIChat: React.FC = () => {
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            setShowReviewActions(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
@@ -271,10 +273,7 @@ const AIChat: React.FC = () => {
                 // Update available checkpoint IDs
                 if (context && context.checkpoints) {
                     const checkpointIds = context.checkpoints.map(cp => cp.id);
-                    console.log("[Checkpoint] Initializing available checkpoint IDs:", checkpointIds);
                     setAvailableCheckpointIds(new Set(checkpointIds));
-                } else {
-                    console.log("[Checkpoint] No checkpoints found during initialization");
                 }
             } catch (error) {
                 console.error("[AIChat] Failed to initialize auto-approve state:", error);
@@ -320,17 +319,14 @@ const AIChat: React.FC = () => {
 
     rpcClient?.onAIChatStateChanged(async (newState: AIChatMachineStateValue) => {
         setAiChatStateMachineState(newState);
-        
+
         // Update context when state changes
         try {
             const context = await rpcClient.getAIChatContext();
             // Update available checkpoint IDs
             if (context && context.checkpoints) {
                 const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] State changed - updating available checkpoint IDs:", checkpointIds);
                 setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] State changed - no checkpoints in context");
             }
         } catch (error) {
             console.error("[AIChat] Failed to update review actions state:", error);
@@ -359,11 +355,7 @@ const AIChat: React.FC = () => {
             const context = await rpcClient.getAIChatContext();
             if (context && context.checkpoints) {
                 const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] Checkpoint captured - new checkpoint ID:", payload.checkpointId);
-                console.log("[Checkpoint] Available checkpoint IDs after capture:", checkpointIds);
                 setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] Checkpoint captured but no checkpoints in context");
             }
         } catch (error) {
             console.error("[AIChat] Failed to update available checkpoint IDs:", error);
@@ -1221,6 +1213,7 @@ const AIChat: React.FC = () => {
     async function handleClearChat(): Promise<void> {
         setMessages([]);
         setApprovalRequest(null);
+        setShowReviewActions(false);
 
         await rpcClient.getAiPanelRpcClient().clearChat();
     }
@@ -1560,7 +1553,6 @@ const AIChat: React.FC = () => {
                                                 message.role === "User" && message.checkpointId ? (() => {
                                                     const isCheckpointAvailable = availableCheckpointIds.has(message.checkpointId);
                                                     const isDisabled = isLoading || !isCheckpointAvailable;
-                                                    console.log(`[Checkpoint] Rendering button - checkpointId: ${message.checkpointId}, isAvailable: ${isCheckpointAvailable}, isLoading: ${isLoading}, isDisabled: ${isDisabled}, availableIds:`, Array.from(availableCheckpointIds));
                                                     return (
                                                         <CheckpointButton
                                                             checkpointId={message.checkpointId}
@@ -1672,6 +1664,7 @@ const AIChat: React.FC = () => {
                                                 <ReviewActions
                                                     key={`review-actions-${i}`}
                                                     rpcClient={rpcClient}
+                                                    onReviewActionsChange={setShowReviewActions}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Attachment) {
