@@ -359,6 +359,7 @@ export interface PlanUpdated {
 export const stateChanged: NotificationType<MachineStateValue> = { method: 'stateChanged' };
 export const onDownloadProgress: NotificationType<DownloadProgress> = { method: 'onDownloadProgress' };
 export const onChatNotify: NotificationType<ChatNotify> = { method: 'onChatNotify' };
+export const onHideReviewActions: NotificationType<void> = { method: 'onHideReviewActions' };
 export const onMigrationToolLogs: NotificationType<string> = { method: 'onMigrationToolLogs' };
 export const onMigrationToolStateChanged: NotificationType<string> = { method: 'onMigrationToolStateChanged' };
 export const onMigratedProject: NotificationType<ProjectMigrationResult> = { method: 'onMigratedProject' };

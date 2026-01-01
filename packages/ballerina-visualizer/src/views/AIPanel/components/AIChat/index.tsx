@@ -297,6 +297,15 @@ const AIChat: React.FC = () => {
         checkPlanModeFeatureEnabled();
     }, [rpcClient]);
 
+    useEffect(() => {
+        const handleHideReviewActions = () => {
+            console.log("[AIChat] Received hideReviewActions notification from extension");
+            setShowReviewActions(false);
+        };
+
+        rpcClient.onHideReviewActions(handleHideReviewActions);
+    }, [rpcClient]);
+
     /**
      * Effect: Load initial chat history from aiChatMachine context
      */

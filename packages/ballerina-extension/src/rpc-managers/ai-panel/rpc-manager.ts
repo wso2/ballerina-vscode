@@ -73,6 +73,7 @@ import { ExtendedLangClient } from "src/core";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
+import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { extension } from "../../BalExtensionContext";
 import { getSelectedLibraries } from "../../features/ai/agent/tools/healthcare-library";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
@@ -103,6 +104,8 @@ import { fetchData } from "./utils/fetch-data-utils";
 import { AgentExecutor } from '../../features/ai/agent/AgentExecutor';
 import { createExecutionContextFromStateMachine } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { RPCLayer } from '../../RPCLayer';
+import { onHideReviewActions } from '@wso2/ballerina-core';
 import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
 import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
 import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
@@ -219,7 +222,16 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
-        const defaultPrompt = extension.aiChatDefaultPrompt;
+        let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
+        
+        // Normalize code context to use relative paths
+        if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
+            defaultPrompt = {
+                ...defaultPrompt,
+                codeContext: normalizeCodeContext(defaultPrompt.codeContext)
+            };
+        }
+        
         return new Promise((resolve) => {
             resolve(defaultPrompt);
         });
@@ -831,6 +843,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as accepted
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
+
+            // Notify AI panel webview to hide review actions
+            RPCLayer._messenger.sendNotification(onHideReviewActions, {
+                type: 'webview',
+                webviewType: 'ballerina.ai-panel'
+            });
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
             throw error;
@@ -862,6 +880,12 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
+
+            // Notify AI panel webview to hide review actions
+            RPCLayer._messenger.sendNotification(onHideReviewActions, {
+                type: 'webview',
+                webviewType: 'ballerina.ai-panel'
+            });
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
             throw error;
