@@ -68,7 +68,8 @@ import {
     dependencyPullProgress,
     ProjectMigrationResult,
     onMigratedProject,
-    refreshReviewMode
+    refreshReviewMode,
+    onHideReviewActions
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -300,5 +301,9 @@ export class BallerinaRpcClient {
 
     onRefreshReviewMode(callback: () => void) {
         this.messenger.onNotification(refreshReviewMode, callback);
+    }
+
+    onHideReviewActions(callback: () => void) {
+        this.messenger.onNotification(onHideReviewActions, callback);
     }
 }
