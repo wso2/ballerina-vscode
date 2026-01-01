@@ -110,16 +110,49 @@ export class RPCLayer {
             const thread = chatStateStorage.getActiveThread(workspaceId);
             const latestGeneration = thread?.generations[thread.generations.length - 1];
 
-            return {
+            // Get checkpoints from ChatStateStorage
+            const checkpoints = chatStateStorage.getCheckpoints(workspaceId, threadId);
+
+            const result = {
                 chatHistory: chatStateStorage.getChatHistoryForLLM(workspaceId, threadId),
                 currentPlan: latestGeneration?.plan,
                 projectPath: ctx.projectPath,
                 workspacePath: ctx.workspacePath,
+                checkpoints: checkpoints,
             };
+
+            return result;
         });
         RPCLayer._messenger.onRequest(getAIChatUIHistory, () => {
-            // Stub: Return empty history for backward compatibility
-            return [];
+            const ctx = StateMachine.context();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get all generations from chat storage
+            const generations = chatStateStorage.getGenerations(workspaceId, threadId);
+
+            // Convert generations to UI messages format
+            const uiMessages = [];
+            for (const generation of generations) {
+                // Add user message
+                uiMessages.push({
+                    role: 'user',
+                    content: generation.userPrompt,
+                    checkpointId: generation.checkpoint?.id,
+                    messageId: generation.id
+                });
+
+                // Add assistant message if available
+                if (generation.uiResponse) {
+                    uiMessages.push({
+                        role: 'assistant',
+                        content: generation.uiResponse,
+                        messageId: generation.id
+                    });
+                }
+            }
+
+            return uiMessages;
         });
 
         // ----- Data Mapper Webview RPC Methods

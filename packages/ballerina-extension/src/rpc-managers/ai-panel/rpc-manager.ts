@@ -895,7 +895,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
         // Get workspace and thread identifiers
         const workspaceId = StateMachine.context().projectPath;
-        const threadId = 'default'; // Using default thread for now
+        const threadId = 'default';
 
         // Find the checkpoint
         const found = chatStateStorage.findCheckpoint(workspaceId, threadId, params.checkpointId);
@@ -919,8 +919,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         if (!restored) {
             throw new Error('Failed to restore thread to checkpoint');
         }
-
-        console.log(`[RPC] Successfully restored checkpoint ${params.checkpointId}`);
     }
 
     async clearChat(): Promise<void> {
