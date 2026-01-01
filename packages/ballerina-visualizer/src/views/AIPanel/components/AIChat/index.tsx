@@ -55,7 +55,7 @@ import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import RoleContainer from "../RoleContainter";
-import CheckpointButton from "../CheckpointButton";
+import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
@@ -1545,23 +1545,21 @@ const AIChat: React.FC = () => {
                             );
                             return (
                                 <ChatMessage key={index}>
+                                    {/* Checkpoint separator before user messages */}
+                                    {message.role === "User" && message.checkpointId && (
+                                        <CheckpointSeparator
+                                            checkpointId={message.checkpointId}
+                                            isAvailable={availableCheckpointIds.has(message.checkpointId)}
+                                            isDisabled={isLoading}
+                                            onRestore={handleCheckpointRestore}
+                                        />
+                                    )}
+
+                                    {/* Message header */}
                                     {message.type !== "question" && message.type !== "label" && (
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            checkpointButton={
-                                                message.role === "User" && message.checkpointId ? (() => {
-                                                    const isCheckpointAvailable = availableCheckpointIds.has(message.checkpointId);
-                                                    const isDisabled = isLoading || !isCheckpointAvailable;
-                                                    return (
-                                                        <CheckpointButton
-                                                            checkpointId={message.checkpointId}
-                                                            onRestore={handleCheckpointRestore}
-                                                            disabled={isDisabled}
-                                                        />
-                                                    );
-                                                })() : undefined
-                                            }
                                         />
                                     )}
                                     {segmentedContent.map((segment, i) => {
