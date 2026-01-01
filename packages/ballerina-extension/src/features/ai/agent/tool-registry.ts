@@ -75,6 +75,6 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [FILE_READ_TOOL_NAME]: createReadTool(
             createReadExecute(eventHandler, tempProjectPath)
         ),
-        [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
+        [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath, eventHandler),
     };
 }
