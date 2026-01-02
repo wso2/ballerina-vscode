@@ -24,7 +24,6 @@ import {
     onChatNotify,
     ProjectSource,
     SourceFile,
-    TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
     Command,
@@ -224,7 +223,7 @@ export function sendMessageStartNotification(): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendIntermidateStateNotification(intermediaryState: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState): void {
+export function sendIntermidateStateNotification(intermediaryState: DocumentationGeneratorIntermediaryState): void {
     const msg: IntermidaryState = {
         type: "intermediary_state",
         state: intermediaryState,
@@ -344,28 +343,4 @@ export function isHttpPayloadContext(context: PayloadContext): context is HttpPa
 
 export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
     return context.protocol === "MESSAGE_BROKER";
-}
-
-/**
- * Parses XML-formatted assistant response to extract source files.
- * Extracts code blocks with format: <code filename="...">```ballerina...```</code>
- *
- * @param xmlString - The assistant response containing XML code blocks
- * @returns Array of SourceFile objects parsed from the XML
- */
-export function parseSourceFilesFromXML(xmlString: string): SourceFile[] {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(xmlString)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({
-            filePath,
-            content: fileContent
-        });
-    }
-
-    return sourceFiles;
 }

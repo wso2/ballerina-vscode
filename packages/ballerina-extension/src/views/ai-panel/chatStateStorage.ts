@@ -33,7 +33,7 @@ import * as crypto from 'crypto';
  * Stores workspace -> threads -> generations hierarchy.
  * Session-only storage (cleared when VSCode closes).
  */
-class ChatStateStorage {
+export class ChatStateStorage {
     // In-memory storage: workspaceId -> WorkspaceChatState
     private storage: Map<string, WorkspaceChatState> = new Map();
 
@@ -593,6 +593,3 @@ class ChatStateStorage {
 
 // Singleton export
 export const chatStateStorage = new ChatStateStorage();
-
-// Keep legacy export for backward compatibility during migration
-export const sessionStorage = chatStateStorage;

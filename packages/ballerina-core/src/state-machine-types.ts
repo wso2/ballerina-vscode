@@ -22,7 +22,7 @@ import { Command } from "./interfaces/ai-panel";
 import { LinePosition } from "./interfaces/common";
 import { ProjectInfo, ProjectMigrationResult, Type } from "./interfaces/extended-lang-client";
 import { CodeData, DIRECTORY_MAP, ProjectStructureArtifactResponse, ProjectStructureResponse } from "./interfaces/bi";
-import { DiagnosticEntry, TestGeneratorIntermediaryState, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
+import { DiagnosticEntry, DocumentationGeneratorIntermediaryState, SourceFile, CodeContext, FileAttatchment } from "./rpc-types/ai-panel/interfaces";
 
 export type MachineStateValue =
     | 'initialize'
@@ -238,7 +238,7 @@ export interface ChatStart {
 
 export interface IntermidaryState {
     type: "intermediary_state";
-    state: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState;
+    state: DocumentationGeneratorIntermediaryState;
 }
 
 //TODO: Maybe rename content_block to content_append?
@@ -429,51 +429,6 @@ export type AIMachineSendableEvent =
         : { type: K; payload: AIMachineEventMap[K] }
     }[keyof AIMachineEventMap];
 
-export type AIChatMachineStateValue =
-    | 'Idle'
-    | 'Initiating'
-    | 'GeneratingPlan'
-    | 'ResumingGeneration'
-    | 'PlanReview'
-    | 'ApprovedPlan'
-    | 'ExecutingTask'
-    | 'ExecutingDatamapper'
-    | 'TaskReview'
-    | 'ApprovedTask'
-    | 'RejectedTask'
-    | 'WaitingForConnectorSpec'
-    | 'Completed'
-    | 'PartiallyCompleted'
-    | 'Error';
-
-export enum AIChatMachineEventType {
-    SUBMIT_AGENT_PROMPT = 'SUBMIT_AGENT_PROMPT',
-    SUBMIT_DATAMAPPER_REQUEST = 'SUBMIT_DATAMAPPER_REQUEST',
-    UPDATE_CHAT_MESSAGE = 'UPDATE_CHAT_MESSAGE',
-    RESET = 'RESET',
-    PLANNING_STARTED = 'PLANNING_STARTED',
-    DATAMAPPER_GENERATION_STARTED = 'DATAMAPPER_GENERATION_STARTED',
-    PLAN_GENERATED = 'PLAN_GENERATED',
-    APPROVE_PLAN = 'APPROVE_PLAN',
-    REJECT_PLAN = 'REJECT_PLAN',
-    START_TASK_EXECUTION = 'START_TASK_EXECUTION',
-    TASK_COMPLETED = 'TASK_COMPLETED',
-    FINISH_EXECUTION = 'FINISH_EXECUTION',
-    APPROVE_TASK = 'APPROVE_TASK',
-    ENABLE_AUTO_APPROVE = 'ENABLE_AUTO_APPROVE',
-    DISABLE_AUTO_APPROVE = 'DISABLE_AUTO_APPROVE',
-    REJECT_TASK = 'REJECT_TASK',
-    RESTORE_STATE = 'RESTORE_STATE',
-    RESTORE_CHECKPOINT = 'RESTORE_CHECKPOINT',
-    ERROR = 'ERROR',
-    RETRY = 'RETRY',
-    CONNECTOR_GENERATION_REQUESTED = 'CONNECTOR_GENERATION_REQUESTED',
-    PROVIDE_CONNECTOR_SPEC = 'PROVIDE_CONNECTOR_SPEC',
-    SKIP_CONNECTOR_GENERATION = 'SKIP_CONNECTOR_GENERATION',
-    SHOW_REVIEW_ACTIONS = 'SHOW_REVIEW_ACTIONS',
-    HIDE_REVIEW_ACTIONS = 'HIDE_REVIEW_ACTIONS',
-}
-
 export interface ChatMessage {
     id: string;
     content: string;
@@ -633,63 +588,6 @@ export interface UserApproval {
 
 export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
 
-export interface AIChatMachineContext {
-    chatHistory: ChatMessage[];
-    currentPlan?: Plan;
-    currentTaskIndex: number;
-    currentQuestion?: Question;
-    errorMessage?: string;
-    sessionId?: string;
-    projectId?: string;
-    currentApproval?: UserApproval;
-    autoApproveEnabled?: boolean;
-    isPlanMode?: boolean;
-    codeContext?: CodeContext;
-    fileAttachments: FileAttatchment[];
-    currentSpec?: {
-        requestId: string;
-        spec?: any;
-        provided?: boolean;
-        skipped?: boolean;
-        comment?: string;
-    };
-    previousState?: AIChatMachineStateValue;
-    checkpoints?: Checkpoint[];
-    // Generation type field
-    generationType?: 'agent' | 'datamapper';
-    // Command execution fields
-    commandType?: string;
-    modifiedFiles?: string[];
-    commandParams?: any;
-    operationType?: OperationType;
-}
-
-export type AIChatMachineSendableEvent =
-    | { type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT; payload: { prompt: string; isPlanMode: boolean; codeContext?: CodeContext, operationType?: OperationType, fileAttachments?: FileAttatchment[] } }
-    | { type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST; payload: { datamapperType: 'function' | 'inline' | 'contextTypes'; params: any; userMessage?: string } }
-    | { type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE; payload: { id: string; modelMessages?: any[]; uiResponse?: string } }
-    | { type: AIChatMachineEventType.PLANNING_STARTED }
-    | { type: AIChatMachineEventType.DATAMAPPER_GENERATION_STARTED }
-    | { type: AIChatMachineEventType.PLAN_GENERATED; payload: { plan: Plan } }
-    | { type: AIChatMachineEventType.APPROVE_PLAN; payload?: { comment?: string } }
-    | { type: AIChatMachineEventType.REJECT_PLAN; payload: { comment?: string } }
-    | { type: AIChatMachineEventType.START_TASK_EXECUTION }
-    | { type: AIChatMachineEventType.TASK_COMPLETED }
-    | { type: AIChatMachineEventType.FINISH_EXECUTION }
-    | { type: AIChatMachineEventType.APPROVE_TASK; payload?: { comment?: string; lastApprovedTaskIndex?: number } }
-    | { type: AIChatMachineEventType.ENABLE_AUTO_APPROVE }
-    | { type: AIChatMachineEventType.DISABLE_AUTO_APPROVE }
-    | { type: AIChatMachineEventType.REJECT_TASK; payload: { comment?: string } }
-    | { type: AIChatMachineEventType.RESET }
-    | { type: AIChatMachineEventType.RESTORE_STATE; payload: { state: AIChatMachineContext } }
-    | { type: AIChatMachineEventType.RESTORE_CHECKPOINT; payload: { checkpointId: string } }
-    | { type: AIChatMachineEventType.ERROR; payload: { message: string } }
-    | { type: AIChatMachineEventType.RETRY }
-    | { type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED; payload: { requestId: string; serviceName?: string; serviceDescription?: string; fromState?: AIChatMachineStateValue } }
-    | { type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC; payload: { requestId: string; spec: any; inputMethod: 'file' | 'paste' | 'url'; sourceIdentifier?: string } }
-    | { type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION; payload: { requestId: string; comment?: string } }
-    | { type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS }
-    | { type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS };
 
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
@@ -760,21 +658,12 @@ export enum ColorThemeKind {
     HighContrastLight = 4
 }
 
-export interface UIChatHistoryMessage {
-    role: "user" | "assistant";
-    content: string;
-    checkpointId?: string;
-    messageId?: string;
-}
+// Type alias for backward compatibility - use UIChatMessage from rpc-types/ai-panel instead
+export type { UIChatMessage as UIChatHistoryMessage } from "./rpc-types/ai-panel/interfaces";
 
 export const aiStateChanged: NotificationType<AIMachineStateValue> = { method: 'aiStateChanged' };
 export const sendAIStateEvent: RequestType<AIMachineEventType | AIMachineSendableEvent, void> = { method: 'sendAIStateEvent' };
 export const currentThemeChanged: NotificationType<ColorThemeKind> = { method: 'currentThemeChanged' };
-
-export const aiChatStateChanged: NotificationType<AIChatMachineStateValue> = { method: 'aiChatStateChanged' };
-export const sendAIChatStateEvent: RequestType<AIChatMachineEventType | AIChatMachineSendableEvent, void> = { method: 'sendAIChatStateEvent' };
-export const getAIChatContext: RequestType<void, AIChatMachineContext> = { method: 'getAIChatContext' };
-export const getAIChatUIHistory: RequestType<void, UIChatHistoryMessage[]> = { method: 'getAIChatUIHistory' };
 
 export interface CheckpointCapturedPayload {
     messageId: string;

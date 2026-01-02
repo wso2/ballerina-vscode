@@ -36,20 +36,6 @@ export interface AIMachineSnapshot {
     context: AIMachineContext;
 }
 
-export type ErrorCode = {
-    code: number;
-    message: string;
-}
-
-export interface FetchDataRequest {
-    url: string;
-    options: RequestInit;
-}
-
-export interface FetchDataResponse {
-    response: Response
-}
-
 export interface ProjectSource {
     projectModules?: ProjectModule[];
     projectTests?: SourceFile[];
@@ -75,10 +61,6 @@ export interface GetModuleDirParams {
     moduleName: string;
 }
 
-export interface ProjectDiagnostics {
-    diagnostics: DiagnosticEntry[];
-}
-
 export interface MappingDiagnostics {
     uri: string;
     diagnostics: DiagnosticEntry[];
@@ -90,12 +72,6 @@ export interface DiagnosticEntry {
     code?: string;
 }
 
-export interface AddToProjectRequest {
-    filePath: string;
-    content: string;
-    isTestCode: boolean;
-}
-
 export interface AddFilesToProjectRequest {
     fileChanges: FileChanges[];
 }
@@ -103,14 +79,6 @@ export interface AddFilesToProjectRequest {
 export interface FileChanges {
     filePath: string;
     content: string;
-}
-
-export interface GetFromFileRequest {
-    filePath: string;
-}
-
-export interface DeleteFromProjectRequest {
-    filePath: string;
 }
 
 export interface ProjectImports {
@@ -238,39 +206,8 @@ export interface RepairCodeResponse {
     repairedMappings: RepairedMapping[];
 }
 
-// Test-generator related interfaces
-export enum TestGenerationTarget {
-    Service = "service",
-    Function = "function"
-}
-
-export interface TestGenerationRequest {
-    targetType: TestGenerationTarget;
-    targetIdentifier: string;
-    testPlan?: string;
-    diagnostics?: ProjectDiagnostics;
-    existingTests?: string;
-}
-
-export interface TestGenerationResponse {
-    testSource: string;
-    testConfig?: string;
-}
-
-export interface TestPlanGenerationRequest {
-    targetType: TestGenerationTarget;
-    targetSource: string;
-    target : string;
-}
-
 export interface TestGenerationMentions {
     mentions: string[];
-}
-
-export interface TestGeneratorIntermediaryState {
-    // content: [string, Attachment[]];
-    resourceFunction: string;
-    testPlan: string;
 }
 
 export interface DocumentationGeneratorIntermediaryState {
@@ -278,26 +215,6 @@ export interface DocumentationGeneratorIntermediaryState {
     documentation: string;
     projectSource: ProjectSource;
     openApiSpec?: string;
-}
-
-export interface PostProcessRequest {
-    sourceFiles: SourceFile[];
-    updatedFileNames: string[];
-}
-
-export interface PostProcessResponse {
-    sourceFiles: SourceFile[];
-    diagnostics: ProjectDiagnostics;
-}
-
-export interface AIChatSummary {
-    filepath: string;
-    summary: string;
-}
-
-export interface DeveloperDocument {
-    filepath: string;
-    content: string;
 }
 
 export interface RequirementSpecification {
@@ -354,14 +271,6 @@ export interface FeedbackMessage {
     role : string;
 }
 
-export interface RelevantLibrariesAndFunctionsRequest {
-    query: string;
-}
-
-export interface RelevantLibrariesAndFunctionsResponse {
-    libraries: any[];
-}
-
 export interface ChatEntry {
     actor: string;
     message: string;
@@ -388,14 +297,6 @@ export type CodeContext =
     | { type: 'addition'; position: LinePosition, filePath: string }
     | { type: 'selection'; startPosition: LinePosition; endPosition: LinePosition, filePath: string };
 
-export interface GenerateCodeRequest {
-    usecase: string;
-    chatHistory: ChatEntry[];
-    operationType: OperationType;
-    fileAttachmentContents: FileAttatchment[];
-    codeContext?: CodeContext;
-}
-
 export interface GenerateAgentCodeRequest {
     usecase: string;
     operationType?: OperationType;
@@ -403,20 +304,6 @@ export interface GenerateAgentCodeRequest {
     threadId?: string; //TODO: Make this required once we support threads in UI
     isPlanMode: boolean;
     codeContext?: CodeContext;
-}
-
-export interface RepairParams {
-    previousMessages: any[];
-    assistantResponse?: string; // XML format with code blocks
-    sourceFiles?: SourceFile[]; // Optional: parsed from assistantResponse if not provided
-    updatedFileNames: string[];
-    diagnostics: DiagnosticEntry[];
-}
-
-export interface RepairResponse {
-    sourceFiles: SourceFile[];
-    updatedFileNames: string[];
-    diagnostics: DiagnosticEntry[];
 }
 
 export type LibraryMode = "CORE" | "HEALTHCARE";
@@ -540,4 +427,33 @@ export interface ConnectorSpecRequest {
 export interface ConnectorSpecCancelRequest {
     requestId: string;
     comment?: string;
+}
+
+export type ErrorCode = {
+    code: number;
+    message: string;
+}
+
+// ==================================
+// Chat State Interfaces (for RPC)
+// ==================================
+
+/**
+ * UI-formatted chat message for display
+ */
+export interface UIChatMessage {
+    role: "user" | "assistant";
+    content: string;
+    checkpointId?: string;
+    messageId?: string;
+}
+
+/**
+ * Checkpoint metadata for time-travel functionality
+ */
+export interface CheckpointInfo {
+    id: string;
+    messageId: string;
+    timestamp: number;
+    snapshotSize: number;
 }

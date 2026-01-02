@@ -17,30 +17,14 @@
  */
 import { LoginMethod } from "../../state-machine-types";
 import {
-    GetFromFileRequest,
-    DeleteFromProjectRequest,
-    ProjectSource,
-    ProjectDiagnostics,
-    PostProcessRequest,
-    PostProcessResponse,
-    FetchDataRequest,
-    FetchDataResponse,
     TestGenerationMentions,
-    AIChatSummary,
-    DeveloperDocument,
     RequirementSpecification,
     LLMDiagnostics,
     AIPanelPrompt,
     AIMachineSnapshot,
     SubmitFeedbackRequest,
-    RelevantLibrariesAndFunctionsRequest,
     GenerateOpenAPIRequest,
-    GenerateCodeRequest,
     GenerateAgentCodeRequest,
-    TestPlanGenerationRequest,
-    TestGeneratorIntermediaryState,
-    RepairParams,
-    RelevantLibrariesAndFunctionsResponse,
     DocGenerationRequest,
     AddFilesToProjectRequest,
     MetadataWithAttachments,
@@ -55,61 +39,35 @@ import {
     TaskDeclineRequest,
     ConnectorSpecRequest,
     ConnectorSpecCancelRequest,
+    UIChatMessage,
+    CheckpointInfo,
 } from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
     // General Functions
     // ==================================
-    getBackendUrl: () => Promise<string>;
-    getProjectUuid: () => Promise<string>;
     getLoginMethod: () => Promise<LoginMethod>;
-    getAccessToken: () => Promise<string>;
-    getRefreshedAccessToken: () => Promise<string>;
-    getDefaultPrompt: () => Promise<AIPanelPrompt>;
-    getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
-    fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    getFromFile: (params: GetFromFileRequest) => Promise<string>;
-    getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
-    deleteFromProject: (params: DeleteFromProjectRequest) => void;
-    getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
-    checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
-    clearInitialPrompt: () => void;
+    getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
+    getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
+    clearInitialPrompt: () => void; //starting args
     // Data-mapper related functions
     openChatWindowWithCommand: () => void;
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
     generateMappingCode: (params: ProcessMappingParametersRequest) => void;
     generateInlineMappingCode: (params: MetadataWithAttachments) => void;
     getServiceNames: () => Promise<TestGenerationMentions>;
-    abortTestGeneration: () => void;
-    applyDoOnFailBlocks: () => void;
-    postProcess: (params: PostProcessRequest) => Promise<PostProcessResponse>;
     promptGithubAuthorize: () => Promise<boolean>;
-    promptWSO2AILogout: () => Promise<boolean>;
     isCopilotSignedIn: () => Promise<boolean>;
     showSignInAlert: () => Promise<boolean>;
     markAlertShown: () => void;
     getFromDocumentation: (params: string) => Promise<string>;
-    isRequirementsSpecificationFileExist: (params: string) => Promise<boolean>;
     getDriftDiagnosticContents: () => Promise<LLMDiagnostics>;
-    addChatSummary: (params: AIChatSummary) => Promise<boolean>;
-    handleChatSummaryError: (params: string) => void;
-    isNaturalProgrammingDirectoryExists: (params: string) => Promise<boolean>;
-    readDeveloperMdFile: (params: string) => Promise<string>;
-    updateDevelopmentDocument: (params: DeveloperDocument) => void;
     updateRequirementSpecification: (params: RequirementSpecification) => void;
     createTestDirecoryIfNotExists: () => void;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
-    getRelevantLibrariesAndFunctions: (
-        params: RelevantLibrariesAndFunctionsRequest
-    ) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
-    generateCode: (params: GenerateCodeRequest) => void;
     generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
-    repairGeneratedCode: (params: RepairParams) => void;
-    generateTestPlan: (params: TestPlanGenerationRequest) => void;
-    generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
-    generateHealthcareCode: (params: GenerateCodeRequest) => void;
     abortAIGeneration: () => void;
     // ==================================
     // Doc Generation Related Functions
@@ -135,6 +93,8 @@ export interface AIPanelAPI {
     // ==================================
     // Chat State Management
     // ==================================
+    getChatMessages: () => Promise<UIChatMessage[]>;
+    getCheckpoints: () => Promise<CheckpointInfo[]>;
     restoreCheckpoint: (params: RestoreCheckpointRequest) => Promise<void>;
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;

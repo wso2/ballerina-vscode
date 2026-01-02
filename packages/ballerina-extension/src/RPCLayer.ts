@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, getAIChatUIHistory, AIChatMachineEventType, AIChatMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -38,7 +38,6 @@ import { StateMachinePopup } from './stateMachinePopup';
 import { registerAiAgentRpcHandlers } from './rpc-managers/ai-agent/rpc-handler';
 import { registerConnectorWizardRpcHandlers } from './rpc-managers/connector-wizard/rpc-handler';
 import { registerSequenceDiagramRpcHandlers } from './rpc-managers/sequence-diagram/rpc-handler';
-import { chatStateStorage } from './views/ai-panel/chatStateStorage';
 import { registerDataMapperRpcHandlers } from './rpc-managers/data-mapper/rpc-handler';
 import { registerTestManagerRpcHandlers } from './rpc-managers/test-manager/rpc-handler';
 import { registerIcpServiceRpcHandlers } from './rpc-managers/icp-service/rpc-handler';
@@ -97,63 +96,6 @@ export class RPCLayer {
         // ----- AI Webview RPC Methods
         registerAiPanelRpcHandlers(RPCLayer._messenger);
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
-        // AIChatStateMachine removed - using event-driven architecture with ChatStateStorage
-        RPCLayer._messenger.onRequest(sendAIChatStateEvent, (_event: AIChatMachineEventType | AIChatMachineSendableEvent) => {
-            // No-op: State machine removed, events handled directly by executors
-        });
-        RPCLayer._messenger.onRequest(getAIChatContext, () => {
-            const ctx = StateMachine.context();
-            const workspaceId = ctx.projectPath;
-            const threadId = 'default';
-
-            // Get latest generation's plan from ChatStateStorage
-            const thread = chatStateStorage.getActiveThread(workspaceId);
-            const latestGeneration = thread?.generations[thread.generations.length - 1];
-
-            // Get checkpoints from ChatStateStorage
-            const checkpoints = chatStateStorage.getCheckpoints(workspaceId, threadId);
-
-            const result = {
-                chatHistory: chatStateStorage.getChatHistoryForLLM(workspaceId, threadId),
-                currentPlan: latestGeneration?.plan,
-                projectPath: ctx.projectPath,
-                workspacePath: ctx.workspacePath,
-                checkpoints: checkpoints,
-            };
-
-            return result;
-        });
-        RPCLayer._messenger.onRequest(getAIChatUIHistory, () => {
-            const ctx = StateMachine.context();
-            const workspaceId = ctx.projectPath;
-            const threadId = 'default';
-
-            // Get all generations from chat storage
-            const generations = chatStateStorage.getGenerations(workspaceId, threadId);
-
-            // Convert generations to UI messages format
-            const uiMessages = [];
-            for (const generation of generations) {
-                // Add user message
-                uiMessages.push({
-                    role: 'user',
-                    content: generation.userPrompt,
-                    checkpointId: generation.checkpoint?.id,
-                    messageId: generation.id
-                });
-
-                // Add assistant message if available
-                if (generation.uiResponse) {
-                    uiMessages.push({
-                        role: 'assistant',
-                        content: generation.uiResponse,
-                        messageId: generation.id
-                    });
-                }
-            }
-
-            return uiMessages;
-        });
 
         // ----- Data Mapper Webview RPC Methods
         registerDataMapperRpcHandlers(RPCLayer._messenger);

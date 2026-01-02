@@ -51,7 +51,7 @@ export class InlineMappingExecutor extends AICommandExecutor<MetadataWithAttachm
             const result = await generateInlineMappingCodeCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.messageId
+                this.config.generationId
             );
 
             return {

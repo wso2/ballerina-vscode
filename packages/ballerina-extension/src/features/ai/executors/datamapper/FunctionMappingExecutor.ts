@@ -51,7 +51,7 @@ export class FunctionMappingExecutor extends AICommandExecutor<ProcessMappingPar
             const result = await generateMappingCodeCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.messageId
+                this.config.generationId
             );
 
             return {

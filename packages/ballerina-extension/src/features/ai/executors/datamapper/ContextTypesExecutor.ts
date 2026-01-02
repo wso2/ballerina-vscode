@@ -51,7 +51,7 @@ export class ContextTypesExecutor extends AICommandExecutor<ProcessContextTypeCr
             const result = await generateContextTypesCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.messageId
+                this.config.generationId
             );
 
             return {

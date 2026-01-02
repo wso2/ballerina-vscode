@@ -127,7 +127,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 libraryDescriptions,
                 generationType: GenerationType.CODE_GENERATION,
                 workspaceId: this.config.executionContext.projectPath,
-                generationId: this.config.messageId,
+                generationId: this.config.generationId,
                 threadId: 'default',
             });
 
@@ -151,7 +151,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 modifiedFiles,
                 projects,
                 shouldCleanup: false, // Review mode - don't cleanup immediately
-                messageId: this.config.messageId,
+                messageId: this.config.generationId,
                 userMessageContent,
                 response,
                 ctx: this.config.executionContext,
@@ -187,13 +187,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                     // Update generation with partial messages
                     const workspaceId = this.config.executionContext.projectPath;
                     const threadId = 'default';
-                    chatStateStorage.updateGeneration(workspaceId, threadId, this.config.messageId, {
+                    chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
                         modelMessages: messagesToSave,
                     });
 
                     // Clear review state
                     const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-                    if (pendingReview && pendingReview.id === this.config.messageId) {
+                    if (pendingReview && pendingReview.id === this.config.generationId) {
                         console.log("[AgentExecutor] Clearing review state due to abort");
                         chatStateStorage.declineAllReviews(workspaceId, threadId);
                     }
