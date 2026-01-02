@@ -20,9 +20,6 @@ import {
     ChatNotify,
     ChatStart,
     DiagnosticEntry,
-    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
-    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
-    GenerateCodeRequest,
     IntermidaryState,
     onChatNotify,
     ProjectSource,
@@ -36,7 +33,6 @@ import {
     HttpPayloadContext,
     MessageQueuePayloadContext,
     FileAttatchment,
-    OperationType
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
@@ -133,29 +129,6 @@ export function flattenProjectToFiles(projects: ProjectSource[]): SourceFile[] {
 }
 
 /**
- * Creates workspace context message for AI prompts.
- * Handles single vs multi-package scenarios and provides instructions for working with workspaces.
- *
- * @param projects - Array of project sources
- * @param packageName - Name of the current active package
- * @returns Formatted context string for AI prompts
- */
-export function buildPackageContext(projects: ProjectSource[], packageName: string): string {
-    const hasMultiplePackages = projects.length > 1;
-
-    if (!hasMultiplePackages) {
-        return `Current Package name: ${packageName}`;
-    }
-
-    return `Current Active Package: ${packageName}
-
-Note: This is a Ballerina workspace with multiple packages. File paths are prefixed with their package paths (e.g., "mainpackage/main.bal").
-Files from external packages (not the active package) are marked with the externalPackageName attribute (e.g., <file filename="otherpackage/main.bal" externalPackageName="otherpackage">).
-You can import these packages by just using the package name (e.g., import otherpackage;).
-When creating or modifying files, you should always prefer making edits for the current active package. Make sure to include the package path as prefix for the file edits.`;
-}
-
-/**
  * Formats file upload contents for AI prompts.
  * Returns empty string if no files are uploaded.
  *
@@ -187,42 +160,6 @@ export function extractResourceDocumentContent(sourceFiles: readonly SourceFile[
         return "";
     }
     return requirementFiles[0];
-}
-
-//TODO: This should be a query rewriter ideally.
-export function getRewrittenPrompt(params: GenerateCodeRequest, projects: ProjectSource[]) {
-    const prompt = params.usecase;
-    if (prompt.trim() === GENERATE_CODE_AGAINST_THE_REQUIREMENT) {
-        const sourceFiles = flattenProjectToFiles(projects);
-        const resourceContent = extractResourceDocumentContent(sourceFiles);
-        return `${GENERATE_CODE_AGAINST_THE_REQUIREMENT}:
-${resourceContent}`;
-    }
-    if (prompt.trim() === GENERATE_TEST_AGAINST_THE_REQUIREMENT) {
-        const sourceFiles = flattenProjectToFiles(projects);
-        const resourceContent = extractResourceDocumentContent(sourceFiles);
-        return `${GENERATE_TEST_AGAINST_THE_REQUIREMENT}:
-${resourceContent}`;
-    }
-
-    if (!prompt.toLowerCase().includes("readme")) {
-        return prompt;
-    }
-
-    const sourceFiles = flattenProjectToFiles(projects);
-    const readmeFiles = sourceFiles
-        .filter((sourceFile) => sourceFile.filePath.toLowerCase().endsWith("readme.md"))
-        .map((sourceFile) => sourceFile.content);
-
-    if (readmeFiles.length === 0) {
-        return prompt;
-    }
-
-    const readmeContent = readmeFiles[0];
-
-    return `${prompt}
-Readme Contents:
-${readmeContent}`;
 }
 
 export function sendMessagesNotification(messages: any[]): void {

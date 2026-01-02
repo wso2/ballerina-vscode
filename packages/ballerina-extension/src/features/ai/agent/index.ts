@@ -14,21 +14,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-/**
- * @deprecated This file is deprecated. All agent functionality has been moved to AgentExecutor.
- *
- * - For production use: Import AgentExecutor from './AgentExecutor' and use it via RPC manager
- * - For tests: Import from './index-for-test'
- *
- * This file is kept only for the factory functions used by tests.
- */
-
-import { ExecutionContext } from "@wso2/ballerina-core";
+import { Command, ExecutionContext, GenerateAgentCodeRequest } from "@wso2/ballerina-core";
+import { workspace } from 'vscode';
 import { StateMachine } from "../../../stateMachine";
+import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { AICommandConfig } from "../executors/base/AICommandExecutor";
+import { createWebviewEventHandler } from "../utils/events";
+import { AgentExecutor } from './AgentExecutor';
 
 // ==================================
 // ExecutionContext Factory Functions
-// (Kept for test compatibility)
 // ==================================
 
 /**
@@ -45,17 +40,72 @@ export function createExecutionContextFromStateMachine(): ExecutionContext {
     };
 }
 
+// ==================================
+// Agent Generation Functions
+// ==================================
+
 /**
- * Creates an ExecutionContext with explicit paths.
- * Used by tests to create isolated contexts per test case.
- *
- * @param projectPath - Absolute path to the project
- * @param workspacePath - Optional workspace path
- * @returns ExecutionContext with specified paths
+ * Factory function to create unified executor configuration
+ * Eliminates repetitive config creation in RPC methods
  */
-export function createExecutionContext(
-    projectPath: string,
-    workspacePath?: string
-): ExecutionContext {
-    return { projectPath, workspacePath };
+export function createExecutorConfig<TParams>(
+    params: TParams,
+    options: {
+        command: Command;
+        chatStorageEnabled?: boolean;
+        cleanupStrategy?: 'immediate' | 'review';
+        existingTempPath?: string;
+    }
+): AICommandConfig<TParams> {
+    const ctx = StateMachine.context();
+    return {
+        executionContext: createExecutionContextFromStateMachine(),
+        eventHandler: createWebviewEventHandler(options.command),
+        messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        abortController: new AbortController(),
+        params,
+        chatStorage: options.chatStorageEnabled ? {
+            workspaceId: ctx.projectPath,
+            threadId: 'default',
+            enabled: true,
+        } : undefined,
+        lifecycle: {
+            cleanupStrategy: options.cleanupStrategy || 'immediate',
+            existingTempPath: options.existingTempPath,
+        }
+    };
+}
+
+/**
+ * Generates agent code based on user request
+ * Handles plan mode configuration and review state management
+ */
+export async function generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
+    try {
+        const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
+
+        if (!isPlanModeEnabled) {
+            params.isPlanMode = false;
+        }
+
+        // Check for pending review to reuse temp project path
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = params.threadId || 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+        // Create config using factory function
+        const config = createExecutorConfig(params, {
+            command: Command.Agent,
+            chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
+            cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
+            existingTempPath: pendingReview?.reviewState.tempProjectPath
+        });
+
+        await new AgentExecutor(config).run();
+
+        return true;
+    } catch (error) {
+        console.error('[Agent] Error in generateAgent:', error);
+        throw error;
+    }
 }

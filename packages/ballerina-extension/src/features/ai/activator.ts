@@ -81,7 +81,7 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                 const config: AICommandConfig<GenerateAgentCodeRequest> = {
                     executionContext: ctx,
                     eventHandler: testEventHandler,
-                    messageId: params.messageId || `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+                    messageId: `test-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
                     abortController: new AbortController(),
                     params,
                     // No chat storage in test mode

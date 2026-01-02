@@ -21,29 +21,21 @@ import {
     GetWorkspaceContextResponse,
     SourceFile,
     MappingParameters,
-    TestGenerationTarget,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
     Command,
     TemplateId,
     ChatNotify,
-    GenerateCodeRequest,
-    TestPlanGenerationRequest,
     TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
-    ChatEntry,
     OperationType,
-    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
-    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
     ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
     CodeContext,
-    AIChatMachineEventType,
     AIChatMachineStateValue,
-    UIChatHistoryMessage,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -1192,12 +1184,9 @@ const AIChat: React.FC = () => {
             content: file.content,
         }));
 
-        //TODO: Check why messageId is needed here
-        const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
         console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
         rpcClient.getAiPanelRpcClient().generateAgent({
-            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments, messageId
+            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
         })
         // rpcClient.sendAIChatStateEvent({
         //     type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
