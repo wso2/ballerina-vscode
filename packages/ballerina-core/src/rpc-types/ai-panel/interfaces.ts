@@ -400,8 +400,7 @@ export interface GenerateAgentCodeRequest {
     usecase: string;
     operationType?: OperationType;
     fileAttachmentContents: FileAttatchment[];
-    threadId?: string;  // Optional thread ID (defaults to "default")
-    messageId: string;
+    threadId?: string; //TODO: Make this required once we support threads in UI
     isPlanMode: boolean;
     codeContext?: CodeContext;
 }

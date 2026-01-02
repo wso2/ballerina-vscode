@@ -78,11 +78,9 @@ import { extension } from "../../BalExtensionContext";
 import { getSelectedLibraries } from "../../features/ai/agent/tools/healthcare-library";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
-import { AICommandConfig } from "../../features/ai/executors/base/AICommandExecutor";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { createWebviewEventHandler } from "../../features/ai/utils/events";
 import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
 import { GenerationType } from "../../features/ai/utils/libs/libraries";
 import { Library } from "../../features/ai/utils/libs/library-types";
@@ -101,8 +99,7 @@ import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
 import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 import { fetchData } from "./utils/fetch-data-utils";
 
-import { AgentExecutor } from '../../features/ai/agent/AgentExecutor';
-import { createExecutionContextFromStateMachine } from '../../features/ai/agent/index';
+import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
 import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
 import { RPCLayer } from '../../RPCLayer';
 import { onHideReviewActions } from '@wso2/ballerina-core';
@@ -113,41 +110,6 @@ import { approvalManager } from '../../features/ai/state/ApprovalManager';
 import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
-
-/**
- * Factory function to create unified executor configuration
- * Eliminates repetitive config creation in RPC methods
- */
-function createExecutorConfig<TParams>(
-    params: TParams,
-    options: {
-        command: Command;
-        chatStorageEnabled?: boolean;
-        cleanupStrategy?: 'immediate' | 'review';
-        existingTempPath?: string;
-    }
-): AICommandConfig<TParams> {
-    const ctx = StateMachine.context();
-    return {
-        executionContext: {
-            projectPath: ctx.projectPath,
-            workspacePath: ctx.workspacePath
-        },
-        eventHandler: createWebviewEventHandler(options.command),
-        messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
-        abortController: new AbortController(),
-        params,
-        chatStorage: options.chatStorageEnabled ? {
-            workspaceId: ctx.projectPath,
-            threadId: 'default',
-            enabled: true,
-        } : undefined,
-        lifecycle: {
-            cleanupStrategy: options.cleanupStrategy || 'immediate',
-            existingTempPath: options.existingTempPath,
-        }
-    };
-}
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -756,33 +718,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
-        try {
-            const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
-
-            if (!isPlanModeEnabled) {
-                params.isPlanMode = false;
-            }
-
-            // Check for pending review to reuse temp project path
-            const workspaceId = StateMachine.context().projectPath;
-            const threadId = params.threadId || 'default';
-            const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-
-            // Create config using factory function
-            const config = createExecutorConfig(params, {
-                command: Command.Agent,
-                chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
-                cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
-                existingTempPath: pendingReview?.reviewState.tempProjectPath
-            });
-
-            await new AgentExecutor(config).run();
-
-            return true;
-        } catch (error) {
-            console.error('[RPC Manager] Error in generateAgent:', error);
-            throw error;
-        }
+        return await generateAgent(params);
     }
 
     async openAIPanel(params: AIPanelPrompt): Promise<void> {

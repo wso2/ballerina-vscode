@@ -58,16 +58,6 @@ export interface AICommandConfig<TParams = any> {
 }
 
 /**
- * @deprecated Use AICommandConfig instead. This alias is kept for gradual migration.
- */
-export interface AIExecutionConfig {
-    executionContext: ExecutionContext;
-    eventHandler: CopilotEventHandler;
-    messageId: string;
-    abortController: AbortController;
-}
-
-/**
  * Result returned from command execution
  */
 export interface AIExecutionResult {
@@ -186,13 +176,6 @@ export abstract class AICommandExecutor<TParams = any> {
     }
 
     /**
-     * @deprecated Use run() instead. Kept for backward compatibility.
-     */
-    async initialize(): Promise<void> {
-        await this.initializeTempProject();
-    }
-
-    /**
      * Abstract execute method - each command implements its own logic
      * Should use config.executionContext.tempProjectPath for operations
      *
@@ -263,13 +246,6 @@ export abstract class AICommandExecutor<TParams = any> {
         console.log(`[AICommandExecutor] Review mode - temp project persisted: ${this.config.executionContext.tempProjectPath}`);
         // No immediate cleanup - temp persists for review
         // Actual cleanup happens when user accepts/declines via RPC
-    }
-
-    /**
-     * @deprecated Use run() instead. Kept for backward compatibility.
-     */
-    async cleanup(): Promise<void> {
-        // No-op - cleanup is now handled by performCleanup() in run()
     }
 
     /**

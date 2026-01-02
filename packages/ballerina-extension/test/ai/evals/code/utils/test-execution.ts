@@ -53,7 +53,6 @@ export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestC
             usecase: useCase.usecase,
             operationType: useCase.operationType,
             fileAttachmentContents: useCase.fileAttachments ? [...useCase.fileAttachments] : [],
-            messageId: `test-${useCase.id}-${Date.now()}`,
             isPlanMode: useCase.isPlanMode ?? false,
             codeContext: useCase.codeContext,
             projectPath: isolatedProject.path
