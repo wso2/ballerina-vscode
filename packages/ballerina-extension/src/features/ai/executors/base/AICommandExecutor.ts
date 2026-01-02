@@ -18,7 +18,7 @@
 
 import { ExecutionContext, Command } from '@wso2/ballerina-core';
 import { CopilotEventHandler } from '../../utils/events';
-import { chatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
+import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { getErrorMessage } from '../../utils/ai-utils';
 import * as fs from 'fs';
@@ -35,7 +35,7 @@ export interface AICommandConfig<TParams = any> {
     /** Event handler for communicating with frontend */
     eventHandler: CopilotEventHandler;
     /** Unique message ID for this execution */
-    messageId: string;
+    generationId: string;
     /** Abort controller for cancellation */
     abortController: AbortController;
     /** Command-specific parameters */
@@ -82,7 +82,6 @@ export interface AIExecutionResult {
  */
 export abstract class AICommandExecutor<TParams = any> {
     protected config: AICommandConfig<TParams>;
-    protected chatStorageRef?: any; // Dynamic import type
 
     constructor(config: AICommandConfig<TParams>) {
         this.config = config;
@@ -101,10 +100,10 @@ export abstract class AICommandExecutor<TParams = any> {
      */
     async run(): Promise<AIExecutionResult> {
         try {
-            console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.messageId}`);
+            console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.generationId}`);
 
-            // Stage 1: Chat storage initialization
-            await this.initializeChatStorage();
+            // Stage 1: Initialize workspace/thread in chat storage
+            await this.initializeWorkspaceThread();
 
             // Stage 2: Temp project initialization
             await this.initializeTempProject();
@@ -115,7 +114,7 @@ export abstract class AICommandExecutor<TParams = any> {
             // Stage 4: Cleanup
             await this.performCleanup(result);
 
-            console.log(`[AICommandExecutor] Completed ${this.getCommandType()} execution: ${this.config.messageId}`);
+            console.log(`[AICommandExecutor] Completed ${this.getCommandType()} execution: ${this.config.generationId}`);
             return result;
 
         } catch (error) {
@@ -125,19 +124,10 @@ export abstract class AICommandExecutor<TParams = any> {
     }
 
     /**
-     * Stage 1: Initialize chat storage (if enabled)
-     * Sets up chat storage reference and initializes workspace/thread
+     * Stage 1: Initialize workspace/thread in chat storage (if enabled)
      */
-    protected async initializeChatStorage(): Promise<void> {
-        if (!this.config.chatStorage?.enabled) {
-            console.log(`[AICommandExecutor] Chat storage disabled, skipping initialization`);
-            return;
-        }
-
+    protected async initializeWorkspaceThread(): Promise<void> {
         try {
-            // Dynamic import to avoid circular dependencies
-            this.chatStorageRef = chatStateStorage;
-
             const { workspaceId, threadId } = this.config.chatStorage;
 
             // Initialize workspace and thread
@@ -278,12 +268,8 @@ export abstract class AICommandExecutor<TParams = any> {
      * @returns Array of chat messages, or empty array if storage disabled
      */
     protected getChatHistory(): any[] {
-        if (!this.chatStorageRef || !this.config.chatStorage?.enabled) {
-            return [];
-        }
-
         const { workspaceId, threadId } = this.config.chatStorage;
-        return this.chatStorageRef.getChatHistoryForLLM(workspaceId, threadId);
+        return chatStateStorage.getChatHistoryForLLM(workspaceId, threadId);
     }
 
     /**
@@ -292,17 +278,13 @@ export abstract class AICommandExecutor<TParams = any> {
      * @param metadata - Generation metadata (operation type, etc.)
      */
     protected addGeneration(userPrompt: string, metadata: any): any {
-        if (!this.chatStorageRef || !this.config.chatStorage?.enabled) {
-            return;
-        }
-
         const { workspaceId, threadId } = this.config.chatStorage;
-        return this.chatStorageRef.addGeneration(
+        return chatStateStorage.addGeneration(
             workspaceId,
             threadId,
             userPrompt,
             metadata,
-            this.config.messageId
+            this.config.generationId
         );
     }
 

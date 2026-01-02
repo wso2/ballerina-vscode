@@ -27,7 +27,6 @@ import {
     Command,
     TemplateId,
     ChatNotify,
-    TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
     OperationType,
     ExtendedDataMapperMetadata,
@@ -35,7 +34,6 @@ import {
     DocGenerationType,
     FileChanges,
     CodeContext,
-    AIChatMachineStateValue,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -52,7 +50,6 @@ import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/balleri
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
-import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
 import { CodeSection } from "../CodeSection";
@@ -67,7 +64,6 @@ import {
     upsertTemplate,
 } from "../../commandTemplates/utils/utils";
 import { acceptResolver, handleAttachmentSelection } from "../../utils/attachment/attachmentManager";
-import { fetchWithAuth, streamToString } from "../../utils/networkUtils";
 import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
@@ -83,12 +79,8 @@ import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 import ReviewActions from "../ReviewActions";
 
-// var projectUuid = "";
-// var chatLocation = "";
-
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
-const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
@@ -127,21 +119,16 @@ const AIChat: React.FC = () => {
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
-    const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
     const [currentGeneratingPromptIndex, setCurrentGeneratingPromptIndex] = useState(-1);
-    const [isSyntaxError, setIsSyntaxError] = useState(false);
     const [isReqFileExists, setIsReqFileExists] = useState(false);
     const [isPromptExecutedInCurrentWindow, setIsPromptExecutedInCurrentWindow] = useState(false);
-    const [testGenIntermediaryState, setTestGenIntermediaryState] = useState<TestGeneratorIntermediaryState | null>(
-        null
-    );
+
     const [docGenIntermediaryState, setDocGenIntermediaryState] =
         useState<DocumentationGeneratorIntermediaryState | null>(null);
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
-    const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
@@ -229,21 +216,18 @@ const AIChat: React.FC = () => {
             await rpcClient.getAiPanelRpcClient().restoreCheckpoint({ checkpointId });
 
             // Fetch updated messages from backend
-            const updatedMessages = await rpcClient.getAIChatUIHistory();
+            const updatedMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
 
             // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
-            const context = await rpcClient.getAIChatContext();
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            }
+            const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+            const checkpointIds = checkpoints.map(cp => cp.id);
+            setAvailableCheckpointIds(new Set(checkpointIds));
 
             // Reset UI state
             setIsLoading(false);
             setIsCodeLoading(false);
-            setTestGenIntermediaryState(null);
             setDocGenIntermediaryState(null);
             setIsAddingToWorkspace(false);
             setCurrentFileArray([]);
@@ -256,23 +240,18 @@ const AIChat: React.FC = () => {
     };
 
     useEffect(() => {
-        const initializeAutoApproveState = async () => {
+        const initializeCheckpoints = async () => {
             try {
-                const context = await rpcClient.getAIChatContext();
-                if (context && context.autoApproveEnabled !== undefined) {
-                    setIsAutoApproveEnabled(context.autoApproveEnabled);
-                }
-                // Update available checkpoint IDs
-                if (context && context.checkpoints) {
-                    const checkpointIds = context.checkpoints.map(cp => cp.id);
-                    setAvailableCheckpointIds(new Set(checkpointIds));
-                }
+                // Fetch available checkpoints
+                const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+                const checkpointIds = checkpoints.map(cp => cp.id);
+                setAvailableCheckpointIds(new Set(checkpointIds));
             } catch (error) {
-                console.error("[AIChat] Failed to initialize auto-approve state:", error);
+                console.error("[AIChat] Failed to initialize checkpoints:", error);
             }
         };
 
-        initializeAutoApproveState();
+        initializeCheckpoints();
     }, [rpcClient]);
 
     useEffect(() => {
@@ -304,7 +283,7 @@ const AIChat: React.FC = () => {
     useEffect(function loadInitialChatHistory() {
         const loadHistory = async () => {
             try {
-                const historyMessages = await rpcClient.getAIChatUIHistory();
+                const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
                 if (historyMessages && historyMessages.length > 0) {
                     const uiMessages = convertToUIMessages(historyMessages);
                     setMessages(uiMessages);
@@ -317,22 +296,6 @@ const AIChat: React.FC = () => {
 
         loadHistory();
     }, [rpcClient]);
-
-    rpcClient?.onAIChatStateChanged(async (newState: AIChatMachineStateValue) => {
-        setAiChatStateMachineState(newState);
-
-        // Update context when state changes
-        try {
-            const context = await rpcClient.getAIChatContext();
-            // Update available checkpoint IDs
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            }
-        } catch (error) {
-            console.error("[AIChat] Failed to update review actions state:", error);
-        }
-    });
 
     rpcClient?.onCheckpointCaptured(async (payload: { messageId: string; checkpointId: string }) => {
         setMessages((prevMessages) => {
@@ -353,11 +316,9 @@ const AIChat: React.FC = () => {
         // Update available checkpoint IDs after a new checkpoint is captured
         // This ensures the set reflects any cleanup of old checkpoints (maxCount enforcement)
         try {
-            const context = await rpcClient.getAIChatContext();
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            }
+            const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+            const checkpointIds = checkpoints.map(cp => cp.id);
+            setAvailableCheckpointIds(new Set(checkpointIds));
         } catch (error) {
             console.error("[AIChat] Failed to update available checkpoint IDs:", error);
         }
@@ -643,8 +604,6 @@ const AIChat: React.FC = () => {
             // Check if it's a documentation state by looking for specific properties
             if ("serviceName" in state && "documentation" in state) {
                 setDocGenIntermediaryState(state as DocumentationGeneratorIntermediaryState);
-            } else {
-                setTestGenIntermediaryState(state as TestGeneratorIntermediaryState);
             }
         } else if (type === "generated_sources") {
             setCurrentFileArray(response.fileArray);
@@ -1188,16 +1147,10 @@ const AIChat: React.FC = () => {
         rpcClient.getAiPanelRpcClient().generateAgent({
             usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
         })
-        // rpcClient.sendAIChatStateEvent({
-        //     type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-        //     payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
-        // });
     }
 
     async function handleStop() {
-        // Abort any ongoing requests
-        // abortFetchWithAuth();
-        // Abort test generation if running
+        // TODO: FIX properly.
         rpcClient.getAiPanelRpcClient().abortAIGeneration();
 
         setIsLoading(false);
@@ -1241,104 +1194,6 @@ const AIChat: React.FC = () => {
         }
     }, [otherMessages.length]);
 
-    function onTestScenarioDelete(content: string) {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const escapedContent = content.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`<scenario>\\s*${escapedContent}\\s*<\\/scenario>`, "g");
-
-            const newContent = lastMessageContent.replace(regex, "");
-            newMessages[newMessages.length - 1].content = newContent;
-
-            // Update intermediary state
-            setTestGenIntermediaryState((prevState) => ({
-                ...prevState,
-                testPlan: newContent,
-            }));
-
-            return newMessages;
-        });
-    }
-
-    function onTestScenarioAdd() {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const regex = /<button type="add_scenario">(.*?)<\/button>/;
-            const match = lastMessageContent.match(regex);
-
-            if (match) {
-                const buttonText = match[1];
-
-                const scenarioText = `
-<scenario>
-    <title>(Edit This) Scenario Title</title>
-    <description>(Edit This) Scenario Description</description>
-</scenario>
-
-<button type="add_scenario">${buttonText}</button>
-`;
-
-                const newContent = lastMessageContent.replace(regex, scenarioText);
-                newMessages[newMessages.length - 1].content = newContent;
-
-                // Update intermediary state
-                setTestGenIntermediaryState((prevState) => ({
-                    ...prevState,
-                    testPlan: newContent,
-                }));
-            }
-
-            return newMessages;
-        });
-    }
-
-    const handleEdit = (oldContent: string, newContent: string) => {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const escapedContent = oldContent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`<scenario>\\s*${escapedContent}\\s*<\\/scenario>`, "g");
-
-            const scenarioText = `
-<scenario>
-    ${newContent}
-</scenario>
-`;
-            const updatedContent = lastMessageContent.replace(regex, scenarioText);
-            newMessages[newMessages.length - 1].content = updatedContent;
-
-            // Update intermediary state
-            setTestGenIntermediaryState((prevState) => ({
-                ...prevState,
-                testPlan: updatedContent,
-            }));
-
-            return newMessages;
-        });
-    };
-
-    const regenerateScenarios = async () => {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = "";
-            return newMessages;
-        });
-
-        // await handleSendQuery(testGenIntermediaryState.content);
-    };
-
-    const generateFunctionTests = async () => {
-        setIsCodeLoading(true);
-        await rpcClient.getAiPanelRpcClient().generateFunctionTests({
-            testPlan: testGenIntermediaryState.testPlan,
-            resourceFunction: testGenIntermediaryState.resourceFunction,
-        });
-    };
 
     const saveDocumentation = async () => {
         if (!docGenIntermediaryState) return;
@@ -1390,18 +1245,7 @@ const AIChat: React.FC = () => {
     };
 
     const handleRetryRepair = async () => {
-        const currentDiagnostics = currentDiagnosticsRef.current;
-        if (currentDiagnostics.length === 0) return;
-
-        setIsCodeLoading(true);
-        setIsLoading(true);
-
-        await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
-            diagnostics: currentDiagnostics,
-            assistantResponse: messages[messages.length - 1].content, // XML format with code blocks
-            updatedFileNames: [], // Will be determined from parsed XML
-            previousMessages: messagesRef.current,
-        });
+        //TODO: Remove this and implement retry UX with agent.
     };
 
     const handleApprovalApprove = async (enableAutoApprove: boolean) => {
@@ -1485,7 +1329,6 @@ const AIChat: React.FC = () => {
                             <br />
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
-                        {isPlanModeFeatureEnabled && <div>State: {aiChatStateMachineState}</div>}
                         <HeaderButtons>
                             {isPlanModeFeatureEnabled && (
                                 <Button
@@ -1692,66 +1535,8 @@ const AIChat: React.FC = () => {
                                             );
                                         } else if (segment.type === SegmentType.References) {
                                             return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
-                                        } else if (segment.type === SegmentType.TestScenario) {
-                                            return (
-                                                <AccordionItem
-                                                    key={`test-scenario-${i}`}
-                                                    content={segment.text}
-                                                    onDelete={onTestScenarioDelete}
-                                                    isEnabled={
-                                                        isLastResponse &&
-                                                        !isCodeLoading &&
-                                                        !areTestsGenerated &&
-                                                        isLoading
-                                                    }
-                                                    onEdit={handleEdit}
-                                                />
-                                            );
                                         } else if (segment.type === SegmentType.Button) {
-                                            if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "add_scenario" &&
-                                                !isCodeLoading &&
-                                                isLastResponse &&
-                                                !areTestsGenerated &&
-                                                isLoading
-                                            ) {
-                                                return (
-                                                    <VSCodeButton
-                                                        key={`btn-${i}`}
-                                                        title="Add a new test scenario"
-                                                        appearance="secondary"
-                                                        onClick={onTestScenarioAdd}
-                                                    >
-                                                        <span className={`codicon codicon-add`}></span>
-                                                    </VSCodeButton>
-                                                );
-                                            } else if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "generate_test_group" &&
-                                                !isCodeLoading &&
-                                                isLastResponse &&
-                                                !areTestsGenerated &&
-                                                isLoading
-                                            ) {
-                                                return (
-                                                    <div key={`btn-group-${i}`} style={{ display: "flex", gap: "10px" }}>
-                                                        <VSCodeButton
-                                                            title="Generate Tests"
-                                                            onClick={generateFunctionTests}
-                                                        >
-                                                            {"Generate Tests"}
-                                                        </VSCodeButton>
-                                                        <VSCodeButton
-                                                            title="Regenerate test scenarios"
-                                                            appearance="secondary"
-                                                            onClick={regenerateScenarios}
-                                                        >
-                                                            <Codicon name="refresh" />
-                                                        </VSCodeButton>
-                                                    </div>
-                                                );
-                                            } else if (
+                                             if (
                                                 "buttonType" in segment &&
                                                 segment.buttonType === "save_documentation" &&
                                                 !isCodeLoading &&

@@ -23,24 +23,6 @@ import { createWebviewEventHandler } from "../utils/events";
 import { AgentExecutor } from './AgentExecutor';
 
 // ==================================
-// ExecutionContext Factory Functions
-// ==================================
-
-/**
- * Creates an ExecutionContext from StateMachine's current state.
- * Used by tests to create context from current UI state.
- *
- * @returns ExecutionContext with paths from StateMachine
- */
-export function createExecutionContextFromStateMachine(): ExecutionContext {
-    const context = StateMachine.context();
-    return {
-        projectPath: context.projectPath,
-        workspacePath: context.workspacePath
-    };
-}
-
-// ==================================
 // Agent Generation Functions
 // ==================================
 
@@ -52,16 +34,16 @@ export function createExecutorConfig<TParams>(
     params: TParams,
     options: {
         command: Command;
-        chatStorageEnabled?: boolean;
-        cleanupStrategy?: 'immediate' | 'review';
-        existingTempPath?: string;
+        chatStorageEnabled?: boolean; // Always have?
+        cleanupStrategy: 'immediate' | 'review';
+        existingTempPath?: string;  //TODO: Maybe lazyily get this? not sure if needed here.
     }
 ): AICommandConfig<TParams> {
     const ctx = StateMachine.context();
     return {
         executionContext: createExecutionContextFromStateMachine(),
         eventHandler: createWebviewEventHandler(options.command),
-        messageId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        generationId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         abortController: new AbortController(),
         params,
         chatStorage: options.chatStorageEnabled ? {
@@ -70,7 +52,7 @@ export function createExecutorConfig<TParams>(
             enabled: true,
         } : undefined,
         lifecycle: {
-            cleanupStrategy: options.cleanupStrategy || 'immediate',
+            cleanupStrategy: options.cleanupStrategy,
             existingTempPath: options.existingTempPath,
         }
     };
@@ -108,4 +90,23 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
         console.error('[Agent] Error in generateAgent:', error);
         throw error;
     }
+}
+
+
+// ==================================
+// ExecutionContext Factory Functions
+// ==================================
+
+/**
+ * Creates an ExecutionContext from StateMachine's current state.
+ * Used by tests to create context from current UI state.
+ *
+ * @returns ExecutionContext with paths from StateMachine
+ */
+export function createExecutionContextFromStateMachine(): ExecutionContext {
+    const context = StateMachine.context();
+    return {
+        projectPath: context.projectPath,
+        workspacePath: context.workspacePath
+    };
 }
