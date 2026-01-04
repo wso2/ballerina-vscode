@@ -1387,14 +1387,38 @@ const AIChat: React.FC = () => {
                             return (
                                 <ChatMessage key={index}>
                                     {/* Checkpoint separator before user messages */}
-                                    {message.role === "User" && message.checkpointId && (
-                                        <CheckpointSeparator
-                                            checkpointId={message.checkpointId}
-                                            isAvailable={availableCheckpointIds.has(message.checkpointId)}
-                                            isDisabled={isLoading}
-                                            onRestore={handleCheckpointRestore}
-                                        />
-                                    )}
+                                    {message.role === "User" && (() => {
+                                        // Show "Creating checkpoints..." while loading for the latest user message
+                                        // Once done loading, show the restore button
+                                        const isLatestUserMessage = index === otherMessages.length - 2;
+                                        const shouldShowCreating = isLoading && isLatestUserMessage;
+                                        const shouldShowRestore = !isLoading && message.checkpointId;
+
+                                        return (
+                                            <>
+                                                {/* Show "Creating checkpoints..." while generating for latest message */}
+                                                {shouldShowCreating && (
+                                                    <CheckpointSeparator
+                                                        checkpointId={message.checkpointId}
+                                                        isAvailable={false}
+                                                        isDisabled={true}
+                                                        isCreating={true}
+                                                        onRestore={handleCheckpointRestore}
+                                                    />
+                                                )}
+                                                {/* Show restore button when done loading */}
+                                                {shouldShowRestore && (
+                                                    <CheckpointSeparator
+                                                        checkpointId={message.checkpointId}
+                                                        isAvailable={availableCheckpointIds.has(message.checkpointId)}
+                                                        isDisabled={isLoading}
+                                                        isCreating={false}
+                                                        onRestore={handleCheckpointRestore}
+                                                    />
+                                                )}
+                                            </>
+                                        );
+                                    })()}
 
                                     {/* Message header */}
                                     {message.type !== "question" && message.type !== "label" && (
