@@ -490,12 +490,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             >
                                 Paste JSON here...
                             </Typography>
-                            <Typography
+                            {payloadContext?.protocol !== "FTP" && (<Typography
                                 variant="body3"
                                 sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
                             >
                                 or
-                            </Typography>
+                            </Typography>)}
                             {payloadContext && isUserAuthenticated && (
                                 <>
                                     <LinkButton
@@ -523,7 +523,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                     </Typography>
                                 </>
                             )}
-                            <LinkButton
+                            {payloadContext?.protocol!=="FTP" && (<LinkButton
                                 onClick={() => selectJsonType()}
                                 sx={{
                                     display: 'flex',
@@ -538,7 +538,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                 }}
                             >
                                 Continue with JSON Type
-                            </LinkButton>
+                            </LinkButton>)}
                         </div>
                     )}
                 </div>

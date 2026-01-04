@@ -175,22 +175,24 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.map((dfield, index) => {
-                    // Merge parent recordTypeFields with dynamically generated ones
-                    const mergedRecordTypeFields = [
-                        ...(recordTypeFields || []),
-                        ...dynamicRecordTypeFields
-                    ];
+                {dynamicFields
+                    .filter(dfield => !dfield.advanced)
+                    .map((dfield, index) => {
+                        // Merge parent recordTypeFields with dynamically generated ones
+                        const mergedRecordTypeFields = [
+                            ...(recordTypeFields || []),
+                            ...dynamicRecordTypeFields
+                        ];
 
-                    return (
-                        <EditorFactory
-                            key={dfield.key}
-                            field={dfield}
-                            autoFocus={index === 0 ? true : false}
-                            recordTypeFields={mergedRecordTypeFields}
-                        />
-                    );
-                })}
+                        return (
+                            <EditorFactory
+                                key={dfield.key}
+                                field={dfield}
+                                autoFocus={index === 0 ? true : false}
+                                recordTypeFields={mergedRecordTypeFields}
+                            />
+                        );
+                    })}
             </FormSection>
 
         </Form>
