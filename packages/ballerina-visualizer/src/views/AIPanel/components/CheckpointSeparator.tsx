@@ -20,9 +20,10 @@ import React from "react";
 import styled from "@emotion/styled";
 
 interface CheckpointSeparatorProps {
-    checkpointId: string;
+    checkpointId?: string;
     isAvailable: boolean;
     isDisabled: boolean;
+    isCreating?: boolean;
     onRestore: (checkpointId: string) => void;
 }
 
@@ -71,14 +72,29 @@ const RestoreButton = styled.button<{ disabled: boolean }>`
     }
 `;
 
+const CreatingText = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    padding: 4px 12px;
+    font-size: 12px;
+    border-radius: 3px;
+    white-space: nowrap;
+    opacity: 1;
+`;
+
 const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
     checkpointId,
     isAvailable,
     isDisabled,
+    isCreating = false,
     onRestore
 }) => {
     const handleClick = () => {
-        if (!isDisabled && isAvailable) {
+        if (!isDisabled && isAvailable && checkpointId) {
             onRestore(checkpointId);
         }
     };
@@ -88,16 +104,22 @@ const CheckpointSeparator: React.FC<CheckpointSeparatorProps> = ({
     return (
         <SeparatorContainer disabled={effectiveDisabled} onClick={handleClick}>
             <SeparatorLine>
-                <RestoreButton
-                    className="separator-button"
-                    disabled={effectiveDisabled}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleClick();
-                    }}
-                >
-                    ↺ Restore to checkpoint
-                </RestoreButton>
+                {isCreating ? (
+                    <CreatingText>
+                        Creating a checkpoint ...
+                    </CreatingText>
+                ) : (
+                    <RestoreButton
+                        className="separator-button"
+                        disabled={effectiveDisabled}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleClick();
+                        }}
+                    >
+                        ↺ Restore to checkpoint
+                    </RestoreButton>
+                )}
             </SeparatorLine>
         </SeparatorContainer>
     );
