@@ -47,11 +47,22 @@ export class ContextTypesExecutor extends AICommandExecutor<ProcessContextTypeCr
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
 
         try {
-            // Call existing core function with params from config
+            // Capture checkpoint BEFORE execution
+            this.addGeneration(
+                'Generate context types from attachments',
+                {
+                    operationType: 'context_types',
+                    generationType: 'datamapper',
+                    commandType: Command.TypeCreator,
+                }
+            );
+
+            // Call existing core function with params from config and temp path
             const result = await generateContextTypesCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.generationId
+                this.config.generationId,
+                tempProjectPath  // Pass temp project path from base class
             );
 
             return {

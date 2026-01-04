@@ -47,11 +47,22 @@ export class InlineMappingExecutor extends AICommandExecutor<MetadataWithAttachm
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
 
         try {
-            // Call existing core function with params from config
+            // Capture checkpoint BEFORE execution
+            this.addGeneration(
+                'Generate inline mapping expression',
+                {
+                    operationType: 'inline_mapping',
+                    generationType: 'datamapper',
+                    commandType: Command.DataMap,
+                }
+            );
+
+            // Call existing core function with params from config and temp path
             const result = await generateInlineMappingCodeCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.generationId
+                this.config.generationId,
+                tempProjectPath  // Pass temp project path from base class
             );
 
             return {

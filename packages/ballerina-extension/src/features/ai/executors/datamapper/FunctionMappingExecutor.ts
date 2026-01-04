@@ -47,11 +47,22 @@ export class FunctionMappingExecutor extends AICommandExecutor<ProcessMappingPar
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
 
         try {
-            // Call existing core function with params from config
+            // Capture checkpoint BEFORE execution
+            this.addGeneration(
+                `Automap the function : ${this.config.params.parameters?.functionName}`,
+                {
+                    operationType: 'function_mapping',
+                    generationType: 'datamapper',
+                    commandType: Command.DataMap,
+                }
+            );
+
+            // Call existing core function with params from config and temp path
             const result = await generateMappingCodeCore(
                 this.config.params,
                 this.config.eventHandler,
-                this.config.generationId
+                this.config.generationId,
+                tempProjectPath  // Pass temp project path from base class
             );
 
             return {
