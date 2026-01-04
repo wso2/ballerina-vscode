@@ -304,6 +304,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Create config using factory function
             const config = createExecutorConfig(params, {
                 command: Command.DataMap,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
                 cleanupStrategy: 'immediate',  // DataMapper uses immediate cleanup,
             });
 
@@ -319,6 +320,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Create config using factory function
             const config = createExecutorConfig(params, {
                 command: Command.DataMap,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
                 cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
             });
 
@@ -334,6 +336,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Create config using factory function
             const config = createExecutorConfig(params, {
                 command: Command.TypeCreator,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
                 cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
             });
 
