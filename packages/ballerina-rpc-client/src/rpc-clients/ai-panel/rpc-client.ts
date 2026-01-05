@@ -21,6 +21,7 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AbortAIGenerationRequest,
     AddFilesToProjectRequest,
     ApproveTaskRequest,
     CheckpointInfo,
@@ -175,8 +176,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(generateAgent, HOST_EXTENSION, params);
     }
 
-    abortAIGeneration(): void {
-        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
+    abortAIGeneration(params: AbortAIGenerationRequest): void {
+        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION, params);
     }
 
     getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {

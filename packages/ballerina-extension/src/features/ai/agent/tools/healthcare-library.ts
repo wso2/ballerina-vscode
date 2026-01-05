@@ -22,7 +22,6 @@ import { selectRequiredFunctions } from "../../utils/libs/function-registry";
 import { MinifiedLibrary } from "@wso2/ballerina-core";
 import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../../utils/ai-client";
 import { z } from "zod";
-import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 import { CopilotEventHandler } from "../../utils/events";
 
 export const HEALTHCARE_LIBRARY_PROVIDER_TOOL = "HealthcareLibraryProviderTool";
@@ -190,7 +189,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
         temperature: 0,
         messages: messages,
         schema: LibraryListSchema,
-        abortSignal: AIPanelAbortController.getInstance().signal,
+        abortSignal: new AbortController().signal,
     });
     const endTime = Date.now();
     console.log(`Library selection took ${endTime - startTime}ms`);

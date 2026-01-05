@@ -22,7 +22,6 @@ import { Library, LibraryWithUrl } from "../utils/libs/library-types";
 import { getAnthropicClient, ANTHROPIC_HAIKU, fetchWithAuth } from "../utils/ai-client";
 import { z } from 'zod';
 import { tool } from 'ai';
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
 import { getSelectedLibraries } from "../agent/tools/healthcare-library";
 
 interface Document {
@@ -103,7 +102,7 @@ async function fetchDocumentationFromVectorStore(query: string): Promise<Documen
             body: JSON.stringify({
                 query: query
             }),
-            signal: AIPanelAbortController.getInstance().signal,
+            signal: new AbortController().signal,
         });
 
         if (!response.ok) {
@@ -230,7 +229,7 @@ async function getToolCallsFromClaude(question: string): Promise<ToolCall[]> {
             }
         ],
         stopWhen: stepCountIs(1), // Limit to one step to get tool calls only
-        abortSignal: AIPanelAbortController.getInstance().signal
+        abortSignal: new AbortController().signal
     });
 
     if (toolCalls && toolCalls.length > 0) {
@@ -254,7 +253,7 @@ async function getFinalResponseFromClaude(systemMessage: string, question: strin
                 content: question
             }
         ],
-        abortSignal: AIPanelAbortController.getInstance().signal
+        abortSignal: new AbortController().signal
     });
 
     return text;

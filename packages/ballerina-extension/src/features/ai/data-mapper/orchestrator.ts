@@ -25,7 +25,6 @@ import {
     DMModelDiagnosticsResult,
 } from "./types";
 import { GeneratedMappingSchema, RepairedMappingsSchema } from "./schema";
-import { AIPanelAbortController, repairSourceFilesWithAI } from "../../../rpc-managers/ai-panel/utils";
 import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest, CodeData } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./prompts/mapping-prompt";
 import { getBallerinaCodeRepairPrompt } from "./prompts/repair-prompt";
@@ -54,6 +53,7 @@ import { getTempProject, cleanupTempProject } from "../utils/project/temp-projec
 import { integrateCodeToWorkspace } from "../agent/utils";
 import { createExecutionContextFromStateMachine } from "../agent";
 import { ExpressionFunctionBody } from "@wso2/syntax-tree";
+import { repairSourceFilesWithAI } from "../../../../src/rpc-managers/ai-panel/utils";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -142,7 +142,7 @@ async function generateAIMappings(
             temperature: 0,
             messages: chatMessages,
             schema: GeneratedMappingSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         const aiGeneratedMappings = object.generatedMappings as Mapping[];
@@ -183,7 +183,7 @@ async function repairBallerinaCode(
             temperature: 0,
             messages: chatMessages,
             schema: RepairedMappingsSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         return object.repairedMappings as RepairedMapping[];

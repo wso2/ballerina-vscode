@@ -19,6 +19,7 @@
  */
 import {
     abortAIGeneration,
+    AbortAIGenerationRequest,
     acceptChanges,
     addFilesToProject,
     AddFilesToProjectRequest,
@@ -102,7 +103,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(submitFeedback, (args: SubmitFeedbackRequest) => rpcManger.submitFeedback(args));
     messenger.onNotification(generateOpenAPI, (args: GenerateOpenAPIRequest) => rpcManger.generateOpenAPI(args));
     messenger.onRequest(generateAgent, (args: GenerateAgentCodeRequest) => rpcManger.generateAgent(args));
-    messenger.onNotification(abortAIGeneration, () => rpcManger.abortAIGeneration());
+    messenger.onNotification(abortAIGeneration, (args: AbortAIGenerationRequest) => rpcManger.abortAIGeneration(args));
     messenger.onRequest(getGeneratedDocumentation, (args: DocGenerationRequest) => rpcManger.getGeneratedDocumentation(args));
     messenger.onRequest(addFilesToProject, (args: AddFilesToProjectRequest) => rpcManger.addFilesToProject(args));
     messenger.onRequest(isUserAuthenticated, () => rpcManger.isUserAuthenticated());

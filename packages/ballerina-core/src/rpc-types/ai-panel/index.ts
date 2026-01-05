@@ -41,6 +41,7 @@ import {
     ConnectorSpecCancelRequest,
     UIChatMessage,
     CheckpointInfo,
+    AbortAIGenerationRequest,
 } from "./interfaces";
 
 export interface AIPanelAPI {
@@ -68,7 +69,7 @@ export interface AIPanelAPI {
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
     generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
-    abortAIGeneration: () => void;
+    abortAIGeneration: (params: AbortAIGenerationRequest) => void;
     // ==================================
     // Doc Generation Related Functions
     // ==================================
