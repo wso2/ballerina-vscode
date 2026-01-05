@@ -365,6 +365,8 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
+        setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     // Payload editor handlers
