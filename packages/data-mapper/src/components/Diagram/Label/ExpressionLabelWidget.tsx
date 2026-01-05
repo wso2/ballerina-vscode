@@ -28,7 +28,7 @@ import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
-import { mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
@@ -221,6 +221,10 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
+    const onClickConvertAndMap = async () => {
+        await convertAndMap(link, context);
+    }
+
     const onClickMapWithCustomFn = async () => {
         await mapWithCustomFn(link, context);
     };
@@ -236,8 +240,11 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             title: "Map with query expression",
             onClick: onClickMapWithQuery
         }, );
-    } else if (mappingType === MappingType.ArrayToSingleton) {
-        // TODO: Add impl
+    } else if (mappingType === MappingType.ConvertiblePrimitives) {
+        codeActions.push({
+            title: "Convert and Map",
+            onClick: onClickConvertAndMap
+        }, );
     }
 
     codeActions.push({
