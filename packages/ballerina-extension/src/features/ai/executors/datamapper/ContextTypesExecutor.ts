@@ -81,6 +81,6 @@ export class ContextTypesExecutor extends AICommandExecutor<ProcessContextTypeCr
     }
 
     protected getCommandType(): Command {
-        return Command.DataMap;
+        return Command.TypeCreator;
     }
 }

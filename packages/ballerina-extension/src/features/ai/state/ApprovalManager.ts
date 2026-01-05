@@ -60,6 +60,7 @@ interface PromiseResolver<T> {
  * Replaces XState state machine subscription pattern with promise-based approvals.
  * Supports parallel executions through unique requestId per execution.
  */
+//TODO: Migrate this to be part of chat state manager.
 export class ApprovalManager {
     private static instance: ApprovalManager;
 
