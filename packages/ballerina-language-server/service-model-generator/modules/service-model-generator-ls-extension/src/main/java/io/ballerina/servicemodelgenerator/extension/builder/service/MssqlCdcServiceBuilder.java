@@ -196,7 +196,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         // Add necessary imports
         Import[] imports = new Import[] {
                 new Import(BALLERINAX, CDC_MODULE_NAME, false),
-                new Import(serviceInitModel.getOrgName(),serviceInitModel.getModuleName(), false),
+                new Import(serviceInitModel.getOrgName(), serviceInitModel.getModuleName(), false),
                 new Import(BALLERINAX, MSSQL_CDC_DRIVER_MODULE_NAME, true)
         };
         addImportTextEdits(modulePartNode, imports, edits);
@@ -258,11 +258,13 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
     private void addImportTextEdits(ModulePartNode modulePartNode, Import[] imports, List<TextEdit> edits) {
         for (Import im : imports) {
-            if (!importExists(modulePartNode, im.org(), im.module())) {
-                String importText = getImportStmt(im.org(), im.module());
+            String org = im.org();
+            String module = im.module();
+            if (!importExists(modulePartNode, org, module)) {
                 if (im.unnamed()) {
-                    importText += UNNAMED_IMPORT_SUFFIX;
+                    module += UNNAMED_IMPORT_SUFFIX;
                 }
+                String importText = getImportStmt(org, module);
                 edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
             }
         }

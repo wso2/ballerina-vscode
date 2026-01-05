@@ -1,6 +1,6 @@
 {
   "id": "17",
-  "displayName": "Microsoft SQL Server CDC Service",
+  "displayName": "Microsoft SQL Server CDC Integration",
   "description": "Create a service to capture data changes from a Microsoft SQL Server database using CDC",
   "orgName": "ballerinax",
   "packageName": "mssql",
