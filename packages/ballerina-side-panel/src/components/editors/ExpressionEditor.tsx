@@ -701,12 +701,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     control={control}
                     name={key}
                     rules={(() => {
-                        const rules: any = {
-                            required: required ?? (!field.optional && !field.placeholder)
-                        };
-
                         const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET");
                         const patternType = field.types?.find(t => t.pattern);
+                        const rules: any = {};
+
+                        // Only use 'required' if there's no pattern validation (pattern will handle empty values)
+                        if (!patternType?.pattern && !expressionSetType?.pattern) {
+                            rules.required = required ?? (!field.optional && !field.placeholder);
+                        }
 
                         if (expressionSetType?.pattern) {
                             // For EXPRESSION_SET (arrays), validate each item
@@ -732,10 +734,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 }
                             };
                         } else if (patternType?.pattern) {
-                            // For non-array fields, use regular pattern validation
-                            rules.pattern = {
-                                value: new RegExp(patternType.pattern),
-                                message: patternType.patternErrorMessage || "Invalid format"
+                            // For non-array fields, use validate function instead of pattern rule
+                            // This ensures validation runs even on empty strings
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    const regex = new RegExp(patternType.pattern);
+                                    if (!regex.test(value || '')) {
+                                        return patternType.patternErrorMessage || "Invalid format";
+                                    }
+                                    return true;
+                                }
                             };
                         }
 
