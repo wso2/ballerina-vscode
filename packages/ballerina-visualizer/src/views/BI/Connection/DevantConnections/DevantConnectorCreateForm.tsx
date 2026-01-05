@@ -53,7 +53,7 @@ export const ButtonContainer = styled.div<{}>`
 `;
 
 const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
-    const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem;
+    const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem ?? {};
     const filteredVisibilities = visibilities.filter((item) => {
         if (item === ServiceInfoVisibilityEnum.Project) {
             return marketplaceItem.projectId === project.id;
@@ -199,7 +199,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
 
     const selectedVisibility = form.watch("visibility");
 
-    const schemas = getPossibleSchemas(item, selectedVisibility, item.connectionSchemas);
+    const schemas = getPossibleSchemas(item, selectedVisibility, item?.connectionSchemas);
 
     useEffect(() => {
         if (!schemas.some((item) => item.id === form.getValues("schemaId")) && schemas.length > 0) {

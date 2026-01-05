@@ -47,6 +47,16 @@ const ProgressRingWrap = styled.div`
     padding: 40px;
 `;
 
+const EmptyWrap = styled.div`
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    gap: 10px;
+    padding: 35% 10%;
+`;
+
 interface DevantMarketplaceListProps {
     searchText?: string;
     onSelectItem: (item: MarketplaceItem) => void;
@@ -176,18 +186,19 @@ const PanelTab = (props: {
                 ) : (
                     <>
                         {data?.length === 0 ? (
-                            <>
-                                <BodyTinyInfo>{emptyMessage}</BodyTinyInfo>
+                            <EmptyWrap>
+                                <BodyTinyInfo style={{ textAlign: "center" }}>{emptyMessage}</BodyTinyInfo>
                                 {emptyActionButton && (
                                     <Button
                                         sx={{ marginTop: 6 }}
                                         tooltip={emptyActionButton.tooltip}
                                         onClick={emptyActionButton.onClick}
+                                        buttonSx={{ minWidth: "160px" }}
                                     >
                                         {emptyActionButton.text}
                                     </Button>
                                 )}
-                            </>
+                            </EmptyWrap>
                         ) : (
                             <GridContainer>
                                 {data?.map((item) => {
