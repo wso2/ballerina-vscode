@@ -29,7 +29,6 @@ import { ParamManagerEditor } from "../ParamManager/ParamManager";
 import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
 import { CheckBoxEditor } from "./CheckBoxEditor";
-import { MapEditor } from "./MapEditor";
 import { ChoiceForm } from "./ChoiceForm";
 import { FormMapEditor } from "./FormMapEditor";
 import { TextAreaEditor } from "./TextAreaEditor";
