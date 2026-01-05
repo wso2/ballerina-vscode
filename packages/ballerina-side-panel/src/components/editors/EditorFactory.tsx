@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { getPrimaryInputType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { getPrimaryInputType, isDropDownType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -29,7 +29,6 @@ import { ParamManagerEditor } from "../ParamManager/ParamManager";
 import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
 import { CheckBoxEditor } from "./CheckBoxEditor";
-import { ArrayEditor } from "./ArrayEditor";
 import { MapEditor } from "./MapEditor";
 import { ChoiceForm } from "./ChoiceForm";
 import { FormMapEditor } from "./FormMapEditor";
@@ -94,11 +93,11 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "ACTION_OR_EXPRESSION" ||
             type.fieldType === "TEXT" ||
             type.fieldType === "EXPRESSION_SET" ||
-            type.fieldType === "SINGLE_SELECT" ||
+            (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
             type.fieldType === "RECORD_MAP_EXPRESSION"
         );
     });
-    
+
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -137,6 +136,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
+    } else if (field.type === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
             <ActionTypeEditor
