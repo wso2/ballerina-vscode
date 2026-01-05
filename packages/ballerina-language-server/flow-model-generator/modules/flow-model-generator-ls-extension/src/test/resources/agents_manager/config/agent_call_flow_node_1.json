@@ -396,12 +396,12 @@
               {
                 "fieldType": "PROMPT",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               }
             ],
             "value": "\"Math tutor\"",
@@ -424,12 +424,12 @@
               {
                 "fieldType": "PROMPT",
                 "ballerinaType": "string",
-                "selected": true
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "string",
-                "selected": false
+                "selected": true
               }
             ],
             "value": "\"Help the students with their questions.\"",
