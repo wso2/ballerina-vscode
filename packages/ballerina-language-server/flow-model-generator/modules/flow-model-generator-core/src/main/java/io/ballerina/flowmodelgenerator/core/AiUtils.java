@@ -252,18 +252,21 @@ public class AiUtils {
     /**
      * Adds a simple string property to a NodeBuilder with the specified configuration.
      *
-     * @param nodeBuilder the node builder to add the property to
-     * @param key         the property key
-     * @param label       the property label
-     * @param description the property description
-     * @param placeholder the placeholder text
-     * @param value       the property value
+     * @param nodeBuilder  the node builder to add the property to
+     * @param key          the property key
+     * @param label        the property label
+     * @param description  the property description
+     * @param placeholder  the placeholder text
+     * @param value        the property value
+     * @param selectedType the selected field type (PROMPT or EXPRESSION)
      */
     public static void addStringProperty(NodeBuilder nodeBuilder, String key, String label, String description,
-                                         String placeholder, String value) {
+                                         String placeholder, String value, Property.ValueType selectedType) {
         if (nodeBuilder == null || key == null) {
             throw new IllegalArgumentException("NodeBuilder and key cannot be null");
         }
+
+        boolean isPromptSelected = selectedType == Property.ValueType.PROMPT;
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -275,12 +278,12 @@ public class AiUtils {
                 .type()
                     .fieldType(Property.ValueType.PROMPT)
                     .ballerinaType("string")
-                    .selected(true)
+                    .selected(isPromptSelected)
                     .stepOut()
                 .type()
                     .fieldType(Property.ValueType.EXPRESSION)
                     .ballerinaType("string")
-                    .selected(false)
+                    .selected(!isPromptSelected)
                     .stepOut()
                 .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
@@ -352,6 +355,9 @@ public class AiUtils {
     }
 
     public record Module(String org, String name, String version) {
+    }
+    
+    public record AgentPropertyValue(String value, Property.ValueType selectedType) {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {

@@ -120,30 +120,42 @@ public class AgentCallBuilder extends CallBuilder {
     }
 
     public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
-                                          Map<String, String> propertyValues) {
+                                          Map<String, AiUtils.AgentPropertyValue> propertyValues) {
         FlowNode agentNodeTemplate = getOrCreateAgentTemplate(context);
         agentNodeTemplate.properties().forEach((key, property) -> {
             String value = (propertyValues != null && propertyValues.containsKey(key))
-                    ? propertyValues.get(key)
+                    ? propertyValues.get(key).value()
                     : null;
             boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
             AiUtils.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
         });
     }
 
-    public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder, Map<String, String> propertyValues) {
-        String roleValue = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
-                propertyValues.get(ROLE) : "";
-        String instructionsValue = (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
-                propertyValues.get(INSTRUCTIONS) : "";
+    public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder,
+                                                     Map<String, AiUtils.AgentPropertyValue> propertyValues) {
+        AiUtils.AgentPropertyValue roleProperty = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
+                propertyValues.get(ROLE) : null;
+        AiUtils.AgentPropertyValue instructionsProperty =
+                (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
+                        propertyValues.get(INSTRUCTIONS) : null;
+
+        String roleValue = roleProperty != null ? roleProperty.value() : "";
+        String instructionsValue = instructionsProperty != null ? instructionsProperty.value() : "";
 
         // Restore backticks for UI display (in case values contain ${"`"} from templates)
         roleValue = AiUtils.restoreBackticksFromStringTemplate(roleValue);
         instructionsValue = AiUtils.restoreBackticksFromStringTemplate(instructionsValue);
 
-        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
+        // Default to PROMPT when no property value is provided (new/empty values)
+        Property.ValueType roleSelectedType = roleProperty != null ?
+                roleProperty.selectedType() : Property.ValueType.PROMPT;
+        Property.ValueType instructionsSelectedType = instructionsProperty != null ?
+                instructionsProperty.selectedType() : Property.ValueType.PROMPT;
+
+        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue,
+                roleSelectedType);
         AiUtils.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
-                INSTRUCTIONS_PLACEHOLDER, instructionsValue);
+                INSTRUCTIONS_PLACEHOLDER, instructionsValue, instructionsSelectedType);
     }
 
     private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
