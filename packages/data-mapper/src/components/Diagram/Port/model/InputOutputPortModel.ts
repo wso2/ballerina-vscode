@@ -95,7 +95,7 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 	}
 
 	addLink(link: LinkModel<LinkModelGenerics>): void {
-		if (this.attributes.portType === 'IN'){
+		if (this.attributes.portType === 'IN' && (link as DataMapperLinkModel).pendingMappingType){
 			this.attributes.parentModel?.setDescendantHasValue();
 		}
 		super.addLink(link);

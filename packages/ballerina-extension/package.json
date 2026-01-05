@@ -245,7 +245,7 @@
                 },
                 "ballerina.copilot.checkpoints.maxCount": {
                     "type": "number",
-                    "default": 20,
+                    "default": 3,
                     "description": "Maximum number of checkpoints to keep."
                 },
                 "ballerina.copilot.checkpoints.ignorePatterns": {
@@ -256,7 +256,8 @@
                         "build/**",
                         "dist/**",
                         ".vscode/**",
-                        "*.log"
+                        "*.log",
+                        ".DS_Store"
                     ],
                     "description": "File patterns to ignore when creating checkpoints."
                 },
@@ -717,25 +718,29 @@
                 "command": "ballerina.showTraceWindow",
                 "title": "Show Traces",
                 "icon": "$(list-tree)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.enableTracing",
                 "title": "Enable Tracing (Experimental)",
-                "category": "Ballerina"
+                "category": "Ballerina",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.disableTracing",
                 "title": "Disable Tracing (Experimental)",
                 "category": "Ballerina",
-                "icon": "$(circle-slash)"
+                "icon": "$(circle-slash)",
+                "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.clearTraces",
                 "title": "Clear Traces (Experimental)",
                 "category": "Ballerina",
                 "icon": "$(clear-all)",
-                "hidden": true
+                "hidden": true,
+                "enablement": "isSupportedProject"
             }
         ],
         "views": {
@@ -1035,21 +1040,21 @@
                 "description": "agent-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f16e"
+                    "fontCharacter": "\\f175"
                 }
             },
             "distro-start": {
                 "description": "start",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f11a"
+                    "fontCharacter": "\\f11c"
                 }
             },
             "distro-debug": {
                 "description": "debug",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f171"
+                    "fontCharacter": "\\f178"
                 }
             },
             "distro-source-view": {
@@ -1063,7 +1068,7 @@
                 "description": "persist-diagram",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f133"
+                    "fontCharacter": "\\f136"
                 }
             },
             "distro-cached-rounded": {

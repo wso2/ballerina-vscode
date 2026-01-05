@@ -560,13 +560,10 @@ export async function generateMappingCodeCore(
             const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
             customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
 
-            // For workspace projects, make path relative to workspace root
-            const workspacePath = context.workspacePath;
-            if (workspacePath) {
-                customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
-            } else {
-                // Normal project: use relative path from project root
-                customFunctionsTargetPath = path.relative(projectRoot, absoluteCustomFunctionsPath);
+            customFunctionsTargetPath = customFunctionsFileName;
+            // For multi workspace projects
+            if (ctx.workspacePath) {
+                customFunctionsTargetPath = path.join(projectName, customFunctionsFileName);
             }
         }
 
@@ -671,7 +668,6 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
         await generateMappingCodeCore(mappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during mapping code generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }
@@ -881,23 +877,22 @@ export async function generateInlineMappingCodeCore(
             targetFileName = path.join(projectName, targetFileName);
         }
 
+        const currentActiveFile = getCurrentActiveFileName();
+
         const inlineMappingsResult: InlineMappingsSourceResult =
             await generateInlineMappingsSource(inlineMappingRequest, langClient, context, eventHandler, tempProjectPath, targetFileName);
 
-        let customFunctionsTargetPath: string | undefined;
-        let customFunctionsFileName: string | undefined;
+        let customFunctionsTargetPath: string;
+        let customFunctionsFileName: string;
 
         if (inlineMappingsResult.allMappingsRequest.customFunctionsFilePath) {
-            const absoluteCustomFunctionsPath = determineCustomFunctionsPath(tempProjectPath, targetFileName);
+            const absoluteCustomFunctionsPath = determineCustomFunctionsPath(projectRoot, currentActiveFile);
             customFunctionsFileName = path.basename(absoluteCustomFunctionsPath);
-
-            // For workspace projects, make path relative to workspace root
-            const workspacePath = context.workspacePath;
-            if (workspacePath) {
-                customFunctionsTargetPath = path.relative(workspacePath, absoluteCustomFunctionsPath);
-            } else {
-                // Normal project: use relative path from project root
-                customFunctionsTargetPath = path.relative(tempProjectPath, absoluteCustomFunctionsPath);
+            
+            customFunctionsTargetPath = customFunctionsFileName;
+            // For multi workspace projects
+            if (ctx.workspacePath) {
+                customFunctionsTargetPath = path.join(projectName, customFunctionsFileName);
             }
         }
 
@@ -1006,7 +1001,6 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
         await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during inline mapping code generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }
@@ -1035,7 +1029,6 @@ export async function generateContextTypesCore(
         eventHandler({ type: "start" });
 
         const biDiagramRpcManager = new BiDiagramRpcManager();
-        const langClient = StateMachine.langClient();
         const projectComponents = await biDiagramRpcManager.getProjectComponents();
         eventHandler({ type: "content_block", content: "\n\nAnalyzing your provided data to generate Ballerina record types.\n\n" });
         eventHandler({ type: "content_block", content: "\n\n<progress>Generating types...</progress>" });
@@ -1111,7 +1104,6 @@ export async function generateContextTypes(typeCreationRequest: ProcessContextTy
         await generateContextTypesCore(typeCreationRequest, eventHandler, messageId);
     } catch (error) {
         console.error("Error during context type creation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
         throw error;
     }
 }

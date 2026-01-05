@@ -19,6 +19,9 @@
 import { AIChatMachineContext } from '@wso2/ballerina-core/lib/state-machine-types';
 import { generateProjectId } from './idGenerators';
 import { sessionStorage } from './chatStateStorage';
+import { getPendingReviewContext, clearPendingReviewContext } from '../../features/ai/agent/stream-handlers/handlers/finish-handler';
+import { sendAgentDidCloseForProjects } from '../../features/ai/utils/project/ls-schema-notifications';
+import { cleanupTempProject } from '../../features/ai/utils/project/temp-project';
 
 /**
  * Saves the chat state for the current project (session-only storage)
@@ -42,6 +45,7 @@ export const saveChatState = (context: AIChatMachineContext): void => {
 
 /**
  * Clears the chat state for a specific project (action version for state machine)
+ * Also cleans up review context, temp directory, and language server notifications
  * @param context The chat machine context
  */
 export const clearChatStateAction = (context: AIChatMachineContext): void => {
@@ -51,8 +55,31 @@ export const clearChatStateAction = (context: AIChatMachineContext): void => {
             return;
         }
 
+        // Clear session storage
         sessionStorage.clear(context.projectId);
         console.log(`Cleared chat state for project: ${context.projectId}`);
+
+        // Cleanup review context and temp directory if exists
+        const pendingReview = getPendingReviewContext();
+        if (pendingReview) {
+            console.log('[Clear Chat] Cleaning up pending review context and temp directory');
+            
+            // Close all files in language server
+            sendAgentDidCloseForProjects(pendingReview.tempProjectPath, pendingReview.projects);
+            
+            // Wait a bit for LS to process
+            setTimeout(() => {
+                // Cleanup temp directory
+                if (pendingReview.shouldCleanup) {
+                    cleanupTempProject(pendingReview.tempProjectPath);
+                    console.log('[Clear Chat] Cleaned up temp directory:', pendingReview.tempProjectPath);
+                }
+                
+                // Clear the review context
+                clearPendingReviewContext();
+                console.log('[Clear Chat] Cleared review context');
+            }, 300);
+        }
     } catch (error) {
         console.error('Failed to clear chat state:', error);
     }
