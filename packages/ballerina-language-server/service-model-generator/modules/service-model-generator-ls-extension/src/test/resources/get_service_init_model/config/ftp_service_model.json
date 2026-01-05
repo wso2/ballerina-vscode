@@ -314,19 +314,27 @@
                             "description": "Private Key Configuration for the SFTP Connection\n"
                           },
                           "codedata": {
-                            "type": "EXPRESSION"
+                            "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                           },
                           "placeholder": "",
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
-                              "ballerinaType": "string",
+                              "fieldType": "RECORD_MAP_EXPRESSION",
+                              "ballerinaType": "ftp:PrivateKey",
+                              "typeMembers": [
+                                {
+                                  "type": "PrivateKey",
+                                  "packageInfo": "ballerina:ftp:2.16.0",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": true
+                                }
+                              ],
                               "selected": true
                             },
                             {
-                              "fieldType": "IDENTIFIER",
-                              "ballerinaType": "string",
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "ftp:PrivateKey",
                               "selected": false
                             }
                           ],
@@ -404,7 +412,7 @@
                 "description": ""
               },
               "placeholder": "true",
-              "value": "FTP",
+              "value": "FTPS",
               "properties": {
                 "host": {
                   "metadata": {
@@ -567,12 +575,20 @@
                           "value": "",
                           "types": [
                             {
-                              "fieldType": "EXPRESSION",
+                              "fieldType": "RECORD_MAP_EXPRESSION",
                               "ballerinaType": "ftp:SecureSocket",
+                              "typeMembers": [
+                                {
+                                  "type": "SecureSocket",
+                                  "packageInfo": "ballerina:ftp:2.16.0",
+                                  "kind": "RECORD_TYPE",
+                                  "selected": true
+                                }
+                              ],
                               "selected": true
                             },
                             {
-                              "fieldType": "IDENTIFIER",
+                              "fieldType": "EXPRESSION",
                               "ballerinaType": "ftp:SecureSocket",
                               "selected": false
                             }

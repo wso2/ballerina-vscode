@@ -223,7 +223,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     private String getEnabledChoiceValue(ServiceInitModel serviceInitModel, String propertyKey) {
         Value property = serviceInitModel.getProperties().get(propertyKey);
         if (property == null || property.getChoices() == null) {
-            return "ftp";
+            return "FTP";
         }
 
         for (Value choice : property.getChoices()) {
@@ -231,7 +231,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 return choice.getValue();
             }
         }
-        return "ftp";
+        return "FTP";
     }
 
     /**

@@ -4,7 +4,7 @@
   "serviceInitModel": {
     "id": "0",
     "displayName": "FTP Integration",
-    "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+    "description": "Monitor files on an FTP/SFTP server and integrate file events into your application.",
     "orgName": "ballerina",
     "packageName": "ftp",
     "moduleName": "ftp",
@@ -169,7 +169,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:ftp, host= \"127.0.0.1\", auth= { credentials: { username: testUser, password: testpwd } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host= \"127.0.0.1\", auth= { credentials: { username: testUser, password: testpwd } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
       }
     ]
   }

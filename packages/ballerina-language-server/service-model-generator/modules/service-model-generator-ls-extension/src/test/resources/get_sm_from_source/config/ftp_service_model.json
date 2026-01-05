@@ -1,6 +1,6 @@
 {
   "filePath": "sample14/main.bal",
-  "description": "Test the generation of service model for a Kafka service",
+  "description": "Test the generation of service model for an FTP service",
   "start": {
     "line": 15,
     "offset": 0
