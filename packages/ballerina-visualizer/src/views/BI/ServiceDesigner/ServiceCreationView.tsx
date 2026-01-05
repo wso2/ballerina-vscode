@@ -278,7 +278,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     useEffect(() => {
         if (model) {
-            const hasPropertiesWithChoices = model?.moduleName === "http" &&
+            let formRecordTypeFields: RecordTypeField[] = [];
+            const hasPropertiesWithChoices =
                 Object.values(model.properties).some(property => property.choices);
 
             if (hasPropertiesWithChoices) {
@@ -312,32 +313,31 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                 console.log(">>> recordTypeFields of http serviceModel", choiceRecordTypeFields);
 
                 setRecordTypeFields(choiceRecordTypeFields);
-            } else {
-                const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
-                    .filter(([_, property]) =>
-                        getPrimaryInputType(property.types)?.typeMembers &&
-                        getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
-                    )
-                    .map(([key, property]) => ({
-                        key,
-                        property: {
-                            ...property,
-                            metadata: {
-                                label: property.metadata?.label || key,
-                                description: property.metadata?.description || ''
-                            },
-                            types: property.types,
-                            diagnostics: {
-                                hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
-                                diagnostics: property.diagnostics
-                            }
-                        } as Property,
-                        recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
-                    }));
-                console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
-
-                setRecordTypeFields(recordTypeFields);
+                formRecordTypeFields = [...choiceRecordTypeFields]
             }
+            const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
+                .filter(([_, property]) =>
+                    getPrimaryInputType(property.types)?.typeMembers &&
+                    getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
+                )
+                .map(([key, property]) => ({
+                    key,
+                    property: {
+                        ...property,
+                        metadata: {
+                            label: property.metadata?.label || key,
+                            description: property.metadata?.description || ''
+                        },
+                        types: property.types,
+                        diagnostics: {
+                            hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                            diagnostics: property.diagnostics
+                        }
+                    } as Property,
+                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                }));
+            console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
+            setRecordTypeFields([...formRecordTypeFields, ...recordTypeFields]);
         }
     }, [model]);
 
