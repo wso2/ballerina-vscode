@@ -304,7 +304,8 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const generateParameterTypeName = (param: ParameterModel): string => {
         const rawParameterName = param.metadata?.label || param.name?.value || "Parameter";
-        const capitalizedName = rawParameterName.charAt(0).toUpperCase() + rawParameterName.slice(1);
+        const sanitizedName = rawParameterName.replace(/[^a-zA-Z0-9]/g, '');
+        const capitalizedName = sanitizedName.charAt(0).toUpperCase() + sanitizedName.slice(1);
         return `${capitalizedName}Schema`;
     };
 
