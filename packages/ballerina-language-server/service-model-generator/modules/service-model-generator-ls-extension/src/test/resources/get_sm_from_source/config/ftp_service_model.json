@@ -28,381 +28,42 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "MULTIPLE_SELECT_LISTENER",
-        "valueTypeConstraint": "ftp:Listener",
-        "value": "",
+        "value": "ftpListener",
         "values": [],
-        "items": [
-          "ftpListener",
-          ""
-        ],
-        "enabled": true,
-        "editable": false,
-        "optional": false,
-        "advanced": false
-      },
-      "designApproach": {
-        "metadata": {
-          "label": "Protocol",
-          "description": "Choose network protocol to use for file transfer operations"
-        },
-        "placeholder": "",
-        "valueType": "CHOICE",
-        "value": "",
-        "choices": [
-          {
-            "metadata": {
-              "label": "ftp",
-              "description": ""
-            },
-            "placeholder": "true",
-            "valueType": "FORM",
-            "value": "true",
-            "properties": {
-              "host": {
-                "metadata": {
-                  "label": "Host",
-                  "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+        "properties": {
+          "ftpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 15,
+                  "offset": 11
                 },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "portNumber": {
-                "metadata": {
-                  "label": "Port Number",
-                  "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "folderPath": {
-                "metadata": {
-                  "label": "Folder Path",
-                  "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)\n"
-                },
-                "codedata": {
-                  "type": "SERVICE_BASEPATH"
-                },
-                "placeholder": "",
-                "valueType": "SERVICE_PATH",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "userName": {
-                "metadata": {
-                  "label": "Username",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              },
-              "password": {
-                "metadata": {
-                  "label": "Password",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              }
-            },
-            "enabled": true,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          {
-            "metadata": {
-              "label": "sftp",
-              "description": ""
-            },
-            "placeholder": "true",
-            "valueType": "FORM",
-            "value": "true",
-            "properties": {
-              "host": {
-                "metadata": {
-                  "label": "Host",
-                  "description": "Hostname or IP address of the server (e.g., ftp.example.com)"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "portNumber": {
-                "metadata": {
-                  "label": "Port Number",
-                  "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "folderPath": {
-                "metadata": {
-                  "label": "Folder Path",
-                  "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
-                },
-                "codedata": {
-                  "type": "SERVICE_BASEPATH"
-                },
-                "placeholder": "",
-                "valueType": "SERVICE_PATH",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "privateKey": {
-                "metadata": {
-                  "label": "Private Key",
-                  "description": "Private Key Configuration for the SFTP Connection\n"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "userName": {
-                "metadata": {
-                  "label": "Username",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              },
-              "password": {
-                "metadata": {
-                  "label": "Password",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
+                "endLine": {
+                  "line": 15,
+                  "offset": 22
+                }
               }
             },
             "enabled": false,
-            "editable": true,
-            "optional": false,
-            "advanced": false
-          },
-          {
-            "metadata": {
-              "label": "ftps",
-              "description": ""
-            },
-            "placeholder": "true",
-            "valueType": "FORM",
-            "value": "true",
-            "properties": {
-              "host": {
-                "metadata": {
-                  "label": "Host",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "portNumber": {
-                "metadata": {
-                  "label": "Port Number",
-                  "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "folderPath": {
-                "metadata": {
-                  "label": "Folder Path",
-                  "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
-                },
-                "codedata": {
-                  "type": "SERVICE_PATH"
-                },
-                "placeholder": "",
-                "valueType": "SERVICE_PATH",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              },
-              "userName": {
-                "metadata": {
-                  "label": "Username",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              },
-              "password": {
-                "metadata": {
-                  "label": "Password",
-                  "description": ""
-                },
-                "codedata": {
-                  "type": "IDENTIFIER"
-                },
-                "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": true,
-                "advanced": false
-              },
-              "secureSocket": {
-                "metadata": {
-                  "label": "Secure Socket (SecureSocket)",
-                  "description": "Configure SSL/TLS configuration for secure connection.\n"
-                },
-                "codedata": {
-                  "type": "EXPRESSION"
-                },
-                "placeholder": "",
-                "valueType": "EXPRESSION",
-                "valueTypeConstraint": "string",
-                "value": "",
-                "enabled": true,
-                "editable": true,
-                "optional": false,
-                "advanced": false
-              }
-            },
-            "enabled": false,
-            "editable": true,
+            "editable": false,
             "optional": false,
             "advanced": false
           }
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              "ftpListener",
+              "",
+              "ftpListener"
+            ],
+            "selected": true
+          }
         ],
         "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
-      "listenerVarName": {
-        "metadata": {
-          "label": "Listener Name",
-          "description": "Provide a name for the listener being created"
-        },
-        "codedata": {
-          "type": "LISTENER_VAR_NAME"
-        },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
-        "value": "ftpListener",
-        "enabled": true,
-        "editable": true,
+        "editable": false,
         "optional": false,
         "advanced": false
       },
@@ -411,15 +72,36 @@
           "type": "READONLY"
         },
         "placeholder": "false",
-        "valueType": "SINGLE_SELECT",
         "value": {
           "Protocol": []
         },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false
       }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 15,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 31,
+          "offset": 1
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "ftp",
+      "moduleName": "ftp"
     },
     "functions": [
       {
@@ -434,8 +116,6 @@
             "description": "onFileCsv function type"
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "",
           "value": "onFileCsv",
           "enabled": true,
           "editable": false,
@@ -451,8 +131,6 @@
             "kind": "DATA_BINDING",
             "type": {
               "placeholder": "string[][]",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "string[]",
               "value": "string[][]",
               "enabled": true,
               "editable": false,
@@ -461,8 +139,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -484,8 +160,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "CHECKBOX",
-              "valueTypeConstraint": "ftp:FileInfo",
               "value": "ftp:FileInfo",
               "enabled": true,
               "editable": false,
@@ -494,8 +168,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "fileInfo",
               "enabled": true,
               "editable": true,
@@ -517,8 +189,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "CHECKBOX",
-              "valueTypeConstraint": "ftp:Caller",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -527,8 +197,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -551,8 +219,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,
@@ -595,8 +261,6 @@
             "description": "onFileJson function type"
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "json",
           "value": "onFileJson",
           "enabled": true,
           "editable": false,
@@ -612,8 +276,6 @@
             "kind": "DATA_BINDING",
             "type": {
               "placeholder": "json",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "json",
               "value": "json",
               "enabled": true,
               "editable": false,
@@ -622,8 +284,6 @@
             },
             "name": {
               "placeholder": "content",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -645,8 +305,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "",
               "value": "ftp:FileInfo",
               "enabled": true,
               "editable": false,
@@ -655,8 +313,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "fileInfo",
               "enabled": true,
               "editable": true,
@@ -678,8 +334,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -688,8 +342,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -712,8 +364,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,
@@ -760,8 +410,6 @@
             "description": "onFileXml function type"
           },
           "placeholder": "xml",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "xml",
           "value": "onFileXml",
           "enabled": true,
           "editable": false,
@@ -777,8 +425,6 @@
             "kind": "DATA_BINDING",
             "type": {
               "placeholder": "xml",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "xml",
               "value": "xml",
               "enabled": true,
               "editable": false,
@@ -787,8 +433,6 @@
             },
             "name": {
               "placeholder": "content",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -810,8 +454,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "CHECKBOX",
-              "valueTypeConstraint": "ftp:Caller",
               "value": "ftp:FileInfo",
               "enabled": true,
               "editable": false,
@@ -820,8 +462,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "CHECKBOX",
-              "valueTypeConstraint": "string",
               "value": "fileInfo",
               "enabled": true,
               "editable": true,
@@ -843,8 +483,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "CHECKBOX",
-              "valueTypeConstraint": "ftp:Caller",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -853,8 +491,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -877,8 +513,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,
@@ -925,8 +559,6 @@
             "description": "onFileText function type"
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "",
           "value": "onFileText",
           "enabled": true,
           "editable": false,
@@ -942,8 +574,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "string",
               "value": "string",
               "enabled": true,
               "editable": false,
@@ -952,8 +582,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -975,8 +603,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "",
               "value": "ftp:FileInfo",
               "enabled": true,
               "editable": false,
@@ -985,8 +611,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "fileInfo",
               "enabled": true,
               "editable": true,
@@ -1008,8 +632,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -1018,8 +640,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -1042,8 +662,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,
@@ -1070,8 +688,6 @@
             "description": "onFile function type"
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "",
           "value": "onFile",
           "enabled": true,
           "editable": false,
@@ -1087,8 +703,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "byte[]",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "byte[]",
               "value": "byte[]",
               "enabled": true,
               "editable": false,
@@ -1097,8 +711,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "content",
               "enabled": true,
               "editable": true,
@@ -1120,8 +732,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "http:Caller",
               "value": "ftp:FileInfo",
               "enabled": true,
               "editable": false,
@@ -1130,8 +740,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "fileInfo",
               "enabled": true,
               "editable": true,
@@ -1153,8 +761,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "http:Headers",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -1163,8 +769,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -1187,8 +791,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,
@@ -1224,8 +826,6 @@
             "description": "onFileDeleted function type"
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "",
           "value": "onFileDeleted",
           "enabled": true,
           "editable": false,
@@ -1241,8 +841,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "string",
               "value": "string[]",
               "enabled": true,
               "editable": false,
@@ -1251,8 +849,6 @@
             },
             "name": {
               "placeholder": "",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "deletedFiles",
               "enabled": true,
               "editable": true,
@@ -1274,8 +870,6 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "",
-              "valueType": "TYPE",
-              "valueTypeConstraint": "",
               "value": "ftp:Caller",
               "enabled": true,
               "editable": false,
@@ -1284,8 +878,6 @@
             },
             "name": {
               "placeholder": "request",
-              "valueType": "IDENTIFIER",
-              "valueTypeConstraint": "string",
               "value": "caller",
               "enabled": true,
               "editable": true,
@@ -1308,8 +900,6 @@
             "description": "Return type of the function"
           },
           "placeholder": "json",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "error?",
           "enabled": true,
           "editable": true,

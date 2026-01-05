@@ -20,8 +20,6 @@
         "codedata": {
           "type": "LISTENER_VAR_NAME"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
         "value": "ftpListener",
         "enabled": true,
         "editable": true,
@@ -37,8 +35,6 @@
           "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "placeholder": "\"127.0.0.1\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
         "value": "string `127.0.0.1`",
         "enabled": true,
         "editable": true,
@@ -54,8 +50,6 @@
           "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "placeholder": "21",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
         "value": "21",
         "enabled": true,
         "editable": true,
@@ -71,8 +65,6 @@
           "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
         },
         "placeholder": "\"/\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
         "value": "string `/`",
         "enabled": true,
         "editable": true,
@@ -85,7 +77,6 @@
           "description": "Select the authentication method"
         },
         "placeholder": "",
-        "valueType": "CHOICE",
         "value": 0.0,
         "choices": [
           {
@@ -94,7 +85,6 @@
               "description": ""
             },
             "placeholder": "true",
-            "valueType": "FORM",
             "value": "true",
             "properties": {
               "userName": {
@@ -106,8 +96,6 @@
                   "type": "IDENTIFIER"
                 },
                 "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
                 "value": "testUser",
                 "enabled": true,
                 "editable": true,
@@ -123,8 +111,6 @@
                   "type": "IDENTIFIER"
                 },
                 "placeholder": "",
-                "valueType": "IDENTIFIER",
-                "valueTypeConstraint": "string",
                 "value": "testpwd",
                 "enabled": true,
                 "editable": true,
@@ -143,7 +129,6 @@
               "description": ""
             },
             "placeholder": "true",
-            "valueType": "FORM",
             "value": "true",
             "enabled": false,
             "editable": true,
@@ -184,7 +169,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new({\n    protocol: ftp:ftp,\n    host: \"string `127.0.0.1`\",\n    auth: {\n        credentials: {\n            username: \"testUser\",\n            password: \"testpwd\"\n        }\n    },\n    port: 21,\n    path: \"string `/`\"\n});\n\nservice on ftpListener {\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:ftp, host= \"string `127.0.0.1`\", auth= { credentials: { username: testUser, password: testpwd } }, port= 21, path= \"string `/`\" );\n\nservice on ftpListener {\n}\n"
       }
     ]
   }

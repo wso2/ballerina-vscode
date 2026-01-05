@@ -82,8 +82,7 @@ public class PackageUtil {
             Path currentPath = getPath(Paths.get(
                     PackageUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath()));
             Path distributionPath = getParentPath(getParentPath(getParentPath(currentPath)));
-            String balHome = "/Users/samith/.ballerina/ballerina-home/distributions/ballerina-2201.13.1";
-            System.setProperty(BALLERINA_HOME_PROPERTY, balHome);
+            System.setProperty(BALLERINA_HOME_PROPERTY, distributionPath.toString());
         }
 
         try {

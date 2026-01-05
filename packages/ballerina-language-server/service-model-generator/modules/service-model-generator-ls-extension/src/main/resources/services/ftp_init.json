@@ -5,9 +5,9 @@
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.16.0",
+  "version": "2.15.1",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
   "properties": {
     "designApproach": {
       "metadata": {
@@ -147,7 +147,7 @@
               "isType": false,
               "placeholder": "",
               "optional": false,
-              "advanced": true,
+              "advanced": false,
               "choices": [{
                 "metadata": {
                   "label": "Basic Authentication",
@@ -169,28 +169,20 @@
                     },
                     "enabled": true,
                     "editable": true,
-                    "value": "",
+                    "value": "\"default\"",
                     "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       }
                     ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
-                    "placeholder": "",
+                    "placeholder": "default",
                     "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
+                    "advanced": false
                   },
                   "password": {
                     "metadata": {
@@ -199,28 +191,20 @@
                     },
                     "enabled": true,
                     "editable": true,
-                    "value": "",
+                    "value": "\"default\"",
                     "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "string",
-                        "selected": false
+                        "selected": true
                       }
                     ],
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
-                    "placeholder": "",
+                    "placeholder": "default",
                     "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
+                    "advanced": false
                   }
                 }
               },
@@ -362,7 +346,7 @@
               "isType": false,
               "placeholder": "",
               "optional": false,
-              "advanced": true,
+              "advanced": false,
               "choices": [{
                 "metadata": {
                   "label": "Certificate Based Authentication",
@@ -576,7 +560,7 @@
               "isType": false,
               "placeholder": "",
               "optional": false,
-              "advanced": true,
+              "advanced": false,
               "choices": [{
                 "metadata": {
                   "label": "Basic Authentication",
@@ -682,7 +666,7 @@
                     "isType": false,
                     "placeholder": "",
                     "optional": false,
-                    "advanced": false,
+                    "advanced": true,
                     "codedata": {
                       "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                     }
@@ -717,9 +701,13 @@
       "codedata": {
         "type": "LISTENER_VAR_NAME"
       },
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "Global",
-      "value": "ftpListener",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "value": "ftpListenerOut",
       "enabled": true,
       "editable": true,
       "optional": false,

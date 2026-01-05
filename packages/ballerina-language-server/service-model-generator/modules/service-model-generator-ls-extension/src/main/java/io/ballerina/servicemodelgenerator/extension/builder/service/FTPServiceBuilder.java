@@ -78,7 +78,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             ServiceInitModel serviceInitModel = new Gson().fromJson(reader, ServiceInitModel.class);
             Value listenerNameProp = listenerNameProperty(context);
             Value listener = serviceInitModel.getProperties().get(KEY_LISTENER_VAR_NAME);
-
             listener.setValue(listenerNameProp.getValue());
             return serviceInitModel;
         } catch (IOException e) {
@@ -126,10 +125,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             if (!username.isEmpty() || !password.isEmpty()) {
                 listenerDeclaration.append("credentials: { ");
                 if (!username.isEmpty()) {
-                    listenerDeclaration.append("username: \"").append(username).append("\", ");
+                    listenerDeclaration.append("username: ").append(username).append(", ");
                 }
                 if (!password.isEmpty()) {
-                    listenerDeclaration.append("password: \"").append(password).append("\" ");
+                    listenerDeclaration.append("password: ").append(password).append(" ");
                 }
                 listenerDeclaration.append("}");
 
@@ -362,14 +361,11 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             serviceModel.getProperties().put(PROP_READONLY_METADATA_KEY, readOnlyMetadata);
         }
 
-        // Add readOnly metadata extraction (same logic as parent class)
         updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
-        // Populate additional service properties
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
         updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
-//        updateReadOnlyMetadataWithAnnotations(serviceModel, serviceNode, context);
         return serviceModel;
     }
 
