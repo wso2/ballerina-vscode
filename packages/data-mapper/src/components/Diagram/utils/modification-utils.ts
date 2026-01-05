@@ -255,7 +255,7 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 
 	const sourcePortModel = sourcePort as InputOutputPortModel;
 
-	const { setClauseToAdd, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
+	const { setClauseToAdd, setClauseTypes, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
 
 	setClauseToAdd({
 		type: IntermediateClauseType.JOIN,
@@ -268,6 +268,7 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 			rhsExpression: "",
 		}
 	});
+	setClauseTypes([IntermediateClauseType.JOIN, IntermediateClauseType.FROM]);
 	setIsQueryClausesPanelOpen(true);
 }
 
