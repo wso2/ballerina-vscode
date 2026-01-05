@@ -31,15 +31,33 @@ interface TextEditorProps {
 export function TextEditor(props: TextEditorProps) {
     const { field, handleOnFieldFocus, autoFocus } = props;
     const { form } = useFormContext();
-    const { register } = form;
+    const { register, formState: { errors } } = form;
 
-    const errorMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
+    // Combine diagnostics and validation errors
+    const diagnosticMsg = field.diagnostics?.map((diagnostic) => diagnostic.message).join("\n");
+    const validationError = errors[field.key]?.message;
+    const errorMsg = validationError ? String(validationError) : diagnosticMsg;
+
+    // Build validation rules
+    const validationRules: any = {
+        required: !field.optional && !field.placeholder,
+        value: field.value
+    };
+
+    // Add pattern validation if it exists in field types
+    const patternType = field.types?.find(t => t.pattern);
+    if (patternType?.pattern) {
+        validationRules.pattern = {
+            value: new RegExp(patternType.pattern),
+            message: patternType.patternErrorMessage || "Invalid format"
+        };
+    }
 
     return (
         <TextField
             id={field.key}
             name={field.key}
-            {...register(field.key, { required: !field.optional && !field.placeholder, value: field.value })}
+            {...register(field.key, validationRules)}
             label={capitalize(field.label)}
             required={!field.optional}
             description={field.documentation}

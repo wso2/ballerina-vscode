@@ -17,8 +17,8 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Codicon, ErrorBanner, ThemeColors } from '@wso2/ui-toolkit';
 import { ExpressionFieldProps } from "../../ExpressionField";
+import { Codicon, ErrorBanner } from '@wso2/ui-toolkit';
 import { InputMode } from "../ChipExpressionEditor/types";
 import { getPrimaryInputType } from "@wso2/ballerina-core";
 import { getInputModeFromBallerinaType } from "../ChipExpressionEditor/utils";
@@ -200,7 +200,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         onClick={() => handleDelete(index)}
                         disabled={arrayValues.length <= minItems}
                     >
-                        <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
+                        <Codicon name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}

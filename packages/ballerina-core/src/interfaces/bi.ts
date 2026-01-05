@@ -153,6 +153,8 @@ export interface BaseType {
     typeMembers?: PropertyTypeMemberInfo[];
     minItems?: number; // minimum items for EXPRESSION_SET fields
     defaultItems?: number; // default number of items for EXPRESSION_SET fields
+    pattern?: string; // regex pattern for validation (e.g., for TEXT fields)
+    patternErrorMessage?: string; // custom error message when pattern validation fails
 }
 
 export interface DropdownType extends BaseType {
