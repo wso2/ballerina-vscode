@@ -37,7 +37,7 @@ export interface ClausesPanelProps {
 
 export function ClausesPanel(props: ClausesPanelProps) {
     const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
-    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
+    const { clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesPanelStore.getState();
     const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm , genUniqueName} = props;
 
     const [adding, setAdding] = React.useState<number>();
@@ -55,6 +55,8 @@ export function ClausesPanel(props: ClausesPanelProps) {
         } else if (clauseType === IntermediateClauseType.GROUP_BY) {
             clause.properties.type = "var";
             clause.properties.name = await genUniqueName(clause.properties.expression.split('.').pop(), targetField);
+        } else if (clauseType === IntermediateClauseType.FROM) {
+            clause.properties.type = "var";
         }
     };
 
@@ -88,8 +90,9 @@ export function ClausesPanel(props: ClausesPanelProps) {
         }
         return () => {
             setClauseToAdd(undefined);
+            setClauseTypes(undefined);
         }
-    }, [clauseToAdd, clauses.length, setClauseToAdd, setAdding]);
+    }, [clauseToAdd, clauses.length]);
 
     return (
         <SidePanel
