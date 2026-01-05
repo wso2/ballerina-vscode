@@ -21,6 +21,7 @@ import {
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AbortAIGenerationRequest,
     AddFilesToProjectRequest,
     CheckpointInfo,
     Command,
@@ -64,7 +65,7 @@ import { refreshDataMapper } from "../data-mapper/utils";
 import {
     TEST_DIR_NAME
 } from "./constants";
-import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
+import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
 
 import { onHideReviewActions } from '@wso2/ballerina-core';
 import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
@@ -253,8 +254,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
         await generateOpenAPISpec(params);
     }
 
-    async abortAIGeneration(): Promise<void> {
-        AIPanelAbortController.getInstance().abort();
+    async abortAIGeneration(params: AbortAIGenerationRequest): Promise<void> {
+        const workspaceId = params?.workspaceId || StateMachine.context().projectPath;
+        const threadId = params?.threadId || 'default';
+
+        const aborted = chatStateStorage.abortActiveExecution(workspaceId, threadId);
+
+        if (aborted) {
+            console.log(`[RPC] Aborted execution for workspace=${workspaceId}, thread=${threadId}`);
+        } else {
+            console.warn(`[RPC] No active execution found for workspace=${workspaceId}, thread=${threadId}`);
+        }
     }
 
     async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {

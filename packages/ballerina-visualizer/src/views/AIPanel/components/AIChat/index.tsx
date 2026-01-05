@@ -666,7 +666,16 @@ const AIChat: React.FC = () => {
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += interruptedMessage;
+                if (newMessages.length > 0) {
+                    newMessages[newMessages.length - 1].content += interruptedMessage;
+                } else {
+                    // Edge case: abort before any messages
+                    newMessages.push({
+                        role: "assistant",
+                        content: interruptedMessage,
+                        type: "text"
+                    });
+                }
                 return newMessages;
             });
             setIsCodeLoading(false);
@@ -1150,8 +1159,8 @@ const AIChat: React.FC = () => {
     }
 
     async function handleStop() {
-        // TODO: FIX properly.
-        rpcClient.getAiPanelRpcClient().abortAIGeneration();
+        // Call RPC with empty params (defaults to current workspace + 'default' thread)
+        rpcClient.getAiPanelRpcClient().abortAIGeneration({});
 
         setIsLoading(false);
         setIsCodeLoading(false);

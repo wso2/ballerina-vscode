@@ -162,6 +162,15 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 for await (const part of fullStream) {
                     await this.handleStreamPart(part, streamContext);
                 }
+
+                // Check if abort was called after stream completed
+                // This handles the case where abort happens but doesn't throw an error
+                if (this.config.abortController.signal.aborted) {
+                    console.log("[AgentExecutor] Detected abort after stream completion");
+                    const abortError = new Error('Aborted by user');
+                    abortError.name = 'AbortError';
+                    throw abortError;
+                }
             } catch (error: any) {
                 // Handle abort specifically
                 if (error.name === 'AbortError' || this.config.abortController.signal.aborted) {
@@ -198,8 +207,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         chatStateStorage.declineAllReviews(workspaceId, threadId);
                     }
 
-                    // Send abort event
-                    this.config.eventHandler({ type: "abort", command: Command.Agent });
+                    // Note: Abort event is sent by base class handleExecutionError()
                 }
 
                 // Re-throw for base class error handling
@@ -211,8 +219,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 modifiedFiles,
             };
         } catch (error) {
-            // Error handling is done by base class in run()
-            // Just return result with error
+            // For abort errors, re-throw so base class can handle them
+            if ((error as any).name === 'AbortError' || this.config.abortController.signal.aborted) {
+                throw error;
+            }
+
+            // For other errors, return result with error
             return {
                 tempProjectPath,
                 modifiedFiles,

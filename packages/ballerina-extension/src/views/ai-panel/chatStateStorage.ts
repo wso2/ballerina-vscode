@@ -24,7 +24,17 @@ import {
     GenerationReviewState,
     Checkpoint,
 } from '@wso2/ballerina-core/lib/state-machine-types';
+import { Command } from '@wso2/ballerina-core';
 import * as crypto from 'crypto';
+
+/**
+ * Active execution handle
+ * Tracks running AI operations for abort functionality
+ */
+export interface ActiveExecution {
+    generationId: string;              // For logging and correlation with generation
+    abortController: AbortController;  // For actual abort operation
+}
 
 /**
  * Thread-based ChatStateStorage
@@ -36,6 +46,9 @@ import * as crypto from 'crypto';
 export class ChatStateStorage {
     // In-memory storage: workspaceId -> WorkspaceChatState
     private storage: Map<string, WorkspaceChatState> = new Map();
+
+    // Track active executions per workspace/thread for abort functionality
+    private activeExecutions: Map<string, Map<string, ActiveExecution>> = new Map();
 
     // ============================================
     // Workspace Management
@@ -588,6 +601,99 @@ export class ChatStateStorage {
             totalGenerations,
             estimatedSizeMB: estimatedSize / (1024 * 1024)
         };
+    }
+
+    // ============================================
+    // Active Execution Management (for abort functionality)
+    // ============================================
+
+    /**
+     * Register active execution for a thread
+     * Auto-aborts existing execution if present
+     *
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @param execution Active execution handle
+     */
+    setActiveExecution(
+        workspaceId: string,
+        threadId: string,
+        execution: ActiveExecution
+    ): void {
+        // Abort any existing execution for this thread first
+        this.abortActiveExecution(workspaceId, threadId);
+
+        let threadMap = this.activeExecutions.get(workspaceId);
+        if (!threadMap) {
+            threadMap = new Map();
+            this.activeExecutions.set(workspaceId, threadMap);
+        }
+
+        threadMap.set(threadId, execution);
+        console.log(`[ChatStateStorage] Registered active execution: ${execution.generationId} for thread: ${threadId}`);
+    }
+
+    /**
+     * Abort active execution for a thread
+     * Called by RPC abort handler
+     *
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns true if execution was aborted, false if no active execution found
+     */
+    abortActiveExecution(workspaceId: string, threadId: string): boolean {
+        const threadMap = this.activeExecutions.get(workspaceId);
+        if (!threadMap) {
+            return false;
+        }
+
+        const execution = threadMap.get(threadId);
+        if (!execution) {
+            return false;
+        }
+
+        console.log(`[ChatStateStorage] Aborting execution: ${execution.generationId} for thread: ${threadId}`);
+        execution.abortController.abort();
+
+        // Cleanup
+        threadMap.delete(threadId);
+        if (threadMap.size === 0) {
+            this.activeExecutions.delete(workspaceId);
+        }
+
+        return true;
+    }
+
+    /**
+     * Clear active execution when completed normally
+     * Called in finally block of AICommandExecutor.run()
+     *
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     */
+    clearActiveExecution(workspaceId: string, threadId: string): void {
+        const threadMap = this.activeExecutions.get(workspaceId);
+        if (!threadMap) {
+            return;
+        }
+
+        threadMap.delete(threadId);
+        if (threadMap.size === 0) {
+            this.activeExecutions.delete(workspaceId);
+        }
+
+        console.log(`[ChatStateStorage] Cleared active execution for thread: ${threadId}`);
+    }
+
+    /**
+     * Get active execution (for debugging/inspection)
+     *
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     * @returns Active execution or undefined
+     */
+    getActiveExecution(workspaceId: string, threadId: string): ActiveExecution | undefined {
+        return this.activeExecutions.get(workspaceId)?.get(threadId);
     }
 }
 

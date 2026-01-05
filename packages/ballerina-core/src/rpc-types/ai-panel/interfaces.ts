@@ -457,3 +457,14 @@ export interface CheckpointInfo {
     timestamp: number;
     snapshotSize: number;
 }
+
+/**
+ * Request to abort AI generation
+ * Optional params default to current workspace and 'default' thread
+ */
+export interface AbortAIGenerationRequest {
+    /** Workspace identifier (defaults to current workspace) */
+    workspaceId?: string;
+    /** Thread identifier (defaults to 'default') */
+    threadId?: string;
+}

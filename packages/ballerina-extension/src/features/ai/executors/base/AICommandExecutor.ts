@@ -91,27 +91,40 @@ export abstract class AICommandExecutor<TParams = any> {
      * Main execution method - handles full lifecycle with template pattern
      *
      * Stages:
-     * 1. Initialize chat storage (if enabled)
-     * 2. Initialize temp project (create or reuse)
-     * 3. Execute command logic (abstract method)
-     * 4. Perform cleanup (strategy-dependent)
+     * 1. Register active execution for abort support
+     * 2. Initialize chat storage (if enabled)
+     * 3. Initialize temp project (create or reuse)
+     * 4. Execute command logic (abstract method)
+     * 5. Perform cleanup (strategy-dependent)
+     * 6. Clear active execution
      *
      * @returns Execution result with temp path and modified files
      */
     async run(): Promise<AIExecutionResult> {
+        const { workspaceId, threadId } = this.config.chatStorage || {
+            workspaceId: this.config.executionContext.projectPath,
+            threadId: 'default'
+        };
+
         try {
             console.log(`[AICommandExecutor] Starting ${this.getCommandType()} execution: ${this.config.generationId}`);
 
-            // Stage 1: Initialize workspace/thread in chat storage
+            // Stage 1: Register active execution for abort support
+            chatStateStorage.setActiveExecution(workspaceId, threadId, {
+                generationId: this.config.generationId,
+                abortController: this.config.abortController
+            });
+
+            // Stage 2: Initialize workspace/thread in chat storage
             await this.initializeWorkspaceThread();
 
-            // Stage 2: Temp project initialization
+            // Stage 3: Temp project initialization
             await this.initializeTempProject();
 
-            // Stage 3: Command execution
+            // Stage 4: Command execution
             const result = await this.execute();
 
-            // Stage 4: Cleanup
+            // Stage 5: Cleanup
             await this.performCleanup(result);
 
             console.log(`[AICommandExecutor] Completed ${this.getCommandType()} execution: ${this.config.generationId}`);
@@ -120,6 +133,9 @@ export abstract class AICommandExecutor<TParams = any> {
         } catch (error) {
             await this.handleExecutionError(error);
             throw error;
+        } finally {
+            // Stage 6: Always clear active execution on completion (success or error)
+            chatStateStorage.clearActiveExecution(workspaceId, threadId);
         }
     }
 
@@ -240,17 +256,28 @@ export abstract class AICommandExecutor<TParams = any> {
 
     /**
      * Handle execution errors
-     * Emits error event and attempts cleanup
+     * Emits error or abort event and attempts cleanup
      */
     protected async handleExecutionError(error: any): Promise<void> {
-        const errorMsg = getErrorMessage(error);
-        console.error(`[AICommandExecutor] Error in ${this.getCommandType()}:`, errorMsg, error);
+        // Check if this was an abort
+        if (error.name === 'AbortError' || this.config.abortController.signal.aborted) {
+            console.log(`[AICommandExecutor] Execution aborted by user for ${this.getCommandType()}`);
 
-        // Emit error event to frontend
-        this.config.eventHandler({
-            type: "error",
-            content: errorMsg
-        });
+            // Emit abort event to frontend
+            this.config.eventHandler({
+                type: "abort",
+                command: this.getCommandType()
+            });
+        } else {
+            // Regular error - emit error event
+            const errorMsg = getErrorMessage(error);
+            console.error(`[AICommandExecutor] Error in ${this.getCommandType()}:`, errorMsg, error);
+
+            this.config.eventHandler({
+                type: "error",
+                content: errorMsg
+            });
+        }
 
         // Attempt cleanup on error
         const tempProjectPath = this.config.executionContext.tempProjectPath;

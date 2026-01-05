@@ -43,6 +43,7 @@ import {
     ConnectorSpecCancelRequest,
     UIChatMessage,
     CheckpointInfo,
+    AbortAIGenerationRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -67,7 +68,7 @@ export const createTestDirecoryIfNotExists: NotificationType<void> = { method: `
 export const submitFeedback: RequestType<SubmitFeedbackRequest, boolean> = { method: `${_preFix}/submitFeedback` };
 export const generateOpenAPI: NotificationType<GenerateOpenAPIRequest> = { method: `${_preFix}/generateOpenAPI` };
 export const generateAgent: RequestType<GenerateAgentCodeRequest, boolean> = { method: `${_preFix}/generateAgent` };
-export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
+export const abortAIGeneration: NotificationType<AbortAIGenerationRequest> = { method: `${_preFix}/abortAIGeneration` };
 export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> = { method: `${_preFix}/getGeneratedDocumentation` };
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
@@ -82,8 +83,8 @@ export const approveTask: RequestType<ApproveTaskRequest, void> = { method: `${_
 export const declineTask: RequestType<TaskDeclineRequest, void> = { method: `${_preFix}/declineTask` };
 export const provideConnectorSpec: RequestType<ConnectorSpecRequest, void> = { method: `${_preFix}/provideConnectorSpec` };
 export const cancelConnectorSpec: RequestType<ConnectorSpecCancelRequest, void> = { method: `${_preFix}/cancelConnectorSpec` };
-export const getChatMessages: RequestType<void, UIChatMessage[]> = { method: `${_preFix}/getChatMessages` };
-export const getCheckpoints: RequestType<void, CheckpointInfo[]> = { method: `${_preFix}/getCheckpoints` };
+export const getChatMessages: NotificationType<void> = { method: `${_preFix}/getChatMessages` };
+export const getCheckpoints: NotificationType<void> = { method: `${_preFix}/getCheckpoints` };
 export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { method: `${_preFix}/restoreCheckpoint` };
 export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearChat` };
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
