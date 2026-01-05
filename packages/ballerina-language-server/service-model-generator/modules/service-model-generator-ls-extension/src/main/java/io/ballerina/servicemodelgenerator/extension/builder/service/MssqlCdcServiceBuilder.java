@@ -45,7 +45,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -86,10 +85,6 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     private static final String ON_READ_FUNCTION = "onRead";
     private static final String ON_UPDATE_FUNCTION = "onUpdate";
     private static final String ON_DELETE_FUNCTION = "onDelete";
-    private static final String KEY_CONFIGURE_LISTENER = "configureListener";
-    private static final int CHOICE_SELECT_EXISTING_LISTENER = 0;
-    private static final int CHOICE_CONFIGURE_NEW_LISTENER = 1;
-    private static final String KEY_SELECT_LISTENER = "selectListener";
     private static final String KEY_TABLE = "table";
 
     private final List<String> listenerFields = List.of(
@@ -120,10 +115,12 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             Map<String, Value> properties = serviceInitModel.getProperties();
             Set<String> listeners = ListenerUtil.getCompatibleListeners(context.moduleName(),
                     context.semanticModel(), context.project());
-            if (listeners.isEmpty()) {
-                formatInitModelForNewListener(properties);
-            } else {
-                formatInitModelForExistingListener(listeners, properties);
+            if (!listeners.isEmpty()) {
+                Map<String, Value> listenerProps = ListenerUtil.removeAndCollectListenerProperties(
+                        properties, listenerFields);
+                Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(
+                        listenerProps, listeners, "MSSQL CDC");
+                properties.put(ServiceInitModel.KEY_CONFIGURE_LISTENER, choicesProperty);
             }
             return serviceInitModel;
         } catch (IOException e) {
@@ -137,29 +134,44 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             EventSyncException {
         ServiceInitModel serviceInitModel = context.serviceInitModel();
         Map<String, Value> properties = serviceInitModel.getProperties();
-        Set<String> listeners = ListenerUtil.getCompatibleListeners(context.serviceInitModel().getModuleName(),
-                context.semanticModel(), context.project());
-        boolean listenerExists = !listeners.isEmpty();
-        Map<String, Value> listenerProperties = getListenerProperties(properties, listenerExists);
-        applyListenerConfigurations(listenerProperties);
 
-        boolean useExisingListener = listenerExists
-                && !properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).isEnabled();
+        // Check if listener choice exists (no existing listeners if it doesn't)
+        if (!properties.containsKey(ServiceInitModel.KEY_CONFIGURE_LISTENER)) {
+            // No existing listeners available - use all properties as listener properties
+            applyListenerConfigurations(properties);
+            ListenerDTO listenerDTO = buildCdcListenerDTO(serviceInitModel.getModuleName(), properties);
+            String listenerDeclaration = listenerDTO.listenerDeclaration();
+            String listenerName = listenerDTO.listenerVarName();
+            return buildServiceCode(context, listenerDeclaration, listenerName);
+        }
 
-        // TODO: move to a diff func
+        // Apply enabled choice property to get selected option
+        Utils.applyEnabledChoiceProperty(serviceInitModel, ServiceInitModel.KEY_CONFIGURE_LISTENER);
+
         String listenerDeclaration;
         String listenerName;
-        // Build listener declaration if not using an existing listener
-        if (!listenerExists || !useExisingListener) {
+
+        if (ListenerUtil.shouldUseExistingListener(properties)) {
+            // Use existing listener
+            listenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerDeclaration = "";
+        } else {
+            // Create new listener
+            Map<String, Value> listenerProperties = getListenerPropertiesFromChoice(properties);
+            applyListenerConfigurations(listenerProperties);
             ListenerDTO listenerDTO = buildCdcListenerDTO(serviceInitModel.getModuleName(), listenerProperties);
             listenerDeclaration = listenerDTO.listenerDeclaration();
             listenerName = listenerDTO.listenerVarName();
-        } else {
-            listenerDeclaration = "";
-            listenerName = properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                    .getProperties().get(KEY_SELECT_LISTENER).getValue();
         }
 
+        return buildServiceCode(context, listenerDeclaration, listenerName);
+    }
+
+    private Map<String, List<TextEdit>> buildServiceCode(AddServiceInitModelContext context,
+                                                         String listenerDeclaration,
+                                                         String listenerName) {
+        ServiceInitModel serviceInitModel = context.serviceInitModel();
+        Map<String, Value> properties = serviceInitModel.getProperties();
         ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
         Value tableValue = properties.get(KEY_TABLE);
 
@@ -175,7 +187,6 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
         List<TextEdit> edits = new ArrayList<>();
 
-        // TODO: unify import addition logic
         if (!importExists(modulePartNode, serviceInitModel.getOrgName(), serviceInitModel.getModuleName())) {
             String importText = getImportStmt(serviceInitModel.getOrgName(), serviceInitModel.getModuleName());
             edits.add(new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText));
@@ -193,36 +204,12 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
-    private void formatInitModelForNewListener(Map<String, Value> properties) {
-        properties.remove(KEY_CONFIGURE_LISTENER);
-    }
-
-    private void formatInitModelForExistingListener(Set<String> listenerNames, Map<String, Value> properties) {
-        Value configureListenerValue = properties.get(KEY_CONFIGURE_LISTENER);
-
-        // fill the existing listeners values
-        Value selectListenerTemplate = configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                .getProperties().get(KEY_SELECT_LISTENER);
-        Value existingListenerOptions = new Value.ValueBuilder()
-                .metadata(selectListenerTemplate.getMetadata().label(),
-                        selectListenerTemplate.getMetadata().description())
-                .value(listenerNames.iterator().next())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .setItems(Arrays.asList(listenerNames.toArray()))
-                .build();
-        configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
-                .getProperties().put(KEY_SELECT_LISTENER, existingListenerOptions);
-
-        // Add all listener properties to choice 1 of configureListener
-        listenerFields.forEach(key -> {
-            Value value = properties.get(key);
-            configureListenerValue.getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER).getProperties().put(key, value);
-        });
-        // Remove all listener properties from outside
-        listenerFields.forEach(properties::remove);
+    private Map<String, Value> getListenerPropertiesFromChoice(Map<String, Value> properties) {
+        // Get the "Create New Listener" choice properties (index 1)
+        Value configureListenerValue = properties.get(ServiceInitModel.KEY_CONFIGURE_LISTENER);
+        List<Value> choices = configureListenerValue.getChoices();
+        // Index 1 is "Create New Listener" choice
+        return choices.get(1).getProperties();
     }
 
     private ListenerDTO buildCdcListenerDTO(String moduleName, Map<String, Value> properties) {
@@ -308,14 +295,6 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             }
         });
         return "{" + String.join(", ", dbFields) + "}";
-    }
-
-    private Map<String, Value> getListenerProperties(Map<String, Value> properties, boolean listenerExists) {
-        if (listenerExists) {
-            return properties.get(KEY_CONFIGURE_LISTENER).getChoices().get(CHOICE_CONFIGURE_NEW_LISTENER)
-                    .getProperties();
-        }
-        return properties;
     }
 
     @Override

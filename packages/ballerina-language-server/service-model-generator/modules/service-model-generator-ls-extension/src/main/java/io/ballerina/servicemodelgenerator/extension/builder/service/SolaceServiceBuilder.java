@@ -165,6 +165,7 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             return addServiceWithNewListener(context);
         }
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        cleanSecureSocketProperty(properties);
         applyAuthenticationProperty(properties);
 
         ListenerDTO listenerDTO;
