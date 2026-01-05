@@ -1923,6 +1923,8 @@ export interface Artifacts {
 export interface ArtifactsNotification {
     uri: string;
     artifacts: Artifacts;
+    moduleName?: string;
+    projectName?: string;
 }
 
 export interface ProjectArtifactsRequest {
