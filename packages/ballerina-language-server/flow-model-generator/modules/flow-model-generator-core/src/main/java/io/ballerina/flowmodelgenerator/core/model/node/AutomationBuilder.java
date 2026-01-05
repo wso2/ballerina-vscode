@@ -24,6 +24,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -58,12 +59,12 @@ public class AutomationBuilder extends FunctionDefinitionBuilder {
     private static final String BALLERINA_LOG_MODULE = "log";
     private static final String DEFAULT_BODY =
             "do {\n} on fail error e {\n  log:printError(\"Error occurred\", 'error=e);\n   return e;\n}";
-    private static final List<String> TYPE_CONSTRAINT = List.of(
-            TypeKind.STRING.typeName(),
-            TypeKind.INT.typeName(),
-            TypeKind.FLOAT.typeName(),
-            TypeKind.DECIMAL.typeName(),
-            TypeKind.BYTE.typeName()
+    private static final List<Option> TYPE_CONSTRAINT = List.of(
+            new Option(TypeKind.STRING.typeName(), TypeKind.STRING.typeName()),
+            new Option(TypeKind.INT.typeName(), TypeKind.INT.typeName()),
+            new Option(TypeKind.FLOAT.typeName(), TypeKind.FLOAT.typeName()),
+            new Option(TypeKind.DECIMAL.typeName(), TypeKind.DECIMAL.typeName()),
+            new Option(TypeKind.BYTE.typeName(), TypeKind.BYTE.typeName())
     );
     private static final Gson gson = new Gson();
 
