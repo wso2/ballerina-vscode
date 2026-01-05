@@ -25,6 +25,7 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -84,6 +85,8 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     // Public field name constants (used in databinding)
     public static final String AFTER_ENTRY_FIELD = "afterEntry";
     public static final String BEFORE_ENTRY_FIELD = "beforeEntry";
+
+    private static final String DATABINDING_PARAM_LABEL = "Database Entry";
 
     // Resource location
     private static final String CDC_MSSQL_SERVICE_MODEL_LOCATION = "services/cdc_mssql.json";
@@ -146,7 +149,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     /**
      * Data holder for listener information.
      *
-     * @param name The listener variable name
+     * @param name        The listener variable name
      * @param declaration The listener declaration code
      */
     private record ListenerInfo(String name, String declaration) { }
@@ -154,8 +157,8 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     /**
      * Data holder for import information.
      *
-     * @param org The organization name
-     * @param module The module name
+     * @param org     The organization name
+     * @param module  The module name
      * @param unnamed Whether the import is unnamed (i.e., uses "as _" suffix)
      */
     private record Import(String org, String module, boolean unnamed) { }
@@ -194,7 +197,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         List<TextEdit> edits = new ArrayList<>();
 
         // Add necessary imports
-        Import[] imports = new Import[] {
+        Import[] imports = new Import[]{
                 new Import(BALLERINAX, CDC_MODULE_NAME, false),
                 new Import(serviceInitModel.getOrgName(), serviceInitModel.getModuleName(), false),
                 new Import(BALLERINAX, MSSQL_CDC_DRIVER_MODULE_NAME, true)
@@ -393,7 +396,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     /**
      * Determines listener information based on whether an existing listener is used or a new one is created.
      *
-     * @param context The service initialization context
+     * @param context    The service initialization context
      * @param properties The service properties
      * @return ListenerInfo containing the listener name and declaration
      */
@@ -435,9 +438,9 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
     /**
      * Adds listener declaration text edits to the module.
      *
-     * @param context The service initialization context
+     * @param context             The service initialization context
      * @param listenerDeclaration The listener declaration code
-     * @param edits The list of text edits to add to
+     * @param edits               The list of text edits to add to
      */
     private void addListenerDeclarationEdit(
             AddServiceInitModelContext context,
@@ -489,10 +492,12 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             // Find matching source function
             Function sourceFunction = sourceFunctionMap.get(functionName);
             if (sourceFunction == null) {
+                updateDatabindingParameterMetadata(function);
                 continue;
             }
 
             restoreAndUpdateDataBindingParams(function, sourceFunction, originalParameterKinds.get(functionName));
+            updateDatabindingParameterMetadata(function);
         }
 
         // After all consolidation and databinding processing is complete,
@@ -500,6 +505,22 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         applyOnUpdateCombining(serviceModel);
 
         return serviceModel;
+    }
+
+    /**
+     * Updates the metadata label to "Database Entry" for all databinding parameters in the given function.
+     *
+     * @param function The function whose parameters should be updated
+     */
+    private void updateDatabindingParameterMetadata(Function function) {
+        for (Parameter param : function.getParameters()) {
+            if (DATA_BINDING.equals(param.getKind())) {
+                param.setMetadata(new MetaData(
+                        DATABINDING_PARAM_LABEL,
+                        param.getMetadata() != null ? param.getMetadata().description() : ""
+                ));
+            }
+        }
     }
 
     /**
