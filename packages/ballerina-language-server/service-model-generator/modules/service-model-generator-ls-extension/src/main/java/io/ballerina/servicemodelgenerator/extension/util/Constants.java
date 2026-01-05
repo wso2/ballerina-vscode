@@ -89,6 +89,7 @@ public class Constants {
 
     public static final String PARAMETER = "parameter";
     public static final String SERVICE = "service";
+    public static final String SERVICE_TYPE = "Service";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
     public static final String BASE_PATH = "basePath";
@@ -203,6 +204,7 @@ public class Constants {
 
     // organization names
     public static final String BALLERINA = "ballerina";
+    public static final String BALLERINAX = "ballerinax";
 
     // types
     public static final String USER_DEFINED_TYPE = "User-Defined";

@@ -58,10 +58,12 @@ public class PropertyType {
     private boolean selected;
     private final Integer minItems;
     private final Integer defaultItems;
+    private final String pattern;
+    private final String patternErrorMessage;
 
     public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Object> options,
                         List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
-                        Integer defaultItems) {
+                        Integer defaultItems, String pattern, String patternErrorMessage) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.options = options;
@@ -69,6 +71,8 @@ public class PropertyType {
         this.selected = selected;
         this.minItems = minItems;
         this.defaultItems = defaultItems;
+        this.pattern = pattern;
+        this.patternErrorMessage = patternErrorMessage;
     }
 
     public static PropertyType types(Value.FieldType fieldType) {
@@ -153,7 +157,7 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, false, null, null));
+                                        distinctMembers, false, null, null, null, null));
                             }
                         });
             }
@@ -319,6 +323,14 @@ public class PropertyType {
         return defaultItems;
     }
 
+    public String pattern() {
+        return pattern;
+    }
+
+    public String patternErrorMessage() {
+        return patternErrorMessage;
+    }
+
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
@@ -327,6 +339,8 @@ public class PropertyType {
         private boolean selected = false;
         private Integer minItems;
         private Integer defaultItems;
+        private String pattern;
+        private String patternErrorMessage;
 
         public Builder() {
         }
@@ -372,8 +386,19 @@ public class PropertyType {
             return this;
         }
 
+        public Builder pattern(String pattern) {
+            this.pattern = pattern;
+            return this;
+        }
+
+        public Builder patternErrorMessage(String patternErrorMessage) {
+            this.patternErrorMessage = patternErrorMessage;
+            return this;
+        }
+
         public PropertyType build() {
-            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems, defaultItems);
+            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems,
+                    defaultItems, pattern, patternErrorMessage);
         }
     }
 

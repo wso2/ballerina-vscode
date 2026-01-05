@@ -79,7 +79,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Username cannot be empty"
         },
         {
           "fieldType": "EXPRESSION",
@@ -107,7 +109,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Password cannot be empty"
         },
         {
           "fieldType": "EXPRESSION",
@@ -135,7 +139,9 @@
           "fieldType": "EXPRESSION_SET",
           "ballerinaType": "string",
           "minItems": 1,
-          "defaultItems": 1
+          "defaultItems": 1,
+          "pattern": "^string `.+`$|^\".+\"$",
+          "patternErrorMessage": "Database name cannot be empty"
         }
       ],
       "enabled": true,
@@ -181,7 +187,9 @@
         {
           "fieldType": "TEXT",
           "ballerinaType": "string",
-          "selected": true
+          "selected": true,
+          "pattern": "^$|^\"\"$|^string `(|([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\]))`$|^\"([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\"$",
+          "patternErrorMessage": "Table must be in the format: <database>.<schema>.<table>. Use square brackets for names with dots (e.g., db.[schema.name].table)"
         },
         {
           "fieldType": "EXPRESSION",
@@ -193,6 +201,85 @@
       "editable": true,
       "optional": true,
       "advanced": false
+    },
+    "configureListener": {
+      "metadata": {
+        "label": "Use Existing Listener or Create New Listener",
+        "description": "Use Existing Listener or Create New Listener"
+      },
+      "placeholder": "",
+      "value": "0",
+      "types": [
+        {
+          "fieldType": "CHOICE"
+        }
+      ],
+      "choices": [
+        {
+          "metadata": {
+            "label": "Use Existing Listener",
+            "description": "Use Existing Listener"
+          },
+          "placeholder": "true",
+          "value": "true",
+          "types": [
+            {
+              "fieldType": "FORM"
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false,
+          "properties": {
+            "selectListener": {
+              "metadata": {
+                "label": "Select Listener",
+                "description": "Select from the existing Microsoft SQL Server CDC listeners"
+              },
+              "codedata": {
+                "type": "LISTENER_VAR_NAME"
+              },
+              "placeholder": "",
+              "value": "mssqlCdcListener",
+              "types": [
+                {
+                  "fieldType": "SINGLE_SELECT",
+                  "ballerinaType": "string",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            }
+          }
+        },
+        {
+          "metadata": {
+            "label": "Create New Listener",
+            "description": "Create New Listener"
+          },
+          "placeholder": "true",
+          "value": "true",
+          "properties": {},
+          "types": [
+            {
+              "fieldType": "FORM"
+            }
+          ],
+          "isType": false,
+          "enabled": false,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": false,
+      "advanced": true
     },
     "listenerVarName": {
       "metadata": {
@@ -229,11 +316,13 @@
       "types": [
         {
           "fieldType": "TEXT",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "selected": true
         },
         {
           "fieldType": "EXPRESSION",
-          "ballerinaType": "string"
+          "ballerinaType": "string",
+          "selected": false
         }
       ],
       "enabled": true,
