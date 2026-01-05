@@ -235,11 +235,20 @@ export function AIChatAgentWizard(props: AIChatAgentWizardProps) {
 
             setCurrentStep(3);
 
+            const mainBalFile = `${projectPath.current}/main.bal`;
+
+            const payload = {
+                codedata: {
+                    orgName: "ballerina",
+                    packageName: "ai",
+                    moduleName: "ai",
+                    version: "1.0.0",
+                },
+                filePath: mainBalFile
+            };
+
             const listenerVariableName = agentName + LISTENER;
-            const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel({
-                moduleName: type,
-                orgName: aiModuleOrg.current
-            });
+            const listenerResponse = await rpcClient.getServiceDesignerRpcClient().getListenerModel(payload);
 
             const listenerConfiguration = listenerResponse.listener;
             listenerConfiguration.properties['variableNameKey'].value = listenerVariableName;

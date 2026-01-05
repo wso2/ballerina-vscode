@@ -1303,10 +1303,13 @@ export interface ListenersResponse {
     listeners: string[];
 }
 export interface ListenerModelRequest {
-    moduleName: string;
-    orgName?: string;
-    pkgName?: string;
-    listenerTypeName?: string;
+    codedata: {
+        orgName: string;
+        packageName: string;
+        moduleName: string;
+        version: string;
+    };
+    filePath: string;
 }
 export interface ListenerModelResponse {
     listener: ListenerModel;
