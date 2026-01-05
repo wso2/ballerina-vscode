@@ -819,6 +819,13 @@ export const Form = forwardRef((props: FormProps) => {
 
     const handleOnSaveClick = async () => {
         setSavingButton('save');
+
+        // Check for existing form errors (including pattern validation errors)
+        if (Object.keys(errors).length > 0) {
+            setSavingButton(null);
+            return;
+        }
+
         const isValidForm = onFormValidation ? await handleFormValidation() : true;
         if (isValidForm) {
             handleSubmit(handleOnSave)();
