@@ -39,7 +39,7 @@ interface DynamicArrayBuilderProps {
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const { value, expressionFieldProps } = props;
     const { form } = useFormContext();
-    const { setValue, setError, clearErrors, formState: { errors } } = form;
+    const { setValue } = form;
 
     // Extract configuration from EXPRESSION_SET type definition
     const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET");
@@ -97,28 +97,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         return getInitialValue();
     }, [value, isInitialized]);
 
-    // Validate minItems constraint
-    useEffect(() => {
-        if (!isInitialized) return;
-
-        const hasNonEmptyValues = arrayValues.some(v => v && v.trim() !== '');
-
-        if (minItems > 0) {
-            const isInvalid = arrayValues.length < minItems || !hasNonEmptyValues;
-
-            if (isInvalid) {
-                setError(expressionFieldProps.field.key, {
-                    type: 'required',
-                    message: `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required with valid value${minItems > 1 ? 's' : ''}`
-                });
-            } else {
-                clearErrors(expressionFieldProps.field.key);
-            }
-        } else {
-            clearErrors(expressionFieldProps.field.key);
-        }
-    }, [arrayValues, minItems, expressionFieldProps.field.key, setError, clearErrors, isInitialized]);
-
     // Ensure minimum number of items are always visible
     useEffect(() => {
         if (!isInitialized) return;
@@ -161,17 +139,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
 
-    const renderError = () => {
-        const error = errors[expressionFieldProps.field.key];
-        if (!error) return null;
-
-        const errorMessage = typeof error.message === 'string'
-            ? error.message
-            : String(error.message || 'Validation error');
-
-        return <ErrorBanner errorMsg={errorMessage} />;
-    };
-
     return (
         <S.Container>
             {arrayValues.map((itemValue, index) => (
@@ -211,7 +178,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                 <Codicon name="add" />
                 Add Item
             </S.AddButton>
-            {renderError()}
         </S.Container>
     );
 };
