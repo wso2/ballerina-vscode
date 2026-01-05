@@ -266,7 +266,9 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         onClick: onClickMapWithCustomFn
     });
 
-    if (mappingType !== MappingType.Default && mappingType !== MappingType.ContainsUnions) {   
+    if (mappingType !== MappingType.Default 
+        && mappingType !== MappingType.ContainsUnions 
+        && mappingType !== MappingType.ConvertiblePrimitives) {   
         codeActions.push({
             title: "Map with Transform Function",
             icon: "dataMapper",
