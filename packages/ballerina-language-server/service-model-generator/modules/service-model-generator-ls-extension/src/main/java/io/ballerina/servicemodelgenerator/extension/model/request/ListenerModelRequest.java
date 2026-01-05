@@ -20,5 +20,5 @@ package io.ballerina.servicemodelgenerator.extension.model.request;
 
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 
-public record ListenerModelRequest(Codedata codedata, String fileName) {
+public record ListenerModelRequest(Codedata codedata, String filePath) {
 }

@@ -334,8 +334,7 @@ public class ListenerUtil {
                         codedata.getVersion()))
                 .lsClientLogger(null) // Set the LS Client Logger
                 .functionResultKind(FunctionData.Kind.LISTENER_INIT)
-                .userModuleInfo(moduleInfo)
-                .semanticModel(semanticModel);
+                .userModuleInfo(moduleInfo);
 
         FunctionData functionData = functionDataBuilder.build();
         Listener listener = createBaseListenerModel(functionData);
