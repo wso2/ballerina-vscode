@@ -59,6 +59,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
         return InputMode.MAP;
     }
+    if (inputType.fieldType === "PROMPT") {
+        return InputMode.PROMPT;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);
