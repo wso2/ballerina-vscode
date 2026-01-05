@@ -1,7 +1,7 @@
 {
   "id": "0",
   "displayName": "FTP Integration",
-  "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+  "description": "Configure FTP/SFTP integration to perform file transfer operations such as upload, download, list, and delete files over FTP and SFTP protocols.",
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",

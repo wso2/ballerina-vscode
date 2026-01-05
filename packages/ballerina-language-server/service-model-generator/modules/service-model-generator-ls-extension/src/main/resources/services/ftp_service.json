@@ -1,7 +1,7 @@
 {
   "id": "0",
   "name": "FTP Integration",
-  "description": "Create REST APIs from scratch or by importing an OpenAPI definition",
+  "description": "Create a service to monitor a directory in a FTP server for file events",
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",

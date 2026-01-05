@@ -169,7 +169,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:ftp, host= \"string `127.0.0.1`\", auth= { credentials: { username: testUser, password: testpwd } }, port= 21, path= \"string `/`\" );\n\nservice on ftpListener {\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:ftp, host= \"127.0.0.1\", auth= { credentials: { username: testUser, password: testpwd } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
       }
     ]
   }
