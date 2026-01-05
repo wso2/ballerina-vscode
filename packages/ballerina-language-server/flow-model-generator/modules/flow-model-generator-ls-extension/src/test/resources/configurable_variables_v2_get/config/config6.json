@@ -506,7 +506,7 @@
     "ballerina/log": {
       "": [
         {
-          "id": "129037",
+          "id": "131021",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -516,11 +516,11 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 98,
+                "line": 100,
                 "offset": 0
               },
               "endLine": {
-                "line": 99,
+                "line": 101,
                 "offset": 46
               }
             }
@@ -556,7 +556,7 @@
                   "typeMembers": [
                     {
                       "type": "LogFormat",
-                      "packageInfo": "ballerina:log:2.15.0",
+                      "packageInfo": "ballerina:log:2.16.0",
                       "packageName": "log",
                       "kind": "BASIC_TYPE",
                       "selected": false
@@ -630,7 +630,7 @@
           "flags": 0
         },
         {
-          "id": "132006",
+          "id": "133990",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -640,11 +640,11 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 101,
+                "line": 103,
                 "offset": 0
               },
               "endLine": {
-                "line": 102,
+                "line": 104,
                 "offset": 39
               }
             }
@@ -680,7 +680,7 @@
                   "typeMembers": [
                     {
                       "type": "Level",
-                      "packageInfo": "ballerina:log:2.15.0",
+                      "packageInfo": "ballerina:log:2.16.0",
                       "packageName": "log",
                       "kind": "BASIC_TYPE",
                       "selected": false
@@ -754,7 +754,7 @@
           "flags": 0
         },
         {
-          "id": "135017",
+          "id": "137001",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -764,11 +764,11 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 104,
+                "line": 106,
                 "offset": 0
               },
               "endLine": {
-                "line": 105,
+                "line": 107,
                 "offset": 74
               }
             }
@@ -870,7 +870,7 @@
           "flags": 0
         },
         {
-          "id": "137982",
+          "id": "139966",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -880,11 +880,11 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 107,
+                "line": 109,
                 "offset": 0
               },
               "endLine": {
-                "line": 108,
+                "line": 110,
                 "offset": 63
               }
             }
@@ -986,7 +986,7 @@
           "flags": 0
         },
         {
-          "id": "181651",
+          "id": "210419",
           "metadata": {
             "label": "Config",
             "description": "Create a configurable variable"
@@ -996,11 +996,11 @@
             "lineRange": {
               "fileName": "natives.bal",
               "startLine": {
-                "line": 151,
+                "line": 180,
                 "offset": 0
               },
               "endLine": {
-                "line": 152,
+                "line": 181,
                 "offset": 84
               }
             }
@@ -1091,7 +1091,7 @@
                   "selected": true
                 }
               ],
-              "value": "Destinations is a list of file destinations or standard output/error.",
+              "value": "A list of file destinations or standard output/error.",
               "optional": true,
               "editable": false,
               "advanced": false,
