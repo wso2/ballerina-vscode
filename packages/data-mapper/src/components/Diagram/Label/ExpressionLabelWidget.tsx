@@ -237,7 +237,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     if (mappingType === MappingType.ArrayToArray) {
         codeActions.push({
-            title: "Map with query expression",
+            title: "Map Each Element",
             onClick: onClickMapWithQuery
         }, );
     } else if (mappingType === MappingType.ConvertiblePrimitives) {
@@ -248,13 +248,13 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     }
 
     codeActions.push({
-        title: "Map with custom function",
+        title: "Map with Custom Function",
         onClick: onClickMapWithCustomFn
     });
 
     if (mappingType !== MappingType.Default && mappingType !== MappingType.ContainsUnions) {   
         codeActions.push({
-            title: "Map with transform function",
+            title: "Map with Transform Function",
             onClick: onClickMapWithTransformFn
         });
     }
