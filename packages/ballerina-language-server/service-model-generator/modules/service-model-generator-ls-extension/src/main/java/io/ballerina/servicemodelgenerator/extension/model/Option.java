@@ -16,7 +16,7 @@
  *  under the License.
  */
 
-package io.ballerina.flowmodelgenerator.core.model;
+package io.ballerina.servicemodelgenerator.extension.model;
 
 import java.util.List;
 import java.util.Set;

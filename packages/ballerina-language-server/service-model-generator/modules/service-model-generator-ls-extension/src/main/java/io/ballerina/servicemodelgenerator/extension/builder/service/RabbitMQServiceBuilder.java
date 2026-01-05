@@ -20,6 +20,7 @@ package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiException;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -170,11 +171,10 @@ public final class RabbitMQServiceBuilder extends AbstractServiceBuilder {
     private Value buildUseExistingListenerChoice(Set<String> listeners) {
         Map<String, Value> existingListenerProps = new LinkedHashMap<>();
         List<String> items = listeners.stream().toList();
-        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
         Value existingListenerOptions = new Value.ValueBuilder()
                 .metadata("Select Listener", "Select from the existing RabbitMQ listeners")
                 .value(items.getFirst())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, Option.of(listeners))))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)

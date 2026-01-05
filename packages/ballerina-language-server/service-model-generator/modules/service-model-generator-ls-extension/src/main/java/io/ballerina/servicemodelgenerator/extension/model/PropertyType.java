@@ -53,11 +53,11 @@ public class PropertyType {
     @JsonAdapter(FieldTypeSerializer.class)
     private final Value.FieldType fieldType;
     private final String ballerinaType;
-    private final List<Object> options;
+    private final List<Option> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
 
-    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Object> options,
+    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Option> options,
                         List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
@@ -70,7 +70,7 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).build();
     }
 
-    public static PropertyType types(Value.FieldType fieldType, List<Object> options) {
+    public static PropertyType types(Value.FieldType fieldType, List<Option> options) {
         return new Builder().fieldType(fieldType).options(options).build();
     }
 
@@ -97,11 +97,13 @@ public class PropertyType {
         // Handle union of singleton types as single-select options
         if (propertyType.isEmpty() && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
             List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-            List<Object> options = new ArrayList<>();
+            List<Option> options = new ArrayList<>();
             boolean allSingletons = true;
             for (TypeSymbol symbol : typeSymbols) {
                 if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                    options.add(CommonUtils.removeQuotes(symbol.signature()));
+                    String label = CommonUtils.removeQuotes(symbol.signature());
+                    Option option = new Option(label, symbol.signature());
+                    options.add(option);
                 } else {
                     allSingletons = false;
                     break;
@@ -290,7 +292,7 @@ public class PropertyType {
         return ballerinaType;
     }
 
-    public List<Object> options() {
+    public List<Option> options() {
         return options;
     }
 
@@ -309,7 +311,7 @@ public class PropertyType {
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
-        private List<Object> options;
+        private List<Option> options;
         private List<PropertyTypeMemberInfo> typeMembers;
         private boolean selected = false;
 
@@ -326,7 +328,7 @@ public class PropertyType {
             return this;
         }
 
-        public Builder options(List<Object> options) {
+        public Builder options(List<Option> options) {
             this.options = options;
             return this;
         }

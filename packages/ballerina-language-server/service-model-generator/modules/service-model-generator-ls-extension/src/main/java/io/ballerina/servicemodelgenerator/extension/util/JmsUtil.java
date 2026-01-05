@@ -30,6 +30,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRoute
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
@@ -75,11 +76,10 @@ public final class JmsUtil {
     private static Value buildUseExistingListenerChoice(Set<String> listeners, String moduleName) {
         Map<String, Value> existingListenerProps = new LinkedHashMap<>();
         List<String> items = listeners.stream().toList();
-        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
         Value existingListenerOptions = new Value.ValueBuilder()
                 .metadata("Select Listener", String.format(EXISTING_LISTENER_CHOICE_DESCRIPTION, moduleName))
                 .value(items.getFirst())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, Option.of(listeners))))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
@@ -160,11 +160,15 @@ public final class JmsUtil {
      * @return Value configured for session ack mode selection.
      */
     public static Value buildSessionAckModeProperty() {
-        List<Object> ackModeOptions = List.of(
-                AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.SESSION_TRANSACTED.getValue()
+        List<Option> ackModeOptions = List.of(
+                new Option(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.SESSION_TRANSACTED.getValue(),
+                        AcknowledgmentMode.SESSION_TRANSACTED.getValue())
         );
 
         return new Value.ValueBuilder()
