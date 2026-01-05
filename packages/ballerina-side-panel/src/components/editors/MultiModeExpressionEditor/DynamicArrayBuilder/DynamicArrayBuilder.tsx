@@ -79,7 +79,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
-        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)
+        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
     return (
         <S.Container>
