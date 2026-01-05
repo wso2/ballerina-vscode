@@ -167,6 +167,16 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     }
 
+    const iconsMap: Record<string, string> = {
+        sum: "sum",
+        avg: "graph-avg",
+        min: "graph-min",
+        max: "graph-max",
+        "string:'join": "bi-link",
+        first: "chevron-first",
+        last: "chevron-last"
+    };
+
     const loadingScreen = (
         <ProgressRing sx={{ height: '16px', width: '16px' }} color="var(--vscode-debugIcon-breakpointDisabledForeground)" />
     );
@@ -192,6 +202,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                             key={`expression-label-code-action-collect-clause-fn`}
                             codeActions={collectClauseFns.map((fn) => ({
                                 title: fn,
+                                icon: iconsMap[fn] || "function-icon",
                                 onClick: () => onClickChangeCollectClauseFn(fn)
                             }))}
                             collectClauseFn={collectClauseFn}
@@ -238,23 +249,27 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
     if (mappingType === MappingType.ArrayToArray) {
         codeActions.push({
             title: "Map Each Element",
+            icon: "bi-convert",
             onClick: onClickMapWithQuery
         }, );
     } else if (mappingType === MappingType.ConvertiblePrimitives) {
         codeActions.push({
             title: "Convert and Map",
+            icon: "refresh",
             onClick: onClickConvertAndMap
         }, );
     }
 
     codeActions.push({
         title: "Map with Custom Function",
+        icon: "function-icon",
         onClick: onClickMapWithCustomFn
     });
 
     if (mappingType !== MappingType.Default && mappingType !== MappingType.ContainsUnions) {   
         codeActions.push({
             title: "Map with Transform Function",
+            icon: "dataMapper",
             onClick: onClickMapWithTransformFn
         });
     }
