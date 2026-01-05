@@ -1166,7 +1166,7 @@
                 "description": "design-view",
                 "default": {
                     "fontPath": "./resources/font-wso2-vscode/dist/wso2-vscode.woff",
-                    "fontCharacter": "\\f175"
+                    "fontCharacter": "\\f16e"
                 }
             }
         },
@@ -1219,8 +1219,8 @@
         "copyJSLibs": "copyfiles -f ../ballerina-visualizer/build/*.js resources/jslibs && copyfiles -f ../trace-visualizer/build/*.js resources/jslibs"
     },
     "dependencies": {
-        "@ai-sdk/amazon-bedrock": "^4.0.3",
-        "@ai-sdk/anthropic": "^3.0.1",
+        "@ai-sdk/amazon-bedrock": "^4.0.4",
+        "@ai-sdk/anthropic": "^3.0.2",
         "@iarna/toml": "^2.2.5",
         "@types/lodash": "^4.14.200",
         "@vscode/test-electron": "^2.5.2",
@@ -1231,7 +1231,7 @@
         "@wso2/syntax-tree": "workspace:*",
         "@wso2/trace-visualizer": "workspace:*",
         "@wso2/wso2-platform-core": "workspace:*",
-        "ai": "^6.0.3",
+        "ai": "^6.0.7",
         "cors-anywhere": "^0.4.4",
         "del-cli": "^5.1.0",
         "dotenv": "~16.5.0",
