@@ -1918,7 +1918,7 @@
                 "metadata": {
                   "label": "printError",
                   "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.15.0.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.16.1.png"
                 },
                 "codedata": {
                   "node": "FUNCTION_CALL",
@@ -1926,7 +1926,7 @@
                   "module": "log",
                   "packageName": "log",
                   "symbol": "printError",
-                  "version": "2.15.0",
+                  "version": "2.16.1",
                   "lineRange": {
                     "fileName": "main.bal",
                     "startLine": {
@@ -2205,9 +2205,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "2.0",
-                  "1.1",
-                  "1.0"
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
                 ],
                 "selected": false
               },
@@ -2478,9 +2487,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },
