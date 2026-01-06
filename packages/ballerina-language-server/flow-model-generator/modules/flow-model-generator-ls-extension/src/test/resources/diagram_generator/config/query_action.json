@@ -206,7 +206,7 @@
                 "metadata": {
                   "label": "printError",
                   "description": "Prints error logs.\n```ballerina\nerror e = error(\"error occurred\");\nlog:printError(\"error log with cause\", 'error = e, id = 845315);\n```\n",
-                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.16.1.png"
+                  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.16.0.png"
                 },
                 "codedata": {
                   "node": "FUNCTION_CALL",
@@ -214,7 +214,7 @@
                   "module": "log",
                   "packageName": "log",
                   "symbol": "printError",
-                  "version": "2.16.1",
+                  "version": "2.16.0",
                   "lineRange": {
                     "fileName": "queryAction.bal",
                     "startLine": {
@@ -412,18 +412,9 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  {
-                    "label": "all",
-                    "value": "\"all\""
-                  },
-                  {
-                    "label": "0",
-                    "value": "\"0\""
-                  },
-                  {
-                    "label": "1",
-                    "value": "\"1\""
-                  }
+                  "all",
+                  "0",
+                  "1"
                 ],
                 "selected": false
               },
@@ -453,26 +444,11 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  {
-                    "label": "none",
-                    "value": "\"none\""
-                  },
-                  {
-                    "label": "gzip",
-                    "value": "\"gzip\""
-                  },
-                  {
-                    "label": "snappy",
-                    "value": "\"snappy\""
-                  },
-                  {
-                    "label": "lz4",
-                    "value": "\"lz4\""
-                  },
-                  {
-                    "label": "zstd",
-                    "value": "\"zstd\""
-                  }
+                  "none",
+                  "gzip",
+                  "snappy",
+                  "lz4",
+                  "zstd"
                 ],
                 "selected": false
               },
@@ -810,14 +786,8 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  {
-                    "label": "SER_AVRO",
-                    "value": "\"SER_AVRO\""
-                  },
-                  {
-                    "label": "SER_BYTE_ARRAY",
-                    "value": "\"SER_BYTE_ARRAY\""
-                  }
+                  "SER_AVRO",
+                  "SER_BYTE_ARRAY"
                 ],
                 "selected": false
               },
@@ -847,14 +817,8 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  {
-                    "label": "SER_AVRO",
-                    "value": "\"SER_AVRO\""
-                  },
-                  {
-                    "label": "SER_BYTE_ARRAY",
-                    "value": "\"SER_BYTE_ARRAY\""
-                  }
+                  "SER_AVRO",
+                  "SER_BYTE_ARRAY"
                 ],
                 "selected": false
               },
@@ -1518,22 +1482,10 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  {
-                    "label": "PLAINTEXT",
-                    "value": "\"PLAINTEXT\""
-                  },
-                  {
-                    "label": "SASL_PLAINTEXT",
-                    "value": "\"SASL_PLAINTEXT\""
-                  },
-                  {
-                    "label": "SASL_SSL",
-                    "value": "\"SASL_SSL\""
-                  },
-                  {
-                    "label": "SSL",
-                    "value": "\"SSL\""
-                  }
+                  "PLAINTEXT",
+                  "SASL_PLAINTEXT",
+                  "SASL_SSL",
+                  "SSL"
                 ],
                 "selected": false
               },
