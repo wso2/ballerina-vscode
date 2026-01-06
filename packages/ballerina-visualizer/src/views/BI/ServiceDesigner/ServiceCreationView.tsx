@@ -278,66 +278,48 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     useEffect(() => {
         if (model) {
-            let formRecordTypeFields: RecordTypeField[] = [];
-            const hasPropertiesWithChoices =
-                Object.values(model.properties).some(property => property.choices);
+            const recordTypeFields: RecordTypeField[] = [];
 
-            if (hasPropertiesWithChoices) {
-                const choiceRecordTypeFields = Object.entries(model.properties)
-                    .filter(([_, property]) => property.choices)
-                    .flatMap(([parentKey, property]) =>
-                        Object.entries(property.choices).flatMap(([choiceKey, choice]) =>
-                            Object.entries(choice.properties || {})
-                                .filter(([_, choiceProperty]) =>
-                                    getPrimaryInputType(choiceProperty.types)?.typeMembers &&
-                                    getPrimaryInputType(choiceProperty.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
-                                )
-                                .map(([choicePropertyKey, choiceProperty]) => ({
-                                    key: choicePropertyKey,
-                                    property: {
-                                        ...choiceProperty,
-                                        metadata: {
-                                            label: choiceProperty.metadata?.label || choicePropertyKey,
-                                            description: choiceProperty.metadata?.description || ''
-                                        },
-                                        types: choiceProperty.types,
-                                        diagnostics: {
-                                            hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
-                                            diagnostics: choiceProperty.diagnostics
-                                        }
-                                    } as Property,
-                                    recordTypeMembers: getPrimaryInputType(choiceProperty.types)?.typeMembers?.filter(member => member.kind === "RECORD_TYPE") || []
-                                }))
-                        )
-                    );
-                console.log(">>> recordTypeFields of http serviceModel", choiceRecordTypeFields);
+            // Recursive function to collect record type fields from properties and nested choices
+            const collectRecordTypeFields = (properties: any) => {
+                if (!properties) return;
 
-                setRecordTypeFields(choiceRecordTypeFields);
-                formRecordTypeFields = [...choiceRecordTypeFields]
-            }
-            const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
-                .filter(([_, property]) =>
-                    getPrimaryInputType(property.types)?.typeMembers &&
-                    getPrimaryInputType(property.types)?.typeMembers.some(member => member.kind === "RECORD_TYPE")
-                )
-                .map(([key, property]) => ({
-                    key,
-                    property: {
-                        ...property,
-                        metadata: {
-                            label: property.metadata?.label || key,
-                            description: property.metadata?.description || ''
-                        },
-                        types: property.types,
-                        diagnostics: {
-                            hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
-                            diagnostics: property.diagnostics
-                        }
-                    } as Property,
-                    recordTypeMembers: getPrimaryInputType(property.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
-                }));
-            console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
-            setRecordTypeFields([...formRecordTypeFields, ...recordTypeFields]);
+                Object.entries(properties).forEach(([key, property]: [string, any]) => {
+                    // Check if this property itself is a record type
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.typeMembers && primaryType.typeMembers.some((member: any) => member.kind === "RECORD_TYPE")) {
+                        recordTypeFields.push({
+                            key,
+                            property: {
+                                ...property,
+                                metadata: {
+                                    label: property.metadata?.label || key,
+                                    description: property.metadata?.description || ''
+                                },
+                                types: property.types,
+                                diagnostics: {
+                                    hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                                    diagnostics: property.diagnostics
+                                }
+                            } as Property,
+                            recordTypeMembers: primaryType.typeMembers.filter((member: any) => member.kind === "RECORD_TYPE")
+                        });
+                    }
+
+                    // If this property has choices, recursively collect from all choice properties
+                    if (property.choices && property.choices.length > 0) {
+                        property.choices.forEach((choice: any) => {
+                            if (choice.properties) {
+                                collectRecordTypeFields(choice.properties);
+                            }
+                        });
+                    }
+                });
+            };
+
+            // Start collection from top-level properties
+            collectRecordTypeFields(model.properties);
+            setRecordTypeFields(recordTypeFields);
         }
     }, [model]);
 
