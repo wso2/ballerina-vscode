@@ -1,3 +1,21 @@
+/*
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
+ *
+ *  WSO2 LLC. licenses this file to you under the Apache License,
+ *  Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing,
+ *  software distributed under the License is distributed on an
+ *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ *  KIND, either express or implied.  See the License for the
+ *  specific language governing permissions and limitations
+ *  under the License.
+ */
+
 package io.ballerina.servicemodelgenerator.extension.builder.service;
 
 import com.google.gson.Gson;
@@ -56,10 +74,15 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateLi
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateServiceDocs;
 
+/**
+ * Builder class for FTP service.
+ *
+ * @since 1.5.0
+ */
 public class FTPServiceBuilder extends AbstractServiceBuilder {
 
-    private static final String FTP_MODEL_LOCATION = "services/ftp_init.json";
-    private static final String FTP_SERVICE_MODEL_LOCATION = "services/ftp_service.json";
+    private static final String FTP_INIT_JSON = "services/ftp_init.json";
+    private static final String FTP_SERVICE_JSON = "services/ftp_service.json";
 
     @Override
     public String kind() {
@@ -69,7 +92,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
-                .getResourceAsStream(FTP_MODEL_LOCATION);
+                .getResourceAsStream(FTP_INIT_JSON);
         if (resourceStream == null) {
             return null;
         }
@@ -264,8 +287,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             return null;
         }
 
-
-
         Service serviceModel = service.get();
         ServiceDeclarationNode serviceNode = (ServiceDeclarationNode) context.node();
         SemanticModel semanticModel = context.semanticModel();
@@ -372,7 +393,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     @Override
     public Optional<Service> getModelTemplate(GetModelContext context) {
         InputStream resourceStream = HttpServiceBuilder.class.getClassLoader()
-                .getResourceAsStream(FTP_SERVICE_MODEL_LOCATION);
+                .getResourceAsStream(FTP_SERVICE_JSON);
         if (resourceStream == null) {
             return Optional.empty();
         }
