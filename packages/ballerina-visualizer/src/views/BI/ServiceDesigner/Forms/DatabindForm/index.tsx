@@ -36,7 +36,7 @@ import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
-import { hasEditableParameters } from "../../utils";
+import { getDefaultTab, hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -736,6 +736,7 @@ export function DatabindForm(props: DatabindFormProps) {
             {/* FormTypeEditor Modal for Add Payload */}
             <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
+                defaultTab={getDefaultTab(functionModel)}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={
