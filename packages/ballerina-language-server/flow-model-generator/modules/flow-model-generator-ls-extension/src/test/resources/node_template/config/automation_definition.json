@@ -63,11 +63,26 @@
                     {
                       "fieldType": "SINGLE_SELECT",
                       "options": [
-                        "string",
-                        "int",
-                        "float",
-                        "decimal",
-                        "byte"
+                        {
+                          "label": "string",
+                          "value": "string"
+                        },
+                        {
+                          "label": "int",
+                          "value": "int"
+                        },
+                        {
+                          "label": "float",
+                          "value": "float"
+                        },
+                        {
+                          "label": "decimal",
+                          "value": "decimal"
+                        },
+                        {
+                          "label": "byte",
+                          "value": "byte"
+                        }
                       ],
                       "selected": false
                     }
