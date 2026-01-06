@@ -36,7 +36,7 @@ import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
-import { hasEditableParameters } from "../../utils";
+import { getDefaultTab, hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -304,7 +304,8 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const generateParameterTypeName = (param: ParameterModel): string => {
         const rawParameterName = param.metadata?.label || param.name?.value || "Parameter";
-        const capitalizedName = rawParameterName.charAt(0).toUpperCase() + rawParameterName.slice(1);
+        const sanitizedName = rawParameterName.replace(/[^a-zA-Z0-9]/g, '');
+        const capitalizedName = sanitizedName.charAt(0).toUpperCase() + sanitizedName.slice(1);
         return `${capitalizedName}Schema`;
     };
 
@@ -364,6 +365,8 @@ export function DatabindForm(props: DatabindFormProps) {
 
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
+        setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     // Payload editor handlers
@@ -733,6 +736,7 @@ export function DatabindForm(props: DatabindFormProps) {
             {/* FormTypeEditor Modal for Add Payload */}
             <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
+                defaultTab={getDefaultTab(functionModel)}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
                 initialTypeName={

@@ -85,6 +85,7 @@ interface ContextTypeEditorProps {
     simpleType?: string;
     isGraphql?: boolean;
     payloadContext?: PayloadContext;
+    defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
     typeHelper: {
         loading?: boolean;
         loadingTypeBrowser?: boolean;
@@ -103,7 +104,7 @@ interface ContextTypeEditorProps {
 
 
 export function ContextTypeEditor(props: ContextTypeEditorProps) {
-    const { isGraphql, newType, isPopupTypeForm, simpleType, payloadContext } = props;
+    const { isGraphql, newType, isPopupTypeForm, simpleType, payloadContext, defaultTab } = props;
 
     const [initialTypeKind] = useState<TypeNodeKind>(() =>
         (props.type?.codedata?.node ?? "RECORD") as TypeNodeKind
@@ -138,6 +139,9 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
 
     // Determine initial tab based on edit mode
     const getInitialTab = () => {
+        if (defaultTab) {
+            return defaultTab;
+        }
         if (newType) {
             return "import";
         }
