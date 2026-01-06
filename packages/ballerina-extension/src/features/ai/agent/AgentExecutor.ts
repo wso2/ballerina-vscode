@@ -21,7 +21,7 @@ import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_V
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
-import { sendAgentDidOpenForProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
+import { sendAgentDidOpenForFreshProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
@@ -64,7 +64,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
      */
     async execute(): Promise<AIExecutionResult> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
-        const projectPath = this.config.executionContext.projectPath;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
 
@@ -77,7 +76,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
             // 2. Send didOpen only if creating NEW temp (not reusing for review continuation)
             if (!this.config.lifecycle?.existingTempPath) {
-                sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+                // Fresh project - Both schemas - correct
+                sendAgentDidOpenForFreshProjects(tempProjectPath, projects);
             } else {
                 console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
             }
@@ -121,7 +121,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
-                projectPath,
                 modifiedFiles,
                 projects,
                 libraryDescriptions,
