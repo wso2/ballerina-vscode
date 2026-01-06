@@ -48,10 +48,11 @@ const TopBar = styled.div`
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
     onClose: (parent?: ParentPopupData) => void;
+    handleNavigateToOverview?: () => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
-    const { formState, onClose } = props;
+    const { formState, onClose, handleNavigateToOverview } = props;
     const { rpcClient } = useRpcContext();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -77,6 +78,8 @@ const PopupPanel = (props: PopupPanelProps) => {
                                 fileName={location.documentUri || location.projectPath}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
+                                onNavigateToOverview={handleNavigateToOverview}
+                                isPopup={true}
                             />
                         );
                     });
