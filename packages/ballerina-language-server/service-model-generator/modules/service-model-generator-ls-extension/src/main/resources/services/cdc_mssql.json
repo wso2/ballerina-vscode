@@ -49,7 +49,7 @@
       "value": "1433",
       "types": [
         {
-          "fieldType": "TEXT",
+          "fieldType": "NUMBER",
           "ballerinaType": "int",
           "selected": true
         },

@@ -115,9 +115,9 @@
       "solace",
       "messaging",
       "event"
-      ],
+    ],
     "triggerName": "Solace"
-    },
+  },
   "12": {
     "name": "mssql",
     "orgName": "ballerinax",
