@@ -134,14 +134,38 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "CHARACTER",
-                "WORD",
-                "SENTENCE",
-                "LINE",
-                "PARAGRAPH",
-                "HORIZONTAL_LINE",
-                "CODE_BLOCK",
-                "MARKDOWN_HEADER"
+                {
+                  "label": "CHARACTER",
+                  "value": "\"CHARACTER\""
+                },
+                {
+                  "label": "WORD",
+                  "value": "\"WORD\""
+                },
+                {
+                  "label": "SENTENCE",
+                  "value": "\"SENTENCE\""
+                },
+                {
+                  "label": "LINE",
+                  "value": "\"LINE\""
+                },
+                {
+                  "label": "PARAGRAPH",
+                  "value": "\"PARAGRAPH\""
+                },
+                {
+                  "label": "HORIZONTAL_LINE",
+                  "value": "\"HORIZONTAL_LINE\""
+                },
+                {
+                  "label": "CODE_BLOCK",
+                  "value": "\"CODE_BLOCK\""
+                },
+                {
+                  "label": "MARKDOWN_HEADER",
+                  "value": "\"MARKDOWN_HEADER\""
+                }
               ],
               "selected": false
             },

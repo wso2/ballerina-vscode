@@ -134,12 +134,30 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "CHARACTER",
-                "WORD",
-                "SENTENCE",
-                "HTML_LINE",
-                "HTML_PARAGRAPH",
-                "HTML_HEADER"
+                {
+                  "label": "CHARACTER",
+                  "value": "\"CHARACTER\""
+                },
+                {
+                  "label": "WORD",
+                  "value": "\"WORD\""
+                },
+                {
+                  "label": "SENTENCE",
+                  "value": "\"SENTENCE\""
+                },
+                {
+                  "label": "HTML_LINE",
+                  "value": "\"HTML_LINE\""
+                },
+                {
+                  "label": "HTML_PARAGRAPH",
+                  "value": "\"HTML_PARAGRAPH\""
+                },
+                {
+                  "label": "HTML_HEADER",
+                  "value": "\"HTML_HEADER\""
+                }
               ],
               "selected": false
             },

@@ -130,9 +130,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "HYBRID",
-                "SPARSE",
-                "DENSE"
+                {
+                  "label": "HYBRID",
+                  "value": "\"HYBRID\""
+                },
+                {
+                  "label": "SPARSE",
+                  "value": "\"SPARSE\""
+                },
+                {
+                  "label": "DENSE",
+                  "value": "\"DENSE\""
+                }
               ],
               "selected": false
             },

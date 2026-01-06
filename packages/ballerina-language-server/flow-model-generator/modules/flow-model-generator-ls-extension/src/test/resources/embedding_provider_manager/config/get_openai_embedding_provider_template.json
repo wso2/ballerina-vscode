@@ -104,9 +104,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "text-embedding-ada-002",
-                "text-embedding-3-large",
-                "text-embedding-3-small"
+                {
+                  "label": "text-embedding-ada-002",
+                  "value": "\"text-embedding-ada-002\""
+                },
+                {
+                  "label": "text-embedding-3-large",
+                  "value": "\"text-embedding-3-large\""
+                },
+                {
+                  "label": "text-embedding-3-small",
+                  "value": "\"text-embedding-3-small\""
+                }
               ],
               "selected": false
             },
@@ -163,9 +172,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "2.0",
-                "1.1",
-                "1.0"
+                {
+                  "label": "2.0",
+                  "value": "\"2.0\""
+                },
+                {
+                  "label": "1.1",
+                  "value": "\"1.1\""
+                },
+                {
+                  "label": "1.0",
+                  "value": "\"1.0\""
+                }
               ],
               "selected": false
             },
@@ -414,9 +432,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "AUTO",
-                "ALWAYS",
-                "NEVER"
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
               ],
               "selected": false
             },
