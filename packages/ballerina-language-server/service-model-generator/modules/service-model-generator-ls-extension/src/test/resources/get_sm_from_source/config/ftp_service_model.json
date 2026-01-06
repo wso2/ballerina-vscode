@@ -822,11 +822,11 @@
         "kind": "REMOTE",
         "name": {
           "metadata": {
-            "label": "onFileDeleted",
-            "description": "onFileDeleted function type"
+            "label": "onFileDelete",
+            "description": "onFileDelete function type"
           },
           "placeholder": "",
-          "value": "onFileDeleted",
+          "value": "onFileDelete",
           "enabled": true,
           "editable": false,
           "optional": false,
@@ -841,7 +841,7 @@
             "kind": "REQUIRED",
             "type": {
               "placeholder": "string",
-              "value": "string[]",
+              "value": "string",
               "enabled": true,
               "editable": false,
               "optional": false,

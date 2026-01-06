@@ -814,12 +814,12 @@
       },
       "name": {
         "metadata": {
-          "label": "onFileDeleted",
-          "description": "onFileDeleted function type"
+          "label": "onFileDelete",
+          "description": "onFileDelete function type"
         },
         "enabled": true,
         "editable": false,
-        "value": "onFileDeleted",
+        "value": "onFileDelete",
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "",
         "isType": false,
@@ -837,7 +837,7 @@
           "type": {
             "enabled": true,
             "editable": false,
-            "value": "string[]",
+            "value": "string",
             "valueType": "TYPE",
             "valueTypeConstraint": "string",
             "isType": true,
