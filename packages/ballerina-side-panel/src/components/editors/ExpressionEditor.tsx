@@ -714,15 +714,20 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             // For EXPRESSION_SET (arrays), validate each item
                             rules.validate = {
                                 pattern: (value: any) => {
-                                    if (!Array.isArray(value)) return true;
+                                    try {
+                                        if (!Array.isArray(value)) return true;
 
-                                    const regex = new RegExp(expressionSetType.pattern);
-                                    for (const item of value) {
-                                        if (!regex.test(item)) {
-                                            return expressionSetType.patternErrorMessage || "Invalid format";
+                                        const regex = new RegExp(expressionSetType.pattern);
+                                        for (const item of value) {
+                                            if (!regex.test(item)) {
+                                                return expressionSetType.patternErrorMessage || "Invalid format";
+                                            }
                                         }
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, expressionSetType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
                                     }
-                                    return true;
                                 },
                                 minItems: (value: any) => {
                                     if (!Array.isArray(value)) return true;
@@ -738,11 +743,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             // This ensures validation runs even on empty strings
                             rules.validate = {
                                 pattern: (value: any) => {
-                                    const regex = new RegExp(patternType.pattern);
-                                    if (!regex.test(value || '')) {
-                                        return patternType.patternErrorMessage || "Invalid format";
+                                    try {
+                                        const regex = new RegExp(patternType.pattern);
+                                        if (!regex.test(value || '')) {
+                                            return patternType.patternErrorMessage || "Invalid format";
+                                        }
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, patternType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
                                     }
-                                    return true;
                                 }
                             };
                         }

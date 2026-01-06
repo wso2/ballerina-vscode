@@ -30,6 +30,9 @@ interface EnumEditorProps {
 export const EnumEditor = (props: EnumEditorProps) => {
 
     const dropdownItems = useMemo(() => {
+        if (!props.items || !Array.isArray(props.items)) {
+            return [];
+        }
         return props.items.map((item, index) => ({
             key: index.toString(),
             text: item,
