@@ -78,6 +78,10 @@ export function canDataBind(functionModel: FunctionModel): boolean {
         functionModel.parameters?.some(param => param.kind === "DATA_BINDING");
 }
 
+export function getDefaultTab(functionModel: FunctionModel) {
+    return functionModel.properties?.defaultTypeTab?.value as "import" | "create-from-scratch" | "browse-exisiting-types";
+}
+
 export function getReadableListenerName(name: string) {
     // Examples names: new http:Listener(8090);, new mcp:Listener("mcp://localhost:8090")
     // Convert the name to human readable name like "HTTP Listener" or "MCP Listener" etc..

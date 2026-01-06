@@ -54,10 +54,11 @@ type FormTypeEditorProps = {
     isContextTypeForm?: boolean;
     payloadContext?: PayloadContext;
     simpleType?: string;
+    defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
+    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
     const { rpcClient } = useRpcContext();
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
@@ -257,6 +258,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         isGraphql={isGraphql}
                         simpleType={simpleType}
                         payloadContext={payloadContext}
+                        defaultTab={defaultTab}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
@@ -281,6 +283,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         newTypeValue={newTypeValue}
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
+                        defaultTab={defaultTab as 'create-from-scratch' | 'import' | undefined}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
