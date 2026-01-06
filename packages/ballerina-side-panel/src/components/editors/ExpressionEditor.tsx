@@ -701,7 +701,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     control={control}
                     name={key}
                     rules={(() => {
-                        const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET");
+                        const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
                         const patternType = field.types?.find(t => t.pattern);
                         const rules: any = {};
 
@@ -711,7 +711,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                         }
 
                         if (expressionSetType?.pattern) {
-                            // For EXPRESSION_SET (arrays), validate each item
+                            // For EXPRESSION_SET or TEXT_SET (arrays), validate each item
                             rules.validate = {
                                 pattern: (value: any) => {
                                     try {

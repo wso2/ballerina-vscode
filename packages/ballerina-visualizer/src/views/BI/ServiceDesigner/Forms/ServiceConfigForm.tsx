@@ -271,7 +271,7 @@ function convertConfig(service: ServiceModel): FormField[] {
             editable: true,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
-            value: getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items[0]])) : expression.value,
+            value: (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "EXPRESSION_SET" || getPrimaryInputType(expression.types)?.fieldType === "TEXT_SET") ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : [expression.items?.[0]])) : expression.value,
             types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
@@ -294,7 +294,25 @@ function convertConfig(service: ServiceModel): FormField[] {
 function updateConfig(formFields: FormField[], service: ServiceModel): ServiceModel {
     formFields.forEach(field => {
         const value = field.value;
-        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+        if (field.type === "CHOICE") {
+            // Handle nested properties within choices
+            field.choices?.forEach((choice, index) => {
+                const serviceChoice = service.properties[field.key].choices?.[index];
+                if (serviceChoice && choice.properties) {
+                    Object.keys(choice.properties).forEach(propKey => {
+                        const prop = choice.properties[propKey];
+                        const fieldType = getPrimaryInputType(prop.types)?.fieldType;
+                        const propValue = prop.value;
+                        if (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET") {
+                            serviceChoice.properties[propKey].values = (Array.isArray(propValue) ? propValue : []) as string[];
+                            delete serviceChoice.properties[propKey].value;
+                        } else {
+                            serviceChoice.properties[propKey].value = propValue as string;
+                        }
+                    });
+                }
+            });
+        } else if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET" || field.type === "TEXT_SET") {
             service.properties[field.key].values = value as string[];
         } else {
             service.properties[field.key].value = value as string;

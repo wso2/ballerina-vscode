@@ -94,6 +94,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "ACTION_OR_EXPRESSION" ||
             type.fieldType === "TEXT" ||
             type.fieldType === "EXPRESSION_SET" ||
+            type.fieldType === "TEXT_SET" ||
             type.fieldType === "SINGLE_SELECT" ||
             type.fieldType === "RECORD_MAP_EXPRESSION"
         );

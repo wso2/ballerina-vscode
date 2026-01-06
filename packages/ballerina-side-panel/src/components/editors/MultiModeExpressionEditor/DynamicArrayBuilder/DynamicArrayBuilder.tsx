@@ -26,23 +26,25 @@ import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/component
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { StringTemplateEditorConfig } from "../Configurations";
 
 interface DynamicArrayBuilderProps {
     value: string | any[];
     expressionFieldProps: ExpressionFieldProps;
+    itemMode?: InputMode;
 }
 
 /**
  * DynamicArrayBuilder component for managing array inputs with validation.
- * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET type.
+ * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET or TEXT_SET type.
  */
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
-    const { value, expressionFieldProps } = props;
+    const { value, expressionFieldProps, itemMode } = props;
     const { form } = useFormContext();
     const { setValue } = form;
 
-    // Extract configuration from EXPRESSION_SET type definition
-    const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET");
+    // Extract configuration from EXPRESSION_SET or TEXT_SET type definition
+    const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
     const minItems = expressionSetType?.minItems ?? 1;
     const defaultItems = expressionSetType?.defaultItems ?? 1;
     
@@ -157,10 +159,11 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         onOpenExpandedMode={props.expressionFieldProps.onOpenExpandedMode}
                         onRemove={props.expressionFieldProps.onRemove}
                         isInExpandedMode={props.expressionFieldProps.isInExpandedMode}
-                        //HACK: always use Expression mode for array items. this should be fixed to 
-                        //show the type related editor in the field editor and the whole editor should 
+                        //HACK: always use Expression mode for array items. this should be fixed to
+                        //show the type related editor in the field editor and the whole editor should
                         //have a switch to show the array editor mode and the expression mode.
-                        configuration={new ChipExpressionEditorDefaultConfiguration()}
+                        //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
+                        configuration={itemMode === InputMode.TEXT ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
                     />
                     <S.DeleteButton
                         appearance="icon"
