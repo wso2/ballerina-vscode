@@ -111,9 +111,10 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
 
     return Object.entries(properties).map(([key, property]) => {
 
-        // Determine value for MULTIPLE_SELECT
+        // Determine value for MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET
         let value: any = property.value;
-        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT") {
+        const fieldType = getPrimaryInputType(property.types)?.fieldType;
+        if (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET") {
             if (property.values && property.values.length > 0) {
                 value = property.values;
             } else if (property.value) {
@@ -169,8 +170,8 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
         const value = field.value;
 
-        // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+        // Handle MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET types
+        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET" || field.type === "TEXT_SET") {
             property.values = normalizeValueToArray(value);
         } else {
             property.value = value as string;
@@ -365,8 +366,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
                             // Set value from form data if available
                             if (data[nestedKey] !== undefined) {
-                                // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-                                if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET") {
+                                // Handle MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET types
+                                if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET" || getPrimaryInputType(nestedProperty.types)?.fieldType === "TEXT_SET") {
                                     const value = data[nestedKey];
                                     nestedProperty.values = normalizeValueToArray(value);
                                 } else {
@@ -388,7 +389,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
                 // Set value from form data if available
                 if (data[nestedKey] !== undefined) {
-                    if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET") {
+                    if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET" || getPrimaryInputType(nestedProperty.types)?.fieldType === "TEXT_SET") {
                         const value = data[nestedKey];
                         nestedProperty.values = normalizeValueToArray(value);
                     } else {
@@ -414,10 +415,16 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                             for (const key in choice.properties) {
                                 const property = choice.properties[key];
                                 if (data[key] !== undefined) {
-                                    if (key === "basePath") {
-                                        property.value = sanitizedHttpPath(data[key]);
+                                    const fieldType = getPrimaryInputType(property.types)?.fieldType;
+                                    // Handle array types (TEXT_SET, EXPRESSION_SET, MULTIPLE_SELECT)
+                                    if (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET") {
+                                        property.values = normalizeValueToArray(data[key]);
                                     } else {
-                                        property.value = data[key];
+                                        if (key === "basePath") {
+                                            property.value = sanitizedHttpPath(data[key]);
+                                        } else {
+                                            property.value = data[key];
+                                        }
                                     }
                                 }
                                 processPropertyRecursively(property, data);

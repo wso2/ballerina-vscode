@@ -139,6 +139,7 @@ export type FormFieldInputType = "TEXT" |
     "MULTIPLE_SELECT_LISTENER" |
     "SINGLE_SELECT_LISTENER" |
     "EXPRESSION_SET" |
+    "TEXT_SET" |
     "FLAG" |
     "CHOICE"|
     "LV_EXPRESSION" |

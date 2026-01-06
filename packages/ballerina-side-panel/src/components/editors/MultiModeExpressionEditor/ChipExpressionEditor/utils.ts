@@ -53,6 +53,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
     }
+    if (inputType.fieldType === "TEXT_SET") {
+        return InputMode.TEXT_ARRAY;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);

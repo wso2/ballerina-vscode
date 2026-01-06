@@ -154,6 +154,15 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             />
         );
     }
+    if ( inputMode === InputMode.TEXT_ARRAY) {
+        return (
+            <DynamicArrayBuilder
+                value={value}
+                expressionFieldProps={props}
+                itemMode={InputMode.TEXT}
+            />
+        );
+    }
     if (Array.isArray(value)) {
         throw new Error(`Invalid value type: expected a string but received an array for input mode ${inputMode}`);
     }
