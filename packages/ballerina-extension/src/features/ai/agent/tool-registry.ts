@@ -76,6 +76,7 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(
             eventHandler,
             tempProjectPath,
+            projectPath,
             projects[0].projectName,
             modifiedFiles
         ),

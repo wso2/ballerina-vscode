@@ -37,10 +37,6 @@ export function sendAgentDidOpen(tempProjectPath: string, projectPath: string, f
     const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
 
     const projectFileFullPath = path.join(projectPath, filePath);
-    if (!fs.existsSync(projectFileFullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didOpen: ${projectFileFullPath}`);
-      return;
-    }
 
     // 1. Send didOpen with 'file' schema
     const tempFileUri = Uri.file(tempFileFullPath).toString();
@@ -96,10 +92,6 @@ export function sendAgentDidChange(tempProjectPath: string, projectPath: string,
     const fileContent = fs.readFileSync(tempFileFullPath, 'utf-8');
 
     const projectFileFullPath = path.join(projectPath, filePath);
-    if (!fs.existsSync(projectFileFullPath)) {
-      console.warn(`[AgentNotification] File does not exist, skipping didChange: ${projectFileFullPath}`);
-      return;
-    }
 
     // 1. Send didChange with 'file' schema
     const tempFileUri = Uri.file(tempFileFullPath).toString();
