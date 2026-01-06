@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { FlowNode, LinePosition, ParentPopupData, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -231,18 +231,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
         });
     };
 
-    const selectedNode = useMemo(() => {
-        if (!connection) return undefined;
-
-        // Remove description property from node before passing to form
-        // since it's already shown in the connector info card
-        const nodeWithoutDescription = cloneDeep(connection);
-        if (nodeWithoutDescription?.metadata?.description) {
-            delete nodeWithoutDescription.metadata.description;
-        }
-        return nodeWithoutDescription;
-    }, [connection]);
-
     if (isLoading) {
         return (
             <>
@@ -297,7 +285,6 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                                         fontSize: "13px",
                                         whiteSpace: "nowrap"
                                     }}
-                                    tooltip="View Entity Relationship Diagram"
                                 >
                                     <Icon
                                         name="persist-diagram"
@@ -313,18 +300,24 @@ export function EditConnectionPopup(props: EditConnectionPopupProps) {
                             )}
                         </ConnectionDetailsSection>
                         {persistConnection.isPersist && <Separator />}
-                        {selectedNode && (
-                            <ConnectionConfigView
-                                submitText={isSaving ? "Updating..." : "Update Connection"}
-                                fileName={filePath}
-                                selectedNode={selectedNode}
-                                onSubmit={handleOnFormSubmit}
-                                updatedExpressionField={updatedExpressionField}
-                                resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                                isSaving={isSaving}
-                                footerActionButton={true}
-                            />
-                        )}
+                        <ConnectionConfigView
+                            submitText={isSaving ? "Updating..." : "Update Connection"}
+                            fileName={filePath}
+                            selectedNode={(() => {
+                                // Remove description property from node before passing to form
+                                // since it's already shown in the connector info card
+                                const nodeWithoutDescription = cloneDeep(connection);
+                                if (nodeWithoutDescription?.metadata?.description) {
+                                    delete nodeWithoutDescription.metadata.description;
+                                }
+                                return nodeWithoutDescription;
+                            })()}
+                            onSubmit={handleOnFormSubmit}
+                            updatedExpressionField={updatedExpressionField}
+                            resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                            isSaving={isSaving}
+                            footerActionButton={true}
+                        />
                     </>
                 </ContentContainer>
             </PopupContainer>
