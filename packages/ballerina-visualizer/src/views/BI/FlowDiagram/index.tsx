@@ -47,6 +47,8 @@ import {
     DataMapperDisplayMode,
     CodeData,
     JoinProjectPathRequest,
+    CodeContext,
+    AIPanelPrompt,
 } from "@wso2/ballerina-core";
 
 import {
@@ -534,7 +536,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then((model) => {
                         console.log(">>> BIFlowDiagram getFlowModel", model);
                         if (model?.flowModel) {
@@ -858,27 +860,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddNodePrompt = (parent: FlowNode | Branch, target: LineRange, prompt: string) => {
-        if (topNodeRef.current || targetRef.current) {
-            closeSidePanelAndFetchUpdatedFlowModel();
-            return;
-        }
-        topNodeRef.current = parent;
-        changeTargetRange(target)
-        // Use hook to save original model for AI suggestions
-        addDraftNode(parent, target);
-        setFetchingAiSuggestions(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getAiSuggestions({ position: target, filePath: model.fileName, prompt })
-            .then((model) => {
-                if (model?.flowModel?.nodes?.length > 0) {
-                    setSuggestedModel(model.flowModel);
-                    suggestedText.current = model.suggestion;
-                }
-            })
-            .finally(() => {
-                setFetchingAiSuggestions(false);
-            });
+        // Create CodeContext from the target position
+        // TODO: Offset seem to be wrong. Investigate further
+        const codeContext: CodeContext = {
+            type: 'addition',
+            position: {
+                line: target.startLine.line,
+                offset: target.startLine.offset
+            },
+            filePath: model.fileName
+        };
+
+        // Create AIPanelPrompt with CodeContext - agent mode is the default
+        const aiPrompt: AIPanelPrompt = {
+            type: 'text',
+            text: prompt || '',
+            planMode: true,
+            codeContext
+        };
+
+        // Use the standard pattern - import from utils/commands
+        rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
     const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
@@ -1290,7 +1292,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(true);
-        savingDraft();
+        // TODO: Uncomment this when the draft added with AI agent is implemented
+        // savingDraft(); 
         const noFormSubmitOptions = !options ||
             (
                 options?.closeSidePanel === undefined
@@ -1386,7 +1389,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
-                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel();
+                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel({});
                         if (!updatedModel?.flowModel) {
                             console.error(">>> Flow model missing after helper-pane update");
                             return;

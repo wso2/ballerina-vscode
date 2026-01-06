@@ -749,15 +749,15 @@ export function PackageOverview(props: PackageOverviewProps) {
 
     const handleGenerate = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: false,
+            planMode: true,
         });
     };
 
     const handleGenerateWithReadme = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
             readme: true,
+            planMode: true,
         });
     };
 
@@ -804,7 +804,11 @@ export function PackageOverview(props: PackageOverviewProps) {
     };
 
     async function handleSettings() {
-        rpcClient.getCommonRpcClient().executeCommand({ commands: [SHARED_COMMANDS.OPEN_AI_PANEL] });
+        rpcClient.getAiPanelRpcClient().openAIPanel({
+            type: 'text',
+            planMode: false,
+            text: ''
+        });
     }
 
     async function handleClose() {
