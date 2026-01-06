@@ -1,7 +1,7 @@
 {
   "id": "0",
   "displayName": "FTP Integration",
-  "description": "Create a service to trigger when the file actions occur on the remote server.",
+  "description": "Create a service to listen for file actions on a remote server",
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
@@ -45,7 +45,7 @@
             "host": {
               "metadata": {
                 "label": "Host",
-                "description": "The hostname or IP address of the remote server (e.g., ftp.example.com)"
+                "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
               },
               "enabled": true,
               "editable": true,
@@ -74,7 +74,7 @@
             "portNumber": {
               "metadata": {
                 "label": "Port Number",
-                "description": "The network port to connect on"
+                "description": "Port to connect on"
               },
               "enabled": true,
               "editable": true,
@@ -165,7 +165,7 @@
                   "userName": {
                     "metadata": {
                       "label": "Username",
-                      "description": ""
+                      "description": "Remote server username for authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -192,7 +192,7 @@
                   "password": {
                     "metadata": {
                       "label": "Password",
-                      "description": ""
+                      "description": "Remote server password for authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -254,7 +254,7 @@
             "host": {
               "metadata": {
                 "label": "Host",
-                "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+                "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
               },
               "enabled": true,
               "editable": true,
@@ -283,7 +283,7 @@
             "portNumber": {
               "metadata": {
                 "label": "Port Number",
-                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+                "description": "Port to connect on"
               },
               "enabled": true,
               "editable": true,
@@ -312,7 +312,7 @@
             "folderPath": {
               "metadata": {
                 "label": "Folder Path",
-                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
               },
               "enabled": true,
               "editable": true,
@@ -411,7 +411,7 @@
                   "userName": {
                     "metadata": {
                       "label": "Username",
-                      "description": ""
+                      "description": "Remote server username for key-based authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -475,7 +475,7 @@
             "host": {
               "metadata": {
                 "label": "Host",
-                "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+                "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
               },
               "enabled": true,
               "editable": true,
@@ -504,7 +504,7 @@
             "portNumber": {
               "metadata": {
                 "label": "Port Number",
-                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+                "description": "Port to connect on"
               },
               "enabled": true,
               "editable": true,
@@ -533,7 +533,7 @@
             "folderPath": {
               "metadata": {
                 "label": "Folder Path",
-                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
               },
               "enabled": true,
               "editable": true,
@@ -595,7 +595,7 @@
                   "userName": {
                     "metadata": {
                       "label": "Username",
-                      "description": ""
+                      "description": "Remote server username for authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -624,7 +624,7 @@
                   "password": {
                     "metadata": {
                       "label": "Password",
-                      "description": ""
+                      "description": "Remote server password for authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -671,7 +671,7 @@
             "secureSocket": {
               "metadata": {
                 "label": "Secure Socket (SecureSocket)",
-                "description": "Configure SSL/TLS configuration for secure connection.\n"
+                "description": "Configure SSL/TLS configuration for secure connection."
               },
               "enabled": true,
               "editable": true,
