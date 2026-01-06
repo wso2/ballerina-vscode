@@ -19,6 +19,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
+import { ValueTypeConstraint } from "../rpc-types/ai-agent/interfaces";
 
 export type { NodePosition };
 
@@ -144,7 +145,13 @@ export type FormFieldInputType = "TEXT" |
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
-    "RECORD_MAP_EXPRESSION";
+    "FIXED_PROPERTY" |
+    "REPEATABLE_PROPERTY" |
+    "MAPPING_EXPRESSION_SET" |
+    "ENUM" |
+    "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
+    "RECORD_MAP_EXPRESSION" |
+    "PROMPT";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -159,7 +166,7 @@ export interface DropdownType extends BaseType {
 }
 
 export interface TemplateType extends BaseType {
-    template: Property;
+    template: Property | ValueTypeConstraint;
 }
 
 export interface IdentifierType extends BaseType {

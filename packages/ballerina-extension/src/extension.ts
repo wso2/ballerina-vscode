@@ -47,7 +47,6 @@ import { activateTryItCommand } from './features/tryit/activator';
 import { activate as activateNPFeatures } from './features/natural-programming/activator';
 import { activateAgentChatPanel } from './views/agent-chat/activate';
 import { activateTracing } from './features/tracing';
-import { cleanupOnExtensionDeactivate } from './features/ai/agent/stream-handlers/handlers/finish-handler';
 
 let langClient: ExtendedLangClient;
 export let isPluginStartup = true;
@@ -270,10 +269,7 @@ async function updateCodeServerConfig() {
 
 export function deactivate(): Thenable<void> | undefined {
     debug('Deactive the Ballerina VS Code extension.');
-    
-    // Cleanup pending review context to prevent memory leaks
-    cleanupOnExtensionDeactivate();
-    
+
     if (!langClient) {
         return;
     }

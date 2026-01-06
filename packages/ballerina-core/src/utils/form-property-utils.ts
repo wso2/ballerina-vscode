@@ -32,5 +32,9 @@ export const isTemplateType = (
 export const isDropDownType = (
   value: InputType
 ): value is DropdownType => {
-  return value !== null && (value?.fieldType === "SINGLE_SELECT" || value?.fieldType === "MULTIPLE_SELECT");
+  return (
+    value !== null && 
+    "options" in value &&
+    (value?.fieldType === "SINGLE_SELECT" || value?.fieldType === "MULTIPLE_SELECT")
+  );
 };

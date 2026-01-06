@@ -20,9 +20,9 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
-import { StateMachine } from "../../../stateMachine";
-import { sendAgentDidOpen, sendAgentDidChange } from "../utils/project/ls-schema-notifications";
-import { CopilotEventHandler } from "../utils/events";
+import { StateMachine } from "../../../../stateMachine";
+import { sendAgentDidOpen, sendAgentDidChange } from "../../utils/project/ls-schema-notifications";
+import { CopilotEventHandler } from "../../utils/events";
 
 // ============================================================================
 // Display Helper Functions
