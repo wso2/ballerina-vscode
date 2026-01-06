@@ -261,7 +261,7 @@ async function getFlowModelForArtifact(artifact: ProjectStructureArtifactRespons
         const flowModelResponse = await StateMachine
             .langClient()
             .getFlowModel({
-                filePath,
+                filePath: filePath,
                 startLine: {
                     line: artifact.position.startLine,
                     offset: artifact.position.startColumn
@@ -478,7 +478,7 @@ function processInputRoots(model: DMModel): IOType[] {
     const inputs: IORoot[] = [];
     const focusInputs: Record<string, IOTypeField> = {};
     for (const input of model.inputs) {
-        if (input.focusExpression) {
+        if (input.focusExpression && (input.isIterationVariable || input.isSeq || input.isGroupingKey)) {
             focusInputs[input.focusExpression] = input as IOTypeField;
         } else {
             inputs.push(input);
@@ -567,7 +567,7 @@ function createBaseIOType(root: IORoot): IOType {
         typeName: root.typeName,
         kind: root.kind,
         ...(root.category && { category: root.category }),
-        ...(root.optional !== undefined && { optional: root.optional }),
+        ...(root.optional && { optional: root.optional }),
         ...(root.typeInfo && { typeInfo: root.typeInfo })
     };
 
@@ -577,7 +577,7 @@ function createBaseIOType(root: IORoot): IOType {
             name: member.displayName || member.name,
             typeName: member.typeName,
             kind: member.kind,
-            ...(member.optional !== undefined && { optional: member.optional })
+            ...(member.optional && { optional: member.optional })
         }));
     }
 
@@ -625,7 +625,7 @@ function processArray(
         typeName: member.typeName!,
         kind: member.kind,
         ...(isFocused && { isFocused }),
-        ...(member.optional !== undefined && { optional: member.optional }),
+        ...(member.optional && { optional: member.optional }),
         ...(member.typeInfo && { typeInfo: member.typeInfo })
     };
 
@@ -664,7 +664,7 @@ function processUnion(
             displayName: unionMember.displayName,
             typeName: unionMember.typeName,
             kind: unionMember.kind,
-            ...(unionMember.optional !== undefined && { optional: unionMember.optional }),
+            ...(unionMember.optional && { optional: unionMember.optional }),
             ...(unionMember.typeInfo && { typeInfo: unionMember.typeInfo })
         };
 
@@ -753,7 +753,7 @@ function processTypeFields(
             kind: field.kind,
             ...(isFocused && { isFocused }),
             ...(isSeq && { isSeq }),
-            ...(field.optional !== undefined && { optional: field.optional }),
+            ...(field.optional && { optional: field.optional }),
             ...(field.typeInfo && { typeInfo: field.typeInfo })
         };
 
@@ -779,7 +779,7 @@ function processEnum(
         displayName: member.typeName,
         typeName: member.typeName,
         kind: member.kind,
-        ...(member.optional !== undefined && { optional: member.optional })
+        ...(member.optional && { optional: member.optional })
     }));
 }
 

@@ -108,8 +108,6 @@ import {
     VisibleVariableTypes,
     ConfigVariableResponse,
     ConfigVariableRequest,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     ProjectDiagnosticsRequest,
     ProjectDiagnosticsResponse,
     MainFunctionParamsRequest,
@@ -276,6 +274,8 @@ import {
     FieldPropertyRequest,
     ClausePositionResponse,
     ClausePositionRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     IntrospectDatabaseRequest,
@@ -386,8 +386,6 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
-    VIEW_CONFIG_VARIABLES = 'configEditor/getConfigVariables',
-    UPDATE_CONFIG_VARIABLES = 'configEditor/updateConfigVariables',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
     UPDATE_CONFIG_VARIABLES_V2 = 'configEditorV2/updateConfigVariable',
     DELETE_CONFIG_VARIABLE_V2 = 'configEditorV2/deleteConfigVariable',
@@ -460,6 +458,7 @@ enum EXTENDED_APIS {
     BI_AI_GET_TOOL = 'agentManager/getTool',
     BI_AI_GET_MCP_TOOLS = 'agentManager/getMcpTools',
     BI_AI_GEN_TOOLS = 'agentManager/genTool',
+    BI_GET_SEMANTIC_DIFF = 'copilotAgentService/getSemanticDiff',
     BI_IS_ICP_ENABLED = 'icpService/isIcpEnabled',
     BI_ADD_ICP = 'icpService/addICP',
     BI_DISABLE_ICP = 'icpService/disableICP',
@@ -1126,14 +1125,6 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<ServiceFromOASResponse>(EXTENDED_APIS.BI_GEN_OPEN_API, params);
     }
 
-    async getConfigVariables(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
-        return this.sendRequest<ConfigVariableResponse>(EXTENDED_APIS.VIEW_CONFIG_VARIABLES, params);
-    }
-
-    async updateConfigVariables(params: UpdateConfigVariableRequest): Promise<UpdateConfigVariableResponse> {
-        return this.sendRequest<UpdateConfigVariableResponse>(EXTENDED_APIS.UPDATE_CONFIG_VARIABLES, params);
-    }
-
     async getConfigVariablesV2(params: ConfigVariableRequest): Promise<ConfigVariableResponse> {
         return this.sendRequest<ConfigVariableResponse>(EXTENDED_APIS.VIEW_CONFIG_VARIABLES_V2, params);
     }
@@ -1452,6 +1443,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         debug(`Importing Mule to Ballerina: ${JSON.stringify(params)}`);
         return this.sendRequest<ImportIntegrationResponse>(EXTENDED_APIS.MULE_TO_BI, params);
     }
+
+    async getSemanticDiff(params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+        return this.sendRequest<SemanticDiffResponse>(EXTENDED_APIS.BI_GET_SEMANTIC_DIFF, params);
+    }   
 
     // <------------ BI APIS END --------------->
 

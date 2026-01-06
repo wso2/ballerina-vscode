@@ -25,7 +25,7 @@ import { View } from "../Views/DataMapperView";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import AutoMapButton from "./AutoMapButton";
 import ExpressionBarWrapper from "./ExpressionBar";
-import EditButton from "./EditButton";
+import ConfigButton from "./ConfigButton";
 import { ActionIconButton } from "./ActionIconButton";
 
 export interface DataMapperHeaderProps {
@@ -83,7 +83,7 @@ export function DataMapperHeader(props: DataMapperHeaderProps) {
                         <HeaderSearchBox />
                     </FilterBar>
                     <AutoMapButton onClick={handleAutoMap} disabled={false} />
-                    {onEdit && <EditButton onClick={onEdit} disabled={hasEditDisabled} />}
+                    {onEdit && <ConfigButton onClick={onEdit} disabled={hasEditDisabled} />}
                 </RightContainer>
                 <VSCodeButton
                     appearance="icon"

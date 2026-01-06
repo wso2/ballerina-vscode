@@ -29,8 +29,6 @@ import {
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
     ConfigVariableResponse,
-    UpdateConfigVariableRequest,
-    UpdateConfigVariableResponse,
     SignatureHelpRequest,
     SignatureHelpResponse,
     BIGetVisibleVariableTypesRequest,
@@ -95,7 +93,9 @@ import {
     FormDiagnosticsRequest,
     FormDiagnosticsResponse,
     BISearchNodesRequest,
-    BISearchNodesResponse
+    BISearchNodesResponse,
+    BIDesignModelRequest,
+    BIFlowModelRequest
 } from "../../interfaces/extended-lang-client";
 import {
     ProjectRequest,
@@ -122,7 +122,7 @@ import {
 } from "./interfaces";
 
 export interface BIDiagramAPI {
-    getFlowModel: () => Promise<BIFlowModelResponse>;
+    getFlowModel: (params: BIFlowModelRequest) => Promise<BIFlowModelResponse>;
     getSourceCode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteFlowNode: (params: BISourceCodeRequest) => Promise<UpdatedArtifactsResponse>;
     deleteByComponentInfo: (params: BIDeleteByComponentInfoRequest) => Promise<BIDeleteByComponentInfoResponse>;
@@ -147,8 +147,6 @@ export interface BIDiagramAPI {
     getVisibleVariableTypes: (params: BIGetVisibleVariableTypesRequest) => Promise<BIGetVisibleVariableTypesResponse>;
     getExpressionCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
     getDataMapperCompletions: (params: ExpressionCompletionsRequest) => Promise<ExpressionCompletionsResponse>;
-    getConfigVariables: () => Promise<ConfigVariableResponse>;
-    updateConfigVariables: (params: UpdateConfigVariableRequest) => Promise<UpdateConfigVariableResponse>;
     getConfigVariablesV2: (params: ConfigVariableRequest) => Promise<ConfigVariableResponse>;
     updateConfigVariablesV2: (params: UpdateConfigVariableRequestV2) => Promise<UpdateConfigVariableResponseV2>;
     deleteConfigVariableV2: (params: DeleteConfigVariableRequestV2) => Promise<DeleteConfigVariableResponseV2>;
@@ -169,7 +167,7 @@ export interface BIDiagramAPI {
     getExpressionDiagnostics: (params: ExpressionDiagnosticsRequest) => Promise<ExpressionDiagnosticsResponse>;
     formDidOpen: (params: FormDidOpenParams) => Promise<void>;
     formDidClose: (params: FormDidCloseParams) => Promise<void>;
-    getDesignModel: () => Promise<BIDesignModelResponse>;
+    getDesignModel: (params: BIDesignModelRequest) => Promise<BIDesignModelResponse>;
     getTypes: (params: GetTypesRequest) => Promise<GetTypesResponse>;
     getType: (params: GetTypeRequest) => Promise<GetTypeResponse>;
     updateType: (params: UpdateTypeRequest) => Promise<UpdateTypeResponse>;
