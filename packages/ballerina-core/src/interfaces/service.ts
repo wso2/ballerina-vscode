@@ -115,6 +115,7 @@ export interface HttpPayloadContext {
     resourceMethod?: string;
     resourceDocumentation?: string;
     paramDetails?: ParamDetails[];
+    typeEditorDefaultTab?: string;
 }
 
 export interface MessageQueuePayloadContext {
@@ -122,11 +123,13 @@ export interface MessageQueuePayloadContext {
     serviceName: string;
     queueOrTopic?: string;
     messageDocumentation?: string;
+    typeEditorDefaultTab?: string;
 }
 
 export interface GeneralPayloadContext {
     protocol: string;
     filterType?: string;
+    typeEditorDefaultTab?: string;
 }
 
 export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext | GeneralPayloadContext;
