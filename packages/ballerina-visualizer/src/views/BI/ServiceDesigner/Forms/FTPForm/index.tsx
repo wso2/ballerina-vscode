@@ -71,7 +71,8 @@ export function FTPForm(props: FTPFormProps) {
 
     const payloadContext = {
         protocol: "FTP",
-        filterType: props.functionModel?.name.metadata.label || "JSON"
+        filterType: props.functionModel?.name.metadata.label || "JSON",
+        typeEditorDefaultTab: "create-from-scratch"
     } as GeneralPayloadContext;
 
     const [serviceModel, setserviceModel] = useState<ServiceModel>(model);
