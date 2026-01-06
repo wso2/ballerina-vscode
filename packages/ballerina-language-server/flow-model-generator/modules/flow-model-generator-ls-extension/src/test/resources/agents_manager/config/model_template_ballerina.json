@@ -69,33 +69,114 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "chatgpt-4o-latest",
-              "gpt-4.1-nano-2025-04-14",
-              "gpt-4.1-nano",
-              "gpt-4.1-mini",
-              "gpt-4.1-mini-2025-04-14",
-              "gpt-4.1",
-              "gpt-4.1-2025-04-14",
-              "gpt-3.5-turbo-0125",
-              "gpt-3.5-turbo-1106",
-              "gpt-3.5-turbo-16k",
-              "gpt-3.5-turbo",
-              "o1-pro",
-              "o1-pro-2025-03-19",
-              "o1-2024-12-17",
-              "o1",
-              "gpt-4-0613",
-              "gpt-4-1106-preview",
-              "gpt-4-turbo-preview",
-              "gpt-4-0125-preview",
-              "gpt-4-turbo-2024-04-09",
-              "gpt-4-turbo",
-              "gpt-4o-mini-2024-07-18",
-              "gpt-4o-mini",
-              "gpt-4o-2024-05-13",
-              "gpt-4o-2024-08-06",
-              "gpt-4o-2024-11-20",
-              "gpt-4o"
+              {
+                "label": "chatgpt-4o-latest",
+                "value": "\"chatgpt-4o-latest\""
+              },
+              {
+                "label": "gpt-4.1-nano-2025-04-14",
+                "value": "\"gpt-4.1-nano-2025-04-14\""
+              },
+              {
+                "label": "gpt-4.1-nano",
+                "value": "\"gpt-4.1-nano\""
+              },
+              {
+                "label": "gpt-4.1-mini",
+                "value": "\"gpt-4.1-mini\""
+              },
+              {
+                "label": "gpt-4.1-mini-2025-04-14",
+                "value": "\"gpt-4.1-mini-2025-04-14\""
+              },
+              {
+                "label": "gpt-4.1",
+                "value": "\"gpt-4.1\""
+              },
+              {
+                "label": "gpt-4.1-2025-04-14",
+                "value": "\"gpt-4.1-2025-04-14\""
+              },
+              {
+                "label": "gpt-3.5-turbo-0125",
+                "value": "\"gpt-3.5-turbo-0125\""
+              },
+              {
+                "label": "gpt-3.5-turbo-1106",
+                "value": "\"gpt-3.5-turbo-1106\""
+              },
+              {
+                "label": "gpt-3.5-turbo-16k",
+                "value": "\"gpt-3.5-turbo-16k\""
+              },
+              {
+                "label": "gpt-3.5-turbo",
+                "value": "\"gpt-3.5-turbo\""
+              },
+              {
+                "label": "o1-pro",
+                "value": "\"o1-pro\""
+              },
+              {
+                "label": "o1-pro-2025-03-19",
+                "value": "\"o1-pro-2025-03-19\""
+              },
+              {
+                "label": "o1-2024-12-17",
+                "value": "\"o1-2024-12-17\""
+              },
+              {
+                "label": "o1",
+                "value": "\"o1\""
+              },
+              {
+                "label": "gpt-4-0613",
+                "value": "\"gpt-4-0613\""
+              },
+              {
+                "label": "gpt-4-1106-preview",
+                "value": "\"gpt-4-1106-preview\""
+              },
+              {
+                "label": "gpt-4-turbo-preview",
+                "value": "\"gpt-4-turbo-preview\""
+              },
+              {
+                "label": "gpt-4-0125-preview",
+                "value": "\"gpt-4-0125-preview\""
+              },
+              {
+                "label": "gpt-4-turbo-2024-04-09",
+                "value": "\"gpt-4-turbo-2024-04-09\""
+              },
+              {
+                "label": "gpt-4-turbo",
+                "value": "\"gpt-4-turbo\""
+              },
+              {
+                "label": "gpt-4o-mini-2024-07-18",
+                "value": "\"gpt-4o-mini-2024-07-18\""
+              },
+              {
+                "label": "gpt-4o-mini",
+                "value": "\"gpt-4o-mini\""
+              },
+              {
+                "label": "gpt-4o-2024-05-13",
+                "value": "\"gpt-4o-2024-05-13\""
+              },
+              {
+                "label": "gpt-4o-2024-08-06",
+                "value": "\"gpt-4o-2024-08-06\""
+              },
+              {
+                "label": "gpt-4o-2024-11-20",
+                "value": "\"gpt-4o-2024-11-20\""
+              },
+              {
+                "label": "gpt-4o",
+                "value": "\"gpt-4o\""
+              }
             ],
             "selected": false
           },
@@ -208,9 +289,18 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "2.0",
-              "1.1",
-              "1.0"
+              {
+                "label": "2.0",
+                "value": "\"2.0\""
+              },
+              {
+                "label": "1.1",
+                "value": "\"1.1\""
+              },
+              {
+                "label": "1.0",
+                "value": "\"1.0\""
+              }
             ],
             "selected": false
           },
@@ -459,9 +549,18 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "AUTO",
-              "ALWAYS",
-              "NEVER"
+              {
+                "label": "AUTO",
+                "value": "\"AUTO\""
+              },
+              {
+                "label": "ALWAYS",
+                "value": "\"ALWAYS\""
+              },
+              {
+                "label": "NEVER",
+                "value": "\"NEVER\""
+              }
             ],
             "selected": false
           },

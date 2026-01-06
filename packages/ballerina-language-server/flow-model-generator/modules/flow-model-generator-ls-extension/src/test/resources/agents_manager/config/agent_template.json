@@ -137,8 +137,14 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "FUNCTION_CALL_AGENT",
-              "REACT_AGENT"
+              {
+                "label": "FUNCTION_CALL_AGENT",
+                "value": "\"FUNCTION_CALL_AGENT\""
+              },
+              {
+                "label": "REACT_AGENT",
+                "value": "\"REACT_AGENT\""
+              }
             ],
             "selected": false
           },
