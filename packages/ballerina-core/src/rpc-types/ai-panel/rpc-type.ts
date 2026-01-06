@@ -19,30 +19,14 @@
  */
 import { LoginMethod } from "../../state-machine-types";
 import {
-    GetFromFileRequest,
-    DeleteFromProjectRequest,
-    ProjectSource,
-    ProjectDiagnostics,
-    PostProcessRequest,
-    PostProcessResponse,
-    FetchDataRequest,
-    FetchDataResponse,
     TestGenerationMentions,
-    AIChatSummary,
-    DeveloperDocument,
     RequirementSpecification,
     LLMDiagnostics,
     AIPanelPrompt,
     AIMachineSnapshot,
     SubmitFeedbackRequest,
-    RelevantLibrariesAndFunctionsRequest,
     GenerateOpenAPIRequest,
-    GenerateCodeRequest,
     GenerateAgentCodeRequest,
-    TestPlanGenerationRequest,
-    TestGeneratorIntermediaryState,
-    RepairParams,
-    RelevantLibrariesAndFunctionsResponse,
     DocGenerationRequest,
     AddFilesToProjectRequest,
     MetadataWithAttachments,
@@ -50,64 +34,57 @@ import {
     ProcessMappingParametersRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
+    RestoreCheckpointRequest,
+    UpdateChatMessageRequest,
+    PlanApprovalRequest,
+    ApproveTaskRequest,
+    TaskDeclineRequest,
+    ConnectorSpecRequest,
+    ConnectorSpecCancelRequest,
+    UIChatMessage,
+    CheckpointInfo,
+    AbortAIGenerationRequest,
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "ai-panel";
-export const getBackendUrl: RequestType<void, string> = { method: `${_preFix}/getBackendUrl` };
-export const getProjectUuid: RequestType<void, string> = { method: `${_preFix}/getProjectUuid` };
 export const getLoginMethod: RequestType<void, LoginMethod> = { method: `${_preFix}/getLoginMethod` };
-export const getAccessToken: RequestType<void, string> = { method: `${_preFix}/getAccessToken` };
-export const getRefreshedAccessToken: RequestType<void, string> = { method: `${_preFix}/getRefreshedAccessToken` };
 export const getDefaultPrompt: RequestType<void, AIPanelPrompt> = { method: `${_preFix}/getDefaultPrompt` };
 export const getAIMachineSnapshot: RequestType<void, AIMachineSnapshot> = { method: `${_preFix}/getAIMachineSnapshot` };
-export const fetchData: RequestType<FetchDataRequest, FetchDataResponse> = { method: `${_preFix}/fetchData` };
-export const getFromFile: RequestType<GetFromFileRequest, string> = { method: `${_preFix}/getFromFile` };
-export const getFileExists: RequestType<GetFromFileRequest, boolean> = { method: `${_preFix}/getFileExists` };
-export const deleteFromProject: NotificationType<DeleteFromProjectRequest> = { method: `${_preFix}/deleteFromProject` };
-export const getShadowDiagnostics: RequestType<ProjectSource, ProjectDiagnostics> = { method: `${_preFix}/getShadowDiagnostics` };
-export const checkSyntaxError: RequestType<ProjectSource, boolean> = { method: `${_preFix}/checkSyntaxError` };
 export const clearInitialPrompt: NotificationType<void> = { method: `${_preFix}/clearInitialPrompt` };
 export const openChatWindowWithCommand: NotificationType<void> = { method: `${_preFix}/openChatWindowWithCommand` };
 export const generateContextTypes: NotificationType<ProcessContextTypeCreationRequest> = { method: `${_preFix}/generateContextTypes` };
 export const generateMappingCode: NotificationType<ProcessMappingParametersRequest> = { method: `${_preFix}/generateMappingCode` };
 export const generateInlineMappingCode: NotificationType<MetadataWithAttachments> = { method: `${_preFix}/generateInlineMappingCode` };
 export const getServiceNames: RequestType<void, TestGenerationMentions> = { method: `${_preFix}/getServiceNames` };
-export const abortTestGeneration: NotificationType<void> = { method: `${_preFix}/abortTestGeneration` };
-export const applyDoOnFailBlocks: NotificationType<void> = { method: `${_preFix}/applyDoOnFailBlocks` };
-export const postProcess: RequestType<PostProcessRequest, PostProcessResponse> = { method: `${_preFix}/postProcess` };
 export const promptGithubAuthorize: RequestType<void, boolean> = { method: `${_preFix}/promptGithubAuthorize` };
-export const promptWSO2AILogout: RequestType<void, boolean> = { method: `${_preFix}/promptWSO2AILogout` };
 export const isCopilotSignedIn: RequestType<void, boolean> = { method: `${_preFix}/isCopilotSignedIn` };
 export const showSignInAlert: RequestType<void, boolean> = { method: `${_preFix}/showSignInAlert` };
 export const markAlertShown: NotificationType<void> = { method: `${_preFix}/markAlertShown` };
 export const getFromDocumentation: RequestType<string, string> = { method: `${_preFix}/getFromDocumentation` };
-export const isRequirementsSpecificationFileExist: RequestType<string, boolean> = { method: `${_preFix}/isRequirementsSpecificationFileExist` };
 export const getDriftDiagnosticContents: RequestType<void, LLMDiagnostics> = { method: `${_preFix}/getDriftDiagnosticContents` };
-export const addChatSummary: RequestType<AIChatSummary, boolean> = { method: `${_preFix}/addChatSummary` };
-export const handleChatSummaryError: NotificationType<string> = { method: `${_preFix}/handleChatSummaryError` };
-export const isNaturalProgrammingDirectoryExists: RequestType<string, boolean> = { method: `${_preFix}/isNaturalProgrammingDirectoryExists` };
-export const readDeveloperMdFile: RequestType<string, string> = { method: `${_preFix}/readDeveloperMdFile` };
-export const updateDevelopmentDocument: NotificationType<DeveloperDocument> = { method: `${_preFix}/updateDevelopmentDocument` };
 export const updateRequirementSpecification: NotificationType<RequirementSpecification> = { method: `${_preFix}/updateRequirementSpecification` };
 export const createTestDirecoryIfNotExists: NotificationType<void> = { method: `${_preFix}/createTestDirecoryIfNotExists` };
 export const submitFeedback: RequestType<SubmitFeedbackRequest, boolean> = { method: `${_preFix}/submitFeedback` };
-export const getRelevantLibrariesAndFunctions: RequestType<RelevantLibrariesAndFunctionsRequest, RelevantLibrariesAndFunctionsResponse> = { method: `${_preFix}/getRelevantLibrariesAndFunctions` };
 export const generateOpenAPI: NotificationType<GenerateOpenAPIRequest> = { method: `${_preFix}/generateOpenAPI` };
-export const generateCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateCode` };
 export const generateAgent: RequestType<GenerateAgentCodeRequest, boolean> = { method: `${_preFix}/generateAgent` };
-export const repairGeneratedCode: NotificationType<RepairParams> = { method: `${_preFix}/repairGeneratedCode` };
-export const generateTestPlan: NotificationType<TestPlanGenerationRequest> = { method: `${_preFix}/generateTestPlan` };
-export const generateFunctionTests: NotificationType<TestGeneratorIntermediaryState> = { method: `${_preFix}/generateFunctionTests` };
-export const generateHealthcareCode: NotificationType<GenerateCodeRequest> = { method: `${_preFix}/generateHealthcareCode` };
-export const abortAIGeneration: NotificationType<void> = { method: `${_preFix}/abortAIGeneration` };
-export const getGeneratedDocumentation: NotificationType<DocGenerationRequest> = { method: `${_preFix}/getGeneratedDocumentation` };
+export const abortAIGeneration: NotificationType<AbortAIGenerationRequest> = { method: `${_preFix}/abortAIGeneration` };
+export const getGeneratedDocumentation: RequestType<DocGenerationRequest, void> = { method: `${_preFix}/getGeneratedDocumentation` };
 export const addFilesToProject: RequestType<AddFilesToProjectRequest, boolean> = { method: `${_preFix}/addFilesToProject` };
 export const isUserAuthenticated: RequestType<void, boolean> = { method: `${_preFix}/isUserAuthenticated` };
-export const openAIPanel: NotificationType<AIPanelPrompt> = { method: `${_preFix}/openAIPanel` };
+export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFix}/openAIPanel` };
 export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
-export const acceptChanges: NotificationType<void> = { method: `${_preFix}/acceptChanges` };
-export const declineChanges: NotificationType<void> = { method: `${_preFix}/declineChanges` };
-export const showReviewActions: NotificationType<void> = { method: `${_preFix}/showReviewActions` };
-export const hideReviewActions: NotificationType<void> = { method: `${_preFix}/hideReviewActions` };
+export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
+export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
+export const approvePlan: RequestType<PlanApprovalRequest, void> = { method: `${_preFix}/approvePlan` };
+export const declinePlan: RequestType<PlanApprovalRequest, void> = { method: `${_preFix}/declinePlan` };
+export const approveTask: RequestType<ApproveTaskRequest, void> = { method: `${_preFix}/approveTask` };
+export const declineTask: RequestType<TaskDeclineRequest, void> = { method: `${_preFix}/declineTask` };
+export const provideConnectorSpec: RequestType<ConnectorSpecRequest, void> = { method: `${_preFix}/provideConnectorSpec` };
+export const cancelConnectorSpec: RequestType<ConnectorSpecCancelRequest, void> = { method: `${_preFix}/cancelConnectorSpec` };
+export const getChatMessages: NotificationType<void> = { method: `${_preFix}/getChatMessages` };
+export const getCheckpoints: NotificationType<void> = { method: `${_preFix}/getCheckpoints` };
+export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { method: `${_preFix}/restoreCheckpoint` };
+export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearChat` };
+export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
