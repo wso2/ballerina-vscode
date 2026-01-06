@@ -25,7 +25,7 @@ import { useIntermediateNodeStyles } from '../../../styles';
 import { ClauseConnectorNode } from './ClauseConnectorNode';
 import { renderPortWidget } from "../LinkConnector/LinkConnectorWidgetComponents";
 import { DiagnosticWidget } from "../../Diagnostic/DiagnosticWidget";
-import { useDMExpressionBarStore, useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useDMExpressionBarStore, useDMQueryClausesStore } from "../../../../store/store";
 
 export interface ClauseConnectorNodeWidgetProps {
     node: ClauseConnectorNode;
@@ -41,7 +41,7 @@ export function ClauseConnectorNodeWidget(props: ClauseConnectorNodeWidgetProps)
     const diagnostic = node.hasError() ? node.diagnostics[0] : null;
     const value = node.value;
 
-    const setIsQueryClausesPanelOpen = useDMQueryClausesPanelStore(state => state.setIsQueryClausesPanelOpen);
+    const setIsQueryClausesPanelOpen = useDMQueryClausesStore(state => state.setIsQueryClausesPanelOpen);
     const onClickOpenClausePanel = () => {
         setIsQueryClausesPanelOpen(true);
     };

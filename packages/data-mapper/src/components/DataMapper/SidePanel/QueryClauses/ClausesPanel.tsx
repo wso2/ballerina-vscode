@@ -19,7 +19,7 @@
 import React, { useEffect } from "react";
 
 import { Button, Codicon, SidePanel, SidePanelBody, SidePanelTitleContainer, ThemeColors } from "@wso2/ui-toolkit";
-import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useDMQueryClausesStore } from "../../../../store/store";
 import { AddButton, ClauseItem } from "./ClauseItem";
 import { ClauseEditor } from "./ClauseEditor";
 import { ClauseItemListContainer } from "./styles";
@@ -36,8 +36,8 @@ export interface ClausesPanelProps {
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
-    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
-    const { clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesPanelStore.getState();
+    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesStore();
+    const { clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesStore.getState();
     const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm , genUniqueName} = props;
 
     const [adding, setAdding] = React.useState<number>();

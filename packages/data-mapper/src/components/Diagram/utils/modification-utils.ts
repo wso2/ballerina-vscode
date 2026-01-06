@@ -25,7 +25,7 @@ import { expandArrayFn, getValueType } from "./common-utils";
 import { FnMetadata, FnParams, FnReturnType, IntermediateClauseType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
-import { useDMQueryClausesPanelStore } from "../../../store/store";
+import { useDMQueryClausesStore } from "../../../store/store";
 
 export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
 	const sourcePort = link.getSourcePort();
@@ -246,7 +246,7 @@ export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperC
 
 }
 
-export function mapWithJoin(link: DataMapperLinkModel) {
+export function mapWithClause(link: DataMapperLinkModel) {
 
 	const sourcePort = link.getSourcePort();
 	if (!sourcePort) {
@@ -255,7 +255,7 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 
 	const sourcePortModel = sourcePort as InputOutputPortModel;
 
-	const { setClauseToAdd, setClauseTypes, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
+	const { setClauseToAdd, setIsQueryClauseFormOpen } = useDMQueryClausesStore.getState();
 
 	setClauseToAdd({
 		type: IntermediateClauseType.JOIN,
@@ -268,8 +268,7 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 			rhsExpression: "",
 		}
 	});
-	setClauseTypes([IntermediateClauseType.JOIN, IntermediateClauseType.FROM]);
-	setIsQueryClausesPanelOpen(true);
+	setIsQueryClauseFormOpen(true);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

@@ -20,7 +20,7 @@ import React, { useMemo, useState } from "react";
 import { EditorContainer, ProgressRingWrapper } from "./styles";
 import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
-import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useDMQueryClausesStore } from "../../../../store/store";
 import { useQuery } from "@tanstack/react-query";
 
 export interface ClauseEditorProps {
@@ -47,7 +47,7 @@ export const clauseTypeLabels: Record<IntermediateClauseType, string> = {
 
 export function ClauseEditor(props: ClauseEditorProps) {
     const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
-    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesPanelStore.getState();
+    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
     const [clauseType, setClauseType] = useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
