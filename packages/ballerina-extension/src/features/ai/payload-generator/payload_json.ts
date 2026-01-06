@@ -17,7 +17,6 @@
 import { generateObject } from "ai";
 import { PayloadContext } from "@wso2/ballerina-core";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
 import { ExamplePayloadSchema, ExamplePayload } from "./schema";
 import { getPayloadGenerationSystemPrompt, getPayloadGenerationUserPrompt } from "./prompts";
 
@@ -40,7 +39,7 @@ export async function generateExamplePayload(context: PayloadContext): Promise<o
             system: systemPrompt,
             prompt: userPrompt,
             schema: ExamplePayloadSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         const result = object as ExamplePayload;
