@@ -897,8 +897,8 @@ public class DataMapManager {
     private List<Map<String, String>> getDiagnostics(LineRange lineRange, SemanticModel semanticModel) {
         return semanticModel.diagnostics(lineRange).stream()
                 .map(diagnostic -> Map.of(
-                        "code", diagnostic.diagnosticInfo().code(),
-                        "message", diagnostic.message()
+                        "code", Objects.requireNonNullElse(diagnostic.diagnosticInfo().code(), ""),
+                        "message", Objects.requireNonNullElse(diagnostic.message(), "")
                 ))
                 .toList();
     }
