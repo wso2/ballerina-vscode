@@ -159,9 +159,14 @@ export interface BaseType {
     typeMembers?: PropertyTypeMemberInfo[];
 }
 
+export interface EnumOptions {
+    label: string;
+    value: string;
+}
+
 export interface DropdownType extends BaseType {
     fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
-    options: string[];
+    options: EnumOptions[];
 }
 
 export interface TemplateType extends BaseType {
