@@ -77,8 +77,14 @@
           {
             "fieldType": "MULTIPLE_SELECT_LISTENER",
             "options": [
-              "graphQLListener",
-              "(+) Create and use a graphql listener with default configurations"
+              {
+                "label": "graphQLListener",
+                "value": "graphQLListener"
+              },
+              {
+                "label": "(+) Create and use a graphql listener with default configurations",
+                "value": "(+) Create and use a graphql listener with default configurations"
+              }
             ],
             "selected": true
           }
@@ -102,8 +108,14 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "",
-              "Service"
+              {
+                "label": "",
+                "value": ""
+              },
+              {
+                "label": "Service",
+                "value": "Service"
+              }
             ],
             "selected": true
           }
