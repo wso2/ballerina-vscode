@@ -14,11 +14,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { DIAGNOSTICS_TOOL_NAME } from "../tools/diagnostics";
+import { DIAGNOSTICS_TOOL_NAME } from "./tools/diagnostics";
 import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
-import { TASK_WRITE_TOOL_NAME } from "../tools/task-writer";
-import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../tools/text-editor";
-import { CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
+import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
+import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
+import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";

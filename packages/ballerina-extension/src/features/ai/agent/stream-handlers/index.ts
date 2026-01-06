@@ -15,19 +15,8 @@
 // under the License.
 
 /**
- * Main exports for stream event handlers
+ * Main exports for stream context
  */
 
 // Core interfaces and types
-export * from "./stream-event-handler";
 export * from "./stream-context";
-export * from "./stream-event-registry";
-
-// Event handlers
-export * from "./handlers/text-delta-handler";
-export * from "./handlers/text-start-handler";
-
-// Lifecycle handlers
-export * from "./handlers/error-handler";
-export * from "./handlers/abort-handler";
-export * from "./handlers/finish-handler";

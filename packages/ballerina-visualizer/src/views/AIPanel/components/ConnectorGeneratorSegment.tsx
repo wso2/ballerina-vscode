@@ -18,7 +18,6 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { AIChatMachineEventType } from "@wso2/ballerina-core";
 
 const Container = styled.div<{ variant: string }>`
     padding: 16px;
@@ -468,32 +467,34 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
                 sourceId = identifier;
             }
 
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC,
-                payload: {
-                    requestId: data.requestId,
-                    spec: specData,
-                    inputMethod: method,
-                    sourceIdentifier: sourceId,
-                },
+            await rpcClient.getAiPanelRpcClient().provideConnectorSpec({
+                requestId: data.requestId,
+                spec: specData
             });
+
+            // Success - the UI will update via connector_generation_notification event
+            setIsProcessing(false);
         } catch (error: any) {
             console.error("[ConnectorGenerator UI] Error in handleSubmit:", error);
             setIsProcessing(false);
         }
     };
 
-    const handleSkip = () => {
+    const handleSkip = async () => {
         if (showSkipInput) {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION,
-                payload: {
+            try {
+                await rpcClient.getAiPanelRpcClient().cancelConnectorSpec({
                     requestId: data.requestId,
-                    comment: skipComment.trim() || undefined,
-                },
-            });
-            setShowSkipInput(false);
-            setSkipComment("");
+                    comment: skipComment.trim() || undefined
+                });
+                setShowSkipInput(false);
+                setSkipComment("");
+            } catch (error: any) {
+                console.error("[ConnectorGenerator UI] Error in handleSkip:", error);
+                // Still reset UI even on error
+                setShowSkipInput(false);
+                setSkipComment("");
+            }
         } else {
             setShowSkipInput(true);
         }
