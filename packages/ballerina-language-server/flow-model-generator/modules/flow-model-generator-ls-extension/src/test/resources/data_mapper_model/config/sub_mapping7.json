@@ -55,6 +55,7 @@
         "displayName": "inputItem",
         "typeName": "InRoot",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "input",
         "ref": "694571155",
         "isIterationVariable": true

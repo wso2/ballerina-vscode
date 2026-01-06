@@ -56,6 +56,7 @@
         "displayName": "m2ItemItem",
         "typeName": "MyType2",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "m2Item",
         "ref": "-371017088",
         "isIterationVariable": true

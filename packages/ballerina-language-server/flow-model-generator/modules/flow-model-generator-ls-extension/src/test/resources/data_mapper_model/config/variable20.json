@@ -79,6 +79,7 @@
         "displayName": "info",
         "typeName": "UserInfo",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "bank.userInfo",
         "ref": "1889977605",
         "isIterationVariable": true
@@ -107,7 +108,10 @@
         ],
         "expression": "",
         "diagnostics": [
-          "missing identifier"
+          {
+            "code": "BCE0400",
+            "message": "missing identifier"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,

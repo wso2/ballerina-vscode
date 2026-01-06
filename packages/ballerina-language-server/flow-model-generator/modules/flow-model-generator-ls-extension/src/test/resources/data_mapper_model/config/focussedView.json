@@ -47,6 +47,7 @@
         "displayName": "peopleItem",
         "typeName": "Person",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "input.people",
         "ref": "887620673",
         "isIterationVariable": true

@@ -46,6 +46,7 @@
         "displayName": "input",
         "typeName": "Input",
         "kind": "record",
+        "category": "local-variable",
         "focusExpression": "inputs",
         "ref": "-393207458",
         "isIterationVariable": true

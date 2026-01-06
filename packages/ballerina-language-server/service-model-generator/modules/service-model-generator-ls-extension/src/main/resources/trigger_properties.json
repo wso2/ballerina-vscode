@@ -8,7 +8,8 @@
       "network",
       "messaging",
       "event"
-    ]
+    ],
+    "triggerName": "Kafka"
   },
   "2": {
     "name": "rabbitmq",
@@ -18,7 +19,8 @@
       "messaging",
       "network",
       "event"
-    ]
+    ],
+    "triggerName": "RabbitMQ"
   },
   "3": {
     "name": "mqtt",
@@ -27,7 +29,8 @@
     "keywords": [
       "mqtt",
       "event"
-    ]
+    ],
+    "triggerName": "MQTT"
   },
   "4": {
     "name": "asb",
@@ -39,7 +42,8 @@
       "asb",
       "azure service bus",
       "event"
-    ]
+    ],
+    "triggerName": "Azure Service Bus"
   },
   "5": {
     "name": "salesforce",
@@ -48,7 +52,8 @@
     "keywords": [
       "salesforce",
       "event"
-    ]
+    ],
+    "triggerName": "Salesforce"
   },
   "6": {
     "name": "trigger.twilio",
@@ -58,7 +63,8 @@
       "twilio",
       "event",
       "sms"
-    ]
+    ],
+    "triggerName": "Twilio"
   },
   "7": {
     "name": "trigger.github",
@@ -67,7 +73,8 @@
     "keywords": [
       "github",
       "event"
-    ]
+    ],
+    "triggerName": "GitHub"
   },
   "8": {
     "name": "ftp",
@@ -108,8 +115,9 @@
       "solace",
       "messaging",
       "event"
-    ]
-  },
+      ],
+    "triggerName": "Solace"
+    },
   "12": {
     "name": "mssql",
     "orgName": "ballerinax",

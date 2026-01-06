@@ -38,6 +38,7 @@
         "displayName": "secondaryPhonesItem",
         "typeName": "string",
         "kind": "string",
+        "category": "local-variable",
         "focusExpression": "u.info.secondaryPhones",
         "isIterationVariable": true
       }
