@@ -104,38 +104,134 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "open-codestral-mamba",
-                "pixtral-12b-2409",
-                "pixtral-large-2411",
-                "open-mixtral-8x22b",
-                "open-mixtral-8x7b",
-                "open-mistral-nemo",
-                "open-mistral-7b",
-                "devstral-small-2505",
-                "codestral-mamba-2407",
-                "codestral-2501",
-                "codestral-2405",
-                "mistral-saba-2502",
-                "mistral-large-2411",
-                "mistral-large-2407",
-                "mistral-large-2402",
-                "mistral-medium-2505",
-                "mistral-medium-2312",
-                "ministral-8b-2410",
-                "ministral-3b-2410",
-                "mistral-small-2503",
-                "mistral-small-2501",
-                "mistral-small-2409",
-                "mistral-small-2402",
-                "codestral-latest",
-                "mistral-saba-latest",
-                "ministral-8b-latest",
-                "ministral-3b-latest",
-                "pixtral-large-latest",
-                "devstral-small-latest",
-                "mistral-large-latest",
-                "mistral-medium-latest",
-                "mistral-small-latest"
+                {
+                  "label": "open-codestral-mamba",
+                  "value": "\"open-codestral-mamba\""
+                },
+                {
+                  "label": "pixtral-12b-2409",
+                  "value": "\"pixtral-12b-2409\""
+                },
+                {
+                  "label": "pixtral-large-2411",
+                  "value": "\"pixtral-large-2411\""
+                },
+                {
+                  "label": "open-mixtral-8x22b",
+                  "value": "\"open-mixtral-8x22b\""
+                },
+                {
+                  "label": "open-mixtral-8x7b",
+                  "value": "\"open-mixtral-8x7b\""
+                },
+                {
+                  "label": "open-mistral-nemo",
+                  "value": "\"open-mistral-nemo\""
+                },
+                {
+                  "label": "open-mistral-7b",
+                  "value": "\"open-mistral-7b\""
+                },
+                {
+                  "label": "devstral-small-2505",
+                  "value": "\"devstral-small-2505\""
+                },
+                {
+                  "label": "codestral-mamba-2407",
+                  "value": "\"codestral-mamba-2407\""
+                },
+                {
+                  "label": "codestral-2501",
+                  "value": "\"codestral-2501\""
+                },
+                {
+                  "label": "codestral-2405",
+                  "value": "\"codestral-2405\""
+                },
+                {
+                  "label": "mistral-saba-2502",
+                  "value": "\"mistral-saba-2502\""
+                },
+                {
+                  "label": "mistral-large-2411",
+                  "value": "\"mistral-large-2411\""
+                },
+                {
+                  "label": "mistral-large-2407",
+                  "value": "\"mistral-large-2407\""
+                },
+                {
+                  "label": "mistral-large-2402",
+                  "value": "\"mistral-large-2402\""
+                },
+                {
+                  "label": "mistral-medium-2505",
+                  "value": "\"mistral-medium-2505\""
+                },
+                {
+                  "label": "mistral-medium-2312",
+                  "value": "\"mistral-medium-2312\""
+                },
+                {
+                  "label": "ministral-8b-2410",
+                  "value": "\"ministral-8b-2410\""
+                },
+                {
+                  "label": "ministral-3b-2410",
+                  "value": "\"ministral-3b-2410\""
+                },
+                {
+                  "label": "mistral-small-2503",
+                  "value": "\"mistral-small-2503\""
+                },
+                {
+                  "label": "mistral-small-2501",
+                  "value": "\"mistral-small-2501\""
+                },
+                {
+                  "label": "mistral-small-2409",
+                  "value": "\"mistral-small-2409\""
+                },
+                {
+                  "label": "mistral-small-2402",
+                  "value": "\"mistral-small-2402\""
+                },
+                {
+                  "label": "codestral-latest",
+                  "value": "\"codestral-latest\""
+                },
+                {
+                  "label": "mistral-saba-latest",
+                  "value": "\"mistral-saba-latest\""
+                },
+                {
+                  "label": "ministral-8b-latest",
+                  "value": "\"ministral-8b-latest\""
+                },
+                {
+                  "label": "ministral-3b-latest",
+                  "value": "\"ministral-3b-latest\""
+                },
+                {
+                  "label": "pixtral-large-latest",
+                  "value": "\"pixtral-large-latest\""
+                },
+                {
+                  "label": "devstral-small-latest",
+                  "value": "\"devstral-small-latest\""
+                },
+                {
+                  "label": "mistral-large-latest",
+                  "value": "\"mistral-large-latest\""
+                },
+                {
+                  "label": "mistral-medium-latest",
+                  "value": "\"mistral-medium-latest\""
+                },
+                {
+                  "label": "mistral-small-latest",
+                  "value": "\"mistral-small-latest\""
+                }
               ],
               "selected": false
             },
@@ -248,9 +344,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "2.0",
-                "1.1",
-                "1.0"
+                {
+                  "label": "2.0",
+                  "value": "\"2.0\""
+                },
+                {
+                  "label": "1.1",
+                  "value": "\"1.1\""
+                },
+                {
+                  "label": "1.0",
+                  "value": "\"1.0\""
+                }
               ],
               "selected": false
             },
@@ -484,9 +589,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "AUTO",
-                "ALWAYS",
-                "NEVER"
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
               ],
               "selected": false
             },
