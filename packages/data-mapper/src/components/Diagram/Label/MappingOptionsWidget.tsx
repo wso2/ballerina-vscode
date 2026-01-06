@@ -152,6 +152,18 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 </div>
             );
         }
+
+        const customFnMenuItem: Item = {
+            id: "custom-func",
+            label: getItemElement("custom-func", "Map Using Custom Function", "function-icon"),
+            onClick: wrapWithProgress(onClickMapWithCustomFn)
+        }
+
+        const transformFnMenuItem: Item = {
+            id: "transform-func",
+            label: getItemElement("transform-func", "Map Using Transform Function", "dataMapper"),
+            onClick: wrapWithProgress(onClickMapWithTransformFn)
+        }
     
         const a2aMenuItems: Item[] = [
             {
@@ -240,11 +252,17 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const genMenuItems = (): Item[] => {
             switch (pendingMappingType) {
                 case MappingType.ArrayToArray:
-                    return a2aMenuItems;
+                    return [...a2aMenuItems, customFnMenuItem];
                 case MappingType.ArrayToSingleton:
-                    return genArrayToSingletonItems();
+                    return [...genArrayToSingletonItems(), customFnMenuItem, transformFnMenuItem];
                 case MappingType.ArrayToSingletonAggregate:
                     return genAggregateItems(onClickMapWithAggregateFn);
+                case MappingType.ArrayConnect:
+                    return [];
+                case MappingType.Incompatible:
+                    return [...defaultMenuItems, customFnMenuItem, transformFnMenuItem];
+                case MappingType.ContainsUnions:
+                    return [...defaultMenuItems, customFnMenuItem];
                 case MappingType.SeqToPrimitive:
                     return genAggregateItems(onClickMapSeqToPrimitive);
                 case MappingType.ConvertiblePrimitives:
@@ -253,28 +271,9 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     return defaultMenuItems;
             }
         };
-    
+
         const menuItems = genMenuItems();
-    
-        if (pendingMappingType !== MappingType.ArrayToSingletonAggregate &&
-            pendingMappingType !== MappingType.SeqToPrimitive &&
-            pendingMappingType !== MappingType.SeqToArray &&
-            pendingMappingType !== MappingType.ConvertiblePrimitives) {
-            menuItems.push({
-                id: "a2a-a2s-custom-func",
-                label: getItemElement("a2a-a2s-custom-func", "Map Using Custom Function", "function-icon"),
-                onClick: wrapWithProgress(onClickMapWithCustomFn)
-            });
-            if (pendingMappingType !== MappingType.ContainsUnions && 
-                pendingMappingType !== MappingType.ArrayToArray
-            ) {
-                menuItems.push({
-                    id: "a2a-a2s-transform-func",
-                    label: getItemElement("a2a-a2s-transform-func", "Map Using Transform Function", "dataMapper"),
-                    onClick: wrapWithProgress(onClickMapWithTransformFn)
-                });
-            }
-        }
+       
         return menuItems;
     }, [pendingMappingType, link, context]);
 
