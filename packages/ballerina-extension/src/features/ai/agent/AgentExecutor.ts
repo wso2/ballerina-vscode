@@ -347,15 +347,22 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
         }
 
-        // Update chat state storage with accumulated files
+        // Update chat state storage
+        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
+            modelMessages: assistantMessages,
+        });
+
+        // Skip review mode if no files were modified
+        if (accumulatedModifiedFiles.length === 0) {
+            console.log("[AgentExecutor] No modified files - skipping review mode");
+            return;
+        }
+
+        // Update review state and open review mode
         chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
             modifiedFiles: accumulatedModifiedFiles,
-        });
-
-        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
-            modelMessages: assistantMessages,
         });
 
         // Automatically open review mode
@@ -376,7 +383,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        context.eventHandler({ type: "review_actions" });
+        // Emit review_actions only if there are modified files
+        if (context.modifiedFiles.length > 0) {
+            context.eventHandler({ type: "review_actions" });
+        }
+
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "stop", command: Command.Agent });
     }
