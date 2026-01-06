@@ -191,8 +191,12 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 value={value}
                 field={field}
                 onChange={(val) => onChange(val, val.length)}
-                items={primaryInputType.options}
-
+                items={primaryInputType.options.map(option => (
+                    {
+                        id: option.value,
+                        content: option.label,
+                        value: option.value
+                    }))}
             />
         );
     }
