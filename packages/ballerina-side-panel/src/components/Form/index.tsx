@@ -689,6 +689,17 @@ export const Form = forwardRef((props: FormProps) => {
         return fields;
     }, [formFields, watch()]);
 
+    // Initialize form values for advanced choice fields
+    useEffect(() => {
+        advancedChoiceFields.forEach(field => {
+            const currentValue = getValues(field.key);
+            // Only set the value if it's currently undefined and the field has a value
+            if (currentValue === undefined && field.value !== undefined) {
+                setValue(field.key, field.value);
+            }
+        });
+    }, [advancedChoiceFields, getValues, setValue]);
+
     // has advance fields
     const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
