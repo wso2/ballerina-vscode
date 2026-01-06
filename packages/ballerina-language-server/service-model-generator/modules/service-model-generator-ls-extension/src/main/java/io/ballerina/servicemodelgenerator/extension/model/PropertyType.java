@@ -78,10 +78,6 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).ballerinaType(ballerinaType).build();
     }
 
-    public List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-        return typeWithExpression(typeSymbol, moduleInfo, null, null);
-    }
-
     public static List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                          Node value, SemanticModel semanticModel) {
         if (typeSymbol == null) {
@@ -197,9 +193,8 @@ public class PropertyType {
                 for (PropertyType propType : propertyTypes) {
                     if (propType.fieldType() == Value.FieldType.SINGLE_SELECT) {
                         String valueStr = value.toSourceCode().trim();
-                        for (Object option : propType.options()) {
-                            // need to check option is not an instance of structure
-                            if (option.equals(valueStr)) {
+                        for (Option option : propType.options()) {
+                            if (option.value().equals(valueStr)) {
                                 propType.selected(true);
                                 foundMatch = true;
                                 break;
