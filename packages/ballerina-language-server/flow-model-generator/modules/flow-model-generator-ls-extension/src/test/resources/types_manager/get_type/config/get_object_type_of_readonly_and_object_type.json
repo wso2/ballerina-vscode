@@ -121,8 +121,14 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "service",
-              "client"
+              {
+                "label": "service",
+                "value": "service"
+              },
+              {
+                "label": "client",
+                "value": "client"
+              }
             ],
             "selected": true
           }
