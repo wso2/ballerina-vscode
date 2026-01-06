@@ -235,7 +235,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         codeActions.push({
             title: "Map with query expression",
             onClick: onClickMapWithQuery
-        }, );
+        });
     } else if (mappingType === MappingType.ArrayToSingleton) {
         // TODO: Add impl
     }
