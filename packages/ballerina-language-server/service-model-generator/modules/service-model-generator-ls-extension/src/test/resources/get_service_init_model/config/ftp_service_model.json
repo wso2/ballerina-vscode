@@ -8,7 +8,7 @@
     "serviceInitModel": {
       "id": "0",
       "displayName": "FTP Integration",
-      "description": "Create a service to trigger when the file actions occur on the remote server.",
+      "description": "Create a service to listen for file actions on a remote server",
       "orgName": "ballerina",
       "packageName": "ftp",
       "moduleName": "ftp",
@@ -35,7 +35,7 @@
                 "host": {
                   "metadata": {
                     "label": "Host",
-                    "description": "The hostname or IP address of the remote server (e.g., ftp.example.com)"
+                    "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -62,7 +62,7 @@
                 "portNumber": {
                   "metadata": {
                     "label": "Port Number",
-                    "description": "The network port to connect on"
+                    "description": "Port to connect on"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -132,7 +132,7 @@
                         "userName": {
                           "metadata": {
                             "label": "Username",
-                            "description": ""
+                            "description": "Remote server username for authentication"
                           },
                           "placeholder": "default",
                           "value": "\"default\"",
@@ -156,7 +156,7 @@
                         "password": {
                           "metadata": {
                             "label": "Password",
-                            "description": ""
+                            "description": "Remote server password for authentication"
                           },
                           "placeholder": "default",
                           "value": "\"default\"",
@@ -224,7 +224,7 @@
                 "host": {
                   "metadata": {
                     "label": "Host",
-                    "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+                    "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -251,7 +251,7 @@
                 "portNumber": {
                   "metadata": {
                     "label": "Port Number",
-                    "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+                    "description": "Port to connect on"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -278,7 +278,7 @@
                 "folderPath": {
                   "metadata": {
                     "label": "Folder Path",
-                    "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+                    "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -356,7 +356,7 @@
                         "userName": {
                           "metadata": {
                             "label": "Username",
-                            "description": ""
+                            "description": "Remote server username for key-based authentication"
                           },
                           "codedata": {
                             "type": "IDENTIFIER"
@@ -427,7 +427,7 @@
                 "host": {
                   "metadata": {
                     "label": "Host",
-                    "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+                    "description": "Hostname or IP address of the remote server (e.g., ftp.example.com)"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -454,7 +454,7 @@
                 "portNumber": {
                   "metadata": {
                     "label": "Port Number",
-                    "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+                    "description": "Port to connect on"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -481,7 +481,7 @@
                 "folderPath": {
                   "metadata": {
                     "label": "Folder Path",
-                    "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+                    "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
@@ -524,7 +524,7 @@
                         "userName": {
                           "metadata": {
                             "label": "Username",
-                            "description": ""
+                            "description": "Remote server username for authentication"
                           },
                           "codedata": {
                             "type": "IDENTIFIER"
@@ -550,7 +550,7 @@
                         "password": {
                           "metadata": {
                             "label": "Password",
-                            "description": ""
+                            "description": "Remote server password for authentication"
                           },
                           "codedata": {
                             "type": "IDENTIFIER"
@@ -606,7 +606,7 @@
                 "secureSocket": {
                   "metadata": {
                     "label": "Secure Socket (SecureSocket)",
-                    "description": "Configure SSL/TLS configuration for secure connection.\n"
+                    "description": "Configure SSL/TLS configuration for secure connection."
                   },
                   "codedata": {
                     "argType": "LISTENER_PARAM_INCLUDED_FIELD"

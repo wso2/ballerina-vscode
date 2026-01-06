@@ -113,7 +113,7 @@
         "name": {
           "metadata": {
             "label": "CSV",
-            "description": "onFileCsv function type"
+            "description": "CSV file creation handler"
           },
           "placeholder": "",
           "value": "onFileCsv",
@@ -126,7 +126,7 @@
           {
             "metadata": {
               "label": "Content",
-              "description": "The FTP Payload"
+              "description": "CSV file content"
             },
             "kind": "DATA_BINDING",
             "type": {
@@ -184,7 +184,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
@@ -258,7 +258,7 @@
         "name": {
           "metadata": {
             "label": "JSON",
-            "description": "onFileJson function type"
+            "description": "JSON file creation handler"
           },
           "placeholder": "",
           "value": "onFileJson",
@@ -271,7 +271,7 @@
           {
             "metadata": {
               "label": "Content",
-              "description": "The FTP Payload"
+              "description": "Parsed JSON file content"
             },
             "kind": "DATA_BINDING",
             "type": {
@@ -329,7 +329,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
@@ -407,7 +407,7 @@
         "name": {
           "metadata": {
             "label": "XML",
-            "description": "onFileXml function type"
+            "description": "XML file creation handler"
           },
           "placeholder": "xml",
           "value": "onFileXml",
@@ -420,7 +420,7 @@
           {
             "metadata": {
               "label": "Content",
-              "description": "The FTP Payload"
+              "description": "Parsed XML file content"
             },
             "kind": "DATA_BINDING",
             "type": {
@@ -478,7 +478,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
@@ -556,7 +556,7 @@
         "name": {
           "metadata": {
             "label": "TEXT",
-            "description": "onFileText function type"
+            "description": "Text file creation handler"
           },
           "placeholder": "",
           "value": "onFileText",
@@ -569,7 +569,7 @@
           {
             "metadata": {
               "label": "Content",
-              "description": "The FTP Payload"
+              "description": "Text file content"
             },
             "kind": "REQUIRED",
             "type": {
@@ -627,7 +627,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
@@ -685,7 +685,7 @@
         "name": {
           "metadata": {
             "label": "RAW",
-            "description": "onFile function type"
+            "description": "Raw file creation handler"
           },
           "placeholder": "",
           "value": "onFile",
@@ -698,7 +698,7 @@
           {
             "metadata": {
               "label": "Content",
-              "description": "The FTP Payload"
+              "description": "Raw file content as byte array"
             },
             "kind": "REQUIRED",
             "type": {
@@ -756,7 +756,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
@@ -817,13 +817,13 @@
       {
         "metadata": {
           "label": "onDelete",
-          "description": "onDelete Category"
+          "description": "Handle file deletion on remote server"
         },
         "kind": "REMOTE",
         "name": {
           "metadata": {
             "label": "onFileDelete",
-            "description": "onFileDelete function type"
+            "description": "Handle file deletion events"
           },
           "placeholder": "",
           "value": "onFileDelete",
@@ -865,7 +865,7 @@
           {
             "metadata": {
               "label": "FTP Connection (caller)",
-              "description": "FTP connection for further actions if needed"
+              "description": "FTP connection for further operations"
             },
             "kind": "REQUIRED",
             "type": {
