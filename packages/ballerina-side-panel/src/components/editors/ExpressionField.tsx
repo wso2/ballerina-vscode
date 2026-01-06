@@ -162,20 +162,35 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 />
             );
         }
+        if (inputMode === InputMode.TEXT_ARRAY) {
+            return (
+                <DynamicArrayBuilder
+                    value={value}
+                    label={field.label}
+                    onChange={(val) => onChange(val, val.length)}
+                    expressionFieldProps={props}
+                    itemMode={InputMode.TEXT}
+                />
+            );
+        }
         throw new Error(`Unsupported editor for input mode: ${inputMode}`);
     }
     if (inputMode === InputMode.MAP) {
         return (
             <MappingConstructor
                 value={value}
+                label={field.label}
+                onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
             />
         );
     }
-    if ( inputMode === InputMode.TEXT_ARRAY) {
+    if (inputMode === InputMode.TEXT_ARRAY) {
         return (
             <DynamicArrayBuilder
                 value={value}
+                label={field.label}
+                onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
                 itemMode={InputMode.TEXT}
             />

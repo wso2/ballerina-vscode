@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExpressionFieldProps } from "../../ExpressionField";
 import { Codicon, ErrorBanner } from '@wso2/ui-toolkit';
 import { InputMode } from "../ChipExpressionEditor/types";
@@ -30,6 +30,8 @@ import { StringTemplateEditorConfig } from "../Configurations";
 
 interface DynamicArrayBuilderProps {
     value: string | any[];
+    label?: string;
+    onChange?: (value: string) => void;
     expressionFieldProps: ExpressionFieldProps;
     itemMode?: InputMode;
 }
@@ -39,7 +41,7 @@ interface DynamicArrayBuilderProps {
  * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET or TEXT_SET type.
  */
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
-    const { value, expressionFieldProps, itemMode } = props;
+    const { value, label, onChange, expressionFieldProps, itemMode } = props;
     const { form } = useFormContext();
     const { setValue } = form;
 
@@ -51,12 +53,31 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const [isInitialized, setIsInitialized] = useState(false);
     const currentValuesRef = useRef<string[]>([]);
 
+    // Helper function to update array value using form context setValue
+    // Note: We don't use the onChange prop here to preserve type information (e.g., numbers stay as numbers)
+    const updateArrayValue = useCallback((updatedArray: string[], options?: { shouldValidate?: boolean; shouldDirty?: boolean }) => {
+        setValue(expressionFieldProps.field.key, updatedArray, options);
+    }, [setValue, expressionFieldProps.field.key]);
+
     /**
      * Converts the incoming value to an array, using defaultItems if empty.
      */
     const getInitialValue = (): string[] => {
+        // If value is already an array, use it
         if (Array.isArray(value) && value.length > 0) {
             return value;
+        }
+
+        // If value is a JSON string, parse it
+        if (typeof value === 'string' && value.trim() !== '' && value !== '[]') {
+            try {
+                const parsed = JSON.parse(value);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            } catch (e) {
+                // If parsing fails, treat as empty
+            }
         }
 
         const isEmpty = !value ||
@@ -79,7 +100,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
 
         if (shouldInitialize) {
             currentValuesRef.current = initialValue;
-            setValue(expressionFieldProps.field.key, initialValue, { shouldValidate: false, shouldDirty: false });
+            updateArrayValue(initialValue, { shouldValidate: false, shouldDirty: false });
         }
         setIsInitialized(true);
     }, []);
@@ -111,27 +132,27 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                 paddedArray.push('');
             }
             currentValuesRef.current = paddedArray;
-            setValue(expressionFieldProps.field.key, paddedArray, { shouldValidate: true });
+            updateArrayValue(paddedArray, { shouldValidate: true });
         }
-    }, [arrayValues, isInitialized, minItems, defaultItems, expressionFieldProps.field.key, setValue]);
+    }, [arrayValues, isInitialized, minItems, defaultItems, updateArrayValue]);
 
     const handleInputChange = (index: number, newValue: string) => {
         const updatedArray = [...currentValuesRef.current];
         updatedArray[index] = newValue;
         currentValuesRef.current = updatedArray;
-        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleDelete = (index: number) => {
         const updatedArray = currentValuesRef.current.filter((_, i) => i !== index);
         currentValuesRef.current = updatedArray;
-        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleAdd = () => {
         const updatedArray = [...currentValuesRef.current, ''];
         currentValuesRef.current = updatedArray;
-        setValue(expressionFieldProps.field.key, updatedArray, { shouldValidate: true, shouldDirty: true });
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const primaryInputMode = useMemo(() => {
