@@ -76,8 +76,14 @@
         ],
         "expression": "userInfo.",
         "diagnostics": [
-          "undeclared field '$missingNode$_0' in record 'UserInfo'",
-          "missing identifier"
+          {
+            "code": "BCE2119",
+            "message": "undeclared field '$missingNode$_0' in record 'UserInfo'"
+          },
+          {
+            "code": "BCE0400",
+            "message": "missing identifier"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,
@@ -90,7 +96,10 @@
         ],
         "expression": "userInfo.username",
         "diagnostics": [
-          "incompatible types: expected 'int', found 'string'"
+          {
+            "code": "BCE2066",
+            "message": "incompatible types: expected 'int', found 'string'"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,
