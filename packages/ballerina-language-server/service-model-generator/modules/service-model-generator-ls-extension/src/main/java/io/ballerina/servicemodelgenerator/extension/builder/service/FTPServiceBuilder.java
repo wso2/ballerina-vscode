@@ -148,7 +148,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             if (!username.isEmpty() || !password.isEmpty()) {
                 listenerDeclaration.append("credentials: { ");
                 if (!username.isEmpty()) {
-                    listenerDeclaration.append("username: ").append(username).append(", ");
+                    listenerDeclaration.append("username: ").append(username);
+                    if (!password.isEmpty()) {
+                        listenerDeclaration.append(", ");
+                    }
                 }
                 if (!password.isEmpty()) {
                     listenerDeclaration.append("password: ").append(password).append(" ");
@@ -165,9 +168,8 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
             // Add private key configuration if provided
             if (!privateKey.isEmpty()) {
-                listenerDeclaration.append("privateKey: { ");
-                listenerDeclaration.append("path: \"").append(privateKey).append("\" ");
-                listenerDeclaration.append("}");
+                listenerDeclaration.append("privateKey: ");
+                listenerDeclaration.append(privateKey);
 
                 // Add comma if secure socket is also present
                 if (!secureSocket.isEmpty()) {
