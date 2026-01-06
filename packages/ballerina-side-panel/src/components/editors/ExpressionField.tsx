@@ -185,7 +185,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             />
         );
     }
-    if (inputMode === InputMode.DROPDOWN && isDropDownType(primaryInputType)) {
+    if (inputMode === InputMode.SELECT && isDropDownType(primaryInputType)) {
         return (
             <EnumEditor
                 value={value}
