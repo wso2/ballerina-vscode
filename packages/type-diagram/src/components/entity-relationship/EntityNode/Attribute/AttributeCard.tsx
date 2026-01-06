@@ -33,6 +33,55 @@ interface AttributeProps {
     isSelected: boolean;
 }
 
+const getCustomNameFromAnnotation = (member: Member): string | null => {
+    if (!member.annotationAttachments) {
+        return null;
+    }
+
+    try {
+        for (const annotation of member.annotationAttachments) {
+            if (annotation.modulePrefix === 'jsondata' && annotation.name === 'Name') {
+                // Handle the properties structure - it could be an array or object
+                const properties = annotation.properties;
+
+                if (!properties) {
+                    continue;
+                }
+
+                // Log the structure for debugging (can be removed later)
+                console.log('jsondata:Name annotation properties:', properties);
+
+                // If properties is an array, find the 'value' property
+                if (Array.isArray(properties)) {
+                    const valueProperty = properties.find(prop =>
+                        prop.metadata?.label === 'value' || typeof prop.value === 'string'
+                    );
+
+                    if (valueProperty?.value && typeof valueProperty.value === 'string') {
+                        return valueProperty.value.replace(/^["'\\]+|["'\\]+$/g, '');
+                    }
+                } else if (typeof properties === 'object') {
+                    // If properties is an object, try different paths to get the value
+                    // Path 1: properties.value.value
+                    const valueData = (properties as any).value;
+                    if (valueData?.value && typeof valueData.value === 'string') {
+                        return valueData.value.replace(/^["'\\]+|["'\\]+$/g, '');
+                    }
+
+                    // Path 2: properties.value directly
+                    if (typeof (properties as any).value === 'string') {
+                        return (properties as any).value.replace(/^["'\\]+|["'\\]+$/g, '');
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error extracting custom name from annotation:', error, member);
+    }
+
+    return null;
+};
+
 export function AttributeWidget(props: AttributeProps) {
     const { node, engine, attribute, isSelected } = props;
     const { setSelectedNodeId } = useContext(DiagramContext);
@@ -42,6 +91,14 @@ export function AttributeWidget(props: AttributeProps) {
 
     let attributeType: string = getAttributeType(attribute);// TODO: FIX for anynnymous records
 
+    // Get custom name from annotation if it exists, otherwise use the attribute name
+    const isMember = (attr: Member | TypeFunctionModel): attr is Member => {
+        return 'annotationAttachments' in attr && attr.annotationAttachments !== undefined;
+    };
+
+    const displayName = isMember(attribute)
+        ? (getCustomNameFromAnnotation(attribute) || attribute.name)
+        : attribute.name;    
     useEffect(() => {
         attributePorts.current.push(node.getPortFromID(`left-${node.getID()}/${attribute.name}`));
         attributePorts.current.push(node.getPortFromID(`right-${node.getID()}/${attribute.name}`));
@@ -69,7 +126,7 @@ export function AttributeWidget(props: AttributeProps) {
                     port={node.getPort(`left-${node.getID()}/${attribute.name}`)}
                     engine={engine}
                 />
-                <AttributeName>{attribute.name}</AttributeName>
+                <AttributeName>{displayName}</AttributeName>
                 {node.entityObject?.codedata?.node !== 'UNION' &&
                     node.entityObject?.codedata?.node !== 'ENUM' &&
                     node.entityObject?.codedata?.node !== 'ARRAY' &&
