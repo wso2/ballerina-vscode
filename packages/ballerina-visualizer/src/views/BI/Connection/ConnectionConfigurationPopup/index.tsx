@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
@@ -347,16 +347,12 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                 .then((response) => {
                     console.log(">>> Updated source code", response);
                     if (!isConnector) {
-                        selectedNodeRef.current = undefined;
                         if (options?.postUpdateCallBack) {
                             options.postUpdateCallBack();
                         }
                         return;
                     }
                     if (response.artifacts.length > 0) {
-                        // clear memory
-                        selectedNodeRef.current = undefined;
-                        setSavingFormStatus(SavingFormStatus.SUCCESS);
                         const newConnection = response.artifacts.find((artifact) => artifact.isNew);
                         onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
                     } else {
@@ -375,17 +371,15 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
         setUpdatedExpressionField(undefined);
     };
 
-    const selectedNode = useMemo(() => {
-        if (!selectedNodeRef.current) return undefined;
-        
-        // Remove description property from node before passing to form
-        // since it's already shown in the connector info card
-        const nodeWithoutDescription = cloneDeep(selectedNodeRef.current);
+    // Remove description property from node before passing to form
+    // since it's already shown in the connector info card
+    const getNodeForForm = (node: FlowNode) => {
+        const nodeWithoutDescription = cloneDeep(node);
         if (nodeWithoutDescription?.metadata?.description) {
             delete nodeWithoutDescription.metadata.description;
         }
         return nodeWithoutDescription;
-    }, [selectedNodeRef.current]);
+    };
 
     const getConnectorTag = () => {
         if (selectedConnector.codedata?.org === "ballerinax") {
@@ -439,7 +433,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                     </ConnectorTag>
                 </ConnectorInfoCard>
 
-                <ConfigContent hasFooterButton={!pullingStatus && !!selectedNode}>
+                <ConfigContent hasFooterButton={!pullingStatus && !!selectedNodeRef.current}>
                     {pullingStatus && (
                         <StatusContainer>
                             {pullingStatus === PullingStatus.FETCHING && (
@@ -485,7 +479,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                             )}
                         </StatusContainer>
                     )}
-                    {!pullingStatus && selectedNode && (
+                    {!pullingStatus && selectedNodeRef.current && (
                         <>
                             <ConnectionDetailsSection>
                                 <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
@@ -498,7 +492,7 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                                     fileName={fileName}
                                     submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
                                     isSaving={savingFormStatus === SavingFormStatus.SAVING}
-                                    selectedNode={selectedNode}
+                                    selectedNode={getNodeForForm(selectedNodeRef.current)}
                                     onSubmit={handleOnFormSubmit}
                                     updatedExpressionField={updatedExpressionField}
                                     resetUpdatedExpressionField={handleResetUpdatedExpressionField}
