@@ -27,7 +27,7 @@ import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
 import { useDMQueryClausesPanelStore } from "../../../store/store";
 
-export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
+export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string, existingValueType?: ValueType) {
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -58,7 +58,7 @@ export async function createNewMapping(link: DataMapperLinkModel, modifier?: (ex
 	let expression = modifier ? modifier(input) : input;
 
 	if (targetMapping) {
-		const valueType = getValueType(link);
+		const valueType = existingValueType ?? getValueType(link);
 
 		if (valueType === ValueType.Mergeable) {
 			expression = `${targetMapping.expression} + ${expression}`;
@@ -192,7 +192,7 @@ export async function convertAndMap(link: DataMapperLinkModel, context: IDataMap
 	
 	const convertedExpression = await context.getConvertedExpression(input, inputType, outputType);
 
-	await createNewMapping(link, (_: string) => convertedExpression);
+	await createNewMapping(link, (_: string) => convertedExpression, ValueType.Replaceable);
 }
 
 
