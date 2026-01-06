@@ -329,15 +329,25 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
      * @param property The property to process
      * @param data The form data containing all field values
      */
-    const processPropertyRecursively = (property: PropertyModel, data: FormValues): void => {
+    const processPropertyRecursively = (property: PropertyModel, data: FormValues, propertyKey?: string): void => {
         // If this property is a CHOICE field, process it
         if (getPrimaryInputType(property.types)?.fieldType === "CHOICE" && property.choices) {
+            // Get the selected index from form data if available, otherwise use property.value
+            const selectedIndex = propertyKey && data[propertyKey] !== undefined
+                ? Number(data[propertyKey])
+                : (property.value !== undefined ? Number(property.value) : 0);
+
+            // Update property.value with the current UI selection
+            if (propertyKey && data[propertyKey] !== undefined) {
+                property.value = data[propertyKey] as string;
+            }
+
             property.choices.forEach((choice, index) => {
                 // Disable all choices first
                 choice.enabled = false;
 
-                // The property.value should contain the selected index
-                if (property.value !== undefined && Number(property.value) === index) {
+                // Enable the selected choice based on form data or property.value
+                if (selectedIndex === index) {
                     choice.enabled = true;
 
                     // Process all properties in this selected choice
@@ -356,8 +366,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                 }
                             }
 
-                            // Recursively process this nested property
-                            processPropertyRecursively(nestedProperty, data);
+                            // Recursively process this nested property, passing the key
+                            processPropertyRecursively(nestedProperty, data, nestedKey);
                         }
                     }
                 }
@@ -378,8 +388,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                     }
                 }
 
-                // Recursively process nested properties
-                processPropertyRecursively(nestedProperty, data);
+                // Recursively process nested properties, passing the key
+                processPropertyRecursively(nestedProperty, data, nestedKey);
             }
         }
     };
@@ -405,14 +415,14 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
             }
         }
 
-        // Search in nested choice properties
+        // Search in nested choice properties - ONLY search through enabled choices
         for (const key in properties) {
             const property = properties[key];
             if (property.choices) {
-                for (const choice of property.choices) {
-                    if (choice.properties && updateChoiceInModel(choice.properties, fieldKey, value)) {
-                        return true;
-                    }
+                // Only search in the currently enabled choice
+                const enabledChoice = property.choices.find(choice => choice.enabled);
+                if (enabledChoice?.properties && updateChoiceInModel(enabledChoice.properties, fieldKey, value)) {
+                    return true;
                 }
             }
             // Also check nested properties (for CONDITIONAL_FIELDS, etc.)
@@ -453,7 +463,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                         property.value = data[key];
                                     }
                                 }
-                                processPropertyRecursively(property, data);
+                                processPropertyRecursively(property, data, key);
                             }
                         }
                     }
@@ -469,7 +479,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                         if (data[subField.key] !== undefined) {
                             subProperty.value = data[subField.key];
                         }
-                        processPropertyRecursively(subProperty, data);
+                        processPropertyRecursively(subProperty, data, subField.key);
                     }
                 });
             }
