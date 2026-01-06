@@ -70,7 +70,10 @@
         ],
         "expression": "userInfo",
         "diagnostics": [
-          "incompatible types: expected 'Credentials[]', found 'UserInfo[]'"
+          {
+            "code": "BCE2066",
+            "message": "incompatible types: expected 'Credentials[]', found 'UserInfo[]'"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,
