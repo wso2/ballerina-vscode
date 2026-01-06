@@ -48,7 +48,7 @@ const TopBar = styled.div`
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
     onClose: (parent?: ParentPopupData) => void;
-    handleNavigateToOverview?: () => void;
+    handleNavigateToOverview: () => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
