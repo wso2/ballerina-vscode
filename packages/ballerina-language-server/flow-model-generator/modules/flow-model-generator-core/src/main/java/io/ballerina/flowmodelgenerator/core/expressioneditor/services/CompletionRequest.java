@@ -63,12 +63,12 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
 
     @Override
     public Either<List<CompletionItem>, CompletionList> getResponse(ExpressionEditorContext context) {
-        String valueType = context.getProperty().valueType();
+        Property.ValueType valueType = context.getProperty().propertyType().fieldType();
 
         // TODO: Added a special case for expressions used within the data mapper, as inputs are not provided through
         //  the traditional method.
         boolean generatedFunctionDefinition = false;
-        if (Property.ValueType.DATA_MAPPING_EXPRESSION.name().equals(valueType)) {
+        if (Property.ValueType.DATA_MAPPING_EXPRESSION.equals(valueType)) {
             JsonElement lineRangeJson = context.info().codedata().get("lineRange");
             LineRange lineRange = GSON.fromJson(lineRangeJson, LineRange.class);
 
@@ -96,7 +96,7 @@ public class CompletionRequest extends DebouncedExpressionEditorRequest<Either<L
 
         // Filter the completions if it is a lvexpr
         // TODO: Extend the implementation to a different class
-        if (Property.ValueType.LV_EXPRESSION.name().equals(valueType)) {
+        if (Property.ValueType.LV_EXPRESSION.equals(valueType)) {
             List<CompletionItem> completionsList;
             if (completions.getLeft() != null) {
                 completionsList = completions.getLeft();
