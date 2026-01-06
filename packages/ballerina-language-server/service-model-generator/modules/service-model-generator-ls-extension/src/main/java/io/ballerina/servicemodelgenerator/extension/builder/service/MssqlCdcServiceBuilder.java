@@ -88,6 +88,10 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
 
     private static final String DATABINDING_PARAM_LABEL = "Database Entry";
 
+    // Property keys and values
+    private static final String DEFAULT_TYPE_TAB_PROPERTY = "defaultTypeTab";
+    private static final String DEFAULT_TYPE_TAB_VALUE = "create-from-scratch";
+
     // Resource location
     private static final String CDC_MSSQL_SERVICE_MODEL_LOCATION = "services/cdc_mssql.json";
 
@@ -485,6 +489,11 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
         // Process each function to update DATA_BINDING parameters
         for (Function function : serviceModel.getFunctions()) {
             String functionName = function.getName().getValue();
+
+            // Add defaultTypeTab property
+            function.addProperty(DEFAULT_TYPE_TAB_PROPERTY,
+                    new Value.ValueBuilder().value(DEFAULT_TYPE_TAB_VALUE).build()
+            );
 
             // Set module name on function codedata so router can correctly invoke MssqlCdcFunctionBuilder
             setModuleName(function);
