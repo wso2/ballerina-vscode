@@ -16,7 +16,11 @@
         "label": "Expression",
         "description": "Initialize with value"
       },
-      "valueType": "ACTION_OR_EXPRESSION",
+      "types": [
+        {
+          "fieldType": "ACTION_OR_EXPRESSION"
+        }
+      ],
       "value": "caller",
       "optional": true,
       "editable": true,

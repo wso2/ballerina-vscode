@@ -29,9 +29,13 @@
         "label": "Condition",
         "description": "Boolean Condition"
       },
-      "valueType": "EXPRESSION",
       "value": "self.classVar > ",
-      "valueTypeConstraint": "boolean",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "boolean"
+        }
+      ],
       "placeholder": "true",
       "optional": false,
       "editable": true,

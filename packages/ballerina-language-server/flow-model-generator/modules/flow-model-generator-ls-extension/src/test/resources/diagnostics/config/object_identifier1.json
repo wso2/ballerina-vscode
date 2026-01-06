@@ -13,8 +13,13 @@
         "label": "Name",
         "description": "Name of the variable"
       },
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "Object",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "scope": "Object",
+          "selected": true
+        }
+      ],
       "value": "i",
       "optional": false,
       "editable": true,

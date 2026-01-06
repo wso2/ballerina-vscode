@@ -16,7 +16,11 @@
         "label": "Expression",
         "description": "Initialize with value"
       },
-      "valueType": "EXPRESSION",
+      "types": [
+        {
+          "fieldType": "EXPRESSION"
+        }
+      ],
       "value": "text",
       "optional": true,
       "editable": true,

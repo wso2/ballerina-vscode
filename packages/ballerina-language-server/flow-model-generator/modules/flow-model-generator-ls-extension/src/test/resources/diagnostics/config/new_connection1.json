@@ -21,8 +21,35 @@
         "label": "connection",
         "description": ""
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "redis:ConnectionUri|redis:ConnectionParams",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "redis:ConnectionUri",
+          "selected": false
+        },
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "redis:ConnectionParams",
+          "typeMembers": [
+            {
+              "type": "ConnectionParams",
+              "packageInfo": "ballerinax:redis:3.1.0",
+              "packageName": "redis",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "redis:ConnectionUri|redis:ConnectionParams",
+          "selected": true
+        }
+      ],
+      "imports": {
+        "redis": "ballerinax/redis:3.1.0"
+      },
       "placeholder": "\"redis://localhost:6379\"",
       "optional": true,
       "editable": true,
