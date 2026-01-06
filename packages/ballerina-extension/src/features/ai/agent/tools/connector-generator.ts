@@ -34,7 +34,7 @@ import { langClient } from "../../activator";
 import { applyTextEdits } from "../utils";
 import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
 import { approvalManager } from '../../state/ApprovalManager';
-import { sendAgentDidOpen } from "../../utils/project/ls-schema-notifications";
+import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -43,7 +43,7 @@ const SpecFetcherInputSchema = z.object({
     serviceDescription: z.string().optional().describe("Optional description of what the service is for"),
 });
 
-export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectPath: string, projectName?: string, modifiedFiles?: string[]) {
+export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
         description: `
 Generates a connector for an external service by deriving the service contract from user-provided specifications. Use this tool only when the service contract is unclear or missing, and the target service is not a well-established platform with an existing SDK or connector
@@ -71,7 +71,7 @@ Returns complete connector information (DO NOT read files, use the returned cont
 **Result**: Returns importStatement and generatedFiles with complete content → Use importStatement in your code`,
         inputSchema: SpecFetcherInputSchema,
         execute: async (input: SpecFetcherInput): Promise<SpecFetcherResult> => {
-            return await ConnectorGeneratorTool(input, eventHandler, tempProjectPath, projectPath, projectName, modifiedFiles);
+            return await ConnectorGeneratorTool(input, eventHandler, tempProjectPath, projectName, modifiedFiles);
         },
     });
 }
@@ -80,7 +80,6 @@ export async function ConnectorGeneratorTool(
     input: SpecFetcherInput,
     eventHandler: CopilotEventHandler,
     tempProjectPath: string,
-    projectPath: string,
     projectName?: string,
     modifiedFiles?: string[]
 ): Promise<SpecFetcherResult> {
@@ -126,7 +125,6 @@ export async function ConnectorGeneratorTool(
         const { moduleName, importStatement, generatedFiles } = await generateConnector(
             specFilePath,
             tempProjectPath,
-            projectPath,
             sanitizedServiceName,
             projectName,
             modifiedFiles
@@ -251,7 +249,6 @@ function sendGeneratingNotification(
 async function generateConnector(
     specFilePath: string,
     tempProjectPath: string,
-    projectPath: string,
     moduleName: string,
     projectName?: string,
     modifiedFiles?: string[]
@@ -277,8 +274,7 @@ async function generateConnector(
         const relativePath = path.relative(tempProjectPath, filePath);
 
         // Send didOpen notification to Language Server for ai schema
-        // TODO: Send didChange to ai schema too.
-        sendAgentDidOpen(tempProjectPath, projectPath, relativePath);
+        sendAiSchemaDidOpen(tempProjectPath, relativePath);
 
         // Add .bal files to generatedFiles for agent visibility
         if (filePath.endsWith(".bal") && edits.length > 0) {

@@ -41,11 +41,12 @@ import {
     SubmitFeedbackRequest,
     TestGenerationMentions,
     UIChatMessage,
-    UpdateChatMessageRequest,
+    UpdateChatMessageRequest
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
 import { workspace } from 'vscode';
+import { URI } from "vscode-uri";
 
 import { isNumber } from "lodash";
 import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
@@ -395,6 +396,30 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
+    //   async getSemanticDiff(_params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
+    //     const context = StateMachine.context();
+    //     const workspaceId = context.projectPath;
+    //     const threadId = 'default';
+
+    //     // Always get tempProjectPath from active generation in chatStateStorage
+    //     const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+    //     if (!pendingReview || !pendingReview.reviewState.tempProjectPath) {
+    //         console.log(">>> no pending review or temp project path found for semantic diff");
+    //         return undefined;
+    //     }
+
+    //     const projectPath = pendingReview.reviewState.tempProjectPath;
+    //     console.log(">>> requesting semantic diff from ls", JSON.stringify({ projectPath }));
+    //     try {
+    //         const res: SemanticDiffResponse = await context.langClient.getSemanticDiff({ projectPath });
+    //         console.log(">>> semantic diff response from ls", JSON.stringify(res));
+    //         return res;
+    //     } catch (error) {
+    //         console.log(">>> error in getting semantic diff", error);
+    //         return undefined;
+    //     }
+    // }
+
     async acceptChanges(): Promise<void> {
         try {
             // Get workspace ID and thread ID
@@ -611,5 +636,22 @@ export class AiPanelRpcManager implements AIPanelAPI {
             timestamp: cp.timestamp,
             snapshotSize: cp.snapshotSize
         }));
+    }
+
+    async getActiveTempDir(): Promise<string> {
+        const context = StateMachine.context();
+        const workspaceId = context.projectPath;
+        const threadId = 'default';
+
+        // Always get tempProjectPath from active generation in chatStateStorage
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        if (!pendingReview || !pendingReview.reviewState.tempProjectPath) {
+            console.log(">>> no pending review or temp project path found for semantic diff");
+            return undefined;
+        }
+
+        const projectPath = pendingReview.reviewState.tempProjectPath;
+        console.log(">>> active temp project path", projectPath);
+        return projectPath;
     }
 }

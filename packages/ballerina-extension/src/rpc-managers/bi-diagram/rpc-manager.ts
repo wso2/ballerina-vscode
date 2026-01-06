@@ -174,6 +174,7 @@ import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
+import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
 
@@ -1512,8 +1513,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             let projectPath: string;
             if (params?.projectPath) {
-                const fileUriStr = Uri.file(params.projectPath).toString();
-                projectPath = fileUriStr.replace(/^file:/, "ai:");
+                // // Check if there's an active AI generation with a temp project path
+                // const workspaceId = StateMachine.context().projectPath;
+                // const threadId = 'default';
+                // const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+                
+                // if (pendingReview?.reviewState?.tempProjectPath) {
+                //     // Use temp project path from active AI generation
+                //     const fileUriStr = Uri.file(pendingReview.reviewState.tempProjectPath).toString();
+                //     projectPath = fileUriStr.replace(/^file:/, "ai:");
+                // } else {
+                //     const fileUriStr = Uri.file(params.projectPath).toString();
+                //     projectPath = fileUriStr.replace(/^file:/, "ai:");
+                // }
+                const uri = Uri.parse(params.projectPath);
+                projectPath = uri.with({ scheme: 'ai' }).toString();
             } else {
                 projectPath = StateMachine.context().projectPath;
             }

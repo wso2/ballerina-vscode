@@ -63,6 +63,7 @@ import {
     generateMappingCode,
     generateOpenAPI,
     getAIMachineSnapshot,
+    getActiveTempDir,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -254,5 +255,9 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
         return this._messenger.sendRequest(updateChatMessage, HOST_EXTENSION, params);
+    }
+
+    getActiveTempDir(): Promise<string> {
+        return this._messenger.sendRequest(getActiveTempDir, HOST_EXTENSION);
     }
 }

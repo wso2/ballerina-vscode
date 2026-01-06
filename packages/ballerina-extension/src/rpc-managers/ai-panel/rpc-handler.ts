@@ -44,6 +44,7 @@ import {
     generateMappingCode,
     generateOpenAPI,
     GenerateOpenAPIRequest,
+    getActiveTempDir,
     getAIMachineSnapshot,
     getChatMessages,
     getCheckpoints,
@@ -123,4 +124,5 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(restoreCheckpoint, (args: RestoreCheckpointRequest) => rpcManger.restoreCheckpoint(args));
     messenger.onRequest(clearChat, () => rpcManger.clearChat());
     messenger.onRequest(updateChatMessage, (args: UpdateChatMessageRequest) => rpcManger.updateChatMessage(args));
+    messenger.onRequest(getActiveTempDir, () => rpcManger.getActiveTempDir());
 }
