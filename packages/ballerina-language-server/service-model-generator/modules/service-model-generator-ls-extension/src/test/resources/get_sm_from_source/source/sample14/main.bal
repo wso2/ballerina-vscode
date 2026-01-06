@@ -5,8 +5,8 @@ listener ftp:Listener ftpListener = new ({
     host: "127.0.0.1",
     auth: {
         credentials: {
-            username: "samithk",
-            password: "sam123"
+            username: "defaultUser",
+            password: "defaultPassword"
         }
     },
     port: 21,
