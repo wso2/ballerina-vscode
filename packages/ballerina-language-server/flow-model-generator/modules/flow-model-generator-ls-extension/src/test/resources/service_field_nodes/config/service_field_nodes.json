@@ -74,35 +74,122 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "gpt-3.5-turbo-16k-0613",
-                  "gpt-3.5-turbo-0125",
-                  "gpt-3.5-turbo-1106",
-                  "gpt-3.5-turbo-0613",
-                  "gpt-3.5-turbo-0301",
-                  "gpt-3.5-turbo-16k",
-                  "gpt-3.5-turbo",
-                  "gpt-4-32k-0613",
-                  "gpt-4-32k-0314",
-                  "gpt-4-32k",
-                  "gpt-4-0613",
-                  "gpt-4-0314",
-                  "gpt-4",
-                  "gpt-4-vision-preview",
-                  "gpt-4-1106-preview",
-                  "gpt-4-turbo-preview",
-                  "gpt-4-0125-preview",
-                  "gpt-4-turbo-2024-04-09",
-                  "gpt-4-turbo",
-                  "gpt-4o-mini-2024-07-18",
-                  "gpt-4o-mini",
-                  "gpt-4o-2024-05-13",
-                  "gpt-4o-2024-08-06",
-                  "gpt-4o-2024-11-20",
-                  "gpt-4o",
-                  "o1-2024-12-17",
-                  "o1",
-                  "o3-mini-2025-01-31",
-                  "o3-mini"
+                  {
+                    "label": "gpt-3.5-turbo-16k-0613",
+                    "value": "\"gpt-3.5-turbo-16k-0613\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo-0125",
+                    "value": "\"gpt-3.5-turbo-0125\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo-1106",
+                    "value": "\"gpt-3.5-turbo-1106\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo-0613",
+                    "value": "\"gpt-3.5-turbo-0613\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo-0301",
+                    "value": "\"gpt-3.5-turbo-0301\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo-16k",
+                    "value": "\"gpt-3.5-turbo-16k\""
+                  },
+                  {
+                    "label": "gpt-3.5-turbo",
+                    "value": "\"gpt-3.5-turbo\""
+                  },
+                  {
+                    "label": "gpt-4-32k-0613",
+                    "value": "\"gpt-4-32k-0613\""
+                  },
+                  {
+                    "label": "gpt-4-32k-0314",
+                    "value": "\"gpt-4-32k-0314\""
+                  },
+                  {
+                    "label": "gpt-4-32k",
+                    "value": "\"gpt-4-32k\""
+                  },
+                  {
+                    "label": "gpt-4-0613",
+                    "value": "\"gpt-4-0613\""
+                  },
+                  {
+                    "label": "gpt-4-0314",
+                    "value": "\"gpt-4-0314\""
+                  },
+                  {
+                    "label": "gpt-4",
+                    "value": "\"gpt-4\""
+                  },
+                  {
+                    "label": "gpt-4-vision-preview",
+                    "value": "\"gpt-4-vision-preview\""
+                  },
+                  {
+                    "label": "gpt-4-1106-preview",
+                    "value": "\"gpt-4-1106-preview\""
+                  },
+                  {
+                    "label": "gpt-4-turbo-preview",
+                    "value": "\"gpt-4-turbo-preview\""
+                  },
+                  {
+                    "label": "gpt-4-0125-preview",
+                    "value": "\"gpt-4-0125-preview\""
+                  },
+                  {
+                    "label": "gpt-4-turbo-2024-04-09",
+                    "value": "\"gpt-4-turbo-2024-04-09\""
+                  },
+                  {
+                    "label": "gpt-4-turbo",
+                    "value": "\"gpt-4-turbo\""
+                  },
+                  {
+                    "label": "gpt-4o-mini-2024-07-18",
+                    "value": "\"gpt-4o-mini-2024-07-18\""
+                  },
+                  {
+                    "label": "gpt-4o-mini",
+                    "value": "\"gpt-4o-mini\""
+                  },
+                  {
+                    "label": "gpt-4o-2024-05-13",
+                    "value": "\"gpt-4o-2024-05-13\""
+                  },
+                  {
+                    "label": "gpt-4o-2024-08-06",
+                    "value": "\"gpt-4o-2024-08-06\""
+                  },
+                  {
+                    "label": "gpt-4o-2024-11-20",
+                    "value": "\"gpt-4o-2024-11-20\""
+                  },
+                  {
+                    "label": "gpt-4o",
+                    "value": "\"gpt-4o\""
+                  },
+                  {
+                    "label": "o1-2024-12-17",
+                    "value": "\"o1-2024-12-17\""
+                  },
+                  {
+                    "label": "o1",
+                    "value": "\"o1\""
+                  },
+                  {
+                    "label": "o3-mini-2025-01-31",
+                    "value": "\"o3-mini-2025-01-31\""
+                  },
+                  {
+                    "label": "o3-mini",
+                    "value": "\"o3-mini\""
+                  }
                 ],
                 "selected": false
               },
@@ -216,9 +303,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "2.0",
-                  "1.1",
-                  "1.0"
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
                 ],
                 "selected": false
               },
@@ -467,9 +563,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },
@@ -886,8 +991,14 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "FUNCTION_CALL_AGENT",
-                  "REACT_AGENT"
+                  {
+                    "label": "FUNCTION_CALL_AGENT",
+                    "value": "\"FUNCTION_CALL_AGENT\""
+                  },
+                  {
+                    "label": "REACT_AGENT",
+                    "value": "\"REACT_AGENT\""
+                  }
                 ],
                 "selected": false
               },
