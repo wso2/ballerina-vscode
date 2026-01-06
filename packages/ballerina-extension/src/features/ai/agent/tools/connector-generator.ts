@@ -28,13 +28,12 @@ import {
     ParsedEndpoint,
     ParsedSchema,
     HttpMethod,
-} from "../utils/libs/generator/openapi-types";
-import { CopilotEventHandler } from "../utils/events";
-import { AIChatMachineEventType } from "@wso2/ballerina-core";
-import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
-import { langClient } from "../activator";
-import { applyTextEdits } from "../agent/utils";
-import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+} from "../../utils/libs/generator/openapi-types";
+import { CopilotEventHandler } from "../../utils/events";
+import { langClient } from "../../activator";
+import { applyTextEdits } from "../utils";
+import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { approvalManager } from '../../state/ApprovalManager';
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -158,18 +157,7 @@ async function requestSpecFromUser(
         }`,
     });
 
-    const currentState = AIChatStateMachine.service().getSnapshot().value;
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED,
-        payload: {
-            requestId,
-            serviceName: input.serviceName,
-            serviceDescription: input.serviceDescription,
-            fromState: currentState as any,
-        },
-    });
-
-    return waitForUserResponse(requestId);
+    return waitForUserResponse(requestId, eventHandler);
 }
 
 function handleUserSkip(
@@ -370,19 +358,12 @@ function handleError(error: any, serviceName: string, eventHandler?: CopilotEven
     return createErrorResult(errorCode, errorMessage, serviceName, error.stack);
 }
 
-function waitForUserResponse(requestId: string): Promise<{ provided: boolean; spec?: any; comment?: string }> {
-    return new Promise((resolve) => {
-        const subscription = AIChatStateMachine.service().subscribe((state) => {
-            if (state.value !== "WaitingForConnectorSpec" && state.context.currentSpec?.requestId === requestId) {
-                const provided = state.context.currentSpec.provided === true;
-                const spec = state.context.currentSpec.spec;
-                const comment = state.context.currentSpec.comment;
-
-                subscription.unsubscribe();
-                resolve(provided && spec ? { provided: true, spec } : { provided: false, comment });
-            }
-        });
-    });
+async function waitForUserResponse(
+    requestId: string,
+    eventHandler: CopilotEventHandler
+): Promise<{ provided: boolean; spec?: any; comment?: string }> {
+    // Use ApprovalManager for connector spec approval (replaces state machine subscription)
+    return approvalManager.requestConnectorSpec(requestId, eventHandler);
 }
 
 function createErrorResult(
