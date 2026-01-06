@@ -40,7 +40,10 @@
                     {
                       "fieldType": "SINGLE_SELECT",
                       "options": [
-                        "solaceListener"
+                        {
+                          "label": "solaceListener",
+                          "value": "solaceListener"
+                        }
                       ],
                       "selected": true
                     }
@@ -636,10 +639,22 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "AUTO_ACKNOWLEDGE",
-                "CLIENT_ACKNOWLEDGE",
-                "DUPS_OK_ACKNOWLEDGE",
-                "SESSION_TRANSACTED"
+                {
+                  "label": "AUTO_ACKNOWLEDGE",
+                  "value": "AUTO_ACKNOWLEDGE"
+                },
+                {
+                  "label": "CLIENT_ACKNOWLEDGE",
+                  "value": "CLIENT_ACKNOWLEDGE"
+                },
+                {
+                  "label": "DUPS_OK_ACKNOWLEDGE",
+                  "value": "DUPS_OK_ACKNOWLEDGE"
+                },
+                {
+                  "label": "SESSION_TRANSACTED",
+                  "value": "SESSION_TRANSACTED"
+                }
               ],
               "selected": true
             }

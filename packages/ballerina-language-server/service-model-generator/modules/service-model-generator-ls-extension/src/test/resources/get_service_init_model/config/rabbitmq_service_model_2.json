@@ -40,8 +40,14 @@
                     {
                       "fieldType": "SINGLE_SELECT",
                       "options": [
-                        "orderListener",
-                        "deliveryListener"
+                        {
+                          "label": "orderListener",
+                          "value": "orderListener"
+                        },
+                        {
+                          "label": "deliveryListener",
+                          "value": "deliveryListener"
+                        }
                       ],
                       "selected": true
                     }
