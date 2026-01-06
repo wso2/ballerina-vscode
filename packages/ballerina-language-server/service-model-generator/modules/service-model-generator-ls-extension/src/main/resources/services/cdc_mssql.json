@@ -136,7 +136,7 @@
       "placeholder": "",
       "types": [
         {
-          "fieldType": "EXPRESSION_SET",
+          "fieldType": "TEXT_SET",
           "ballerinaType": "string",
           "minItems": 1,
           "defaultItems": 1,
@@ -161,7 +161,7 @@
       "placeholder": "",
       "types": [
         {
-          "fieldType": "EXPRESSION_SET",
+          "fieldType": "TEXT_SET",
           "ballerinaType": "string",
           "minItems": 0,
           "defaultItems": 0
