@@ -984,17 +984,14 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
     }
 
     private Optional<TriggerBasicInfo> getTriggerBasicInfoByName(TriggerProperty triggerProperty) {
-        Optional<TriggerBasicInfo> basicInfo = getTriggerBasicInfoByName(
-                triggerProperty.orgName(), triggerProperty.name());
-
-        if (basicInfo.isEmpty() || triggerProperty.triggerName() == null) {
-            return basicInfo;
+        if (triggerProperty.triggerName() == null) {
+            return getTriggerBasicInfoByName(triggerProperty.orgName(), triggerProperty.name());
         }
 
-        TriggerBasicInfo original = basicInfo.get();
-        return Optional.of(new TriggerBasicInfo(original.id(),
-                triggerProperty.triggerName(), original.orgName(), original.packageName(), original.moduleName(),
-                original.version(), original.type(), original.displayName(), original.documentation(),
-                original.listenerProtocol(), original.icon()));
+        return getTriggerBasicInfoByName(triggerProperty.orgName(), triggerProperty.name())
+                .map(original -> new TriggerBasicInfo(original.id(), triggerProperty.triggerName(), original.orgName(),
+                        original.packageName(), original.moduleName(), original.version(), original.type(),
+                        original.displayName(), original.documentation(), original.listenerProtocol(),
+                        original.icon()));
     }
 }
