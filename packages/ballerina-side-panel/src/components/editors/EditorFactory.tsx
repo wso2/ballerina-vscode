@@ -18,7 +18,7 @@
 
 import React from "react";
 
-import { getPrimaryInputType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { getPrimaryInputType, isDropDownType, isTemplateType, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 
 import { FormField } from "../Form/types";
 import { MultiSelectEditor } from "./MultiSelectEditor";
@@ -29,8 +29,6 @@ import { ParamManagerEditor } from "../ParamManager/ParamManager";
 import { DropdownEditor } from "./DropdownEditor";
 import { FileSelect } from "./FileSelect";
 import { CheckBoxEditor } from "./CheckBoxEditor";
-import { ArrayEditor } from "./ArrayEditor";
-import { MapEditor } from "./MapEditor";
 import { ChoiceForm } from "./ChoiceForm";
 import { FormMapEditor } from "./FormMapEditor";
 import { TextAreaEditor } from "./TextAreaEditor";
@@ -95,11 +93,11 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "TEXT" ||
             type.fieldType === "EXPRESSION_SET" ||
             type.fieldType === "TEXT_SET" ||
-            type.fieldType === "SINGLE_SELECT" ||
+            (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
             type.fieldType === "RECORD_MAP_EXPRESSION"
         );
     });
-    
+
     if (!field.enabled || field.hidden) {
         return <></>;
     } else if (field.type === "MULTIPLE_SELECT") {
@@ -112,18 +110,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "MAPPING_EXPRESSION_SET") {
-        return (
-            <MapEditor
-                field={field}
-                label={"Add Another Key-Value Pair"}
-                openSubPanel={openSubPanel}
-                subPanelView={subPanelView}
-                handleOnFieldFocus={handleOnFieldFocus}
-                autoFocus={autoFocus}
-                recordTypeField={recordTypeFields?.find(recordField => recordField.key === field.key)}
-            />
-        );
     } else if (field.type === "FLAG") {
         return <CheckBoxEditor field={field} />;
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
@@ -138,6 +124,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <CustomDropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (field.type === "FILE_SELECT" && field.editable) {
         return <FileSelect field={field} />;
+    } else if (field.type === "SINGLE_SELECT" && !showWithExpressionEditor && field.editable) {
+        return <DropdownEditor field={field} openSubPanel={openSubPanel} />;
     } else if (!field.items && (field.type === "ACTION_TYPE") && field.editable) {
         return (
             <ActionTypeEditor
@@ -204,7 +192,10 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "VIEW") {
         // Skip this property
         return <></>;
-    } else if (field.type === "PARAM_MANAGER") {
+    } else if (
+        (field.type === "PARAM_MANAGER") ||
+        (field.type === "REPEATABLE_PROPERTY" && isTemplateType(getPrimaryInputType(field.types)))
+    ) {
         return <ParamManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     } else if (field.type === "REPEATABLE_PROPERTY") {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;

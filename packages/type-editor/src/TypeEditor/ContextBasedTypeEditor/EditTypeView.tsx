@@ -377,7 +377,7 @@ export function EditTypeView(props: EditTypeViewProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        types: [{ fieldType:  type.properties["name"].valueType as FormFieldInputType, ballerinaType: "Global" , selected: false}]
+                        types: [{ fieldType:  type.properties["name"].valueType, ballerinaType: "Global" , selected: false}]
                     } :
                     {
                         metadata: {

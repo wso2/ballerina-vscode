@@ -21,29 +21,19 @@ import {
     GetWorkspaceContextResponse,
     SourceFile,
     MappingParameters,
-    TestGenerationTarget,
     LLMDiagnostics,
     DiagnosticEntry,
     AIPanelPrompt,
     Command,
     TemplateId,
     ChatNotify,
-    GenerateCodeRequest,
-    TestPlanGenerationRequest,
-    TestGeneratorIntermediaryState,
     DocumentationGeneratorIntermediaryState,
-    ChatEntry,
     OperationType,
-    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
-    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
     ExtendedDataMapperMetadata,
     DocGenerationRequest,
     DocGenerationType,
     FileChanges,
     CodeContext,
-    AIChatMachineEventType,
-    AIChatMachineStateValue,
-    UIChatHistoryMessage,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -55,12 +45,11 @@ import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import RoleContainer from "../RoleContainter";
-import CheckpointButton from "../CheckpointButton";
+import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
 import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
-import AccordionItem from "../TestScenarioSegment";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
 import { CodeSection } from "../CodeSection";
@@ -75,7 +64,6 @@ import {
     upsertTemplate,
 } from "../../commandTemplates/utils/utils";
 import { acceptResolver, handleAttachmentSelection } from "../../utils/attachment/attachmentManager";
-import { fetchWithAuth, streamToString } from "../../utils/networkUtils";
 import { SYSTEM_ERROR_SECRET } from "../AIChatInput/constants";
 import { CodeSegment } from "../CodeSegment";
 import AttachmentBox, { AttachmentsContainer } from "../AttachmentBox";
@@ -91,12 +79,8 @@ import { useFeedback } from "./utils/useFeedback";
 import { SegmentType, splitContent } from "./segment";
 import ReviewActions from "../ReviewActions";
 
-// var projectUuid = "";
-// var chatLocation = "";
-
 const NO_DRIFT_FOUND = "No drift identified between the code and the documentation.";
 const DRIFT_CHECK_ERROR = "Failed to check drift between the code and the documentation. Please try again.";
-const UPDATE_CHAT_SUMMARY_FAILED = `Failed to update the chat summary.`;
 
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS = "Generate code based on the following requirements: ";
 const GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS_TRIMMED = GENERATE_CODE_AGAINST_THE_PROVIDED_REQUIREMENTS.trim();
@@ -135,28 +119,23 @@ const AIChat: React.FC = () => {
     const [messages, setMessages] = useState<Array<{ role: string; content: string; type: string; checkpointId?: string; messageId?: string }>>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [lastQuestionIndex, setLastQuestionIndex] = useState(-1);
-    const [isSuggestionLoading, setIsSuggestionLoading] = useState(false);
     const [isCodeLoading, setIsCodeLoading] = useState(false);
     const [currentGeneratingPromptIndex, setCurrentGeneratingPromptIndex] = useState(-1);
-    const [isSyntaxError, setIsSyntaxError] = useState(false);
     const [isReqFileExists, setIsReqFileExists] = useState(false);
     const [isPromptExecutedInCurrentWindow, setIsPromptExecutedInCurrentWindow] = useState(false);
-    const [testGenIntermediaryState, setTestGenIntermediaryState] = useState<TestGeneratorIntermediaryState | null>(
-        null
-    );
+
     const [docGenIntermediaryState, setDocGenIntermediaryState] =
         useState<DocumentationGeneratorIntermediaryState | null>(null);
     const [isAddingToWorkspace, setIsAddingToWorkspace] = useState(false);
 
     const [showSettings, setShowSettings] = useState(false);
-    const [aiChatStateMachineState, setAiChatStateMachineState] = useState<AIChatMachineStateValue>("Idle");
     const [isAutoApproveEnabled, setIsAutoApproveEnabled] = useState(false);
     const [isPlanModeEnabled, setIsPlanModeEnabled] = useState(false);
     const [isPlanModeFeatureEnabled, setIsPlanModeFeatureEnabled] = useState(false);
     const [showReviewActions, setShowReviewActions] = useState(false);
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
-    const [approvalRequest, setApprovalRequest] = useState<Omit<TaskApprovalRequest, "type"> | null>(null);
+    const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
@@ -233,61 +212,46 @@ const AIChat: React.FC = () => {
 
     const handleCheckpointRestore = async (checkpointId: string) => {
         try {
-            await rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.RESTORE_CHECKPOINT,
-                payload: { checkpointId }
-            });
-            const updatedMessages = await rpcClient.getAIChatUIHistory();
+            // Call backend to restore checkpoint (files + chat history)
+            await rpcClient.getAiPanelRpcClient().restoreCheckpoint({ checkpointId });
+
+            // Fetch updated messages from backend
+            const updatedMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
             const uiMessages = convertToUIMessages(updatedMessages);
             setMessages(uiMessages);
 
             // Update available checkpoint IDs after restore (checkpoints are trimmed during restore)
-            const context = await rpcClient.getAIChatContext();
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] After restore - available checkpoint IDs:", checkpointIds);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] After restore - no checkpoints in context");
-            }
+            const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+            const checkpointIds = checkpoints.map(cp => cp.id);
+            setAvailableCheckpointIds(new Set(checkpointIds));
 
+            // Reset UI state
             setIsLoading(false);
             setIsCodeLoading(false);
-            setTestGenIntermediaryState(null);
             setDocGenIntermediaryState(null);
             setIsAddingToWorkspace(false);
             setCurrentFileArray([]);
             setLastQuestionIndex(-1);
             setCurrentGeneratingPromptIndex(-1);
+            setShowReviewActions(false);
         } catch (error) {
             console.error("Failed to restore checkpoint:", error);
         }
     };
 
     useEffect(() => {
-        const initializeAutoApproveState = async () => {
+        const initializeCheckpoints = async () => {
             try {
-                const context = await rpcClient.getAIChatContext();
-                if (context && context.autoApproveEnabled !== undefined) {
-                    setIsAutoApproveEnabled(context.autoApproveEnabled);
-                }
-                if (context && context.showReviewActions !== undefined) {
-                    setShowReviewActions(context.showReviewActions);
-                }
-                // Update available checkpoint IDs
-                if (context && context.checkpoints) {
-                    const checkpointIds = context.checkpoints.map(cp => cp.id);
-                    console.log("[Checkpoint] Initializing available checkpoint IDs:", checkpointIds);
-                    setAvailableCheckpointIds(new Set(checkpointIds));
-                } else {
-                    console.log("[Checkpoint] No checkpoints found during initialization");
-                }
+                // Fetch available checkpoints
+                const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+                const checkpointIds = checkpoints.map(cp => cp.id);
+                setAvailableCheckpointIds(new Set(checkpointIds));
             } catch (error) {
-                console.error("[AIChat] Failed to initialize auto-approve state:", error);
+                console.error("[AIChat] Failed to initialize checkpoints:", error);
             }
         };
 
-        initializeAutoApproveState();
+        initializeCheckpoints();
     }, [rpcClient]);
 
     useEffect(() => {
@@ -304,13 +268,22 @@ const AIChat: React.FC = () => {
         checkPlanModeFeatureEnabled();
     }, [rpcClient]);
 
+    useEffect(() => {
+        const handleHideReviewActions = () => {
+            console.log("[AIChat] Received hideReviewActions notification from extension");
+            setShowReviewActions(false);
+        };
+
+        rpcClient.onHideReviewActions(handleHideReviewActions);
+    }, [rpcClient]);
+
     /**
      * Effect: Load initial chat history from aiChatMachine context
      */
     useEffect(function loadInitialChatHistory() {
         const loadHistory = async () => {
             try {
-                const historyMessages = await rpcClient.getAIChatUIHistory();
+                const historyMessages = await rpcClient.getAiPanelRpcClient().getChatMessages();
                 if (historyMessages && historyMessages.length > 0) {
                     const uiMessages = convertToUIMessages(historyMessages);
                     setMessages(uiMessages);
@@ -323,28 +296,6 @@ const AIChat: React.FC = () => {
 
         loadHistory();
     }, [rpcClient]);
-
-    rpcClient?.onAIChatStateChanged(async (newState: AIChatMachineStateValue) => {
-        setAiChatStateMachineState(newState);
-        
-        // Update context when state changes
-        try {
-            const context = await rpcClient.getAIChatContext();
-            if (context && context.showReviewActions !== undefined) {
-                setShowReviewActions(context.showReviewActions);
-            }
-            // Update available checkpoint IDs
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] State changed - updating available checkpoint IDs:", checkpointIds);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] State changed - no checkpoints in context");
-            }
-        } catch (error) {
-            console.error("[AIChat] Failed to update review actions state:", error);
-        }
-    });
 
     rpcClient?.onCheckpointCaptured(async (payload: { messageId: string; checkpointId: string }) => {
         setMessages((prevMessages) => {
@@ -365,21 +316,15 @@ const AIChat: React.FC = () => {
         // Update available checkpoint IDs after a new checkpoint is captured
         // This ensures the set reflects any cleanup of old checkpoints (maxCount enforcement)
         try {
-            const context = await rpcClient.getAIChatContext();
-            if (context && context.checkpoints) {
-                const checkpointIds = context.checkpoints.map(cp => cp.id);
-                console.log("[Checkpoint] Checkpoint captured - new checkpoint ID:", payload.checkpointId);
-                console.log("[Checkpoint] Available checkpoint IDs after capture:", checkpointIds);
-                setAvailableCheckpointIds(new Set(checkpointIds));
-            } else {
-                console.log("[Checkpoint] Checkpoint captured but no checkpoints in context");
-            }
+            const checkpoints = await rpcClient.getAiPanelRpcClient().getCheckpoints();
+            const checkpointIds = checkpoints.map(cp => cp.id);
+            setAvailableCheckpointIds(new Set(checkpointIds));
         } catch (error) {
             console.error("[AIChat] Failed to update available checkpoint IDs:", error);
         }
     });
 
-    rpcClient?.onChatNotify((response: ChatNotify) => {
+    rpcClient?.onChatNotify(async (response: ChatNotify) => {
         // TODO: Need to handle the content as step blocks
         const type = response.type;
         if (type === "content_block") {
@@ -607,6 +552,8 @@ const AIChat: React.FC = () => {
             }
         } else if (type === "task_approval_request") {
             setApprovalRequest({
+                type: "task_approval_request",
+                requestId: response.requestId,
                 approvalType: response.approvalType,
                 tasks: response.tasks,
                 taskDescription: response.taskDescription,
@@ -657,8 +604,6 @@ const AIChat: React.FC = () => {
             // Check if it's a documentation state by looking for specific properties
             if ("serviceName" in state && "documentation" in state) {
                 setDocGenIntermediaryState(state as DocumentationGeneratorIntermediaryState);
-            } else {
-                setTestGenIntermediaryState(state as TestGeneratorIntermediaryState);
             }
         } else if (type === "generated_sources") {
             setCurrentFileArray(response.fileArray);
@@ -708,13 +653,7 @@ const AIChat: React.FC = () => {
             const content = response.diagnostics;
             currentDiagnosticsRef.current = content;
         } else if ((response as any).type === "review_actions") {
-            setMessages((prevMessages) => {
-                const newMessages = [...prevMessages];
-                if (newMessages.length > 0) {
-                    newMessages[newMessages.length - 1].content += `\n\n<reviewactions></reviewactions>`;
-                }
-                return newMessages;
-            });
+            setShowReviewActions(true);
         } else if (type === "messages") {
             const messages = response.messages;
             messagesRef.current = messages;
@@ -727,7 +666,16 @@ const AIChat: React.FC = () => {
             const interruptedMessage = "\n\n*[Request interrupted by user]*";
             setMessages((prevMessages) => {
                 const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1].content += interruptedMessage;
+                if (newMessages.length > 0) {
+                    newMessages[newMessages.length - 1].content += interruptedMessage;
+                } else {
+                    // Edge case: abort before any messages
+                    newMessages.push({
+                        role: "assistant",
+                        content: interruptedMessage,
+                        type: "text"
+                    });
+                }
                 return newMessages;
             });
             setIsCodeLoading(false);
@@ -737,12 +685,9 @@ const AIChat: React.FC = () => {
             const messageId = response.messageId;
 
             // Update chat message in state machine with UI message
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.UPDATE_CHAT_MESSAGE,
-                payload: {
-                    id: messageId,
-                    uiResponse: messages[messages.length - 1].content
-                }
+            await rpcClient.getAiPanelRpcClient().updateChatMessage({
+                messageId,
+                content: messages[messages.length - 1].content
             });
         } else if (type === "error") {
             console.log("Received error signal");
@@ -846,7 +791,7 @@ const AIChat: React.FC = () => {
     }) {
         // Hide review actions when a new prompt is submitted
         if (showReviewActions) {
-            await rpcClient.getAiPanelRpcClient().hideReviewActions();
+            setShowReviewActions(false);
         }
         
         // Clear previous generation refs
@@ -1208,18 +1153,14 @@ const AIChat: React.FC = () => {
         }));
 
         console.log("Submitting agent prompt:", { useCase, isPlanModeEnabled, codeContext, operationType, fileAttatchments });
-
-        rpcClient.sendAIChatStateEvent({
-            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: { prompt: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachments: fileAttatchments }
-        });
+        rpcClient.getAiPanelRpcClient().generateAgent({
+            usecase: useCase, isPlanMode: isPlanModeEnabled, codeContext: codeContext, operationType, fileAttachmentContents: fileAttatchments
+        })
     }
 
     async function handleStop() {
-        // Abort any ongoing requests
-        // abortFetchWithAuth();
-        // Abort test generation if running
-        rpcClient.getAiPanelRpcClient().abortAIGeneration();
+        // Call RPC with empty params (defaults to current workspace + 'default' thread)
+        rpcClient.getAiPanelRpcClient().abortAIGeneration({});
 
         setIsLoading(false);
         setIsCodeLoading(false);
@@ -1229,21 +1170,17 @@ const AIChat: React.FC = () => {
         setShowSettings(true);
     }
 
-    function handleClearChat(): void {
-        setMessages((prevMessages) => []);
+    async function handleClearChat(): Promise<void> {
+        setMessages([]);
         setApprovalRequest(null);
+        setShowReviewActions(false);
 
-        rpcClient.sendAIChatStateEvent(AIChatMachineEventType.RESET);
+        await rpcClient.getAiPanelRpcClient().clearChat();
     }
 
     const handleToggleAutoApprove = () => {
         const newValue = !isAutoApproveEnabled;
         setIsAutoApproveEnabled(newValue);
-        if (newValue) {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
-        } else {
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
-        }
     };
 
     const handleTogglePlanMode = () => {
@@ -1266,104 +1203,6 @@ const AIChat: React.FC = () => {
         }
     }, [otherMessages.length]);
 
-    function onTestScenarioDelete(content: string) {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const escapedContent = content.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`<scenario>\\s*${escapedContent}\\s*<\\/scenario>`, "g");
-
-            const newContent = lastMessageContent.replace(regex, "");
-            newMessages[newMessages.length - 1].content = newContent;
-
-            // Update intermediary state
-            setTestGenIntermediaryState((prevState) => ({
-                ...prevState,
-                testPlan: newContent,
-            }));
-
-            return newMessages;
-        });
-    }
-
-    function onTestScenarioAdd() {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const regex = /<button type="add_scenario">(.*?)<\/button>/;
-            const match = lastMessageContent.match(regex);
-
-            if (match) {
-                const buttonText = match[1];
-
-                const scenarioText = `
-<scenario>
-    <title>(Edit This) Scenario Title</title>
-    <description>(Edit This) Scenario Description</description>
-</scenario>
-
-<button type="add_scenario">${buttonText}</button>
-`;
-
-                const newContent = lastMessageContent.replace(regex, scenarioText);
-                newMessages[newMessages.length - 1].content = newContent;
-
-                // Update intermediary state
-                setTestGenIntermediaryState((prevState) => ({
-                    ...prevState,
-                    testPlan: newContent,
-                }));
-            }
-
-            return newMessages;
-        });
-    }
-
-    const handleEdit = (oldContent: string, newContent: string) => {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            const lastMessageContent = newMessages[newMessages.length - 1].content;
-
-            const escapedContent = oldContent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-            const regex = new RegExp(`<scenario>\\s*${escapedContent}\\s*<\\/scenario>`, "g");
-
-            const scenarioText = `
-<scenario>
-    ${newContent}
-</scenario>
-`;
-            const updatedContent = lastMessageContent.replace(regex, scenarioText);
-            newMessages[newMessages.length - 1].content = updatedContent;
-
-            // Update intermediary state
-            setTestGenIntermediaryState((prevState) => ({
-                ...prevState,
-                testPlan: updatedContent,
-            }));
-
-            return newMessages;
-        });
-    };
-
-    const regenerateScenarios = async () => {
-        setMessages((prevMessages) => {
-            const newMessages = [...prevMessages];
-            newMessages[newMessages.length - 1].content = "";
-            return newMessages;
-        });
-
-        // await handleSendQuery(testGenIntermediaryState.content);
-    };
-
-    const generateFunctionTests = async () => {
-        setIsCodeLoading(true);
-        await rpcClient.getAiPanelRpcClient().generateFunctionTests({
-            testPlan: testGenIntermediaryState.testPlan,
-            resourceFunction: testGenIntermediaryState.resourceFunction,
-        });
-    };
 
     const saveDocumentation = async () => {
         if (!docGenIntermediaryState) return;
@@ -1415,64 +1254,48 @@ const AIChat: React.FC = () => {
     };
 
     const handleRetryRepair = async () => {
-        const currentDiagnostics = currentDiagnosticsRef.current;
-        if (currentDiagnostics.length === 0) return;
-
-        setIsCodeLoading(true);
-        setIsLoading(true);
-
-        await rpcClient.getAiPanelRpcClient().repairGeneratedCode({
-            diagnostics: currentDiagnostics,
-            assistantResponse: messages[messages.length - 1].content, // XML format with code blocks
-            updatedFileNames: [], // Will be determined from parsed XML
-            previousMessages: messagesRef.current,
-        });
+        //TODO: Remove this and implement retry UX with agent.
     };
 
-    const handleApprovalApprove = (enableAutoApprove: boolean) => {
+    const handleApprovalApprove = async (enableAutoApprove: boolean) => {
         if (!approvalRequest) return;
 
-        if (enableAutoApprove && !isAutoApproveEnabled) {
-            setIsAutoApproveEnabled(true);
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.ENABLE_AUTO_APPROVE);
-        } else if (!enableAutoApprove && isAutoApproveEnabled) {
-            setIsAutoApproveEnabled(false);
-            rpcClient.sendAIChatStateEvent(AIChatMachineEventType.DISABLE_AUTO_APPROVE);
+        // Update auto-approve setting (managed locally in visualizer)
+        if (enableAutoApprove !== isAutoApproveEnabled) {
+            setIsAutoApproveEnabled(enableAutoApprove);
         }
 
+        // Approve plan or task
         if (approvalRequest.approvalType === "plan") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.APPROVE_PLAN,
-                payload: {}
+            await rpcClient.getAiPanelRpcClient().approvePlan({
+                requestId: approvalRequest.requestId,
+                comment: undefined
             });
         } else if (approvalRequest.approvalType === "completion") {
             const reviewTasks = approvalRequest.tasks.filter(t => t.status === "review");
             const lastReviewTask = reviewTasks[reviewTasks.length - 1];
-            const lastApprovedTaskIndex = approvalRequest.tasks.findIndex(t => t.description === lastReviewTask?.description);
 
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.APPROVE_TASK,
-                payload: {
-                    lastApprovedTaskIndex: lastApprovedTaskIndex >= 0 ? lastApprovedTaskIndex : undefined
-                }
+            await rpcClient.getAiPanelRpcClient().approveTask({
+                requestId: approvalRequest.requestId,
+                approvedTaskDescription: lastReviewTask?.description
             });
         }
 
         setApprovalRequest(null);
     };
 
-    const handleApprovalReject = (comment: string) => {
+    const handleApprovalReject = async (comment: string) => {
         if (!approvalRequest) return;
 
         if (approvalRequest.approvalType === "plan") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.REJECT_PLAN,
-                payload: { comment }
+            await rpcClient.getAiPanelRpcClient().declinePlan({
+                requestId: approvalRequest.requestId,
+                comment
             });
         } else if (approvalRequest.approvalType === "completion") {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.REJECT_TASK,
-                payload: { comment }
+            await rpcClient.getAiPanelRpcClient().declineTask({
+                requestId: approvalRequest.requestId,
+                comment
             });
         }
 
@@ -1515,7 +1338,6 @@ const AIChat: React.FC = () => {
                             <br />
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
-                        {isPlanModeFeatureEnabled && <div>State: {aiChatStateMachineState}</div>}
                         <HeaderButtons>
                             {isPlanModeFeatureEnabled && (
                                 <Button
@@ -1573,24 +1395,45 @@ const AIChat: React.FC = () => {
                             );
                             return (
                                 <ChatMessage key={index}>
+                                    {/* Checkpoint separator before user messages */}
+                                    {message.role === "User" && (() => {
+                                        // Show "Creating checkpoints..." while loading for the latest user message
+                                        // Once done loading, show the restore button
+                                        const isLatestUserMessage = index === otherMessages.length - 2;
+                                        const shouldShowCreating = isLoading && isLatestUserMessage;
+                                        const shouldShowRestore = !isLoading && message.checkpointId;
+
+                                        return (
+                                            <>
+                                                {/* Show "Creating checkpoints..." while generating for latest message */}
+                                                {shouldShowCreating && (
+                                                    <CheckpointSeparator
+                                                        checkpointId={message.checkpointId}
+                                                        isAvailable={false}
+                                                        isDisabled={true}
+                                                        isCreating={true}
+                                                        onRestore={handleCheckpointRestore}
+                                                    />
+                                                )}
+                                                {/* Show restore button when done loading */}
+                                                {shouldShowRestore && (
+                                                    <CheckpointSeparator
+                                                        checkpointId={message.checkpointId}
+                                                        isAvailable={availableCheckpointIds.has(message.checkpointId)}
+                                                        isDisabled={isLoading}
+                                                        isCreating={false}
+                                                        onRestore={handleCheckpointRestore}
+                                                    />
+                                                )}
+                                            </>
+                                        );
+                                    })()}
+
+                                    {/* Message header */}
                                     {message.type !== "question" && message.type !== "label" && (
                                         <RoleContainer
                                             icon={message.role === "User" ? "bi-user" : "bi-ai-chat"}
                                             title={message.role}
-                                            checkpointButton={
-                                                message.role === "User" && message.checkpointId ? (() => {
-                                                    const isCheckpointAvailable = availableCheckpointIds.has(message.checkpointId);
-                                                    const isDisabled = isLoading || !isCheckpointAvailable;
-                                                    console.log(`[Checkpoint] Rendering button - checkpointId: ${message.checkpointId}, isAvailable: ${isCheckpointAvailable}, isLoading: ${isLoading}, isDisabled: ${isDisabled}, availableIds:`, Array.from(availableCheckpointIds));
-                                                    return (
-                                                        <CheckpointButton
-                                                            checkpointId={message.checkpointId}
-                                                            onRestore={handleCheckpointRestore}
-                                                            disabled={isDisabled}
-                                                        />
-                                                    );
-                                                })() : undefined
-                                            }
                                         />
                                     )}
                                     {segmentedContent.map((segment, i) => {
@@ -1693,6 +1536,7 @@ const AIChat: React.FC = () => {
                                                 <ReviewActions
                                                     key={`review-actions-${i}`}
                                                     rpcClient={rpcClient}
+                                                    onReviewActionsChange={setShowReviewActions}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Attachment) {
@@ -1724,66 +1568,8 @@ const AIChat: React.FC = () => {
                                             );
                                         } else if (segment.type === SegmentType.References) {
                                             return <ReferenceDropdown key={`references-${i}`} links={JSON.parse(segment.text)} />;
-                                        } else if (segment.type === SegmentType.TestScenario) {
-                                            return (
-                                                <AccordionItem
-                                                    key={`test-scenario-${i}`}
-                                                    content={segment.text}
-                                                    onDelete={onTestScenarioDelete}
-                                                    isEnabled={
-                                                        isLastResponse &&
-                                                        !isCodeLoading &&
-                                                        !areTestsGenerated &&
-                                                        isLoading
-                                                    }
-                                                    onEdit={handleEdit}
-                                                />
-                                            );
                                         } else if (segment.type === SegmentType.Button) {
-                                            if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "add_scenario" &&
-                                                !isCodeLoading &&
-                                                isLastResponse &&
-                                                !areTestsGenerated &&
-                                                isLoading
-                                            ) {
-                                                return (
-                                                    <VSCodeButton
-                                                        key={`btn-${i}`}
-                                                        title="Add a new test scenario"
-                                                        appearance="secondary"
-                                                        onClick={onTestScenarioAdd}
-                                                    >
-                                                        <span className={`codicon codicon-add`}></span>
-                                                    </VSCodeButton>
-                                                );
-                                            } else if (
-                                                "buttonType" in segment &&
-                                                segment.buttonType === "generate_test_group" &&
-                                                !isCodeLoading &&
-                                                isLastResponse &&
-                                                !areTestsGenerated &&
-                                                isLoading
-                                            ) {
-                                                return (
-                                                    <div key={`btn-group-${i}`} style={{ display: "flex", gap: "10px" }}>
-                                                        <VSCodeButton
-                                                            title="Generate Tests"
-                                                            onClick={generateFunctionTests}
-                                                        >
-                                                            {"Generate Tests"}
-                                                        </VSCodeButton>
-                                                        <VSCodeButton
-                                                            title="Regenerate test scenarios"
-                                                            appearance="secondary"
-                                                            onClick={regenerateScenarios}
-                                                        >
-                                                            <Codicon name="refresh" />
-                                                        </VSCodeButton>
-                                                    </div>
-                                                );
-                                            } else if (
+                                             if (
                                                 "buttonType" in segment &&
                                                 segment.buttonType === "save_documentation" &&
                                                 !isCodeLoading &&
@@ -1840,7 +1626,10 @@ const AIChat: React.FC = () => {
                     {/* Review Actions Component - positioned at bottom above input */}
                     {showReviewActions && (
                         <div style={{ padding: "10px 20px 0", borderTop: "1px solid var(--vscode-panel-border)" }}>
-                            <ReviewActions rpcClient={rpcClient} />
+                            <ReviewActions
+                                rpcClient={rpcClient}
+                                onReviewActionsChange={setShowReviewActions}
+                            />
                         </div>
                     )}
                     {approvalRequest ? (

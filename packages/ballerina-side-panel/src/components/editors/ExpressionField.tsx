@@ -32,7 +32,7 @@ import { LineRange } from '@wso2/ballerina-core/lib/interfaces/common';
 import { FormField, HelperpaneOnChangeOptions } from '../Form/types';
 import { ChipExpressionEditorComponent } from './MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor';
 import RecordConfigPreviewEditor from './MultiModeExpressionEditor/RecordConfigPreviewEditor/RecordConfigPreviewEditor';
-import { RawTemplateEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
+import { NumberExpressionEditorConfig, RawTemplateEditorConfig, SQLExpressionEditorConfig, StringTemplateEditorConfig } from './MultiModeExpressionEditor/Configurations';
 import NumberExpressionEditor from './MultiModeExpressionEditor/NumberExpressionEditor/NumberEditor';
 import { EnumEditor } from './MultiModeExpressionEditor/EnumEditor/EnumEditor';
 import { SQLExpressionEditor } from './MultiModeExpressionEditor/SqlExpressionEditor/SqlExpressionEditor';
@@ -40,6 +40,7 @@ import BooleanEditor from './MultiModeExpressionEditor/BooleanEditor/BooleanEdit
 import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
+import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
 
 export interface ExpressionFieldProps {
     field: FormField;
@@ -105,12 +106,16 @@ const EditorRibbon = ({ onClick }: { onClick: () => void }) => {
     );
 };
 
-export const getEditorConfiguration = (inputMode: InputMode, primaryMode: InputMode) => {
+export const getEditorConfiguration = (inputMode: InputMode) => {
     switch (inputMode) {
         case InputMode.TEXT:
             return new StringTemplateEditorConfig();
         case InputMode.TEMPLATE:
             return new RawTemplateEditorConfig();
+        case InputMode.NUMBER:
+            return new NumberExpressionEditorConfig();
+        case InputMode.SQL:
+            return new SQLExpressionEditorConfig();
         default:
             return new ChipExpressionEditorDefaultConfiguration();
     }
@@ -146,9 +151,22 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         isInExpandedMode
     } = props;
 
-    if ( inputMode === InputMode.ARRAY) {
+    if (Array.isArray(value)) {
+        if (inputMode === InputMode.ARRAY) {
+            return (
+                <DynamicArrayBuilder
+                    value={value}
+                    label={field.label}
+                    onChange={(val) => onChange(val, val.length)}
+                    expressionFieldProps={props}
+                />
+            );
+        }
+        throw new Error(`Unsupported editor for input mode: ${inputMode}`);
+    }
+    if (inputMode === InputMode.MAP) {
         return (
-            <DynamicArrayBuilder
+            <MappingConstructor
                 value={value}
                 expressionFieldProps={props}
             />
@@ -177,7 +195,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             />
         );
     }
-    if (inputMode === InputMode.DROPDOWN && isDropDownType(primaryInputType)) {
+    if (inputMode === InputMode.SELECT && isDropDownType(primaryInputType)) {
         return (
             <EnumEditor
                 value={value}
@@ -226,7 +244,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
-                configuration={getEditorConfiguration(inputMode, primaryMode)}
+                configuration={getEditorConfiguration(inputMode)}
             />
 
         );
@@ -328,7 +346,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             onOpenExpandedMode={onOpenExpandedMode}
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
-            configuration={getEditorConfiguration(inputMode, primaryMode)}
+            configuration={getEditorConfiguration(inputMode)}
         />
     );
 };
