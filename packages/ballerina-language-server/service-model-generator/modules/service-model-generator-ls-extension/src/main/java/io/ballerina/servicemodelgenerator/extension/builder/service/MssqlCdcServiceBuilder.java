@@ -227,11 +227,12 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
                 .metadata(selectListenerTemplate.getMetadata().label(),
                         selectListenerTemplate.getMetadata().description())
                 .value(listenerNames.iterator().next())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT)))
+                .types(List.of(PropertyType.types(
+                        Value.FieldType.SINGLE_SELECT,
+                        Arrays.asList(listenerNames.toArray()))))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)
-                .setItems(Arrays.asList(listenerNames.toArray()))
                 .build();
         configureListenerValue.getChoices().get(CHOICE_SELECT_EXISTING_LISTENER)
                 .getProperties().put(KEY_SELECT_LISTENER, existingListenerOptions);
