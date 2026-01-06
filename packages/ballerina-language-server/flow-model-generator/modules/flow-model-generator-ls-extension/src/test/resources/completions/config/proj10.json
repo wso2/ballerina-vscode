@@ -29,7 +29,12 @@
         "label": "Variable",
         "description": "Name of the variable/field"
       },
-      "valueType": "LV_EXPRESSION",
+      "types": [
+        {
+          "fieldType": "LV_EXPRESSION",
+          "selected": true
+        }
+      ],
       "value": "12",
       "optional": true,
       "editable": true,
