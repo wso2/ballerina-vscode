@@ -67,6 +67,7 @@ public class GetServiceModelFromSourceTest extends AbstractLSTest {
                     new GetServiceModelFromSourceTest.TestConfig(testConfig.filePath(), testConfig.description(),
                             testConfig.start(), testConfig.end(), actualServiceModelJson);
 //            updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(jsonMap, testConfig.response());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
