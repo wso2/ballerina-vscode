@@ -1,18 +1,18 @@
 {
   "id": "0",
   "displayName": "FTP Integration",
-  "description": "Configure FTP/SFTP integration to perform file transfer operations such as upload, download, list, and delete files over FTP and SFTP protocols.",
+  "description": "Create a service to trigger when the file actions occur on the remote server.",
   "orgName": "ballerina",
   "packageName": "ftp",
   "moduleName": "ftp",
-  "version": "2.15.1",
+  "version": "2.16.0",
   "type": "ftp",
-  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.16.0.png",
   "properties": {
     "designApproach": {
       "metadata": {
         "label": "Protocol",
-        "description": "Choose network protocol to use for file transfer operations"
+        "description": "Select the protocol for the remote server connection"
       },
       "enabled": true,
       "editable": true,
@@ -45,7 +45,7 @@
             "host": {
               "metadata": {
                 "label": "Host",
-                "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+                "description": "The hostname or IP address of the remote server (e.g., ftp.example.com)"
               },
               "enabled": true,
               "editable": true,
@@ -74,7 +74,7 @@
             "portNumber": {
               "metadata": {
                 "label": "Port Number",
-                "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+                "description": "The network port to connect on"
               },
               "enabled": true,
               "editable": true,
@@ -103,7 +103,7 @@
             "folderPath": {
               "metadata": {
                 "label": "Folder Path",
-                "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+                "description": "The folder on the remote server to monitor for file actions (e.g., /uploads or /incoming)"
               },
               "enabled": true,
               "editable": true,
@@ -137,7 +137,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 0,
+              "value": 1,
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -172,9 +172,14 @@
                     "value": "\"default\"",
                     "types": [
                       {
-                        "fieldType": "EXPRESSION",
+                        "fieldType": "IDENTIFIER",
                         "ballerinaType": "string",
                         "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
                       }
                     ],
                     "valueType": "IDENTIFIER",
@@ -194,9 +199,14 @@
                     "value": "\"default\"",
                     "types": [
                       {
-                        "fieldType": "EXPRESSION",
+                        "fieldType": "IDENTIFIER",
                         "ballerinaType": "string",
                         "selected": true
+                      },
+                      {
+                        "fieldType": "EXPRESSION",
+                        "ballerinaType": "string",
+                        "selected": false
                       }
                     ],
                     "valueType": "IDENTIFIER",
@@ -336,7 +346,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 0,
+              "value": 1,
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -364,7 +374,7 @@
                   "privateKey": {
                     "metadata": {
                       "label": "Private Key",
-                      "description": "Private Key Configuration for the SFTP Connection\n"
+                      "description": "Private key configuration for SSH-based authentication"
                     },
                     "enabled": true,
                     "editable": true,
@@ -405,7 +415,7 @@
                     },
                     "enabled": true,
                     "editable": true,
-                    "value": "",
+                    "value": "\"default\"",
                     "types": [
                       {
                         "fieldType": "IDENTIFIER",
@@ -421,7 +431,7 @@
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
-                    "placeholder": "",
+                    "placeholder": "default",
                     "optional": true,
                     "advanced": false,
                     "codedata": {
@@ -557,7 +567,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 0,
+              "value": 1,
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -589,7 +599,7 @@
                     },
                     "enabled": true,
                     "editable": true,
-                    "value": "",
+                    "value": "\"default\"",
                     "types": [
                       {
                         "fieldType": "TEXT",
@@ -604,7 +614,7 @@
                     "valueType": "IDENTIFIER",
                     "valueTypeConstraint": "string",
                     "isType": false,
-                    "placeholder": "",
+                    "placeholder": "default",
                     "optional": true,
                     "advanced": false,
                     "codedata": {
@@ -618,7 +628,7 @@
                     },
                     "enabled": true,
                     "editable": true,
-                    "value": "",
+                    "value": "\"default\"",
                     "types": [
                       {
                         "fieldType": "TEXT",
@@ -638,43 +648,6 @@
                     "advanced": false,
                     "codedata": {
                       "type": "IDENTIFIER"
-                    }
-                  },
-                  "secureSocket": {
-                    "metadata": {
-                      "label": "Secure Socket (SecureSocket)",
-                      "description": "Configure SSL/TLS configuration for secure connection.\n"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "",
-                    "types": [
-                      {
-                        "fieldType": "RECORD_MAP_EXPRESSION",
-                        "ballerinaType": "ftp:SecureSocket",
-                        "typeMembers": [
-                          {
-                            "type": "SecureSocket",
-                            "packageInfo": "ballerina:ftp:2.16.0",
-                            "packageName": "ftp",
-                            "kind": "RECORD_TYPE",
-                            "selected": true
-                          }
-                        ],
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "ftp:SecureSocket",
-                        "selected": false
-                      }
-                    ],
-                    "isType": false,
-                    "placeholder": "",
-                    "optional": false,
-                    "advanced": true,
-                    "codedata": {
-                      "argType": "LISTENER_PARAM_INCLUDED_FIELD"
                     }
                   }
                 }
@@ -694,6 +667,43 @@
                   "advanced": false
                 }
               ]
+            },
+            "secureSocket": {
+              "metadata": {
+                "label": "Secure Socket (SecureSocket)",
+                "description": "Configure SSL/TLS configuration for secure connection.\n"
+              },
+              "enabled": true,
+              "editable": true,
+              "value": "",
+              "types": [
+                {
+                  "fieldType": "RECORD_MAP_EXPRESSION",
+                  "ballerinaType": "ftp:SecureSocket",
+                  "typeMembers": [
+                    {
+                      "type": "SecureSocket",
+                      "packageInfo": "ballerina:ftp:2.16.0",
+                      "packageName": "ftp",
+                      "kind": "RECORD_TYPE",
+                      "selected": true
+                    }
+                  ],
+                  "selected": true
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "ftp:SecureSocket",
+                  "selected": false
+                }
+              ],
+              "isType": false,
+              "placeholder": "",
+              "optional": false,
+              "advanced": true,
+              "codedata": {
+                "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+              }
             }
           }
         }

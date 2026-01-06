@@ -132,7 +132,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         String username = getNestedAuthProperty(properties, "userName", "");
         String password = getNestedAuthProperty(properties, "password", "");
         String privateKey = cleanQuotes(getNestedAuthProperty(properties, "privateKey", ""));
-        String secureSocket = cleanQuotes(getNestedAuthProperty(properties, "secureSocket", ""));
+        String secureSocket = cleanQuotes(getPropertyValue(properties, "secureSocket", ""));
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();

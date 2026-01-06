@@ -835,7 +835,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "deletedFiles",
+              "label": "deleteFiles",
               "description": "The FTP Payload"
             },
             "kind": "REQUIRED",
