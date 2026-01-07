@@ -53,7 +53,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Type", description: "Type of the parameter" },
-            types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }],
+            types: [{ fieldType: "TYPE", selected: false }],
         },
         {
             key: "variable",
@@ -69,7 +69,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Name", description: "Name of the parameter" },
-            types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }],
+            types: [{ fieldType: "IDENTIFIER", selected: false }],
         },
         {
             key: "parameterDescription",
@@ -85,7 +85,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             advanceProps: [],
             diagnostics: [],
             metadata: { label: "Description", description: "Description of the parameter" },
-            types: [{ fieldType: "STRING", ballerinaType: "", selected: false }]
+            types: [{ fieldType: "STRING", selected: false }]
         }
     ];
 
@@ -103,7 +103,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             value: paramManagerValues,
             advanceProps: [],
             diagnostics: [],
-            types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }],
+            types: [{ fieldType: "PARAM_MANAGER", selected: false }],
             paramManagerProps: {
                 paramValues: paramManagerValues,
                 formFields: paramManagerFormFields,
@@ -165,21 +165,20 @@ export function createToolParameters(): ToolParameters {
         types: [
             {
                 fieldType: "REPEATABLE_PROPERTY",
-                ballerinaType: "",
                 selected: false,
                 template: {
                     metadata: {
                         label: "Parameter",
                         description: "Function parameter"
                     },
-                    types: [{ fieldType: "FIXED_PROPERTY", ballerinaType: "", selected: false }],
+                    types: [{ fieldType: "FIXED_PROPERTY", selected: false }],
                     value: {
                         type: {
                             metadata: {
                                 label: "Type",
                                 description: "Type of the parameter"
                             },
-                            types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }],
+                            types: [{ fieldType: "TYPE", selected: false }],
                             value: "",
                             optional: false,
                             editable: true,
@@ -191,7 +190,7 @@ export function createToolParameters(): ToolParameters {
                                 label: "Name",
                                 description: "Name of the parameter"
                             },
-                            types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }],
+                            types: [{ fieldType: "IDENTIFIER", selected: false }],
                             value: "",
                             optional: false,
                             editable: true,
