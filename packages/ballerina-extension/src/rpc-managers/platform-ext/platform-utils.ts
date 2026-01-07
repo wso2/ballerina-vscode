@@ -20,6 +20,7 @@ import { extension } from "../../BalExtensionContext";
 import { PersistOptions, createJSONStorage } from "zustand/middleware";
 import { platformExtStore } from "./platform-store";
 import Handlebars from "handlebars";
+import { updateSourceCode } from "../../utils";
 
 export const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
@@ -59,7 +60,10 @@ export const addConfigurable = async (
         configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), newConfigTemplate);
     }
 
-    await workspace.applyEdit(configBalEdits);
+    await updateSourceCode({
+        textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
+        skipPayloadCheck: true,
+    });
 };
 
 export const addProxyConfigurable = async (configBalFileUri: Uri) => {
@@ -417,7 +421,7 @@ export const initializeDevantConnection = async (params: {
         await addProxyConfigurable(configFileUri);
     }
 
-    if (params.marketplaceItem?.isThirdParty){
+    if (params.marketplaceItem?.isThirdParty) {
         // find the connector node, if its a 3rd party connector
         const connectors = await diagram.search({
             filePath: StateMachine.context().documentUri,

@@ -51,6 +51,7 @@ import {
     ICreateComponentCmdParams,
     ComponentKind,
     ICmdParamsBase,
+    ConnectionConfigurations,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -688,6 +689,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             let createdConnection: ConnectionDetailed;
             let securityType: "" | "oauth" | "apikey";
+            let configurations: ConnectionConfigurations = {};
             if (params?.marketplaceItem?.isThirdParty) {
                 const matchingSchema = params.marketplaceItem.connectionSchemas?.find(
                     (item) => item.id === params.params?.schemaId
@@ -716,6 +718,17 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
                 });
                 securityType = "";
+                Object.keys(createdConnection.configurations).forEach(envId => {
+                    configurations[envId] = {
+                        ...createdConnection.configurations[envId],
+                        entries: {}
+                    };
+                    Object.keys(createdConnection.configurations[envId].entries).forEach(entryName => {
+                        if(params.params.envKeys.includes(entryName)){
+                            configurations[envId].entries[entryName] = createdConnection.configurations[envId].entries[entryName];
+                        }
+                    });
+                });
             } else {
                 createdConnection = await platformExt?.createComponentConnection({
                     componentId: isProjectLevel
@@ -735,6 +748,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     generateCreds: true,
                 });
                 securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey";
+                configurations = createdConnection.configurations;
             }
 
             const resp = await initializeDevantConnection({
@@ -742,8 +756,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 name: params.params.name,
                 marketplaceItem: params.marketplaceItem,
                 visibility: params.params.visibility!,
-                configurations: createdConnection.configurations,
-                securityType: securityType,
+                configurations,
+                securityType,
             });
 
             StateMachine.setReadyMode();

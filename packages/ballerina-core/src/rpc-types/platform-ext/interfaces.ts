@@ -25,6 +25,7 @@ export interface CreateDevantConnectionReq {
 	    visibility: string;
         schemaId: string;
         isProjectLevel?: boolean;
+        envKeys?: string[]; // applicable only for 3rd party connectors
     }
     marketplaceItem: MarketplaceItem;
 }
