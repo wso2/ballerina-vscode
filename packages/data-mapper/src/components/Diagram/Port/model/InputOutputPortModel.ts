@@ -20,7 +20,7 @@ import { IOType, Mapping } from "@wso2/ballerina-core";
 
 import { DataMapperLinkModel, MappingType } from "../../Link";
 import { IntermediatePortModel } from "../IntermediatePort";
-import { createNewMapping, mapSeqToX, mapWithClause } from "../../utils/modification-utils";
+import { createNewMapping, mapSeqToX } from "../../utils/modification-utils";
 import { getMappingType, isPendingMappingRequired } from "../../utils/common-utils";
 import { DataMapperNodeModel } from "../../Node/commons/DataMapperNode";
 

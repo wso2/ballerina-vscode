@@ -82,10 +82,6 @@ const a2aMenuStyles = {
     border: "1px solid var(--vscode-debugIcon-breakpointDisabledForeground)"
 };
 
-const codiconStyles = {
-    marginRight: '10px'
-}
-
 export interface MappingOptionsWidgetProps {
     model: ExpressionLabelModel;
 }
@@ -95,13 +91,22 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
     const { link, context  } = props.model;
     const pendingMappingType = link.pendingMappingType;
 
-    const [inProgress, setInProgress] = React.useState(false);
+    const [isLinkInProgress, setIsLinkInProgress] = React.useState(false);
+    const [inProgressOption, setInProgressOption] = React.useState<string>();
     
     const menuItems: Item[] = useMemo(() => {
-        const wrapWithProgress = (onClick: () => Promise<void>) => {
+        const wrapWithLinkProgress = (onClick: () => Promise<void>) => {
             return async () => {
-                setInProgress(true);
+                setIsLinkInProgress(true);
                 await onClick();
+            }
+        };
+
+        const wrapWithOptionProgress = (optionId: string, onClick: () => Promise<void>) => {
+            return async () => {
+                setInProgressOption(optionId);
+                await onClick();
+                setInProgressOption(undefined);
             }
         };
         
@@ -141,12 +146,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await convertAndMap(link, context);
         }
 
-        const onClickConnectArraysWithJoin = () => {
-            mapWithClause(link, IntermediateClauseType.JOIN, context);
+        const onClickConnectArraysWithJoin = async () => {
+            await mapWithClause(link, IntermediateClauseType.JOIN, context);
         }
 
-        const oncClickConnectArraysWithFrom = () => {
-            mapWithClause(link, IntermediateClauseType.FROM, context);
+        const oncClickConnectArraysWithFrom = async () => {
+            await mapWithClause(link, IntermediateClauseType.FROM, context);
         }
 
         const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
@@ -155,7 +160,16 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     className={classes.itemContainer}
                     key={id}
                 >
-                    <Icon isCodicon={isCodicon} name={iconName} sx={codiconStyles} />
+                    {inProgressOption !== id ?
+                        <Icon
+                            isCodicon={isCodicon}
+                            name={iconName} sx={{ marginRight: '10px' }}
+                        /> :
+                        <ProgressRing
+                            sx={{ height: '16px', width: '16px', marginRight: '8px' }}
+                            color="var(--vscode-input-foreground)"
+                        />
+                    }
                     {label}
                 </div>
             );
@@ -164,25 +178,25 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const customFnMenuItem: Item = {
             id: "custom-func",
             label: getItemElement("custom-func", "Map Using Custom Function", "function-icon"),
-            onClick: wrapWithProgress(onClickMapWithCustomFn)
+            onClick: wrapWithLinkProgress(onClickMapWithCustomFn)
         }
 
         const transformFnMenuItem: Item = {
             id: "transform-func",
             label: getItemElement("transform-func", "Map Using Transform Function", "dataMapper"),
-            onClick: wrapWithProgress(onClickMapWithTransformFn)
+            onClick: wrapWithLinkProgress(onClickMapWithTransformFn)
         }
     
         const a2aMenuItems: Item[] = [
             {
                 id: "a2a-inner",
                 label: getItemElement("a2a-inner", "Map Each Element", "bi-convert"),
-                onClick: wrapWithProgress(onClickMapIndividualElements)
+                onClick: wrapWithLinkProgress(onClickMapIndividualElements)
             },
             {
                 id: "a2a-direct",
                 label: getItemElement("a2a-direct", "Assign As-Is", "warning", true),
-                onClick: wrapWithProgress(onClickMapDirectly)
+                onClick: wrapWithLinkProgress(onClickMapDirectly)
             }
         ];
 
@@ -190,7 +204,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             {
                 id: "convert-n-map",
                 label: getItemElement("convert-n-map", "Convert and Map", "refresh"),
-                onClick: wrapWithProgress(onClickConvertAndMap)
+                onClick: wrapWithLinkProgress(onClickConvertAndMap)
             }
         ];
 
@@ -198,12 +212,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             {
                 id: "array-from",
                 label: getItemElement("array-from", "Nested Iterate", "nested"),
-                onClick: oncClickConnectArraysWithFrom
+                onClick: wrapWithOptionProgress("array-from", oncClickConnectArraysWithFrom)
             },
             {
                 id: "array-join",
                 label: getItemElement("array-join", "Join with Condition", "join"),
-                onClick: onClickConnectArraysWithJoin
+                onClick: wrapWithOptionProgress("array-join", onClickConnectArraysWithJoin)
             }
         ];
     
@@ -211,7 +225,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             {
                 id: "direct",
                 label: getItemElement("direct", "Assign As-Is", "warning", true),
-                onClick: wrapWithProgress(onClickMapDirectly)
+                onClick: wrapWithLinkProgress(onClickMapDirectly)
             }
         ];
     
@@ -240,7 +254,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             const a2sAggregateItems: Item[] = aggregateFns.map((fn) => ({
                 id: `a2s-collect-${fn}`,
                 label: getItemElement(`a2s-collect-${fn}`, fn, iconsMap[fn]),
-                onClick: wrapWithProgress(async () => await onClick(fn))
+                onClick: wrapWithLinkProgress(async () => await onClick(fn))
             }));
             return a2sAggregateItems;
         };
@@ -250,7 +264,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 {
                     id: "a2s-index",
                     label: getItemElement("a2s-index", "Extract Single Element from Array", "index-zero", true),
-                    onClick: wrapWithProgress(onClickMapArraysAccessSingleton)
+                    onClick: wrapWithLinkProgress(onClickMapArraysAccessSingleton)
                 }
     
             ];
@@ -263,7 +277,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 a2sMenuItems.push({
                     id: "a2s-aggregate",
                     label: getItemElement("a2s-aggregate", "Aggregate and map", "Aggregate"),
-                    onClick: wrapWithProgress(onClickAggregateArray)
+                    onClick: wrapWithLinkProgress(onClickAggregateArray)
                 });
             }
     
@@ -296,11 +310,11 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
         const menuItems = genMenuItems();
        
         return menuItems;
-    }, [pendingMappingType, link, context]);
+    }, [pendingMappingType, inProgressOption, link, context]);
 
     return (
         <div className={classes.arrayMappingMenu}>
-            <Menu sx={{...a2aMenuStyles, visibility: inProgress ? 'hidden' : 'visible'}}>
+            <Menu sx={{...a2aMenuStyles, visibility: isLinkInProgress ? 'hidden' : 'visible'}}>
                 {menuItems.map((item: Item) =>
                     <MenuItem
                         key={`item ${item.id}`}
@@ -308,7 +322,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                     />
                 )}
             </Menu>
-            {inProgress && (
+            {isLinkInProgress && (
                 <div className={classNames(classes.container)}>
                     <div className={classNames(classes.element, classes.loadingContainer)}>
                         <ProgressRing
