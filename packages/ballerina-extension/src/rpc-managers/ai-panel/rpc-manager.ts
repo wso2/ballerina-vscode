@@ -403,17 +403,22 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const workspaceId = ctx.projectPath;
             const threadId = 'default';
 
-            // Get LATEST generation under review
-            const latestReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+            // Get ALL under_review generations
+            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const underReviewGenerations = thread.generations.filter(
+                g => g.reviewState.status === 'under_review'
+            );
 
-            if (!latestReview) {
+            if (underReviewGenerations.length === 0) {
                 console.warn("[Review Actions] No pending review generation found for accept");
                 return;
             }
 
+            // Get LATEST generation for integration
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
             console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
 
-            // Integrate code to workspace if there are modified files
+            // Integrate LATEST generation's code to workspace
             if (latestReview.reviewState.modifiedFiles.length > 0) {
                 const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
                 await integrateCodeToWorkspace(
@@ -424,9 +429,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 console.log(`[Review Actions] Integrated ${latestReview.reviewState.modifiedFiles.length} file(s) to workspace`);
             }
 
-            // Cleanup temp project
+            // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
-                cleanupTempProject(latestReview.reviewState.tempProjectPath!);
+                for (const generation of underReviewGenerations) {
+                    if (generation.reviewState.tempProjectPath) {
+                        await cleanupTempProject(generation.reviewState.tempProjectPath);
+                    }
+                }
             }
 
             // Mark ALL under_review generations as accepted
@@ -451,19 +460,26 @@ export class AiPanelRpcManager implements AIPanelAPI {
             const workspaceId = ctx.projectPath;
             const threadId = 'default';
 
-            // Get LATEST generation under review
-            const latestReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+            // Get ALL under_review generations
+            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const underReviewGenerations = thread.generations.filter(
+                g => g.reviewState.status === 'under_review'
+            );
 
-            if (!latestReview) {
+            if (underReviewGenerations.length === 0) {
                 console.warn("[Review Actions] No pending review generation found for decline");
                 return;
             }
 
-            console.log(`[Review Actions] Declining generation ${latestReview.id}`);
+            console.log(`[Review Actions] Declining ${underReviewGenerations.length} generation(s)`);
 
-            // Cleanup temp project immediately (without integrating changes)
+            // Cleanup ALL under_review temp projects (prevents memory leak)
             if (!process.env.AI_TEST_ENV) {
-                cleanupTempProject(latestReview.reviewState.tempProjectPath!);
+                for (const generation of underReviewGenerations) {
+                    if (generation.reviewState.tempProjectPath) {
+                        await cleanupTempProject(generation.reviewState.tempProjectPath);
+                    }
+                }
             }
 
             // Mark ALL under_review generations as error/declined
@@ -539,7 +555,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const workspaceId = StateMachine.context().projectPath;
 
         // Clear the workspace (all threads)
-        chatStateStorage.clearWorkspace(workspaceId);
+        await chatStateStorage.clearWorkspace(workspaceId);
 
         console.log(`[RPC] Cleared chat for workspace: ${workspaceId}`);
     }
