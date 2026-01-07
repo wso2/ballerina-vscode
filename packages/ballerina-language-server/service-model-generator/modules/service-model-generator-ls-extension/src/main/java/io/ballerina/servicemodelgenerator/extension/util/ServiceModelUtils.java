@@ -571,7 +571,7 @@ public class ServiceModelUtils {
             listeners.addAll(allValues);
         }
         Value listener = serviceModel.getListener();
-        if (!listeners.isEmpty()) {
+        if (!listeners.isEmpty() && listener.getTypes() != null && !listener.getTypes().isEmpty()) {
             listener.getTypes().getFirst().options().addAll(Option.of(listeners));
         }
     }
