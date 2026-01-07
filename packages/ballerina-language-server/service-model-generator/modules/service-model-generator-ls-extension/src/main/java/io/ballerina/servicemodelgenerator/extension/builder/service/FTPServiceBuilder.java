@@ -128,10 +128,10 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         String port = getPropertyValue(properties, "portNumber", "21");
         String folderPath = cleanQuotes(getPropertyValue(properties, "folderPath", "/"));
 
-        // Access nested authentication properties
-        String username = getNestedAuthProperty(properties, "userName", "");
-        String password = getNestedAuthProperty(properties, "password", "");
-        String privateKey = cleanQuotes(getNestedAuthProperty(properties, "privateKey", ""));
+        applyEnabledChoiceProperty(serviceInitModel, "authentication");
+        String username = getPropertyValue(properties, "userName", "");
+        String password = getPropertyValue(properties, "password", "");
+        String privateKey = cleanQuotes(getPropertyValue(properties, "privateKey", ""));
         String secureSocket = cleanQuotes(getPropertyValue(properties, "secureSocket", ""));
 
         // Build the listener declaration
@@ -257,29 +257,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
         }
         return "FTP";
-    }
-
-    /**
-     * Helper method to access nested authentication properties.
-     * Accesses properties.get("authentication").getChoices().getFirst().getProperties().get(propertyName).getValue()
-     */
-    private String getNestedAuthProperty(Map<String, Value> properties, String propertyName, String defaultValue) {
-        Value authProperty = properties.get("authentication");
-        if (authProperty == null || authProperty.getChoices() == null || authProperty.getChoices().isEmpty()) {
-            return defaultValue;
-        }
-
-        Value firstChoice = authProperty.getChoices().get(0);
-        if (firstChoice == null || firstChoice.getProperties() == null) {
-            return defaultValue;
-        }
-
-        Value targetProperty = firstChoice.getProperties().get(propertyName);
-        if (targetProperty == null || targetProperty.getValue() == null || targetProperty.getValue().isEmpty()) {
-            return defaultValue;
-        }
-
-        return targetProperty.getValue();
     }
 
     @Override
