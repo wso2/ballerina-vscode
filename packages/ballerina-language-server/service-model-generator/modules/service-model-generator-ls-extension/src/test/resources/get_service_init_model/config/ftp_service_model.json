@@ -22,7 +22,7 @@
             "description": "Select the protocol for the remote server connection"
           },
           "placeholder": "",
-          "value": 0.0,
+          "value": "",
           "choices": [
             {
               "metadata": {
@@ -119,8 +119,20 @@
                     "description": "Select the authentication method"
                   },
                   "placeholder": "",
-                  "value": 1.0,
+                  "value": "",
                   "choices": [
+                    {
+                      "metadata": {
+                        "label": "No Authentication",
+                        "description": ""
+                      },
+                      "placeholder": "true",
+                      "value": "true",
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
                     {
                       "metadata": {
                         "label": "Basic Authentication",
@@ -178,19 +190,7 @@
                           "advanced": false
                         }
                       },
-                      "enabled": true,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false
-                    },
-                    {
-                      "metadata": {
-                        "label": "No Authentication",
-                        "description": ""
-                      },
-                      "placeholder": "true",
-                      "value": "true",
-                      "enabled": true,
+                      "enabled": false,
                       "editable": true,
                       "optional": false,
                       "advanced": false
@@ -308,8 +308,20 @@
                     "description": "Select the authentication method"
                   },
                   "placeholder": "",
-                  "value": 1.0,
+                  "value": "",
                   "choices": [
+                    {
+                      "metadata": {
+                        "label": "No Authentication",
+                        "description": ""
+                      },
+                      "placeholder": "true",
+                      "value": "true",
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
                     {
                       "metadata": {
                         "label": "Certificate Based Authentication",
@@ -381,19 +393,7 @@
                           "advanced": false
                         }
                       },
-                      "enabled": true,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false
-                    },
-                    {
-                      "metadata": {
-                        "label": "No Authentication",
-                        "description": ""
-                      },
-                      "placeholder": "true",
-                      "value": "true",
-                      "enabled": true,
+                      "enabled": false,
                       "editable": true,
                       "optional": false,
                       "advanced": false
@@ -511,8 +511,20 @@
                     "description": "Select the authentication method"
                   },
                   "placeholder": "",
-                  "value": 1.0,
+                  "value": "",
                   "choices": [
+                    {
+                      "metadata": {
+                        "label": "No Authentication",
+                        "description": ""
+                      },
+                      "placeholder": "true",
+                      "value": "true",
+                      "enabled": true,
+                      "editable": true,
+                      "optional": false,
+                      "advanced": false
+                    },
                     {
                       "metadata": {
                         "label": "Basic Authentication",
@@ -574,19 +586,7 @@
                           "advanced": false
                         }
                       },
-                      "enabled": true,
-                      "editable": true,
-                      "optional": false,
-                      "advanced": false
-                    },
-                    {
-                      "metadata": {
-                        "label": "No Authentication",
-                        "description": ""
-                      },
-                      "placeholder": "true",
-                      "value": "true",
-                      "enabled": true,
+                      "enabled": false,
                       "editable": true,
                       "optional": false,
                       "advanced": false

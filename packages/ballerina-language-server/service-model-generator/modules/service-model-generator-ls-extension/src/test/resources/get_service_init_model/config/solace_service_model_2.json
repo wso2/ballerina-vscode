@@ -21,7 +21,7 @@
             "label": "Use Existing Listener",
             "description": "Use Existing Listener or Create New Listener"
           },
-          "value": true,
+          "value": "",
           "choices": [
             {
               "metadata": {
@@ -60,7 +60,7 @@
                   "selected": true
                 }
               ],
-              "enabled": false,
+              "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false

@@ -16,7 +16,7 @@
       },
       "enabled": true,
       "editable": true,
-      "value": 0,
+      "value": "",
       "types": [
         {
           "fieldType": "CHOICE",
@@ -137,7 +137,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 1,
+              "value": "",
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -148,76 +148,7 @@
               "placeholder": "",
               "optional": false,
               "advanced": false,
-              "choices": [{
-                "metadata": {
-                  "label": "Basic Authentication",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "true",
-                "valueType": "FORM",
-                "isType": false,
-                "placeholder": "true",
-                "optional": false,
-                "advanced": false,
-                "properties": {
-                  "userName": {
-                    "metadata": {
-                      "label": "Username",
-                      "description": "Remote server username for authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "\"default\"",
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "default",
-                    "optional": true,
-                    "advanced": false
-                  },
-                  "password": {
-                    "metadata": {
-                      "label": "Password",
-                      "description": "Remote server password for authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "\"default\"",
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "default",
-                    "optional": true,
-                    "advanced": false
-                  }
-                }
-              },
+              "choices": [
                 {
                   "metadata": {
                     "label": "No Authentication",
@@ -231,6 +162,76 @@
                   "placeholder": "true",
                   "optional": false,
                   "advanced": false
+                },
+                {
+                  "metadata": {
+                    "label": "Basic Authentication",
+                    "description": ""
+                  },
+                  "enabled": false,
+                  "editable": true,
+                  "value": "true",
+                  "valueType": "FORM",
+                  "isType": false,
+                  "placeholder": "true",
+                  "optional": false,
+                  "advanced": false,
+                  "properties": {
+                    "userName": {
+                      "metadata": {
+                        "label": "Username",
+                        "description": "Remote server username for authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "\"default\"",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "valueType": "IDENTIFIER",
+                      "valueTypeConstraint": "string",
+                      "isType": false,
+                      "placeholder": "default",
+                      "optional": true,
+                      "advanced": false
+                    },
+                    "password": {
+                      "metadata": {
+                        "label": "Password",
+                        "description": "Remote server password for authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "\"default\"",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "valueType": "IDENTIFIER",
+                      "valueTypeConstraint": "string",
+                      "isType": false,
+                      "placeholder": "default",
+                      "optional": true,
+                      "advanced": false
+                    }
+                  }
                 }
               ]
             }
@@ -346,7 +347,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 1,
+              "value": "",
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -357,89 +358,7 @@
               "placeholder": "",
               "optional": false,
               "advanced": false,
-              "choices": [{
-                "metadata": {
-                  "label": "Certificate Based Authentication",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "true",
-                "valueType": "FORM",
-                "isType": false,
-                "placeholder": "true",
-                "optional": false,
-                "advanced": false,
-                "properties": {
-                  "privateKey": {
-                    "metadata": {
-                      "label": "Private Key",
-                      "description": "Private key configuration for SSH-based authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "",
-                    "types": [
-                      {
-                        "fieldType": "RECORD_MAP_EXPRESSION",
-                        "ballerinaType": "ftp:PrivateKey",
-                        "typeMembers": [
-                          {
-                            "type": "PrivateKey",
-                            "packageInfo": "ballerina:ftp:2.16.0",
-                            "packageName": "ftp",
-                            "kind": "RECORD_TYPE",
-                            "selected": true
-                          }
-                        ],
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "ftp:PrivateKey",
-                        "selected": false
-                      }
-                    ],
-                    "isType": false,
-                    "placeholder": "",
-                    "optional": false,
-                    "advanced": false,
-                    "codedata": {
-                      "argType": "LISTENER_PARAM_INCLUDED_FIELD"
-                    }
-                  },
-                  "userName": {
-                    "metadata": {
-                      "label": "Username",
-                      "description": "Remote server username for key-based authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "\"default\"",
-                    "types": [
-                      {
-                        "fieldType": "IDENTIFIER",
-                        "ballerinaType": "string",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "default",
-                    "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
-                  }
-                }
-              },
+              "choices": [
                 {
                   "metadata": {
                     "label": "No Authentication",
@@ -453,6 +372,89 @@
                   "placeholder": "true",
                   "optional": false,
                   "advanced": false
+                },
+                {
+                  "metadata": {
+                    "label": "Certificate Based Authentication",
+                    "description": ""
+                  },
+                  "enabled": false,
+                  "editable": true,
+                  "value": "true",
+                  "valueType": "FORM",
+                  "isType": false,
+                  "placeholder": "true",
+                  "optional": false,
+                  "advanced": false,
+                  "properties": {
+                    "privateKey": {
+                      "metadata": {
+                        "label": "Private Key",
+                        "description": "Private key configuration for SSH-based authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "",
+                      "types": [
+                        {
+                          "fieldType": "RECORD_MAP_EXPRESSION",
+                          "ballerinaType": "ftp:PrivateKey",
+                          "typeMembers": [
+                            {
+                              "type": "PrivateKey",
+                              "packageInfo": "ballerina:ftp:2.16.0",
+                              "packageName": "ftp",
+                              "kind": "RECORD_TYPE",
+                              "selected": true
+                            }
+                          ],
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "ftp:PrivateKey",
+                          "selected": false
+                        }
+                      ],
+                      "isType": false,
+                      "placeholder": "",
+                      "optional": false,
+                      "advanced": false,
+                      "codedata": {
+                        "argType": "LISTENER_PARAM_INCLUDED_FIELD"
+                      }
+                    },
+                    "userName": {
+                      "metadata": {
+                        "label": "Username",
+                        "description": "Remote server username for key-based authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "\"default\"",
+                      "types": [
+                        {
+                          "fieldType": "IDENTIFIER",
+                          "ballerinaType": "string",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "valueType": "IDENTIFIER",
+                      "valueTypeConstraint": "string",
+                      "isType": false,
+                      "placeholder": "default",
+                      "optional": true,
+                      "advanced": false,
+                      "codedata": {
+                        "type": "IDENTIFIER"
+                      }
+                    }
+                  }
                 }
               ]
             }
@@ -567,7 +569,7 @@
               },
               "enabled": true,
               "editable": true,
-              "value": 1,
+              "value": "",
               "types": [
                 {
                   "fieldType": "CHOICE",
@@ -578,80 +580,7 @@
               "placeholder": "",
               "optional": false,
               "advanced": false,
-              "choices": [{
-                "metadata": {
-                  "label": "Basic Authentication",
-                  "description": ""
-                },
-                "enabled": true,
-                "editable": true,
-                "value": "true",
-                "valueType": "FORM",
-                "isType": false,
-                "placeholder": "true",
-                "optional": false,
-                "advanced": false,
-                "properties": {
-                  "userName": {
-                    "metadata": {
-                      "label": "Username",
-                      "description": "Remote server username for authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "\"default\"",
-                    "types": [
-                      {
-                        "fieldType": "TEXT",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "default",
-                    "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
-                  },
-                  "password": {
-                    "metadata": {
-                      "label": "Password",
-                      "description": "Remote server password for authentication"
-                    },
-                    "enabled": true,
-                    "editable": true,
-                    "value": "\"default\"",
-                    "types": [
-                      {
-                        "fieldType": "TEXT",
-                        "selected": true
-                      },
-                      {
-                        "fieldType": "EXPRESSION",
-                        "ballerinaType": "string",
-                        "selected": false
-                      }
-                    ],
-                    "valueType": "IDENTIFIER",
-                    "valueTypeConstraint": "string",
-                    "isType": false,
-                    "placeholder": "",
-                    "optional": true,
-                    "advanced": false,
-                    "codedata": {
-                      "type": "IDENTIFIER"
-                    }
-                  }
-                }
-              },
+              "choices": [
                 {
                   "metadata": {
                     "label": "No Authentication",
@@ -665,6 +594,80 @@
                   "placeholder": "true",
                   "optional": false,
                   "advanced": false
+                },
+                {
+                  "metadata": {
+                    "label": "Basic Authentication",
+                    "description": ""
+                  },
+                  "enabled": false,
+                  "editable": true,
+                  "value": "true",
+                  "valueType": "FORM",
+                  "isType": false,
+                  "placeholder": "true",
+                  "optional": false,
+                  "advanced": false,
+                  "properties": {
+                    "userName": {
+                      "metadata": {
+                        "label": "Username",
+                        "description": "Remote server username for authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "\"default\"",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "valueType": "IDENTIFIER",
+                      "valueTypeConstraint": "string",
+                      "isType": false,
+                      "placeholder": "default",
+                      "optional": true,
+                      "advanced": false,
+                      "codedata": {
+                        "type": "IDENTIFIER"
+                      }
+                    },
+                    "password": {
+                      "metadata": {
+                        "label": "Password",
+                        "description": "Remote server password for authentication"
+                      },
+                      "enabled": true,
+                      "editable": true,
+                      "value": "\"default\"",
+                      "types": [
+                        {
+                          "fieldType": "TEXT",
+                          "selected": true
+                        },
+                        {
+                          "fieldType": "EXPRESSION",
+                          "ballerinaType": "string",
+                          "selected": false
+                        }
+                      ],
+                      "valueType": "IDENTIFIER",
+                      "valueTypeConstraint": "string",
+                      "isType": false,
+                      "placeholder": "",
+                      "optional": true,
+                      "advanced": false,
+                      "codedata": {
+                        "type": "IDENTIFIER"
+                      }
+                    }
+                  }
                 }
               ]
             },

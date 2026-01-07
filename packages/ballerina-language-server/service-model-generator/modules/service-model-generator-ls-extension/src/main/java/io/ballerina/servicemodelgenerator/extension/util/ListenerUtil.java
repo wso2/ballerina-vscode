@@ -629,7 +629,7 @@ public class ListenerUtil {
                                                     String moduleName) {
         Value choicesProperty = new Value.ValueBuilder()
                 .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
-                .value(true)
+                .value("")
                 .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
                 .enabled(true)
                 .editable(true)
@@ -666,7 +666,7 @@ public class ListenerUtil {
                 .metadata("Use Existing Listener", "Use Existing Listener")
                 .value("true")
                 .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(false)
+                .enabled(true)
                 .editable(false)
                 .setAdvanced(false)
                 .setProperties(existingListenerProps)
