@@ -18,7 +18,7 @@
 
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { Imports, LineRange, PayloadContext, Type } from '@wso2/ballerina-core';
+import { Imports, LineRange, PayloadContext, Type, Protocol } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
@@ -44,7 +44,6 @@ type FormTypeEditorProps = {
     onTypeChange: (type: Type) => void;
     newType: boolean;
     newTypeValue?: string;
-    isGraphql?: boolean;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: (typeName?: string) => void;
@@ -58,8 +57,9 @@ type FormTypeEditorProps = {
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
+    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
     const { rpcClient } = useRpcContext();
+    const isGraphql = payloadContext?.protocol === Protocol.GRAPHQL;
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange | undefined>(undefined);
@@ -128,7 +128,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                             });
                         }
-                        const basicTypes = getTypes(types);
+                        const basicTypes = getTypes(types, false, payloadContext);
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
                         fetchedInitialTypes.current = true;

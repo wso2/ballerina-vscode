@@ -49,6 +49,7 @@ import {
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -631,8 +632,77 @@ export const Form = forwardRef((props: FormProps) => {
         );
     };
 
+    // Recursively collect advanced fields from selected choices (including nested choices)
+    const advancedChoiceFields = useMemo(() => {
+        const fields: FormField[] = [];
+        const formValues = getValues();
+
+        // Recursive function to traverse nested choices
+        const collectAdvancedFields = (properties: any) => {
+            if (!properties) return;
+
+            Object.entries(properties).forEach(([propKey, propValue]: [string, any]) => {
+                // If this property is a choice field, recurse into selected choice
+                if (propValue?.choices && propValue.choices.length > 0) {
+                    const selectedChoiceIndex = formValues[propKey] !== undefined ? Number(formValues[propKey]) : 0;
+                    const selectedChoice = propValue.choices[selectedChoiceIndex];
+
+                    if (selectedChoice && selectedChoice?.properties) {
+                        // Recursively collect from nested choice properties
+                        collectAdvancedFields(selectedChoice.properties);
+                    }
+                }
+                // If this property is advanced, add it to the list
+                else if (propValue.advanced && propValue.enabled && !propValue.hidden) {
+                    const choiceFormField: FormField = {
+                        key: propKey,
+                        label: propValue?.metadata?.label || propKey.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
+                        type: getPrimaryInputType(propValue.types)?.fieldType,
+                        documentation: propValue?.metadata?.description || "",
+                        types: propValue.types,
+                        editable: propValue.editable,
+                        enabled: propValue?.enabled ?? true,
+                        optional: propValue.optional,
+                        value: propValue.value,
+                        advanced: propValue.advanced,
+                        diagnostics: [],
+                        items: propValue.items,
+                        choices: propValue.choices,
+                        placeholder: propValue.placeholder,
+                    };
+                    fields.push(choiceFormField);
+                }
+            });
+        };
+
+        // Start collection from top-level form fields
+        formFields.forEach((field) => {
+            if (field?.choices && field.choices.length > 0) {
+                const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
+                const selectedChoice = field.choices[selectedChoiceIndex];
+
+                if (selectedChoice && selectedChoice?.properties) {
+                    collectAdvancedFields(selectedChoice.properties);
+                }
+            }
+        });
+
+        return fields;
+    }, [formFields, watch()]);
+
+    // Initialize form values for advanced choice fields
+    useEffect(() => {
+        advancedChoiceFields.forEach(field => {
+            const currentValue = getValues(field.key);
+            // Only set the value if it's currently undefined and the field has a value
+            if (currentValue === undefined && field.value !== undefined) {
+                setValue(field.key, field.value);
+            }
+        });
+    }, [advancedChoiceFields, getValues, setValue]);
+
     // has advance fields
-    const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden);
+    const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => field.key === "type");
     const expressionField = formFields.find((field) => field.key === "expression");
@@ -1005,6 +1075,28 @@ export const Form = forwardRef((props: FormProps) => {
                                 );
                             }
                             return null;
+                        })}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        advancedChoiceFields.map((field) => {
+                            const updatedField = updateFormFieldWithImports(field, formImports);
+                            return (
+                                <S.Row key={updatedField.key}>
+                                    <EditorFactory
+                                        field={updatedField}
+                                        openRecordEditor={
+                                            openRecordEditor &&
+                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                        }
+                                        subPanelView={subPanelView}
+                                        handleOnFieldFocus={handleOnFieldFocus}
+                                        recordTypeFields={recordTypeFields}
+                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        handleOnTypeChange={handleOnTypeChange}
+                                        onBlur={handleOnBlur}
+                                    />
+                                </S.Row>
+                            );
                         })}
                 </S.CategoryRow>
 
