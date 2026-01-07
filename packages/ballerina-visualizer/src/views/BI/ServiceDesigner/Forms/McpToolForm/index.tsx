@@ -190,7 +190,7 @@ export function McpToolForm(props: McpToolFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange,
                 },
-                types: [{ fieldType: "PARAM_MANAGER",   selected: false }],
+                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }],
             },
             {
                 key: "returnType",
