@@ -111,7 +111,8 @@ export enum Protocol {
     HTTP = "HTTP",
     MESSAGE_BROKER = "MESSAGE_BROKER",
     GRAPHQL = "GRAPHQL",
-    FTP = "FTP"
+    FTP = "FTP",
+    CDC = "CDC"
 }
 
 export interface HttpPayloadContext {
@@ -122,21 +123,18 @@ export interface HttpPayloadContext {
     resourceMethod?: string;
     resourceDocumentation?: string;
     paramDetails?: ParamDetails[];
-    typeEditorDefaultTab?: string;
 }
 
 export interface MessageQueuePayloadContext {
-    protocol: Protocol.MESSAGE_BROKER;
+    protocol: Protocol.MESSAGE_BROKER | Protocol.CDC;
     serviceName: string;
     queueOrTopic?: string;
     messageDocumentation?: string;
-    typeEditorDefaultTab?: string;
 }
 
 export interface GeneralPayloadContext {
     protocol: Protocol | string;
     filterType?: string;
-    typeEditorDefaultTab?: string;
 }
 
 export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext | GeneralPayloadContext;

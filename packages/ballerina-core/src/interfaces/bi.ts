@@ -140,6 +140,7 @@ export type FormFieldInputType = "TEXT" |
     "MULTIPLE_SELECT_LISTENER" |
     "SINGLE_SELECT_LISTENER" |
     "EXPRESSION_SET" |
+    "TEXT_SET" |
     "FLAG" |
     "CHOICE"|
     "LV_EXPRESSION" |
@@ -158,6 +159,10 @@ export interface BaseType {
     ballerinaType?: string;
     selected: boolean;
     typeMembers?: PropertyTypeMemberInfo[];
+    minItems?: number; // minimum items for EXPRESSION_SET fields
+    defaultItems?: number; // default number of items for EXPRESSION_SET fields
+    pattern?: string; // regex pattern for validation (e.g., for TEXT fields)
+    patternErrorMessage?: string; // custom error message when pattern validation fails
 }
 
 export interface EnumOptions {

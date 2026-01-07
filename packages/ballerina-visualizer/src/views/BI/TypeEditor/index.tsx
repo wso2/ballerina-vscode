@@ -53,12 +53,14 @@ type FormTypeEditorProps = {
     isContextTypeForm?: boolean;
     payloadContext?: PayloadContext;
     simpleType?: string;
+    defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue,  onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
+    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
     const { rpcClient } = useRpcContext();
     const isGraphql = payloadContext?.protocol === Protocol.GRAPHQL;
+    const isCdcService = payloadContext?.protocol === Protocol.CDC;
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange | undefined>(undefined);
@@ -131,8 +133,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
                         fetchedInitialTypes.current = true;
-    
-                        if (!isGraphql) {
+
+                        if (!isGraphql && !isCdcService) {
                             const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                                 filePath: filePath,
                                 position: targetLineRange,
@@ -143,7 +145,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                                 searchKind: 'TYPE'
                             });
-    
+
                             const importedTypes = getImportedTypes(searchResponse.categories);
                             setImportedTypes(importedTypes);
                         }
@@ -155,24 +157,28 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                     }
                 } else if (isType) {
                     setFilteredBasicTypes(filterTypes(basicTypes, searchText));
-    
-                    try {
-                        const response = await rpcClient.getBIDiagramRpcClient().search({
-                            filePath: filePath,
-                            position: targetLineRange,
-                            queryMap: {
-                                q: searchText,
-                                offset: 0,
-                                limit: 1000
-                            },
-                            searchKind: 'TYPE'
-                        });
-    
-                        const importedTypes = getImportedTypes(response.categories);
-                        setImportedTypes(importedTypes);
-                    } catch (error) {
-                        console.error(error);
-                    } finally {
+
+                    if (!isCdcService) {
+                        try {
+                            const response = await rpcClient.getBIDiagramRpcClient().search({
+                                filePath: filePath,
+                                position: targetLineRange,
+                                queryMap: {
+                                    q: searchText,
+                                    offset: 0,
+                                    limit: 1000
+                                },
+                                searchKind: 'TYPE'
+                            });
+
+                            const importedTypes = getImportedTypes(response.categories);
+                            setImportedTypes(importedTypes);
+                        } catch (error) {
+                            console.error(error);
+                        } finally {
+                            setLoading(false);
+                        }
+                    } else {
                         setLoading(false);
                     }
                 } else {
@@ -257,6 +263,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         isGraphql={isGraphql}
                         simpleType={simpleType}
                         payloadContext={payloadContext}
+                        defaultTab={defaultTab}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
@@ -281,6 +288,11 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         newTypeValue={newTypeValue}
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
+                        defaultTab={
+                            defaultTab === 'create-from-scratch' || defaultTab === 'import'
+                                ? defaultTab
+                                : undefined
+                        }
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,

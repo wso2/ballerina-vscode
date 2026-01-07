@@ -124,6 +124,8 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-ftp" />;
         case "file":
             return <Icon name="bi-file" />;
+        case "mssql":
+            return <Icon name="bi-mssql" sx={{ color: "#b61d1c" }}/>;
         default:
             return null;
     }

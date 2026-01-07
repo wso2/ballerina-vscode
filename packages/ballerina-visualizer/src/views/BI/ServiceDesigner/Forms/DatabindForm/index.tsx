@@ -36,7 +36,7 @@ import { useEffect, useState } from "react";
 import { ParamEditor } from "./Parameters/ParamEditor";
 import { Parameters } from "./Parameters/Parameters";
 import { EntryPointTypeCreator } from "../../../../../components/EntryPointTypeCreator";
-import { hasEditableParameters } from "../../utils";
+import { getDefaultTab, hasEditableParameters } from "../../utils";
 
 const OptionalConfigRow = styled.div`
     display: flex;
@@ -107,10 +107,11 @@ export interface DatabindFormProps {
     payloadContext?: MessageQueuePayloadContext;
     serviceProperties?: ConfigProperties;
     serviceModuleName?: string;
+    useInlineDataBinding?: boolean;
 }
 
 export function DatabindForm(props: DatabindFormProps) {
-    const { model, isSaving = false, onSave, onClose, isNew = false, payloadContext, serviceProperties, serviceModuleName } = props;
+    const { model, isSaving = false, onSave, onClose, isNew = false, payloadContext, serviceProperties, serviceModuleName, useInlineDataBinding = false } = props;
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [functionModel, setFunctionModel] = useState<FunctionModel>(model);
@@ -171,6 +172,26 @@ export function DatabindForm(props: DatabindFormProps) {
         return "";
     };
 
+    /**
+     * Determines if a DATA_BINDING parameter is customized
+     * In inline mode, customized means type.value differs from placeholder
+     * Always returns false in legacy mode or for non-DATA_BINDING parameters
+     */
+    const isParameterCustomized = (param: ParameterModel): boolean => {
+        if (!useInlineDataBinding || param.kind !== "DATA_BINDING") {
+            return false;
+        }
+
+        const hasValue = param.type?.value && param.type.value.trim() !== "";
+        const placeholder = param.type?.placeholder || "";
+
+        if (!placeholder) {
+            return hasValue;  // No placeholder = customized if has value
+        }
+
+        return hasValue && param.type.value !== placeholder;
+    };
+
     const handleParamChange = (params: ParameterModel[]) => {
         const updatedFunctionModel = {
             ...functionModel,
@@ -180,26 +201,58 @@ export function DatabindForm(props: DatabindFormProps) {
     };
 
     const handlePayloadParamChange = (params: ParameterModel[]) => {
-        // Check if a DATA_BINDING parameter was removed
-        const dataBindingParam = functionModel.parameters?.find((p) => p.kind === "DATA_BINDING");
-        const isInNewParams = params.some((p) => p.kind === "DATA_BINDING");
+        if (!useInlineDataBinding) {
+            // LEGACY MODE: Keep existing mutual exclusion logic
+            const dataBindingParam = functionModel.parameters?.find((p) => p.kind === "DATA_BINDING");
+            const isInNewParams = params.some((p) => p.kind === "DATA_BINDING");
 
-        if (dataBindingParam && !isInNewParams) {
-            // Instead of deleting, disable the DATA_BINDING parameter and enable the first parameter
-            // Create a new array to avoid mutating the original
+            if (dataBindingParam && !isInNewParams) {
+                // Instead of deleting, disable the DATA_BINDING parameter and enable the first parameter
+                const updatedParams = functionModel.parameters.map((p) => {
+                    if (p.kind === "DATA_BINDING") {
+                        return { ...p, enabled: false };
+                    }
+                    if (p.kind === "REQUIRED" && !isInNewParams) {
+                        return { ...p, enabled: true };
+                    }
+                    return p;
+                });
+
+                handleParamChange(updatedParams);
+            } else {
+                handleParamChange(params);
+            }
+            return;
+        }
+
+        // INLINE MODE: Restore to original type when parameter is "deleted"
+        // Only consider enabled DATA_BINDING params since disabled ones aren't shown in UI
+        const currentDataBindingParams = functionModel.parameters?.filter(
+            (p) => p.kind === "DATA_BINDING" && p.enabled !== false
+        ) || [];
+        const newDataBindingParams = params.filter((p) => p.kind === "DATA_BINDING");
+
+        const removedParam = currentDataBindingParams.find(
+            (current) => !newDataBindingParams.some(
+                (newParam) => newParam.name?.value === current.name?.value
+            )
+        );
+
+        if (removedParam) {
             const updatedParams = functionModel.parameters.map((p) => {
-                if (p.kind === "DATA_BINDING") {
-                    return { ...p, enabled: false };
-                }
-                if (p.kind === "REQUIRED" && !isInNewParams) {
-                    return { ...p, enabled: true };
+                if (p.kind === "DATA_BINDING" && p.name?.value === removedParam.name?.value) {
+                    return {
+                        ...p,
+                        type: {
+                            ...p.type,
+                            value: p.type?.placeholder || p.type?.value || ""
+                        }
+                    };
                 }
                 return p;
             });
-
             handleParamChange(updatedParams);
         } else {
-            // Normal parameter change
             handleParamChange(params);
         }
     };
@@ -249,34 +302,88 @@ export function DatabindForm(props: DatabindFormProps) {
         return `${capitalizedName}Schema`;
     };
 
-    const handleTypeCreated = (type: Type | string) => {
-        // When a type is created, set it as the payload type
-        const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
-        if (payloadParam) {
-            const updatedPayloadModel = { ...payloadParam };
-            updatedPayloadModel.name.value = "payload";
-            updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
-            updatedPayloadModel.enabled = true;
+    const generateParameterTypeName = (param: ParameterModel): string => {
+        const rawParameterName = param.metadata?.label || param.name?.value || "Parameter";
+        const sanitizedName = rawParameterName.replace(/[^a-zA-Z0-9]/g, '');
+        const capitalizedName = sanitizedName.charAt(0).toUpperCase() + sanitizedName.slice(1);
+        return `${capitalizedName}Schema`;
+    };
 
-            // Find the index of the payload parameter
-            const index = functionModel.parameters.findIndex(param => param.kind === "DATA_BINDING");
+    const getCapitalizedParameterName = (param: ParameterModel): string => {
+        const rawParameterName = param.metadata?.label || param.name?.value || "Parameter";
+        return rawParameterName.charAt(0).toUpperCase() + rawParameterName.slice(1);
+    };
+
+    const handleTypeCreated = (type: Type | string) => {
+        if (!useInlineDataBinding) {
+            // LEGACY MODE: Keep existing logic
+            const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
+            if (payloadParam) {
+                const updatedPayloadModel = { ...payloadParam };
+                updatedPayloadModel.name.value = "payload";
+                updatedPayloadModel.type.value = typeof type === 'string' ? type : (type as Type).name;
+                updatedPayloadModel.enabled = true;
+
+                const index = functionModel.parameters.findIndex(param => param.kind === "DATA_BINDING");
+                if (index >= 0) {
+                    const updatedParameters = [...functionModel.parameters];
+                    updatedParameters[index] = updatedPayloadModel;
+                    handleParamChange(updatedParameters);
+                }
+            }
+            setIsTypeEditorOpen(false);
+            return;
+        }
+
+        // INLINE MODE: Update specific parameter being edited
+        if (editModel && editModel.kind === "DATA_BINDING") {
+            const updatedParam = { ...editModel };
+            const typeValue = typeof type === 'string' ? type : (type as Type).name;
+
+            updatedParam.type = {
+                ...updatedParam.type,
+                value: typeValue
+                // placeholder remains unchanged
+            };
+
+            const index = functionModel.parameters.findIndex(
+                (param) => param.kind === "DATA_BINDING" &&
+                    param.name?.value === editModel.name?.value
+            );
+
             if (index >= 0) {
                 const updatedParameters = [...functionModel.parameters];
-                updatedParameters[index] = updatedPayloadModel;
+                updatedParameters[index] = updatedParam;
                 handleParamChange(updatedParameters);
             }
         }
-        // Close the modal
+
         setIsTypeEditorOpen(false);
+        setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     const handleTypeEditorClose = () => {
         setIsTypeEditorOpen(false);
+        setEditModel(undefined);
+        setEditingIndex(-1);
     };
 
     // Payload editor handlers
     const onAddPayloadClick = () => {
         // Open FormTypeEditor modal instead of ParamEditor
+        setIsTypeEditorOpen(true);
+    };
+
+    /**
+     * Handler for "+ Define {param}" buttons in inline mode
+     */
+    const onDefineParameterClick = (param: ParameterModel) => {
+        const index = functionModel.parameters.findIndex(
+            (p) => p.kind === "DATA_BINDING" && p.name?.value === param.name?.value
+        );
+        setEditingIndex(index);
+        setEditModel(param);
         setIsTypeEditorOpen(true);
     };
 
@@ -302,13 +409,16 @@ export function DatabindForm(props: DatabindFormProps) {
     const onSaveParam = (param: ParameterModel) => {
         param.enabled = true;
 
-        // If this is a DATA_BINDING parameter, disable the first parameter
-        if (param.kind === "DATA_BINDING" && functionModel.parameters && functionModel.parameters.length > 0) {
-            const firstParam = functionModel.parameters[0];
-            if (firstParam.kind === "REQUIRED") {
-                firstParam.enabled = false;
+        if (!useInlineDataBinding) {
+            // LEGACY MODE: Disable REQUIRED parameter when DATA_BINDING is enabled
+            if (param.kind === "DATA_BINDING" && functionModel.parameters && functionModel.parameters.length > 0) {
+                const firstParam = functionModel.parameters[0];
+                if (firstParam.kind === "REQUIRED") {
+                    firstParam.enabled = false;
+                }
             }
         }
+        // INLINE MODE: Skip mutual exclusion logic
 
         // Use the editingIndex for more reliable updates
         if (editingIndex >= 0) {
@@ -332,7 +442,10 @@ export function DatabindForm(props: DatabindFormProps) {
         setEditingIndex(-1);
     };
 
-    const payloadParameter = functionModel.parameters?.find((param) => param.kind === "DATA_BINDING" && param.enabled);
+    // Only needed for legacy mode
+    const payloadParameter = !useInlineDataBinding
+        ? functionModel.parameters?.find((param) => param.kind === "DATA_BINDING" && param.enabled)
+        : null;
 
     const advancedParameters = functionModel.parameters?.filter((param) => param.kind !== "DATA_BINDING" && param.optional) || [];
 
@@ -359,39 +472,97 @@ export function DatabindForm(props: DatabindFormProps) {
                         <MessageConfigSection>
                             <MessageConfigContent>
                                 <PayloadSection>
-                                    {/* Payload Section */}
-                                    {!payloadParameter && !editModel && (
-                                        <AddButtonWrapper>
-                                            <Tooltip content={`Define ${payloadFieldName} for easier access in the flow diagram`} position="bottom">
-                                                <LinkButton onClick={onAddPayloadClick}>
-                                                    <Codicon name="add" />
-                                                    Define {payloadFieldName}
-                                                </LinkButton>
-                                            </Tooltip>
-                                        </AddButtonWrapper>
-                                    )}
-                                    {payloadParameter && (
+                                    {/* LEGACY MODE: Show single "+ Define" button or payload parameter */}
+                                    {!useInlineDataBinding && (
                                         <>
-                                            <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
-                                                {payloadFieldName}
-                                            </Typography>
-                                            <Parameters
-                                                parameters={[payloadParameter]}
-                                                onChange={handlePayloadParamChange}
-                                                onEditClick={onEditPayloadClick}
-                                                showPayload={true}
-                                            />
+                                            {!payloadParameter && !editModel && (
+                                                <AddButtonWrapper>
+                                                    <Tooltip
+                                                        content={`Define ${payloadFieldName} for easier access in the flow diagram`}
+                                                        position="bottom"
+                                                    >
+                                                        <LinkButton onClick={onAddPayloadClick}>
+                                                            <Codicon name="add" />
+                                                            Define {payloadFieldName}
+                                                        </LinkButton>
+                                                    </Tooltip>
+                                                </AddButtonWrapper>
+                                            )}
+
+                                            {payloadParameter && (
+                                                <>
+                                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                                        {payloadFieldName}
+                                                    </Typography>
+                                                    <Parameters
+                                                        parameters={[payloadParameter]}
+                                                        onChange={handlePayloadParamChange}
+                                                        onEditClick={onEditPayloadClick}
+                                                        showPayload={true}
+                                                    />
+                                                </>
+                                            )}
                                         </>
                                     )}
 
-                                    {/* Payload Editor */}
-                                    {editModel && editModel.kind === "DATA_BINDING" && (
+                                    {/* INLINE MODE: Show each parameter with its "+ Define" button OR parameter row */}
+                                    {useInlineDataBinding && functionModel.parameters && (
+                                        <>
+                                            {functionModel.parameters
+                                                .filter((param) => param.kind === "DATA_BINDING" && param.enabled !== false)
+                                                .map((param, index) => {
+                                                    const capitalizedName = getCapitalizedParameterName(param);
+                                                    const isCustomized = isParameterCustomized(param);
+
+                                                    return (
+                                                        <div key={param.name?.value || index} style={{ marginBottom: 12 }}>
+                                                            {/* Show "+ Define" button if parameter is NOT customized */}
+                                                            {!isCustomized && (!editModel || isTypeEditorOpen) && (
+                                                                <AddButtonWrapper>
+                                                                    <Tooltip
+                                                                        content={`Define ${capitalizedName} type for easier access in the flow diagram`}
+                                                                        position="bottom"
+                                                                    >
+                                                                        <LinkButton onClick={() => onDefineParameterClick(param)}>
+                                                                            <Codicon name="add" />
+                                                                            Define {capitalizedName}
+                                                                        </LinkButton>
+                                                                    </Tooltip>
+                                                                </AddButtonWrapper>
+                                                            )}
+
+                                                            {/* Show parameter row if customized */}
+                                                            {isCustomized && (
+                                                                <>
+                                                                    <Typography sx={{ marginBlockEnd: 8 }} variant="body2">
+                                                                        {capitalizedName}
+                                                                    </Typography>
+                                                                    <Parameters
+                                                                        parameters={[param]}
+                                                                        onChange={handlePayloadParamChange}
+                                                                        onEditClick={onEditPayloadClick}
+                                                                        showPayload={true}
+                                                                    />
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                        </>
+                                    )}
+
+                                    {/* BOTH MODES: Payload Editor */}
+                                    {editModel && editModel.kind === "DATA_BINDING" && !isTypeEditorOpen && (
                                         <ParamEditor
                                             param={editModel}
                                             onChange={onChangeParam}
                                             onSave={onSaveParam}
                                             onCancel={onParamEditCancel}
-                                            payloadFieldName={payloadFieldName}
+                                            payloadFieldName={
+                                                useInlineDataBinding
+                                                    ? getCapitalizedParameterName(editModel)
+                                                    : payloadFieldName
+                                            }
                                         />
                                     )}
                                 </PayloadSection>
@@ -565,10 +736,19 @@ export function DatabindForm(props: DatabindFormProps) {
             {/* FormTypeEditor Modal for Add Payload */}
             <EntryPointTypeCreator
                 isOpen={isTypeEditorOpen}
+                defaultTab={getDefaultTab(functionModel)}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName={generatePayloadTypeName()}
-                modalTitle={"Define " + payloadFieldName}
+                initialTypeName={
+                    useInlineDataBinding && editModel
+                        ? generateParameterTypeName(editModel)
+                        : generatePayloadTypeName()
+                }
+                modalTitle={
+                    useInlineDataBinding && editModel
+                        ? `Define ${getCapitalizedParameterName(editModel)}`
+                        : "Define " + payloadFieldName
+                }
                 payloadContext={{
                     ...payloadContext,
                     queueOrTopic: getQueueDescriptionByModule(serviceModuleName)
