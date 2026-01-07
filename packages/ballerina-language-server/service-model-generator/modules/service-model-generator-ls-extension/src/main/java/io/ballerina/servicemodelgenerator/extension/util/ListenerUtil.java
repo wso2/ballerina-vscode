@@ -52,6 +52,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
+import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromSourceResponse;
@@ -287,8 +288,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Creates a base listener model from function metadata without parameter-specific properties.
-     * This method constructs a listener model with core metadata (name, type, description, etc.)
+     * Creates a base listener model from function metadata without parameter-specific properties. This method
+     * constructs a listener model with core metadata (name, type, description, etc.)
      *
      * @param functionData the function metadata containing listener configuration details
      * @return a {@link Listener} instance with basic metadata and variable name property only
@@ -384,15 +385,15 @@ public class ListenerUtil {
     }
 
     /**
-     * Processes a syntax tree node to extract listener information and create a response.
-     * This method handles both listener declarations and explicit new expressions that create listeners.
+     * Processes a syntax tree node to extract listener information and create a response. This method handles both
+     * listener declarations and explicit new expressions that create listeners.
      *
      * @param node          the syntax tree node to process (should be ListenerDeclarationNode or
      *                      ExplicitNewExpressionNode)
      * @param orgName       the organization name for looking up listener metadata
      * @param semanticModel the semantic model for symbol resolution
-     * @return {@link ListenerFromSourceResponse} containing the extracted listener model
-     * or empty response if processing fails
+     * @return {@link ListenerFromSourceResponse} containing the extracted listener model or empty response if
+     * processing fails
      */
     public static ListenerFromSourceResponse processListenerNode(NonTerminalNode node, String orgName,
                                                                  SemanticModel semanticModel,
@@ -414,8 +415,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Processes a listener declaration node to extract listener configuration and properties.
-     * This method handles listener variable declarations with their initialization expressions.
+     * Processes a listener declaration node to extract listener configuration and properties. This method handles
+     * listener variable declarations with their initialization expressions.
      *
      * @param listenerNode  the listener declaration syntax node
      * @param orgName       the organization name for looking up listener metadata
@@ -455,8 +456,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Creates a default HTTP listener model from a listener declaration node that uses the default HTTP listener.
-     * This method builds a listener model specifically for HTTP default listeners (http:getDefaultListener())
+     * Creates a default HTTP listener model from a listener declaration node that uses the default HTTP listener. This
+     * method builds a listener model specifically for HTTP default listeners (http:getDefaultListener())
      *
      * @param org          the organization name used to look up the HTTP listener metadata from the database
      * @param listenerNode the listener declaration node containing the default HTTP listener initialization
@@ -478,8 +479,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Processes an explicit new expression node that creates a listener instance.
-     * This method extracts listener configuration from constructor calls and removes the variable name property.
+     * Processes an explicit new expression node that creates a listener instance. This method extracts listener
+     * configuration from constructor calls and removes the variable name property.
      *
      * @param newExpressionNode the explicit new expression syntax node
      * @param semanticModel     the semantic model for symbol resolution
@@ -500,16 +501,16 @@ public class ListenerUtil {
     }
 
     /**
-     * Creates a listener model from a syntax tree node and class symbol with complete property analysis.
-     * This method constructs a comprehensive listener model by analyzing the listener's initialization
-     * arguments, setting up all properties, and configuring code metadata for UI representation.
+     * Creates a listener model from a syntax tree node and class symbol with complete property analysis. This method
+     * constructs a comprehensive listener model by analyzing the listener's initialization arguments, setting up all
+     * properties, and configuring code metadata for UI representation.
      *
      * @param lineRange         the line range in the source code where the listener is defined
      * @param newExpressionNode the new expression node containing the listener initialization
      * @param semanticModel     the semantic model for symbol resolution and type analysis
      * @param classSymbol       the class symbol representing the listener type
-     * @return a fully configured {@link Listener} model with analyzed properties, code metadata,
-     * and all properties marked as non-advanced for UI visibility
+     * @return a fully configured {@link Listener} model with analyzed properties, code metadata, and all properties
+     * marked as non-advanced for UI visibility
      */
     private static Listener createListenerModelFromNewExpressionNode(LineRange lineRange,
                                                                      NewExpressionNode newExpressionNode,
@@ -532,9 +533,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Builds function data from a class symbol's initialization method.
-     * This helper method extracts the init method information to create function metadata
-     * used for property analysis and listener model construction.
+     * Builds function data from a class symbol's initialization method. This helper method extracts the init method
+     * information to create function metadata used for property analysis and listener model construction.
      *
      * @param classSymbol   the class symbol representing the listener type
      * @param semanticModel the semantic model for symbol resolution
@@ -555,9 +555,8 @@ public class ListenerUtil {
     }
 
     /**
-     * Analyzes listener initialization arguments and sets corresponding properties.
-     * This method extracts argument values from the new expression and maps them to
-     * listener properties using the function metadata.
+     * Analyzes listener initialization arguments and sets corresponding properties. This method extracts argument
+     * values from the new expression and maps them to listener properties using the function metadata.
      *
      * @param listener          the listener model to populate with properties
      * @param functionData      the function metadata containing parameter information
@@ -576,8 +575,7 @@ public class ListenerUtil {
     }
 
     /**
-     * Sets all properties of a listener model as non-advanced.
-     * to make all properties visible and editable in the UI.
+     * Sets all properties of a listener model as non-advanced. to make all properties visible and editable in the UI.
      *
      * @param listenerModel the listener model whose properties should be marked as non-advanced
      */
@@ -614,6 +612,129 @@ public class ListenerUtil {
                 .setAdvanced(false);
 
         return valueBuilder.build();
+    }
+
+    /**
+     * Builds a CHOICE property for listener configuration with options to use an existing listener or create a new
+     * one.
+     *
+     * @param listenerConfigProperties Map of properties needed to create a new listener
+     * @param existingListeners        Set of existing listener variable names
+     * @param moduleName               Module name for display (e.g., "Solace", "RabbitMQ")
+     * @return Value configured as CHOICE with two options.
+     */
+    public static Value buildListenerChoiceProperty(Map<String, Value> listenerConfigProperties,
+                                                    Set<String> existingListeners,
+                                                    String moduleName) {
+        Value choicesProperty = new Value.ValueBuilder()
+                .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
+                .value(true)
+                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(true)
+                .build();
+
+        choicesProperty.setChoices(List.of(buildUseExistingListenerChoice(existingListeners, moduleName),
+                buildCreateNewListenerChoice(listenerConfigProperties, moduleName)));
+        return choicesProperty;
+    }
+
+    /**
+     * Builds a "Use Existing Listener" choice with a dropdown of available listeners.
+     *
+     * @param listeners  Set of existing listener variable names
+     * @param moduleName Module name for display (e.g., "Solace", "RabbitMQ")
+     * @return Value configured as a FORM with a single select dropdown.
+     */
+    private static Value buildUseExistingListenerChoice(Set<String> listeners, String moduleName) {
+        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
+        List<String> items = listeners.stream().toList();
+        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
+        Value existingListenerOptions = new Value.ValueBuilder()
+                .metadata("Select Listener",
+                        String.format("Select from the existing %s listeners", moduleName))
+                .value(items.getFirst())
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
+                .enabled(true)
+                .editable(true)
+                .setAdvanced(false)
+                .build();
+        existingListenerProps.put(ServiceInitModel.KEY_EXISTING_LISTENER, existingListenerOptions);
+
+        return new Value.ValueBuilder()
+                .metadata("Use Existing Listener", "Use Existing Listener")
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(false)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingListenerProps)
+                .build();
+    }
+
+    /**
+     * Builds a "Create New Listener" choice with configuration properties.
+     *
+     * @param existingListenerProps Map of properties for creating a new listener
+     * @param moduleName            Module name for display (e.g., "Solace", "RabbitMQ")
+     * @return Value configured as a FORM with listener configuration properties.
+     */
+    private static Value buildCreateNewListenerChoice(Map<String, Value> existingListenerProps,
+                                                      String moduleName) {
+        return new Value.ValueBuilder()
+                .metadata("Create New Listener",
+                        String.format("Create a new %s listener", moduleName))
+                .value("true")
+                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
+                .enabled(false)
+                .editable(false)
+                .setAdvanced(false)
+                .setProperties(existingListenerProps)
+                .build();
+    }
+
+    /**
+     * Removes specified listener configuration properties from the main properties map and returns them in a new map.
+     *
+     * @param allProperties The complete properties map
+     * @param propertyKeys  Keys of properties to remove and collect
+     * @return Map containing only the removed listener properties.
+     */
+    public static Map<String, Value> removeAndCollectListenerProperties(Map<String, Value> allProperties,
+                                                                        List<String> propertyKeys) {
+        Map<String, Value> listenerProps = new LinkedHashMap<>();
+        for (String key : propertyKeys) {
+            Value value = allProperties.remove(key);
+            if (value != null) {
+                listenerProps.put(key, value);
+            }
+        }
+        return listenerProps;
+    }
+
+    /**
+     * Determines whether an existing listener should be used based on the properties.
+     *
+     * @param properties Service initialization properties
+     * @return true if an existing listener was selected.
+     */
+    public static boolean shouldUseExistingListener(Map<String, Value> properties) {
+        return properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER);
+    }
+
+    /**
+     * Retrieves the name of the selected existing listener.
+     *
+     * @param properties Service initialization properties
+     * @return Optional containing the listener name if selected.
+     */
+    public static Optional<String> getExistingListenerName(Map<String, Value> properties) {
+        if (!properties.containsKey(ServiceInitModel.KEY_EXISTING_LISTENER)) {
+            return Optional.empty();
+        }
+        Value existingListener = properties.get(ServiceInitModel.KEY_EXISTING_LISTENER);
+        return Optional.ofNullable(existingListener.getValue());
     }
 
     public record DefaultListener(String moduleName, String variableName, LinePosition linePosition) {

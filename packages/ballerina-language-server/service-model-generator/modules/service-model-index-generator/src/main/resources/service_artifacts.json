@@ -1623,6 +1623,220 @@
           "kind": "ANNOTATION"
         }
       ]
+    },
+    {
+      "name": "mssql",
+      "version": "1.16.1",
+      "serviceTypeSkipList": [],
+      "serviceDeclaration": {
+        "displayName": "CDC for Microsoft SQL Server",
+        "description": "Create an integration that captures Microsoft SQL Server database changes in real-time",
+        "optionalTypeDescriptor": 1,
+        "typeDescriptorLabel": "Service Type",
+        "typeDescriptorDescription": "",
+        "typeDescriptorDefaultValue": "Service",
+        "addDefaultTypeDescriptor": 0,
+        "optionalAbsoluteResourcePath": 1,
+        "absoluteResourcePathLabel": "Service Base Path",
+        "absoluteResourcePathDescription": "",
+        "absoluteResourcePathDefaultValue": "",
+        "optionalStringLiteral": 1,
+        "stringLiteralLabel": "Service Base Path",
+        "stringLiteralDescription": "",
+        "stringLiteralDefaultValue": "",
+        "listenerKind": "MULTIPLE_SELECT_LISTENER",
+        "kind": "event"
+      },
+      "serviceTypes": {
+        "Service": {
+          "name": "Service",
+          "description": "",
+          "functions": [
+            {
+              "name": "onRead",
+              "description": "Triggers initially to read existing records from the monitored table",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "afterEntry",
+                  "label": "After Entry",
+                  "description": "The existing record from the monitored table",
+                  "kind": "DATA_BINDING",
+                  "type": "record {}",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "tableName",
+                  "label": "Table Name",
+                  "description": "The name of the table where the record was created",
+                  "kind": "OPTIONAL",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onCreate",
+              "description": "Triggers when a new record is created in the monitored table",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "afterEntry",
+                  "label": "After Entry",
+                  "description": "The new record created in the monitored table",
+                  "kind": "DATA_BINDING",
+                  "type": "record {}",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "tableName",
+                  "label": "Table Name",
+                  "description": "The name of the table where the record was created",
+                  "kind": "OPTIONAL",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onUpdate",
+              "description": "Triggers when an existing record is updated in the monitored table",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "beforeEntry",
+                  "label": "Before Entry",
+                  "description": "The record before the update in the monitored table",
+                  "kind": "DATA_BINDING",
+                  "type": "record {}",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "afterEntry",
+                  "label": "After Entry",
+                  "description": "The record after the update in the monitored table",
+                  "kind": "DATA_BINDING",
+                  "type": "record {}",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "tableName",
+                  "label": "Table Name",
+                  "description": "The name of the table where the record was created",
+                  "kind": "OPTIONAL",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onDelete",
+              "description": "Triggers when a record is deleted from the monitored table",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "error?",
+              "returnError": 1,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "beforeEntry",
+                  "label": "Before Entry",
+                  "description": "The record before the deletion in the monitored table",
+                  "kind": "DATA_BINDING",
+                  "type": "record {}",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 1
+                },
+                {
+                  "name": "tableName",
+                  "label": "Table Name",
+                  "description": "The name of the table where the record was created",
+                  "kind": "OPTIONAL",
+                  "type": "string",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            },
+            {
+              "name": "onError",
+              "description": "Triggers when an error occurs during event processing before mandatory functions are invoked",
+              "accessor": "",
+              "kind": "REMOTE",
+              "returnType": "",
+              "returnError": 0,
+              "returnTypeEditable": 0,
+              "enable": 0,
+              "optional": 1,
+              "parameters": [
+                {
+                  "name": "cdcError",
+                  "label": "CDC Error",
+                  "description": "The error occurred during message processing",
+                  "kind": "REQUIRED",
+                  "type": "cdc:Error",
+                  "defaultValue": "",
+                  "importStatements": "",
+                  "nameEditable": 1,
+                  "typeEditable": 0
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "readOnlyMetadata": [
+        {
+          "key": "tables",
+          "displayName": "Table Name",
+          "kind": "ANNOTATION"
+        }
+      ]
     }
   ]
 }

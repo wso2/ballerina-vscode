@@ -1,0 +1,337 @@
+{
+  "filePath": "add_mssl_function.bal",
+  "description": "Add onUpdate function with databinding for mssl",
+  "codedata": {
+    "lineRange": {
+      "startLine": {
+        "line": 6,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 7,
+        "offset": 1
+      }
+    }
+  },
+  "function": {
+    "metadata": {
+      "label": "onUpdate",
+      "description": "Triggers when an existing record is updated in the monitored table"
+    },
+    "kind": "REMOTE",
+    "name": {
+      "metadata": {
+        "label": "onUpdate",
+        "description": "Triggers when an existing record is updated in the monitored table"
+      },
+      "placeholder": "onUpdate",
+      "value": "onUpdate",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": false,
+      "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
+      "advanced": false
+    },
+    "parameters": [
+      {
+        "metadata": {
+          "label": "beforeEntry",
+          "description": "The record before the update in the monitored table"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "placeholder": "record {}",
+          "value": "AfterEntrySchema",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "beforeEntry",
+            "description": "The record before the update in the monitored table"
+          },
+          "placeholder": "beforeEntry",
+          "value": "beforeEntry",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "afterEntry",
+          "description": "The record after the update in the monitored table"
+        },
+        "kind": "DATA_BINDING",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "placeholder": "record {}",
+          "value": "AfterEntrySchema",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "afterEntry",
+            "description": "The record after the update in the monitored table"
+          },
+          "placeholder": "afterEntry",
+          "value": "afterEntry",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      },
+      {
+        "metadata": {
+          "label": "tableName",
+          "description": "The name of the table where the record was created"
+        },
+        "kind": "OPTIONAL",
+        "type": {
+          "metadata": {
+            "label": "Parameter Type",
+            "description": "The type of the parameter"
+          },
+          "placeholder": "string",
+          "value": "string",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": false,
+          "optional": true,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "tableName",
+            "description": "The name of the table where the record was created"
+          },
+          "placeholder": "tableName",
+          "value": "tableName",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "The default value of the parameter"
+          },
+          "placeholder": "",
+          "value": "",
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "editable": true,
+        "optional": true,
+        "advanced": false,
+        "hidden": false,
+        "isGraphqlId": false
+      }
+    ],
+    "returnType": {
+      "hasError": true,
+      "isGraphqlId": false,
+      "metadata": {
+        "label": "Return Type",
+        "description": "The return type of the function"
+      },
+      "placeholder": "error?",
+      "value": "error?",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": false,
+      "optional": true,
+      "advanced": false
+    },
+    "enabled": false,
+    "optional": true,
+    "editable": false,
+    "canAddParameters": false,
+    "codedata": {
+      "moduleName": "mssql"
+    },
+    "properties": {}
+  },
+  "output": {
+    "add_mssl_function.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 6,
+            "character": 41
+          },
+          "end": {
+            "line": 6,
+            "character": 41
+          }
+        },
+        "newText": "\n\tremote function onUpdate(AfterEntrySchema beforeEntry, AfterEntrySchema afterEntry, string tableName) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}"
+      }
+    ]
+  }
+}

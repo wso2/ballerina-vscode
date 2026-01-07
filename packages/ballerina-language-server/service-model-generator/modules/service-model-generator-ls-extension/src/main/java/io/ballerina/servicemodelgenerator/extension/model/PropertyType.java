@@ -56,14 +56,23 @@ public class PropertyType {
     private final List<Option> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
+    private final Integer minItems;
+    private final Integer defaultItems;
+    private final String pattern;
+    private final String patternErrorMessage;
 
     public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Option> options,
-                        List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
+                        List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
+                        Integer defaultItems, String pattern, String patternErrorMessage) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.options = options;
         this.typeMembers = typeMembers;
         this.selected = selected;
+        this.minItems = minItems;
+        this.defaultItems = defaultItems;
+        this.pattern = pattern;
+        this.patternErrorMessage = patternErrorMessage;
     }
 
     public static PropertyType types(Value.FieldType fieldType) {
@@ -146,7 +155,7 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, false));
+                                        distinctMembers, false, null, null, null, null));
                             }
                         });
             }
@@ -303,12 +312,32 @@ public class PropertyType {
         this.selected = selected;
     }
 
+    public Integer minItems() {
+        return minItems;
+    }
+
+    public Integer defaultItems() {
+        return defaultItems;
+    }
+
+    public String pattern() {
+        return pattern;
+    }
+
+    public String patternErrorMessage() {
+        return patternErrorMessage;
+    }
+
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
         private List<Option> options;
         private List<PropertyTypeMemberInfo> typeMembers;
         private boolean selected = false;
+        private Integer minItems;
+        private Integer defaultItems;
+        private String pattern;
+        private String patternErrorMessage;
 
         public Builder() {
         }
@@ -344,8 +373,29 @@ public class PropertyType {
             return this;
         }
 
+        public Builder minItems(Integer minItems) {
+            this.minItems = minItems;
+            return this;
+        }
+
+        public Builder defaultItems(Integer defaultItems) {
+            this.defaultItems = defaultItems;
+            return this;
+        }
+
+        public Builder pattern(String pattern) {
+            this.pattern = pattern;
+            return this;
+        }
+
+        public Builder patternErrorMessage(String patternErrorMessage) {
+            this.patternErrorMessage = patternErrorMessage;
+            return this;
+        }
+
         public PropertyType build() {
-            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected);
+            return new PropertyType(fieldType, ballerinaType, options, typeMembers, selected, minItems,
+                    defaultItems, pattern, patternErrorMessage);
         }
     }
 

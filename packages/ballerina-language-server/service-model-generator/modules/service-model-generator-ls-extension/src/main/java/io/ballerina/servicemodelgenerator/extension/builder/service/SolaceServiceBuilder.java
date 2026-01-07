@@ -33,13 +33,11 @@ import org.eclipse.lsp4j.TextEdit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_CONFIGURE_LISTENER;
-import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_LISTENER_VAR_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -56,7 +54,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.PROPERTY
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.applyAckModeToOnMessageFunction;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildAuthenticationChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildDestinationChoice;
-import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildListenerChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildSecureSocketChoice;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceAnnotation;
 import static io.ballerina.servicemodelgenerator.extension.util.JmsUtil.buildServiceCodeEdits;
@@ -74,6 +71,8 @@ import static io.ballerina.servicemodelgenerator.extension.util.Utils.applyEnabl
  */
 public final class SolaceServiceBuilder extends AbstractServiceBuilder {
 
+    private static final String PROPERTY_URL = "url";
+    private static final String PROPERTY_MESSAGE_VPN = "messageVpn";
     private static final String PROPERTY_DESTINATION = "destination";
     private static final String PROPERTY_AUTHENTICATION = "authentication";
     private static final String PROPERTY_SECURE_SOCKET = "secureSocket";
@@ -101,9 +100,9 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
     public static final String TYPE_PREFIX = "SolaceMessage";
 
     // Listener configuration property keys
-    private static final String[] LISTENER_CONFIG_KEYS = {
-            KEY_LISTENER_VAR_NAME, "url", "messageVpn", PROPERTY_AUTHENTICATION, PROPERTY_SECURE_SOCKET
-    };
+    private static final List<String> LISTENER_CONFIG_KEYS = List.of(
+            KEY_LISTENER_VAR_NAME, PROPERTY_URL, PROPERTY_MESSAGE_VPN, PROPERTY_AUTHENTICATION, PROPERTY_SECURE_SOCKET
+    );
 
     @Override
     public ServiceInitModel getServiceInitModel(GetServiceInitModelContext context) {
@@ -124,11 +123,9 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
                 context.semanticModel(), context.project());
 
         if (!listeners.isEmpty()) {
-            Map<String, Value> listenerProps = new LinkedHashMap<>();
-            for (String key : LISTENER_CONFIG_KEYS) {
-                listenerProps.put(key, properties.remove(key));
-            }
-            Value choicesProperty = buildListenerChoice(listenerProps, listeners, LABEL_SOLACE);
+            Map<String, Value> listenerProps =
+                    ListenerUtil.removeAndCollectListenerProperties(properties, LISTENER_CONFIG_KEYS);
+            Value choicesProperty = ListenerUtil.buildListenerChoiceProperty(listenerProps, listeners, LABEL_SOLACE);
             properties.put(KEY_CONFIGURE_LISTENER, choicesProperty);
         }
 
@@ -168,12 +165,13 @@ public final class SolaceServiceBuilder extends AbstractServiceBuilder {
             return addServiceWithNewListener(context);
         }
         applyEnabledChoiceProperty(serviceInitModel, KEY_CONFIGURE_LISTENER);
+        cleanSecureSocketProperty(properties);
         applyAuthenticationProperty(properties);
 
         ListenerDTO listenerDTO;
-        if (properties.containsKey(KEY_EXISTING_LISTENER)) {
-            listenerDTO = new ListenerDTO(context.serviceInitModel().getModuleName(),
-                    properties.get(KEY_EXISTING_LISTENER).getValue(), "");
+        if (ListenerUtil.shouldUseExistingListener(properties)) {
+            String listenerName = ListenerUtil.getExistingListenerName(properties).orElse("");
+            listenerDTO = new ListenerDTO(context.serviceInitModel().getModuleName(), listenerName, "");
         } else {
             listenerDTO = buildListenerDTO(context);
         }
