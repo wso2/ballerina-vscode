@@ -99,7 +99,7 @@ export class ChatStateStorage {
      * Cleans up any pending review temp projects before clearing.
      * @param workspaceId Workspace identifier
      */
-    clearWorkspace(workspaceId: string): void {
+    async clearWorkspace(workspaceId: string): Promise<void> {
         // Cleanup pending review temp projects before clearing
         const workspace = this.storage.get(workspaceId);
         if (workspace) {
@@ -112,7 +112,7 @@ export class ChatStateStorage {
                     if (!process.env.AI_TEST_ENV) {
                         const { cleanupTempProject } = require('../../features/ai/utils/project/temp-project');
                         try {
-                            cleanupTempProject(pendingReview.reviewState.tempProjectPath);
+                            await cleanupTempProject(pendingReview.reviewState.tempProjectPath);
                         } catch (error) {
                             console.error(`[ChatStateStorage] Error cleaning up temp project:`, error);
                         }
@@ -129,12 +129,10 @@ export class ChatStateStorage {
      * Clear all workspace states
      * Cleans up temp projects for each workspace before clearing.
      */
-    clearAll(): void {
+    async clearAll(): Promise<void> {
         // Clear each workspace individually to trigger cleanup logic
         const workspaceIds = Array.from(this.storage.keys());
-        for (const workspaceId of workspaceIds) {
-            this.clearWorkspace(workspaceId);
-        }
+        await Promise.all(workspaceIds.map(workspaceId => this.clearWorkspace(workspaceId)));
         console.log('[ChatStateStorage] Cleared all workspaces');
     }
 

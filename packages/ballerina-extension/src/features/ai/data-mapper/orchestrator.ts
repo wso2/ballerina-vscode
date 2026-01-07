@@ -678,7 +678,7 @@ export async function generateMappingCode(mappingRequest: ProcessMappingParamete
         throw error;
     } finally {
         // Cleanup for backward compatibility
-        cleanupTempProject(tempProjectPath);
+        await cleanupTempProject(tempProjectPath);
     }
 }
 
@@ -1020,7 +1020,7 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
         throw error;
     } finally {
         // Cleanup for backward compatibility
-        cleanupTempProject(tempProjectPath);
+        await cleanupTempProject(tempProjectPath);
     }
 }
 
@@ -1132,7 +1132,7 @@ export async function generateContextTypes(typeCreationRequest: ProcessContextTy
         throw error;
     } finally {
         // Cleanup for backward compatibility
-        cleanupTempProject(tempProjectPath);
+        await cleanupTempProject(tempProjectPath);
     }
 }
 
