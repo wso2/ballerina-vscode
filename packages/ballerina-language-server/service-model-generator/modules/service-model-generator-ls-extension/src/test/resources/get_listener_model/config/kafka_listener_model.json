@@ -1,21 +1,24 @@
 {
   "description": "Test getting kafka listener model",
-  "orgName": "ballerinax",
-  "pkgName": "kafka",
-  "moduleName": "kafka",
+  "codedata": {
+    "orgName": "ballerinax",
+    "packageName": "kafka",
+    "moduleName": "kafka",
+    "version": "4.6.0"
+  },
+  "filePath": "sample1/main.bal",
   "response": {
     "listener": {
-      "id": "11",
       "name": "Kafka Listener",
       "type": "kafka",
       "displayName": "Kafka",
-      "description": "Represents a Kafka consumer endpoint.\n",
+      "description": "Creates a new `kafka:Listener`.\n",
       "moduleName": "kafka",
       "orgName": "ballerinax",
-      "version": "4.5.0",
+      "version": "4.6.0",
       "packageName": "kafka",
       "listenerProtocol": "kafka",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.0.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -25,9 +28,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -43,20 +50,21 @@
             "originalName": "bootstrapServers"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "ARRAY_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
               "selected": false
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
               "selected": false
             }
           ],
@@ -75,14 +83,16 @@
             "originalName": "groupId"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -101,20 +111,21 @@
             "originalName": "topics"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "ARRAY_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
               "selected": false
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
               "selected": false
             }
           ],
@@ -133,14 +144,21 @@
             "originalName": "offsetReset"
           },
           "placeholder": "\"earliest\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:OffsetResetMethod",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "OffsetResetMethod",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:OffsetResetMethod",
+              "options": [
+                "earliest",
+                "latest",
+                "none"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:OffsetResetMethod",
               "selected": false
             }
           ],
@@ -159,14 +177,16 @@
             "originalName": "partitionAssignmentStrategy"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -185,14 +205,16 @@
             "originalName": "metricsRecordingLevel"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -211,14 +233,16 @@
             "originalName": "metricsReporterClasses"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -237,14 +261,16 @@
             "originalName": "clientId"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -263,14 +289,16 @@
             "originalName": "interceptorClasses"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -289,14 +317,20 @@
             "originalName": "isolationLevel"
           },
           "placeholder": "\"read_committed\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:IsolationLevel",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "IsolationLevel",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:IsolationLevel",
+              "options": [
+                "read_committed",
+                "read_uncommitted"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:IsolationLevel",
               "selected": false
             }
           ],
@@ -315,14 +349,16 @@
             "originalName": "schemaRegistryUrl"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -341,14 +377,16 @@
             "originalName": "schemaRegistryConfig"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "map<anydata> & readonly",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "map<anydata> & readonly",
-              "packageInfo": "",
-              "kind": "MAP_TYPE",
+              "fieldType": "MAPPING_EXPRESSION_SET",
+              "ballerinaType": "map<anydata> & readonly",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "map<anydata> & readonly",
               "selected": false
             }
           ],
@@ -366,15 +404,21 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "keyDeserializerType"
           },
-          "placeholder": "kafka:DES_BYTE_ARRAY",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:DeserializerType",
+          "placeholder": "\"DES_AVRO\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "DeserializerType",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:DeserializerType",
+              "options": [
+                "DES_AVRO",
+                "DES_BYTE_ARRAY"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:DeserializerType",
               "selected": false
             }
           ],
@@ -392,15 +436,21 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "valueDeserializerType"
           },
-          "placeholder": "kafka:DES_BYTE_ARRAY",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:DeserializerType",
+          "placeholder": "\"DES_AVRO\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "DeserializerType",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:DeserializerType",
+              "options": [
+                "DES_AVRO",
+                "DES_BYTE_ARRAY"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:DeserializerType",
               "selected": false
             }
           ],
@@ -419,14 +469,16 @@
             "originalName": "additionalProperties"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "map<string>",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "map<string>",
-              "packageInfo": "",
-              "kind": "MAP_TYPE",
+              "fieldType": "MAPPING_EXPRESSION_SET",
+              "ballerinaType": "map<string>",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "map<string>",
               "selected": false
             }
           ],
@@ -445,14 +497,16 @@
             "originalName": "sessionTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -471,14 +525,16 @@
             "originalName": "heartBeatInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -497,14 +553,16 @@
             "originalName": "metadataMaxAge"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -523,14 +581,16 @@
             "originalName": "autoCommitInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -549,14 +609,16 @@
             "originalName": "maxPartitionFetchBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -575,14 +637,16 @@
             "originalName": "sendBuffer"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -601,14 +665,16 @@
             "originalName": "receiveBuffer"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -627,14 +693,16 @@
             "originalName": "fetchMinBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -653,14 +721,16 @@
             "originalName": "fetchMaxBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -679,14 +749,16 @@
             "originalName": "fetchMaxWaitTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -705,14 +777,16 @@
             "originalName": "reconnectBackoffTimeMax"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -731,14 +805,16 @@
             "originalName": "retryBackoff"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -757,14 +833,16 @@
             "originalName": "metricsSampleWindow"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -783,14 +861,16 @@
             "originalName": "metricsNumSamples"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -809,14 +889,16 @@
             "originalName": "requestTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -835,14 +917,16 @@
             "originalName": "connectionMaxIdleTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -861,14 +945,16 @@
             "originalName": "maxPollRecords"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -887,14 +973,16 @@
             "originalName": "maxPollInterval"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -913,14 +1001,16 @@
             "originalName": "reconnectBackoffTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -939,14 +1029,16 @@
             "originalName": "pollingTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -965,14 +1057,16 @@
             "originalName": "pollingInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -991,14 +1085,16 @@
             "originalName": "concurrentConsumers"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -1017,14 +1113,16 @@
             "originalName": "defaultApiTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -1042,15 +1140,17 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "autoCommit"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1068,15 +1168,17 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "checkCRCS"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1094,15 +1196,17 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "excludeInternalTopics"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1121,14 +1225,16 @@
             "originalName": "decoupleProcessing"
           },
           "placeholder": "false",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1146,15 +1252,17 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "validation"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1172,15 +1280,17 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "autoSeekOnValidationFailure"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1199,14 +1309,24 @@
             "originalName": "secureSocket"
           },
           "placeholder": "{cert: {path: \"\", password: \"\"}}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:SecureSocket",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "SecureSocket",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "kafka:SecureSocket",
+              "typeMembers": [
+                {
+                  "type": "SecureSocket",
+                  "packageInfo": "ballerinax:kafka:4.6.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:SecureSocket",
               "selected": false
             }
           ],
@@ -1225,14 +1345,24 @@
             "originalName": "auth"
           },
           "placeholder": "{username: \"\", password: \"\"}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:AuthenticationConfiguration",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "AuthenticationConfiguration",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "kafka:AuthenticationConfiguration",
+              "typeMembers": [
+                {
+                  "type": "AuthenticationConfiguration",
+                  "packageInfo": "ballerinax:kafka:4.6.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:AuthenticationConfiguration",
               "selected": false
             }
           ],
@@ -1250,15 +1380,23 @@
             "type": "LISTENER_INIT_PARAM",
             "originalName": "securityProtocol"
           },
-          "placeholder": "kafka:PROTOCOL_PLAINTEXT",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:SecurityProtocol",
+          "placeholder": "\"PLAINTEXT\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "SecurityProtocol",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:SecurityProtocol",
+              "options": [
+                "PLAINTEXT",
+                "SASL_PLAINTEXT",
+                "SASL_SSL",
+                "SSL"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:SecurityProtocol",
               "selected": false
             }
           ],

@@ -168,5 +168,9 @@ public class FunctionData {
         public static boolean isConnector(Kind kind) {
             return kind == CONNECTOR;
         }
+
+        public static boolean isListener(Kind kind) {
+            return kind == LISTENER_INIT;
+        }
     }
 }
