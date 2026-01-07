@@ -54,7 +54,7 @@ public class GetServiceModelFromSourceTest extends AbstractLSTest {
         bufferedReader.close();
 
         String sourcePath = sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString();
-        Codedata codedata = new Codedata(LineRange.from(sourcePath, testConfig.start(), testConfig.end()));
+        Codedata codedata = new Codedata(LineRange.from(testConfig.filePath(), testConfig.start(), testConfig.end()));
         CommonModelFromSourceRequest sourceRequest = new CommonModelFromSourceRequest(sourcePath, codedata);
         JsonObject jsonMap = getResponseAndCloseFile(sourceRequest, sourcePath);
         ServiceFromSourceResponse serviceFromSourceResponse = gson.fromJson(jsonMap, ServiceFromSourceResponse.class);
@@ -67,6 +67,7 @@ public class GetServiceModelFromSourceTest extends AbstractLSTest {
                     new GetServiceModelFromSourceTest.TestConfig(testConfig.filePath(), testConfig.description(),
                             testConfig.start(), testConfig.end(), actualServiceModelJson);
 //            updateConfig(configJsonPath, updatedConfig);
+            compareJsonElements(jsonMap, testConfig.response());
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }
