@@ -7,7 +7,7 @@
   "response": {
     "serviceInitModel": {
       "id": "17",
-      "displayName": "Microsoft SQL Server CDC Service",
+      "displayName": "Microsoft SQL Server CDC Integration",
       "description": "Create a service to capture data changes from a Microsoft SQL Server database using CDC",
       "orgName": "ballerinax",
       "packageName": "mssql",
@@ -56,7 +56,7 @@
           "value": "1433",
           "types": [
             {
-              "fieldType": "TEXT",
+              "fieldType": "NUMBER",
               "ballerinaType": "int",
               "selected": true
             },
@@ -139,7 +139,7 @@
           "placeholder": "",
           "types": [
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "TEXT_SET",
               "ballerinaType": "string",
               "selected": false,
               "minItems": 1,
@@ -163,7 +163,7 @@
           "placeholder": "",
           "types": [
             {
-              "fieldType": "EXPRESSION_SET",
+              "fieldType": "TEXT_SET",
               "ballerinaType": "string",
               "selected": false,
               "minItems": 0,
