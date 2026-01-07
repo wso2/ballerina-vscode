@@ -331,6 +331,11 @@ export function DataMapperView(props: DataMapperViewProps) {
     }
 
     const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index: number) => {
+        /*
+        isNew -> index = -1 -> add to top
+        isNew -> index >=0 -> add to the end of index
+        not isNew -> edit the clause available at the index
+         */
         try {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
