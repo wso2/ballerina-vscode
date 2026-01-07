@@ -18,7 +18,6 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { AIChatMachineEventType } from "@wso2/ballerina-core";
 
 const Container = styled.div<{ variant: string }>`
     padding: 16px;
@@ -391,6 +390,24 @@ const Status = styled.div`
     margin-top: 8px;
 `;
 
+const ValidationError = styled.div`
+    padding: 8px 12px;
+    margin-top: 8px;
+    background-color: var(--vscode-inputValidation-errorBackground);
+    border: 1px solid var(--vscode-inputValidation-errorBorder);
+    border-radius: 4px;
+    color: var(--vscode-inputValidation-errorForeground);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &::before {
+        content: "⚠";
+        font-size: 14px;
+    }
+`;
+
 interface ConnectorGeneratorData {
     requestId: string;
     stage: "requesting_input" | "input_received" | "generating" | "generated" | "skipped" | "error";
@@ -420,6 +437,38 @@ interface ConnectorGeneratorSegmentProps {
     rpcClient: any;
 }
 
+// Validation helper functions
+function isValidUrl(urlString: string): boolean {
+    try {
+        const url = new URL(urlString);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
+function validateSpecContent(content: string): { valid: boolean; error?: string } {
+    if (!content || !content.trim()) {
+        return { valid: false, error: "Specification content cannot be empty" };
+    }
+
+    // Try parsing as JSON
+    try {
+        JSON.parse(content);
+        return { valid: true };
+    } catch (jsonError) {
+        // If JSON parsing fails, assume it might be YAML (we don't validate YAML syntax here
+        // as the backend will do that, but we can check for basic structure)
+        if (content.includes("openapi:") || content.includes("swagger:")) {
+            return { valid: true };
+        }
+        return {
+            valid: false,
+            error: "Content must be valid JSON or YAML format. Ensure it contains 'openapi' or 'swagger' field.",
+        };
+    }
+}
+
 export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps> = ({ data, rpcClient }) => {
     const [inputMethod, setInputMethod] = useState<"file" | "paste" | "url">("file");
     const [specContent, setSpecContent] = useState("");
@@ -427,6 +476,7 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
     const [skipComment, setSkipComment] = useState("");
     const [showSkipInput, setShowSkipInput] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -435,65 +485,94 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
             return;
         }
 
+        // Clear previous errors
+        setValidationError(null);
+
         const reader = new FileReader();
         reader.onload = async (event) => {
             const content = event.target?.result as string;
-            await handleSubmit("file", content, file.name);
+
+            // Validate file content
+            const validation = validateSpecContent(content);
+            if (!validation.valid) {
+                setValidationError(validation.error || "Invalid specification file");
+                return;
+            }
+
+            await handleSubmit("file", content);
         };
         reader.onerror = (error) => {
             console.error("[ConnectorGenerator UI] File read error:", error);
+            setValidationError("Failed to read file. Please try again.");
         };
         reader.readAsText(file);
     };
 
-    const handleSubmit = async (method: "file" | "paste" | "url", content?: string, identifier?: string) => {
+    const handleSubmit = async (method: "file" | "paste" | "url", content?: string) => {
+        // Clear previous errors
+        setValidationError(null);
         setIsProcessing(true);
 
         let specData: any;
-        let sourceId: string | undefined;
 
         try {
             if (method === "url") {
+                // Validate URL before fetching
+                if (!isValidUrl(specUrl)) {
+                    throw new Error("Invalid URL. Please enter a valid HTTP or HTTPS URL.");
+                }
+
                 const response = await fetch(specUrl);
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`Failed to fetch: HTTP ${response.status} ${response.statusText}`);
                 }
                 specData = await response.text();
-                sourceId = specUrl;
+
+                // Validate fetched content
+                const validation = validateSpecContent(specData);
+                if (!validation.valid) {
+                    throw new Error(validation.error || "Fetched content is not a valid OpenAPI specification");
+                }
             } else if (method === "paste") {
+                // Validate pasted content
+                const validation = validateSpecContent(specContent);
+                if (!validation.valid) {
+                    throw new Error(validation.error || "Invalid specification content");
+                }
                 specData = specContent;
-                sourceId = "pasted-content";
             } else if (method === "file" && content) {
                 specData = content;
-                sourceId = identifier;
             }
 
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.PROVIDE_CONNECTOR_SPEC,
-                payload: {
-                    requestId: data.requestId,
-                    spec: specData,
-                    inputMethod: method,
-                    sourceIdentifier: sourceId,
-                },
+            await rpcClient.getAiPanelRpcClient().provideConnectorSpec({
+                requestId: data.requestId,
+                spec: specData
             });
+
+            // Success - the UI will update via connector_generation_notification event
+            setIsProcessing(false);
         } catch (error: any) {
             console.error("[ConnectorGenerator UI] Error in handleSubmit:", error);
+            setValidationError(error.message || "Failed to process specification. Please try again.");
             setIsProcessing(false);
         }
     };
 
-    const handleSkip = () => {
+    const handleSkip = async () => {
         if (showSkipInput) {
-            rpcClient.sendAIChatStateEvent({
-                type: AIChatMachineEventType.SKIP_CONNECTOR_GENERATION,
-                payload: {
+            try {
+                await rpcClient.getAiPanelRpcClient().cancelConnectorSpec({
                     requestId: data.requestId,
-                    comment: skipComment.trim() || undefined,
-                },
-            });
-            setShowSkipInput(false);
-            setSkipComment("");
+                    comment: skipComment.trim() || undefined
+                });
+                setShowSkipInput(false);
+                setSkipComment("");
+            } catch (error: any) {
+                console.error("[ConnectorGenerator UI] Error in handleSkip:", error);
+                // Still reset UI even on error
+                setShowSkipInput(false);
+                setSkipComment("");
+            }
         } else {
             setShowSkipInput(true);
         }
@@ -521,13 +600,31 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
 
                 <InputMethods>
                     <InputMethodTabs>
-                        <MethodTab active={inputMethod === "file"} onClick={() => setInputMethod("file")}>
+                        <MethodTab
+                            active={inputMethod === "file"}
+                            onClick={() => {
+                                setInputMethod("file");
+                                setValidationError(null);
+                            }}
+                        >
                             Upload File
                         </MethodTab>
-                        <MethodTab active={inputMethod === "url"} onClick={() => setInputMethod("url")}>
+                        <MethodTab
+                            active={inputMethod === "url"}
+                            onClick={() => {
+                                setInputMethod("url");
+                                setValidationError(null);
+                            }}
+                        >
                             Fetch from URL
                         </MethodTab>
-                        <MethodTab active={inputMethod === "paste"} onClick={() => setInputMethod("paste")}>
+                        <MethodTab
+                            active={inputMethod === "paste"}
+                            onClick={() => {
+                                setInputMethod("paste");
+                                setValidationError(null);
+                            }}
+                        >
                             Paste Content
                         </MethodTab>
                     </InputMethodTabs>
@@ -538,7 +635,10 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
                                 <SpecPasteInput
                                     placeholder="Paste your OpenAPI/Swagger specification here (JSON or YAML format)..."
                                     value={specContent}
-                                    onChange={(e) => setSpecContent(e.target.value)}
+                                    onChange={(e) => {
+                                        setSpecContent(e.target.value);
+                                        setValidationError(null);
+                                    }}
                                     rows={8}
                                 />
                                 <ActionButton
@@ -574,7 +674,10 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
                                     type="url"
                                     placeholder="https://api.example.com/openapi.json"
                                     value={specUrl}
-                                    onChange={(e) => setSpecUrl(e.target.value)}
+                                    onChange={(e) => {
+                                        setSpecUrl(e.target.value);
+                                        setValidationError(null);
+                                    }}
                                 />
                                 <ActionButton
                                     variant="submit"
@@ -587,6 +690,8 @@ export const ConnectorGeneratorSegment: React.FC<ConnectorGeneratorSegmentProps>
                         )}
                     </InputMethodContent>
                 </InputMethods>
+
+                {validationError && <ValidationError>{validationError}</ValidationError>}
 
                 {!showSkipInput ? (
                     <Actions>

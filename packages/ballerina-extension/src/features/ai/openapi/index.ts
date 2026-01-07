@@ -19,12 +19,15 @@ import { streamText } from "ai";
 import { getAnthropicClient, ANTHROPIC_HAIKU, getProviderCacheControl } from "../utils/ai-client";
 import { getErrorMessage, populateHistory } from "../utils/ai-utils";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
+import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
+import { StateMachine } from "../../../stateMachine";
+import { createExecutorConfig } from "../agent/index";
 
 // Core OpenAPI generation function that emits events
 export async function generateOpenAPISpecCore(
     params: GenerateOpenAPIRequest,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    abortController: AbortController
 ): Promise<void> {
     // Populate chat history and add user message
     const historyMessages = populateHistory(params.chatHistory);
@@ -45,7 +48,7 @@ export async function generateOpenAPISpecCore(
                 content: getUserPrompt(params.query)
             },
         ],
-        abortSignal: AIPanelAbortController.getInstance().signal,
+        abortSignal: abortController.signal,
     });
 
     eventHandler({ type: "start" });
@@ -75,11 +78,36 @@ export async function generateOpenAPISpecCore(
 // Main public function that uses the default event handler
 export async function generateOpenAPISpec(params: GenerateOpenAPIRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.OpenAPI);
+
+    // Create config for abort support
+    const config = createExecutorConfig(params, {
+        command: Command.OpenAPI,
+        chatStorageEnabled: false,
+        cleanupStrategy: 'immediate'
+    });
+
+    const workspaceId = StateMachine.context().projectPath;
+    const threadId = 'default';
+
     try {
-        await generateOpenAPISpecCore(params, eventHandler);
+        // Register execution for abort support
+        chatStateStorage.setActiveExecution(workspaceId, threadId, {
+            generationId: config.generationId,
+            abortController: config.abortController
+        });
+
+        await generateOpenAPISpecCore(params, eventHandler, config.abortController);
     } catch (error) {
-        console.error("Error during openapi generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
+        if ((error as any).name === 'AbortError' || config.abortController.signal.aborted) {
+            console.log("[OpenAPI] Aborted by user.");
+            eventHandler({ type: "abort", command: Command.OpenAPI });
+        } else {
+            console.error("Error during openapi generation:", error);
+            eventHandler({ type: "error", content: getErrorMessage(error) });
+        }
+    } finally {
+        // Clear active execution
+        chatStateStorage.clearActiveExecution(workspaceId, threadId);
     }
 }
 

@@ -18,95 +18,73 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatSummary,
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AbortAIGenerationRequest,
     AddFilesToProjectRequest,
-    DeleteFromProjectRequest,
-    DeveloperDocument,
+    ApproveTaskRequest,
+    CheckpointInfo,
+    ConnectorSpecCancelRequest,
+    ConnectorSpecRequest,
     DocGenerationRequest,
-    FetchDataRequest,
-    FetchDataResponse,
     GenerateAgentCodeRequest,
-    GenerateCodeRequest,
     GenerateOpenAPIRequest,
-    GetFromFileRequest,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
-    PostProcessRequest,
-    PostProcessResponse,
+    PlanApprovalRequest,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
-    ProjectDiagnostics,
-    ProjectSource,
-    RelevantLibrariesAndFunctionsRequest,
-    RelevantLibrariesAndFunctionsResponse,
-    RepairParams,
     RequirementSpecification,
+    RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     SubmitFeedbackRequest,
+    TaskDeclineRequest,
     TestGenerationMentions,
-    TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest,
+    UIChatMessage,
+    UpdateChatMessageRequest,
     abortAIGeneration,
-    abortTestGeneration,
     acceptChanges,
-    addChatSummary,
     addFilesToProject,
-    applyDoOnFailBlocks,
-    checkSyntaxError,
+    approvePlan,
+    approveTask,
+    cancelConnectorSpec,
+    clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
     declineChanges,
-    deleteFromProject,
-    fetchData,
+    declinePlan,
+    declineTask,
     generateAgent,
-    generateCode,
     generateContextTypes,
-    generateFunctionTests,
-    generateHealthcareCode,
     generateInlineMappingCode,
     generateMappingCode,
     generateOpenAPI,
-    generateTestPlan,
     getAIMachineSnapshot,
-    getAccessToken,
-    getBackendUrl,
+    getActiveTempDir,
+    getChatMessages,
+    getCheckpoints,
     getDefaultPrompt,
     getDriftDiagnosticContents,
-    getFileExists,
     getFromDocumentation,
-    getFromFile,
     getGeneratedDocumentation,
     getLoginMethod,
-    getProjectUuid,
-    getRefreshedAccessToken,
-    getRelevantLibrariesAndFunctions,
     getSemanticDiff,
     getServiceNames,
-    getShadowDiagnostics,
-    handleChatSummaryError,
-    hideReviewActions,
     isCopilotSignedIn,
-    isNaturalProgrammingDirectoryExists,
     isPlanModeFeatureEnabled,
-    isRequirementsSpecificationFileExist,
     isUserAuthenticated,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
-    postProcess,
     promptGithubAuthorize,
-    promptWSO2AILogout,
-    readDeveloperMdFile,
-    repairGeneratedCode,
-    showReviewActions,
+    provideConnectorSpec,
+    restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
-    updateDevelopmentDocument,
+    updateChatMessage,
     updateRequirementSpecification
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
@@ -119,24 +97,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         this._messenger = messenger;
     }
 
-    getBackendUrl(): Promise<string> {
-        return this._messenger.sendRequest(getBackendUrl, HOST_EXTENSION);
-    }
-
-    getProjectUuid(): Promise<string> {
-        return this._messenger.sendRequest(getProjectUuid, HOST_EXTENSION);
-    }
-
     getLoginMethod(): Promise<LoginMethod> {
         return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
-    }
-
-    getAccessToken(): Promise<string> {
-        return this._messenger.sendRequest(getAccessToken, HOST_EXTENSION);
-    }
-
-    getRefreshedAccessToken(): Promise<string> {
-        return this._messenger.sendRequest(getRefreshedAccessToken, HOST_EXTENSION);
     }
 
     getDefaultPrompt(): Promise<AIPanelPrompt> {
@@ -145,30 +107,6 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getAIMachineSnapshot(): Promise<AIMachineSnapshot> {
         return this._messenger.sendRequest(getAIMachineSnapshot, HOST_EXTENSION);
-    }
-
-    fetchData(params: FetchDataRequest): Promise<FetchDataResponse> {
-        return this._messenger.sendRequest(fetchData, HOST_EXTENSION, params);
-    }
-
-    getFromFile(params: GetFromFileRequest): Promise<string> {
-        return this._messenger.sendRequest(getFromFile, HOST_EXTENSION, params);
-    }
-
-    getFileExists(params: GetFromFileRequest): Promise<boolean> {
-        return this._messenger.sendRequest(getFileExists, HOST_EXTENSION, params);
-    }
-
-    deleteFromProject(params: DeleteFromProjectRequest): void {
-        return this._messenger.sendNotification(deleteFromProject, HOST_EXTENSION, params);
-    }
-
-    getShadowDiagnostics(params: ProjectSource): Promise<ProjectDiagnostics> {
-        return this._messenger.sendRequest(getShadowDiagnostics, HOST_EXTENSION, params);
-    }
-
-    checkSyntaxError(params: ProjectSource): Promise<boolean> {
-        return this._messenger.sendRequest(checkSyntaxError, HOST_EXTENSION, params);
     }
 
     clearInitialPrompt(): void {
@@ -195,24 +133,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(getServiceNames, HOST_EXTENSION);
     }
 
-    abortTestGeneration(): void {
-        return this._messenger.sendNotification(abortTestGeneration, HOST_EXTENSION);
-    }
-
-    applyDoOnFailBlocks(): void {
-        return this._messenger.sendNotification(applyDoOnFailBlocks, HOST_EXTENSION);
-    }
-
-    postProcess(params: PostProcessRequest): Promise<PostProcessResponse> {
-        return this._messenger.sendRequest(postProcess, HOST_EXTENSION, params);
-    }
-
     promptGithubAuthorize(): Promise<boolean> {
         return this._messenger.sendRequest(promptGithubAuthorize, HOST_EXTENSION);
-    }
-
-    promptWSO2AILogout(): Promise<boolean> {
-        return this._messenger.sendRequest(promptWSO2AILogout, HOST_EXTENSION);
     }
 
     isCopilotSignedIn(): Promise<boolean> {
@@ -231,32 +153,8 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(getFromDocumentation, HOST_EXTENSION, params);
     }
 
-    isRequirementsSpecificationFileExist(params: string): Promise<boolean> {
-        return this._messenger.sendRequest(isRequirementsSpecificationFileExist, HOST_EXTENSION, params);
-    }
-
     getDriftDiagnosticContents(): Promise<LLMDiagnostics> {
         return this._messenger.sendRequest(getDriftDiagnosticContents, HOST_EXTENSION);
-    }
-
-    addChatSummary(params: AIChatSummary): Promise<boolean> {
-        return this._messenger.sendRequest(addChatSummary, HOST_EXTENSION, params);
-    }
-
-    handleChatSummaryError(params: string): void {
-        return this._messenger.sendNotification(handleChatSummaryError, HOST_EXTENSION, params);
-    }
-
-    isNaturalProgrammingDirectoryExists(params: string): Promise<boolean> {
-        return this._messenger.sendRequest(isNaturalProgrammingDirectoryExists, HOST_EXTENSION, params);
-    }
-
-    readDeveloperMdFile(params: string): Promise<string> {
-        return this._messenger.sendRequest(readDeveloperMdFile, HOST_EXTENSION, params);
-    }
-
-    updateDevelopmentDocument(params: DeveloperDocument): void {
-        return this._messenger.sendNotification(updateDevelopmentDocument, HOST_EXTENSION, params);
     }
 
     updateRequirementSpecification(params: RequirementSpecification): void {
@@ -271,40 +169,16 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(submitFeedback, HOST_EXTENSION, params);
     }
 
-    getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest): Promise<RelevantLibrariesAndFunctionsResponse> {
-        return this._messenger.sendRequest(getRelevantLibrariesAndFunctions, HOST_EXTENSION, params);
-    }
-
     generateOpenAPI(params: GenerateOpenAPIRequest): void {
         return this._messenger.sendNotification(generateOpenAPI, HOST_EXTENSION, params);
-    }
-
-    generateCode(params: GenerateCodeRequest): void {
-        return this._messenger.sendNotification(generateCode, HOST_EXTENSION, params);
     }
 
     generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
         return this._messenger.sendRequest(generateAgent, HOST_EXTENSION, params);
     }
 
-    repairGeneratedCode(params: RepairParams): void {
-        return this._messenger.sendNotification(repairGeneratedCode, HOST_EXTENSION, params);
-    }
-
-    generateTestPlan(params: TestPlanGenerationRequest): void {
-        return this._messenger.sendNotification(generateTestPlan, HOST_EXTENSION, params);
-    }
-
-    generateFunctionTests(params: TestGeneratorIntermediaryState): void {
-        return this._messenger.sendNotification(generateFunctionTests, HOST_EXTENSION, params);
-    }
-
-    generateHealthcareCode(params: GenerateCodeRequest): void {
-        return this._messenger.sendNotification(generateHealthcareCode, HOST_EXTENSION, params);
-    }
-
-    abortAIGeneration(): void {
-        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION);
+    abortAIGeneration(params: AbortAIGenerationRequest): void {
+        return this._messenger.sendNotification(abortAIGeneration, HOST_EXTENSION, params);
     }
 
     getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
@@ -339,11 +213,51 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(declineChanges, HOST_EXTENSION);
     }
 
-    showReviewActions(): Promise<void> {
-        return this._messenger.sendRequest(showReviewActions, HOST_EXTENSION);  
+    approvePlan(params: PlanApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(approvePlan, HOST_EXTENSION, params);
     }
 
-    hideReviewActions(): Promise<void> {
-        return this._messenger.sendRequest(hideReviewActions, HOST_EXTENSION);
+    declinePlan(params: PlanApprovalRequest): Promise<void> {
+        return this._messenger.sendRequest(declinePlan, HOST_EXTENSION, params);
+    }
+
+    approveTask(params: ApproveTaskRequest): Promise<void> {
+        return this._messenger.sendRequest(approveTask, HOST_EXTENSION, params);
+    }
+
+    declineTask(params: TaskDeclineRequest): Promise<void> {
+        return this._messenger.sendRequest(declineTask, HOST_EXTENSION, params);
+    }
+
+    provideConnectorSpec(params: ConnectorSpecRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    getChatMessages(): Promise<UIChatMessage[]> {
+        return this._messenger.sendRequest(getChatMessages, HOST_EXTENSION);
+    }
+
+    getCheckpoints(): Promise<CheckpointInfo[]> {
+        return this._messenger.sendRequest(getCheckpoints, HOST_EXTENSION);
+    }
+
+    restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
+        return this._messenger.sendRequest(restoreCheckpoint, HOST_EXTENSION, params);
+    }
+
+    clearChat(): Promise<void> {
+        return this._messenger.sendRequest(clearChat, HOST_EXTENSION);
+    }
+
+    updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
+        return this._messenger.sendRequest(updateChatMessage, HOST_EXTENSION, params);
+    }
+
+    getActiveTempDir(): Promise<string> {
+        return this._messenger.sendRequest(getActiveTempDir, HOST_EXTENSION);
     }
 }

@@ -166,20 +166,16 @@ async function fetchSemanticDiff(rpcClient: any, projectPath: string): Promise<S
     return await rpcClient.getAiPanelRpcClient().getSemanticDiff({ projectPath });
 }
 
-interface ReviewModeProps {
-    projectPath: string;
-}
-
 interface ItemMetadata {
     type: string; // "Resource", "Function", "Automation", etc.
     name: string; // e.g., "todos", "processData"
     accessor?: string; // e.g., "get", "post" (for resources)
 }
 
-export function ReviewMode(props: ReviewModeProps): JSX.Element {
-    const { projectPath } = props;
+export function ReviewMode(): JSX.Element {
     const { rpcClient } = useRpcContext();
 
+    const [projectPath, setProjectPath] = useState<string | null>(null);
     const [semanticDiffData, setSemanticDiffData] = useState<SemanticDiffResponse | null>(null);
     const [views, setViews] = useState<ReviewView[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -194,7 +190,17 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
     const loadSemanticDiff = useCallback(async () => {
         try {
             setIsLoading(true);
-            const semanticDiffResponse = await fetchSemanticDiff(rpcClient, projectPath);
+            
+            // First fetch the active temp directory path
+            const tempDirPath = await rpcClient.getAiPanelRpcClient().getActiveTempDir();
+            if (!tempDirPath) {
+                console.error("[ReviewMode] No active temp directory found");
+                setIsLoading(false);
+                return;
+            }
+            setProjectPath(tempDirPath);
+            
+            const semanticDiffResponse = await fetchSemanticDiff(rpcClient, tempDirPath);
             console.log("[ReviewMode] semanticDiff Response:", semanticDiffResponse);
             setSemanticDiffData(semanticDiffResponse);
 
@@ -207,21 +213,21 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
                 // loads the entire design model for the project
                 allViews.push({
                     type: DiagramType.COMPONENT,
-                    filePath: projectPath, // Use project path instead of specific file
+                    filePath: tempDirPath, // Use project path instead of specific file
                     position: {
                         startLine: 0,
                         endLine: 0,
                         startColumn: 0,
                         endColumn: 0,
                     },
-                    projectPath,
+                    projectPath: tempDirPath,
                     label: "Design Diagram",
                 });
             }
 
             // Convert all semantic diffs to flow diagram views
             const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
-                const view = convertToReviewView(diff, projectPath);
+                const view = convertToReviewView(diff, tempDirPath);
                 return view;
             });
             allViews.push(...flowViews);
@@ -233,7 +239,7 @@ export function ReviewMode(props: ReviewModeProps): JSX.Element {
         } finally {
             setIsLoading(false);
         }
-    }, [rpcClient, projectPath]);
+    }, [rpcClient]);
 
     // Fetch semantic diff data on mount
     useEffect(() => {
