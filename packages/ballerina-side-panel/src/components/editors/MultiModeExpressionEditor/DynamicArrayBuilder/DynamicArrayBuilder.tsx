@@ -51,6 +51,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     
     const [isInitialized, setIsInitialized] = useState(false);
     const currentValuesRef = useRef<string[]>([]);
+    const paddedRef = useRef(false);
 
     // Helper function to update array value using form context setValue
     // Note: We don't use the onChange prop here to preserve type information (e.g., numbers stay as numbers)
@@ -121,17 +122,27 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
 
     // Ensure minimum number of items are always visible
     useEffect(() => {
-        if (!isInitialized) return;
+        if (!isInitialized) {
+            paddedRef.current = false;
+            return;
+        }
 
         const requiredCount = Math.max(minItems, defaultItems);
 
-        if (requiredCount > 0 && arrayValues.length < requiredCount) {
+        // Reset padding flag when arrayValues length falls below required count or dependencies change
+        if (arrayValues.length < requiredCount) {
+            paddedRef.current = false;
+        }
+
+        // Only apply padding if not already padded
+        if (requiredCount > 0 && arrayValues.length < requiredCount && !paddedRef.current) {
             const paddedArray = [...arrayValues];
             while (paddedArray.length < requiredCount) {
                 paddedArray.push('');
             }
             currentValuesRef.current = paddedArray;
             updateArrayValue(paddedArray, { shouldValidate: true });
+            paddedRef.current = true;
         }
     }, [arrayValues, isInitialized, minItems, defaultItems, updateArrayValue]);
 
