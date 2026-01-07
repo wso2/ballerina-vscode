@@ -43,7 +43,6 @@ import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
     tempProjectPath: string;
-    projectPath?: string;
     modifiedFiles: string[];
     projects: ProjectSource[];
     libraryDescriptions: string;
@@ -54,7 +53,7 @@ export interface ToolRegistryOptions {
 }
 
 export function createToolRegistry(opts: ToolRegistryOptions) {
-    const { eventHandler, tempProjectPath, projectPath, modifiedFiles, projects, libraryDescriptions, generationType, workspaceId, generationId, threadId } = opts;
+    const { eventHandler, tempProjectPath, modifiedFiles, projects, libraryDescriptions, generationType, workspaceId, generationId, threadId } = opts;
     return {
         [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(
             eventHandler,
@@ -80,13 +79,13 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
             modifiedFiles
         ),
         [FILE_WRITE_TOOL_NAME]: createWriteTool(
-            createWriteExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)
+            createWriteExecute(eventHandler, tempProjectPath, modifiedFiles)
         ),
         [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(
-            createEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)
+            createEditExecute(eventHandler, tempProjectPath, modifiedFiles)
         ),
         [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(
-            createMultiEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)
+            createMultiEditExecute(eventHandler, tempProjectPath, modifiedFiles)
         ),
         [FILE_READ_TOOL_NAME]: createReadTool(
             createReadExecute(eventHandler, tempProjectPath)

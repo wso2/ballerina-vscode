@@ -623,7 +623,7 @@ const MainPanel = () => {
                         break;
                     case MACHINE_VIEW.ReviewMode:
                         setViewComponent(
-                            <ReviewMode projectPath={value.projectPath} />
+                            <ReviewMode />
                         );
                         break;
                     default:
