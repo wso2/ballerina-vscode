@@ -278,8 +278,14 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "LLM_FILTER",
-                  "NO_FILTER"
+                  {
+                    "label": "LLM_FILTER",
+                    "value": "\"LLM_FILTER\""
+                  },
+                  {
+                    "label": "NO_FILTER",
+                    "value": "\"NO_FILTER\""
+                  }
                 ],
                 "selected": false
               },
@@ -771,8 +777,14 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "LLM_FILTER",
-                  "NO_FILTER"
+                  {
+                    "label": "LLM_FILTER",
+                    "value": "\"LLM_FILTER\""
+                  },
+                  {
+                    "label": "NO_FILTER",
+                    "value": "\"NO_FILTER\""
+                  }
                 ],
                 "selected": false
               },

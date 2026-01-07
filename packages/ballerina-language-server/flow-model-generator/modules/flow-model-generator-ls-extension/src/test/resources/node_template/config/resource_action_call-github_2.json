@@ -107,12 +107,30 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "all",
-              "public",
-              "private",
-              "forks",
-              "sources",
-              "member"
+              {
+                "label": "all",
+                "value": "\"all\""
+              },
+              {
+                "label": "public",
+                "value": "\"public\""
+              },
+              {
+                "label": "private",
+                "value": "\"private\""
+              },
+              {
+                "label": "forks",
+                "value": "\"forks\""
+              },
+              {
+                "label": "sources",
+                "value": "\"sources\""
+              },
+              {
+                "label": "member",
+                "value": "\"member\""
+              }
             ],
             "selected": false
           },
@@ -142,10 +160,22 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "created",
-              "updated",
-              "pushed",
-              "full_name"
+              {
+                "label": "created",
+                "value": "\"created\""
+              },
+              {
+                "label": "updated",
+                "value": "\"updated\""
+              },
+              {
+                "label": "pushed",
+                "value": "\"pushed\""
+              },
+              {
+                "label": "full_name",
+                "value": "\"full_name\""
+              }
             ],
             "selected": false
           },

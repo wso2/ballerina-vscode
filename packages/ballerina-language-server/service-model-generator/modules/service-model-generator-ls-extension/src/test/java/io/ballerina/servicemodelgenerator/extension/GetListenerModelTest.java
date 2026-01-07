@@ -56,7 +56,7 @@ public class GetListenerModelTest extends AbstractLSTest {
             GetListenerModelTest.TestConfig updatedConfig =
                     new GetListenerModelTest.TestConfig(testConfig.description(), testConfig.codedata(),
                             testConfig.filePath(), jsonMap);
-            updateConfig(configJsonPath, updatedConfig);
+//            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
     }

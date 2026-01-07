@@ -76,7 +76,10 @@
           {
             "fieldType": "MULTIPLE_SELECT_LISTENER",
             "options": [
-              "githubDefaultListener"
+              {
+                "label": "githubDefaultListener",
+                "value": "githubDefaultListener"
+              }
             ],
             "selected": true
           }
@@ -100,17 +103,50 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "",
-              "IssuesService",
-              "IssueCommentService",
-              "PullRequestService",
-              "PullRequestReviewService",
-              "PullRequestReviewCommentService",
-              "ReleaseService",
-              "LabelService",
-              "MilestoneService",
-              "PushService",
-              "ProjectCardService"
+              {
+                "label": "",
+                "value": ""
+              },
+              {
+                "label": "IssuesService",
+                "value": "IssuesService"
+              },
+              {
+                "label": "IssueCommentService",
+                "value": "IssueCommentService"
+              },
+              {
+                "label": "PullRequestService",
+                "value": "PullRequestService"
+              },
+              {
+                "label": "PullRequestReviewService",
+                "value": "PullRequestReviewService"
+              },
+              {
+                "label": "PullRequestReviewCommentService",
+                "value": "PullRequestReviewCommentService"
+              },
+              {
+                "label": "ReleaseService",
+                "value": "ReleaseService"
+              },
+              {
+                "label": "LabelService",
+                "value": "LabelService"
+              },
+              {
+                "label": "MilestoneService",
+                "value": "MilestoneService"
+              },
+              {
+                "label": "PushService",
+                "value": "PushService"
+              },
+              {
+                "label": "ProjectCardService",
+                "value": "ProjectCardService"
+              }
             ],
             "selected": true
           }

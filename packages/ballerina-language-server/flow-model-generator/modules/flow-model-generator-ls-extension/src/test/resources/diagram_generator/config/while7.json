@@ -822,9 +822,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "2.0",
-                  "1.1",
-                  "1.0"
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
                 ],
                 "selected": false
               },
@@ -1095,9 +1104,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },

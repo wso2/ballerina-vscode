@@ -26,6 +26,7 @@ import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiExc
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
@@ -46,7 +47,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -234,9 +234,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
                 .metadata(selectListenerTemplate.getMetadata().label(),
                         selectListenerTemplate.getMetadata().description())
                 .value(listenerNames.iterator().next())
-                .types(List.of(PropertyType.types(
-                        Value.FieldType.SINGLE_SELECT,
-                        Arrays.asList(listenerNames.toArray()))))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, Option.of(listenerNames))))
                 .enabled(true)
                 .editable(true)
                 .setAdvanced(false)

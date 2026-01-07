@@ -44,6 +44,7 @@ import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
@@ -371,7 +372,7 @@ public class ServiceModelUtils {
         if (serviceTypes.size() == 1) {
             value = serviceTypes.getFirst();
         }
-        List<Object> items = new ArrayList<>();
+        List<String> items = new ArrayList<>();
         items.add("");
         items.addAll(serviceTypes);
 
@@ -380,7 +381,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData(template.typeDescriptorLabel(), template.typeDescriptorDescription()))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, items)))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, Option.of(items))))
                 .setPlaceholder(template.typeDescriptorDefaultValue())
                 .enabled(template.optionalTypeDescriptor() == 0)
                 .editable(true);
@@ -394,7 +395,7 @@ public class ServiceModelUtils {
                 .setMetadata(new MetaData("Service Type", "The type of the service"))
                 .setCodedata(new Codedata("SERVICE_TYPE"))
                 .value(value)
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, List.of(value))))
+                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, List.of(new Option(value, value)))))
                 .enabled(true);
 
         return valueBuilder.build();
@@ -575,7 +576,7 @@ public class ServiceModelUtils {
         }
         Value listener = serviceModel.getListener();
         if (!listeners.isEmpty() && listener.getTypes() != null && !listener.getTypes().isEmpty()) {
-            listener.getTypes().getFirst().options().addAll(listeners.stream().map(l -> (Object) l).toList());
+            listener.getTypes().getFirst().options().addAll(Option.of(listeners));
         }
     }
 

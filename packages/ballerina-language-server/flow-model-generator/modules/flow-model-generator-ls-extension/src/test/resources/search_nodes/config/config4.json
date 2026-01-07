@@ -173,9 +173,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "AUTO",
-                "ALWAYS",
-                "NEVER"
+                {
+                  "label": "AUTO",
+                  "value": "\"AUTO\""
+                },
+                {
+                  "label": "ALWAYS",
+                  "value": "\"ALWAYS\""
+                },
+                {
+                  "label": "NEVER",
+                  "value": "\"NEVER\""
+                }
               ],
               "selected": false
             },

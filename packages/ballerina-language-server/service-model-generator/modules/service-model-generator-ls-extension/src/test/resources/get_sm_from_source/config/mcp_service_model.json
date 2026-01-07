@@ -76,7 +76,10 @@
           {
             "fieldType": "MULTIPLE_SELECT_LISTENER",
             "options": [
-              "mcpListener"
+              {
+                "label": "mcpListener",
+                "value": "mcpListener"
+              }
             ],
             "selected": true
           }
@@ -100,8 +103,14 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "",
-              "Service"
+              {
+                "label": "",
+                "value": ""
+              },
+              {
+                "label": "Service",
+                "value": "Service"
+              }
             ],
             "selected": true
           }

@@ -30,12 +30,12 @@ public class PropertyType {
     private final Property.ValueType fieldType;
     private final String ballerinaType;
     private final String scope;
-    private final List<String> options;
+    private final List<Option> options;
     private final Property template;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
 
-    public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<String> options,
+    public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<Option> options,
                         Property template, List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
@@ -58,7 +58,7 @@ public class PropertyType {
         return scope;
     }
 
-    public List<String> options() {
+    public List<Option> options() {
         return options;
     }
 
