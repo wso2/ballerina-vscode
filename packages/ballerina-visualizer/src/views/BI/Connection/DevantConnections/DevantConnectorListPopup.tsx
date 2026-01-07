@@ -19,7 +19,7 @@
 import { useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon, ThemeColors, Typography, Stepper } from "@wso2/ui-toolkit";
-import { DIRECTORY_MAP, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     PopupOverlay,
@@ -42,6 +42,10 @@ import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-pr
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
 import { DevantConnectorCreateForm, useDevantConnectorForm } from "./DevantConnectorCreateForm";
 import { DevantMarketplaceList } from "./DevantMarketplaceList";
+import { ConnectionConfigView } from "../ConnectionConfigView";
+import { Utils, URI } from "vscode-uri";
+import { FormSubmitOptions } from "../../FlowDiagram";
+import { useMutation } from "@tanstack/react-query";
 
 const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     flex: 1;
@@ -95,23 +99,41 @@ interface APIConnectionPopupProps {
 }
 
 export function DevantConnectorListPopup(props: APIConnectionPopupProps) {
-    const { onBack, onClose } = props;
+    const { onBack, onClose, fileName, target } = props;
     const { rpcClient } = useRpcContext();
     const { platformExtState, platformRpcClient, devantConsoleUrl, deployableArtifacts, workspacePath, projectPath } =
         usePlatformExtContext();
     const [searchText, _] = useState<string>("");
     const [selectedDevantConnector, setSelectedDevantConnector] = useState<MarketplaceItem>();
-    const [currentStep, setCurrentStep] = useState<"info" | "create">("info");
+    const [currentStep, setCurrentStep] = useState<"info" | "create" | "init-connector">("info");
+    const [createdFlowNode, setCreatedFlowNode] = useState<FlowNode>();
     const steps = ["Connection Details", "Create Connection"];
-    const stepIndex = currentStep === "create" ? 1 : 0;
+    if (selectedDevantConnector?.isThirdParty) {
+        steps.push("Initialize Connector");
+    }
+    let stepIndex = 0;
+    if (currentStep === "create") {
+        stepIndex = 1;
+    } else if (currentStep === "init-connector") {
+        stepIndex = 2;
+    }
 
     // Use the custom hook for form management
-    const { form, visibilities, isCreatingConnection, onSubmit } = useDevantConnectorForm(
+    const { form, visibilities, isCreatingConnection, createDevantConnection } = useDevantConnectorForm(
         selectedDevantConnector,
-        (data) => {
+        async (data) => {
             if (data.connectionNode) {
-                // todo: handle 3rd party api service connection creation
-                // handleOnSelectConnector(data.connectionNode);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getNodeTemplate({
+                        position: target || null,
+                        filePath: fileName,
+                        id: data.connectionNode.codedata,
+                    })
+                    .then((nodeTemplatePromise) => {
+                        setCreatedFlowNode(nodeTemplatePromise.flowNode);
+                        setCurrentStep("init-connector");
+                    });
             } else if (data.connectionName) {
                 setCurrentStep("info");
                 setSelectedDevantConnector(undefined);
@@ -140,6 +162,20 @@ export function DevantConnectorListPopup(props: APIConnectionPopupProps) {
                 setCurrentStep("info");
                 return;
             }
+            if (currentStep === "init-connector") {
+                rpcClient
+                    .getCommonRpcClient()
+                    .showInformationModal({
+                        message: "Are you sure you want to leave without initializing the created connection?",
+                        items: ["Proceed"],
+                    })
+                    .then((resp) => {
+                        if (resp === "Proceed") {
+                            setSelectedDevantConnector(undefined);
+                        }
+                    });
+                return;
+            }
             setSelectedDevantConnector(undefined);
             return;
         }
@@ -147,6 +183,78 @@ export function DevantConnectorListPopup(props: APIConnectionPopupProps) {
             onBack();
         }
     };
+
+    // todo: should be moved into a common place and reused
+    const handleOnFormSubmit = async (
+        node: FlowNode,
+        _dataMapperMode?: DataMapperDisplayMode,
+        options?: FormSubmitOptions
+    ) => {
+        console.log(">>> on form submit", node);
+        if (createdFlowNode) {
+            const visualizerLocation = await rpcClient.getVisualizerLocation();
+            let connectionsFilePath = visualizerLocation.documentUri || visualizerLocation.projectPath;
+
+            if (node.codedata.isGenerated && !connectionsFilePath.endsWith(".bal")) {
+                connectionsFilePath = Utils.joinPath(URI.file(connectionsFilePath), "main.bal").fsPath;
+            }
+
+            if (connectionsFilePath === "") {
+                console.error(">>> Error updating source code. No source file found");
+                return;
+            }
+
+            // node property scope is local. then use local file path and line position
+            if ((node.properties?.scope?.value as string)?.toLowerCase() === "local") {
+                node.codedata.lineRange = {
+                    fileName: visualizerLocation.documentUri,
+                    startLine: target,
+                    endLine: target,
+                };
+            }
+
+            // Check if the node is a connector
+            const isConnector = node.codedata.node === "NEW_CONNECTION";
+
+            rpcClient
+                .getBIDiagramRpcClient()
+                .getSourceCode({
+                    filePath: connectionsFilePath,
+                    flowNode: node,
+                    isConnector: isConnector,
+                })
+                .then((response) => {
+                    console.log(">>> Updated source code", response);
+                    if (!isConnector) {
+                        if (options?.postUpdateCallBack) {
+                            options.postUpdateCallBack();
+                        }
+                        return;
+                    }
+                    if (response.artifacts.length > 0) {
+                        const newConnection = response.artifacts.find((artifact) => artifact.isNew);
+                        onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
+                    } else {
+                        console.error(">>> Error updating source code", response);
+                    }
+                })
+                .catch((error) => {
+                    console.error(">>> Error updating source code", error);
+                });
+        }
+    };
+
+    const { mutate: handleOnFormSubmitMutation, isPending: isInitializingConn } = useMutation({
+        mutationFn: ({
+            node,
+            dataMapperMode,
+            options,
+        }: {
+            node: FlowNode;
+            dataMapperMode?: DataMapperDisplayMode;
+            options?: FormSubmitOptions;
+        }) => handleOnFormSubmit(node, dataMapperMode, options),
+    });
 
     const renderContent = () => {
         if (!platformExtState.isLoggedIn) {
@@ -227,15 +335,27 @@ export function DevantConnectorListPopup(props: APIConnectionPopupProps) {
             }
             if (currentStep === "create") {
                 return (
-                    <DevantConnectorCreateForm
-                        item={selectedDevantConnector}
-                        visibilities={visibilities}
-                        form={form}
+                    <DevantConnectorCreateForm item={selectedDevantConnector} visibilities={visibilities} form={form} />
+                );
+            }
+            if (currentStep === "init-connector" && createdFlowNode) {
+                return (
+                    <ConnectionConfigView
+                        fileName={fileName}
+                        selectedNode={createdFlowNode}
+                        onSubmit={(
+                            updatedNode?: FlowNode,
+                            dataMapperMode?: DataMapperDisplayMode,
+                            options?: FormSubmitOptions
+                        ) => handleOnFormSubmitMutation({ node: updatedNode!, dataMapperMode, options })}
+                        footerActionButton={true}
+                        submitText={isInitializingConn ? "Initializing Connection..." : "Initialize Connection"}
+                        isSaving={isInitializingConn}
                     />
                 );
             }
         }
-        
+
         return (
             <DevantMarketplaceList
                 searchText={searchText}
@@ -285,7 +405,7 @@ export function DevantConnectorListPopup(props: APIConnectionPopupProps) {
                             <ActionButton
                                 appearance="primary"
                                 disabled={isCreatingConnection}
-                                onClick={form.handleSubmit(onSubmit)}
+                                onClick={form.handleSubmit(createDevantConnection)}
                                 buttonSx={{ width: "100%", height: "35px" }}
                             >
                                 {isCreatingConnection ? "Creating Connection..." : "Create Connection"}

@@ -26,7 +26,7 @@ import {
 import React, { ReactNode, useEffect, useState, type FC } from "react";
 import { UseFormReturn, useForm, SubmitHandler } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
-import { Dropdown, TextField, Codicon, LinkButton, ThemeColors, CheckBox } from "@wso2/ui-toolkit";
+import { Dropdown, TextField, Codicon, LinkButton, ThemeColors, CheckBox, CheckBoxGroup } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
@@ -50,6 +50,18 @@ export const ButtonContainer = styled.div<{}>`
     flex-direction: row;
     flex-grow: 1;
     justify-content: flex-end;
+`;
+
+const BoxGroup = styled.div`
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+`;
+
+const RowTitle = styled.div`
+    display: flex;
+    gap: 2px;
+    align-items: center;
 `;
 
 const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
@@ -127,6 +139,7 @@ export interface CreateConnectionForm {
     visibility?: string;
     schemaId?: string;
     isProjectLevel?: boolean;
+    envKeys?: string[];
 }
 
 /**
@@ -147,6 +160,7 @@ export const useDevantConnectorForm = (
             visibility: getInitialVisibility(selectedDevantConnector, visibilities),
             schemaId: "",
             isProjectLevel: false,
+            envKeys: [],
         },
     });
 
@@ -168,6 +182,7 @@ export const useDevantConnectorForm = (
                     schemaId: data.schemaId,
                     visibility: data.visibility,
                     isProjectLevel: data.isProjectLevel,
+                    envKeys: data.envKeys,
                 },
             }),
         onSuccess: (data) => {
@@ -177,13 +192,13 @@ export const useDevantConnectorForm = (
         },
     });
 
-    const onSubmit: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
+    const createDevantConnection: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
     return {
         form,
         visibilities,
         isCreatingConnection,
-        onSubmit,
+        createDevantConnection,
     };
 };
 
@@ -208,6 +223,13 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
     }, [schemas]);
 
     const isProjectLevel = form.watch("isProjectLevel");
+    const selectedSchemaId = form.watch("schemaId");
+    const selectedKeys = form.watch("envKeys");
+    const selectedSchema = schemas?.find((schema) => schema.id === selectedSchemaId);
+    
+    useEffect(() => {
+        form.setValue("envKeys", selectedSchema?.entries?.map((entry) => entry.name) || []);
+    }, [selectedSchema]);
 
     const advancedConfigItems: ReactNode[] = [];
     if (!item.isThirdParty) {
@@ -328,6 +350,24 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
                 )}
 
                 {showAdvancedSection && advancedConfigItems}
+
+                {(item?.isThirdParty && selectedSchema) && <FormStyles.Row>
+                    <CheckBoxGroup>
+                        <RowTitle>Environment Variables <Codicon name="info" tooltip="Following variables will need to be used when initializing the connector."/></RowTitle>
+                        <BoxGroup>
+                            {selectedSchema?.entries?.map((entry) => (
+                                <CheckBox 
+                                    key={entry.name}
+                                    label={entry.name}
+                                    checked={selectedKeys?.includes(entry.name)}
+                                    onChange={(checked: boolean) => {
+                                        form.setValue("envKeys", checked ? [...selectedKeys, entry.name] : selectedKeys.filter((key) => key !== entry.name));
+                                    }}
+                                />
+                            ))}
+                        </BoxGroup>
+                    </CheckBoxGroup>
+                </FormStyles.Row>}
 
             </FormStyles.Container>
         </>
