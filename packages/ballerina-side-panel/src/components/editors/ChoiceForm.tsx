@@ -137,7 +137,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.filter(dfield => !dfield.advanced).map((dfield, index) => {
+                {dynamicFields.filter(dfield => (field.advanced  || !dfield.advanced)).map((dfield, index) => {
                     return (
                         <EditorFactory
                             key={dfield.key}
