@@ -1494,13 +1494,6 @@ export interface Member {
     imports?: Imports;
     readonly?: boolean;
     isGraphqlId?: boolean;
-    annotationAttachments?: AnnotationAttachment[];
-}
-
-export interface AnnotationAttachment {
-    modulePrefix: string;
-    name: string;
-    properties: Property[];
 }
 
 export interface GetGraphqlTypeRequest {
