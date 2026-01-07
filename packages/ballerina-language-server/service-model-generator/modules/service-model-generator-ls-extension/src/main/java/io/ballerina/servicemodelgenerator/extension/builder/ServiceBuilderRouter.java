@@ -32,6 +32,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServi
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.McpServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.MssqlCdcServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.RabbitMQServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.SolaceServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.TCPServiceBuilder;
@@ -63,6 +64,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQ
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.MSSQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
@@ -85,6 +87,7 @@ public class ServiceBuilderRouter {
         put(KAFKA, KafkaServiceBuilder::new);
         put(ASB, AsbServiceBuilder::new);
         put(SOLACE, SolaceServiceBuilder::new);
+        put(MSSQL, MssqlCdcServiceBuilder::new);
         put(FTP, FTPServiceBuilder::new);
     }};
 

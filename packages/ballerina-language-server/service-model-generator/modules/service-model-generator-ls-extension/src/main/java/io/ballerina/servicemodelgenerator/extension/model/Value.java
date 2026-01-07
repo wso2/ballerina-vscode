@@ -92,6 +92,7 @@ public class Value {
         MULTIPLE_SELECT,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
+        TEXT_SET,
         IDENTIFIER,
         TEXT,
         TYPE,

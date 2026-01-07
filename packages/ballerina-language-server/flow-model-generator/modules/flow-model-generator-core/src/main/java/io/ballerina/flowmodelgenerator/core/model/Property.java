@@ -265,6 +265,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RAW_TEMPLATE,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
+        TEXT_SET,
         LV_EXPRESSION,
         ACTION_PATH,
         ACTION_OR_EXPRESSION,
