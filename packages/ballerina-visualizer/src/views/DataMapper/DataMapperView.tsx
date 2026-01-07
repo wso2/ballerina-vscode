@@ -276,22 +276,14 @@ export function DataMapperView(props: DataMapperViewProps) {
             console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
             setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
         } else {
-            if (viewState.subMappingName) {
-                // If the view is a sub mapping, we need to get the codedata of the parent mapping
-                const res = await rpcClient
-                    .getDataMapperRpcClient()
-                    .getDataMapperCodedata({
-                        filePath,
-                        codedata: viewState.codedata,
-                        name: viewId
-                    });
-                setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
-            } else {
-                setViewState(prev => ({
-                    ...prev,
-                    viewId
-                }));
-            }
+            const res = await rpcClient
+                .getDataMapperRpcClient()
+                .getDataMapperCodedata({
+                    filePath,
+                    codedata: viewState.codedata,
+                    name: viewId.split(".")[0] // Get the root name
+                });
+            setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
         }
         rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
