@@ -21,7 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
-import { sendAgentDidOpen, sendAgentDidChange } from "../../utils/project/ls-schema-notifications";
+import { sendAISchemaDidChange, sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
 import { CopilotEventHandler } from "../../utils/events";
 
 // ============================================================================
@@ -252,7 +252,6 @@ function truncateLongLines(content: string, maxLength: number = MAX_LINE_LENGTH)
 export function createWriteExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  projectPath: string,
   modifiedFiles?: string[]
 ) {
   return async (args: {
@@ -329,9 +328,9 @@ export function createWriteExecute(
 
     // Notify Language Server
     if (action === 'created') {
-      sendAgentDidOpen(tempProjectPath, projectPath, file_path);
+      sendAiSchemaDidOpen(tempProjectPath, file_path);
     } else {
-      sendAgentDidChange(tempProjectPath, projectPath, file_path);
+      sendAISchemaDidChange(tempProjectPath, file_path);
     }
 
     console.log(`[FileWriteTool] Successfully ${action} file: ${file_path} with ${lineCount} lines to temp project.`);
@@ -355,7 +354,6 @@ export function createWriteExecute(
 export function createEditExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  projectPath: string,
   modifiedFiles?: string[]
 ) {
   return async (args: {
@@ -460,7 +458,7 @@ export function createEditExecute(
     }
 
     // Notify Language Server of the change
-    sendAgentDidChange(tempProjectPath, projectPath, file_path);
+    sendAISchemaDidChange(tempProjectPath, file_path);
 
     const replacedCount = replace_all ? occurrenceCount : 1;
     console.log(`[FileEditTool] Successfully replaced ${replacedCount} occurrence(s) in file: ${file_path}`);
@@ -483,7 +481,6 @@ export function createEditExecute(
 export function createMultiEditExecute(
   eventHandler: CopilotEventHandler,
   tempProjectPath: string,
-  projectPath: string,
   modifiedFiles?: string[]
 ) {
   return async (args: {
@@ -601,7 +598,7 @@ export function createMultiEditExecute(
     }
 
     // Notify Language Server of the change
-    sendAgentDidChange(tempProjectPath, projectPath, file_path);
+    sendAISchemaDidChange(tempProjectPath, file_path);
 
     console.log(`[FileMultiEditTool] Successfully applied ${edits.length} edits to file: ${file_path}`);
     const result = {

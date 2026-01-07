@@ -99,4 +99,5 @@ export interface AIPanelAPI {
     restoreCheckpoint: (params: RestoreCheckpointRequest) => Promise<void>;
     clearChat: () => Promise<void>;
     updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
+    getActiveTempDir: () => Promise<string>;
 }

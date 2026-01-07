@@ -21,7 +21,7 @@ import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_V
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
-import { sendAgentDidOpenForProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
+import { sendAgentDidOpenForFreshProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
@@ -64,7 +64,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
      */
     async execute(): Promise<AIExecutionResult> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
-        const projectPath = this.config.executionContext.projectPath;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
 
@@ -77,7 +76,8 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
 
             // 2. Send didOpen only if creating NEW temp (not reusing for review continuation)
             if (!this.config.lifecycle?.existingTempPath) {
-                sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
+                // Fresh project - Both schemas - correct
+                sendAgentDidOpenForFreshProjects(tempProjectPath, projects);
             } else {
                 console.log(`[AgentExecutor] Skipping didOpen (reusing temp for review continuation)`);
             }
@@ -121,7 +121,6 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
-                projectPath,
                 modifiedFiles,
                 projects,
                 libraryDescriptions,
@@ -348,15 +347,22 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
         }
 
-        // Update chat state storage with accumulated files
+        // Update chat state storage
+        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
+            modelMessages: assistantMessages,
+        });
+
+        // Skip review mode if no files were modified
+        if (accumulatedModifiedFiles.length === 0) {
+            console.log("[AgentExecutor] No modified files - skipping review mode");
+            return;
+        }
+
+        // Update review state and open review mode
         chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
             modifiedFiles: accumulatedModifiedFiles,
-        });
-
-        chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
-            modelMessages: assistantMessages,
         });
 
         // Automatically open review mode
@@ -377,7 +383,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
      * Emits review actions and chat save events to UI.
      */
     private async emitReviewActions(context: StreamContext): Promise<void> {
-        context.eventHandler({ type: "review_actions" });
+        // Emit review_actions only if there are modified files
+        if (context.modifiedFiles.length > 0) {
+            context.eventHandler({ type: "review_actions" });
+        }
+
         updateAndSaveChat(context.messageId, Command.Agent, context.eventHandler);
         context.eventHandler({ type: "stop", command: Command.Agent });
     }
