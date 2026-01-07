@@ -118,7 +118,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        types: [{ fieldType: "STRING", ballerinaType: "", selected: false }],
+                        types: [{ fieldType: "STRING",   selected: false }],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
@@ -161,7 +161,7 @@ export function ServiceFunctionForm(props: ServiceFunctionFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }],
+                types: [{ fieldType: "PARAM_MANAGER",   selected: false }],
             },
             {
                 key: 'returnType',

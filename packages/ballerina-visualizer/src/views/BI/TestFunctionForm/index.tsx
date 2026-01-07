@@ -157,7 +157,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     formFields: paramFiels,
                     handleParameter: handleParamChange
                 },
-                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }]
+                types: [{ fieldType: "PARAM_MANAGER",   selected: false }]
             });
         }
         if (testFunction.returnType) {
@@ -221,7 +221,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: property.metadata.description,
             value: property.value,
-            types: [{ fieldType: getPrimaryInputType(property.types)?.fieldType, ballerinaType: "", selected: false }]
+            types: [{ fieldType: getPrimaryInputType(property.types)?.fieldType,   selected: false }]
         }
     }
 
@@ -319,7 +319,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: false,
                 editable: true,
                 advanced: false,
-                types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }]
+                types: [{ fieldType: "IDENTIFIER",   selected: false }]
             },
             returnType: {
                 metadata: {
@@ -329,7 +329,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: true,
                 editable: true,
                 advanced: true,
-                types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }],
+                types: [{ fieldType: "TYPE",   selected: false }],
             },
             parameters: [],
             annotations: [
@@ -383,7 +383,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            types: [{ fieldType: "IDENTIFIER", ballerinaType: "", selected: false }]
+            types: [{ fieldType: "IDENTIFIER",   selected: false }]
         },
         {
             key: `type`,
@@ -394,7 +394,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            types: [{ fieldType: "TYPE", ballerinaType: "", selected: false }]
+            types: [{ fieldType: "TYPE",   selected: false }]
         },
         {
             key: `defaultable`,
@@ -406,7 +406,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             enabled: true,
             documentation: '',
             value: '',
-            types: [{ fieldType: "STRING", ballerinaType: "", selected: false }]
+            types: [{ fieldType: "STRING",   selected: false }]
         }
     ];
 
