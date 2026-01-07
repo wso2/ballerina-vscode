@@ -157,24 +157,28 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                     }
                 } else if (isType) {
                     setFilteredBasicTypes(filterTypes(basicTypes, searchText));
-    
-                    try {
-                        const response = await rpcClient.getBIDiagramRpcClient().search({
-                            filePath: filePath,
-                            position: targetLineRange,
-                            queryMap: {
-                                q: searchText,
-                                offset: 0,
-                                limit: 1000
-                            },
-                            searchKind: 'TYPE'
-                        });
-    
-                        const importedTypes = getImportedTypes(response.categories);
-                        setImportedTypes(importedTypes);
-                    } catch (error) {
-                        console.error(error);
-                    } finally {
+
+                    if (!isCdcService) {
+                        try {
+                            const response = await rpcClient.getBIDiagramRpcClient().search({
+                                filePath: filePath,
+                                position: targetLineRange,
+                                queryMap: {
+                                    q: searchText,
+                                    offset: 0,
+                                    limit: 1000
+                                },
+                                searchKind: 'TYPE'
+                            });
+
+                            const importedTypes = getImportedTypes(response.categories);
+                            setImportedTypes(importedTypes);
+                        } catch (error) {
+                            console.error(error);
+                        } finally {
+                            setLoading(false);
+                        }
+                    } else {
                         setLoading(false);
                     }
                 } else {
