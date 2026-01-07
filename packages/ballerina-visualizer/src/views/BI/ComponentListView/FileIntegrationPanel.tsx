@@ -16,7 +16,7 @@
  * under the License.
  */
 import React, { useEffect, useState } from 'react';
-import { Codicon } from '@wso2/ui-toolkit';
+import { Icon } from '@wso2/ui-toolkit';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EVENT_TYPE, MACHINE_VIEW, SCOPE, ServiceModel, TriggerModelsResponse } from '@wso2/ballerina-core';
 
@@ -67,17 +67,7 @@ export function FileIntegrationPanel(props: FileIntegrationPanelProps) {
                                 id={`trigger-${item.moduleName}`}
                                 key={item.id}
                                 title={item.name}
-                                icon={
-                                    item.icon ? (
-                                        <img
-                                            src={item.icon}
-                                            alt={item.name}
-                                            style={{ width: "40px" }}
-                                        />
-                                    ) : (
-                                        <Codicon name="mail" />
-                                    )
-                                }
+                                icon={getFileIntegrationIcon(item)}
                                 onClick={() => {
                                     handleOnSelect(item);
                                 }}
@@ -90,3 +80,21 @@ export function FileIntegrationPanel(props: FileIntegrationPanelProps) {
         </PanelViewMore>
     );
 };
+
+// TODO: This should be removed once the new icons are added to the BE API.
+export function getFileIntegrationIcon(item: ServiceModel) {
+    return getCustomFileIntegrationIcon(item.moduleName) || <img src={item.icon} alt={item.name} style={{ width: "38px" }} />;
+}
+
+// INFO: This is a temporary function to get the custom icon for the file integration triggers.
+// TODO: This should be removed once the new icons are added to the BE API.
+export function getCustomFileIntegrationIcon(type: string) {
+    switch (type) {
+        case "ftp":
+            return <Icon name="bi-ftp" />;
+        case "file":
+            return <Icon name="bi-file" />;
+        default:
+            return null;
+    }
+}

@@ -1977,7 +1977,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     await updateSourceCode({
                         textEdits: res.source.textEditsMap,
                         description: `OpenAPI Client Generation`,
-                        skipUpdateViewOnTomlUpdate: true
+                        skipUpdateViewOnTomlUpdate: true,
+                        skipPayloadCheck: true
                     });
                     console.log(">>> Applied text edits for openapi client");
                 }
