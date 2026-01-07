@@ -160,25 +160,30 @@ export const useDMExpressionBarStore = create<DataMapperExpressionBarState>((set
     })
 }));
 
-export interface DataMapperQueryClausesPanelState {
+export interface DataMapperQueryClausesState {
     isQueryClausesPanelOpen: boolean;
+    isQueryClauseFormOpen: boolean;
     clauseToAdd: IntermediateClause;
     clauseTypes: IntermediateClauseType[];
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => void;
+    setIsQueryClauseFormOpen: (isQueryClauseFormOpen: boolean) => void;
     setClauseToAdd: (clauseToAdd: IntermediateClause) => void;
     setClauseTypes: (clauseTypes: IntermediateClauseType[]) => void;
     resetQueryClausesPanelStore: () => void;
 }
 
-export const useDMQueryClausesPanelStore = create<DataMapperQueryClausesPanelState>((set) => ({
+export const useDMQueryClausesStore = create<DataMapperQueryClausesState>((set) => ({
     isQueryClausesPanelOpen: false,
+    isQueryClauseFormOpen: false,
     clauseToAdd: undefined,
     clauseTypes: undefined,
     setIsQueryClausesPanelOpen: (isQueryClausesPanelOpen: boolean) => set({ isQueryClausesPanelOpen }),
+    setIsQueryClauseFormOpen: (isQueryClauseFormOpen: boolean) => set({ isQueryClauseFormOpen }),
     setClauseToAdd: (clauseToAdd: IntermediateClause) => set({ clauseToAdd }),
     setClauseTypes: (clauseTypes: IntermediateClauseType[]) => set({ clauseTypes }),
     resetQueryClausesPanelStore: () => set({
         isQueryClausesPanelOpen: false,
+        isQueryClauseFormOpen: false,
         clauseToAdd: undefined,
         clauseTypes: undefined
     })
