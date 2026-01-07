@@ -53,6 +53,7 @@ public class SourceGeneratorTest extends AbstractLSTest {
         return new Object[][]{
                 {Path.of("agent_source.json")},
                 {Path.of("agent_source_ballerina.json")},
+                {Path.of("agent_source_hide_td.json")},
                 {Path.of("agent_call_source_ballerina.json")},
                 {Path.of("agent_call_source_with_backticks.json")},
                 {Path.of("agent_model_source_ballerina.json")},
