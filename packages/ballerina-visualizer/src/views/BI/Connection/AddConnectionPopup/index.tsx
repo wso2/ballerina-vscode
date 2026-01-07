@@ -30,6 +30,7 @@ import DatabaseConnectionPopup from "../DatabaseConnectionPopup";
 import { BodyTinyInfo } from "../../../styles";
 import { PopupOverlay, PopupContainer, PopupHeader, PopupTitle, CloseButton } from "../styles";
 import { DevantConnectorListPopup } from "../DevantConnections/DevantConnectorListPopup";
+import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 
 const PopupContent = styled.div`
     flex: 1;
@@ -219,6 +220,7 @@ interface AddConnectionPopupProps {
 export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const { projectPath, fileName, target, onClose, onNavigateToOverview } = props;
     const { rpcClient } = useRpcContext();
+    const { initConnector: initDevantConnector } = usePlatformExtContext();
 
     const [searchText, setSearchText] = useState<string>("");
     const [connectors, setConnectors] = useState<Category[]>([]);
@@ -482,6 +484,15 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     });
 
     const isLoading = isSearching || fetchingInfo;
+
+    useEffect(() => {
+        if(initDevantConnector?.connector) {
+            // todo: have a separate wizard for importing devant 3rd party connectors
+            setWizardStep("connector");
+            handleSelectConnector(initDevantConnector.connector);
+            initDevantConnector?.setConnector(null);
+        }
+    },[initDevantConnector])
 
     // Show configuration form when connector is selected
     if (wizardStep === "connector" && selectedConnector) {
