@@ -1,5 +1,5 @@
 {
-  "filePath": "sample14/main.bal",
+  "filePath": "sample15/main.bal",
   "description": "Test the generation of service model for a CDC service",
   "start": {
     "line": 6,
@@ -193,7 +193,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "afterEntry",
+              "label": "Database Entry",
               "description": "The existing record from the monitored table"
             },
             "kind": "DATA_BINDING",
@@ -363,6 +363,15 @@
             }
           },
           "moduleName": "mssql"
+        },
+        "properties": {
+          "defaultTypeTab": {
+            "value": "create-from-scratch",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
         }
       },
       {
@@ -392,7 +401,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "afterEntry",
+              "label": "Database Entry",
               "description": "The new record created in the monitored table"
             },
             "kind": "DATA_BINDING",
@@ -551,6 +560,15 @@
         "canAddParameters": false,
         "codedata": {
           "moduleName": "mssql"
+        },
+        "properties": {
+          "defaultTypeTab": {
+            "value": "create-from-scratch",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
         }
       },
       {
@@ -580,7 +598,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "beforeEntry",
+              "label": "Database Entry",
               "description": "The record before the update in the monitored table"
             },
             "kind": "DATA_BINDING",
@@ -647,7 +665,7 @@
           },
           {
             "metadata": {
-              "label": "afterEntry",
+              "label": "Database Entry",
               "description": "The record after the update in the monitored table"
             },
             "kind": "DATA_BINDING",
@@ -817,6 +835,15 @@
             }
           },
           "moduleName": "mssql"
+        },
+        "properties": {
+          "defaultTypeTab": {
+            "value": "create-from-scratch",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
         }
       },
       {
@@ -846,7 +873,7 @@
         "parameters": [
           {
             "metadata": {
-              "label": "beforeEntry",
+              "label": "Database Entry",
               "description": "The record before the deletion in the monitored table"
             },
             "kind": "DATA_BINDING",
@@ -1005,6 +1032,15 @@
         "canAddParameters": false,
         "codedata": {
           "moduleName": "mssql"
+        },
+        "properties": {
+          "defaultTypeTab": {
+            "value": "create-from-scratch",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
         }
       },
       {
@@ -1126,6 +1162,15 @@
         "canAddParameters": false,
         "codedata": {
           "moduleName": "mssql"
+        },
+        "properties": {
+          "defaultTypeTab": {
+            "value": "create-from-scratch",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
         }
       }
     ]

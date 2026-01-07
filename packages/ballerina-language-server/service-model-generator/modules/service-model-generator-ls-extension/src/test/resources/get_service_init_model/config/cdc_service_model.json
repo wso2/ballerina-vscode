@@ -86,7 +86,9 @@
             {
               "fieldType": "TEXT",
               "ballerinaType": "string",
-              "selected": true
+              "selected": true,
+              "pattern": "^string `.+`$|^\".+\"$",
+              "patternErrorMessage": "Username cannot be empty"
             },
             {
               "fieldType": "EXPRESSION",
@@ -114,7 +116,9 @@
             {
               "fieldType": "TEXT",
               "ballerinaType": "string",
-              "selected": true
+              "selected": true,
+              "pattern": "^string `.+`$|^\".+\"$",
+              "patternErrorMessage": "Password cannot be empty"
             },
             {
               "fieldType": "EXPRESSION",
@@ -143,7 +147,9 @@
               "ballerinaType": "string",
               "selected": false,
               "minItems": 1,
-              "defaultItems": 1
+              "defaultItems": 1,
+              "pattern": "^string `.+`$|^\".+\"$",
+              "patternErrorMessage": "Database name cannot be empty"
             }
           ],
           "enabled": true,
@@ -190,7 +196,9 @@
             {
               "fieldType": "TEXT",
               "ballerinaType": "string",
-              "selected": true
+              "selected": true,
+              "pattern": "^$|^\"\"$|^string `(|([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\]))`$|^\"([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\\.([^.\\[\\]]+|\\[[^\\]]+\\])\"$",
+              "patternErrorMessage": "Table must be in the format: <database>.<schema>.<table>. Use square brackets for names with dots (e.g., db.[schema.name].table)"
             },
             {
               "fieldType": "EXPRESSION",
@@ -240,7 +248,7 @@
             {
               "fieldType": "TEXT",
               "ballerinaType": "string",
-              "selected": false
+              "selected": true
             },
             {
               "fieldType": "EXPRESSION",
