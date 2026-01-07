@@ -31,7 +31,7 @@ import {
 export interface ParametersProps {
     parameters: ParameterModel[];
     onChange: (parameters: ParameterModel[]) => void;
-    onEditClick?: (param: ParameterModel) => void;
+    onEditClick: (param: ParameterModel) => void;
     showPayload: boolean;
     streamEnabled?: boolean;
 }
@@ -91,22 +91,6 @@ export function Parameters(props: ParametersProps) {
             (p) => p.metadata.label !== param.metadata.label || p.name.value !== param.name.value
         );
         onChange(updatedParameters);
-    };
-
-    const formatParameterLabel = (typeValue: string, hasStreamProperty: boolean, isStreamEnabled: boolean, hasDataBinding: boolean) => {
-        if (!hasStreamProperty || !hasDataBinding) {
-            return typeValue;
-        }
-
-        if (isStreamEnabled) {
-            const value = typeValue.endsWith("[]") ? typeValue.slice(0, -2) : typeValue;
-            const value2 = value.startsWith("stream<") && value.endsWith(", error>") ? value.slice(7, -8) : value;
-            return `stream<${value2}>`;
-        } else {
-            const value = typeValue.endsWith("[]") ? typeValue.slice(0, -2) : typeValue;
-            const value2 = value.startsWith("stream<") && value.endsWith(", error>") ? value.slice(7, -8) : value;
-            return `${value2}[]`;
-        }
     };
 
     return (

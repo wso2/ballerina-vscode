@@ -141,7 +141,7 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payl
 
         }
     }
-    return categories.sort((a, b) => a.sortText.localeCompare(b.sortText));
+    return categories.sort((a, b) => (a.sortText ?? "z").localeCompare(b.sortText ?? "z"));;
 };
 
 export const filterTypes = (types: TypeHelperCategory[], searchText: string) => {
