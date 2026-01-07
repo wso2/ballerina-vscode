@@ -451,18 +451,8 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     };
 
     const handleNewFTPFunction = (selectedHandler: string) => {
-        // rpcClient
-        //     .getServiceDesignerRpcClient()
-        //     .getFunctionModel({ type: "ftp", functionName: "remote" })
-        //     .then((res) => {
-        //         console.log("New Function Model: ", res.function);
-        //         setFunctionModel(res.function);
-        //         setIsNew(true);
-        //         setShowForm(true);
-        //     });
         setSelectedFTPHandler(selectedHandler);
         setShowForm(true);
-        // handleNewFunctionClose();
         handleFunctionConfigClose();
         setIsSaving(false);
     };
@@ -1004,24 +994,6 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         </SectionHeader>
                                         {enabledHandlers.length > 0 && (
                                             <FunctionsContainer>
-                                                {/* {enabledHandlers
-                                                    .filter((resource) => {
-                                                        const search = searchValue.toLowerCase();
-                                                        const nameMatch = resource.name && resource.name.toLowerCase().includes(search);
-                                                        const iconMatch = resource.icon && resource.icon.toLowerCase().includes(search);
-                                                        return nameMatch || iconMatch;
-                                                    })
-                                                    .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
-                                                    .map((resource, index) => (
-                                                        <ResourceAccordionV2
-                                                            key={`${index}-${resource.name}`}
-                                                            resource={resource}
-                                                            readOnly={serviceModel.properties.hasOwnProperty('serviceTypeName')}
-                                                            onEditResource={handleFunctionEdit}
-                                                            onDeleteResource={handleFunctionDelete}
-                                                            onResourceImplement={handleOpenDiagram}
-                                                        />
-                                                    ))} */}
                                                     {enabledHandlers.map((functionModel, index) => (
                                                         <ResourceAccordion
                                                             key={`${index}-${functionModel.name.value}`}

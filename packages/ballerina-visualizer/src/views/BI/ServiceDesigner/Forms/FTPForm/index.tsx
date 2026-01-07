@@ -459,7 +459,7 @@ export function FTPForm(props: FTPFormProps) {
                                         });
                                         handleParamChange(updatedParameters);
                                     }}
-                                    sx={{ marginTop: 0 , description: parameterConfig.fileInfo.description}}
+                                    sx={{ marginTop: 0, description: parameterConfig.fileInfo.description}}
                                 />
                             </CheckBoxGroup>
                         </>
