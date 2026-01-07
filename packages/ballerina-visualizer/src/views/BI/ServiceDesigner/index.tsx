@@ -208,6 +208,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
     const [isHttpService, setIsHttpService] = useState<boolean>(false);
     const [isMcpService, setIsMcpService] = useState<boolean>(false);
     const [isFtpService, setIsFtpService] = useState<boolean>(false);
+    const [isCdcService, setIsCdcService] = useState<boolean>(false);
     const [objectMethods, setObjectMethods] = useState<FunctionModel[]>([]);
     const [dropdownOptions, setDropdownOptions] = useState<DropdownOptionProps[]>([]);
     const [initMethod, setInitMethod] = useState<FunctionModel>(undefined);
@@ -320,6 +321,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             setIsFtpService(service.moduleName === "ftp");
             setIsHttpService(service.moduleName === "http");
             setIsMcpService(service.moduleName === "mcp");
+            setIsCdcService(service.moduleName === "mssql");
         }
 
         // Extract object methods if available (for service classes)
@@ -1265,10 +1267,11 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
-                                            protocol: Protocol.MESSAGE_BROKER,
+                                            protocol: isCdcService ? Protocol.CDC : Protocol.MESSAGE_BROKER,
                                             serviceName: serviceModel.name || '',
                                             messageDocumentation: functionModel?.metadata?.description || ''
                                         }}
+                                        useInlineDataBinding={isCdcService}
                                         serviceProperties={serviceModel.properties}
                                         serviceModuleName={serviceModel.moduleName}
                                     />
