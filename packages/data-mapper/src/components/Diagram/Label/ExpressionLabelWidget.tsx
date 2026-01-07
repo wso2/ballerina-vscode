@@ -28,7 +28,7 @@ import { ExpressionLabelModel } from './ExpressionLabelModel';
 import { MappingType } from '../Link';
 import { CodeActionWidget } from '../CodeAction/CodeAction';
 import { InputOutputPortModel } from '../Port';
-import { mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import { getMappingType } from '../utils/common-utils';
 import { useDMExpressionBarStore } from "../../../store/store";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
@@ -167,6 +167,16 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     }
 
+    const iconsMap: Record<string, string> = {
+        sum: "sum",
+        avg: "graph-avg",
+        min: "graph-min",
+        max: "graph-max",
+        "string:'join": "bi-link",
+        first: "chevron-first",
+        last: "chevron-last"
+    };
+
     const loadingScreen = (
         <ProgressRing sx={{ height: '16px', width: '16px' }} color="var(--vscode-debugIcon-breakpointDisabledForeground)" />
     );
@@ -192,6 +202,7 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
                             key={`expression-label-code-action-collect-clause-fn`}
                             codeActions={collectClauseFns.map((fn) => ({
                                 title: fn,
+                                icon: iconsMap[fn] || "function-icon",
                                 onClick: () => onClickChangeCollectClauseFn(fn)
                             }))}
                             collectClauseFn={collectClauseFn}
@@ -221,6 +232,10 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
         await mapWithQuery(link, ResultClauseType.SELECT, context);
     };
 
+    const onClickConvertAndMap = async () => {
+        await convertAndMap(link, context);
+    }
+
     const onClickMapWithCustomFn = async () => {
         await mapWithCustomFn(link, context);
     };
@@ -233,21 +248,30 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
 
     if (mappingType === MappingType.ArrayToArray) {
         codeActions.push({
-            title: "Map with query expression",
+            title: "Map Each Element",
+            icon: "bi-convert",
             onClick: onClickMapWithQuery
         });
-    } else if (mappingType === MappingType.ArrayToSingleton) {
-        // TODO: Add impl
+    } else if (mappingType === MappingType.ConvertiblePrimitives) {
+        codeActions.push({
+            title: "Convert and Map",
+            icon: "refresh",
+            onClick: onClickConvertAndMap
+        });
     }
 
     codeActions.push({
-        title: "Map with custom function",
+        title: "Map with Custom Function",
+        icon: "function-icon",
         onClick: onClickMapWithCustomFn
     });
 
-    if (mappingType !== MappingType.Default && mappingType !== MappingType.ContainsUnions) {   
+    if (mappingType !== MappingType.Default 
+        && mappingType !== MappingType.ContainsUnions 
+        && mappingType !== MappingType.ConvertiblePrimitives) {   
         codeActions.push({
-            title: "Map with transform function",
+            title: "Map with Transform Function",
+            icon: "dataMapper",
             onClick: onClickMapWithTransformFn
         });
     }

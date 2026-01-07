@@ -1,6 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 import { checkCompilationErrors, DiagnosticsCheckResult } from './diagnostics-utils';
+import { CopilotEventHandler } from '../../utils/events';
 
 export const DIAGNOSTICS_TOOL_NAME = "getCompilationErrors";
 
@@ -16,12 +17,13 @@ const DiagnosticsInputSchema = z.object({});
  * This tool checks the current Ballerina package for compilation errors using the language server.
  * It operates on all files in the current project/package being modified.
  *
- * @param updatedSourceFiles - Array of source files being modified in the current session
- * @param updatedFileNames - Array of file names being modified in the current session
+ * @param tempProjectPath - Path to the temporary project directory
+ * @param eventHandler - Event handler to emit tool execution events to the visualizer
  * @returns Tool instance for checking compilation errors
  */
 export function createDiagnosticsTool(
-    tempProjectPath: string
+    tempProjectPath: string,
+    eventHandler: CopilotEventHandler
 ) {
     return tool({
         description: `Checks the compilation errors in the current Ballerina package.
@@ -39,8 +41,21 @@ The tool analyzes the entire Ballerina package and returns:
 `,
         inputSchema: DiagnosticsInputSchema,
         execute: async (): Promise<DiagnosticsCheckResult> => {
+            // Emit tool_call event to visualizer (shows "Checking for errors..." in UI)
+            eventHandler({
+                type: "tool_call",
+                toolName: DIAGNOSTICS_TOOL_NAME,
+            });
+
             // Use shared utility to check compilation errors
             const result = await checkCompilationErrors(tempProjectPath);
+
+            // Emit tool_result event to visualizer (shows result in UI)
+            eventHandler({
+                type: "tool_result",
+                toolName: DIAGNOSTICS_TOOL_NAME,
+                toolOutput: result
+            });
 
             return result;
         }

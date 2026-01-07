@@ -17,8 +17,7 @@
  */
 // tslint:disable: jsx-no-multiline-js
 import React from "react";
-import { Item, Menu, MenuItem, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
-
+import { Icon, Item, Menu, MenuItem, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 import { CodeAction } from "./CodeAction";
 
 interface CodeActionTooltipProps {
@@ -32,6 +31,22 @@ export function CodeActionTooltip(props: Partial<CodeActionTooltipProps>) {
     const { codeActions, children } = props;
     const menuItems: React.ReactNode[] = [];
 
+    const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
+        return (
+            <div
+                key={id}
+                style={{
+                    display: 'flex',
+                    width: '100%',
+                    alignItems: 'center'
+                }}
+            >
+                <Icon isCodicon={isCodicon} name={iconName} sx={{ marginRight: '10px' }} />
+                {label}
+            </div>
+        );
+    }
+
     const [actionInProgress, setActionInProgress] = React.useState(false);
 
     const handleOnClick = async (onClick: () => Promise<void>) => {
@@ -42,14 +57,15 @@ export function CodeActionTooltip(props: Partial<CodeActionTooltipProps>) {
 
     if (codeActions && codeActions.length > 0) {
         codeActions.forEach((item, index) => {
+            const id = `${item.title}-${index}`;
             const menuItem: Item = {
-                id: `${item.title}-${index}`,
-                label: item.title,
+                id: id,
+                label: getItemElement(id, item.title, item.icon, item.isCodicon),
                 onClick: () => handleOnClick(item.onClick)
             }
             menuItems.push(
                 <MenuItem
-                    key={`${item.title}-${index}`}
+                    key={id}
                     sx={{ pointerEvents: "auto", userSelect: "none" }}
                     item={menuItem}
                     data-testid={`code-action-additional-${index}`}
