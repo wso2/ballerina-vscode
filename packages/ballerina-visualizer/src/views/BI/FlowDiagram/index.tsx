@@ -180,7 +180,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const { mutate: importConnection } = useMutation({
         mutationFn: async (data: ConnectionListItem) => {
             const resp = await rpcClient.getCommonRpcClient().showInformationModal({
-                message: "By proceeding, a custom Ballerina connector will be generated from the openAPI specification of this API service running in Devant",
+                message: `By proceeding, a custom Ballerina connector will be generated from the openAPI specification of this API service running in Devant. ${data.resourceType ==="THIRD_PARTY_SERVICE" ? "Please initialize the connector with the necessary configurables" : ""}`,
                 items:["Proceed"]
             })
             if(resp === "Proceed"){
@@ -202,7 +202,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     },
                     isPopup: true,
                 });
-                initConnector?.setConnector(data.connectionNode)
+
+                initConnector?.setConnector(data.connectionNode);
             }
             
         },
