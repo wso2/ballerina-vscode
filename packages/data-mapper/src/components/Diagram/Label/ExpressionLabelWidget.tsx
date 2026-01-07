@@ -251,13 +251,13 @@ export function ExpressionLabelWidget(props: ExpressionLabelWidgetProps) {
             title: "Map Each Element",
             icon: "bi-convert",
             onClick: onClickMapWithQuery
-        }, );
+        });
     } else if (mappingType === MappingType.ConvertiblePrimitives) {
         codeActions.push({
             title: "Convert and Map",
             icon: "refresh",
             onClick: onClickConvertAndMap
-        }, );
+        });
     }
 
     codeActions.push({
