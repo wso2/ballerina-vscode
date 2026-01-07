@@ -56,7 +56,10 @@
         ],
         "expression": "userInfo",
         "diagnostics": [
-          "incompatible types: expected 'string', found 'UserInfo'"
+          {
+            "code": "BCE2066",
+            "message": "incompatible types: expected 'string', found 'UserInfo'"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,

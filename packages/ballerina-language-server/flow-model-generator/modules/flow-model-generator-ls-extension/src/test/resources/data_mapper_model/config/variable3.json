@@ -56,8 +56,14 @@
         ],
         "expression": "userInfo.",
         "diagnostics": [
-          "undeclared field '$missingNode$_0' in record 'UserInfo'",
-          "missing identifier"
+          {
+            "code": "BCE2119",
+            "message": "undeclared field '$missingNode$_0' in record 'UserInfo'"
+          },
+          {
+            "code": "BCE0400",
+            "message": "missing identifier"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,

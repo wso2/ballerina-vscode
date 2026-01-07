@@ -56,7 +56,10 @@
         ],
         "expression": "userInf",
         "diagnostics": [
-          "undefined symbol 'userInf'"
+          {
+            "code": "BCE2010",
+            "message": "undefined symbol 'userInf'"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,

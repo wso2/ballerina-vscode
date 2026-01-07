@@ -7,7 +7,7 @@
   "response": {
     "serviceInitModel": {
       "id": "4",
-      "displayName": "Directory Service",
+      "displayName": "Local Files",
       "description": "Create a service to monitor a directory for file events",
       "orgName": "ballerina",
       "packageName": "file",

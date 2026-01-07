@@ -130,6 +130,8 @@ jar {
     }
 }
 
+test.dependsOn rootProject.pullBallerinaModule('ftp', ballerinaFtpVersion, 'ballerina')
+
 compileJava {
     doFirst {
         options.compilerArgs = [

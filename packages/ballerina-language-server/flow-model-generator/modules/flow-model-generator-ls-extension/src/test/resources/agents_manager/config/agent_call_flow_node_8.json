@@ -46,7 +46,7 @@
         "metadata": {
           "label": "run",
           "description": "Executes the agent for a given user query.\n\n**Note:** Calls to this function using the same session ID must be invoked sequentially by the caller, \nas this operation is not thread-safe.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.8.0.png",
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png",
           "data": {
             "agent": {
               "systemPrompt": "{role: string `Assistant`, instructions: string `Help users with weather and time queries.`}",
@@ -63,7 +63,7 @@
           "packageName": "ai",
           "object": "Agent",
           "symbol": "run",
-          "version": "1.8.0",
+          "version": "1.9.0",
           "lineRange": {
             "fileName": "agents.bal",
             "startLine": {
@@ -76,6 +76,7 @@
             }
           },
           "sourceCode": "string result1 = check chatAgent.run(\"What's the weather in London?\");",
+          "inferredReturnType": "td",
           "data": {
             "agentCodedata": {
               "node": "AGENT",
@@ -84,7 +85,7 @@
               "packageName": "ai",
               "object": "Agent",
               "symbol": "init",
-              "version": "1.8.0",
+              "version": "1.9.0",
               "lineRange": {
                 "fileName": "agents.bal",
                 "startLine": {
@@ -118,7 +119,7 @@
                 "typeMembers": [
                   {
                     "type": "SystemPrompt",
-                    "packageInfo": "ballerina:ai:1.8.0",
+                    "packageInfo": "ballerina:ai:1.9.0",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -523,6 +524,30 @@
               "originalName": "context"
             },
             "defaultValue": "new ()"
+          },
+          "td": {
+            "metadata": {
+              "label": "Td",
+              "description": "Type descriptor specifying the expected return type format"
+            },
+            "types": [
+              {
+                "fieldType": "TYPE",
+                "ballerinaType": "ai:Trace|string",
+                "selected": false
+              }
+            ],
+            "value": "string",
+            "placeholder": "ai:Trace|string",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false,
+            "codedata": {
+              "kind": "PARAM_FOR_TYPE_INFER",
+              "originalName": "td"
+            },
+            "defaultValue": "ai:Trace|string"
           }
         },
         "flags": 1
@@ -534,7 +559,7 @@
         "metadata": {
           "label": "Agent",
           "description": "Represents an agent.",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.8.0.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
         },
         "codedata": {
           "node": "AGENT",
@@ -569,7 +594,7 @@
                 "typeMembers": [
                   {
                     "type": "SystemPrompt",
-                    "packageInfo": "ballerina:ai:1.8.0",
+                    "packageInfo": "ballerina:ai:1.9.0",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
                     "selected": false
