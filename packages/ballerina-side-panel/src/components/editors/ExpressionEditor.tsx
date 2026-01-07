@@ -437,6 +437,18 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     }, [fieldValue, targetLineRange]);
 
+    const getFallBackSelectedType = (): InputType => {
+        if (
+            typeof field.value === 'string' &&
+            field.value.trim() !== ''
+        ) {
+            return field?.types[field.types.length - 1];
+        }
+        else {
+            return field?.types[0];
+        }
+    }
+
     useEffect(() => {
         // If recordTypeField is present, always use GUIDED mode
         if (recordTypeField) {
@@ -449,7 +461,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         };
         let selectedInputType = field?.types.find(type => type.selected);
         if (!selectedInputType) {
-            selectedInputType = field?.types[0];
+            selectedInputType = getFallBackSelectedType();
         }
         const inputMode = getInputModeFromTypes(selectedInputType);
         if (!inputMode) {

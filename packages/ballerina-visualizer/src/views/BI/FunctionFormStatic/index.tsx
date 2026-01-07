@@ -266,13 +266,14 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             const properties = functionNodeCopy.properties as NodeProperties;
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
-                    if (property.valueType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = property.valueTypeConstraint;
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                        const template = primaryType?.template;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
                             // Create a deep copy for each iteration
-                            const valueConstraint = JSON.parse(JSON.stringify(baseConstraint));
+                            const valueConstraint = JSON.parse(JSON.stringify(template));
                             // Fill the values of the parameter constraint
                             for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
                                 param.value = (repeatValue as any).formValues[paramKey] || "";

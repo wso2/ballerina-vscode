@@ -70,7 +70,7 @@ namespace S {
         height: ${({ nestedForm, footerActionButton }) => {
             if (nestedForm) return "unset";
             if (footerActionButton) return "100%";
-            return "calc(100vh - 100px)";
+            return "calc(100vh - 50px)";
         }};
         max-height: ${({ footerActionButton }) => footerActionButton ? "100%" : "none"};
         min-height: ${({ footerActionButton }) => footerActionButton ? "0" : "auto"};
@@ -247,6 +247,7 @@ namespace S {
     export const MarkdownWrapper = styled.div`
         position: relative;
         width: 100%;
+        margin-bottom: -12px;
     `;
 
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`

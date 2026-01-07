@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { EditorContainer, ProgressRingWrapper } from "./styles";
 import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
@@ -35,21 +35,27 @@ export interface ClauseEditorProps {
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
+export const clauseTypeLabels: Record<IntermediateClauseType, string> = {
+    [IntermediateClauseType.WHERE]: "Condition",
+    [IntermediateClauseType.LET]: "Local variable",
+    [IntermediateClauseType.ORDER_BY]: "Sort by",
+    [IntermediateClauseType.LIMIT]: "Limit",
+    [IntermediateClauseType.FROM]: "From",
+    [IntermediateClauseType.JOIN]: "Join",
+    [IntermediateClauseType.GROUP_BY]: "Group by"
+};
+
 export function ClauseEditor(props: ClauseEditorProps) {
     const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
-    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
+    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesPanelStore.getState();
     const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
-    const [clauseType, setClauseType] = React.useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
-    const clauseTypeItems: OptionProps[] = [
-        { content: "Condition", value: IntermediateClauseType.WHERE },
-        { content: "Local variable", value: IntermediateClauseType.LET },
-        { content: "Sort by", value: IntermediateClauseType.ORDER_BY },
-        { content: "Limit", value: IntermediateClauseType.LIMIT },
-        { content: "From", value: IntermediateClauseType.FROM },
-        { content: "Join", value: IntermediateClauseType.JOIN },
-        { content: "Group by", value: IntermediateClauseType.GROUP_BY }
-    ]
+    const [clauseType, setClauseType] = useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
+    
+    const clauseTypeItems = useMemo(() => {
+        const types = clauseTypes ?? Object.values(IntermediateClauseType);
+        return types.map((type) => ({ content: clauseTypeLabels[type], value: type }));
+    }, [clauseTypes]);
 
     const nameField: DMFormField = {
         key: "name",
@@ -130,6 +136,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const handleSubmit = (data: DMFormFieldValues) => {
         setClauseToAdd(undefined);
+        setClauseTypes(undefined);
         const clause: IntermediateClause = {
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
@@ -139,6 +146,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const handleCancel = () => {
         setClauseToAdd(undefined);
+        setClauseTypes(undefined);
         onCancel();
     }
 
@@ -147,7 +155,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         switch (clauseType) {
             case IntermediateClauseType.LET:
             case IntermediateClauseType.FROM:
-                return [nameField, typeField, expressionField];
+                return [expressionField, nameField];
             case IntermediateClauseType.ORDER_BY:
                 return [expressionField, orderField];
             case IntermediateClauseType.JOIN:

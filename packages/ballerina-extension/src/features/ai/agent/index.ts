@@ -14,30 +14,84 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { Command, GenerateAgentCodeRequest, ProjectSource, AIChatMachineEventType, ExecutionContext} from "@wso2/ballerina-core";
-import { ModelMessage, stepCountIs, streamText } from "ai";
-import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
-import { getErrorMessage, populateHistoryForAgent } from "../utils/ai-utils";
-import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
-import * as fs from 'fs';
-import { createTaskWriteTool, TASK_WRITE_TOOL_NAME } from "../tools/task-writer";
-import { createDiagnosticsTool, DIAGNOSTICS_TOOL_NAME } from "../tools/diagnostics";
-import { createBatchEditTool, createEditExecute, createEditTool, createMultiEditExecute, createReadExecute, createReadTool, createWriteExecute, createWriteTool, FILE_BATCH_EDIT_TOOL_NAME, FILE_READ_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "../tools/text-editor";
-import { sendAgentDidOpenForProjects } from "../utils/project/ls-schema-notifications";
-import { getLibraryProviderTool } from "../tools/library-provider";
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
-import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from "../tools/healthcare-library";
-import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
-import { getTempProject as createTempProjectOfWorkspace } from "../utils/project/temp-project";
-import { getSystemPrompt, getUserPrompt } from "./prompts";
-import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from "../tools/connector-generator";
-import { getProjectSource } from "../utils/project/temp-project";
+import { Command, ExecutionContext, GenerateAgentCodeRequest } from "@wso2/ballerina-core";
+import { workspace } from 'vscode';
 import { StateMachine } from "../../../stateMachine";
-import { createAgentEventRegistry } from "./stream-handlers/create-agent-event-registry";
-import { StreamContext } from "./stream-handlers/stream-context";
-import { StreamErrorException, StreamAbortException, StreamFinishException } from "./stream-handlers/stream-event-handler";
-import { getPendingReviewContext, clearPendingReviewContext } from "./stream-handlers/handlers/finish-handler";
+import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
+import { AICommandConfig } from "../executors/base/AICommandExecutor";
+import { createWebviewEventHandler } from "../utils/events";
+import { AgentExecutor } from './AgentExecutor';
+
+// ==================================
+// Agent Generation Functions
+// ==================================
+
+/**
+ * Factory function to create unified executor configuration
+ * Eliminates repetitive config creation in RPC methods
+ */
+export function createExecutorConfig<TParams>(
+    params: TParams,
+    options: {
+        command: Command;
+        chatStorageEnabled?: boolean; // Always have?
+        cleanupStrategy: 'immediate' | 'review';
+        existingTempPath?: string;  //TODO: Maybe lazyily get this? not sure if needed here.
+    }
+): AICommandConfig<TParams> {
+    const ctx = StateMachine.context();
+    return {
+        executionContext: createExecutionContextFromStateMachine(),
+        eventHandler: createWebviewEventHandler(options.command),
+        generationId: `msg-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
+        abortController: new AbortController(),
+        params,
+        chatStorage: options.chatStorageEnabled ? {
+            workspaceId: ctx.projectPath,
+            threadId: 'default',
+            enabled: true,
+        } : undefined,
+        lifecycle: {
+            cleanupStrategy: options.cleanupStrategy,
+            existingTempPath: options.existingTempPath,
+        }
+    };
+}
+
+/**
+ * Generates agent code based on user request
+ * Handles plan mode configuration and review state management
+ */
+export async function generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
+    try {
+        const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
+
+        if (!isPlanModeEnabled) {
+            params.isPlanMode = false;
+        }
+
+        // Check for pending review to reuse temp project path
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = params.threadId || 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+
+        // Create config using factory function
+        const config = createExecutorConfig(params, {
+            command: Command.Agent,
+            chatStorageEnabled: true,  // Agent uses chat storage for multi-turn conversations
+            cleanupStrategy: 'review', // Review mode - temp persists until user accepts/declines
+            existingTempPath: pendingReview?.reviewState.tempProjectPath
+        });
+
+        await new AgentExecutor(config).run();
+
+        return true;
+    } catch (error) {
+        console.error('[Agent] Error in generateAgent:', error);
+        throw error;
+    }
+}
+
 
 // ==================================
 // ExecutionContext Factory Functions
@@ -45,7 +99,7 @@ import { getPendingReviewContext, clearPendingReviewContext } from "./stream-han
 
 /**
  * Creates an ExecutionContext from StateMachine's current state.
- * Used by production RPC handlers to create context from current UI state.
+ * Used by tests to create context from current UI state.
  *
  * @returns ExecutionContext with paths from StateMachine
  */
@@ -55,161 +109,4 @@ export function createExecutionContextFromStateMachine(): ExecutionContext {
         projectPath: context.projectPath,
         workspacePath: context.workspacePath
     };
-}
-
-/**
- * Creates an ExecutionContext with explicit paths.
- * Used by tests to create isolated contexts per test case.
- *
- * @param projectPath - Absolute path to the project
- * @param workspacePath - Optional workspace path
- * @returns ExecutionContext with specified paths
- */
-export function createExecutionContext(
-    projectPath: string,
-    workspacePath?: string
-): ExecutionContext {
-    return { projectPath, workspacePath };
-}
-
-export async function generateAgentCore(
-    params: GenerateAgentCodeRequest,
-    eventHandler: CopilotEventHandler,
-    ctx: ExecutionContext
-): Promise<string> {
-    const messageId = params.messageId;
-
-    // Check if we're in review mode and reuse existing temp project
-    const pendingReview = getPendingReviewContext();
-    let tempProjectPath: string;
-    let shouldCleanup: boolean;
-    let isReusingTempProject = false;
-
-    if (pendingReview) {
-        // Validate that the temp project directory still exists
-        if (fs.existsSync(pendingReview.tempProjectPath)) {
-            // Reuse existing temp project from review mode
-            tempProjectPath = pendingReview.tempProjectPath;
-            shouldCleanup = pendingReview.shouldCleanup;
-            isReusingTempProject = true;
-            console.log(`[Agent] Reusing existing temp project from review mode: ${tempProjectPath}`);
-        } else {
-            // Temp project was deleted externally - clear stale context and create new
-            console.warn(`[Agent] Temp project no longer exists: ${pendingReview.tempProjectPath}. Creating new temp project.`);
-            clearPendingReviewContext();
-            tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
-            shouldCleanup = !process.env.AI_TEST_ENV;
-            console.log(`[Agent] Created new temp project after validation failure: ${tempProjectPath}`);
-        }
-    } else {
-        // Create new temp project from workspace
-        tempProjectPath = (await createTempProjectOfWorkspace(ctx)).path;
-        shouldCleanup = !process.env.AI_TEST_ENV;
-        console.log(`[Agent] Created new temp project: ${tempProjectPath}`);
-    }
-
-    const projectPath = ctx.projectPath;
-
-    const projects: ProjectSource[] = await getProjectSource(params.operationType, ctx);
-    // Send didOpen for all initial project files only if creating new temp (not reusing)
-    if (!isReusingTempProject) {
-        sendAgentDidOpenForProjects(tempProjectPath, projectPath, projects);
-    }
-
-    const historyMessages = populateHistoryForAgent(params.chatHistory);
-
-    const cacheOptions = await getProviderCacheControl();
-
-    const modifiedFiles: string[] = [];
-
-    const userMessageContent = getUserPrompt(params, tempProjectPath, projects);
-    const allMessages: ModelMessage[] = [
-        {
-            role: "system",
-            content: getSystemPrompt(projects, params.operationType),
-            providerOptions: cacheOptions,
-        },
-        ...historyMessages,
-        {
-            role: "user",
-            content: userMessageContent,
-        },
-    ];
-
-    const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-    const libraryDescriptions = allLibraries.length > 0
-        ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
-        : "- No libraries available";
-
-    const tools = {
-        [TASK_WRITE_TOOL_NAME]: createTaskWriteTool(eventHandler, tempProjectPath, modifiedFiles),
-        [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(libraryDescriptions, GenerationType.CODE_GENERATION, eventHandler),
-        [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(libraryDescriptions, eventHandler),
-        [CONNECTOR_GENERATOR_TOOL]: createConnectorGeneratorTool(eventHandler, tempProjectPath, projects[0].projectName, modifiedFiles),
-        [FILE_WRITE_TOOL_NAME]: createWriteTool(createWriteExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_SINGLE_EDIT_TOOL_NAME]: createEditTool(createEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_BATCH_EDIT_TOOL_NAME]: createBatchEditTool(createMultiEditExecute(eventHandler, tempProjectPath, projectPath, modifiedFiles)),
-        [FILE_READ_TOOL_NAME]: createReadTool(createReadExecute(eventHandler, tempProjectPath)),
-        [DIAGNOSTICS_TOOL_NAME]: createDiagnosticsTool(tempProjectPath),
-    };
-
-    const { fullStream, response } = streamText({
-        model: await getAnthropicClient(ANTHROPIC_SONNET_4),
-        maxOutputTokens: 8192,
-        temperature: 0,
-        messages: allMessages,
-        stopWhen: stepCountIs(50),
-        tools,
-        abortSignal: AIPanelAbortController.getInstance().signal,
-    });
-
-
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.PLANNING_STARTED
-    });
-
-    eventHandler({ type: "start" });
-
-    // Create stream context for handlers
-    const streamContext: StreamContext = {
-        eventHandler,
-        modifiedFiles,
-        tempProjectPath,
-        projects,
-        shouldCleanup,
-        messageId,
-        userMessageContent,
-        response,
-        ctx,
-    };
-
-    // Create event registry
-    const registry = createAgentEventRegistry();
-
-    try {
-        for await (const part of fullStream) {
-            await registry.handleEvent(part, streamContext);
-        }
-    } catch (e) {
-        //TODO: Refactor
-        if (e instanceof StreamErrorException ||
-            e instanceof StreamAbortException ||
-            e instanceof StreamFinishException) {
-            return e.tempProjectPath;
-        }
-        throw e;
-    }
-
-    return tempProjectPath;
-}
-
-export async function generateAgent(params: GenerateAgentCodeRequest): Promise<void> {
-    const eventHandler = createWebviewEventHandler(Command.Agent);
-    try {
-        const ctx = createExecutionContextFromStateMachine();
-        await generateAgentCore(params, eventHandler, ctx);
-    } catch (error) {
-        console.error("Error during agent generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
-    }
 }
