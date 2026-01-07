@@ -62,7 +62,7 @@ export interface FTPFormProps {
 export function FTPForm(props: FTPFormProps) {
     const { model, isSaving, onSave, onClose, isNew, selectedHandler } = props;
 
-    const [serviceModel, setserviceModel] = useState<ServiceModel>(model);
+    const [serviceModel, setServiceModel] = useState<ServiceModel>(model);
     const [functionModel, setFunctionModel] = useState<FunctionModel | null>(props.functionModel || null);
     const [selectedFileFormat, setSelectedFileFormat] = useState<string>('');
 
