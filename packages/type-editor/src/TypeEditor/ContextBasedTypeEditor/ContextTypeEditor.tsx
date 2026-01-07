@@ -138,6 +138,11 @@ export function ContextTypeEditor(props: ContextTypeEditorProps) {
 
     // Determine initial tab based on edit mode
     const getInitialTab = () => {
+        
+        if (payloadContext && payloadContext?.typeEditorDefaultTab) {
+            return payloadContext.typeEditorDefaultTab;
+        }
+
         if (newType) {
             return "import";
         }

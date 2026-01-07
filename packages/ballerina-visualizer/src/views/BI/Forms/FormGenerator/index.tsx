@@ -1455,7 +1455,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 type={peekTypeStack()?.type}
                                 newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                                 newTypeValue={typeEditorState.newTypeValue}
-                                isGraphql={isGraphql}
+                                payloadContext={
+                                    {
+                                        protocol: "GRAPHQL",
+                                        filterType: "INPUT"
+                                    }
+                                }
                                 onTypeChange={onTypeChange}
                                 onSaveType={onSaveType}
                                 onTypeCreate={() => { }}
@@ -1582,7 +1587,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                             newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                             newTypeValue={typeEditorState.newTypeValue}
                             isPopupTypeForm={true}
-                            isGraphql={isGraphql}
+                            payloadContext={{protocol: "GRAPHQL"}}
                             onTypeChange={onTypeChange}
                             onSaveType={onSaveType}
                             onTypeCreate={() => { }}
