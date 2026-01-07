@@ -1267,7 +1267,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
-                                            protocol: Protocol.MESSAGE_BROKER,
+                                            protocol: isCdcService ? Protocol.CDC : Protocol.MESSAGE_BROKER,
                                             serviceName: serviceModel.name || '',
                                             messageDocumentation: functionModel?.metadata?.description || ''
                                         }}
