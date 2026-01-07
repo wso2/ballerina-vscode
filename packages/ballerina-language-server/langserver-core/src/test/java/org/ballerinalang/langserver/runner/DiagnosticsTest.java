@@ -112,7 +112,8 @@ public class DiagnosticsTest {
     @DataProvider(name = "data-provider")
     public Object[][] getDataProvider() {
         return new Object[][]{
-                {"project1", "project1.json"}
+                {"project1", "project1.json"},
+                {"project with space", "project2.json"},
         };
     }
 
