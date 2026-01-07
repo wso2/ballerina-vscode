@@ -171,7 +171,7 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                     tooltip="Discard All Changes"
                     disabled={isProcessing}
                 >
-                    Discard Changes
+                    Discard
                 </Button>
                 <Button
                     appearance="primary"
@@ -179,7 +179,7 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                     tooltip="Keep All Changes"
                     disabled={isProcessing}
                 >
-                    Keep Changes
+                    Keep
                 </Button>
             </ActionButtons>
         </NavigationContainer>
