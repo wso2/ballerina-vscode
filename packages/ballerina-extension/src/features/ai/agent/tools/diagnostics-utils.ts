@@ -94,12 +94,12 @@ export async function checkCompilationErrors(
 
         // Get diagnostics from language server for the current project
         console.log(`[DiagnosticsUtils] Calling language server for diagnostics on ${tempProjectPath}`);
-        let diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath);
+        let diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath, true);
 
         // Check if there are module not found diagnostics and attempt to resolve them
         const isDiagsChanged = await resolveModuleNotFoundDiagnostics(diagnostics, langClient);
         if (isDiagsChanged) {
-            diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath);
+            diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
         }
 
         // Transform and enrich diagnostics with hints
