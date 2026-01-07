@@ -88,3 +88,4 @@ export const getCheckpoints: NotificationType<void> = { method: `${_preFix}/getC
 export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { method: `${_preFix}/restoreCheckpoint` };
 export const clearChat: RequestType<void, void> = { method: `${_preFix}/clearChat` };
 export const updateChatMessage: RequestType<UpdateChatMessageRequest, void> = { method: `${_preFix}/updateChatMessage` };
+export const getActiveTempDir: RequestType<void, string> = { method: `${_preFix}/getActiveTempDir` };
