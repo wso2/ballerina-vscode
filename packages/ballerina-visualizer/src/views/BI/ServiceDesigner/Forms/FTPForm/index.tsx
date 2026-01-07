@@ -69,7 +69,6 @@ export function FTPForm(props: FTPFormProps) {
     const payloadContext = {
         protocol: Protocol.FTP,
         filterType: functionModel?.name.metadata.label || "JSON",
-        typeEditorDefaultTab: "create-from-scratch"
     } as GeneralPayloadContext;
 
     // State for type editor modal
@@ -507,6 +506,7 @@ export function FTPForm(props: FTPFormProps) {
                 initialTypeName={"ContentSchema"}
                 modalTitle={"Define Content Schema"}
                 payloadContext={payloadContext}
+                defaultTab="create-from-scratch"
                 modalWidth={650}
                 modalHeight={600}
             />
