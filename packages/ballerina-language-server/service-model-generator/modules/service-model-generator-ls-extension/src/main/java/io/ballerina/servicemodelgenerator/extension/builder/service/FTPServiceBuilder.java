@@ -374,8 +374,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
             }
         }
 
-        updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
-
         // Initialize readOnly metadata if not present in template (HttpServiceBuilder uses custom template)
         if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
             String serviceType = serviceModel.getType();
@@ -388,7 +386,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         populateListenerInfo(serviceModel, serviceNode);
         updateServiceDocs(serviceNode, serviceModel);
         updateAnnotationAttachmentProperty(serviceNode, serviceModel);
-        updateListenerItems(context.moduleName(), context.semanticModel(), context.project(), serviceModel);
+        updateListenerItems(FTP, semanticModel, context.project(), serviceModel);
         return serviceModel;
     }
 
