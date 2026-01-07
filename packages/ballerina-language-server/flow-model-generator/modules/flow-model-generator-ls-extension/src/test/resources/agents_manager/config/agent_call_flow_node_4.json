@@ -16,7 +16,7 @@
         "id": "116256",
         "metadata": {
           "label": "run",
-          "description": "Executes the agent for a given user query.\n",
+          "description": "Executes the agent for a given user query.",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png",
           "data": {
             "tools": [
@@ -396,8 +396,14 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
                 "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"Math tutor\"",
@@ -418,8 +424,14 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
                 "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"Help the students with their questions.\"",

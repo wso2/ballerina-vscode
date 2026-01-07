@@ -20,6 +20,7 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.flowmodelgenerator.core.AiUtils;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
@@ -208,6 +209,16 @@ public abstract class CallBuilder extends NodeBuilder {
                     customPropBuilder.type(Property.ValueType.EXPRESSION_SET, paramResult.type());
                 }
                 default -> {
+                    // Add PROMPT field type for ai:Prompt parameters
+                    // TODO: Need an extension pattern to extract the following implementation out of the CallBuilder
+                    String typeSignature = CommonUtils.getTypeSignature(paramResult.typeSymbol(), moduleInfo);
+                    if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                        customPropBuilder.type()
+                                .fieldType(Property.ValueType.PROMPT)
+                                .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                                .selected(true)
+                                .stepOut();
+                    }
                     customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
             }

@@ -278,7 +278,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         NUMBER,
         ACTION_TYPE,
         DATA_MAPPING_EXPRESSION,
-        RECORD_MAP_EXPRESSION
+        RECORD_MAP_EXPRESSION,
+        PROMPT
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -665,9 +666,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 } else {
                     ValueType finalMatchingValueType = matchingValueType;
                     this.types.stream()
-                       .filter(propType -> propType.fieldType() == finalMatchingValueType)
-                       .findFirst()
-                       .ifPresent(propType -> propType.selected(true));
+                            .filter(propType -> propType.fieldType() == finalMatchingValueType)
+                            .findFirst()
+                            .ifPresent(propType -> propType.selected(true));
                 }
             }
             return this;
