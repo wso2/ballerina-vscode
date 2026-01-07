@@ -112,7 +112,8 @@ public final class PathUtil {
             return Path.of(path);
         }
 
-        Path uriPath = Path.of(URI.create("file://" + uri.getPath()));
+        String encodedPath = uri.getPath().replaceAll(" ", "%20");
+        Path uriPath = Path.of(URI.create("file://" + encodedPath));
         String convertedUri = uriPath.toString().replaceAll("%20", " ");
         return Path.of(convertedUri);
     }

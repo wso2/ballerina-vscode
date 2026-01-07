@@ -1,0 +1,4 @@
+[package]
+org = "test"
+name = "project_with_space"
+version = "0.1.0"
