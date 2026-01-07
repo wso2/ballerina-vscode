@@ -60,6 +60,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
     const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
     const { rpcClient } = useRpcContext();
     const isGraphql = payloadContext?.protocol === Protocol.GRAPHQL;
+    const isCdcService = payloadContext?.protocol === Protocol.CDC;
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange | undefined>(undefined);
@@ -132,8 +133,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
                         fetchedInitialTypes.current = true;
-    
-                        if (!isGraphql) {
+
+                        if (!isGraphql && !isCdcService) {
                             const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                                 filePath: filePath,
                                 position: targetLineRange,
@@ -144,7 +145,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                                 searchKind: 'TYPE'
                             });
-    
+
                             const importedTypes = getImportedTypes(searchResponse.categories);
                             setImportedTypes(importedTypes);
                         }
