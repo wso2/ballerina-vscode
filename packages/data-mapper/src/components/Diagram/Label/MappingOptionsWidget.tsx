@@ -25,7 +25,7 @@ import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { convertAndMap, createNewMapping, mapSeqToX, mapWithClause, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, createNewMapping, mapSeqToX, mapWithJoin, mapWithCustomFn, mapWithQuery, mapWithTransformFn, mapWithFrom } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -146,12 +146,12 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await convertAndMap(link, context);
         }
 
-        const onClickConnectArraysWithJoin = async () => {
-            await mapWithClause(link, IntermediateClauseType.JOIN, context);
+        const oncClickConnectArraysWithFrom = async () => {
+            await mapWithFrom(link, context);
         }
 
-        const oncClickConnectArraysWithFrom = async () => {
-            await mapWithClause(link, IntermediateClauseType.FROM, context);
+        const onClickConnectArraysWithJoin = async () => {
+            await mapWithJoin(link, context);
         }
 
         const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
@@ -212,7 +212,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             {
                 id: "array-from",
                 label: getItemElement("array-from", "Nested Iterate", "nested"),
-                onClick: wrapWithOptionProgress("array-from", oncClickConnectArraysWithFrom)
+                onClick: wrapWithLinkProgress(oncClickConnectArraysWithFrom)
             },
             {
                 id: "array-join",

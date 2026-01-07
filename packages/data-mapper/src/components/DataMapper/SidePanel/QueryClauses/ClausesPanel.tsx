@@ -98,7 +98,7 @@ export function ClausesPanel(props: ClausesPanelProps) {
             isOpen={isQueryClausesPanelOpen}
             alignment="right"
             width={400}
-            overlay={false}
+            overlay={true}
             sx={{
                 fontFamily: "GilmerRegular",
                 backgroundColor: ThemeColors.SURFACE_DIM,
