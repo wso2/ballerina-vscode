@@ -1,21 +1,24 @@
 {
   "description": "Test getting graphql listener model",
-  "orgName": "ballerina",
-  "pkgName": "graphql",
-  "moduleName": "graphql",
+  "codedata": {
+    "orgName": "ballerina",
+    "packageName": "graphql",
+    "moduleName": "graphql",
+    "version": "1.17.0"
+  },
+  "filePath": "sample1/main.bal",
   "response": {
     "listener": {
-      "id": "2",
       "name": "Graphql Listener",
       "type": "graphql",
       "displayName": "Graphql",
-      "description": "Represents a Graphql listener endpoint.",
+      "description": "Invoked during the initialization of a `graphql:Listener`. Either an `http:Listener` or a port number must be\nprovided to initialize the listener.\n",
       "moduleName": "graphql",
       "orgName": "ballerina",
-      "version": "1.16.0",
+      "version": "1.17.0",
       "packageName": "graphql",
       "listenerProtocol": "graphql",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.16.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_graphql_1.17.0.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -25,9 +28,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -43,20 +50,16 @@
             "originalName": "listenTo"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int|http:Listener",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "Listener",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "OBJECT_TYPE",
-              "selected": false
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
             },
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int|http:Listener",
               "selected": false
             }
           ],
@@ -75,14 +78,16 @@
             "originalName": "host"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -101,14 +106,24 @@
             "originalName": "http1Settings"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerHttp1Settings",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "ListenerHttp1Settings",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerHttp1Settings",
+              "typeMembers": [
+                {
+                  "type": "ListenerHttp1Settings",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerHttp1Settings",
               "selected": false
             }
           ],
@@ -127,20 +142,24 @@
             "originalName": "secureSocket"
           },
           "placeholder": "()",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerSecureSocket|()",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerSecureSocket",
+              "typeMembers": [
+                {
+                  "type": "ListenerSecureSocket",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
             },
             {
-              "type": "ListenerSecureSocket",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerSecureSocket?",
               "selected": false
             }
           ],
@@ -159,14 +178,21 @@
             "originalName": "httpVersion"
           },
           "placeholder": "\"2.0\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpVersion",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "HttpVersion",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "http:HttpVersion",
+              "options": [
+                "2.0",
+                "1.1",
+                "1.0"
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:HttpVersion",
               "selected": false
             }
           ],
@@ -185,14 +211,16 @@
             "originalName": "timeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -211,20 +239,16 @@
             "originalName": "server"
           },
           "placeholder": "()",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|()",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string?",
               "selected": false
             }
           ],
@@ -243,14 +267,24 @@
             "originalName": "requestLimits"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:RequestLimitConfigs",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "RequestLimitConfigs",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:RequestLimitConfigs",
+              "typeMembers": [
+                {
+                  "type": "RequestLimitConfigs",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:RequestLimitConfigs",
               "selected": false
             }
           ],
@@ -269,14 +303,16 @@
             "originalName": "gracefulStopTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -295,14 +331,24 @@
             "originalName": "socketConfig"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ServerSocketConfig",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "ServerSocketConfig",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ServerSocketConfig",
+              "typeMembers": [
+                {
+                  "type": "ServerSocketConfig",
+                  "packageInfo": "ballerina:http:2.15.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ServerSocketConfig",
               "selected": false
             }
           ],
@@ -321,14 +367,16 @@
             "originalName": "http2InitialWindowSize"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -347,14 +395,16 @@
             "originalName": "minIdleTimeInStaleState"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -373,14 +423,16 @@
             "originalName": "timeBetweenStaleEviction"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],

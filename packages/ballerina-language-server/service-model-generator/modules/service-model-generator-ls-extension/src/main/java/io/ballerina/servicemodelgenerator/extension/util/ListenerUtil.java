@@ -100,6 +100,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEF
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
+import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
 /**
@@ -323,19 +324,53 @@ public class ListenerUtil {
         return split[split.length - 1];
     }
 
-    public static Optional<Listener> getListenerModelByName(String org, String moduleName) {
-        ServiceDatabaseManager dbManager = ServiceDatabaseManager.getInstance();
-        Optional<FunctionData> optFunctionResult = dbManager.getListener(org, moduleName);
-        if (optFunctionResult.isEmpty()) {
-            return Optional.empty();
-        }
-        FunctionData functionData = optFunctionResult.get();
-        LinkedHashMap<String, ParameterData> parameters = dbManager
-                .getFunctionParametersAsMap(functionData.functionId());
-        functionData.setParameters(parameters);
+    public static Optional<Listener> getListenerModelByName(Codedata codedata, SemanticModel semanticModel,
+                                                            ModuleInfo moduleInfo) {
 
+        FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
+                .parentSymbolType("Listener")
+                .name("init")
+                .moduleInfo(new ModuleInfo(codedata.getOrgName(), codedata.getPackageName(), codedata.getModuleName(),
+                        codedata.getVersion()))
+                .lsClientLogger(null) // Set the LS Client Logger
+                .functionResultKind(FunctionData.Kind.LISTENER_INIT)
+                .userModuleInfo(moduleInfo);
+
+        FunctionData functionData = functionDataBuilder.build();
         Listener listener = createBaseListenerModel(functionData);
+        setParameterProperties(functionData, listener.getProperties(), semanticModel, moduleInfo);
         return Optional.of(listener);
+    }
+
+    private static void setParameterProperties(FunctionData function, Map<String, Value> properties,
+                                               SemanticModel semanticModel,
+                                               ModuleInfo moduleInfo) {
+        for (ParameterData paramResult : function.parameters().values()) {
+            if (paramResult.kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER)
+                    || paramResult.kind().equals(ParameterData.Kind.INCLUDED_RECORD)) {
+                continue;
+            }
+
+            String unescapedParamName = removeLeadingSingleQuote(paramResult.name());
+
+            Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
+            codedata.setOriginalName(paramResult.name());
+
+            List<PropertyType> propertyTypes = ListenerDeclAnalyzer.buildPropertyType(paramResult, semanticModel,
+                    moduleInfo);
+
+            Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
+                    .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
+                    .setCodedata(codedata)
+                    .value("")
+                    .types(propertyTypes)
+                    .setPlaceholder(paramResult.placeholder())
+                    .editable(true)
+                    .enabled(true)
+                    .optional(paramResult.optional())
+                    .setAdvanced(paramResult.optional());
+            properties.put(unescapedParamName, valueBuilder.build());
+        }
     }
 
     private static Value getHttpDefaultListenerValue() {

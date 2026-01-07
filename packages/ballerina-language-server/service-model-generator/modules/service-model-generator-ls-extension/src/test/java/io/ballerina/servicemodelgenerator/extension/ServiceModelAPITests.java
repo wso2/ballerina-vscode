@@ -30,7 +30,6 @@ import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModelR
 import io.ballerina.servicemodelgenerator.extension.model.request.FunctionModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.FunctionSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerDiscoveryRequest;
-import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModelRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModifierRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerSourceRequest;
 import io.ballerina.servicemodelgenerator.extension.model.request.ServiceModelRequest;
@@ -41,7 +40,6 @@ import io.ballerina.servicemodelgenerator.extension.model.response.FunctionFromS
 import io.ballerina.servicemodelgenerator.extension.model.response.FunctionModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerDiscoveryResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ListenerFromSourceResponse;
-import io.ballerina.servicemodelgenerator.extension.model.response.ListenerModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceFromSourceResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.ServiceModelResponse;
 import io.ballerina.servicemodelgenerator.extension.model.response.TriggerListResponse;
@@ -146,14 +144,6 @@ public class ServiceModelAPITests {
 
         serviceEndpoint.notify("textDocument/didClose",
                 new DidCloseTextDocumentParams(new TextDocumentIdentifier(filePath.toUri().toString())));
-    }
-
-    @Test
-    public void testGetHttpListenerModel() throws ExecutionException, InterruptedException {
-        ListenerModelRequest request = new ListenerModelRequest("ballerina", "http");
-        CompletableFuture<?> result = serviceEndpoint.request("serviceDesign/getListenerModel", request);
-        ListenerModelResponse response = (ListenerModelResponse) result.get();
-        Assert.assertTrue(Objects.nonNull(response.listener()));
     }
 
     @Test
