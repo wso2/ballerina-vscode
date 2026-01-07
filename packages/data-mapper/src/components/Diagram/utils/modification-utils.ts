@@ -246,7 +246,32 @@ export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperC
 
 }
 
-export async function mapWithClause(link: DataMapperLinkModel, clauseType: IntermediateClauseType, context: IDataMapperContext) {
+export async function mapWithFrom(link: DataMapperLinkModel, context: IDataMapperContext) {
+	const sourcePort = link.getSourcePort();
+	if (!sourcePort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView.targetField;
+
+	const clause = {
+		type: IntermediateClauseType.FROM,
+		properties: {
+			name: await context.genUniqueName(sourcePortModel.attributes.field.name + "Item", viewId),
+			type: "var",
+			expression: sourcePortModel.attributes.fieldFQN
+		}
+	};
+
+	const lastIntermediateClauseIndex = context.model.query?.intermediateClauses?.length ? context.model.query.intermediateClauses.length -1 : -1;
+
+	await context.addClauses(clause, viewId, true, lastIntermediateClauseIndex);
+}
+
+export async function mapWithJoin(link: DataMapperLinkModel, context: IDataMapperContext) {
 
 	const sourcePort = link.getSourcePort();
 	if (!sourcePort) {
@@ -260,7 +285,7 @@ export async function mapWithClause(link: DataMapperLinkModel, clauseType: Inter
 	const { setClauseToAdd, setIsQueryClauseFormOpen } = useDMQueryClausesStore.getState();
 
 	setClauseToAdd({
-		type: clauseType,
+		type: IntermediateClauseType.JOIN,
 		properties: {
 			name: await context.genUniqueName(sourcePortModel.attributes.field.name + "Item", viewId),
 			type: "var",

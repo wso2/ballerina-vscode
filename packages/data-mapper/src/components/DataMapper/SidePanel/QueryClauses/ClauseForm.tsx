@@ -80,7 +80,7 @@ export function ClauseForm(props: ClauseFormProps) {
             isOpen={isQueryClauseFormOpen}
             alignment="right"
             width={400}
-            overlay={false}
+            overlay={true}
             sx={{
                 fontFamily: "GilmerRegular",
                 backgroundColor: ThemeColors.SURFACE_DIM,
