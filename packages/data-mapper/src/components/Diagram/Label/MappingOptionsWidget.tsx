@@ -19,13 +19,13 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useMemo } from 'react';
 
-import { ResultClauseType, TypeKind } from '@wso2/ballerina-core';
+import { IntermediateClauseType, ResultClauseType, TypeKind } from '@wso2/ballerina-core';
 import { Icon, Item, Menu, MenuItem, ProgressRing } from '@wso2/ui-toolkit';
 import { css } from '@emotion/css';
 
 import { MappingType } from '../Link';
 import { ExpressionLabelModel } from './ExpressionLabelModel';
-import { convertAndMap, createNewMapping, mapSeqToX, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
+import { convertAndMap, createNewMapping, mapSeqToX, mapWithClause, mapWithCustomFn, mapWithQuery, mapWithTransformFn } from '../utils/modification-utils';
 import classNames from 'classnames';
 import { genArrayElementAccessSuffix } from '../utils/common-utils';
 import { InputOutputPortModel } from '../Port';
@@ -141,6 +141,14 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await convertAndMap(link, context);
         }
 
+        const onClickConnectArraysWithJoin = () => {
+            mapWithClause(link, IntermediateClauseType.JOIN, context);
+        }
+
+        const oncClickConnectArraysWithFrom = () => {
+            mapWithClause(link, IntermediateClauseType.FROM, context);
+        }
+
         const getItemElement = (id: string, label: string, iconName: string = "lightbulb", isCodicon?: boolean) => {
             return (
                 <div
@@ -183,6 +191,19 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 id: "convert-n-map",
                 label: getItemElement("convert-n-map", "Convert and Map", "refresh"),
                 onClick: wrapWithProgress(onClickConvertAndMap)
+            }
+        ];
+
+        const arrayConnectMenuItems: Item[] = [
+            {
+                id: "array-from",
+                label: getItemElement("array-from", "Nested Iterate", "nested"),
+                onClick: oncClickConnectArraysWithFrom
+            },
+            {
+                id: "array-join",
+                label: getItemElement("array-join", "Join with Condition", "join"),
+                onClick: onClickConnectArraysWithJoin
             }
         ];
     
@@ -258,7 +279,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
                 case MappingType.ArrayToSingletonAggregate:
                     return genAggregateItems(onClickMapWithAggregateFn);
                 case MappingType.ArrayConnect:
-                    return [];
+                    return arrayConnectMenuItems;
                 case MappingType.Incompatible:
                     return [...defaultMenuItems, customFnMenuItem, transformFnMenuItem];
                 case MappingType.ContainsUnions:
