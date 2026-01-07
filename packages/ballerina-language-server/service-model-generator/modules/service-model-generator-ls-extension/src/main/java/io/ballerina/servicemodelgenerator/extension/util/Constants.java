@@ -201,6 +201,8 @@ public class Constants {
             "The description of the resource");
     public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
             "description of the class");
+    public static final MetaData GRAPHQL_OBJECT_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the object");
 
     // organization names
     public static final String BALLERINA = "ballerina";

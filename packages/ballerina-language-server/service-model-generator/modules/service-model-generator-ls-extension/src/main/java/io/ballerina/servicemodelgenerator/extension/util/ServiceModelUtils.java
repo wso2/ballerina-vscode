@@ -69,6 +69,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DB_KIN
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_ACCESSOR_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FUNCTION_RETURN_TYPE_METADATA;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_OBJECT_DOCUMENTATION_METADATA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_REMOTE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KIND_RESOURCE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PARAMETER_DEFAULT_VALUE_METADATA;
@@ -514,10 +515,13 @@ public class ServiceModelUtils {
         return valueBuilder.build();
     }
 
-    public static Value getServiceDocumentation() {
+    public static Value getServiceDocumentation(ServiceClassUtil.ServiceClassContext context) {
+        MetaData metaData = context.equals(ServiceClassUtil.ServiceClassContext.GRAPHQL_DIAGRAM)
+                ? GRAPHQL_OBJECT_DOCUMENTATION_METADATA : SERVICE_DOCUMENTATION_METADATA;
+
         Value.ValueBuilder valueBuilder = new Value.ValueBuilder();
         valueBuilder
-                .setMetadata(SERVICE_DOCUMENTATION_METADATA)
+                .setMetadata(metaData)
                 .setCodedata(new Codedata("DOCUMENTATION"))
                 .types(List.of(PropertyType.types(Value.FieldType.TEXT)))
                 .optional(true)
@@ -734,7 +738,7 @@ public class ServiceModelUtils {
                 .setModuleName(context.moduleName())
                 .setListenerProtocol(protocol)
                 .setIcon(CommonUtils.generateIcon(context.orgName(), context.packageName(), context.version()))
-                .setDocumentation(getServiceDocumentation())
+                .setDocumentation(getServiceDocumentation(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM))
                 .setCodedata(codedata)
                 .setProperties(properties)
                 .setFunctions(functionsInSource);
