@@ -17,20 +17,14 @@
  */
 
 import { useEffect, useState } from 'react';
-import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, ThemeColors, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography } from '@wso2/ui-toolkit';
+import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
 import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
-import { has } from 'lodash';
-import { Description } from '@headlessui/react';
 
 const FileConfigContainer = styled.div`
     margin-bottom: 0;
-`;
-
-const FileConfigTitle = styled.div`
-    margin-bottom: 12px;
 `;
 
 const FileConfigSection = styled.div`

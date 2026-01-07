@@ -20,7 +20,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext, FormFieldInputType } from "@wso2/ballerina-core";
+import { Type, EVENT_TYPE, JsonToTypeResponse, TypeDataWithReferences, PayloadContext, FormFieldInputType, Protocol } from "@wso2/ballerina-core";
 import { debounce } from "lodash";
 import { Utils, URI } from "vscode-uri";
 import { ContentBody, StickyFooterContainer, FloatingFooter } from "./ContextTypeEditor";
@@ -490,7 +490,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                             >
                                 Paste JSON here...
                             </Typography>
-                            {payloadContext?.protocol !== "FTP" && (<Typography
+                            {payloadContext?.protocol !== Protocol.FTP && (<Typography
                                 variant="body3"
                                 sx={{ color: 'var(--vscode-input-placeholderForeground)', textAlign: 'center' }}
                             >
@@ -523,7 +523,7 @@ export function GenericImportTab(props: GenericImportTabProps) {
                                     </Typography>
                                 </>
                             )}
-                            {payloadContext?.protocol!=="FTP" && (<LinkButton
+                            {payloadContext?.protocol!==Protocol.FTP && (<LinkButton
                                 onClick={() => selectJsonType()}
                                 sx={{
                                     display: 'flex',
