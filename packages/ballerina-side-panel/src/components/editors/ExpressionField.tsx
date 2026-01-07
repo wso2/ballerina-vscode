@@ -152,24 +152,13 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
     } = props;
 
     if (Array.isArray(value)) {
-        if (inputMode === InputMode.ARRAY) {
+        if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
             return (
                 <DynamicArrayBuilder
                     value={value}
                     label={field.label}
                     onChange={(val) => onChange(val, val.length)}
                     expressionFieldProps={props}
-                />
-            );
-        }
-        if (inputMode === InputMode.TEXT_ARRAY) {
-            return (
-                <DynamicArrayBuilder
-                    value={value}
-                    label={field.label}
-                    onChange={(val) => onChange(val, val.length)}
-                    expressionFieldProps={props}
-                    itemMode={InputMode.TEXT}
                 />
             );
         }
@@ -192,7 +181,6 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 label={field.label}
                 onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
-                itemMode={InputMode.TEXT}
             />
         );
     }
