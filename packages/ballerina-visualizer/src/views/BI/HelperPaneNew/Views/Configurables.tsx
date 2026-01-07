@@ -158,6 +158,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         }).finally(() => {
             setIsSaving(false);
             getConfigVariables();
+            onChange(node.properties.variable.value as string, false);
         });
     };
 

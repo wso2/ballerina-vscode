@@ -51,13 +51,16 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
         return InputMode.EXP;
     }
     if (inputType.fieldType === "SINGLE_SELECT") {
-        return InputMode.DROPDOWN;
+        return InputMode.SELECT;
     }
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
     }
     if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
         return InputMode.MAP;
+    }
+    if (inputType.fieldType === "PROMPT") {
+        return InputMode.PROMPT;
     }
 
     //default behaviour

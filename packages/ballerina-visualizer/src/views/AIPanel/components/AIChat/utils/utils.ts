@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DiagnosticEntry, UIChatHistoryMessage } from "@wso2/ballerina-core";
+import { DiagnosticEntry, UIChatMessage } from "@wso2/ballerina-core";
 
 export interface ChatIndexes {
     integratedChatIndex: number;
@@ -39,7 +39,7 @@ export function getOnboardingOpens(): number {
 /**
  * Convert chat history messages from backend format to UI format
  */
-export function convertToUIMessages(messages: UIChatHistoryMessage[]) {
+export function convertToUIMessages(messages: UIChatMessage[]) {
     return messages.map((msg) => {
         let role, type;
         if (msg.role === "user") {

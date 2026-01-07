@@ -114,7 +114,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             await createNewMapping(link);
         }
     
-        const onClickMapIndividualElements = async () => {
+        const onClickMapWithQuery = async () => {
             await mapWithQuery(link, ResultClauseType.SELECT, context);
         };
     
@@ -191,7 +191,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             {
                 id: "a2a-inner",
                 label: getItemElement("a2a-inner", "Map Each Element", "bi-convert"),
-                onClick: wrapWithLinkProgress(onClickMapIndividualElements)
+                onClick: wrapWithLinkProgress(onClickMapWithQuery)
             },
             {
                 id: "a2a-direct",
@@ -276,7 +276,7 @@ export function MappingOptionsWidget(props: MappingOptionsWidgetProps) {
             if (sourceMemberType === targetType && isPrimitive(sourceMemberType)) {
                 a2sMenuItems.push({
                     id: "a2s-aggregate",
-                    label: getItemElement("a2s-aggregate", "Aggregate and map", "Aggregate"),
+                    label: getItemElement("a2s-aggregate", "Aggregate and Map", "Aggregate"),
                     onClick: wrapWithLinkProgress(onClickAggregateArray)
                 });
             }

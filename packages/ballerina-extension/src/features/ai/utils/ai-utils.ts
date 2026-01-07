@@ -20,14 +20,10 @@ import {
     ChatNotify,
     ChatStart,
     DiagnosticEntry,
-    GENERATE_CODE_AGAINST_THE_REQUIREMENT,
-    GENERATE_TEST_AGAINST_THE_REQUIREMENT,
-    GenerateCodeRequest,
     IntermidaryState,
     onChatNotify,
     ProjectSource,
     SourceFile,
-    TestGeneratorIntermediaryState,
     ToolCall,
     ToolResult,
     Command,
@@ -36,7 +32,6 @@ import {
     HttpPayloadContext,
     MessageQueuePayloadContext,
     FileAttatchment,
-    OperationType
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
@@ -133,29 +128,6 @@ export function flattenProjectToFiles(projects: ProjectSource[]): SourceFile[] {
 }
 
 /**
- * Creates workspace context message for AI prompts.
- * Handles single vs multi-package scenarios and provides instructions for working with workspaces.
- *
- * @param projects - Array of project sources
- * @param packageName - Name of the current active package
- * @returns Formatted context string for AI prompts
- */
-export function buildPackageContext(projects: ProjectSource[], packageName: string): string {
-    const hasMultiplePackages = projects.length > 1;
-
-    if (!hasMultiplePackages) {
-        return `Current Package name: ${packageName}`;
-    }
-
-    return `Current Active Package: ${packageName}
-
-Note: This is a Ballerina workspace with multiple packages. File paths are prefixed with their package paths (e.g., "mainpackage/main.bal").
-Files from external packages (not the active package) are marked with the externalPackageName attribute (e.g., <file filename="otherpackage/main.bal" externalPackageName="otherpackage">).
-You can import these packages by just using the package name (e.g., import otherpackage;).
-When creating or modifying files, you should always prefer making edits for the current active package. Make sure to include the package path as prefix for the file edits.`;
-}
-
-/**
  * Formats file upload contents for AI prompts.
  * Returns empty string if no files are uploaded.
  *
@@ -187,42 +159,6 @@ export function extractResourceDocumentContent(sourceFiles: readonly SourceFile[
         return "";
     }
     return requirementFiles[0];
-}
-
-//TODO: This should be a query rewriter ideally.
-export function getRewrittenPrompt(params: GenerateCodeRequest, projects: ProjectSource[]) {
-    const prompt = params.usecase;
-    if (prompt.trim() === GENERATE_CODE_AGAINST_THE_REQUIREMENT) {
-        const sourceFiles = flattenProjectToFiles(projects);
-        const resourceContent = extractResourceDocumentContent(sourceFiles);
-        return `${GENERATE_CODE_AGAINST_THE_REQUIREMENT}:
-${resourceContent}`;
-    }
-    if (prompt.trim() === GENERATE_TEST_AGAINST_THE_REQUIREMENT) {
-        const sourceFiles = flattenProjectToFiles(projects);
-        const resourceContent = extractResourceDocumentContent(sourceFiles);
-        return `${GENERATE_TEST_AGAINST_THE_REQUIREMENT}:
-${resourceContent}`;
-    }
-
-    if (!prompt.toLowerCase().includes("readme")) {
-        return prompt;
-    }
-
-    const sourceFiles = flattenProjectToFiles(projects);
-    const readmeFiles = sourceFiles
-        .filter((sourceFile) => sourceFile.filePath.toLowerCase().endsWith("readme.md"))
-        .map((sourceFile) => sourceFile.content);
-
-    if (readmeFiles.length === 0) {
-        return prompt;
-    }
-
-    const readmeContent = readmeFiles[0];
-
-    return `${prompt}
-Readme Contents:
-${readmeContent}`;
 }
 
 export function sendMessagesNotification(messages: any[]): void {
@@ -287,7 +223,7 @@ export function sendMessageStartNotification(): void {
     sendAIPanelNotification(msg);
 }
 
-export function sendIntermidateStateNotification(intermediaryState: TestGeneratorIntermediaryState | DocumentationGeneratorIntermediaryState): void {
+export function sendIntermidateStateNotification(intermediaryState: DocumentationGeneratorIntermediaryState): void {
     const msg: IntermidaryState = {
         type: "intermediary_state",
         state: intermediaryState,
@@ -313,9 +249,10 @@ export function sendToolResultNotification(toolName: string, toolOutput?: any): 
     sendAIPanelNotification(msg);
 }
 
-export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string): void {
+export function sendTaskApprovalRequestNotification(approvalType: "plan" | "completion", tasks: any[], taskDescription?: string, message?: string, requestId?: string): void {
     const msg: ChatNotify = {
         type: "task_approval_request",
+        requestId: requestId || `approval-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
         approvalType: approvalType,
         tasks: tasks,
         taskDescription: taskDescription,
@@ -406,28 +343,4 @@ export function isHttpPayloadContext(context: PayloadContext): context is HttpPa
 
 export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
     return context.protocol === "MESSAGE_BROKER";
-}
-
-/**
- * Parses XML-formatted assistant response to extract source files.
- * Extracts code blocks with format: <code filename="...">```ballerina...```</code>
- *
- * @param xmlString - The assistant response containing XML code blocks
- * @returns Array of SourceFile objects parsed from the XML
- */
-export function parseSourceFilesFromXML(xmlString: string): SourceFile[] {
-    const sourceFiles: SourceFile[] = [];
-    const regex = /<code filename="([^"]+)">\s*```ballerina([\s\S]*?)```\s*<\/code>/g;
-    let match;
-
-    while ((match = regex.exec(xmlString)) !== null) {
-        const filePath = match[1];
-        const fileContent = match[2].trim();
-        sourceFiles.push({
-            filePath,
-            content: fileContent
-        });
-    }
-
-    return sourceFiles;
 }

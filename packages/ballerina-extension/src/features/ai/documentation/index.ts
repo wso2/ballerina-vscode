@@ -23,7 +23,9 @@ import {
 } from "./prompts";
 import { CopilotEventHandler, createWebviewEventHandler } from "../utils/events";
 import { getErrorMessage } from "../utils/ai-utils";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
+import { chatStateStorage } from "../../../views/ai-panel/chatStateStorage";
+import { StateMachine } from "../../../stateMachine";
+import { createExecutorConfig } from "../agent/index";
 
 export type DocumentationGenerationRequest = {
     serviceName: string;
@@ -34,7 +36,8 @@ export type DocumentationGenerationRequest = {
 // Core documentation generation function that emits events
 export async function generateDocumentationCore(
     params: DocumentationGenerationRequest,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    abortController: AbortController
 ): Promise<void> {
     const systemPrompt = getDocumentationGenerationSystemPrompt();
     const userMessages: ModelMessage[] = createDocumentationGenMessages(params);
@@ -52,7 +55,7 @@ export async function generateDocumentationCore(
         maxOutputTokens: 16384,
         temperature: 0,
         messages: allMessages,
-        abortSignal: AIPanelAbortController.getInstance().signal,
+        abortSignal: abortController.signal,
     });
 
     eventHandler({ type: "start" });
@@ -96,10 +99,35 @@ export async function generateDocumentationCore(
 // Main public function that uses the default event handler
 export async function generateDocumentation(params: DocumentationGenerationRequest): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.Doc);
+
+    // Create config for abort support
+    const config = createExecutorConfig(params, {
+        command: Command.Doc,
+        chatStorageEnabled: false,
+        cleanupStrategy: 'immediate'
+    });
+
+    const workspaceId = StateMachine.context().projectPath;
+    const threadId = 'default';
+
     try {
-        await generateDocumentationCore(params, eventHandler);
+        // Register execution for abort support
+        chatStateStorage.setActiveExecution(workspaceId, threadId, {
+            generationId: config.generationId,
+            abortController: config.abortController
+        });
+
+        await generateDocumentationCore(params, eventHandler, config.abortController);
     } catch (error) {
-        console.error("Error during documentation generation:", error);
-        eventHandler({ type: "error", content: getErrorMessage(error) });
+        if ((error as any).name === 'AbortError' || config.abortController.signal.aborted) {
+            console.log("[Documentation] Aborted by user.");
+            eventHandler({ type: "abort", command: Command.Doc });
+        } else {
+            console.error("Error during documentation generation:", error);
+            eventHandler({ type: "error", content: getErrorMessage(error) });
+        }
+    } finally {
+        // Clear active execution
+        chatStateStorage.clearActiveExecution(workspaceId, threadId);
     }
 }
