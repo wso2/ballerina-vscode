@@ -99,10 +99,6 @@ export function Parameters(props: ParametersProps) {
                 <>
                     {parameters.map((param: ParameterModel, index) => {
                         const readonly = param.editable === false;
-                        const hasStreamProperty = streamEnabled !== undefined;
-                        const isStreamEnabled = streamEnabled === true;
-                        const hasDataBinding = param.kind === "DATA_BINDING";
-
                         const formattedTypeValue = param.type.value;
 
                         const label = (

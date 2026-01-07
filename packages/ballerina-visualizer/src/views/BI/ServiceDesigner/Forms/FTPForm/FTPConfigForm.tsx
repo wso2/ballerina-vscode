@@ -49,10 +49,6 @@ export function FunctionConfigForm(props: FunctionConfigFormProps) {
     };
 
     const handleEventClick = (handlerName: string) => {
-        // if (onBack) {
-        //     onBack();
-        // }
-
         onSubmit && onSubmit(handlerName);
     };
 

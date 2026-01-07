@@ -19,7 +19,7 @@
 import { useEffect, useState } from 'react';
 import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, ThemeColors, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
 import { has } from 'lodash';
@@ -73,7 +73,7 @@ export function FTPForm(props: FTPFormProps) {
     const [selectedFileFormat, setSelectedFileFormat] = useState<string>('');
 
     const payloadContext = {
-        protocol: "FTP",
+        protocol: Protocol.FTP,
         filterType: functionModel?.name.metadata.label || "JSON",
         typeEditorDefaultTab: "create-from-scratch"
     } as GeneralPayloadContext;

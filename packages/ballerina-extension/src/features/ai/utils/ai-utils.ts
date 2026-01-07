@@ -36,7 +36,8 @@ import {
     HttpPayloadContext,
     MessageQueuePayloadContext,
     FileAttatchment,
-    OperationType
+    OperationType,
+    Protocol
 } from "@wso2/ballerina-core";
 import { ModelMessage } from "ai";
 import { MessageRole } from "./ai-types";
@@ -401,11 +402,11 @@ export function getErrorMessage(error: unknown): string {
 }
 
 export function isHttpPayloadContext(context: PayloadContext): context is HttpPayloadContext {
-    return context.protocol === "HTTP";
+    return context.protocol === Protocol.HTTP;
 }
 
 export function isMessageQueuePayloadContext(context: PayloadContext): context is MessageQueuePayloadContext {
-    return context.protocol === "MESSAGE_BROKER";
+    return context.protocol === Protocol.MESSAGE_BROKER;
 }
 
 /**
