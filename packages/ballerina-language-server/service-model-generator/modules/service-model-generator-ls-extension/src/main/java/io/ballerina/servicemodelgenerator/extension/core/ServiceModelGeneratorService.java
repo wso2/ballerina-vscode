@@ -393,7 +393,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
         return CompletableFuture.supplyAsync(() -> {
             List<TriggerBasicInfo> triggerBasicInfoList = triggerProperties.values().stream()
                     .filter(triggerProperty -> filterTriggers(triggerProperty, request))
-                    .map(trigger -> getTriggerBasicInfoByName(trigger.orgName(), trigger.name()))
+                    .map(this::getTriggerBasicInfoByName)
                     .flatMap(Optional::stream)
                     .toList();
             return new TriggerListResponse(triggerBasicInfoList);
@@ -981,5 +981,17 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 protocol, icon);
 
         return Optional.of(triggerBasicInfo);
+    }
+
+    private Optional<TriggerBasicInfo> getTriggerBasicInfoByName(TriggerProperty triggerProperty) {
+        if (triggerProperty.triggerName() == null) {
+            return getTriggerBasicInfoByName(triggerProperty.orgName(), triggerProperty.name());
+        }
+
+        return getTriggerBasicInfoByName(triggerProperty.orgName(), triggerProperty.name())
+                .map(original -> new TriggerBasicInfo(original.id(), triggerProperty.triggerName(), original.orgName(),
+                        original.packageName(), original.moduleName(), original.version(), original.type(),
+                        original.displayName(), original.documentation(), original.listenerProtocol(),
+                        original.icon()));
     }
 }

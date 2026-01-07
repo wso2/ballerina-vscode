@@ -15,7 +15,7 @@
       "metadata": {
         "label": "Agent",
         "description": "Represents an agent.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.8.0.png"
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
       },
       "codedata": {
         "node": "AGENT",
@@ -50,7 +50,7 @@
               "typeMembers": [
                 {
                   "type": "SystemPrompt",
-                  "packageInfo": "ballerina:ai:1.8.0",
+                  "packageInfo": "ballerina:ai:1.9.0",
                   "packageName": "ai",
                   "kind": "RECORD_TYPE",
                   "selected": false

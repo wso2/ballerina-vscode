@@ -108,7 +108,10 @@
         ],
         "expression": "",
         "diagnostics": [
-          "missing identifier"
+          {
+            "code": "BCE0400",
+            "message": "missing identifier"
+          }
         ],
         "elements": [],
         "isQueryExpression": false,
