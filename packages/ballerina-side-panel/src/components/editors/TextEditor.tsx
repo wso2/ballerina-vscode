@@ -47,10 +47,15 @@ export function TextEditor(props: TextEditorProps) {
     // Add pattern validation if it exists in field types
     const patternType = field.types?.find(t => t.pattern);
     if (patternType?.pattern) {
-        validationRules.pattern = {
-            value: new RegExp(patternType.pattern),
-            message: patternType.patternErrorMessage || "Invalid format"
-        };
+        try {
+            validationRules.pattern = {
+                value: new RegExp(patternType.pattern),
+                message: patternType.patternErrorMessage || "Invalid format"
+            };
+        } catch (error) {
+            console.error(`Invalid regex pattern for field '${field.key}': ${patternType.pattern}`, error);
+            // Skip adding pattern validation rule when regex is invalid
+        }
     }
 
     return (
