@@ -354,7 +354,7 @@ public final class MssqlCdcServiceBuilder extends AbstractServiceBuilder {
             if (value.getValues() != null && !value.getValues().isEmpty()) {
                 List<String> valueArray = value.getValues().stream()
                         .filter(v -> v != null && !isInvalidValue(v))
-                        .collect(Collectors.toList());
+                        .toList();
                 if (!valueArray.isEmpty()) {
                     dbFields.add(value.getCodedata().getOriginalName() + " : [" + String.join(", ", valueArray) + "]");
                 }
