@@ -1120,7 +1120,7 @@ export const Form = forwardRef((props: FormProps) => {
 
                             />
                         )}
-                        {targetTypeField && (
+                        {targetTypeField && !targetTypeField.advanced && (
                             <>
                                 <EditorFactory
                                     field={targetTypeField}
