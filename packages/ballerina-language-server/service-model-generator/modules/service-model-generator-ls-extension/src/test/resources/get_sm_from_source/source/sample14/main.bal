@@ -1,15 +1,20 @@
-import ballerinax/cdc;
-import ballerinax/mssql;
-import ballerinax/mssql.cdc.driver as _;
+import ballerina/ftp;
 
-listener mssql:CdcListener mssqlCdcListener = new (database = {hostname: "localhost", port: 1433, username: "admin", password: "admin", databaseNames: ["mydb1"]});
+listener ftp:Listener ftpListener = new ({
+    protocol: ftp:FTP,
+    host: "127.0.0.1",
+    auth: {
+        credentials: {
+            username: "defaultUser",
+            password: "defaultPassword"
+        }
+    },
+    port: 21,
+    path: "/"
+});
 
-@cdc:ServiceConfig {
-    tables: "db1.schema1.t1"
-}
-
-service cdc:Service on mssqlCdcListener {
-    remote function onRead(AfterEntrySchema afterEntry, string tableName) returns error? {
+service on ftpListener {
+    remote function onFileJson(json content, ftp:FileInfo fileInfo) returns error? {
         do {
         } on fail error err {
             // handle error
@@ -17,7 +22,7 @@ service cdc:Service on mssqlCdcListener {
         }
     }
 
-    remote function onUpdate(record {} beforeEntry, record {} afterEntry, string tableName) returns error? {
+    remote function onFileXml(xml content, ftp:FileInfo fileInfo, ftp:Caller caller) returns error? {
         do {
         } on fail error err {
             // handle error

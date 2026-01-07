@@ -1,107 +1,141 @@
 {
   "filePath": "sample1/main.bal",
-  "description": "Test adding a rabbitmq service",
+  "description": "Test adding a ftp service",
   "serviceInitModel": {
-    "id": "5",
-    "displayName": "FTP Service",
-    "description": "Create a service to monitor a directory in a FTP server for file events",
+    "id": "0",
+    "displayName": "FTP Integration",
+    "description": "Monitor files on an FTP/SFTP server and integrate file events into your application.",
     "orgName": "ballerina",
     "packageName": "ftp",
     "moduleName": "ftp",
-    "version": "2.13.0",
+    "version": "2.16.0",
     "type": "ftp",
-    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.13.0.png",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
     "properties": {
-      "host": {
-        "metadata": {
-          "label": "Host",
-          "description": "Target FTP server url"
-        },
-        "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-        },
-        "placeholder": "\"127.0.0.1\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
-        "value": "\"127.0.0.1\"",
-        "items": [],
-        "typeMembers": [],
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
-      "port": {
-        "metadata": {
-          "label": "Port",
-          "description": "Target FTP server port"
-        },
-        "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-        },
-        "placeholder": "21",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "int",
-        "value": "21",
-        "items": [],
-        "typeMembers": [],
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
-      "protocol": {
-        "metadata": {
-          "label": "Protocol",
-          "description": "The protocol to connect to the FTP server"
-        },
-        "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-        },
-        "placeholder": "\"ftp\"",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "string",
-        "value": "\"ftp\"",
-        "items": [
-          "\"ftp\"",
-          "\"sftp\""
-        ],
-        "typeMembers": [],
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
-      "path": {
-        "metadata": {
-          "label": "Path",
-          "description": "The path to be monitored"
-        },
-        "codedata": {
-          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
-        },
-        "placeholder": "\"/\"",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "string",
-        "value": "\"/\"",
-        "items": [],
-        "typeMembers": [],
-        "enabled": true,
-        "editable": true,
-        "optional": false,
-        "advanced": false
-      },
       "listenerVarName": {
         "metadata": {
-          "label": "Name",
+          "label": "Listener Name",
           "description": "Provide a name for the listener being created"
         },
         "codedata": {
           "type": "LISTENER_VAR_NAME"
         },
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "Global",
         "value": "ftpListener",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": true
+      },
+      "host": {
+        "metadata": {
+          "label": "Host",
+          "description": "Hostname or IP address of the FTP/SFTP server (e.g., ftp.example.com)"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"127.0.0.1\"",
+        "value": "string `127.0.0.1`",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "portNumber": {
+        "metadata": {
+          "label": "Port Number",
+          "description": "Port to connect on (default: 21 for FTP, 22 for SFTP)\n"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "21",
+        "value": "21",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "folderPath": {
+        "metadata": {
+          "label": "Folder Path",
+          "description": "The folder on the server to monitor for new files (e.g., /uploads or /incoming)"
+        },
+        "codedata": {
+          "argType": "LISTENER_PARAM_INCLUDED_DEFAULTABLE_FIELD"
+        },
+        "placeholder": "\"/\"",
+        "value": "string `/`",
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      },
+      "authentication": {
+        "metadata": {
+          "label": "Authentication",
+          "description": "Select the authentication method"
+        },
+        "placeholder": "",
+        "value": 0.0,
+        "choices": [
+          {
+            "metadata": {
+              "label": "Basic Authentication",
+              "description": ""
+            },
+            "placeholder": "true",
+            "value": "true",
+            "properties": {
+              "userName": {
+                "metadata": {
+                  "label": "Username",
+                  "description": ""
+                },
+                "codedata": {
+                  "type": "IDENTIFIER"
+                },
+                "placeholder": "",
+                "value": "\"testUser\"",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              },
+              "password": {
+                "metadata": {
+                  "label": "Password",
+                  "description": ""
+                },
+                "codedata": {
+                  "type": "IDENTIFIER"
+                },
+                "placeholder": "",
+                "value": "\"testpwd\"",
+                "enabled": true,
+                "editable": true,
+                "optional": true,
+                "advanced": false
+              }
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "No Authentication",
+              "description": ""
+            },
+            "placeholder": "true",
+            "value": "true",
+            "enabled": false,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          }
+        ],
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -135,7 +169,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new (host = \"127.0.0.1\", port = 21, protocol = \"ftp\", path = \"/\");\nservice ftp:Service on ftpListener {\n\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host= \"127.0.0.1\", auth= { credentials: { username: \"testUser\", password: \"testpwd\" } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
       }
     ]
   }

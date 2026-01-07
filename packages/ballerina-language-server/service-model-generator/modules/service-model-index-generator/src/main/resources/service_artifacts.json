@@ -241,7 +241,7 @@
         "Service"
       ],
       "serviceDeclaration": {
-        "displayName": "Directory Service",
+        "displayName": "Local Files",
         "description": "Create a service to monitor a directory for file events",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",
@@ -385,12 +385,12 @@
     },
     {
       "name": "ftp",
-      "version": "2.13.0",
+      "version": "2.16.0",
       "serviceTypeSkipList": [
         "Service"
       ],
       "serviceDeclaration": {
-        "displayName": "FTP Service",
+        "displayName": "FTP / SFTP",
         "description": "Create a service to monitor a directory in a FTP server for file events",
         "optionalTypeDescriptor": 1,
         "typeDescriptorLabel": "Service Type",

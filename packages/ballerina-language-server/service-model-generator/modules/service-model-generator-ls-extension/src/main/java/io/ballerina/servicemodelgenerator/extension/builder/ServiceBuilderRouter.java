@@ -27,6 +27,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AiChatServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.AsbServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.DefaultServiceBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.service.FTPServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.GraphqlServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.HttpServiceBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.service.KafkaServiceBuilder;
@@ -58,6 +59,7 @@ import java.util.function.Supplier;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AI;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.HTTP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
@@ -86,6 +88,7 @@ public class ServiceBuilderRouter {
         put(ASB, AsbServiceBuilder::new);
         put(SOLACE, SolaceServiceBuilder::new);
         put(MSSQL, MssqlCdcServiceBuilder::new);
+        put(FTP, FTPServiceBuilder::new);
     }};
 
     public static ServiceNodeBuilder getServiceBuilder(String protocol) {
