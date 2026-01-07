@@ -180,7 +180,7 @@ export function OperationForm(props: OperationFormProps) {
                     formFields: convertSchemaToFormFields(model.schema),
                     handleParameter: handleParamChange
                 },
-                types: [{ fieldType: "PARAM_MANAGER", ballerinaType: "", selected: false }]
+                types: [{ fieldType: "PARAM_MANAGER", selected: false }]
             },
             {
                 key: 'returnType',
@@ -215,7 +215,7 @@ export function OperationForm(props: OperationFormProps) {
                             label: property.metadata?.label || key,
                             description: property.metadata?.description || ''
                         },
-                        types: property?.types || [{ fieldType: "STRING", ballerinaType: "" }],
+                        types: property?.types || [{ fieldType: "STRING"}],
                         diagnostics: {
                             hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
                             diagnostics: property.diagnostics
