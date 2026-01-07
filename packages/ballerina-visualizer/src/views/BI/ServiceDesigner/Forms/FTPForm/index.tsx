@@ -68,16 +68,15 @@ export interface FTPFormProps {
 export function FTPForm(props: FTPFormProps) {
     const { model, isSaving, onSave, onClose, isNew, selectedHandler } = props;
 
-    const payloadContext = {
-        protocol: "FTP",
-        filterType: props.functionModel?.name.metadata.label || "JSON",
-        typeEditorDefaultTab: "create-from-scratch"
-    } as GeneralPayloadContext;
-
     const [serviceModel, setserviceModel] = useState<ServiceModel>(model);
     const [functionModel, setFunctionModel] = useState<FunctionModel | null>(props.functionModel || null);
     const [selectedFileFormat, setSelectedFileFormat] = useState<string>('');
 
+    const payloadContext = {
+        protocol: "FTP",
+        filterType: functionModel?.name.metadata.label || "JSON",
+        typeEditorDefaultTab: "create-from-scratch"
+    } as GeneralPayloadContext;
 
     // State for type editor modal
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
@@ -155,11 +154,6 @@ export function FTPForm(props: FTPFormProps) {
         setIsTypeEditorOpen(true);
     };
 
-    const generatePayloadTypeName = (): string => {
-        const payloadFieldName = "Content";
-        return `${payloadFieldName}Schema`;
-    };
-
     const selectType = (typeValue: string, isStreamEnabled: boolean): string =>{
         if (!typeValue) {
             return "";
@@ -168,12 +162,19 @@ export function FTPForm(props: FTPFormProps) {
         if(!hasStreamProperty){
             return typeValue;
         }
-
         // Extract the base type by removing all wrappers
         let baseType = typeValue;
 
+        if ( selectedFileFormat === 'RAW'){
+            if (isStreamEnabled){
+                return `stream<byte[], error>`;
+            } else {
+                return `byte[]`;
+            }
+        }
+
         // Remove array suffix if present
-        if (baseType.endsWith("[]")) {
+        if (baseType.endsWith("[]") && baseType!== "string[]") {
             baseType = baseType.slice(0, -2);
         }
         else if (baseType.startsWith("stream<")) {
@@ -183,8 +184,6 @@ export function FTPForm(props: FTPFormProps) {
                 baseType = baseType.slice(7, -1);
             }
         }
-
-
 
         // Apply the correct wrapper based on stream state
         if (isStreamEnabled) {
@@ -205,7 +204,7 @@ export function FTPForm(props: FTPFormProps) {
 
         let baseType = typeValue;
         
-        if (baseType.endsWith("[]")) {
+        if (baseType.endsWith("[]") && baseType!== "string[]") {
             baseType = baseType.slice(0, -2);
         }
         else if (baseType.startsWith("stream<")) {
@@ -216,55 +215,42 @@ export function FTPForm(props: FTPFormProps) {
             }
         }
 
-        // Remove array suffix if present
-
-
         return baseType;
     }
 
     const handleTypeCreated = (type: Type | string) => {
         // When a type is created, set it as the payload type for the DATA_BINDING parameter
-        const defaultParamIndex = functionModel.parameters.findIndex(param => param.kind === "REQUIRED" && param.name.value === "content");
-        const defaultParam = functionModel.parameters?.find(param => param.kind === "REQUIRED" && param.name.value === "content");
         const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
         if (payloadParam) {
-            const defaultParamModel = { ...defaultParam };
-            const updatedPayloadModel = { ...payloadParam };
-            updatedPayloadModel.name.value = "content";
             const typeValue = typeof type === 'string' ? type : type.name;
-            updatedPayloadModel.type.value = selectType(typeValue, functionModel.properties.stream?.enabled) ;
-            updatedPayloadModel.enabled = true;
-            
-            defaultParamModel.enabled = false; // Disable the default content parameter
 
-            // Find the index of the payload parameter
-            const index = functionModel.parameters.findIndex(param => param.kind === "DATA_BINDING");
-            if (index >= 0) {
-                const updatedParameters = [...functionModel.parameters];
-                updatedParameters[index] = updatedPayloadModel;
+            // Update all parameters in one pass
+            const updatedParameters = functionModel.parameters.map(param => {
+                // Enable DATA_BINDING parameter with new type
+                if (param.kind === "DATA_BINDING") {
+                    return {
+                        ...param,
+                        name: { ...param.name, value: "content" },
+                        type: {
+                            ...param.type,
+                            value: selectType(typeValue, functionModel.properties.stream?.enabled)
+                        },
+                        enabled: true
+                    };
+                }
+                // Disable default REQUIRED content parameter
+                if (param.kind === "REQUIRED" && param.name.value === "content") {
+                    return { ...param, enabled: false };
+                }
+                return param;
+            });
 
-                // Update canDataBind property to enabled
-                const updatedFunctionModel = {
-                    ...functionModel,
-                    parameters: updatedParameters
-                };
-                setFunctionModel(updatedFunctionModel);
-            }
-
-            // Find the index of the payload parameter
-            
-            if (defaultParamIndex >= 0) {
-                const updatedParameters = [...functionModel.parameters];
-                updatedParameters[defaultParamIndex] = updatedPayloadModel;
-
-                // Update canDataBind property to enabled
-                const updatedFunctionModel = {
-                    ...functionModel,
-                    parameters: updatedParameters
-                };
-                setFunctionModel(updatedFunctionModel);
-            }
+            setFunctionModel({
+                ...functionModel,
+                parameters: updatedParameters
+            });
         }
+
         // Close the modal
         setIsTypeEditorOpen(false);
     };
@@ -420,6 +406,15 @@ export function FTPForm(props: FTPFormProps) {
                                                                     }
                                                                 };
                                                             }
+                                                            if (selectedFileFormat === 'RAW' && param.kind === "REQUIRED" && param.name.value === "content" && param.enabled && param.type?.value) {
+                                                                return {
+                                                                    ...param,
+                                                                    type: {
+                                                                        ...param.type,
+                                                                        value: selectType(param.type.value, checked)
+                                                                    }
+                                                                };
+                                                            }
                                                             return param;
                                                         });
 
@@ -515,8 +510,8 @@ export function FTPForm(props: FTPFormProps) {
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName={generatePayloadTypeName()}
-                modalTitle={"Define " + payloadFieldName}
+                initialTypeName={"ContentSchema"}
+                modalTitle={"Define Content Schema"}
                 payloadContext={payloadContext}
                 modalWidth={650}
                 modalHeight={600}
