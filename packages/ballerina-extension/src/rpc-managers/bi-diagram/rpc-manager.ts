@@ -1513,19 +1513,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             let projectPath: string;
             if (params?.projectPath) {
-                // // Check if there's an active AI generation with a temp project path
-                // const workspaceId = StateMachine.context().projectPath;
-                // const threadId = 'default';
-                // const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-                
-                // if (pendingReview?.reviewState?.tempProjectPath) {
-                //     // Use temp project path from active AI generation
-                //     const fileUriStr = Uri.file(pendingReview.reviewState.tempProjectPath).toString();
-                //     projectPath = fileUriStr.replace(/^file:/, "ai:");
-                // } else {
-                //     const fileUriStr = Uri.file(params.projectPath).toString();
-                //     projectPath = fileUriStr.replace(/^file:/, "ai:");
-                // }
                 const uri = Uri.parse(params.projectPath);
                 projectPath = uri.with({ scheme: 'ai' }).toString();
             } else {
