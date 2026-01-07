@@ -284,7 +284,11 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         newTypeValue={newTypeValue}
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
-                        defaultTab={defaultTab as 'create-from-scratch' | 'import' | undefined}
+                        defaultTab={
+                            defaultTab === 'create-from-scratch' || defaultTab === 'import'
+                                ? defaultTab
+                                : undefined
+                        }
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
