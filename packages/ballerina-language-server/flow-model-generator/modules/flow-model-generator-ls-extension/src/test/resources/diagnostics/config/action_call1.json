@@ -21,8 +21,12 @@
         "label": "message",
         "description": "An HTTP outbound request or any allowed payload"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "http:RequestMessage",
+      "types": [
+        {
+          "ballerinaType": "http:RequestMessage",
+          "fieldType": "EXPRESSION"
+        }
+      ],
       "value": "{}",
       "placeholder": "{}",
       "optional": false,

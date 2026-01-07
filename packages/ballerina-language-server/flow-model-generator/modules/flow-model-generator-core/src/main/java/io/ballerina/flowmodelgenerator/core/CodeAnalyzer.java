@@ -412,7 +412,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private void populateAgentMetaData(ExpressionNode expressionNode, ClassSymbol classSymbol) {
-        Map<String, String> agentData = new HashMap<>();
+        Map<String, AiUtils.AgentPropertyValue> agentData = new HashMap<>();
         if (isClassField(expressionNode)) {
             FieldAccessExpressionNode fieldAccess = (FieldAccessExpressionNode) expressionNode;
             Optional<Symbol> fieldSymbol = semanticModel.symbol(fieldAccess.fieldName());
@@ -425,7 +425,8 @@ public class CodeAnalyzer extends NodeVisitor {
             if (initExpr.isPresent()) {
                 Optional<ImplicitNewExpressionNode> newExprOpt = getNewExpr(initExpr.get());
                 if (newExprOpt.isPresent()) {
-                    agentData.put(Property.SCOPE_KEY, Property.SERVICE_INIT_SCOPE);
+                    agentData.put(Property.SCOPE_KEY,
+                            new AiUtils.AgentPropertyValue(Property.SERVICE_INIT_SCOPE, Property.ValueType.EXPRESSION));
                     genAgentData(newExprOpt.get(), classSymbol, agentData);
                 }
             }
@@ -454,10 +455,12 @@ public class CodeAnalyzer extends NodeVisitor {
                 NonTerminalNode scopeNode = varNode;
                 while (scopeNode != null) {
                     if (scopeNode.kind() == SyntaxKind.MODULE_VAR_DECL) {
-                        agentData.put(Property.SCOPE_KEY, Property.GLOBAL_SCOPE);
+                        agentData.put(Property.SCOPE_KEY,
+                                new AiUtils.AgentPropertyValue(Property.GLOBAL_SCOPE, Property.ValueType.EXPRESSION));
                         break;
                     } else if (scopeNode.kind() == SyntaxKind.LOCAL_VAR_DECL) {
-                        agentData.put(Property.SCOPE_KEY, Property.LOCAL_SCOPE);
+                        agentData.put(Property.SCOPE_KEY,
+                                new AiUtils.AgentPropertyValue(Property.LOCAL_SCOPE, Property.ValueType.EXPRESSION));
                         break;
                     }
                     scopeNode = scopeNode.parent();
@@ -517,7 +520,7 @@ public class CodeAnalyzer extends NodeVisitor {
     }
 
     private void genAgentData(ImplicitNewExpressionNode newExpressionNode, ClassSymbol classSymbol,
-                              Map<String, String> agentData) {
+                              Map<String, AiUtils.AgentPropertyValue> agentData) {
         Optional<ParenthesizedArgList> argList = newExpressionNode.parenthesizedArgList();
         if (argList.isEmpty()) {
             return;
@@ -538,7 +541,9 @@ public class CodeAnalyzer extends NodeVisitor {
                     default -> {
                     }
                 }
-                agentData.put(argumentName, namedArgumentNode.expression().toString().trim());
+                agentData.put(argumentName,
+                        new AiUtils.AgentPropertyValue(namedArgumentNode.expression().toString().trim(),
+                                Property.ValueType.EXPRESSION));
             } else if (arg instanceof PositionalArgumentNode positionalArg) {
                 ExpressionNode expression = positionalArg.expression();
                 if (expression instanceof MappingConstructorExpressionNode mappingCtr) {
@@ -561,7 +566,9 @@ public class CodeAnalyzer extends NodeVisitor {
                             default -> {
                             }
                         }
-                        agentData.put(fieldName, valueExpr.toString().trim());
+                        agentData.put(fieldName,
+                                new AiUtils.AgentPropertyValue(valueExpr.toString().trim(),
+                                        Property.ValueType.EXPRESSION));
                     }
                 }
             }
@@ -615,18 +622,29 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 ExpressionNode valueExpr = valueExprOpt.get();
                 String value;
+                Property.ValueType selectedType;
                 if (valueExpr.kind() == SyntaxKind.STRING_TEMPLATE_EXPRESSION) {
                     TemplateExpressionNode templateExpr = (TemplateExpressionNode) valueExpr;
                     value = templateExpr.content().stream()
                             .map(Node::toString)
                             .collect(Collectors.joining());
                     value = AiUtils.restoreBackticksFromStringTemplate(value);
+                    selectedType = Property.ValueType.PROMPT;
                 } else {
                     value = valueExpr.toString().trim();
+                    selectedType = Property.ValueType.EXPRESSION;
                 }
-                agentData.put(specificFieldNode.fieldName().toString().trim(), value);
+                agentData.put(specificFieldNode.fieldName().toString().trim(),
+                        new AiUtils.AgentPropertyValue(value, selectedType));
             }
-            nodeBuilder.metadata().addData("agent", agentData);
+
+            Map<String, String> simpleAgentData = agentData.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().value()
+                    ));
+
+            nodeBuilder.metadata().addData("agent", simpleAgentData);
         }
 
         if (memory == null) {
@@ -681,7 +699,7 @@ public class CodeAnalyzer extends NodeVisitor {
                         newExpressionNode.toSourceCode().strip())
                 .version(moduleId.map(ModuleID::version).orElse(""))
                 .isNew(false)
-                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY))
+                .data(Property.SCOPE_KEY, agentData.get(Property.SCOPE_KEY).value())
                 .build();
 
         Path agentFilePath =

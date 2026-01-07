@@ -20,8 +20,18 @@
         "label": "msg",
         "description": "The message to be logged"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": true
+        }
+      ],
       "value": "\"\"",
       "placeholder": "\"\"",
       "optional": false,

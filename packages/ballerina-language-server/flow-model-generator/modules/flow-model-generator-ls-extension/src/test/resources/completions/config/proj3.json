@@ -8,7 +8,14 @@
       "offset": 4
     },
     "offset": 1,
-    "lineOffset": 0
+    "lineOffset": 0,
+    "property": {
+      "types": [
+        {
+          "fieldType": "EXPRESSION"
+        }
+      ]
+    }
   },
   "completionContext": {
     "triggerKind": "Invoked"

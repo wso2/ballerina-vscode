@@ -21,8 +21,13 @@
         "label": "civilTime",
         "description": "`time:Civil` time"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "time:Civil",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "time:Civil",
+          "selected": true
+        }
+      ],
       "value": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
       "placeholder": "{year: 0, month: 0, day: 0, hour: 0, minute: 0}",
       "optional": false,

@@ -35,6 +35,13 @@
       },
       "valueType": "EXPRESSION",
       "valueTypeConstraint": "snowflake:Options|()",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "snowflake:Options",
+          "selected": true
+        }
+      ],
       "placeholder": "()",
       "optional": true,
       "editable": true,

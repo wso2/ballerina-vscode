@@ -45,7 +45,7 @@
         "id": "58726",
         "metadata": {
           "label": "run",
-          "description": "Executes the agent for a given user query.\n\n**Note:** Calls to this function using the same session ID must be invoked sequentially by the caller, \nas this operation is not thread-safe.\n",
+          "description": "Executes the agent for a given user query.",
           "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png",
           "data": {
             "agent": {
@@ -400,8 +400,14 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
                 "selected": false
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
+                "selected": true
               }
             ],
             "value": "\"Assistant\"",
@@ -422,7 +428,13 @@
             },
             "types": [
               {
-                "fieldType": "TEXT",
+                "fieldType": "PROMPT",
+                "ballerinaType": "string",
+                "selected": true
+              },
+              {
+                "fieldType": "EXPRESSION",
+                "ballerinaType": "string",
                 "selected": false
               }
             ],
