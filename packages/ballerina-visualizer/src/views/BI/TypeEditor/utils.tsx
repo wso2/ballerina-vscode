@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext } from '@wso2/ballerina-core';
+import { AvailableNode, Category, functionKinds, Item, VisibleTypeItem, GeneralPayloadContext, Protocol } from '@wso2/ballerina-core';
 import type { TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { COMPLETION_ITEM_KIND, convertCompletionItemKind } from '@wso2/ui-toolkit';
 import { getFunctionItemKind, isDMSupportedType } from '../../../utils/bi';
@@ -74,7 +74,7 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payl
         items
     }));
 
-    if (payloadContext?.protocol === "FTP") {
+    if (payloadContext?.protocol === Protocol.FTP) {
 
         categories = categories
             .filter((category) => category.category === "User-Defined")

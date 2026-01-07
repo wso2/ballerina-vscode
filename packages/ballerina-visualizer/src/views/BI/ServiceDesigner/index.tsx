@@ -25,7 +25,8 @@ import {
     MACHINE_VIEW,
     ProjectStructureArtifactResponse,
     ComponentInfo,
-    ServiceModel
+    ServiceModel,
+    Protocol
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PanelContainer } from "@wso2/ballerina-side-panel";
@@ -1218,7 +1219,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
-                                            protocol: "HTTP",
+                                            protocol: Protocol.HTTP,
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1241,7 +1242,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onSave={handleResourceSubmit}
                                         onClose={handleNewFunctionClose}
                                         payloadContext={{
-                                            protocol: "HTTP",
+                                            protocol: Protocol.HTTP,
                                             serviceName: serviceModel.name || '',
                                             serviceBasePath: serviceModel.properties?.basePath?.value || '',
                                         }}
@@ -1264,7 +1265,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         onClose={handleNewFunctionClose}
                                         isNew={isNew}
                                         payloadContext={{
-                                            protocol: "MESSAGE_BROKER",
+                                            protocol: Protocol.MESSAGE_BROKER,
                                             serviceName: serviceModel.name || '',
                                             messageDocumentation: functionModel?.metadata?.description || ''
                                         }}
