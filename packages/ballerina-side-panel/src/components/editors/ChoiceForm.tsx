@@ -59,6 +59,17 @@ export function ChoiceForm(props: ChoiceFormProps) {
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
 
+    useEffect(() => {
+        // Find the first enabled choice
+        const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
+        if (enabledChoiceIndex !== -1) {
+            const newSelectedOption = enabledChoiceIndex + 1;
+            if (newSelectedOption !== selectedOption) {
+                setSelectedOption(newSelectedOption);
+                setValue(field.key, enabledChoiceIndex);
+            }
+        }
+    }, [field.choices]);
 
     // Add useEffect to set initial values
     useEffect(() => {
