@@ -165,9 +165,14 @@ export interface BaseType {
     patternErrorMessage?: string; // custom error message when pattern validation fails
 }
 
+export interface EnumOptions {
+    label: string;
+    value: string;
+}
+
 export interface DropdownType extends BaseType {
     fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
-    options: string[];
+    options: EnumOptions[];
 }
 
 export interface TemplateType extends BaseType {

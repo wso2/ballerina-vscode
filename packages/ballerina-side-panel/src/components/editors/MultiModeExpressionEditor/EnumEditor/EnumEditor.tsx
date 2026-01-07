@@ -24,21 +24,10 @@ interface EnumEditorProps {
     value: string;
     field: FormField;
     onChange: (value: string, cursorPosition: number) => void;
-    items: string[];
+    items: OptionProps[];
 }
 
 export const EnumEditor = (props: EnumEditorProps) => {
-
-    const dropdownItems = useMemo(() => {
-        if (!props.items || !Array.isArray(props.items)) {
-            return [];
-        }
-        return props.items.map((item, index) => ({
-            key: index.toString(),
-            text: item,
-            value: item,
-        } as OptionProps));
-    }, [props.items]);
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         props.onChange(e.target.value, e.target.value.length)
@@ -47,7 +36,7 @@ export const EnumEditor = (props: EnumEditorProps) => {
         <Dropdown
             id={props.field.key}
             value={props.value.trim()}
-            items={dropdownItems}
+            items={props.items}
             onChange={handleChange}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}
