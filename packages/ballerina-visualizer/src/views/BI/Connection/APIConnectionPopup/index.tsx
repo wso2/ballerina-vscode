@@ -313,24 +313,37 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         if (generateResponse?.success) {
             try {
                 // Small delay to ensure the connector is available
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const defaultPosition = target || { line: 0, offset: 0 };
-                const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                    position: {
-                        startLine: defaultPosition,
-                        endLine: defaultPosition,
-                    },
-                    filePath: fileName,
-                    queryMap: {
-                        limit: 60,
-                        filterByCurrentOrg: false,
-                    },
-                    searchKind: "CONNECTOR",
-                });
+                
+                // Helper function to search for connectors
+                const searchForConnector = async () => {
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        position: {
+                            startLine: defaultPosition,
+                            endLine: defaultPosition,
+                        },
+                        filePath: fileName,
+                        queryMap: {
+                            limit: 60,
+                            filterByCurrentOrg: false,
+                        },
+                        searchKind: "CONNECTOR",
+                    });
+                    return findConnectorByModule(searchResponse.categories, connectorName);
+                };
 
                 // Find the connector we just created
-                const createdConnector = findConnectorByModule(searchResponse.categories, connectorName);
+                let createdConnector = await searchForConnector();
+                
+                // If connector not found, retry after 2 second
+                if (!createdConnector) {
+                    console.warn(">>> Connector not found on first attempt, retrying after 1 second...");
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    createdConnector = await searchForConnector();
+                }
+                
                 if (createdConnector && createdConnector.codedata) {
                     // Get the flowNode template
                     const nodeTemplateResponse = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({

@@ -123,10 +123,10 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient, onRevie
             </ActionsDescription>
             <ButtonGroup>
                 <Button appearance="secondary" onClick={handleDeclineAll} disabled={isProcessing}>
-                    Undo All
+                    Discard
                 </Button>
                 <Button appearance="primary" onClick={handleAcceptAll} disabled={isProcessing}>
-                    Keep All
+                    Keep
                 </Button>
                 <Button onClick={handleReview}>
                     Review

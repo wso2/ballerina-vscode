@@ -743,6 +743,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         addModal(
                                                                             <AttachListenerModal
                                                                                 filePath={props.filePath}
+                                                                                orgName={serviceModel.orgName}
+                                                                                packageName={serviceModel.packageName}
+                                                                                version={serviceModel.version}
                                                                                 moduleName={serviceModel.moduleName}
                                                                                 onAttachListener={handleOnAttachListener}
                                                                                 attachedListeners={listeners.map(listener => listener.name)}
@@ -849,11 +852,12 @@ namespace S {
     `;
 }
 
-
-
 interface AttachListenerModalProps {
     filePath: string;
+    orgName: string;
     moduleName: string;
+    packageName: string;
+    version: string;
     attachedListeners: string[];
     onAttachListener: (listenerName: string) => void;
 }
@@ -884,8 +888,19 @@ function AttachListenerModal(props: AttachListenerModalProps) {
 
     const handleTabChange = (tabId: string) => {
         setActiveTab(tabId as "existing" | "new");
+
+        const payload = {
+            codedata: {
+                orgName: props.orgName,
+                packageName: props.packageName,
+                moduleName: props.moduleName,
+                version: props.version,
+            },
+            filePath: props.filePath
+        };
+
         if (tabId === "new") {
-            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: props.moduleName }).then(res => {
+            rpcClient.getServiceDesignerRpcClient().getListenerModel(payload).then(res => {
                 console.log("New listener model: ", res.listener)
                 setListenerModel(res.listener);
             })

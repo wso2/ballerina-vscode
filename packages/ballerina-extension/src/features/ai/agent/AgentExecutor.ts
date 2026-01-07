@@ -21,7 +21,7 @@ import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_V
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
-import { sendAgentDidOpenForFreshProjects, sendAgentDidCloseForProjects } from '../utils/project/ls-schema-notifications';
+import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
 import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
@@ -278,8 +278,8 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
         const tempProjectPath = context.ctx.tempProjectPath!;
         if (context.shouldCleanup) {
-            sendAgentDidCloseForProjects(tempProjectPath, context.projects);
-            cleanupTempProject(tempProjectPath);
+            // Note: cleanupTempProject now handles sendAgentDidClose internally
+            await cleanupTempProject(tempProjectPath);
         }
 
         // Clear review state for this generation
