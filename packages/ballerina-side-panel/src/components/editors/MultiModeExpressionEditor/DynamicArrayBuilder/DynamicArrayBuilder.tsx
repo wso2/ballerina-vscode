@@ -29,11 +29,10 @@ import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEdito
 import { StringTemplateEditorConfig } from "../Configurations";
 
 interface DynamicArrayBuilderProps {
+    label: string;
     value: string | any[];
-    label?: string;
     onChange?: (value: string) => void;
     expressionFieldProps: ExpressionFieldProps;
-    itemMode?: InputMode;
 }
 
 /**
@@ -41,7 +40,7 @@ interface DynamicArrayBuilderProps {
  * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET or TEXT_SET type.
  */
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
-    const { value, label, onChange, expressionFieldProps, itemMode } = props;
+    const { label, value, onChange, expressionFieldProps } = props;
     const { form } = useFormContext();
     const { setValue } = form;
 
@@ -184,7 +183,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         //show the type related editor in the field editor and the whole editor should
                         //have a switch to show the array editor mode and the expression mode.
                         //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
-                        configuration={itemMode === InputMode.TEXT ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
+                        configuration={expressionSetType?.fieldType === "TEXT_SET" ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
                     />
                     <S.DeleteButton
                         appearance="icon"
