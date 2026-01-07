@@ -7,7 +7,15 @@
       "line": 7,
       "offset": 18
     },
-    "offset": 20
+    "offset": 20,
+    "property": {
+      "types": [
+        {
+          "fieldType": "EXPRESSION"
+        }
+      ]
+    }
+
   },
   "signatureHelpContext": {
     "triggerKind": "Invoked",
