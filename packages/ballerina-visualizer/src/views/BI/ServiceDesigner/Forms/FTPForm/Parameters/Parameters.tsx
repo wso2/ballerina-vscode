@@ -43,14 +43,6 @@ const ParamLabelContainer = styled.div`
     font-family: var(--vscode-font-family);
 `;
 
-const ParamName = styled.span`
-    color: var(--vscode-editor-foreground, #222);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: var(--vscode-font-family);
-`;
 
 const ParamType = styled.span`
     font-size: 12px;
@@ -74,13 +66,6 @@ const HeaderLabel = styled.div<CSSObject>`
     width: 100%;
     height: 32px;
     align-items: center;
-`;
-
-const ParamDefault = styled.span`
-    font-size: 13px;
-    color: var(--vscode-editorHint-foreground, #b0b0b0);
-    margin-left: 8px;
-    font-style: italic;
 `;
 
 export function Parameters(props: ParametersProps) {
