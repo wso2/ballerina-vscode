@@ -119,6 +119,7 @@ public class AgentCallBuilder extends CallBuilder {
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
+        // TODO: This is a temporary solution until we have a proper plan for handling all generic types.
         makeInferredTypePropertyOptional();
         overrideVariableName(context);
     }
@@ -163,7 +164,7 @@ public class AgentCallBuilder extends CallBuilder {
     }
 
     public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder,
-                                                     Map<String, AiUtils.AgentPropertyValue> propertyValues) {
+                                                    Map<String, AiUtils.AgentPropertyValue> propertyValues) {
         AiUtils.AgentPropertyValue roleProperty = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
                 propertyValues.get(ROLE) : null;
         AiUtils.AgentPropertyValue instructionsProperty =
