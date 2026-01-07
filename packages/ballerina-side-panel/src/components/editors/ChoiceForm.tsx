@@ -55,30 +55,92 @@ export function ChoiceForm(props: ChoiceFormProps) {
     const { form } = useFormContext();
     const { setValue, clearErrors } = form;
 
-    const [selectedOption, setSelectedOption] = useState<number>(1);
+    // Initialize selectedOption based on field.value or find the enabled choice
+    const getInitialSelectedOption = (): number => {
+        // If field.value is explicitly set, use it
+        if (field.value !== undefined && field.value !== null) {
+            return Number(field.value) + 1;
+        }
+        // Otherwise, find the first enabled choice
+        const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
+        return enabledChoiceIndex !== -1 ? enabledChoiceIndex + 1 : 1;
+    };
+
+    const [selectedOption, setSelectedOption] = useState<number>(getInitialSelectedOption());
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
+    const [dynamicRecordTypeFields, setDynamicRecordTypeFields] = useState<RecordTypeField[]>([]);
 
+    // Reset to first option when field.choices changes (parent CHOICE changed)
+    useEffect(() => {
+        // Check if field.value is explicitly set
+        if (field.value !== undefined && field.value !== null) {
+            const newSelectedOption = Number(field.value) + 1;
+            if (newSelectedOption !== selectedOption) {
+                setSelectedOption(newSelectedOption);
+                setValue(field.key, Number(field.value));
+            }
+            return;
+        }
 
-    // Add useEffect to set initial values
+        // Otherwise, find the first enabled choice
+        const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
+        if (enabledChoiceIndex !== -1) {
+            const newSelectedOption = enabledChoiceIndex + 1;
+            if (newSelectedOption !== selectedOption) {
+                setSelectedOption(newSelectedOption);
+                setValue(field.key, enabledChoiceIndex);
+            }
+        }
+    }, [field.choices]);
+
+    // Add useEffect to set initial values and react to choice changes
     useEffect(() => {
         const realValue = selectedOption - 1;
+        // Validate that the realValue is within bounds
+        if (realValue < 0 || realValue >= field.choices.length) {
+            return;
+        }
         const property = field.choices[realValue];
-        const choiceProperty = convertConfig(property);
-        setDynamicFields(choiceProperty);
-        if (choiceProperty.length > 0) {
-            Object.entries(property.properties).forEach(([propKey, propValue]) => {
+        const { formFields, recordTypeFieldsForChoice } = convertConfig(property);
+        setDynamicFields(formFields);
+        setDynamicRecordTypeFields(recordTypeFieldsForChoice);
+
+        // Recursive function to set values for nested choice properties
+        const setChoicePropertyValues = (properties: any): void => {
+            if (!properties) return;
+
+            Object.entries(properties).forEach(([propKey, propValue]: [string, any]) => {
                 if (propValue.value !== undefined) {
                     setValue(propKey, propValue.value);
                 }
-            });
-        }
-    }, [selectedOption]);
 
-    const convertConfig = (model: PropertyModel): FormField[] => {
+                // Recursively handle nested choices
+                if (propValue?.choices && propValue.choices.length > 0) {
+                    // Get the selected nested choice index
+                    const nestedChoiceIndex = propValue.value !== undefined ? Number(propValue.value) : 0;
+                    const nestedChoice = propValue.choices[nestedChoiceIndex];
+
+                    if (nestedChoice && nestedChoice?.properties) {
+                        setChoicePropertyValues(nestedChoice.properties);
+                    }
+                }
+            });
+        };
+
+        if (formFields.length > 0) {
+            setChoicePropertyValues(property.properties);
+        }
+    }, [selectedOption, field.choices]);
+
+    const convertConfig = (model: PropertyModel): { formFields: FormField[], recordTypeFieldsForChoice: RecordTypeField[] } => {
         const formFields: FormField[] = [];
+        const recordTypeFieldsForChoice: RecordTypeField[] = [];
+
         for (const key in model.properties) {
             const expression = model.properties[key];
+
+
             let items = undefined;
             if (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT") {
                 items = expression.items;
@@ -101,9 +163,25 @@ export function ChoiceForm(props: ChoiceFormProps) {
                 defaultValue: expression.defaultValue as string
             }
             formFields.push(formField);
+
+            // If this property has typeMembers, create a RecordTypeField for it
+            const primaryType = getPrimaryInputType(expression.types);
+            if (primaryType?.typeMembers && primaryType.typeMembers.length > 0) {
+                const recordTypeField: RecordTypeField = {
+                    key: key,
+                    property: {
+                        metadata: expression.metadata || { label: "", description: "" },
+                        value: expression.value || "",
+                        optional: expression.optional || false,
+                        editable: expression.editable !== undefined ? expression.editable : true,
+                        types: expression.types
+                    },
+                    recordTypeMembers: primaryType.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                };
+                recordTypeFieldsForChoice.push(recordTypeField);
+            } 
         }
-        console.log("Dynamic Form Fields:", formFields)
-        return formFields;
+        return { formFields, recordTypeFieldsForChoice };
     }
 
     return (
@@ -117,7 +195,6 @@ export function ChoiceForm(props: ChoiceFormProps) {
                     value={selectedOption}
                     options={field.choices.map((choice, index) => ({ id: index.toString(), value: index + 1, content: choice.metadata.label }))}
                     onChange={(e) => {
-                        console.log("Choice Form Index:", Number(e.target.value))
                         const checkedValue = Number(e.target.value);
                         const realValue = checkedValue - 1;
                         setSelectedOption(checkedValue);
@@ -128,16 +205,24 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.map((dfield, index) => {
-                    return (
-                        <EditorFactory
-                            key={dfield.key}
-                            field={dfield}
-                            autoFocus={index === 0 ? true : false}
-                            recordTypeFields={recordTypeFields}
-                        />
-                    );
-                })}
+                {dynamicFields
+                    .filter(dfield => !dfield.advanced)
+                    .map((dfield, index) => {
+                        // Merge parent recordTypeFields with dynamically generated ones
+                        const mergedRecordTypeFields = [
+                            ...(recordTypeFields || []),
+                            ...dynamicRecordTypeFields
+                        ];
+
+                        return (
+                            <EditorFactory
+                                key={dfield.key}
+                                field={dfield}
+                                autoFocus={index === 0 ? true : false}
+                                recordTypeFields={mergedRecordTypeFields}
+                            />
+                        );
+                    })}
             </FormSection>
 
         </Form>
