@@ -22,8 +22,13 @@
         "label": "take",
         "description": "Page size of the response. The default value is 20."
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "lang.int:Signed32|()",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "lang.int:Signed32|()",
+          "selected": true
+        }
+      ],
       "placeholder": "()",
       "optional": true,
       "editable": true,

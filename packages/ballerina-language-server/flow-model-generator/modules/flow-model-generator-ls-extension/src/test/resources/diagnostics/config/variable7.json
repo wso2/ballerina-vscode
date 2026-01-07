@@ -18,7 +18,11 @@
         "label": "Name",
         "description": "Name of the variable"
       },
-      "valueType": "IDENTIFIER",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER"
+        }
+      ],
       "value": "classVar",
       "optional": false,
       "editable": true,

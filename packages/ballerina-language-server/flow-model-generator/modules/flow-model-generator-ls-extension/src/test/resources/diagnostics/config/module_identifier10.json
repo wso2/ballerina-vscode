@@ -13,8 +13,12 @@
         "label": "Name",
         "description": "Name of the variable"
       },
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "Global",
+      "types": [
+        {
+          "fieldType": "IDENTIFIER",
+          "scope": "Global"
+        }
+      ],
       "value": "moduleVar",
       "optional": false,
       "editable": true,

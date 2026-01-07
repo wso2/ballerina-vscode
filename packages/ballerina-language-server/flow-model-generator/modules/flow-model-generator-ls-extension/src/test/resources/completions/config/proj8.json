@@ -29,8 +29,13 @@
         "label": "Expression",
         "description": "Initialize with value"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "Location",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "Location",
+          "selected": true
+        }
+      ],
       "value": "",
       "optional": true,
       "editable": true,

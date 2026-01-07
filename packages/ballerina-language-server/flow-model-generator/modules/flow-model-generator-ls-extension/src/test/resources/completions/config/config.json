@@ -29,8 +29,13 @@
         "label": "Condition",
         "description": "Boolean Condition"
       },
-      "valueType": "EXPRESSION",
-      "value": "(moduleVar > 11) ",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "boolean",
+          "selected": true
+        }
+      ],
       "optional": false,
       "editable": true
     }

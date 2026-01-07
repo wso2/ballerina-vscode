@@ -9,7 +9,13 @@
     },
     "offset": 2,
     "lineOffset": 0,
-    "property": {}
+    "property": {
+      "types": [
+        {
+          "fieldType": "EXPRESSION"
+        }
+      ]
+    }
   },
   "completionContext": {
     "triggerKind": "Invoked"

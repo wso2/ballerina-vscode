@@ -33,8 +33,12 @@
         "label": "targetType",
         "description": "HTTP response, `anydata` or stream of HTTP SSE, which is expected to be returned after data binding"
       },
-      "valueType": "TYPE",
-      "valueTypeConstraint": "anydata",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "ballerinaType": "anydata"
+        }
+      ],
       "placeholder": "json",
       "optional": true,
       "editable": true,

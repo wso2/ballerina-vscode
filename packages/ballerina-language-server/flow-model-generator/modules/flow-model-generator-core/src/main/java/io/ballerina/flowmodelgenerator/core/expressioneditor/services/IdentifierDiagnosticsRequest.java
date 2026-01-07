@@ -63,7 +63,7 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
     protected Set<Diagnostic> getSyntaxDiagnostics(ExpressionEditorContext context) {
         // Check if the identifier is a non-keyword
         String expression = context.info().expression();
-        if (Property.ValueType.IDENTIFIER.name().equals(context.getProperty().valueType())
+        if (Property.ValueType.IDENTIFIER.equals(context.getProperty().propertyType().fieldType())
                 && SyntaxInfo.isKeyword(expression)) {
             String message = INVALID_RESERVED_KEYWORD.formatted(expression);
             return Set.of(CommonUtils.createDiagnostic(message, context.getExpressionLineRange(),
@@ -76,11 +76,11 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
     @Override
     protected Set<Diagnostic> getSemanticDiagnostics(ExpressionEditorContext context) {
         ExpressionEditorContext.Property property = context.getProperty();
-        String typeConstraint = property.valueTypeConstraint();
+        String scope = property.propertyType().scope();
         String value = property.value();
 
         // Skip semantic checks for object scope
-        if (Property.OBJECT_SCOPE.equals(typeConstraint)) {
+        if (Property.OBJECT_SCOPE.equals(scope)) {
             return Set.of();
         }
 
@@ -92,7 +92,7 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
 
         // Obtain the symbol stream based on the scope of the identifier
         Stream<Symbol> symbolStream;
-        if (Property.GLOBAL_SCOPE.equals(typeConstraint)) {
+        if (Property.GLOBAL_SCOPE.equals(scope)) {
             symbolStream = semanticModel.get().moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() != SymbolKind.MODULE);
         } else {

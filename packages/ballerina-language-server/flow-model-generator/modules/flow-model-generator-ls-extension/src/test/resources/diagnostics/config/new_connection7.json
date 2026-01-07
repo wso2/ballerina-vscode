@@ -21,8 +21,18 @@
         "label": "url",
         "description": "The server URL"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "string",
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "ballerinaType": "string",
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "string",
+          "selected": true
+        }
+      ],
       "placeholder": "\"\"",
       "optional": false,
       "editable": true,

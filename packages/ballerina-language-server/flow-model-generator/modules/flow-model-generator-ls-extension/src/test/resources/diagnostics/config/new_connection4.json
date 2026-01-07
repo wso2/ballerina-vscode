@@ -33,8 +33,13 @@
         "label": "connectionPool",
         "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "sql:ConnectionPool|()",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "sql:ConnectionPool",
+          "selected": true
+        }
+      ],
       "placeholder": "()",
       "optional": true,
       "editable": true,
