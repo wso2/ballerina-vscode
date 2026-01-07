@@ -396,30 +396,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    //   async getSemanticDiff(_params: SemanticDiffRequest): Promise<SemanticDiffResponse> {
-    //     const context = StateMachine.context();
-    //     const workspaceId = context.projectPath;
-    //     const threadId = 'default';
-
-    //     // Always get tempProjectPath from active generation in chatStateStorage
-    //     const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
-    //     if (!pendingReview || !pendingReview.reviewState.tempProjectPath) {
-    //         console.log(">>> no pending review or temp project path found for semantic diff");
-    //         return undefined;
-    //     }
-
-    //     const projectPath = pendingReview.reviewState.tempProjectPath;
-    //     console.log(">>> requesting semantic diff from ls", JSON.stringify({ projectPath }));
-    //     try {
-    //         const res: SemanticDiffResponse = await context.langClient.getSemanticDiff({ projectPath });
-    //         console.log(">>> semantic diff response from ls", JSON.stringify(res));
-    //         return res;
-    //     } catch (error) {
-    //         console.log(">>> error in getting semantic diff", error);
-    //         return undefined;
-    //     }
-    // }
-
     async acceptChanges(): Promise<void> {
         try {
             // Get workspace ID and thread ID
