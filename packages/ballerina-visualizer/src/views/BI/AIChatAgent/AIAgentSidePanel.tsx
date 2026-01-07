@@ -126,7 +126,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             editable: true,
             documentation: "Enter the description of the tool.",
             value: "",
-            types: [{fieldType: "STRING", ballerinaType: "", selected: false }],
+            types: [{fieldType: "STRING",   selected: false }],
             enabled: true,
         },
     ];

@@ -145,7 +145,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "Name of the connector",
             enabled: true,
             value: "",
-            types: [{fieldType: "STRING", ballerinaType: "", selected: false}],
+            types: [{fieldType: "STRING",   selected: false}],
             diagnostics: [],
         },
         {
@@ -157,7 +157,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
             documentation: "",
             enabled: true,
             value: "",
-            types: [{fieldType: "FILE_SELECT", ballerinaType: "", selected: false}],
+            types: [{fieldType: "FILE_SELECT",   selected: false}],
         },
     ]);
 
