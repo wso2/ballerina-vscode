@@ -254,7 +254,7 @@ export class ChatStateStorage {
             const checkpoint = await captureWorkspaceSnapshot(generationId);
 
             if (checkpoint) {
-                this.addCheckpointToGeneration(workspaceId, threadId, generationId, checkpoint);
+                await this.addCheckpointToGeneration(workspaceId, threadId, generationId, checkpoint);
 
                 notifyCheckpointCaptured({
                     messageId: generationId,
@@ -499,12 +499,12 @@ export class ChatStateStorage {
      * @param generationId Generation identifier
      * @param checkpoint Checkpoint to add
      */
-    addCheckpointToGeneration(
+    async addCheckpointToGeneration(
         workspaceId: string,
         threadId: string,
         generationId: string,
         checkpoint: Checkpoint
-    ): void {
+    ): Promise<void> {
         const thread = this.getOrCreateThread(workspaceId, threadId);
         const generation = thread.generations.find(g => g.id === generationId);
 
@@ -517,6 +517,50 @@ export class ChatStateStorage {
         thread.updatedAt = Date.now();
 
         console.log(`[ChatStateStorage] Added checkpoint ${checkpoint.id} to generation ${generationId}`);
+
+        // Enforce maxCount limit by removing oldest checkpoints
+        await this.enforceCheckpointLimit(workspaceId, threadId);
+    }
+
+    /**
+     * Enforce checkpoint limit by removing oldest checkpoints beyond maxCount
+     * @param workspaceId Workspace identifier
+     * @param threadId Thread identifier
+     */
+    private async enforceCheckpointLimit(workspaceId: string, threadId: string): Promise<void> {
+        // Dynamic import to avoid circular dependencies
+        const { getCheckpointConfig } = await import('../../views/ai-panel/checkpoint/checkpointConfig');
+        const config = getCheckpointConfig();
+
+        if (!config.enabled) {
+            return;
+        }
+
+        const thread = this.getOrCreateThread(workspaceId, threadId);
+
+        // Collect all generations with checkpoints
+        const generationsWithCheckpoints = thread.generations
+            .map((gen, index) => ({ generation: gen, index }))
+            .filter(item => item.generation.checkpoint !== undefined);
+
+        // If we're within the limit, nothing to do
+        if (generationsWithCheckpoints.length <= config.maxCount) {
+            return;
+        }
+
+        // Calculate how many checkpoints to remove
+        const checkpointsToRemove = generationsWithCheckpoints.length - config.maxCount;
+
+        // Remove checkpoints from oldest generations (keep the most recent maxCount)
+        for (let i = 0; i < checkpointsToRemove; i++) {
+            const { generation } = generationsWithCheckpoints[i];
+            const checkpointId = generation.checkpoint?.id;
+
+            console.log(`[ChatStateStorage] Removing old checkpoint ${checkpointId} (exceeds maxCount: ${config.maxCount})`);
+            generation.checkpoint = undefined;
+        }
+
+        thread.updatedAt = Date.now();
     }
 
     /**

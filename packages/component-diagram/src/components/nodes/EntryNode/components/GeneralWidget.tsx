@@ -120,6 +120,10 @@ function getCustomEntryNodeIcon(type: string) {
             return <Icon name="bi-mcp" />;
         case "solace":
             return <Icon name="bi-solace" sx={{ color: "#00C895" }}/>;
+        case "ftp":
+            return <Icon name="bi-ftp" />;
+        case "file":
+            return <Icon name="bi-file" />;
         case "mssql":
             return <Icon name="bi-mssql" sx={{ color: "#b61d1c" }}/>;
         default:
