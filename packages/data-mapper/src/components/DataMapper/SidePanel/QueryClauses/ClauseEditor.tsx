@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { EditorContainer, ProgressRingWrapper } from "./styles";
 import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
@@ -47,10 +47,16 @@ export const clauseTypeLabels: Record<IntermediateClauseType, string> = {
 
 export function ClauseEditor(props: ClauseEditorProps) {
     const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
-    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesStore.getState();
-    const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
+    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesStore();
+    const { type: initialClauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
-    const [clauseType, setClauseType] = useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
+    const [clauseType, setClauseType] = useState<string>(initialClauseType ?? IntermediateClauseType.WHERE);
+
+    useEffect(() => {
+        if (initialClauseType) {
+            setClauseType(initialClauseType);
+        }
+    }, [initialClauseType]);
     
     const clauseTypeItems = useMemo(() => {
         const types = clauseTypes ?? Object.values(IntermediateClauseType);

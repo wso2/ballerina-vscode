@@ -36,8 +36,7 @@ export interface ClausesPanelProps {
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
-    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesStore();
-    const { clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesStore.getState();
+    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen, clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesStore.getState();
     const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm , genUniqueName} = props;
 
     const [adding, setAdding] = React.useState<number>();

@@ -112,7 +112,7 @@ export function getMappingType(sourcePort: PortModel, targetPort: PortModel): Ma
             const dimDelta = sourceDim - targetDim;
             if (dimDelta == 0) {
                 if(targetPort.attributes.portName.endsWith(".#")) {
-                    return MappingType.ArrayJoin;
+                    return MappingType.ArrayConnect;
                 }
                 return MappingType.ArrayToArray;
             }

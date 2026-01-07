@@ -20,14 +20,12 @@ import React, { useEffect } from "react";
 
 import { Button, Codicon, SidePanel, SidePanelBody, SidePanelTitleContainer, ThemeColors } from "@wso2/ui-toolkit";
 import { useDMQueryClausesStore } from "../../../../store/store";
-import { AddButton, ClauseItem } from "./ClauseItem";
 import { ClauseEditor } from "./ClauseEditor";
-import { ClauseItemListContainer } from "./styles";
 import { DMFormProps, IntermediateClause, IntermediateClauseType, LinePosition, Query } from "@wso2/ballerina-core";
 
 export const descriptions = {
-    [IntermediateClauseType.JOIN]: "Add join clause to connect arrays",
-    [IntermediateClauseType.FROM]: "Add from clause to connect arrays"
+    [IntermediateClauseType.FROM]: "Add From clause to iterate two arrays nestedly.",
+    [IntermediateClauseType.JOIN]: "Add Join clause to combine two arrays by matching elements using a condition"
 }
 
 export interface ClauseFormProps {
@@ -61,17 +59,21 @@ export function ClauseForm(props: ClauseFormProps) {
         await fillDefaults(clause);
         await addClauses(clause, targetField, true, index);
         setIsSaving(false);
+        setIsQueryClauseFormOpen(false);
     }
     
     useEffect(() => {
         if (clauseToAdd) {
             setClauseTypes([clauseToAdd.type]);
         }
+    }, [clauseToAdd]); 
+
+    useEffect(() => {
         return () => {
             setClauseToAdd(undefined);
             setClauseTypes(undefined);
         }
-    }, [clauseToAdd]); 
+    }, []); 
 
     return (
         <SidePanel

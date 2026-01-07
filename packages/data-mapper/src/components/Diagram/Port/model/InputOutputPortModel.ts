@@ -76,9 +76,6 @@ export class InputOutputPortModel extends PortModel<PortModelGenerics & InputOut
 				const mappingType = getMappingType(sourcePort, targetPort);
 				if (isPendingMappingRequired(mappingType)) {
 					// Source update behavior is determined by the user when connecting arrays.
-					if (mappingType === MappingType.ArrayJoin) {
-						mapWithClause(lm);
-					}
 					return;
 				}
 				if (mappingType === MappingType.SeqToArray) {

@@ -246,7 +246,7 @@ export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperC
 
 }
 
-export function mapWithClause(link: DataMapperLinkModel) {
+export function mapWithClause(link: DataMapperLinkModel, clauseType: IntermediateClauseType, context: IDataMapperContext) {
 
 	const sourcePort = link.getSourcePort();
 	if (!sourcePort) {
@@ -258,7 +258,7 @@ export function mapWithClause(link: DataMapperLinkModel) {
 	const { setClauseToAdd, setIsQueryClauseFormOpen } = useDMQueryClausesStore.getState();
 
 	setClauseToAdd({
-		type: IntermediateClauseType.JOIN,
+		type: clauseType,
 		properties: {
 			name: sourcePortModel.attributes.field.name + "Item",
 			type: "var",
