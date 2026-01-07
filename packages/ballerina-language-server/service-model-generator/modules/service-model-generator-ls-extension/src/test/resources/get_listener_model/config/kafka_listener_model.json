@@ -150,9 +150,18 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "kafka:OffsetResetMethod",
               "options": [
-                "earliest",
-                "latest",
-                "none"
+                {
+                  "label": "earliest",
+                  "value": "\"earliest\""
+                },
+                {
+                  "label": "latest",
+                  "value": "\"latest\""
+                },
+                {
+                  "label": "none",
+                  "value": "\"none\""
+                }
               ],
               "selected": true
             },
@@ -323,8 +332,14 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "kafka:IsolationLevel",
               "options": [
-                "read_committed",
-                "read_uncommitted"
+                {
+                  "label": "read_committed",
+                  "value": "\"read_committed\""
+                },
+                {
+                  "label": "read_uncommitted",
+                  "value": "\"read_uncommitted\""
+                }
               ],
               "selected": true
             },
@@ -411,8 +426,14 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "kafka:DeserializerType",
               "options": [
-                "DES_AVRO",
-                "DES_BYTE_ARRAY"
+                {
+                  "label": "DES_AVRO",
+                  "value": "\"DES_AVRO\""
+                },
+                {
+                  "label": "DES_BYTE_ARRAY",
+                  "value": "\"DES_BYTE_ARRAY\""
+                }
               ],
               "selected": true
             },
@@ -443,8 +464,14 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "kafka:DeserializerType",
               "options": [
-                "DES_AVRO",
-                "DES_BYTE_ARRAY"
+                {
+                  "label": "DES_AVRO",
+                  "value": "\"DES_AVRO\""
+                },
+                {
+                  "label": "DES_BYTE_ARRAY",
+                  "value": "\"DES_BYTE_ARRAY\""
+                }
               ],
               "selected": true
             },
@@ -1387,10 +1414,22 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "kafka:SecurityProtocol",
               "options": [
-                "PLAINTEXT",
-                "SASL_PLAINTEXT",
-                "SASL_SSL",
-                "SSL"
+                {
+                  "label": "PLAINTEXT",
+                  "value": "\"PLAINTEXT\""
+                },
+                {
+                  "label": "SASL_PLAINTEXT",
+                  "value": "\"SASL_PLAINTEXT\""
+                },
+                {
+                  "label": "SASL_SSL",
+                  "value": "\"SASL_SSL\""
+                },
+                {
+                  "label": "SSL",
+                  "value": "\"SSL\""
+                }
               ],
               "selected": true
             },

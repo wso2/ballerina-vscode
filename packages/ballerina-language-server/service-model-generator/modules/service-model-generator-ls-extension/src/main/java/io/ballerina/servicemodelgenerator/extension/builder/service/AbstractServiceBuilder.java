@@ -48,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInit
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
+import io.ballerina.servicemodelgenerator.extension.util.ServiceClassUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
@@ -342,7 +343,7 @@ public abstract class AbstractServiceBuilder implements ServiceNodeBuilder {
         String protocol = getProtocol(context.moduleName());
 
         String label = serviceTemplate.displayName();
-        Value documentation = getServiceDocumentation();
+        Value documentation = getServiceDocumentation(ServiceClassUtil.ServiceClassContext.SERVICE_DIAGRAM);
         String icon = CommonUtils.generateIcon(pkg.org(), pkg.name(), pkg.version());
 
         Map<String, Value> properties = new LinkedHashMap<>();

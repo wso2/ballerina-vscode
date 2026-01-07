@@ -53,7 +53,7 @@ public class PropertyType {
     @JsonAdapter(FieldTypeSerializer.class)
     private final Value.FieldType fieldType;
     private final String ballerinaType;
-    private final List<Object> options;
+    private final List<Option> options;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
     private final Integer minItems;
@@ -61,7 +61,7 @@ public class PropertyType {
     private final String pattern;
     private final String patternErrorMessage;
 
-    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Object> options,
+    public PropertyType(Value.FieldType fieldType, String ballerinaType, List<Option> options,
                         List<PropertyTypeMemberInfo> typeMembers, boolean selected, Integer minItems,
                         Integer defaultItems, String pattern, String patternErrorMessage) {
         this.fieldType = fieldType;
@@ -79,16 +79,12 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).build();
     }
 
-    public static PropertyType types(Value.FieldType fieldType, List<Object> options) {
+    public static PropertyType types(Value.FieldType fieldType, List<Option> options) {
         return new Builder().fieldType(fieldType).options(options).build();
     }
 
     public static PropertyType types(Value.FieldType fieldType, String ballerinaType) {
         return new Builder().fieldType(fieldType).ballerinaType(ballerinaType).build();
-    }
-
-    public List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-        return typeWithExpression(typeSymbol, moduleInfo, null, null);
     }
 
     public static List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
@@ -106,11 +102,13 @@ public class PropertyType {
         // Handle union of singleton types as single-select options
         if (propertyType.isEmpty() && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
             List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-            List<Object> options = new ArrayList<>();
+            List<Option> options = new ArrayList<>();
             boolean allSingletons = true;
             for (TypeSymbol symbol : typeSymbols) {
                 if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                    options.add(CommonUtils.removeQuotes(symbol.signature()));
+                    String label = CommonUtils.removeQuotes(symbol.signature());
+                    Option option = new Option(label, symbol.signature());
+                    options.add(option);
                 } else {
                     allSingletons = false;
                     break;
@@ -204,9 +202,8 @@ public class PropertyType {
                 for (PropertyType propType : propertyTypes) {
                     if (propType.fieldType() == Value.FieldType.SINGLE_SELECT) {
                         String valueStr = value.toSourceCode().trim();
-                        for (Object option : propType.options()) {
-                            // need to check option is not an instance of structure
-                            if (option.equals(valueStr)) {
+                        for (Option option : propType.options()) {
+                            if (option.value().equals(valueStr)) {
                                 propType.selected(true);
                                 foundMatch = true;
                                 break;
@@ -299,7 +296,7 @@ public class PropertyType {
         return ballerinaType;
     }
 
-    public List<Object> options() {
+    public List<Option> options() {
         return options;
     }
 
@@ -334,7 +331,7 @@ public class PropertyType {
     public static class Builder {
         private Value.FieldType fieldType;
         private String ballerinaType;
-        private List<Object> options;
+        private List<Option> options;
         private List<PropertyTypeMemberInfo> typeMembers;
         private boolean selected = false;
         private Integer minItems;
@@ -355,7 +352,7 @@ public class PropertyType {
             return this;
         }
 
-        public Builder options(List<Object> options) {
+        public Builder options(List<Option> options) {
             this.options = options;
             return this;
         }

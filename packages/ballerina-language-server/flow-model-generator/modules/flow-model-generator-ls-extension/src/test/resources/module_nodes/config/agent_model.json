@@ -146,8 +146,14 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "FUNCTION_CALL_AGENT",
-                  "REACT_AGENT"
+                  {
+                    "label": "FUNCTION_CALL_AGENT",
+                    "value": "\"FUNCTION_CALL_AGENT\""
+                  },
+                  {
+                    "label": "REACT_AGENT",
+                    "value": "\"REACT_AGENT\""
+                  }
                 ],
                 "selected": false
               },
@@ -503,9 +509,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },
@@ -821,9 +836,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "2.0",
-                  "1.1",
-                  "1.0"
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
                 ],
                 "selected": false
               },
@@ -1094,9 +1118,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },
@@ -1802,9 +1835,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "2.0",
-                  "1.1",
-                  "1.0"
+                  {
+                    "label": "2.0",
+                    "value": "\"2.0\""
+                  },
+                  {
+                    "label": "1.1",
+                    "value": "\"1.1\""
+                  },
+                  {
+                    "label": "1.0",
+                    "value": "\"1.0\""
+                  }
                 ],
                 "selected": false
               },
@@ -2053,9 +2095,18 @@
               {
                 "fieldType": "SINGLE_SELECT",
                 "options": [
-                  "AUTO",
-                  "ALWAYS",
-                  "NEVER"
+                  {
+                    "label": "AUTO",
+                    "value": "\"AUTO\""
+                  },
+                  {
+                    "label": "ALWAYS",
+                    "value": "\"ALWAYS\""
+                  },
+                  {
+                    "label": "NEVER",
+                    "value": "\"NEVER\""
+                  }
                 ],
                 "selected": false
               },

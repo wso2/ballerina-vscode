@@ -137,11 +137,26 @@
           {
             "fieldType": "MULTIPLE_SELECT_LISTENER",
             "options": [
-              "httpListener",
-              "githubListener",
-              "(+) Create and use the default HTTP listener (port: 9090)",
-              "default:globalListener",
-              "new http:Listener(port = 8080)"
+              {
+                "label": "httpListener",
+                "value": "httpListener"
+              },
+              {
+                "label": "githubListener",
+                "value": "githubListener"
+              },
+              {
+                "label": "(+) Create and use the default HTTP listener (port: 9090)",
+                "value": "(+) Create and use the default HTTP listener (port: 9090)"
+              },
+              {
+                "label": "default:globalListener",
+                "value": "default:globalListener"
+              },
+              {
+                "label": "new http:Listener(port = 8080)",
+                "value": "new http:Listener(port = 8080)"
+              }
             ],
             "selected": true
           }

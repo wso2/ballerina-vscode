@@ -433,7 +433,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             private Property.ValueType fieldType;
             private String ballerinaType;
             private String scope;
-            private List<String> options;
+            private List<Option> options;
             private Property template;
             private List<PropertyTypeMemberInfo> typeMembers;
             private boolean selected = false;
@@ -461,12 +461,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
-            public TypeBuilder options(List<String> options) {
+            public TypeBuilder options(List<Option> options) {
                 this.options = options;
                 return this;
             }
 
-            public TypeBuilder options(String... options) {
+            public TypeBuilder options(Option... options) {
                 this.options = List.of(options);
                 return this;
             }
@@ -532,7 +532,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        public Builder<T> typeWithOptions(Property.ValueType valueType, List<String> options) {
+        public Builder<T> typeWithOptions(Property.ValueType valueType, List<Option> options) {
             type().fieldType(valueType).options(options).stepOut();
             return this;
         }
@@ -560,11 +560,13 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             // Handle union of singleton types as single-select options
             if (!success && rawType instanceof UnionTypeSymbol unionTypeSymbol) {
                 List<TypeSymbol> typeSymbols = unionTypeSymbol.memberTypeDescriptors();
-                List<String> options = new ArrayList<>();
+                List<Option> options = new ArrayList<>();
                 boolean allSingletons = true;
                 for (TypeSymbol symbol : typeSymbols) {
                     if (CommonUtil.getRawType(symbol).typeKind() == TypeDescKind.SINGLETON) {
-                        options.add(CommonUtils.removeQuotes(symbol.signature()));
+                        String label = CommonUtils.removeQuotes(symbol.signature());
+                        Option option = new Option(label, symbol.signature());
+                        options.add(option);
                     } else {
                         allSingletons = false;
                         break;
@@ -648,8 +650,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     for (PropertyType propType : this.types) {
                         if (propType.fieldType() == ValueType.SINGLE_SELECT) {
                             String valueStr = value.toSourceCode().trim();
-                            for (String option : propType.options()) {
-                                if (option.equals(valueStr)) {
+                            for (Option option : propType.options()) {
+                                if (option.value().equals(valueStr)) {
                                     propType.selected(true);
                                     foundMatch = true;
                                     break;

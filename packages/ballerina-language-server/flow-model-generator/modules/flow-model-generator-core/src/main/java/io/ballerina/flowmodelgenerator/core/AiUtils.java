@@ -179,7 +179,7 @@ public class AiUtils {
     }
 
     /**
-     * Creates an updated property with a new value while preserving metadata.
+     * Creates an updated property with a new value while preserving all other fields.
      *
      * @param <T>              the type of the new value
      * @param originalProperty the original property
@@ -191,17 +191,55 @@ public class AiUtils {
             throw new IllegalArgumentException("Original property cannot be null");
         }
 
-        Property.Builder<T> builder = new Property.Builder<T>(null)
-                .types(originalProperty.types())
-                .value(newValue);
+        return new Property(
+                originalProperty.metadata(),
+                originalProperty.types(),
+                newValue,
+                originalProperty.oldValue(),
+                originalProperty.placeholder(),
+                originalProperty.optional(),
+                originalProperty.editable(),
+                originalProperty.advanced(),
+                originalProperty.hidden(),
+                originalProperty.modified(),
+                originalProperty.diagnostics(),
+                originalProperty.codedata(),
+                originalProperty.advancedValue(),
+                originalProperty.imports(),
+                originalProperty.defaultValue(),
+                originalProperty.comment()
+        );
+    }
 
-        if (originalProperty.codedata() != null) {
-            builder.codedata()
-                    .kind(originalProperty.codedata().kind())
-                    .originalName(originalProperty.codedata().originalName());
+    /**
+     * Creates a copy of a property marked as optional and advanced. All other fields are preserved from the original
+     * property.
+     *
+     * @param original the property to copy from
+     * @return the new property with optional=true and advanced=true
+     */
+    public static Property copyAsOptionalAdvanced(Property original) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
         }
-
-        return builder.build();
+        return new Property(
+                original.metadata(),
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                true,  // optional
+                original.editable(),
+                true,  // advanced
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
     }
 
     /**

@@ -30,6 +30,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRoute
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
@@ -102,11 +103,15 @@ public final class JmsUtil {
      * @return Value configured for session ack mode selection.
      */
     public static Value buildSessionAckModeProperty() {
-        List<Object> ackModeOptions = List.of(
-                AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.SESSION_TRANSACTED.getValue()
+        List<Option> ackModeOptions = List.of(
+                new Option(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.SESSION_TRANSACTED.getValue(),
+                        AcknowledgmentMode.SESSION_TRANSACTED.getValue())
         );
 
         return new Value.ValueBuilder()

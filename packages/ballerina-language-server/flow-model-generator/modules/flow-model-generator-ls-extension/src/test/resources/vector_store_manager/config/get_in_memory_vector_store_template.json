@@ -104,9 +104,18 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
-                "DOT_PRODUCT",
-                "EUCLIDEAN",
-                "COSINE"
+                {
+                  "label": "DOT_PRODUCT",
+                  "value": "\"DOT_PRODUCT\""
+                },
+                {
+                  "label": "EUCLIDEAN",
+                  "value": "\"EUCLIDEAN\""
+                },
+                {
+                  "label": "COSINE",
+                  "value": "\"COSINE\""
+                }
               ],
               "selected": false
             },

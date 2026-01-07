@@ -55,9 +55,10 @@
           {
             "fieldType": "MULTIPLE_SELECT_LISTENER",
             "options": [
-              "ftpListener",
-              "",
-              "ftpListener"
+              {
+                "label": "ftpListener",
+                "value": "ftpListener"
+              }
             ],
             "selected": true
           }

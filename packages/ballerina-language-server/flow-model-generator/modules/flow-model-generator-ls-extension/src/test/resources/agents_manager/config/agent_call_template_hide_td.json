@@ -7,30 +7,30 @@
   "description": "",
   "codedata": {
     "node": "AGENT_CALL",
-    "org": "ballerinax",
+    "org": "ballerina",
     "module": "ai",
     "packageName": "ai",
     "object": "Agent",
     "symbol": "run",
-    "parentSymbol": "agentRun",
-    "version": "1.0.1"
+    "version": "1.9.0"
   },
   "output": {
     "id": "31",
     "metadata": {
       "label": "run",
       "description": "Executes the agent for a given user query.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ai_1.0.1.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
     },
     "codedata": {
       "node": "AGENT_CALL",
-      "org": "ballerinax",
+      "org": "ballerina",
       "module": "ai",
       "packageName": "ai",
       "object": "Agent",
       "symbol": "run",
-      "version": "1.0.1",
-      "isNew": true
+      "version": "1.9.0",
+      "isNew": true,
+      "inferredReturnType": "td"
     },
     "returning": false,
     "properties": {
@@ -46,7 +46,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerinax:ai:1.0.1",
+                "packageInfo": "ballerina:ai:1.9.0",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -119,46 +119,10 @@
         },
         "defaultValue": "[]"
       },
-      "agentType": {
-        "metadata": {
-          "label": "Agent Type",
-          "description": "Type of the agent"
-        },
-        "types": [
-          {
-            "fieldType": "SINGLE_SELECT",
-            "options": [
-              {
-                "label": "FUNCTION_CALL_AGENT",
-                "value": "\"FUNCTION_CALL_AGENT\""
-              },
-              {
-                "label": "REACT_AGENT",
-                "value": "\"REACT_AGENT\""
-              }
-            ],
-            "selected": false
-          },
-          {
-            "fieldType": "EXPRESSION",
-            "ballerinaType": "ai:AgentType",
-            "selected": false
-          }
-        ],
-        "placeholder": "\"FUNCTION_CALL_AGENT\"",
-        "optional": true,
-        "editable": true,
-        "advanced": true,
-        "hidden": false,
-        "codedata": {
-          "kind": "INCLUDED_FIELD"
-        },
-        "defaultValue": "\"FUNCTION_CALL_AGENT\""
-      },
       "maxIter": {
         "metadata": {
           "label": "Maximum Iterations",
-          "description": "The maximum number of iterations the agent performs to complete the task"
+          "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
         },
         "types": [
           {
@@ -168,11 +132,11 @@
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "int",
+            "ballerinaType": "\"INFER_TOOL_COUNT\"|int",
             "selected": false
           }
         ],
-        "placeholder": "0",
+        "placeholder": "\"INFER_TOOL_COUNT\"",
         "optional": true,
         "editable": true,
         "advanced": true,
@@ -180,7 +144,7 @@
         "codedata": {
           "kind": "INCLUDED_FIELD"
         },
-        "defaultValue": "0"
+        "defaultValue": "\"INFER_TOOL_COUNT\""
       },
       "verbose": {
         "metadata": {
@@ -212,7 +176,7 @@
       "memory": {
         "metadata": {
           "label": "Memory",
-          "description": "The memory used by the agent to store and manage conversation history"
+          "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
         },
         "types": [
           {
@@ -231,6 +195,36 @@
         },
         "defaultValue": "()"
       },
+      "toolLoadingStrategy": {
+        "metadata": {
+          "label": "Tool Loading Strategy",
+          "description": "Defines the strategies for loading tool schemas into an Agent. \nBy default, all tools are loaded without any filtering."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              "LLM_FILTER",
+              "NO_FILTER"
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ToolLoadingStrategy",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"LLM_FILTER\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "\"LLM_FILTER\""
+      },
       "type": {
         "metadata": {
           "label": "Result Type",
@@ -242,7 +236,7 @@
             "selected": true
           }
         ],
-        "value": "string",
+        "value": "td",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -372,7 +366,6 @@
             "selected": false
           }
         ],
-        "value": "agentRun",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -432,6 +425,52 @@
           "originalName": "sessionId"
         },
         "defaultValue": "\"\""
+      },
+      "context": {
+        "metadata": {
+          "label": "Context",
+          "description": "The additional context that can be used during agent tool execution"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Context",
+            "selected": false
+          }
+        ],
+        "placeholder": "new ()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "context"
+        },
+        "defaultValue": "new ()"
+      },
+      "td": {
+        "metadata": {
+          "label": "Td",
+          "description": "Type descriptor specifying the expected return type format"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "ai:Trace|string",
+            "selected": false
+          }
+        ],
+        "placeholder": "ai:Trace|string",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "td"
+        },
+        "defaultValue": "ai:Trace|string"
       }
     },
     "flags": 0
