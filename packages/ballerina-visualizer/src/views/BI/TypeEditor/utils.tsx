@@ -84,62 +84,6 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payl
             }))
             .filter((category) => category.items.length > 0);
 
-        if (payloadContext?.filterType === "JSON") {
-            categories = [...categories,
-            {
-                category: "Data Types",
-                sortText: "2",
-                items: [
-                    {
-                        name: "json",
-                        insertText: "json",
-                        type: "type-parameter",
-                        labelDetails: {
-                            detail: "Data Types",
-                            description: "Built-in JSON type"
-                        }
-                    }
-                ]
-            }
-            ];
-        } else if (payloadContext?.filterType === "XML") {
-            categories = [...categories,
-            {
-                category: "Data Types",
-                sortText: "2",
-                items: [
-                    {
-                        name: "xml",
-                        insertText: "xml",
-                        type: "type-parameter",
-                        labelDetails: {
-                            detail: "Data Types",
-                            description: "Built-in XML type"
-                        }
-                    }
-                ]
-            }
-            ];
-        } else if (payloadContext?.filterType === "CSV") {
-            categories = [...categories,
-            {
-                category: "Structural Types",
-                sortText: "3",
-                items: [
-                    {
-                        name: "string[]",
-                        insertText: "string[]",
-                        type: "type-parameter",
-                        labelDetails: {
-                            detail: "Structural Types",
-                            description: "Built-in string array type"
-                        }
-                    }
-                ]
-            }
-            ];
-
-        }
     }
     return categories.sort((a, b) => (a.sortText ?? "z").localeCompare(b.sortText ?? "z"));;
 };
