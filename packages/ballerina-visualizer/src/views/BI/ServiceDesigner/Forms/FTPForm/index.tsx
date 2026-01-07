@@ -89,7 +89,7 @@ export function FTPForm(props: FTPFormProps) {
 
     // Reset form state when model prop changes
     useEffect(() => {
-        setserviceModel(model);
+        setServiceModel(model);
         // Set initial function model based on first non-enabled function matching the selected handler
         if (isNew && nonEnabledFunctions.length > 0) {
             const initialFunction = nonEnabledFunctions[0];
