@@ -21,9 +21,6 @@ import { CopilotEventHandler } from '../../utils/events';
 import { chatStateStorage, ChatStateStorage } from '../../../../views/ai-panel/chatStateStorage';
 import { getTempProject, cleanupTempProject } from '../../utils/project/temp-project';
 import { getErrorMessage } from '../../utils/ai-utils';
-import * as fs from 'fs';
-import * as path from 'path';
-import { sendAgentDidCloseBatch } from '../../utils/project/ls-schema-notifications';
 
 /**
  * Unified configuration for all AI command executors
@@ -204,7 +201,7 @@ export abstract class AICommandExecutor<TParams = any> {
         if (strategy === 'immediate') {
             await this.cleanupImmediate();
         } else if (strategy === 'review') {
-            await this.cleanupForReview(result);
+            await this.cleanupForReview();
         }
     }
 
@@ -227,16 +224,8 @@ export abstract class AICommandExecutor<TParams = any> {
 
         try {
             console.log(`[AICommandExecutor] Immediate cleanup: ${tempProjectPath}`);
-
-            // Send didClose notifications for .bal files
-            const balFiles = this.findAllBalFiles(tempProjectPath);
-            if (balFiles.length > 0) {
-                sendAgentDidCloseBatch(tempProjectPath, balFiles);
-                await new Promise(resolve => setTimeout(resolve, 300)); // Let LS process
-            }
-
-            // Remove temp project
-            cleanupTempProject(tempProjectPath);
+            // Note: cleanupTempProject now handles LS didClose notifications internally
+            await cleanupTempProject(tempProjectPath);
             console.log(`[AICommandExecutor] Cleanup completed`);
         } catch (error) {
             console.error('[AICommandExecutor] Cleanup failed:', error);
@@ -248,7 +237,7 @@ export abstract class AICommandExecutor<TParams = any> {
      * Review mode cleanup - persists temp project for user review
      * Used by AgentExecutor. Subclasses can override for custom behavior.
      */
-    protected async cleanupForReview(result: AIExecutionResult): Promise<void> {
+    protected async cleanupForReview(): Promise<void> {
         console.log(`[AICommandExecutor] Review mode - temp project persisted: ${this.config.executionContext.tempProjectPath}`);
         // No immediate cleanup - temp persists for review
         // Actual cleanup happens when user accepts/declines via RPC
@@ -283,7 +272,7 @@ export abstract class AICommandExecutor<TParams = any> {
         const tempProjectPath = this.config.executionContext.tempProjectPath;
         if (tempProjectPath && !process.env.AI_TEST_ENV) {
             try {
-                cleanupTempProject(tempProjectPath);
+                await cleanupTempProject(tempProjectPath);
             } catch (cleanupError) {
                 console.warn(`[AICommandExecutor] Failed to cleanup after error:`, cleanupError);
             }
@@ -313,43 +302,6 @@ export abstract class AICommandExecutor<TParams = any> {
             metadata,
             this.config.generationId
         );
-    }
-
-    /**
-     * Recursively find all .bal files in a directory
-     *
-     * @param dir - Directory to search
-     * @param baseDir - Base directory for relative paths (defaults to dir)
-     * @returns Array of relative file paths
-     */
-    private findAllBalFiles(dir: string, baseDir?: string): string[] {
-        const base = baseDir || dir;
-        const files: string[] = [];
-
-        if (!fs.existsSync(dir)) {
-            return files;
-        }
-
-        try {
-            const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-            for (const entry of entries) {
-                const fullPath = path.join(dir, entry.name);
-
-                if (entry.isDirectory()) {
-                    // Recursively search subdirectories
-                    files.push(...this.findAllBalFiles(fullPath, base));
-                } else if (entry.isFile() && entry.name.endsWith('.bal')) {
-                    // Add relative path to list
-                    const relativePath = path.relative(base, fullPath);
-                    files.push(relativePath);
-                }
-            }
-        } catch (error) {
-            console.warn(`[AICommandExecutor] Error reading directory ${dir}:`, error);
-        }
-
-        return files;
     }
 
     /**

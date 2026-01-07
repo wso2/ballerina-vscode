@@ -26,6 +26,7 @@ export enum InputMode {
   SQL = "SQL",
   SELECT = "Select",
   ARRAY = "Array",
+  TEXT_ARRAY = "Text Array",
   PROMPT = "Prompt",
   MAP = "Map"
 };

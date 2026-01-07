@@ -107,8 +107,16 @@ export interface StatusCodeResponse extends PropertyModel {
     mediaType: PropertyModel;
 }
 
+export enum Protocol {
+    HTTP = "HTTP",
+    MESSAGE_BROKER = "MESSAGE_BROKER",
+    GRAPHQL = "GRAPHQL",
+    FTP = "FTP",
+    CDC = "CDC"
+}
+
 export interface HttpPayloadContext {
-    protocol: "HTTP";
+    protocol: Protocol.HTTP;
     serviceName: string;
     serviceBasePath: string;
     resourceBasePath?: string;
@@ -118,13 +126,18 @@ export interface HttpPayloadContext {
 }
 
 export interface MessageQueuePayloadContext {
-    protocol: "MESSAGE_BROKER";
+    protocol: Protocol.MESSAGE_BROKER | Protocol.CDC;
     serviceName: string;
     queueOrTopic?: string;
     messageDocumentation?: string;
 }
 
-export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext;
+export interface GeneralPayloadContext {
+    protocol: Protocol | string;
+    filterType?: string;
+}
+
+export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext | GeneralPayloadContext;
 
 export interface ParamDetails {
     name: string;
