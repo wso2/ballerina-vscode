@@ -62,6 +62,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "PROMPT") {
         return InputMode.PROMPT;
     }
+    if (inputType.fieldType === "FLAG") {
+        return InputMode.BOOLEAN;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);
@@ -452,3 +455,6 @@ export const processFunctionWithArguments = async (
     // Keep caret at the end of the inserted snippet.
     return { finalValue: value, cursorAdjustment: value.length };
 };
+
+export const normalizeEditorValue = (v: unknown) =>
+  typeof v === 'string' ? v.trim() : v;
