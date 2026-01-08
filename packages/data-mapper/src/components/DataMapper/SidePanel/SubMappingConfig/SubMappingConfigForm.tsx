@@ -135,7 +135,7 @@ export function SubMappingConfigForm(props: SubMappingConfigFormProps) {
         editable: true,
         documentation: "Enter the type of the sub mapping.",
         value: formValues.type,
-        types: [{ fieldType: "TYPE", scope: "Global", selected: false }],
+        types: [{ fieldType: "TYPE", selected: false }],
         enabled: true,
     };
 

@@ -83,7 +83,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
-        types: [{ fieldType: "TYPE", scope: "Global", selected: false }],
+        types: [{ fieldType: "TYPE", selected: false }],
         enabled: true,
     }
 
@@ -99,7 +99,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        types: [{ fieldType: "EXPRESSION", scope: "Global", selected: false }],
+        types: [{ fieldType: "EXPRESSION", selected: false }],
         enabled: true,
     }
 
@@ -111,7 +111,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the order",
         value: clauseProps?.order ?? "",
-        types: [{ fieldType: "ENUM", scope: "Global", selected: false }],
+        types: [{ fieldType: "ENUM", selected: false }],
         enabled: true,
         items: ["ascending", "descending"]
     }
@@ -124,7 +124,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        types: [{ fieldType: "EXPRESSION", scope: "Global", selected: false }],
+        types: [{ fieldType: "EXPRESSION", selected: false }],
         enabled: true,
     }
 
@@ -136,7 +136,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
-        types: [{ fieldType: "DM_JOIN_CLAUSE_RHS_EXPRESSION", scope: "Global", selected: false }],
+        types: [{ fieldType: "DM_JOIN_CLAUSE_RHS_EXPRESSION", selected: false }],
         enabled: true,
     }
 
