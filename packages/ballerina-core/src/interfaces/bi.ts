@@ -181,7 +181,7 @@ export interface TemplateType extends BaseType {
 
 export interface IdentifierType extends BaseType {
     fieldType: "IDENTIFIER";
-    scope: Scope;
+    scope: FieldScope;
 }
 
 export type InputType =
@@ -458,6 +458,8 @@ export type BranchKind = "block" | "worker";
 export type Repeatable = "ONE_OR_MORE" | "ZERO_OR_ONE" | "ONE" | "ZERO_OR_MORE";
 
 export type Scope = "module" | "local" | "object";
+
+export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
