@@ -483,6 +483,10 @@ export function enrichFormTemplatePropertiesWithValues(
                 if (formProperty.diagnostics) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
                 }
+
+                if (formProperty.types) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].types = formProperty.types;
+                }
             }
         }
     }
