@@ -35,6 +35,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
 
     const [multiProjectData, setMultiProjectData] = useState<MultiProjectFormData>({

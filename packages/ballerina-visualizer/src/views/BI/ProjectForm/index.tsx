@@ -89,6 +89,7 @@ export function ProjectForm() {
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
@@ -105,6 +106,7 @@ export function ProjectForm() {
             workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
+            isLibrary: formData.isLibrary,
         });
     };
 
