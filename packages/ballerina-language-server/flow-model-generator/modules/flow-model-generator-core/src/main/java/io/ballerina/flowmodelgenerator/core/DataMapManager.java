@@ -2227,6 +2227,23 @@ public class DataMapManager {
         }
 
         TypeSymbol targetType = typeSymbol;
+        if (targetType.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionType = (UnionTypeSymbol) targetType;
+            List<TypeSymbol> members = unionType.memberTypeDescriptors();
+
+            List<TypeSymbol> nonErrorOrNilMembers = members.stream()
+                    .map(CommonUtils::getRawType)
+                    .filter(member -> {
+                        TypeDescKind kind = member.typeKind();
+                        return kind != TypeDescKind.ERROR && kind != TypeDescKind.NIL;
+                    })
+                    .toList();
+            if (nonErrorOrNilMembers.size() == 1) {
+                targetType = nonErrorOrNilMembers.getFirst();
+            } else {
+                return null;
+            }
+        }
         for (int i = 1; i < splits.length; i++) {
             targetType = CommonUtils.getRawType(targetType);
             String split = splits[i];
