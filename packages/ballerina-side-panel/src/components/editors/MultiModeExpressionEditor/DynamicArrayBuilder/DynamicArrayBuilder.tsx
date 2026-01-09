@@ -195,6 +195,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         //have a switch to show the array editor mode and the expression mode.
                         //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
                         configuration={expressionSetType?.fieldType === "TEXT_SET" ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
+                        placeholder={expressionFieldProps.field.placeholder}
                     />
                     <S.DeleteButton
                         appearance="icon"
