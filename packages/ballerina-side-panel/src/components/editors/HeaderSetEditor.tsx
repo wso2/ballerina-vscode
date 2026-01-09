@@ -181,7 +181,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             editable: true,
             documentation: "Type of the header",
             value: headerSetToEdit?.type || "",
-            types: [{ fieldType: "TEXT", ballerinaType: "string", selected: false }],
+            types: [{ fieldType: "SINGLE_SELECT", ballerinaType: "string", selected: false }],
             label: "Type",
             type: "SINGLE_SELECT",
             items: field.items,
