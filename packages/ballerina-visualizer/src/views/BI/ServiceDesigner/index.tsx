@@ -926,20 +926,20 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                     <>
                                         <SectionHeader
                                             title="Resources"
-                                            subtitle={`${remoteFunctionsCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
+                                            subtitle={`${resourcesCount === 0 ? `` : 'Define how the service responds to HTTP requests'}`}
                                         >
                                             <ActionGroup>
                                                 {resources.length > 10 && (
                                                     <TextField placeholder="Search..." sx={{ width: 200 }} onChange={handleSearch} value={searchValue} />
                                                 )}
-                                                {!haveServiceTypeName && remoteFunctionsCount > 0 && (
+                                                {!haveServiceTypeName && resourcesCount > 0 && (
                                                     <Button appearance="primary" tooltip="Add Resource" onClick={handleNewResourceFunction}>
                                                         <Codicon name="add" sx={{ marginRight: 8 }} /> <ButtonText>Resource</ButtonText>
                                                     </Button>
                                                 )}
                                             </ActionGroup>
                                         </SectionHeader>
-                                        {remoteFunctionsCount > 0 && (
+                                        {resourcesCount > 0 && (
                                             <FunctionsContainer>
                                                 {resources
                                                     .filter((resource) => {
@@ -961,7 +961,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                     ))}
                                             </FunctionsContainer>
                                         )}
-                                        {remoteFunctionsCount === 0 && (
+                                        {resourcesCount === 0 && (
                                             <EmptyReadmeContainer>
                                                 <Description variant="body2">
                                                     No resources found. Add a new resource.
