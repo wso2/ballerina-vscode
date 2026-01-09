@@ -20,7 +20,6 @@ import React from "react";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { ErrorBanner } from "@wso2/ui-toolkit";
-import { RawTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 import { getEditorConfiguration } from "../../ExpressionField";
 import { ExpressionContainer } from "./styles";
 

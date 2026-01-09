@@ -241,7 +241,7 @@ export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({
             error,
             formDiagnostics
         }),
-        // Props for template mode
+        // Props for template and Text modes
         ...((
             mode === InputMode.TEMPLATE ||
             mode === InputMode.TEXT
