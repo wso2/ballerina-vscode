@@ -35,10 +35,9 @@ export const PreviewContainerDefault = styled.div`
 interface RoleContainerProps {
     icon: string;
     title: string;
-    checkpointButton?: React.ReactNode;
 }
 
-const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, checkpointButton }) => {
+const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title }) => {
     return (
         <div style={{ display: "flex", flexDirection: "row", gap: "6px", alignItems: "center" }}>
             <Icon
@@ -47,7 +46,6 @@ const RoleContainer: React.FC<RoleContainerProps> = ({ icon, title, checkpointBu
                 iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)", cursor: "default" }}
             />
             <h3 style={{ margin: 0 }}>{title}</h3>
-            {checkpointButton && <div style={{ marginLeft: "auto" }}>{checkpointButton}</div>}
         </div>
     );
 };

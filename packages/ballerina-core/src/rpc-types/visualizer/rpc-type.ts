@@ -39,3 +39,4 @@ export const joinProjectPath: RequestType<JoinProjectPathRequest, JoinProjectPat
 export const getThemeKind: RequestType<void, ColorThemeKind> = { method: `${_preFix}/getThemeKind` };
 export const updateCurrentArtifactLocation: RequestType<UpdatedArtifactsResponse, ProjectStructureArtifactResponse> = { method: `${_preFix}/updateCurrentArtifactLocation` };
 export const reviewAccepted: NotificationType<void> = { method: `${_preFix}/reviewAccepted` };
+export const refreshReviewMode: NotificationType<void> = { method: `${_preFix}/refreshReviewMode` };

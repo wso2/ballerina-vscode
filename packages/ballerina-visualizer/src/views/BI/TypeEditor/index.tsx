@@ -18,7 +18,7 @@
 
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { Imports, LineRange, PayloadContext, Type } from '@wso2/ballerina-core';
+import { Imports, LineRange, PayloadContext, Type, Protocol } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
@@ -44,7 +44,6 @@ type FormTypeEditorProps = {
     onTypeChange: (type: Type) => void;
     newType: boolean;
     newTypeValue?: string;
-    isGraphql?: boolean;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
     getNewTypeCreateForm: (typeName?: string) => void;
@@ -54,11 +53,14 @@ type FormTypeEditorProps = {
     isContextTypeForm?: boolean;
     payloadContext?: PayloadContext;
     simpleType?: string;
+    defaultTab?: 'import' | 'create-from-scratch' | 'browse-exisiting-types';
 };
 
 export const FormTypeEditor = (props: FormTypeEditorProps) => {
-    const { type, onTypeChange, newType, newTypeValue, isGraphql, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext } = props;
+    const { type, onTypeChange, newType, newTypeValue, onCloseCompletions, getNewTypeCreateForm, onSaveType, refetchTypes, isPopupTypeForm, isContextTypeForm, simpleType, payloadContext, defaultTab } = props;
     const { rpcClient } = useRpcContext();
+    const isGraphql = payloadContext?.protocol === Protocol.GRAPHQL;
+    const isCdcService = payloadContext?.protocol === Protocol.CDC;
 
     const [filePath, setFilePath] = useState<string | undefined>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange | undefined>(undefined);
@@ -127,12 +129,12 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                             });
                         }
-                        const basicTypes = getTypes(types);
+                        const basicTypes = getTypes(types, false, payloadContext);
                         setBasicTypes(basicTypes);
                         setFilteredBasicTypes(basicTypes);
                         fetchedInitialTypes.current = true;
-    
-                        if (!isGraphql) {
+
+                        if (!isGraphql && !isCdcService) {
                             const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
                                 filePath: filePath,
                                 position: targetLineRange,
@@ -143,7 +145,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 },
                                 searchKind: 'TYPE'
                             });
-    
+
                             const importedTypes = getImportedTypes(searchResponse.categories);
                             setImportedTypes(importedTypes);
                         }
@@ -155,24 +157,28 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                     }
                 } else if (isType) {
                     setFilteredBasicTypes(filterTypes(basicTypes, searchText));
-    
-                    try {
-                        const response = await rpcClient.getBIDiagramRpcClient().search({
-                            filePath: filePath,
-                            position: targetLineRange,
-                            queryMap: {
-                                q: searchText,
-                                offset: 0,
-                                limit: 1000
-                            },
-                            searchKind: 'TYPE'
-                        });
-    
-                        const importedTypes = getImportedTypes(response.categories);
-                        setImportedTypes(importedTypes);
-                    } catch (error) {
-                        console.error(error);
-                    } finally {
+
+                    if (!isCdcService) {
+                        try {
+                            const response = await rpcClient.getBIDiagramRpcClient().search({
+                                filePath: filePath,
+                                position: targetLineRange,
+                                queryMap: {
+                                    q: searchText,
+                                    offset: 0,
+                                    limit: 1000
+                                },
+                                searchKind: 'TYPE'
+                            });
+
+                            const importedTypes = getImportedTypes(response.categories);
+                            setImportedTypes(importedTypes);
+                        } catch (error) {
+                            console.error(error);
+                        } finally {
+                            setLoading(false);
+                        }
+                    } else {
                         setLoading(false);
                     }
                 } else {
@@ -257,6 +263,7 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         isGraphql={isGraphql}
                         simpleType={simpleType}
                         payloadContext={payloadContext}
+                        defaultTab={defaultTab}
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,
@@ -281,6 +288,11 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                         newTypeValue={newTypeValue}
                         onSaveType={onSaveType}
                         isGraphql={isGraphql}
+                        defaultTab={
+                            defaultTab === 'create-from-scratch' || defaultTab === 'import'
+                                ? defaultTab
+                                : undefined
+                        }
                         typeHelper={{
                             loading,
                             loadingTypeBrowser,

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ChatMessage, UIChatHistoryMessage } from '@wso2/ballerina-core/lib/state-machine-types';
+import { ChatMessage } from '@wso2/ballerina-core/lib/state-machine-types';
 import { generateId } from './idGenerators';
 
 /**
@@ -71,50 +71,4 @@ export const updateChatMessage = (
         }
         return msg;
     });
-};
-
-/**
- * Converts chat history to model messages format for API requests
- * @param chatHistory The chat history to convert
- * @returns Array of model messages
- */
-export const convertChatHistoryToModelMessages = (chatHistory: ChatMessage[]): any[] => {
-    const messages: any[] = [];
-
-    for (const msg of chatHistory) {
-        if (msg.modelMessages && msg.modelMessages.length > 0) {
-            messages.push(...msg.modelMessages);
-        }
-    }
-
-    return messages;
-};
-
-/**
- * Converts chat history to UI message format for display
- * @param chatHistory The chat history to convert
- * @returns Array of UI chat history messages
- */
-export const convertChatHistoryToUIMessages = (chatHistory: ChatMessage[]): UIChatHistoryMessage[] => {
-    const messages: UIChatHistoryMessage[] = [];
-    const lastMessage = chatHistory[chatHistory.length - 1];
-    const historyToConvert = lastMessage && !lastMessage.uiResponse ? chatHistory.slice(0, -1) : chatHistory;
-
-    for (const msg of historyToConvert) {
-        messages.push({
-            role: 'user',
-            content: msg.content,
-            checkpointId: msg.checkpointId,
-            messageId: msg.id
-        });
-
-        if (msg.uiResponse) {
-            messages.push({
-                role: 'assistant',
-                content: msg.uiResponse
-            });
-        }
-    }
-
-    return messages;
 };

@@ -44,14 +44,29 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
 export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (!inputType) return;
 
+    if (inputType.fieldType === "TEXT") {
+        return InputMode.TEXT;
+    }
     if (inputType.fieldType === "EXPRESSION") {
         return InputMode.EXP;
     }
     if (inputType.fieldType === "SINGLE_SELECT") {
-        return InputMode.DROPDOWN;
+        return InputMode.SELECT;
     }
     if (inputType.fieldType === "EXPRESSION_SET") {
         return InputMode.ARRAY;
+    }
+    if (inputType.fieldType === "TEXT_SET") {
+        return InputMode.TEXT_ARRAY;
+    }
+    if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
+        return InputMode.MAP;
+    }
+    if (inputType.fieldType === "PROMPT") {
+        return InputMode.PROMPT;
+    }
+    if (inputType.fieldType === "FLAG") {
+        return InputMode.BOOLEAN;
     }
 
     //default behaviour
@@ -443,3 +458,6 @@ export const processFunctionWithArguments = async (
     // Keep caret at the end of the inserted snippet.
     return { finalValue: value, cursorAdjustment: value.length };
 };
+
+export const normalizeEditorValue = (v: unknown) =>
+  typeof v === 'string' ? v.trim() : v;

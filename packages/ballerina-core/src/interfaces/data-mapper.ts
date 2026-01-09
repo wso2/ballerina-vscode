@@ -69,18 +69,8 @@ export enum ResultClauseType {
 }
 
 export interface DMDiagnostic {
-    kind: string;
+    code: string;
     message: string;
-    range: {
-        start: {
-            line: number;
-            character: number;
-        };
-        end: {
-            line: number;
-            character: number;
-        };
-    };
 }
 
 export interface IOType {

@@ -25,9 +25,9 @@ import { expandArrayFn, getValueType } from "./common-utils";
 import { FnMetadata, FnParams, FnReturnType, IntermediateClauseType, Mapping, ResultClauseType } from "@wso2/ballerina-core";
 import { getImportTypeInfo, isEnumMember } from "./type-utils";
 import { InputNode } from "../Node/Input/InputNode";
-import { useDMQueryClausesPanelStore } from "../../../store/store";
+import { useDMQueryClausesStore } from "../../../store/store";
 
-export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string) {
+export async function createNewMapping(link: DataMapperLinkModel, modifier?: (expr: string) => string, existingValueType?: ValueType) {
 	const sourcePort = link.getSourcePort();
 	const targetPort = link.getTargetPort();
 	if (!sourcePort || !targetPort) {
@@ -58,7 +58,7 @@ export async function createNewMapping(link: DataMapperLinkModel, modifier?: (ex
 	let expression = modifier ? modifier(input) : input;
 
 	if (targetMapping) {
-		const valueType = getValueType(link);
+		const valueType = existingValueType ?? getValueType(link);
 
 		if (valueType === ValueType.Mergeable) {
 			expression = `${targetMapping.expression} + ${expression}`;
@@ -192,7 +192,7 @@ export async function convertAndMap(link: DataMapperLinkModel, context: IDataMap
 	
 	const convertedExpression = await context.getConvertedExpression(input, inputType, outputType);
 
-	await createNewMapping(link, (_: string) => convertedExpression);
+	await createNewMapping(link, (_: string) => convertedExpression, ValueType.Replaceable);
 }
 
 
@@ -246,8 +246,7 @@ export async function mapSeqToX(link: DataMapperLinkModel, context: IDataMapperC
 
 }
 
-export function mapWithJoin(link: DataMapperLinkModel) {
-
+export async function mapWithFrom(link: DataMapperLinkModel, context: IDataMapperContext) {
 	const sourcePort = link.getSourcePort();
 	if (!sourcePort) {
 		return;
@@ -255,12 +254,40 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 
 	const sourcePortModel = sourcePort as InputOutputPortModel;
 
-	const { setClauseToAdd, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore.getState();
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView.targetField;
+
+	const clause = {
+		type: IntermediateClauseType.FROM,
+		properties: {
+			name: await context.genUniqueName(sourcePortModel.attributes.field.name + "Item", viewId),
+			type: "var",
+			expression: sourcePortModel.attributes.fieldFQN
+		}
+	};
+
+	const lastIntermediateClauseIndex = context.model.query?.intermediateClauses?.length ? context.model.query.intermediateClauses.length -1 : -1;
+
+	await context.addClauses(clause, viewId, true, lastIntermediateClauseIndex);
+}
+
+export async function mapWithJoin(link: DataMapperLinkModel, context: IDataMapperContext) {
+
+	const sourcePort = link.getSourcePort();
+	if (!sourcePort) {
+		return;
+	}
+
+	const sourcePortModel = sourcePort as InputOutputPortModel;
+	const lastView = context.views[context.views.length - 1];
+	const viewId = lastView.targetField;
+
+	const { setClauseToAdd, setIsQueryClauseFormOpen } = useDMQueryClausesStore.getState();
 
 	setClauseToAdd({
 		type: IntermediateClauseType.JOIN,
 		properties: {
-			name: sourcePortModel.attributes.field.name + "Item",
+			name: await context.genUniqueName(sourcePortModel.attributes.field.name + "Item", viewId),
 			type: "var",
 			expression: sourcePortModel.attributes.fieldFQN,
 			isOuter: false,
@@ -268,7 +295,7 @@ export function mapWithJoin(link: DataMapperLinkModel) {
 			rhsExpression: "",
 		}
 	});
-	setIsQueryClausesPanelOpen(true);
+	setIsQueryClauseFormOpen(true);
 }
 
 export function buildInputAccessExpr(fieldFqn: string): string {

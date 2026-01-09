@@ -33,7 +33,6 @@ import { GenerationType } from "./libraries";
 // import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../ai-utils";
-import { AIPanelAbortController } from "../../../../rpc-managers/ai-panel/utils";
 
 // Constants for type definitions
 const TYPE_RECORD = 'Record';
@@ -239,7 +238,7 @@ Now, based on the provided libraries, clients, and functions, and the user query
             temperature: 0,
             messages: messages,
             schema: getFunctionsResponseSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         const libList = object as GetFunctionsResponse;
@@ -819,7 +818,7 @@ Think step-by-step to choose the required types in order to solve the given ques
             temperature: 0,
             messages: messages,
             schema: getTypesResponseSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         const libList = object as GetTypesResponse;

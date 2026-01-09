@@ -15,15 +15,14 @@
 // under the License.
 
 import { generateObject, ModelMessage, tool } from "ai";
-import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+import { GenerationType, getAllLibraries, LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
 import { jsonSchema } from "ai";
-import { Library } from "../utils/libs/library-types";
-import { selectRequiredFunctions } from "../utils/libs/function-registry";
-import { MinifiedLibrary, RelevantLibrariesAndFunctionsRequest } from "@wso2/ballerina-core";
-import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../utils/ai-client";
+import { Library } from "../../utils/libs/library-types";
+import { selectRequiredFunctions } from "../../utils/libs/function-registry";
+import { MinifiedLibrary } from "@wso2/ballerina-core";
+import { ANTHROPIC_SONNET_4, getAnthropicClient, getProviderCacheControl } from "../../utils/ai-client";
 import { z } from "zod";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
-import { CopilotEventHandler } from "../utils/events";
+import { CopilotEventHandler } from "../../utils/events";
 
 export const HEALTHCARE_LIBRARY_PROVIDER_TOOL = "HealthcareLibraryProviderTool";
 
@@ -68,9 +67,7 @@ export async function HealthcareLibraryProviderTool(
 
         const startTime = Date.now();
 
-        const libraries = await getRelevantLibrariesAndFunctions({
-            query: params.userPrompt,
-        }, GenerationType.HEALTHCARE_GENERATION);
+        const libraries = await getRelevantLibrariesAndFunctions(params.userPrompt, GenerationType.HEALTHCARE_GENERATION);
 
         console.log(
             `[HealthcareLibraryProviderTool] Fetched ${libraries.length} libraries: ${libraries
@@ -157,12 +154,12 @@ const LibraryListSchema = z.object({
 });
 
 export async function getRelevantLibrariesAndFunctions(
-    params: RelevantLibrariesAndFunctionsRequest,
+    query: string,
     generationType: GenerationType
 ): Promise<Library[]> {
-    const selectedLibs: string[] = await getSelectedLibraries(params.query, generationType);
+    const selectedLibs: string[] = await getSelectedLibraries(query, generationType);
     const allLibraries = ensureMandatoryHealthcareLibraries(selectedLibs);
-    const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, allLibraries, generationType);
+    const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(query, allLibraries, generationType);
     return relevantTrimmedFuncs;
 }
 
@@ -192,7 +189,7 @@ export async function getSelectedLibraries(prompt: string, generationType: Gener
         temperature: 0,
         messages: messages,
         schema: LibraryListSchema,
-        abortSignal: AIPanelAbortController.getInstance().signal,
+        abortSignal: new AbortController().signal,
     });
     const endTime = Date.now();
     console.log(`Library selection took ${endTime - startTime}ms`);
