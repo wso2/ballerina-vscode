@@ -17,18 +17,10 @@
  */
 
 import React from "react";
-import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { ErrorBanner } from "@wso2/ui-toolkit";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-`;
+import { ExpressionContainer } from "./styles";
 
 /**
  * Expression mode editor - uses ChipExpressionBaseComponent in expanded mode
