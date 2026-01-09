@@ -94,14 +94,14 @@ export const Inputs = (props: InputsPageProps) => {
     // Use navigation path for completions instead of currentValue
     const navigationPath = useMemo(() => getCurrentNavigationPath(), [breadCrumbSteps]);
     const completionContext = useMemo(() =>
-        navigationPath ? navigationPath + '.' : currentValue,
+        navigationPath ? navigationPath + '.' : (currentValue || ''),
         [navigationPath, currentValue]
     );
 
     useEffect(() => {
         setIsLoading(true);
         const triggerCharacter =
-            completionContext.length > 0
+            completionContext && completionContext.length > 0
                 ? triggerCharacters.find((char) => completionContext[completionContext.length - 1] === char)
                 : undefined;
 

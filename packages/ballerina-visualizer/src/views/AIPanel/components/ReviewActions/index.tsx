@@ -52,9 +52,10 @@ const ButtonGroup = styled.div`
 
 interface ReviewActionsProps {
     rpcClient: any;
+    onReviewActionsChange?: (show: boolean) => void;
 }
 
-export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
+export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient, onReviewActionsChange }) => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const handleReview = async () => {
@@ -81,7 +82,9 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
             setIsProcessing(true);
             // Accept all changes (integrate code to workspace and hide review actions)
             await rpcClient.getAiPanelRpcClient().acceptChanges();
-            
+
+            onReviewActionsChange?.(false);
+
             // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().reviewAccepted();
         } catch (error) {
@@ -98,8 +101,10 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
             setIsProcessing(true);
             // Decline all changes (cleanup without integrating and hide review actions)
             await rpcClient.getAiPanelRpcClient().declineChanges();
-            
-            // Navigate back to previous view  
+
+            onReviewActionsChange?.(false);
+
+            // Navigate back to previous view
             rpcClient.getVisualizerRpcClient().goBack();
         } catch (error) {
             console.error("[ReviewActions] Error declining changes:", error);
@@ -118,10 +123,10 @@ export const ReviewActions: React.FC<ReviewActionsProps> = ({ rpcClient }) => {
             </ActionsDescription>
             <ButtonGroup>
                 <Button appearance="secondary" onClick={handleDeclineAll} disabled={isProcessing}>
-                    Undo All
+                    Discard
                 </Button>
                 <Button appearance="primary" onClick={handleAcceptAll} disabled={isProcessing}>
-                    Keep All
+                    Keep
                 </Button>
                 <Button onClick={handleReview}>
                     Review
