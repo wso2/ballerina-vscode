@@ -580,6 +580,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 InputMode.TEMPLATE,
                 InputMode.TEXT,
                 InputMode.NUMBER,
+                InputMode.BOOLEAN,
             ]
                 .includes(targetMode) && inputMode === InputMode.EXP;
             if (shouldClearValue) {

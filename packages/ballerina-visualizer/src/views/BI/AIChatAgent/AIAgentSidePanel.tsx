@@ -115,7 +115,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             editable: true,
             documentation: "Enter the name of the tool.",
             value: "",
-            types: [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false }],
+            types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false }],
             enabled: true,
         },
         {

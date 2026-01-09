@@ -94,7 +94,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "EXPRESSION_SET" ||
             type.fieldType === "TEXT_SET" ||
             (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
-            type.fieldType === "RECORD_MAP_EXPRESSION"
+            type.fieldType === "RECORD_MAP_EXPRESSION" ||
+            (field.type === "FLAG" && field.types?.length > 1)
         );
     });
 
@@ -110,7 +111,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <DropdownChoiceForm field={field} />;
     } else if (field.type === "TEXTAREA" || field.type === "STRING") {
         return <TextAreaEditor field={field} />;
-    } else if (field.type === "FLAG") {
+    } else if (field.type === "FLAG" && !showWithExpressionEditor) {
         return <CheckBoxEditor field={field} />;
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {
         // HACK: this should fixed with the LS API. this is used to avoid the expression editor for resource path field.
