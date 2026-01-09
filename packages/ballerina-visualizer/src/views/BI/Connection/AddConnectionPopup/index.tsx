@@ -18,7 +18,7 @@
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
-import { AvailableNode, Category, Item, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { AvailableNode, Category, Item, LinePosition, MACHINE_VIEW, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
@@ -214,11 +214,12 @@ interface AddConnectionPopupProps {
     fileName: string;
     target?: LinePosition;
     onClose?: (parent?: ParentPopupData) => void;
-    onNavigateToOverview?: () => void;
+    onNavigateToOverview: () => void;
+    isPopup?: boolean;
 }
 
 export function AddConnectionPopup(props: AddConnectionPopupProps) {
-    const { projectPath, fileName, target, onClose, onNavigateToOverview } = props;
+    const { projectPath, fileName, target, onClose, onNavigateToOverview, isPopup } = props;
     const { rpcClient } = useRpcContext();
     const { initConnector: initDevantConnector } = usePlatformExtContext();
 
@@ -416,16 +417,25 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         // If a parent payload is provided, we are done with the entire flow.
         // Close this popup (and navigate back) without resetting internal state first,
         if (parent) {
-            onClose?.(parent);
-            if (onNavigateToOverview) {
+            if (isPopup) {
+                rpcClient.getVisualizerLocation().then((location) => {
+                    if (location.view === MACHINE_VIEW.BIComponentView) {
+                        onNavigateToOverview();
+                    } else {
+                        onClose?.(parent);
+                    }
+                }).catch((err) => {
+                    console.error(">>> error getting visualizer location", err);
+                    onClose?.(parent);
+                });
+            } else {
                 onNavigateToOverview();
             }
-            return;
-        }
-
-        // Otherwise, just close the inner wizard and go back to the connector list.
-        setWizardStep(null);
-        setSelectedConnector(null);
+        } else {
+            // Otherwise, just close the inner wizard and go back to the connector list.
+            setWizardStep(null);
+            setSelectedConnector(null);
+        }   
     };
 
     const filterItems = (items: Item[]): Item[] => {
@@ -550,10 +560,10 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     }
 
     const handleClosePopup = () => {
-        if (onNavigateToOverview) {
-            onNavigateToOverview();
-        } else {
+        if (isPopup) {
             onClose?.();
+        } else {
+            onNavigateToOverview();
         }
     };
 

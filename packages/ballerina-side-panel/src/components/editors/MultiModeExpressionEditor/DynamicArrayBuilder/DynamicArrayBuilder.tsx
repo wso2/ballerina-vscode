@@ -16,81 +16,172 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
-import styled from '@emotion/styled';
-import { Button, Codicon, ThemeColors } from '@wso2/ui-toolkit';
-import { ExpressionField, ExpressionFieldProps, getEditorConfiguration } from "../../ExpressionField";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ExpressionFieldProps } from "../../ExpressionField";
+import { Codicon, ErrorBanner } from '@wso2/ui-toolkit';
 import { InputMode } from "../ChipExpressionEditor/types";
 import { getPrimaryInputType } from "@wso2/ballerina-core";
-import { getInputModeFromBallerinaType, getInputModeFromTypes } from "../ChipExpressionEditor/utils";
+import { getInputModeFromBallerinaType } from "../ChipExpressionEditor/utils";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { StringTemplateEditorConfig } from "../Configurations";
 
 interface DynamicArrayBuilderProps {
     label: string;
     value: string | any[];
-    onChange: (updated: string, updatedCursorPosition: number) => void;
+    onChange?: (value: string) => void;
     expressionFieldProps: ExpressionFieldProps;
 }
 
+/**
+ * DynamicArrayBuilder component for managing array inputs with validation.
+ * Supports minItems and defaultItems configuration from the field's EXPRESSION_SET or TEXT_SET type.
+ */
 export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
     const { label, value, onChange, expressionFieldProps } = props;
     const { form } = useFormContext();
-    const { setValue, getValues } = form;
+    const { setValue } = form;
 
-    // Use a ref to track the current editing state to avoid stale closures
-    const currentValuesRef = useRef<string[]>(Array.isArray(value) ? value : [""]);
+    // Extract configuration from EXPRESSION_SET or TEXT_SET type definition
+    const expressionSetType = expressionFieldProps.field.types.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
+    const minItems = expressionSetType?.minItems ?? 1;
+    const defaultItems = expressionSetType?.defaultItems ?? 1;
+    
+    const [isInitialized, setIsInitialized] = useState(false);
+    const currentValuesRef = useRef<string[]>([]);
+    const paddedRef = useRef(false);
 
-    // Update ref when prop changes from parent (e.g., opening in edit mode)
+    // Helper function to update array value using form context setValue
+    // Note: We don't use the onChange prop here to preserve type information (e.g., numbers stay as numbers)
+    const updateArrayValue = useCallback((updatedArray: string[], options?: { shouldValidate?: boolean; shouldDirty?: boolean }) => {
+        setValue(expressionFieldProps.field.key, updatedArray, options);
+    }, [setValue, expressionFieldProps.field.key]);
+
+    /**
+     * Converts the incoming value to an array, using defaultItems if empty.
+     */
+    const getInitialValue = (): string[] => {
+        // If value is already an array, use it
+        if (Array.isArray(value) && value.length > 0) {
+            return value;
+        }
+
+        // If value is a JSON string, parse it
+        if (typeof value === 'string' && value.trim() !== '' && value !== '[]') {
+            try {
+                const parsed = JSON.parse(value);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed;
+                }
+            } catch (e) {
+                // If parsing fails, treat as empty
+            }
+        }
+
+        const isEmpty = !value ||
+                       value === '' ||
+                       value === '[]' ||
+                       (Array.isArray(value) && value.length === 0);
+
+        return isEmpty && defaultItems > 0 ? Array(defaultItems).fill("") : [];
+    };
+
+    // Initialize the field with default items on mount
     useEffect(() => {
-        currentValuesRef.current = Array.isArray(value) ? value : [""];
-    }, [value]);
+        const initialValue = getInitialValue();
+        const shouldInitialize = initialValue.length > 0 && (
+            !value ||
+            value === '' ||
+            value === '[]' ||
+            (Array.isArray(value) && value.length === 0)
+        );
 
-    // Use the value from props directly (controlled by parent/form context)
+        if (shouldInitialize) {
+            currentValuesRef.current = initialValue;
+            updateArrayValue(initialValue, { shouldValidate: false, shouldDirty: false });
+        }
+        setIsInitialized(true);
+    }, []);
+
+    // Update ref when value changes from parent
+    useEffect(() => {
+        if (isInitialized) {
+            currentValuesRef.current = getInitialValue();
+        }
+    }, [value, isInitialized]);
+
+    // Compute current array values
     const arrayValues = useMemo(() => {
-        return Array.isArray(value) ? value : [""];
-    }, [value]);
+        if (!isInitialized) {
+            return currentValuesRef.current;
+        }
+        return getInitialValue();
+    }, [value, isInitialized]);
+
+    // Ensure minimum number of items are always visible
+    useEffect(() => {
+        if (!isInitialized) {
+            paddedRef.current = false;
+            return;
+        }
+
+        const requiredCount = Math.max(minItems, defaultItems);
+
+        // Reset padding flag when arrayValues length falls below required count or dependencies change
+        if (arrayValues.length < requiredCount) {
+            paddedRef.current = false;
+        }
+
+        // Only apply padding if not already padded
+        if (requiredCount > 0 && arrayValues.length < requiredCount && !paddedRef.current) {
+            const paddedArray = [...arrayValues];
+            while (paddedArray.length < requiredCount) {
+                paddedArray.push('');
+            }
+            currentValuesRef.current = paddedArray;
+            updateArrayValue(paddedArray, { shouldValidate: true });
+            paddedRef.current = true;
+        }
+    }, [arrayValues, isInitialized, minItems, defaultItems, updateArrayValue]);
 
     const handleInputChange = (index: number, newValue: string) => {
-        // Use the current ref value to ensure we have the latest state
-        const currentArray = [...currentValuesRef.current];
-        currentArray[index] = newValue;
-        currentValuesRef.current = currentArray;
-        setValue(expressionFieldProps.field.key, currentArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = [...currentValuesRef.current];
+        updatedArray[index] = newValue;
+        currentValuesRef.current = updatedArray;
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleDelete = (index: number) => {
-        const currentArray = [...currentValuesRef.current];
-        const newArray = currentArray.filter((_, i) => i !== index);
-        currentValuesRef.current = newArray;
-        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = currentValuesRef.current.filter((_, i) => i !== index);
+        currentValuesRef.current = updatedArray;
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const handleAdd = () => {
-        const currentArray = [...currentValuesRef.current];
-        const newArray = [...currentArray, ''];
-        currentValuesRef.current = newArray;
-        setValue(expressionFieldProps.field.key, newArray, { shouldValidate: false, shouldDirty: true });
+        const updatedArray = [...currentValuesRef.current, ''];
+        currentValuesRef.current = updatedArray;
+        updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
     const primaryInputMode = useMemo(() => {
         if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
             return InputMode.EXP;
         }
-        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType)
+        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
     }, [expressionFieldProps.field.types]);
+
     return (
         <S.Container>
-            {arrayValues.map((value, index) => (
+            {arrayValues.map((itemValue, index) => (
                 <S.ItemContainer key={`${expressionFieldProps.field.key}-${index}`}>
                     <ChipExpressionEditorComponent
                         getHelperPane={props.expressionFieldProps.getHelperPane}
                         isExpandedVersion={false}
                         completions={props.expressionFieldProps.completions}
                         onChange={(value) => handleInputChange(index, value)}
-                        value={value}
+                        value={itemValue}
                         sanitizedExpression={props.expressionFieldProps.sanitizedExpression}
                         rawExpression={props.expressionFieldProps.rawExpression}
                         fileName={props.expressionFieldProps.fileName}
@@ -99,28 +190,28 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         onOpenExpandedMode={props.expressionFieldProps.onOpenExpandedMode}
                         onRemove={props.expressionFieldProps.onRemove}
                         isInExpandedMode={props.expressionFieldProps.isInExpandedMode}
-                        //HACK: always use Expression mode for array items. this should be fixed to 
-                        //show the type related editor in the field editor and the whole editor should 
+                        //HACK: always use Expression mode for array items. this should be fixed to
+                        //show the type related editor in the field editor and the whole editor should
                         //have a switch to show the array editor mode and the expression mode.
-                        configuration={new ChipExpressionEditorDefaultConfiguration()}
+                        //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
+                        configuration={expressionSetType?.fieldType === "TEXT_SET" ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
                     />
                     <S.DeleteButton
                         appearance="icon"
                         onClick={() => handleDelete(index)}
+                        disabled={arrayValues.length <= minItems}
                     >
-                        <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
+                        <Codicon name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <Button
+            <S.AddButton
                 onClick={handleAdd}
                 appearance="icon"
             >
-                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
-                    <Codicon name="add" />
-                    Add Item
-                </div>
-            </Button>
+                <Codicon name="add" />
+                Add Item
+            </S.AddButton>
         </S.Container>
     );
 };

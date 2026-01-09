@@ -28,7 +28,7 @@ export enum MappingType {
 	ArrayToArray = "array-array",
 	ArrayToSingleton = "array-singleton",
 	ArrayToSingletonAggregate = "array-singleton-aggregate",
-	ArrayJoin = "array-join",
+	ArrayConnect = "array-connect",
 	Incompatible = "incompatible",
 	ContainsUnions = "contains-unions",
 	SeqToPrimitive = "seq-primitive",
