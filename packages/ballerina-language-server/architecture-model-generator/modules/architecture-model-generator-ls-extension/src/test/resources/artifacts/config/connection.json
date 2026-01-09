@@ -40,7 +40,7 @@
         "type": "CONNECTION",
         "name": "httpConnection",
         "scope": "Global",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
         "module": "http",
         "children": {}
       },
