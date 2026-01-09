@@ -17,19 +17,12 @@
  */
 
 import React from "react";
-import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { ErrorBanner } from "@wso2/ui-toolkit";
 import { RawTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-`;
+import { getEditorConfiguration } from "../../ExpressionField";
+import { ExpressionContainer } from "./styles";
 
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     value,
@@ -66,7 +59,8 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                     isInExpandedMode={true}
                     isExpandedVersion={true}
                     inputMode={inputMode}
-                />
+                    configuration={getEditorConfiguration(inputMode)}
+                    />
             </ExpressionContainer>
             {error ?
                 <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
