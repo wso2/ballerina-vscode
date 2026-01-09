@@ -256,7 +256,8 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
 org = "${finalOrgName}"
 name = "${finalPackageName}"
 version = "${finalVersion}"
-title = "${integrationName}"
+title = "${integrationName}"${projectRequest.isLibrary ? `
+library = true` : ''}
 
 [build-options]
 sticky = true
