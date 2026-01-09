@@ -281,6 +281,15 @@ async function repairMappingsWithLLM(
 ): Promise<void> {
     const { dataMapperMetadata, dmModel } = dmModelResult;
 
+    const hasDiagnostics = dmModel.mappings?.some(
+        (mapping: Mapping) => mapping.diagnostics && mapping.diagnostics.length > 0
+    );
+
+    if (!hasDiagnostics) {
+        console.log('No diagnostics found in mappings, skipping LLM repair');
+        return;
+    }
+
     // Call LLM repair with targeted diagnostics and DM model context
     try {
         let mappingsModel = ensureUnionRefs(dmModel);
