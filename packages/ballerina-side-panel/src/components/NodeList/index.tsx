@@ -562,11 +562,6 @@ export function NodeList(props: NodeListProps) {
     );
 
     const getCategoryContainer = (groups: Category[], isSubCategory = false, parentCategoryTitle?: string) => {
-        const callFunctionNode = groups
-            .flatMap((group) => group?.items || [])
-            .filter((item) => item != null)
-            .find((item) => "id" in item && item.id === "FUNCTION");
-        
         // Configuration for special categories
         const categoryConfig = {
             "Connections": { hasBackground: false },
@@ -598,8 +593,7 @@ export function NodeList(props: NodeListProps) {
                     const categoryActions = getCategoryActions(group.title, title);
                     const config = categoryConfig[group.title] || { hasBackground: true };
                     const shouldShowSeparator = config.showSeparatorBefore;
-                    const isLoggingCategory = group.title === "Logging";
-                    
+
                     // Hide categories that don't have items, except for special categories that can add items
                     if (!group || !group.items || group.items.length === 0) {
                         // Only show empty categories if they have add functionality
@@ -735,25 +729,6 @@ export function NodeList(props: NodeListProps) {
                                                       group.items as (Node | Category)[],
                                                       !isSubCategory ? group.title : parentCategoryTitle
                                                   )}
-                                            {/* Add Show More Functions under Logging category */}
-                                            {isLoggingCategory && callFunctionNode && isCategoryExpanded && (
-                                                <S.AdvancedSubcategoryContainer key={"showMoreFunctions"} style={{ marginBottom: "12px" }}>
-                                                    <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
-                                                        <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
-                                                        <Button
-                                                            appearance="icon"
-                                                            sx={{
-                                                                transition: "all 0.2s ease",
-                                                                "&:hover": {
-                                                                    backgroundColor: "transparent !important",
-                                                                },
-                                                            }}
-                                                        >
-                                                            <Codicon name="chevron-right" />
-                                                        </Button>
-                                                    </S.AdvancedSubcategoryHeader>
-                                                </S.AdvancedSubcategoryContainer>
-                                            )}
                                         </>
                                     )}
                                 </S.CategoryRow>
@@ -816,6 +791,12 @@ export function NodeList(props: NodeListProps) {
         return category;
     });
 
+    // Find the call function node across all categories
+    const callFunctionNode = filteredCategories
+        .flatMap((group) => group?.items || [])
+        .filter((item) => item != null)
+        .find((item) => "id" in item && item.id === "FUNCTION");
+
     // When searching, expand all categories
     const shouldExpandAll = searchText && searchText.length > 0;
 
@@ -875,7 +856,28 @@ export function NodeList(props: NodeListProps) {
                 </S.PanelBody>
             )}
             {!showGeneratePanel && !isSearching && (
-                <S.PanelBody>{getCategoryContainer(filteredCategories)}</S.PanelBody>
+                <S.PanelBody>
+                    {getCategoryContainer(filteredCategories)}
+                    {/* Show More Functions button - moved outside Logging category */}
+                    {callFunctionNode && !searchText && (
+                        <S.AdvancedSubcategoryContainer key={"showMoreFunctions"} style={{ marginBottom: "12px" }}>
+                            <S.AdvancedSubcategoryHeader onClick={() => handleAddNode(callFunctionNode as Node)}>
+                                <S.AdvancedSubTitle>Show More Functions</S.AdvancedSubTitle>
+                                <Button
+                                    appearance="icon"
+                                    sx={{
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            backgroundColor: "transparent !important",
+                                        },
+                                    }}
+                                >
+                                    <Codicon name="chevron-right" />
+                                </Button>
+                            </S.AdvancedSubcategoryHeader>
+                        </S.AdvancedSubcategoryContainer>
+                    )}
+                </S.PanelBody>
             )}
             {showAiPanel && showGeneratePanel && (
                 <S.PanelBody>

@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, aiChatStateChanged, sendAIChatStateEvent, getAIChatContext, getAIChatUIHistory, AIChatMachineEventType, AIChatMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -46,7 +46,6 @@ import { registerAgentChatRpcHandlers } from './rpc-managers/agent-chat/rpc-hand
 import { ArtifactsUpdated, ArtifactNotificationHandler } from './utils/project-artifacts-handler';
 import { registerMigrateIntegrationRpcHandlers } from './rpc-managers/migrate-integration/rpc-handler';
 import { registerPlatformExtRpcHandlers } from './rpc-managers/platform-ext/rpc-handler';
-import { AIChatStateMachine } from './views/ai-panel/aiChatMachine';
 
 export class RPCLayer {
     static _messenger: Messenger = new Messenger();
@@ -68,9 +67,6 @@ export class RPCLayer {
             RPCLayer._messenger.registerWebviewView(webViewPanel as WebviewView);
             AIStateMachine.service().onTransition((state) => {
                 RPCLayer._messenger.sendNotification(aiStateChanged, { type: 'webview', webviewType: AiPanelWebview.viewType }, state.value);
-            });
-            AIChatStateMachine.service().onTransition((state) => {
-                RPCLayer._messenger.sendNotification(aiChatStateChanged, { type: 'webview', webviewType: AiPanelWebview.viewType }, state.value);
             });
         }
     }
@@ -102,9 +98,6 @@ export class RPCLayer {
         // ----- AI Webview RPC Methods
         registerAiPanelRpcHandlers(RPCLayer._messenger);
         RPCLayer._messenger.onRequest(sendAIStateEvent, (event: AIMachineEventType | AIMachineSendableEvent) => AIStateMachine.sendEvent(event));
-        RPCLayer._messenger.onRequest(sendAIChatStateEvent, (event: AIChatMachineEventType | AIChatMachineSendableEvent) => AIChatStateMachine.sendEvent(event));
-        RPCLayer._messenger.onRequest(getAIChatContext, () => AIChatStateMachine.context());
-        RPCLayer._messenger.onRequest(getAIChatUIHistory, () => AIChatStateMachine.getUIChatHistory());
 
         // ----- Data Mapper Webview RPC Methods
         registerDataMapperRpcHandlers(RPCLayer._messenger);

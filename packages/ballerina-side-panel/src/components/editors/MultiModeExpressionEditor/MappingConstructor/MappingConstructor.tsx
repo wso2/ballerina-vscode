@@ -16,14 +16,18 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { S } from '../styles';
-import { Codicon } from "@wso2/ui-toolkit";
+import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
+import { ExpressionFieldProps } from "../../ExpressionField";
+import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 interface MappingConstructorProps {
     label: string;
-    values: Record<string, string>;
-    onChange: (updated: string, updatedCursorPosition: number) => void;
+    value: string;
+    onChange: (updated: string) => void;
+    expressionFieldProps: ExpressionFieldProps;
 }
 
 interface KeyValuePair {
@@ -31,89 +35,134 @@ interface KeyValuePair {
     value: string;
 }
 
-export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, values, onChange }) => {
-    const [pairs, setPairs] = useState<KeyValuePair[]>([]);
+/**
+ * Extracts key-value pairs from a map string representation.
+ * @param mapString - The string representation of the map, e.g., '{ key1: "value1", key2: "value2" }'.
+ * @returns An array of strings, each representing a key-value pair in the format 'key: "value"'.
+ */
+function extractMapEntries(mapString) {
+    if (!mapString) {
+        return [];
+    }
+
+    // Matches text in format =>  key: "value" (key can be empty)
+    const ENTRY_REGEX = /(\w*)\s*:\s*"([^"]*)"/g;
+
+    const entries = [];
+    let match;
+
+    while ((match = ENTRY_REGEX.exec(mapString)) !== null) {
+        entries.push(`${match[1]}: "${match[2]}"`);
+    }
+
+    return entries;
+}
+
+const createFinalValue = (pairs: KeyValuePair[]) => {
+    const mapString = pairs
+        .map(pair => `${pair.key}: ${pair.value}`)
+        .join(', ');
+    return `{ ${mapString} }`;
+}
+
+const getPairsFromValue = (value: string): KeyValuePair[] => {
+    const entries: string[] = extractMapEntries(value);
+    return entries.map(entry => {
+        const [key, val] = entry.split(':').map(part => part.trim());
+        return { key, value: val };
+    });
+}
+
+export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
+    const [isAddMoreValid, setIsAddMoreValid] = useState(false);
+    const valueRef = useRef(value);
+
+    // Keep ref updated with latest value
+    useEffect(() => {
+        valueRef.current = value;
+    }, [value]);
 
     useEffect(() => {
-        const initialPairs = Object.entries(values).map(([key, value]) => ({ key, value }));
-        setPairs(initialPairs);
-    }, [JSON.stringify(values)]);
+        const pairs = getPairsFromValue(value);
+        const lastPair = pairs[pairs.length - 1];
+        const isValid = pairs.length === 0 || (lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== "");
+        setIsAddMoreValid(isValid);
+    }, [value]);
 
-    const getDuplicateKeys = (pairs: KeyValuePair[]): Set<string> => {
-        const keyCount = new Map<string, number>();
-        pairs.forEach(pair => {
-            if (pair.key.trim()) {
-                keyCount.set(pair.key.trim(), (keyCount.get(pair.key.trim()) || 0) + 1);
-            }
-        });
-        return new Set([...keyCount.entries()].filter(([, count]) => count > 1).map(([key]) => key));
-    };
+    const handleAddPair = useCallback(() => {
+        const updatedPairs = [...getPairsFromValue(valueRef.current), { key: ``, value: '""' }];
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const updatePairs = (newPairs: KeyValuePair[]) => {
-        setPairs(newPairs);
-        const map: Record<string, string> = {};
-        newPairs.forEach(pair => {
-            if (pair.key.trim()) {
-                map[pair.key.trim()] = pair.value;
-            }
-        });
-        if (JSON.stringify(map) !== JSON.stringify(values)) {
-            onChange(JSON.stringify(map), JSON.stringify(map).length);
-        }
-    };
+    const handleDeletePair = useCallback((index: number) => {
+        const updatedPairs = getPairsFromValue(valueRef.current).filter((_, i) => i !== index);
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleKeyChange = (index: number, key: string) => {
-        const newPairs = [...pairs];
-        newPairs[index].key = key;
-        updatePairs(newPairs);
-    };
+    const handleKeyChange = useCallback((index: number, newKey: string) => {
+        const updatedPairs = getPairsFromValue(valueRef.current);
+        updatedPairs[index].key = newKey;
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleValueChange = (index: number, value: string) => {
-        const newPairs = [...pairs];
-        newPairs[index].value = value;
-        updatePairs(newPairs);
-    };
+    const handleValueChange = useCallback((index: number, newValue: string) => {
+        const updatedPairs = getPairsFromValue(valueRef.current);
+        updatedPairs[index].value = newValue;
+        onChange(createFinalValue(updatedPairs));
+    }, [onChange]);
 
-    const handleDelete = (index: number) => {
-        const newPairs = pairs.filter((_, i) => i !== index);
-        updatePairs(newPairs);
-    };
-
-    const handleAdd = () => {
-        const newPairs = [...pairs, { key: '', value: '' }];
-        updatePairs(newPairs);
-    };
-
-    const duplicateKeys = getDuplicateKeys(pairs);
 
     return (
         <S.Container>
-            <S.Label>{label}</S.Label>
-            {pairs.map((pair, index) => (
-                <S.ItemContainer key={index}>
-                    <S.Input
-                        type="text"
-                        value={pair.key}
-                        onChange={(e) => handleKeyChange(index, e.target.value)}
-                        placeholder="Key"
-                        isError={duplicateKeys.has(pair.key.trim())}
-                    />
-                    
+            {getPairsFromValue(value).map((pair, index) => (
+                <S.ItemContainer style={{
+                    border: "1px solid var(--dropdown-border)",
+                    padding: "8px",
+                    borderRadius: "8px",
+                }} key={index}>
+                    <S.KeyValueContainer>
+                        <S.Input
+                            type="text"
+                            value={pair.key}
+                            onChange={(e) => handleKeyChange(index, e.target.value)}
+                            placeholder="Key"
+                        />
+
+                        <ChipExpressionEditorComponent
+                            getHelperPane={expressionFieldProps.getHelperPane}
+                            isExpandedVersion={false}
+                            completions={expressionFieldProps.completions}
+                            onChange={(value) => handleValueChange(index, value)}
+                            value={pair.value}
+                            sanitizedExpression={expressionFieldProps.sanitizedExpression}
+                            rawExpression={expressionFieldProps.rawExpression}
+                            fileName={expressionFieldProps.fileName}
+                            targetLineRange={expressionFieldProps.targetLineRange}
+                            extractArgsFromFunction={expressionFieldProps.extractArgsFromFunction}
+                            onOpenExpandedMode={expressionFieldProps.onOpenExpandedMode}
+                            onRemove={expressionFieldProps.onRemove}
+                            isInExpandedMode={expressionFieldProps.isInExpandedMode}
+                            configuration={new ChipExpressionEditorDefaultConfiguration()}
+                        />
+                    </S.KeyValueContainer>
                     <S.DeleteButton
                         appearance="icon"
-                        onClick={() => handleDelete(index)}
+                        onClick={() => handleDeletePair(index)}
                     >
-                        <Codicon name="trash" />
+                        <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <S.AddButton
-                onClick={handleAdd}
-                appearance="secondary"
+            <Button
+                onClick={handleAddPair}
+                appearance="icon"
+                disabled={!isAddMoreValid}
             >
-                <Codicon name="add" />
-                Add Entry
-            </S.AddButton>
+                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
+                    <Codicon name="add" />
+                    Add Item
+                </div>
+            </Button>
         </S.Container>
     );
 };

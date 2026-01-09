@@ -465,6 +465,9 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             if (!activeNode) {
                 return "";
             }
+            if (activeNode.codedata?.node === "AGENT_CALL") {
+                return `AI Agent`;
+            }
             if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
                 return `ai: Vector Knowledge Base`;
             }
@@ -982,12 +985,6 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
             paramFields.push(paramField);
         }
     }
-
-    // Set up parameter manager properties
-    if (formField.types && formField.types.length > 0) {
-        formField.types[0].fieldType = "PARAM_MANAGER";
-    }
-    formField.type = "PARAM_MANAGER";
 
     // Create existing parameter values
     const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>

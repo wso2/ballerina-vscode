@@ -18,125 +18,69 @@
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
 import {
-    AIChatSummary,
     AIMachineSnapshot,
     AIPanelAPI,
     AIPanelPrompt,
+    AbortAIGenerationRequest,
     AddFilesToProjectRequest,
-    AddToProjectRequest,
-    BIIntelSecrets,
-    BIModuleNodesRequest,
-    BISourceCodeResponse,
-    DeleteFromProjectRequest,
-    DeveloperDocument,
-    DiagnosticEntry,
-    Diagnostics,
+    CheckpointInfo,
+    Command,
     DocGenerationRequest,
-    FetchDataRequest,
-    FetchDataResponse,
     GenerateAgentCodeRequest,
-    GenerateCodeRequest,
     GenerateOpenAPIRequest,
-    GetFromFileRequest,
     GetModuleDirParams,
     LLMDiagnostics,
     LoginMethod,
     MetadataWithAttachments,
-    PostProcessRequest,
-    PostProcessResponse,
     ProcessContextTypeCreationRequest,
     ProcessMappingParametersRequest,
-    ProjectDiagnostics,
-    ProjectSource,
-    RelevantLibrariesAndFunctionsRequest,
-    RelevantLibrariesAndFunctionsResponse,
-    RepairParams,
     RequirementSpecification,
+    RestoreCheckpointRequest,
     SemanticDiffRequest,
     SemanticDiffResponse,
     SubmitFeedbackRequest,
     TestGenerationMentions,
-    TestGeneratorIntermediaryState,
-    TestPlanGenerationRequest
+    UIChatMessage,
+    UpdateChatMessageRequest
 } from "@wso2/ballerina-core";
-import * as crypto from 'crypto';
 import * as fs from 'fs';
-import * as os from 'os';
 import path from "path";
 import { workspace } from 'vscode';
+import { URI } from "vscode-uri";
 
-import { AIChatMachineEventType } from "@wso2/ballerina-core/lib/state-machine-types";
 import { isNumber } from "lodash";
-import { ExtendedLangClient } from "src/core";
-import { AIChatStateMachine } from "../../../src/views/ai-panel/aiChatMachine";
+import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
 import { AIStateMachine, openAIPanelWithPrompt } from "../../../src/views/ai-panel/aiMachine";
 import { checkToken } from "../../../src/views/ai-panel/utils";
 import { extension } from "../../BalExtensionContext";
-import { getPendingReviewContext, clearPendingReviewContext } from "../../features/ai/agent/stream-handlers/handlers/finish-handler";
 import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
+import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
-import { getServiceDeclarationNames } from "../../../src/features/ai/documentation/utils";
-import { getSelectedLibraries } from "../../features/ai/tools/healthcare-library";
-import { OLD_BACKEND_URL, closeAllBallerinaFiles } from "../../features/ai/utils";
-import { selectRequiredFunctions } from "../../features/ai/utils/libs/function-registry";
-import { GenerationType } from "../../features/ai/utils/libs/libraries";
-import { Library } from "../../features/ai/utils/libs/library-types";
-import { getLLMDiagnosticArrayAsString, handleChatSummaryFailure } from "../../features/natural-programming/utils";
+import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, loginGithubCopilot } from "../../utils/ai/auth";
-import { writeBallerinaFileDidOpen, writeBallerinaFileDidOpenTemp } from "../../utils/modification";
-import { updateSourceCode } from "../../utils/source-utils";
+import { getLoginMethod, loginGithubCopilot } from "../../utils/ai/auth";
+import { normalizeCodeContext } from "../../views/ai-panel/codeContextUtils";
 import { refreshDataMapper } from "../data-mapper/utils";
 import {
-    DEVELOPMENT_DOCUMENT,
-    NATURAL_PROGRAMMING_DIR_NAME, REQUIREMENT_DOC_PREFIX,
     TEST_DIR_NAME
 } from "./constants";
-import { attemptRepairProject, checkProjectDiagnostics } from "./repair-utils";
-import { AIPanelAbortController, addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
-import { fetchData } from "./utils/fetch-data-utils";
+import { addToIntegration, cleanDiagnosticMessages, searchDocumentation } from "./utils";
+
+import { onHideReviewActions } from '@wso2/ballerina-core';
+import { createExecutionContextFromStateMachine, createExecutorConfig, generateAgent } from '../../features/ai/agent/index';
+import { integrateCodeToWorkspace } from "../../features/ai/agent/utils";
+import { ContextTypesExecutor } from '../../features/ai/executors/datamapper/ContextTypesExecutor';
+import { FunctionMappingExecutor } from '../../features/ai/executors/datamapper/FunctionMappingExecutor';
+import { InlineMappingExecutor } from '../../features/ai/executors/datamapper/InlineMappingExecutor';
+import { approvalManager } from '../../features/ai/state/ApprovalManager';
+import { cleanupTempProject } from "../../features/ai/utils/project/temp-project";
+import { RPCLayer } from '../../RPCLayer';
+import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
+import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
 
 export class AiPanelRpcManager implements AIPanelAPI {
-
-    // ==================================
-    // General Functions
-    // ==================================
-    async getBackendUrl(): Promise<string> {
-        return new Promise(async (resolve) => {
-            resolve(OLD_BACKEND_URL);
-        });
-    }
-
-    async getProjectUuid(): Promise<string> {
-        return new Promise(async (resolve) => {
-            // Check if there is at least one workspace folder
-            if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
-                resolve("");
-                return;
-            }
-
-            try {
-                let projectIdentifier: string;
-                const cloudProjectId = process.env.CLOUD_INITIAL_PROJECT_ID;
-                
-                if (cloudProjectId) {
-                    projectIdentifier = cloudProjectId;
-                } else {
-                    projectIdentifier = workspace.workspaceFolders[0].uri.fsPath;
-                }
-
-                const hash = crypto.createHash('sha256')
-                    .update(projectIdentifier)
-                    .digest('hex');
-
-                resolve(hash);
-            } catch (error) {
-                resolve("");
-            }
-        });
-    }
 
     async getLoginMethod(): Promise<LoginMethod> {
         return new Promise(async (resolve) => {
@@ -145,33 +89,17 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    async getAccessToken(): Promise<string> {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const credentials = await getAccessToken();
-
-                if (!credentials) {
-                    reject(new Error("Access Token is undefined"));
-                    return;
-                }
-                const secrets = credentials.secrets as BIIntelSecrets;
-                const accessToken = secrets.accessToken;
-                resolve(accessToken);
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
-
-    async getRefreshedAccessToken(): Promise<string> {
-        return new Promise(async (resolve) => {
-            const token = await getRefreshedAccessToken();
-            resolve(token);
-        });
-    }
-
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
-        const defaultPrompt = extension.aiChatDefaultPrompt;
+        let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
+        
+        // Normalize code context to use relative paths
+        if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
+            defaultPrompt = {
+                ...defaultPrompt,
+                codeContext: normalizeCodeContext(defaultPrompt.codeContext)
+            };
+        }
+        
         return new Promise((resolve) => {
             resolve(defaultPrompt);
         });
@@ -184,137 +112,8 @@ export class AiPanelRpcManager implements AIPanelAPI {
         };
     }
 
-    async fetchData(params: FetchDataRequest): Promise<FetchDataResponse> {
-        return {
-            response: await fetchData(params.url, params.options)
-        };
-    }
-
-    async addToProject(req: AddToProjectRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
-        // Check if workspaceFolderPath is a Ballerina project
-        // Assuming a Ballerina project must contain a 'Ballerina.toml' file
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        let balFilePath = path.join(projectPath, req.filePath);
-
-        const directory = path.dirname(balFilePath);
-        if (!fs.existsSync(directory)) {
-            fs.mkdirSync(directory, { recursive: true });
-        }
-
-        await writeBallerinaFileDidOpen(balFilePath, req.content);
-        return true;
-    }
-
-    async getFromFile(req: GetFromFileRequest): Promise<string> {
-        let projectPath = StateMachine.context().projectPath;
-        const workspacePath = StateMachine.context().workspacePath;
-        if (workspacePath) {
-            projectPath = workspacePath;
-        }
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        const balFilePath = path.join(projectPath, req.filePath);
-        try {
-            const content = await fs.promises.readFile(balFilePath, 'utf-8');
-            return content;
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async deleteFromProject(req: DeleteFromProjectRequest): Promise<void> {
-        let projectPath = StateMachine.context().projectPath;
-        const workspacePath = StateMachine.context().workspacePath;
-        if (workspacePath) {
-            projectPath = workspacePath;
-        }
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        const balFilePath = path.join(projectPath, req.filePath);
-        if (fs.existsSync(balFilePath)) {
-            try {
-                fs.unlinkSync(balFilePath);
-            } catch (err) {
-                throw new Error("Could not delete the file.");
-            }
-        } else {
-            throw new Error("File does not exist.");
-        }
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        updateView();
-    }
-
-    async getFileExists(req: GetFromFileRequest): Promise<boolean> {
-        const projectPath = StateMachine.context().projectPath;
-        const ballerinaProjectFile = path.join(projectPath, 'Ballerina.toml');
-        if (!fs.existsSync(ballerinaProjectFile)) {
-            throw new Error("Not a Ballerina project.");
-        }
-
-        const balFilePath = path.join(projectPath, req.filePath);
-        if (fs.existsSync(balFilePath)) {
-            return true;
-        }
-        return false;
-    }
-
-    async getShadowDiagnostics(project: ProjectSource): Promise<ProjectDiagnostics> {
-        const environment = await setupProjectEnvironment(project);
-        if (!environment) {
-            return { diagnostics: [] };
-        }
-
-        const { langClient, tempDir } = environment;
-        let remainingDiags: Diagnostics[] = await attemptRepairProject(langClient, tempDir);
-        const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
-        await closeAllBallerinaFiles(tempDir);
-        return {
-            diagnostics: filteredDiags
-        };
-    }
-
     async clearInitialPrompt(): Promise<void> {
         extension.aiChatDefaultPrompt = undefined;
-    }
-
-    async checkSyntaxError(project: ProjectSource): Promise<boolean> {
-        const environment = await setupProjectEnvironment(project);
-        if (!environment) {
-            return false;
-        }
-
-        const { langClient, tempDir } = environment;
-        // check project diagnostics
-        const projectDiags: Diagnostics[] = await checkProjectDiagnostics(langClient, tempDir);
-        await closeAllBallerinaFiles(tempDir);
-        for (const diagnostic of projectDiags) {
-            for (const diag of diagnostic.diagnostics) {
-                console.log(diag.code);
-                if (typeof diag.code === "string" && diag.code.startsWith("BCE")) {
-                    const match = diag.code.match(/^BCE(\d+)$/);
-                    if (match) {
-                        const codeNumber = Number(match[1]);
-                        if (codeNumber < 2000) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     async getServiceNames(): Promise<TestGenerationMentions> {
@@ -329,48 +128,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 reject(error);
             }
         });
-    }
-
-    async abortTestGeneration(): Promise<void> {
-        AIPanelAbortController.getInstance().abort();
-    }
-
-    async postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
-        return await postProcess(req);
-    }
-
-    async applyDoOnFailBlocks(): Promise<void> {
-        const projectPath = StateMachine.context().projectPath;
-
-        if (!projectPath) {
-            return null;
-        }
-
-        const balFiles: string[] = [];
-
-        const findBalFiles = (dir: string) => {
-            const files = fs.readdirSync(dir);
-            for (const file of files) {
-                const filePath = path.join(dir, file);
-                const stat = fs.statSync(filePath);
-                if (stat.isDirectory()) {
-                    findBalFiles(filePath);
-                } else if (file.endsWith('.bal')) {
-                    balFiles.push(filePath);
-                }
-            }
-        };
-
-        findBalFiles(projectPath);
-
-        for (const balFile of balFiles) {
-            const req: BIModuleNodesRequest = {
-                filePath: balFile
-            };
-
-            const resp: BISourceCodeResponse = await StateMachine.langClient().addErrorHandler(req);
-            await updateSourceCode({ textEdits: resp.textEdits, description: 'Error Handler Creation' });
-        }
     }
 
     async getFromDocumentation(content: string): Promise<string> {
@@ -388,11 +145,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return await loginGithubCopilot();
         //Change state to notify?
         // return true;
-    }
-
-    async promptWSO2AILogout(): Promise<boolean> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
     }
 
     async isCopilotSignedIn(): Promise<boolean> {
@@ -418,55 +170,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async markAlertShown(): Promise<void> {
         await extension.context.secrets.store('LOGIN_ALERT_SHOWN', 'true');
-    }
-
-    async isRequirementsSpecificationFileExist(filePath: string): Promise<boolean> {
-        const dirPath = path.join(filePath, NATURAL_PROGRAMMING_DIR_NAME);
-
-        if (!fs.existsSync(dirPath) || !fs.lstatSync(dirPath).isDirectory()) {
-            return false; // Directory doesn't exist or isn't a folder
-        }
-
-        const files = fs.readdirSync(dirPath);
-        return Promise.resolve(files.some(file => file.toLowerCase().startsWith(REQUIREMENT_DOC_PREFIX)));
-    }
-
-    async addChatSummary(filepathAndSummary: AIChatSummary): Promise<boolean> {
-        const filepath = filepathAndSummary.filepath;
-        var summaryResponse = filepathAndSummary.summary;
-
-        const summaryJson: SummaryResponse = JSON.parse(summaryResponse);
-        let summary = summaryJson.summary;
-
-        const naturalProgrammingDirectory = path.join(filepath, NATURAL_PROGRAMMING_DIR_NAME);
-
-        if (!fs.existsSync(naturalProgrammingDirectory)) {
-            return false;
-        }
-
-        const developerMdPath = path.join(naturalProgrammingDirectory, DEVELOPMENT_DOCUMENT);
-        fs.writeFileSync(developerMdPath, summary, 'utf8');
-        return true;
-    }
-
-    async readDeveloperMdFile(directoryPath: string): Promise<string> {
-        const developerMdPath = path.join(directoryPath, NATURAL_PROGRAMMING_DIR_NAME, DEVELOPMENT_DOCUMENT);
-        if (!fs.existsSync(developerMdPath)) {
-            return "";
-        }
-
-        let developerMdContent = fs.readFileSync(developerMdPath, 'utf8');
-        return Promise.resolve(developerMdContent);
-    }
-
-    async updateDevelopmentDocument(developerDocument: DeveloperDocument) {
-        const projectPath = developerDocument.filepath;
-        const content = developerDocument.content;
-
-        const developerMdPath = path.join(projectPath, NATURAL_PROGRAMMING_DIR_NAME, DEVELOPMENT_DOCUMENT);
-        if (fs.existsSync(developerMdPath)) {
-            fs.writeFileSync(developerMdPath, content, 'utf8');
-        }
     }
 
     async updateRequirementSpecification(requirementsSpecification: RequirementSpecification) {
@@ -502,18 +205,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         if (!fs.existsSync(testDirName)) {
             fs.mkdirSync(testDirName, { recursive: true }); // Add recursive: true
         }
-    }
-
-    async handleChatSummaryError(message: string): Promise<void> {
-        return handleChatSummaryFailure(message);
-    }
-
-    async isNaturalProgrammingDirectoryExists(projectPath: string): Promise<boolean> {
-        const dirPath = path.join(projectPath, NATURAL_PROGRAMMING_DIR_NAME);
-        if (!fs.existsSync(dirPath) || !fs.lstatSync(dirPath).isDirectory()) {
-            return false; // Directory doesn't exist or isn't a folder
-        }
-        return true;
     }
 
     async getModuleDirectory(params: GetModuleDirParams): Promise<string> {
@@ -560,40 +251,21 @@ export class AiPanelRpcManager implements AIPanelAPI {
         });
     }
 
-    async getRelevantLibrariesAndFunctions(params: RelevantLibrariesAndFunctionsRequest): Promise<RelevantLibrariesAndFunctionsResponse> {
-        const selectedLibs: string[] = await getSelectedLibraries(params.query, GenerationType.CODE_GENERATION);
-        const relevantTrimmedFuncs: Library[] = await selectRequiredFunctions(params.query, selectedLibs, GenerationType.CODE_GENERATION);
-        return {
-            libraries: relevantTrimmedFuncs
-        };
-    }
-
     async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
         await generateOpenAPISpec(params);
     }
 
-    async generateCode(params: GenerateCodeRequest): Promise<void> {
-        // await generateCode(params);
-    }
+    async abortAIGeneration(params: AbortAIGenerationRequest): Promise<void> {
+        const workspaceId = params?.workspaceId || StateMachine.context().projectPath;
+        const threadId = params?.threadId || 'default';
 
-    async repairGeneratedCode(params: RepairParams): Promise<void> {
-        // await triggerGeneratedCodeRepair(params);
-    }
+        const aborted = chatStateStorage.abortActiveExecution(workspaceId, threadId);
 
-    async generateTestPlan(params: TestPlanGenerationRequest): Promise<void> {
-        // await generateTestPlan(params);
-    }
-
-    async generateFunctionTests(params: TestGeneratorIntermediaryState): Promise<void> {
-        // await generateFunctionTests(params);
-    }
-
-    async generateHealthcareCode(params: GenerateCodeRequest): Promise<void> {
-        // await generateHealthcareCode(params);
-    }
-
-    async abortAIGeneration(): Promise<void> {
-        AIPanelAbortController.getInstance().abort();
+        if (aborted) {
+            console.log(`[RPC] Aborted execution for workspace=${workspaceId}, thread=${threadId}`);
+        } else {
+            console.warn(`[RPC] No active execution found for workspace=${workspaceId}, thread=${threadId}`);
+        }
     }
 
     async getGeneratedDocumentation(params: DocGenerationRequest): Promise<void> {
@@ -638,36 +310,51 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateMappingCode(params: ProcessMappingParametersRequest): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'function',
-                params: params,
-                userMessage: `Generate mapping code for function: ${params.parameters.functionName}`
-            }
-        });
+        try {
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.DataMap,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
+                cleanupStrategy: 'immediate',  // DataMapper uses immediate cleanup,
+            });
+
+            await new FunctionMappingExecutor(config).run();
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateMappingCode:', error);
+            throw error;
+        }
     }
 
     async generateInlineMappingCode(params: MetadataWithAttachments): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'inline',
-                params: params,
-                userMessage: 'Generate inline mapping code'
-            }
-        });
+        try {
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.DataMap,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
+                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+            });
+
+            await new InlineMappingExecutor(config).run();
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateInlineMappingCode:', error);
+            throw error;
+        }
     }
 
     async generateContextTypes(params: ProcessContextTypeCreationRequest): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_DATAMAPPER_REQUEST,
-            payload: {
-                datamapperType: 'contextTypes',
-                params: params,
-                userMessage: 'Generate context types'
-            }
-        });
+        try {
+            // Create config using factory function
+            const config = createExecutorConfig(params, {
+                command: Command.TypeCreator,
+                chatStorageEnabled: true,  // Enable chat storage for checkpoint support
+                cleanupStrategy: 'immediate'  // DataMapper uses immediate cleanup
+            });
+
+            await new ContextTypesExecutor(config).run();
+        } catch (error) {
+            console.error('[RPC Manager] Error in generateContextTypes:', error);
+            throw error;
+        }
     }
 
     async openChatWindowWithCommand(): Promise<void> {
@@ -684,15 +371,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async generateAgent(params: GenerateAgentCodeRequest): Promise<boolean> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SUBMIT_AGENT_PROMPT,
-            payload: {
-                prompt: params.usecase,
-                isPlanMode: params.isPlanMode ?? true,
-                codeContext: params.codeContext
-            }
-        });
-        return true;
+        return await generateAgent(params);
     }
 
     async openAIPanel(params: AIPanelPrompt): Promise<void> {
@@ -718,38 +397,55 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async acceptChanges(): Promise<void> {
-        const reviewContext = getPendingReviewContext();
-        
-        if (!reviewContext) {
-            console.warn("[Review Actions] No pending review context found for accept");
-            return;
-        }
-
         try {
-            // Integrate code to workspace if there are modified files
-            if (reviewContext.modifiedFiles.length > 0) {
-                const { integrateCodeToWorkspace } = await import("../../features/ai/agent/utils");
-                const modifiedFilesSet = new Set(reviewContext.modifiedFiles);
-                await integrateCodeToWorkspace(reviewContext.tempProjectPath, modifiedFilesSet, reviewContext.ctx);
-                console.log(`[Review Actions] Integrated ${reviewContext.modifiedFiles.length} file(s) to workspace`);
+            // Get workspace ID and thread ID
+            const ctx = createExecutionContextFromStateMachine();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get ALL under_review generations
+            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const underReviewGenerations = thread.generations.filter(
+                g => g.reviewState.status === 'under_review'
+            );
+
+            if (underReviewGenerations.length === 0) {
+                console.warn("[Review Actions] No pending review generation found for accept");
+                return;
             }
 
-            // Cleanup
-            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
-            
-            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (reviewContext.shouldCleanup) {
-                cleanupTempProject(reviewContext.tempProjectPath);
+            // Get LATEST generation for integration
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            console.log(`[Review Actions] Accepting generation ${latestReview.id} with ${latestReview.reviewState.modifiedFiles.length} modified file(s)`);
+
+            // Integrate LATEST generation's code to workspace
+            if (latestReview.reviewState.modifiedFiles.length > 0) {
+                const modifiedFilesSet = new Set(latestReview.reviewState.modifiedFiles);
+                await integrateCodeToWorkspace(
+                    latestReview.reviewState.tempProjectPath!,
+                    modifiedFilesSet,
+                    ctx
+                );
+                console.log(`[Review Actions] Integrated ${latestReview.reviewState.modifiedFiles.length} file(s) to workspace`);
             }
-            
-            clearPendingReviewContext();
-            
-            // Hide review actions component
-            AIChatStateMachine.sendEvent({
-                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+
+            // Cleanup ALL under_review temp projects (prevents memory leak)
+            if (!process.env.AI_TEST_ENV) {
+                for (const generation of underReviewGenerations) {
+                    if (generation.reviewState.tempProjectPath) {
+                        await cleanupTempProject(generation.reviewState.tempProjectPath);
+                    }
+                }
+            }
+
+            // Mark ALL under_review generations as accepted
+            chatStateStorage.acceptAllReviews(workspaceId, threadId);
+            console.log("[Review Actions] Marked all under_review generations as accepted");
+
+            // Notify AI panel webview to hide review actions
+            RPCLayer._messenger.sendNotification(onHideReviewActions, {
+                type: 'webview',
+                webviewType: 'ballerina.ai-panel'
             });
         } catch (error) {
             console.error("[Review Actions] Error accepting changes:", error);
@@ -758,30 +454,42 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async declineChanges(): Promise<void> {
-        const reviewContext = getPendingReviewContext();
-        
-        if (!reviewContext) {
-            console.warn("[Review Actions] No pending review context found for decline");
-            return;
-        }
-
         try {
-            // Just cleanup without integrating changes
-            const { sendAgentDidCloseForProjects } = await import("../../features/ai/utils/project/ls-schema-notifications");
-            const { cleanupTempProject } = await import("../../features/ai/utils/project/temp-project");
-            
-            sendAgentDidCloseForProjects(reviewContext.tempProjectPath, reviewContext.projects);
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (reviewContext.shouldCleanup) {
-                cleanupTempProject(reviewContext.tempProjectPath);
+            // Get workspace ID and thread ID
+            const ctx = createExecutionContextFromStateMachine();
+            const workspaceId = ctx.projectPath;
+            const threadId = 'default';
+
+            // Get ALL under_review generations
+            const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+            const underReviewGenerations = thread.generations.filter(
+                g => g.reviewState.status === 'under_review'
+            );
+
+            if (underReviewGenerations.length === 0) {
+                console.warn("[Review Actions] No pending review generation found for decline");
+                return;
             }
-            
-            clearPendingReviewContext();
-            
-            // Hide review actions component
-            AIChatStateMachine.sendEvent({
-                type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
+
+            console.log(`[Review Actions] Declining ${underReviewGenerations.length} generation(s)`);
+
+            // Cleanup ALL under_review temp projects (prevents memory leak)
+            if (!process.env.AI_TEST_ENV) {
+                for (const generation of underReviewGenerations) {
+                    if (generation.reviewState.tempProjectPath) {
+                        await cleanupTempProject(generation.reviewState.tempProjectPath);
+                    }
+                }
+            }
+
+            // Mark ALL under_review generations as error/declined
+            chatStateStorage.declineAllReviews(workspaceId, threadId);
+            console.log("[Review Actions] Marked all under_review generations as declined");
+
+            // Notify AI panel webview to hide review actions
+            RPCLayer._messenger.sendNotification(onHideReviewActions, {
+                type: 'webview',
+                webviewType: 'ballerina.ai-panel'
             });
         } catch (error) {
             console.error("[Review Actions] Error declining changes:", error);
@@ -789,121 +497,153 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
-    async showReviewActions(): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.SHOW_REVIEW_ACTIONS,
-        });
+    async approvePlan(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolvePlanApproval(params.requestId, true, params.comment);
     }
 
-    async hideReviewActions(): Promise<void> {
-        AIChatStateMachine.sendEvent({
-            type: AIChatMachineEventType.HIDE_REVIEW_ACTIONS,
-        });
-    }
-}
-
-interface SummaryResponse {
-    summary: string;
-}
-
-async function setupProjectEnvironment(project: ProjectSource): Promise<{ langClient: ExtendedLangClient, tempDir: string } | null> {
-    //TODO: Move this to LS
-    let projectPath = StateMachine.context().projectPath;
-    const workspacePath = StateMachine.context().workspacePath;
-    if (workspacePath) {
-        projectPath = workspacePath;
-    }
-    if (!projectPath) {
-        return null;
+    async declinePlan(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolvePlanApproval(params.requestId, false, params.comment);
     }
 
-    const randomNum = Math.floor(Math.random() * 90000) + 10000;
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `bal-proj-${randomNum}-`));
-    fs.cpSync(projectPath, tempDir, { recursive: true });
-    //Copy project
-    const langClient = StateMachine.langClient();
-    //Apply edits
-    for (const sourceFile of project.sourceFiles) {
-        // Update lastUpdatedBalFile if it's a .bal file
-        if (sourceFile.filePath.endsWith('.bal')) {
-            const tempFilePath = path.join(tempDir, sourceFile.filePath);
-            writeBallerinaFileDidOpenTemp(tempFilePath, sourceFile.content);
+    async approveTask(params: { requestId: string; approvedTaskDescription?: string }): Promise<void> {
+        approvalManager.resolveTaskApproval(params.requestId, true, undefined, params.approvedTaskDescription);
+    }
+
+    async declineTask(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolveTaskApproval(params.requestId, false, params.comment);
+    }
+
+    async provideConnectorSpec(params: { requestId: string; spec: any }): Promise<void> {
+        approvalManager.resolveConnectorSpec(params.requestId, true, params.spec);
+    }
+
+    async cancelConnectorSpec(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
+    }
+
+    async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
+        // Get workspace and thread identifiers
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = 'default';
+
+        // Find the checkpoint
+        const found = chatStateStorage.findCheckpoint(workspaceId, threadId, params.checkpointId);
+
+        if (!found) {
+            throw new Error(`Checkpoint ${params.checkpointId} not found`);
+        }
+
+        const { checkpoint } = found;
+
+        // 1. Restore workspace files from checkpoint snapshot
+        await restoreWorkspaceSnapshot(checkpoint);
+
+        // 2. Truncate thread history to this checkpoint
+        const restored = chatStateStorage.restoreThreadToCheckpoint(
+            workspaceId,
+            threadId,
+            params.checkpointId
+        );
+
+        if (!restored) {
+            throw new Error('Failed to restore thread to checkpoint');
         }
     }
 
-    return { langClient, tempDir };
-}
+    async clearChat(): Promise<void> {
+        // Get workspace identifier
+        const workspaceId = StateMachine.context().projectPath;
 
+        // Clear the workspace (all threads)
+        await chatStateStorage.clearWorkspace(workspaceId);
 
-function getErrorDiagnostics(diagnostics: Diagnostics[]): DiagnosticEntry[] {
-    const errorDiagnostics: DiagnosticEntry[] = [];
+        console.log(`[RPC] Cleared chat for workspace: ${workspaceId}`);
+    }
 
-    for (const diagParam of diagnostics) {
-        for (const diag of diagParam.diagnostics) {
-            if (diag.severity === 1) {
-                const fileName = path.basename(diagParam.uri);
-                const msgPrefix = `[${fileName}:${diag.range.start.line},${diag.range.start.character}:${diag.range.end.line},${diag.range.end.character}] `;
-                errorDiagnostics.push({
-                    code: diag.code.toString(),
-                    message: msgPrefix + diag.message
+    async updateChatMessage(params: UpdateChatMessageRequest): Promise<void> {
+        const workspaceId = StateMachine.context().projectPath;
+        const threadId = 'default';
+
+        // The messageId is actually a generation ID
+        // This is called when streaming completes to save the final UI-formatted response
+        const generation = chatStateStorage.getGeneration(workspaceId, threadId, params.messageId);
+
+        if (!generation) {
+            console.warn(`[RPC] Generation ${params.messageId} not found in thread ${threadId}`);
+            return;
+        }
+
+        // Update the UI response with the final formatted content
+        chatStateStorage.updateGeneration(workspaceId, threadId, params.messageId, {
+            uiResponse: params.content
+        });
+
+        console.log(`[RPC] Updated generation ${params.messageId} UI response`);
+    }
+
+    async getChatMessages(): Promise<UIChatMessage[]> {
+        const ctx = StateMachine.context();
+        const workspaceId = ctx.projectPath;
+        const threadId = 'default';
+
+        // Get all generations from chat storage
+        const generations = chatStateStorage.getGenerations(workspaceId, threadId);
+
+        // Convert generations to UI messages format
+        const uiMessages: UIChatMessage[] = [];
+        for (const generation of generations) {
+            // Add user message
+            uiMessages.push({
+                role: 'user',
+                content: generation.userPrompt,
+                checkpointId: generation.checkpoint?.id,
+                messageId: generation.id
+            });
+
+            // Add assistant message if available
+            if (generation.uiResponse) {
+                uiMessages.push({
+                    role: 'assistant',
+                    content: generation.uiResponse,
+                    messageId: generation.id
                 });
             }
         }
+
+        return uiMessages;
     }
 
-    return errorDiagnostics;
-}
+    async getCheckpoints(): Promise<CheckpointInfo[]> {
+        const ctx = StateMachine.context();
+        const workspaceId = ctx.projectPath;
+        const threadId = 'default';
 
-export async function postProcess(req: PostProcessRequest): Promise<PostProcessResponse> {
-    // Fix import statement format
-    const processedSourceFiles = req.sourceFiles.map(sf => ({
-        ...sf,
-        content: sf.content.replace(/import ballerinax\/client\.config/g, "import ballerinax/'client.config")
-    }));
+        // Get checkpoints from ChatStateStorage
+        const checkpoints = chatStateStorage.getCheckpoints(workspaceId, threadId);
 
-    const project: ProjectSource = {
-        sourceFiles: processedSourceFiles,
-        projectName: "",
-        packagePath: "",
-        isActive: true
-    };
-
-    const environment = await setupProjectEnvironment(project);
-    if (!environment) {
-        return { sourceFiles: processedSourceFiles, diagnostics: { diagnostics: [] } };
+        // Convert to CheckpointInfo format
+        return checkpoints.map(cp => ({
+            id: cp.id,
+            messageId: cp.messageId,
+            timestamp: cp.timestamp,
+            snapshotSize: cp.snapshotSize
+        }));
     }
 
-    let { langClient, tempDir } = environment;
-    let remainingDiags: Diagnostics[] = [];
-    if (StateMachine.context().workspacePath) {
-        // this is a workspace project
-        // assign active project path to tempDir
-        const projectTempDir = path.join(tempDir, path.basename(StateMachine.context().projectPath));
-        remainingDiags = await attemptRepairProject(langClient, projectTempDir);
-    } else {
-        remainingDiags = await attemptRepairProject(langClient, tempDir);
-    }
+    async getActiveTempDir(): Promise<string> {
+        const context = StateMachine.context();
+        const workspaceId = context.projectPath;
+        const threadId = 'default';
 
-    const filteredDiags: DiagnosticEntry[] = getErrorDiagnostics(remainingDiags);
-
-    // Read repaired files from temp directory
-    const repairedSourceFiles = [];
-    for (const sourceFile of project.sourceFiles) {
-        const newContentPath = path.join(tempDir, sourceFile.filePath);
-        if (!fs.existsSync(newContentPath) && !(sourceFile.filePath.endsWith('.bal'))) {
-            repairedSourceFiles.push({ filePath: sourceFile.filePath, content: sourceFile.content });
-            continue;
+        // Always get tempProjectPath from active generation in chatStateStorage
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        if (!pendingReview || !pendingReview.reviewState.tempProjectPath) {
+            console.log(">>> no pending review or temp project path found for semantic diff");
+            return undefined;
         }
-        repairedSourceFiles.push({ filePath: sourceFile.filePath, content: fs.readFileSync(newContentPath, 'utf-8') });
+
+        const projectPath = pendingReview.reviewState.tempProjectPath;
+        console.log(">>> active temp project path", projectPath);
+        return projectPath;
     }
-
-    await closeAllBallerinaFiles(tempDir);
-    return {
-        sourceFiles: repairedSourceFiles,
-        diagnostics: {
-            diagnostics: filteredDiags
-        }
-    };
 }
-
-
