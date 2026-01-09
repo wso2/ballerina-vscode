@@ -381,7 +381,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
         });
         if (!typesBalImports.isEmpty()) {
             String importsStmts = String.join(NEW_LINE, typesBalImports);
-            typesBalTextEdits.add(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), importsStmts));
+            typesBalTextEdits.addFirst(new TextEdit(Utils.toRange(LinePosition.from(0, 0)), importsStmts));
         }
     }
 
