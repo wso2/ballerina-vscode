@@ -189,15 +189,20 @@ function convertConfig(listener: ListenerModel): FormField[] {
     const formFields: FormField[] = [];
     for (const key in listener.properties) {
         const expression = listener.properties[key];
+        const fieldType = getPrimaryInputType(expression.types)?.fieldType;
+        // For MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET, read from values array
+        const value = (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET")
+            ? (expression.values && expression.values.length > 0 ? expression.values : (expression.value ? [expression.value] : []))
+            : expression.value;
         const formField: FormField = {
             key: key,
             label: expression?.metadata.label || key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
-            type: getPrimaryInputType(expression.types)?.fieldType,
+            type: fieldType,
             documentation: expression?.metadata.description || "",
             editable: expression.editable,
             enabled: expression.enabled ?? true,
             optional: expression.optional,
-            value: expression.value,
+            value: value,
             types: expression.types,
             advanced: expression.advanced,
             diagnostics: [],
@@ -213,7 +218,7 @@ function convertConfig(listener: ListenerModel): FormField[] {
 function updateConfig(formFields: FormField[], listener: ListenerModel): ListenerModel {
     formFields.forEach(field => {
         const value = field.value;
-        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET" || field.type === "TEXT_SET") {
             listener.properties[field.key].values = value as string[];
         } else {
             listener.properties[field.key].value = value as string;

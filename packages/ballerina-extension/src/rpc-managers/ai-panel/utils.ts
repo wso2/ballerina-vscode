@@ -38,38 +38,7 @@ const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod
 // const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
 // const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
-export class AIPanelAbortController {
-    private static instance: AIPanelAbortController;
-    private abortController: AbortController;
-
-    private constructor() {
-        this.abortController = new AbortController();
-    }
-
-    public static getInstance(): AIPanelAbortController {
-        if (!AIPanelAbortController.instance) {
-            AIPanelAbortController.instance = new AIPanelAbortController();
-        }
-        return AIPanelAbortController.instance;
-    }
-
-    public get signal(): AbortSignal {
-        return this.abortController.signal;
-    }
-
-    public abort(): void {
-        this.abortController.abort();
-        // Create a new AbortController for the next operation
-        this.abortController = new AbortController();
-    }
-}
-
 // Common functions
-
-// Aborts the current AI panel operation
-export function handleStop() {
-    AIPanelAbortController.getInstance().abort();
-}
 
 // Checks if an error object has both 'code' and 'message' properties
 export function isErrorCode(error: any): boolean {
