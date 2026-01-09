@@ -2231,26 +2231,17 @@ public class DataMapManager {
             UnionTypeSymbol unionType = (UnionTypeSymbol) targetType;
             List<TypeSymbol> members = unionType.memberTypeDescriptors();
 
-            if (members.size() != 2) {
+            List<TypeSymbol> nonErrorOrNilMembers = members.stream()
+                    .map(CommonUtils::getRawType)
+                    .filter(member -> {
+                        TypeDescKind kind = member.typeKind();
+                        return kind != TypeDescKind.ERROR && kind != TypeDescKind.NIL;
+                    })
+                    .toList();
+            if (nonErrorOrNilMembers.size() == 1) {
+                targetType = nonErrorOrNilMembers.getFirst();
+            } else {
                 return null;
-            }
-
-            boolean hasErrorOrNil = members.stream()
-                    .anyMatch(member -> {
-                        TypeSymbol rawMember = CommonUtils.getRawType(member);
-                        return rawMember.typeKind() == TypeDescKind.ERROR ||
-                                rawMember.typeKind() == TypeDescKind.NIL;
-                    });
-
-            if (hasErrorOrNil) {
-                for (TypeSymbol member : members) {
-                    TypeSymbol rawMember = CommonUtils.getRawType(member);
-                    TypeDescKind memberKind = rawMember.typeKind();
-                    if (memberKind != TypeDescKind.ERROR && memberKind != TypeDescKind.NIL) {
-                        targetType = rawMember;
-                        break;
-                    }
-                }
             }
         }
         for (int i = 1; i < splits.length; i++) {
