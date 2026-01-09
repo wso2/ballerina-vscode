@@ -546,7 +546,9 @@ public class BallerinaDocumentService implements ExtendedLanguageServerService {
                 return reply;
             }
             try {
-                Optional<SemanticModel> semanticModel = this.workspaceManagerProxy.get().semanticModel(filePath.get());
+                Optional<SemanticModel> semanticModel = this.workspaceManagerProxy
+                        .get(request.getDocumentIdentifier().getUri())
+                        .semanticModel(filePath.get());
                 if (semanticModel.isEmpty()) {
                     reply.setSuccess(false);
                     reply.setErrorMsg(RESOLVE_MODULE_FAILURE_MESSAGE);
