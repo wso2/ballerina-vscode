@@ -412,7 +412,7 @@ public class AgentCallBuilder extends CallBuilder {
         String escapedInstructions = AiUtils.replaceBackticksForStringTemplate(instructions);
 
         String systemPromptValue =
-                "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";
+                "{role: " + escapedRole + ", instructions: " + escapedInstructions + "}";
 
         Property updatedProperty = AiUtils.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);

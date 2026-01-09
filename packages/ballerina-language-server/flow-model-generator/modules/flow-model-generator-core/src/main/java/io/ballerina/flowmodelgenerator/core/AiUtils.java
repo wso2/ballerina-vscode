@@ -394,7 +394,7 @@ public class AiUtils {
 
     public record Module(String org, String name, String version) {
     }
-    
+
     public record AgentPropertyValue(String value, Property.ValueType selectedType) {
     }
 
@@ -686,10 +686,18 @@ public class AiUtils {
      * @return the string with backticks replaced by ${"`"} for safe use in string templates
      */
     public static String replaceBackticksForStringTemplate(String input) {
-        if (input == null) {
-            return "";
+        if (input == null || input.isEmpty()) {
+            return "string ``";
         }
-        return input.replace("`", "${\"`\"}");
+        // Check if input is a string template
+        if (input.matches("string\\s+`.*`")) {
+            int firstBacktick = input.indexOf('`');
+            String prefix = input.substring(0, firstBacktick + 1);
+            String content = input.substring(firstBacktick + 1, input.length() - 1);
+            String replacedContent = content.replace("`", "${\"`\"}");
+            return prefix + replacedContent + "`";
+        }
+        return input;
     }
 
     /**
