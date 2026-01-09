@@ -229,7 +229,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onCancel={onCancel}
                 onRemove={onRemove}
                 growRange={growRange}
-                placeholder={placeholder}
+                placeholder={field.placeholder}
                 onOpenExpandedMode={onOpenExpandedMode}
                 isInExpandedMode={isInExpandedMode}
             />
@@ -252,6 +252,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={getEditorConfiguration(inputMode)}
+                placeholder={field.placeholder}
             />
 
         );
@@ -273,6 +274,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={new RawTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -294,6 +296,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -314,6 +317,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
 
         );
@@ -334,6 +338,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
         );
     }
@@ -354,6 +359,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
             configuration={getEditorConfiguration(inputMode)}
+            placeholder={field.placeholder}
         />
     );
 };
