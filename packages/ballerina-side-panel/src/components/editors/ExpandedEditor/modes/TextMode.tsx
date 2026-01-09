@@ -17,7 +17,7 @@
  */
 
 import React from "react";
-import { EditorModeExpressionProps, EditorModeProps } from "./types";
+import { EditorModeExpressionProps } from "./types";
 import { ExpressionContainer } from "./styles";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { getEditorConfiguration } from "../../ExpressionField";
