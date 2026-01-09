@@ -2227,6 +2227,32 @@ public class DataMapManager {
         }
 
         TypeSymbol targetType = typeSymbol;
+        if (targetType.typeKind() == TypeDescKind.UNION) {
+            UnionTypeSymbol unionType = (UnionTypeSymbol) targetType;
+            List<TypeSymbol> members = unionType.memberTypeDescriptors();
+
+            if (members.size() != 2) {
+                return null;
+            }
+
+            boolean hasErrorOrNil = members.stream()
+                    .anyMatch(member -> {
+                        TypeSymbol rawMember = CommonUtils.getRawType(member);
+                        return rawMember.typeKind() == TypeDescKind.ERROR ||
+                                rawMember.typeKind() == TypeDescKind.NIL;
+                    });
+
+            if (hasErrorOrNil) {
+                for (TypeSymbol member : members) {
+                    TypeSymbol rawMember = CommonUtils.getRawType(member);
+                    TypeDescKind memberKind = rawMember.typeKind();
+                    if (memberKind != TypeDescKind.ERROR && memberKind != TypeDescKind.NIL) {
+                        targetType = rawMember;
+                        break;
+                    }
+                }
+            }
+        }
         for (int i = 1; i < splits.length; i++) {
             targetType = CommonUtils.getRawType(targetType);
             String split = splits[i];
