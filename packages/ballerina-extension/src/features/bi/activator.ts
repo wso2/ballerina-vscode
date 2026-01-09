@@ -78,7 +78,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.AddCustomConnector);
+        await handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, async (item?: TreeItem) => {

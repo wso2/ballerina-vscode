@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties as OriginalNodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties as OriginalNodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType } from "@wso2/ballerina-core";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
@@ -118,12 +118,13 @@ export function FunctionFormStatic(props: FunctionFormProps) {
 
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
+            const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }
-            if (field.key === "parameters") {
-                if ((field.types as any).value.parameterDescription) {
-                    (field.types as any).value.parameterDescription.type = "TEXTAREA";
+            if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
+                if ((primaryInputType.template as any).value.parameterDescription) {
+                    (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                 }
             }
         });
@@ -265,13 +266,14 @@ export function FunctionFormStatic(props: FunctionFormProps) {
             const properties = functionNodeCopy.properties as NodeProperties;
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
-                    if (property.valueType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = property.valueTypeConstraint;
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                        const template = primaryType?.template;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
                             // Create a deep copy for each iteration
-                            const valueConstraint = JSON.parse(JSON.stringify(baseConstraint));
+                            const valueConstraint = JSON.parse(JSON.stringify(template));
                             // Fill the values of the parameter constraint
                             for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
                                 param.value = (repeatValue as any).formValues[paramKey] || "";

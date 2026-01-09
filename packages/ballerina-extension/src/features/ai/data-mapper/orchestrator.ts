@@ -25,7 +25,6 @@ import {
     DMModelDiagnosticsResult,
 } from "./types";
 import { GeneratedMappingSchema, RepairedMappingsSchema } from "./schema";
-import { AIPanelAbortController, repairSourceFilesWithAI } from "../../../rpc-managers/ai-panel/utils";
 import { DataMapperModelResponse, DMModel, Mapping, repairCodeRequest, SourceFile, ImportInfo, ProcessMappingParametersRequest, Command, MetadataWithAttachments, InlineMappingsSourceResult, ProcessContextTypeCreationRequest, ProjectImports, ImportStatements, TemplateId, GetModuleDirParams, TextEdit, DataMapperSourceResponse, DataMapperSourceRequest, AllDataMapperSourceRequest, DataMapperModelRequest, DeleteMappingRequest, CodeData } from "@wso2/ballerina-core";
 import { getDataMappingPrompt } from "./prompts/mapping-prompt";
 import { getBallerinaCodeRepairPrompt } from "./prompts/repair-prompt";
@@ -54,6 +53,7 @@ import { getTempProject, cleanupTempProject } from "../utils/project/temp-projec
 import { integrateCodeToWorkspace } from "../agent/utils";
 import { createExecutionContextFromStateMachine } from "../agent";
 import { ExpressionFunctionBody } from "@wso2/syntax-tree";
+import { repairSourceFilesWithAI } from "../../../../src/rpc-managers/ai-panel/utils";
 
 // =============================================================================
 // ENHANCED MAIN ORCHESTRATOR FUNCTION
@@ -142,7 +142,7 @@ async function generateAIMappings(
             temperature: 0,
             messages: chatMessages,
             schema: GeneratedMappingSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         const aiGeneratedMappings = object.generatedMappings as Mapping[];
@@ -183,7 +183,7 @@ async function repairBallerinaCode(
             temperature: 0,
             messages: chatMessages,
             schema: RepairedMappingsSchema,
-            abortSignal: AIPanelAbortController.getInstance().signal,
+            abortSignal: new AbortController().signal,
         });
 
         return object.repairedMappings as RepairedMapping[];
@@ -443,7 +443,8 @@ export async function generateAutoMappings(dataMapperModelResponse?: DataMapperM
 export async function generateMappingCodeCore(
     mappingRequest: ProcessMappingParametersRequest,
     eventHandler: CopilotEventHandler,
-    messageId?: string
+    messageId?: string,
+    tempProjectPath?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!mappingRequest.parameters) {
         throw new Error("Parameters are required in the mapping request");
@@ -453,8 +454,12 @@ export async function generateMappingCodeCore(
         throw new Error("Function name is required in the mapping parameters");
     }
 
+    // Validate temp project path from base class
+    if (!tempProjectPath) {
+        throw new Error('Temp project path is required');
+    }
+
     const ctx = createExecutionContextFromStateMachine();
-    const { path: tempProjectPath } = await getTempProject(ctx);
     let projectName = path.basename(ctx.projectPath);
     try {
         // Initialize generation process
@@ -655,20 +660,25 @@ export async function generateMappingCodeCore(
             eventHandler({ type: "error", content: getErrorMessage(error) });
         }
         throw error;
-    } finally {
-        // Always cleanup temp project
-        cleanupTempProject(tempProjectPath);
     }
 }
 
 // Main public function that uses the default event handler for mapping generation
 export async function generateMappingCode(mappingRequest: ProcessMappingParametersRequest, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.DataMap);
+
+    // Create temp project for backward compatibility
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
+
     try {
-        await generateMappingCodeCore(mappingRequest, eventHandler, messageId);
+        await generateMappingCodeCore(mappingRequest, eventHandler, messageId, tempProjectPath);
     } catch (error) {
         console.error("Error during mapping code generation:", error);
         throw error;
+    } finally {
+        // Cleanup for backward compatibility
+        await cleanupTempProject(tempProjectPath);
     }
 }
 
@@ -841,7 +851,8 @@ export function combineTextEdits(sortedTextEdits: TextEdit[]): TextEdit {
 export async function generateInlineMappingCodeCore(
     inlineMappingRequest: MetadataWithAttachments,
     eventHandler: CopilotEventHandler,
-    messageId?: string
+    messageId?: string,
+    tempProjectPath?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (!inlineMappingRequest.metadata) {
         throw new Error("Metadata is required in the inline mapping request");
@@ -851,9 +862,12 @@ export async function generateInlineMappingCodeCore(
         throw new Error("Code data is required in the metadata");
     }
 
-    // Create temp project using shared utilities
+    // Validate temp project path from base class
+    if (!tempProjectPath) {
+        throw new Error('Temp project path is required');
+    }
+
     const ctx = createExecutionContextFromStateMachine();
-    const { path: tempProjectPath } = await getTempProject(ctx);
     let projectName = path.basename(ctx.projectPath);
     try {
         // Initialize generation process
@@ -988,20 +1002,25 @@ export async function generateInlineMappingCodeCore(
             eventHandler({ type: "error", content: getErrorMessage(error) });
         }
         throw error;
-    } finally {
-        // Always cleanup temp project
-        cleanupTempProject(tempProjectPath);
     }
 }
 
 // Main public function that uses the default event handler for inline mapping generation
 export async function generateInlineMappingCode(inlineMappingRequest: MetadataWithAttachments, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.DataMap);
+
+    // Create temp project for backward compatibility
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
+
     try {
-        await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler, messageId);
+        await generateInlineMappingCodeCore(inlineMappingRequest, eventHandler, messageId, tempProjectPath);
     } catch (error) {
         console.error("Error during inline mapping code generation:", error);
         throw error;
+    } finally {
+        // Cleanup for backward compatibility
+        await cleanupTempProject(tempProjectPath);
     }
 }
 
@@ -1013,15 +1032,19 @@ export async function generateInlineMappingCode(inlineMappingRequest: MetadataWi
 export async function generateContextTypesCore(
     typeCreationRequest: ProcessContextTypeCreationRequest,
     eventHandler: CopilotEventHandler,
-    messageId?: string
+    messageId?: string,
+    tempProjectPath?: string
 ): Promise<{ modifiedFiles: string[], sourceFiles: SourceFile[] }> {
     if (typeCreationRequest.attachments.length === 0) {
         throw new Error("Attachments are required for type creation");
     }
 
-    // Create temp project using shared utilities
+    // Validate temp project path from base class
+    if (!tempProjectPath) {
+        throw new Error('Temp project path is required');
+    }
+
     const ctx = createExecutionContextFromStateMachine();
-    const { path: tempProjectPath } = await getTempProject(ctx);
     let projectName = path.basename(ctx.projectPath);
 
     try {
@@ -1091,20 +1114,25 @@ export async function generateContextTypesCore(
             eventHandler({ type: "error", content: getErrorMessage(error) });
         }
         throw error;
-    } finally {
-        // Always cleanup temp project
-        cleanupTempProject(tempProjectPath);
     }
 }
 
 // Main public function that uses the default event handler for context type creation
 export async function generateContextTypes(typeCreationRequest: ProcessContextTypeCreationRequest, messageId?: string): Promise<void> {
     const eventHandler = createWebviewEventHandler(Command.TypeCreator);
+
+    // Create temp project for backward compatibility
+    const ctx = createExecutionContextFromStateMachine();
+    const { path: tempProjectPath } = await getTempProject(ctx);
+
     try {
-        await generateContextTypesCore(typeCreationRequest, eventHandler, messageId);
+        await generateContextTypesCore(typeCreationRequest, eventHandler, messageId, tempProjectPath);
     } catch (error) {
         console.error("Error during context type creation:", error);
         throw error;
+    } finally {
+        // Cleanup for backward compatibility
+        await cleanupTempProject(tempProjectPath);
     }
 }
 

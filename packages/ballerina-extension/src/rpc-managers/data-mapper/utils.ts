@@ -163,7 +163,7 @@ export async function updateSource(
         const updatedArtifacts = await updateSourceCodeIteratively({ textEdits });
 
         // Find the artifact that contains our code changes
-        const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, codedata.lineRange);
+        const relevantArtifact = findRelevantArtifact(updatedArtifacts, filePath, varName, codedata.lineRange);
         if (!relevantArtifact) {
             throw new Error(`No artifact found for file: ${filePath} within the specified line range`);
         }
@@ -230,17 +230,22 @@ export async function updateSubMappingSource(
 function findRelevantArtifact(
     artifacts: ProjectStructureArtifactResponse[],
     filePath: string,
-    lineRange: ELineRange
+    identifier: string,
+    lineRange: ELineRange,
 ): ProjectStructureArtifactResponse | null {
     if (!artifacts || artifacts.length === 0) {
         return null;
     }
 
     for (const currentArtifact of artifacts) {
-        if (isWithinArtifact(currentArtifact.path, filePath, currentArtifact.position, lineRange)) {
+        if (currentArtifact.type === "DATA_MAPPER") {
+            if (currentArtifact.name === identifier) {
+                return currentArtifact;
+            }
+        } else if (isWithinArtifact(currentArtifact.path, filePath, currentArtifact.position, lineRange)) {
             // If this artifact has resources, recursively search for a more specific match
             if (currentArtifact.resources && currentArtifact.resources.length > 0) {
-                const nestedMatch = findRelevantArtifact(currentArtifact.resources, filePath, lineRange);
+                const nestedMatch = findRelevantArtifact(currentArtifact.resources, filePath, identifier, lineRange);
                 // Return the nested match if found, otherwise return the current artifact
                 return nestedMatch || currentArtifact;
             }
