@@ -324,7 +324,7 @@ public class HttpFunctionBuilder extends AbstractFunctionBuilder {
 
         if (!importStmts.isEmpty()) {
             String importsStmts = String.join(NEW_LINE, importStmts);
-            textEdits.add(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
+            textEdits.addFirst(new TextEdit(Utils.toRange(rootNode.lineRange().startLine()), importsStmts));
         }
     }
 

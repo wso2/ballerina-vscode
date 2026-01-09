@@ -103,6 +103,8 @@ public final class HttpUtil {
     private static final String APPLICATION_XML = "application/xml";
     private static final String TEXT_PLAIN = "text/plain";
 
+    public static final String HTTP_RESPONSE_TYPE = "http:Response";
+
     static {
         Map<String, String> httpCodeMap = new HashMap<>();
         httpCodeMap.put("Continue", "100");
@@ -391,7 +393,7 @@ public final class HttpUtil {
                         statusCodeResponses.add(member);
                     } else if (member.subtypeOf(errorTypeSymbol)) {
                         errorResponses.add(member);
-                    } else if (isHttpResponse(getTypeName(member, currentModuleName))) {
+                    } else if (isHttpResponseType(getTypeName(member, currentModuleName))) {
                         hasHttpResponse.set(true);
                     } else {
                         anydataResponses.add(member);
@@ -400,7 +402,7 @@ public final class HttpUtil {
                 () -> {
                     if (isSubTypeOfHttpStatusCodeResponse(returnTypeSymbol, semanticModel)) {
                         statusCodeResponses.add(returnTypeSymbol);
-                    } else if (isHttpResponse(getTypeName(returnTypeSymbol, currentModuleName))) {
+                    } else if (isHttpResponseType(getTypeName(returnTypeSymbol, currentModuleName))) {
                         hasHttpResponse.set(true);
                     } else if (returnTypeSymbol.subtypeOf(errorTypeSymbol)) {
                         errorResponses.add(returnTypeSymbol);
@@ -411,7 +413,7 @@ public final class HttpUtil {
         List<HttpResponse> responses = new ArrayList<>();
 
         if (hasHttpResponse.get()) {
-            HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), "http:Response");
+            HttpResponse dynamicStatusRes = new HttpResponse(String.valueOf(defaultStatusCode), HTTP_RESPONSE_TYPE);
             dynamicStatusRes.setEditable(true);
             dynamicStatusRes.setEnabled(hasHttpResponse.get());
             dynamicStatusRes.setEnabled(true);
@@ -459,8 +461,8 @@ public final class HttpUtil {
         return responses;
     }
 
-    private static boolean isHttpResponse(String type) {
-        return type.trim().equals("http:Response");
+    private static boolean isHttpResponseType(String type) {
+        return type.trim().equals(HTTP_RESPONSE_TYPE);
     }
 
     public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
@@ -756,6 +758,9 @@ public final class HttpUtil {
                 importsForMainBal.putAll(response.getBody().getImports());
             }
             body = response.getBody().getValue();
+            if (isHttpResponseType(body)) {
+                return body;
+            }
             if (Integer.parseInt(response.getStatusCode().getValue()) != defaultStatusCode) {
                 createNewType = true;
             }
@@ -776,6 +781,12 @@ public final class HttpUtil {
             if (statusCode.equals("500") && body.equals("error")) {
                 return "error";
             }
+            if (response.getType().isEnabledWithValue() && !response.getType().getValue().startsWith("http:")) {
+                if (Objects.nonNull(response.getType().getImports())) {
+                    importsForMainBal.putAll(response.getType().getImports());
+                }
+                return response.getType().getValue();
+            }
             String statusCodeRes = HTTP_CODES_DES.get(statusCode);
             return getRecordTypeDescriptor(statusCodeRes, response, importsForMainBal);
         }
@@ -790,6 +801,7 @@ public final class HttpUtil {
             }
             return response.getType().getValue();
         }
+
         Value statusCode = response.getStatusCode();
         if (Objects.nonNull(statusCode) && statusCode.isEnabledWithValue()) {
             String statusCodeRes = HTTP_CODES_DES.get(statusCode.getValue().trim());

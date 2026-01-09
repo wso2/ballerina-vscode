@@ -44,6 +44,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQ
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_INPUT_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.GRAPHQL_SCALAR_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.USER_DEFINED_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.HttpUtil.HTTP_RESPONSE_TYPE;
 
 /**
  * Generate type completions for different service model related forms.
@@ -244,7 +245,7 @@ public class TypeCompletionGenerator {
                             });
                 });
 
-        completionItems.add(build("Dynamic", "Response", "http:Response", "Dynamic"));
+        completionItems.add(build("Dynamic", "Response", HTTP_RESPONSE_TYPE, "Dynamic"));
 
         // Add the http:Response type
         completionItems.add(build("Error Type", "error", "error", "500"));
