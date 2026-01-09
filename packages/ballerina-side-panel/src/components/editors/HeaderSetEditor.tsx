@@ -16,16 +16,15 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
 import { FormField, FormValues } from "../Form/types";
 import { useFormContext } from "../../context";
-import { ParamIcon } from "@wso2/ballerina-core";
 import Form from "../Form";
-import { ActionIconWrapper, DeleteIconWrapper, EditIconWrapper, HeaderLabel, IconTextWrapper, IconWrapper, OptionLabel } from "../ParamManager/styles";
+import { DeleteIconWrapper, EditIconWrapper, HeaderLabel } from "../ParamManager/styles";
 
 namespace S {
     export const Container = styled.div({
@@ -94,12 +93,62 @@ namespace S {
     export const ContentSection = styled.div({
         display: 'flex',
         flexDirection: 'row',
-        width: '300px',
+        width: '100%',
         justifyContent: 'space-between',
-        marginRight: '20px',
-        marginLeft: '5px'
     });
 }
+
+const HeaderSetLabelContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--vscode-font-family);
+`;
+
+const HeaderSetName = styled.span`
+    color: var(--vscode-editor-foreground, #222);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--vscode-font-family);
+`;
+
+const HeaderSetType = styled.span`
+    font-size: 13px;
+    color: var(--vscode-descriptionForeground, #888);
+    background: var(--vscode-editorWidget-background, #f5f5f5);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 0.1px;
+`;
+
+const HeaderSetOptional = styled.span`
+    font-size: 13px;
+    color: var(--vscode-editorHint-foreground, #b0b0b0);
+    margin-left: 8px;
+    font-style: italic;
+`;
+
+const HeaderSetLabelWrapper = styled.div<{ readonly?: boolean }>`
+    display: flex;
+    align-items: center;
+    ${(props) => !props.readonly && `
+        cursor: pointer;
+    `}
+    margin-left: 12px;
+    line-height: 14px;
+`;
+
+const HeaderSetActionIconWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    height: 14px;
+    width: 14px;
+    margin-right: 44px;
+`;
+
 
 interface HeaderSetEditorProps {
     field: FormField;
@@ -127,8 +176,9 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
     };
 
     const onDelete = (indexToDelete: number) => {
-        setHeaderSets(headerSets.filter((_, index) => index !== indexToDelete));
-        setValue(field.key, headerSets);
+        const updatedHeaderSets = headerSets.filter((_, index) => index !== indexToDelete);
+        setHeaderSets(updatedHeaderSets);
+        setValue(field.key, updatedHeaderSets);
     };
 
     const onSubmit = (data: FormValues) => {
@@ -138,13 +188,14 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             type: data.type,
             optional: Boolean(data.optional)
         };
+        const updatedHeaderSets = [...headerSets];
         if (headerSetIndexToEdit !== null) {
-            headerSets[headerSetIndexToEdit] = newHeaderSet;
+            updatedHeaderSets[headerSetIndexToEdit] = newHeaderSet;
         } else {
-            headerSets.push(newHeaderSet);
+            updatedHeaderSets.push(newHeaderSet);
         }
-        setHeaderSets(headerSets);
-        setValue(field.key, headerSets);
+        setHeaderSets(updatedHeaderSets);
+        setValue(field.key, updatedHeaderSets);
         setFormOpen(false);
     };
 
@@ -170,7 +221,7 @@ export function HeaderSetEditor(props: HeaderSetEditorProps) {
             editable: true,
             documentation: "Name of the header",
             value: headerSetToEdit?.name || "",
-            types: [{ fieldType: "TEXT", ballerinaType: "string", selected: false }],
+            types: [{ fieldType: "IDENTIFIER", selected: false }],
             label: "Name",
             type: "text"
         },
@@ -257,32 +308,50 @@ function HeaderSetItem(props: HeaderSetItemProps) {
         }
     };
 
+    const label = (
+        <HeaderSetLabelContainer>
+            {headerSet.type && (
+                <>
+                    <HeaderSetType>
+                        {headerSet.type}
+                    </HeaderSetType>
+                    {headerSet.name && (
+                        <HeaderSetName>{headerSet.name}</HeaderSetName>
+                    )}
+                    {headerSet.optional && (
+                        <HeaderSetOptional>
+                            (optional)
+                        </HeaderSetOptional>
+                    )}
+                </>
+            )}
+            {!headerSet.type && headerSet.name && (
+                <HeaderSetName>
+                    {headerSet.name}
+                </HeaderSetName>
+            )}
+        </HeaderSetLabelContainer>
+    );
+
     return (
         <HeaderLabel data-testid={`${headerSet.name}-item`}>
-            <IconTextWrapper onClick={handleEdit}>
-                <IconWrapper>
-                    <ParamIcon option={headerSet.type?.toLowerCase()} />
-                </IconWrapper>
-                <OptionLabel>
-                    {headerSet.type ? headerSet.type.toUpperCase() : headerSet.name.toUpperCase()} {headerSet.optional ? "" : "*"}
-                </OptionLabel>
-            </IconTextWrapper>
             <S.ContentSection>
-                <div
+                <HeaderSetLabelWrapper
                     data-test-id={`${headerSet.name}-header-set`}
-                    onClick={handleEdit}
+                    readonly={readonly}
+                    onClick={!readonly ? handleEdit : undefined}
                 >
-                    {headerSet.name}
-                </div>
+                    {label}
+                </HeaderSetLabelWrapper>
                 {!readonly && (
-                    <ActionIconWrapper>
+                    <HeaderSetActionIconWrapper>
                         <EditIconWrapper>
                             <Codicon name="edit" onClick={handleEdit} />
                         </EditIconWrapper>
                         <DeleteIconWrapper>
                             <Codicon name="trash" onClick={handleDelete} />
                         </DeleteIconWrapper>
-                    </ActionIconWrapper>
+                    </HeaderSetActionIconWrapper>
                 )}
             </S.ContentSection>
         </HeaderLabel>
