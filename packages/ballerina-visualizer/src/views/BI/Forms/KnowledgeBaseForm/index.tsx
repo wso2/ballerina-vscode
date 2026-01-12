@@ -45,11 +45,13 @@ import { URI, Utils } from "vscode-uri";
 const DEFAULT_CHUNKER_VALUE = "\"AUTO\"";
 
 namespace S {
-    export const Container = styled.div`
+    export const Container = styled.div<{ footerActionButton?: boolean }>`
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 60px);
-        min-height: 600px;
+        height: ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? "100%" : "calc(100vh - 60px)"};
+        min-height: ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? "0" : "600px"};
+        max-height: ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? "100%" : "none"};
+        overflow: ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? "hidden" : "auto"};
     `;
 
     export const ScrollableContent = styled.div`
@@ -91,6 +93,7 @@ interface KnowledgeBaseFormProps {
     subPanelView?: SubPanelView;
     disableSaveButton?: boolean;
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
+    footerActionButton?: boolean;
 }
 
 export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
@@ -104,7 +107,8 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         updatedExpressionField,
         resetUpdatedExpressionField,
         subPanelView,
-        showProgressIndicator
+        showProgressIndicator,
+        footerActionButton
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -205,7 +209,7 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
     };
 
     return (
-        <S.Container>
+        <S.Container footerActionButton={footerActionButton}>
             <S.ScrollableContent>
                 <S.Content>
                     {knowledgeBaseFields.length > 0 && (
@@ -221,7 +225,8 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
                                 updatedExpressionField={updatedExpressionField}
                                 resetUpdatedExpressionField={resetUpdatedExpressionField}
                                 hideSaveButton={false}
-                                nestedForm={true}
+                                nestedForm={!footerActionButton}
+                                footerActionButton={footerActionButton}
                                 onSubmit={handleSubmit}
                                 disableSaveButton={!isFormValid}
                                 isSaving={showProgressIndicator || saving}

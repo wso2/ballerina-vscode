@@ -1362,6 +1362,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 subPanelView={subPanelView}
                 disableSaveButton={disableSaveButton}
                 navigateToPanel={props.navigateToPanel}
+                footerActionButton={footerActionButton}
             />
         );
     }
