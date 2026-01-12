@@ -117,6 +117,7 @@
           "offset": 5
         }
       },
+      "moduleName": "graphql",
       "inListenerInit": false,
       "isBasePath": false,
       "inDisplayAnnotation": false

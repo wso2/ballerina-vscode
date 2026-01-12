@@ -13,8 +13,6 @@
         "description": "The resource accessor"
       },
       "placeholder": "GET",
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "http:Method",
       "value": "get",
       "items": [
         "GET",
@@ -36,8 +34,6 @@
         "description": "The resource path"
       },
       "placeholder": "",
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "string",
       "value": "path2",
       "enabled": true,
       "editable": true,
@@ -57,8 +53,6 @@
             "description": ""
           },
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Request",
           "value": "http:Request",
           "enabled": true,
           "editable": false,
@@ -71,8 +65,6 @@
             "description": ""
           },
           "placeholder": "request",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "req",
           "enabled": true,
           "editable": true,
@@ -83,7 +75,9 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "properties": {}
       },
       {
         "metadata": {
@@ -97,8 +91,6 @@
             "description": ""
           },
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Caller",
           "value": "http:Caller",
           "enabled": true,
           "editable": false,
@@ -111,8 +103,6 @@
             "description": ""
           },
           "placeholder": "caller",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -123,7 +113,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       },
       {
         "metadata": {
@@ -137,8 +128,6 @@
             "description": ""
           },
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Headers",
           "value": "http:Headers",
           "enabled": true,
           "editable": false,
@@ -151,8 +140,6 @@
             "description": ""
           },
           "placeholder": "headers",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -163,7 +150,8 @@
         "editable": true,
         "optional": true,
         "advanced": true,
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false
       }
     ],
     "schema": {
@@ -179,8 +167,6 @@
             "description": ""
           },
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -193,8 +179,6 @@
             "description": ""
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -207,8 +191,6 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": false,
           "editable": true,
@@ -219,8 +201,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "QUERY",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "QUERY"
       },
       "header": {
         "metadata": {
@@ -234,8 +217,6 @@
             "description": ""
           },
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -248,8 +229,6 @@
             "description": ""
           },
           "placeholder": "name",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -262,8 +241,6 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": false,
           "editable": true,
@@ -274,8 +251,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "Header",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "Header"
       },
       "payload": {
         "metadata": {
@@ -289,8 +267,6 @@
             "description": ""
           },
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -303,8 +279,6 @@
             "description": ""
           },
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -315,8 +289,9 @@
         "editable": true,
         "optional": false,
         "advanced": false,
-        "httpParamType": "PAYLOAD",
-        "hidden": false
+        "hidden": false,
+        "isGraphqlId": false,
+        "httpParamType": "PAYLOAD"
       }
     },
     "returnType": {
@@ -327,7 +302,6 @@
               "label": "",
               "description": ""
             },
-            "valueType": "SINGLE_SELECT",
             "value": "200",
             "enabled": true,
             "editable": true,
@@ -339,7 +313,6 @@
               "label": "",
               "description": ""
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -351,7 +324,6 @@
               "label": "",
               "description": ""
             },
-            "valueType": "IDENTIFIER",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -363,7 +335,6 @@
               "label": "",
               "description": ""
             },
-            "valueType": "TYPE",
             "value": "json",
             "enabled": true,
             "editable": true,
@@ -375,7 +346,6 @@
               "label": "",
               "description": ""
             },
-            "valueType": "MULTIPLE_SELECT",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -395,8 +365,6 @@
               "description": "The status code"
             },
             "placeholder": "200",
-            "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "http:StatusCode",
             "value": "",
             "items": [
               "200",
@@ -420,7 +388,6 @@
               "label": "Body",
               "description": "Response Body"
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -432,7 +399,6 @@
               "label": "Name of the response",
               "description": "Create a new response type"
             },
-            "valueType": "IDENTIFIER",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -444,7 +410,6 @@
               "label": "Response Type",
               "description": "Select a response type"
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -456,7 +421,6 @@
               "label": "Header types",
               "description": "Response header types"
             },
-            "valueType": "MULTIPLE_SELECT",
             "value": "",
             "items": [
               "",
@@ -478,13 +442,12 @@
         }
       },
       "hasError": false,
+      "isGraphqlId": false,
       "metadata": {
         "label": "Return type",
         "description": "Return type of the function"
       },
       "placeholder": "",
-      "valueType": "TYPE",
-      "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
       "value": "",
       "enabled": true,
       "editable": true,
@@ -506,7 +469,8 @@
           "line": 19,
           "offset": 5
         }
-      }
+      },
+      "moduleName": "http"
     },
     "properties": {
       "annotResourceConfig": {
@@ -521,17 +485,7 @@
           "moduleName": "http"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:HttpResourceConfig",
         "value": "",
-        "typeMembers": [
-          {
-            "type": "HttpResourceConfig",
-            "packageInfo": "ballerina:http:2.14.0",
-            "kind": "RECORD_TYPE",
-            "selected": true
-          }
-        ],
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -565,7 +519,7 @@
             "character": 62
           }
         },
-        "newText": "(http:Request req) "
+        "newText": "(http:Request req) returns json "
       }
     ]
   }
