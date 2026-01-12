@@ -486,15 +486,26 @@ export const Form = forwardRef((props: FormProps) => {
             const diagnosticsMap: FormDiagnostics[] = [];
             const formValues = getValues();
             console.log("Existing form values: ", formValues);
+
+            // First, preserve ALL existing form values
+            Object.keys(formValues).forEach(key => {
+                if (formValues[key] !== undefined && formValues[key] !== "") {
+                    defaultValues[key] = formValues[key];
+                }
+            });
+
             formFields.forEach((field) => {
-                if (isDropdownField(field)) {
-                    defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                } else if (field.type === "FLAG") {
-                    defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
-                } else if (typeof field.value === "string") {
-                    defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
-                } else {
-                    defaultValues[field.key] = field.value ?? "";
+                // Only set field defaults if no existing value is present
+                if (defaultValues[field.key] === undefined) {
+                    if (isDropdownField(field)) {
+                        defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                    } else if (field.type === "FLAG") {
+                        defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
+                    } else if (typeof field.value === "string") {
+                        defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
+                    } else {
+                        defaultValues[field.key] = field.value ?? "";
+                    }
                 }
                 if (field.key === "variable") {
                     defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
@@ -523,7 +534,8 @@ export const Form = forwardRef((props: FormProps) => {
 
                     if (selectedChoice && selectedChoice?.properties) {
                         Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            if (propValue?.value !== undefined) {
+                            // Only set choice property defaults if no existing value is present
+                            if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
                                 defaultValues[propKey] = propValue.value;
                             }
 
@@ -532,9 +544,6 @@ export const Form = forwardRef((props: FormProps) => {
                     }
                 }
 
-                if (formValues[field.key] !== undefined && formValues[field.key] !== "" && !field.value) {
-                    defaultValues[field.key] = formValues[field.key];
-                }
                 diagnosticsMap.push({ key: field.key, diagnostics: [] });
             });
             setDiagnosticsInfo(diagnosticsMap);
@@ -647,13 +656,13 @@ export const Form = forwardRef((props: FormProps) => {
                     const selectedChoiceIndex = formValues[propKey] !== undefined ? Number(formValues[propKey]) : 0;
                     const selectedChoice = propValue.choices[selectedChoiceIndex];
 
-                    if (selectedChoice && selectedChoice?.properties) {
+                    if (selectedChoice && selectedChoice?.properties && !selectedChoice.advanced && !propValue.advanced) {
                         // Recursively collect from nested choice properties
                         collectAdvancedFields(selectedChoice.properties);
                     }
                 }
                 // If this property is advanced, add it to the list
-                else if (propValue.advanced && propValue.enabled && !propValue.hidden) {
+                else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
                     const choiceFormField: FormField = {
                         key: propKey,
                         label: propValue?.metadata?.label || propKey.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
@@ -681,7 +690,7 @@ export const Form = forwardRef((props: FormProps) => {
                 const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
                 const selectedChoice = field.choices[selectedChoiceIndex];
 
-                if (selectedChoice && selectedChoice?.properties) {
+                if (selectedChoice && selectedChoice?.properties && !field.advanced) {
                     collectAdvancedFields(selectedChoice.properties);
                 }
             }
