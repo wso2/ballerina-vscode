@@ -1,6 +1,6 @@
 {
   "filePath": "update_http_resource.bal",
-  "description": "Add a http:ResourceConfig annotation and change accessor",
+  "description": "Updating the return type of an existing HTTP resource function",
   "function": {
     "metadata": {
       "label": "Get Path",
@@ -13,7 +13,7 @@
         "description": "The resource accessor"
       },
       "placeholder": "GET",
-      "value": "post",
+      "value": "get",
       "items": [
         "GET",
         "POST",
@@ -34,10 +34,22 @@
         "description": "The resource path"
       },
       "placeholder": "",
-      "value": "path1",
+      "value": "path2",
       "enabled": true,
       "editable": true,
       "optional": false,
+      "advanced": false
+    },
+    "documentation": {
+      "types": [
+        {
+          "fieldType": "TEXT",
+          "selected": true
+        }
+      ],
+      "enabled": true,
+      "editable": true,
+      "optional": true,
       "advanced": false
     },
     "parameters": [
@@ -69,6 +81,18 @@
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "enabled": true,
@@ -103,10 +127,22 @@
             "description": ""
           },
           "placeholder": "caller",
-          "value": "",
+          "value": "caller",
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "enabled": false,
@@ -144,6 +180,18 @@
           "enabled": true,
           "editable": true,
           "optional": false,
+          "advanced": false
+        },
+        "documentation": {
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
           "advanced": false
         },
         "enabled": false,
@@ -355,6 +403,186 @@
           "enabled": true,
           "editable": false,
           "advanced": false
+        },
+        {
+          "statusCode": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "200",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "http:Response",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "type": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "json",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "headers": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "500",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "json",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "type": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "CustomInternalServerError",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "headers": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
+        },
+        {
+          "statusCode": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "404",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "type": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "http:NotFound",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "headers": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
         }
       ],
       "schema": {
@@ -462,11 +690,11 @@
       "lineRange": {
         "fileName": "update_http_resource.bal",
         "startLine": {
-          "line": 4,
+          "line": 11,
           "offset": 4
         },
         "endLine": {
-          "line": 9,
+          "line": 19,
           "offset": 5
         }
       },
@@ -498,41 +726,28 @@
       {
         "range": {
           "start": {
-            "line": 4,
+            "line": 11,
             "character": 4
           },
           "end": {
-            "line": 4,
-            "character": 4
+            "line": 13,
+            "character": 5
           }
         },
-        "newText": "@http:ResourceConfig{}\n"
+        "newText": "@http:ResourceConfig{}"
       },
       {
         "range": {
           "start": {
-            "line": 4,
-            "character": 22
-          },
-          "end": {
-            "line": 4,
-            "character": 25
-          }
-        },
-        "newText": "post"
-      },
-      {
-        "range": {
-          "start": {
-            "line": 4,
+            "line": 14,
             "character": 31
           },
           "end": {
-            "line": 4,
+            "line": 14,
             "character": 62
           }
         },
-        "newText": "(http:Request req) returns json "
+        "newText": "(http:Request req) returns json|http:Response|CustomInternalServerError|http:NotFound "
       }
     ]
   }
