@@ -49,6 +49,7 @@ import org.ballerinalang.diagramutil.connector.models.connector.Connector;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -93,6 +94,22 @@ public class ConnectorSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> search() {
+        // Search local connectors and rank them by relevance
+        // TODO: The current search does not combine local and standard connectors when calculating the relevance
+        //  score. Consequently, results are currently returned in sets, and pagination does not work uniformly.
+        List<SearchResult> localConnectors = getLocalConnectors();
+        List<ScoredConnector> scoredConnectors = new ArrayList<>();
+        for (SearchResult connector : localConnectors) {
+            int score = RelevanceCalculator.calculateFuzzyRelevanceScore(
+                    getConnectorName(connector, connector.packageInfo()), connector.description(), query);
+            if (score > 0) {
+                scoredConnectors.add(new ScoredConnector(connector, score));
+            }
+        }
+        scoredConnectors.sort(Comparator.comparingInt(ScoredConnector::score).reversed());
+        scoredConnectors.forEach(result -> rootBuilder.node(generateAvailableNode(result.searchResult(), true)));
+
+        // Search standard connectors from the database
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
         searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return rootBuilder.build().items();
@@ -211,5 +228,8 @@ public class ConnectorSearchCommand extends SearchCommand {
             }
         }
         return localConnections;
+    }
+
+    private record ScoredConnector(SearchResult searchResult, int score) {
     }
 }
