@@ -92,33 +92,17 @@ export async function isModuleNotFoundDiagsExist(diagnosticsResult: Diagnostics[
     // Process each unique diagnostic only once
     let projectModified = false;
     for (const [_, { uri }] of uniqueDiagnosticMap.entries()) {
-        const dependenciesResponse = await langClient.resolveMissingDependencies({
+        const dependenciesResponse = await langClient.resolveModuleDependencies({
             documentIdentifier: {
                 uri: uri
             }
         });
 
-        const response = dependenciesResponse as SyntaxTree;
-        if (response.parseSuccess) {
-            // Read and save content to a string
-            // Convert ai: scheme to file: scheme for opening the document
-            const fileUri = uri.replace(/^ai:/, 'file:');
-            const sourceFile = await workspace.openTextDocument(Uri.parse(fileUri));
-            const content = sourceFile.getText();
-
-            langClient.didOpen({
-                textDocument: {
-                    uri: uri,
-                    languageId: 'ballerina',
-                    version: 1,
-                    text: content
-                }
-            });
-            projectModified = true;
-        } else {
-            console.log("Module resolving failed for uri: " + uri + " with response: " + JSON.stringify(response) + "\n" + uniqueDiagnosticMap + "\n");
-            throw Error("Module resolving failed");
+        const response = dependenciesResponse;
+        if (!response.success) {
+            throw new Error("Module resolving failed");
         }
+        projectModified = true;
     }
 
     return projectModified;
