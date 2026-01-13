@@ -850,7 +850,7 @@
             },
             "name": {
               "placeholder": "",
-              "value": "deletedFiles",
+              "value": "deleteFiles",
               "enabled": true,
               "editable": true,
               "optional": false,

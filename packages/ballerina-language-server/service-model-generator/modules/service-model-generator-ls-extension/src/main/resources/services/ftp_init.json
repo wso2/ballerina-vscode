@@ -52,12 +52,12 @@
               "value": "\"127.0.0.1\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
@@ -110,12 +110,12 @@
               "value": "\"/\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
@@ -262,12 +262,12 @@
               "value": "\"127.0.0.1\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
@@ -320,12 +320,12 @@
               "value": "\"/\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
@@ -484,12 +484,12 @@
               "value": "\"127.0.0.1\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
@@ -542,12 +542,12 @@
               "value": "\"/\"",
               "types": [
                 {
-                  "fieldType": "EXPRESSION",
+                  "fieldType": "TEXT",
                   "ballerinaType": "string",
                   "selected": true
                 },
                 {
-                  "fieldType": "IDENTIFIER",
+                  "fieldType": "EXPRESSION",
                   "ballerinaType": "string",
                   "selected": false
                 }
