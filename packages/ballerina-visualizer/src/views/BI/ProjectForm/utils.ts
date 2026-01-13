@@ -67,7 +67,7 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspac
     return (
         formData.integrationName.length >= 2 &&
         formData.packageName.length >= 2 &&
-        (isInWorkspace || (!isInWorkspace && (formData.workspaceName?.length ?? 0) >= 1)) &&
+        (isInWorkspace || (formData.workspaceName?.length ?? 0) >= 1) &&
         validatePackageName(formData.packageName, formData.integrationName) === null
     );
 };
