@@ -53,7 +53,7 @@ const FormSection = styled.div`
 export function ChoiceForm(props: ChoiceFormProps) {
     const { field, recordTypeFields } = props;
     const { form } = useFormContext();
-    const { setValue, clearErrors, getValues } = form;
+    const { setValue, clearErrors } = form;
 
     const [selectedOption, setSelectedOption] = useState<number>(1);
 
@@ -79,9 +79,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
         setDynamicFields(choiceProperty);
         if (choiceProperty.length > 0) {
             Object.entries(property.properties).forEach(([propKey, propValue]) => {
-                // Only set default values if the field doesn't already have a value
-                const currentValue = getValues(propKey);
-                if (propValue.value !== undefined && (currentValue === undefined || currentValue === "")) {
+                if (propValue.value !== undefined) {
                     setValue(propKey, propValue.value);
                 }
             });
@@ -133,7 +131,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
                         const realValue = checkedValue - 1;
                         setSelectedOption(checkedValue);
                         setValue(field.key, realValue);
-                        clearErrors(field.key);
+                        clearErrors();
                     }}
                 />
             </ChoiceSection>
