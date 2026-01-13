@@ -72,14 +72,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
     };
 
     const handleProjectStructureToggle = () => {
-        if (!isProjectStructureExpanded) {
-            // Check workspace support when expanding
-            rpcClient.getLangClientRpcClient().isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 }).then((res) => {
-                if (res) {
-                    setIsWorkspaceSupported(res);
-                }
-            });
-        }
         setIsProjectStructureExpanded(!isProjectStructureExpanded);
     };
 
@@ -89,6 +81,14 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                 const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
+            const isWorkspaceSupported = await rpcClient
+                .getLangClientRpcClient()
+                .isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 })
+                .catch((err) => {
+                    console.error("Failed to check workspace support:", err);
+                    return false;
+                });
+            setIsWorkspaceSupported(isWorkspaceSupported);
         })();
     }, []);
 
@@ -144,46 +144,44 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
             <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
             {/* Project Structure Section */}
-            <CollapsibleSection
-                isExpanded={isProjectStructureExpanded}
-                onToggle={handleProjectStructureToggle}
-                icon="folder"
-                title="Project Structure"
-            >
-                {isWorkspaceSupported && (
-                    <>
-                        <CheckboxContainer>
-                            <CheckBox
-                                label="Create as workspace"
-                                checked={formData.createAsWorkspace}
-                                onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
-                            />
-                            <Description>
-                                Include this integration in a new workspace for multi-project management.
-                            </Description>
-                        </CheckboxContainer>
-                        {formData.createAsWorkspace && (
-                            <>
-                                <FieldGroup>
-                                    <TextField
-                                        onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                        value={formData.workspaceName}
-                                        label="Workspace Name"
-                                        placeholder="Enter workspace name"
-                                        required={true}
-                                    />
-                                </FieldGroup>
-
-                                <ProjectTypeSelector
-                                    value={formData.isLibrary}
-                                    onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-                                    note="This sets the type for your first project. You can add more projects or libraries to this workspace later."
+            {isWorkspaceSupported && (
+                <CollapsibleSection
+                    isExpanded={isProjectStructureExpanded}
+                    onToggle={handleProjectStructureToggle}
+                    icon="folder"
+                    title="Project Structure"
+                >
+                    <CheckboxContainer>
+                        <CheckBox
+                            label="Create as workspace"
+                            checked={formData.createAsWorkspace}
+                            onChange={(checked) => onFormDataChange({ createAsWorkspace: checked })}
+                        />
+                        <Description>
+                            Include this integration in a new workspace for multi-project management.
+                        </Description>
+                    </CheckboxContainer>
+                    {formData.createAsWorkspace && (
+                        <>
+                            <FieldGroup>
+                                <TextField
+                                    onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                    value={formData.workspaceName}
+                                    label="Workspace Name"
+                                    placeholder="Enter workspace name"
+                                    required={true}
                                 />
-                            </>
-                        )}
-                    </>
-                )}
-            </CollapsibleSection>
+                            </FieldGroup>
+
+                            <ProjectTypeSelector
+                                value={formData.isLibrary}
+                                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+                                note="This sets the type for your first project. You can add more projects or libraries to this workspace later."
+                            />
+                        </>
+                    )}
+                </CollapsibleSection>
+            )}
 
             {/* Package Information Section */}
             <PackageInfoSection
