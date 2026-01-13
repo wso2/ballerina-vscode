@@ -16,7 +16,6 @@
 
 import { generateText, ModelMessage } from "ai";
 import { getAnthropicClient, ANTHROPIC_SONNET_4 } from "../utils/ai-client";
-import { AIPanelAbortController } from "../../../rpc-managers/ai-panel/utils";
 import { ContentPart, DataMapperRequest, DataMapperResponse, FileData, FileTypeHandler, ProcessType } from "./types";
 
 
@@ -374,7 +373,7 @@ async function processFilesWithClaude(files: FileData[], processType: ProcessTyp
         maxOutputTokens: 8192,
         temperature: 0,
         messages: messages,
-        abortSignal: AIPanelAbortController.getInstance().signal
+        abortSignal: new AbortController().signal
     });
 
     return text;

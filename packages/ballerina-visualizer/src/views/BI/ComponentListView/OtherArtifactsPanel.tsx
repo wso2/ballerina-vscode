@@ -47,6 +47,7 @@ export function OtherArtifactsPanel(props: OtherArtifactsPanelProps) {
                 location: {
                     view: MACHINE_VIEW.AddConnectionWizard,
                 },
+                isPopup: true,
             });
         } else if (key === DIRECTORY_MAP.DATA_MAPPER) {
             await rpcClient.getVisualizerRpcClient().openView({

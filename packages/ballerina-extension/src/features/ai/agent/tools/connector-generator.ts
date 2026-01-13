@@ -28,13 +28,13 @@ import {
     ParsedEndpoint,
     ParsedSchema,
     HttpMethod,
-} from "../utils/libs/generator/openapi-types";
-import { CopilotEventHandler } from "../utils/events";
-import { AIChatMachineEventType } from "@wso2/ballerina-core";
-import { AIChatStateMachine } from "../../../views/ai-panel/aiChatMachine";
-import { langClient } from "../activator";
-import { applyTextEdits } from "../agent/utils";
-import { LIBRARY_PROVIDER_TOOL } from "../utils/libs/libraries";
+} from "../../utils/libs/generator/openapi-types";
+import { CopilotEventHandler } from "../../utils/events";
+import { langClient } from "../../activator";
+import { applyTextEdits } from "../utils";
+import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { approvalManager } from '../../state/ApprovalManager';
+import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -83,24 +83,26 @@ export async function ConnectorGeneratorTool(
     projectName?: string,
     modifiedFiles?: string[]
 ): Promise<SpecFetcherResult> {
+    if (!eventHandler) {
+        return createErrorResult(
+            "INVALID_INPUT",
+            "Event handler is required for spec fetcher tool",
+            input.serviceName
+        );
+    }
+
+    if (!tempProjectPath) {
+        return createErrorResult(
+            "INVALID_INPUT",
+            "tempProjectPath is required for ConnectorGeneratorTool",
+            input.serviceName
+        );
+    }
+
+    // requestId must be defined before try block to ensure it's available in catch
+    const requestId = crypto.randomUUID();
+
     try {
-        if (!eventHandler) {
-            return createErrorResult(
-                "INVALID_INPUT",
-                "Event handler is required for spec fetcher tool",
-                input.serviceName
-            );
-        }
-
-        if (!tempProjectPath) {
-            return createErrorResult(
-                "INVALID_INPUT",
-                "tempProjectPath is required for ConnectorGeneratorTool",
-                input.serviceName
-            );
-        }
-
-        const requestId = crypto.randomUUID();
         const userInput = await requestSpecFromUser(requestId, input, eventHandler);
 
         if (!userInput.provided) {
@@ -138,7 +140,7 @@ export async function ConnectorGeneratorTool(
             eventHandler
         );
     } catch (error: any) {
-        return handleError(error, input.serviceName, eventHandler);
+        return handleError(error, input.serviceName, requestId, eventHandler);
     }
 }
 
@@ -158,18 +160,7 @@ async function requestSpecFromUser(
         }`,
     });
 
-    const currentState = AIChatStateMachine.service().getSnapshot().value;
-    AIChatStateMachine.sendEvent({
-        type: AIChatMachineEventType.CONNECTOR_GENERATION_REQUESTED,
-        payload: {
-            requestId,
-            serviceName: input.serviceName,
-            serviceDescription: input.serviceDescription,
-            fromState: currentState as any,
-        },
-    });
-
-    return waitForUserResponse(requestId);
+    return waitForUserResponse(requestId, eventHandler);
 }
 
 function handleUserSkip(
@@ -282,6 +273,9 @@ async function generateConnector(
 
         const relativePath = path.relative(tempProjectPath, filePath);
 
+        // Send didOpen notification to Language Server for ai schema
+        sendAiSchemaDidOpen(tempProjectPath, relativePath);
+
         // Add .bal files to generatedFiles for agent visibility
         if (filePath.endsWith(".bal") && edits.length > 0) {
             generatedFiles.push({
@@ -339,7 +333,12 @@ function handleSuccess(
     };
 }
 
-function handleError(error: any, serviceName: string, eventHandler?: CopilotEventHandler): SpecFetcherResult {
+function handleError(
+    error: any,
+    serviceName: string,
+    requestId: string,
+    eventHandler?: CopilotEventHandler
+): SpecFetcherResult {
     const errorMessage = error.message || "Unknown error";
     let errorCode: "USER_SKIPPED" | "INVALID_SPEC" | "PARSE_ERROR" | "UNSUPPORTED_VERSION" | "INVALID_INPUT";
 
@@ -356,33 +355,26 @@ function handleError(error: any, serviceName: string, eventHandler?: CopilotEven
     if (eventHandler) {
         eventHandler({
             type: "connector_generation_notification",
-            requestId: crypto.randomUUID(),
+            requestId,
             stage: "error",
             serviceName,
             error: {
                 message: errorMessage,
                 code: errorCode,
             },
-            message: `Failed to parse spec for ${serviceName}: ${errorMessage}`,
+            message: `Failed to process spec for ${serviceName}: ${errorMessage}`,
         });
     }
 
     return createErrorResult(errorCode, errorMessage, serviceName, error.stack);
 }
 
-function waitForUserResponse(requestId: string): Promise<{ provided: boolean; spec?: any; comment?: string }> {
-    return new Promise((resolve) => {
-        const subscription = AIChatStateMachine.service().subscribe((state) => {
-            if (state.value !== "WaitingForConnectorSpec" && state.context.currentSpec?.requestId === requestId) {
-                const provided = state.context.currentSpec.provided === true;
-                const spec = state.context.currentSpec.spec;
-                const comment = state.context.currentSpec.comment;
-
-                subscription.unsubscribe();
-                resolve(provided && spec ? { provided: true, spec } : { provided: false, comment });
-            }
-        });
-    });
+async function waitForUserResponse(
+    requestId: string,
+    eventHandler: CopilotEventHandler
+): Promise<{ provided: boolean; spec?: any; comment?: string }> {
+    // Use ApprovalManager for connector spec approval (replaces state machine subscription)
+    return approvalManager.requestConnectorSpec(requestId, eventHandler);
 }
 
 function createErrorResult(

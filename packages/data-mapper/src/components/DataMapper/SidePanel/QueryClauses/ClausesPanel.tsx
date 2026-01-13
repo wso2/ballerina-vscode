@@ -19,7 +19,7 @@
 import React, { useEffect } from "react";
 
 import { Button, Codicon, SidePanel, SidePanelBody, SidePanelTitleContainer, ThemeColors } from "@wso2/ui-toolkit";
-import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useDMQueryClausesStore } from "../../../../store/store";
 import { AddButton, ClauseItem } from "./ClauseItem";
 import { ClauseEditor } from "./ClauseEditor";
 import { ClauseItemListContainer } from "./styles";
@@ -36,8 +36,7 @@ export interface ClausesPanelProps {
 }
 
 export function ClausesPanel(props: ClausesPanelProps) {
-    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen } = useDMQueryClausesPanelStore();
-    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
+    const { isQueryClausesPanelOpen, setIsQueryClausesPanelOpen, clauseToAdd, setClauseToAdd, setClauseTypes } = useDMQueryClausesStore.getState();
     const { query, targetField, addClauses, deleteClause, getClausePosition, generateForm , genUniqueName} = props;
 
     const [adding, setAdding] = React.useState<number>();
@@ -55,6 +54,8 @@ export function ClausesPanel(props: ClausesPanelProps) {
         } else if (clauseType === IntermediateClauseType.GROUP_BY) {
             clause.properties.type = "var";
             clause.properties.name = await genUniqueName(clause.properties.expression.split('.').pop(), targetField);
+        } else if (clauseType === IntermediateClauseType.FROM) {
+            clause.properties.type = "var";
         }
     };
 
@@ -88,15 +89,16 @@ export function ClausesPanel(props: ClausesPanelProps) {
         }
         return () => {
             setClauseToAdd(undefined);
+            setClauseTypes(undefined);
         }
-    }, [clauseToAdd, clauses.length, setClauseToAdd, setAdding]);
+    }, [clauseToAdd, clauses.length]);
 
     return (
         <SidePanel
             isOpen={isQueryClausesPanelOpen}
             alignment="right"
             width={400}
-            overlay={false}
+            overlay={true}
             sx={{
                 fontFamily: "GilmerRegular",
                 backgroundColor: ThemeColors.SURFACE_DIM,

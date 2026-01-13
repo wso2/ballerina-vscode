@@ -59,6 +59,17 @@ export function ChoiceForm(props: ChoiceFormProps) {
 
     const [dynamicFields, setDynamicFields] = useState<FormField[]>([]);
 
+    useEffect(() => {
+        // Find the first enabled choice
+        const enabledChoiceIndex = field.choices.findIndex(choice => choice.enabled);
+        if (enabledChoiceIndex !== -1) {
+            const newSelectedOption = enabledChoiceIndex + 1;
+            if (newSelectedOption !== selectedOption) {
+                setSelectedOption(newSelectedOption);
+                setValue(field.key, enabledChoiceIndex);
+            }
+        }
+    }, [field.choices]);
 
     // Add useEffect to set initial values
     useEffect(() => {
@@ -102,7 +113,6 @@ export function ChoiceForm(props: ChoiceFormProps) {
             }
             formFields.push(formField);
         }
-        console.log("Dynamic Form Fields:", formFields)
         return formFields;
     }
 
@@ -117,7 +127,6 @@ export function ChoiceForm(props: ChoiceFormProps) {
                     value={selectedOption}
                     options={field.choices.map((choice, index) => ({ id: index.toString(), value: index + 1, content: choice.metadata.label }))}
                     onChange={(e) => {
-                        console.log("Choice Form Index:", Number(e.target.value))
                         const checkedValue = Number(e.target.value);
                         const realValue = checkedValue - 1;
                         setSelectedOption(checkedValue);
@@ -128,7 +137,7 @@ export function ChoiceForm(props: ChoiceFormProps) {
             </ChoiceSection>
 
             <FormSection>
-                {dynamicFields.map((dfield, index) => {
+                {dynamicFields.filter(dfield => (field.advanced  || !dfield.advanced)).map((dfield, index) => {
                     return (
                         <EditorFactory
                             key={dfield.key}
@@ -144,5 +153,4 @@ export function ChoiceForm(props: ChoiceFormProps) {
 
     );
 }
-
 
