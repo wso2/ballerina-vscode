@@ -17,66 +17,20 @@
  */
 
 import { useState } from "react";
-import {
-    Button,
-    Icon,
-    Typography,
-} from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
+import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
+import {
+    PageWrapper,
+    FormContainer,
+    TitleContainer,
+    ScrollableContent,
+    ButtonWrapper,
+    IconButton,
+} from "./styles";
+import { ProjectFormFields } from "./ProjectFormFields";
+import { ProjectFormData } from "./types";
 import { isFormValid } from "./utils";
-
-const PageWrapper = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-height: 100vh;
-    padding: 40px 120px;
-    box-sizing: border-box;
-    overflow: hidden;
-`;
-
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    max-width: 600px;
-    overflow: hidden;
-`;
-
-const TitleContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 32px;
-    flex-shrink: 0;
-`;
-
-const ScrollableContent = styled.div`
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 8px;
-    min-height: 0;
-`;
-
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    padding-top: 16px;
-    display: flex;
-    justify-content: flex-end;
-    flex-shrink: 0;
-`;
-
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
