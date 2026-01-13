@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     KeyboardNavigationManager,
     MachineStateValue,
@@ -203,7 +203,8 @@ const MainPanel = () => {
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
-    const [breakpointState, setBreakpointState] = useState<boolean>(false);
+    const [breakpointState, setBreakpointState] = useState<number>(0);
+    const breakpointStateRef = useRef<number>(0);
 
     rpcClient?.onStateChanged((newState: MachineStateValue) => {
         if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
@@ -221,12 +222,16 @@ const MainPanel = () => {
         setPopupState(newState);
     });
 
-    rpcClient?.onBreakpointChanges((state: boolean) => {
-        setBreakpointState(pre => {
-            return !pre;
+    useEffect(() => {
+        rpcClient?.onBreakpointChanges((state: boolean) => {
+            console.log("Breakpoint changes - updating state");
+            setBreakpointState(prev => {
+                const newValue = prev + 1;
+                breakpointStateRef.current = newValue;
+                return newValue;
+            });
         });
-        console.log("Breakpoint changes");
-    });
+    }, [rpcClient]);
 
     // TODO: Need to refactor this function. use util apply modifications function
     const applyModifications = async (modifications: STModification[], isRecordModification?: boolean) => {
@@ -341,7 +346,7 @@ const MainPanel = () => {
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointState}
+                                    breakpointState={breakpointStateRef.current}
                                 />
                             );
                         }).catch((error) => {
@@ -353,7 +358,7 @@ const MainPanel = () => {
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointState}
+                                    breakpointState={breakpointStateRef.current}
                                 />
                             );
                         });
