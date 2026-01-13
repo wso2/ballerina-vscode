@@ -717,15 +717,28 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 }
                             };
                         } else if (patternType?.pattern) {
-                            // For non-array fields, use validate function instead of pattern rule
-                            // This ensures validation runs even on empty strings
+                            // For non-array fields, validate pattern only in TEXT mode with literal values
                             rules.validate = {
                                 pattern: (value: any) => {
                                     try {
+                                        const currentMode = inputModeRef.current;
+
+                                        // Only validate in TEXT mode
+                                        if (currentMode !== InputMode.TEXT) {
+                                            return true;
+                                        }
+
+                                        // Skip pattern validation if value contains interpolations (e.g., ${variable})
+                                        if (value && typeof value === 'string' && /\$\{[^}]*\}/.test(value)) {
+                                            return true;
+                                        }
+
+                                        // Validate pattern for TEXT mode with literal values
                                         const regex = new RegExp(patternType.pattern);
                                         if (!regex.test(value || '')) {
                                             return patternType.patternErrorMessage || "Invalid format";
                                         }
+
                                         return true;
                                     } catch (error) {
                                         console.error(`[${key}] Invalid regex pattern:`, patternType.pattern, error);
