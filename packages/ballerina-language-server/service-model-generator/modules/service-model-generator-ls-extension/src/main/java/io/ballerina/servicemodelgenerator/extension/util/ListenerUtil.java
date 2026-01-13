@@ -358,11 +358,13 @@ public class ListenerUtil {
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
             codedata.setOriginalName(paramResult.name());
 
+            String label = paramResult.label();
+            label = label != null ? label : unescapedParamName;
+
             List<PropertyType> propertyTypes = ListenerDeclAnalyzer.buildPropertyType(paramResult, semanticModel,
                     moduleInfo);
-
             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
-                    .setMetadata(new MetaData(unescapedParamName, paramResult.description()))
+                    .setMetadata(new MetaData(label, paramResult.description()))
                     .setCodedata(codedata)
                     .value("")
                     .types(propertyTypes)
