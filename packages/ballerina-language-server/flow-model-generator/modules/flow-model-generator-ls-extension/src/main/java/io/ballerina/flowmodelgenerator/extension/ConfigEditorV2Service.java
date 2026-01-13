@@ -67,11 +67,13 @@ import io.ballerina.flowmodelgenerator.extension.response.ConfigVariableUpdateRe
 import io.ballerina.flowmodelgenerator.extension.response.ConfigVariablesGetResponse;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDependency;
+import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PlatformLibraryScope;
@@ -500,7 +502,9 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         for (Module module : rootPackage.modules()) {
             String modName = module.moduleName().moduleNamePart() != null ?
                     module.moduleName().moduleNamePart() : EMPTY_STRING;
-            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, pkgName, modName, true);
+            Optional<SemanticModel> semanticModel = getSemanticModel(module);
+            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, pkgName, modName,
+                    true, semanticModel.orElse(null));
             moduleConfigVarMap.put(modName, variables);
         }
 
@@ -546,10 +550,10 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     /**
      * Extracts configuration variables from the given module.
      */
-    private List<FlowNode> extractModuleConfigVariables(Module module, Toml configTomlValues,
-                                                        String packageName, String moduleName, boolean isRootProject) {
+    private List<FlowNode> extractModuleConfigVariables(Module module, Toml configTomlValues, String packageName,
+                                                        String moduleName, boolean isRootProject,
+                                                        SemanticModel semanticModel) {
         List<FlowNode> configVariables = new LinkedList<>();
-        Optional<SemanticModel> semanticModel = getSemanticModel(module);
 
         for (DocumentId documentId : module.documentIds()) {
             Document document = module.document(documentId);
@@ -562,7 +566,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 if (node.kind() == SyntaxKind.MODULE_VAR_DECL) {
                     ModuleVariableDeclarationNode varDeclarationNode = (ModuleVariableDeclarationNode) node;
                     if (hasConfigurableQualifier(varDeclarationNode)) {
-                        FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel.orElse(null),
+                        FlowNode configVarNode = constructConfigVarNode(varDeclarationNode, semanticModel,
                                 configTomlValues, packageName, moduleName, isRootProject);
                         configVariables.add(configVarNode);
                     }
@@ -646,14 +650,23 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     private Map<String, List<FlowNode>> processDependency(ResolvedPackageDependency dependency,
                                                           Toml configTomlValues) {
         Map<String, List<FlowNode>> moduleConfigs = new HashMap<>();
-        String packageName = dependency.packageInstance().packageOrg().value() + FORWARD_SLASH +
-                dependency.packageInstance().packageName().value();
+        Package packageInstance = dependency.packageInstance();
+        String orgName = packageInstance.packageOrg().value();
+        String packageName = packageInstance.packageName().value();
+        String version = packageInstance.packageVersion().value().toString();
+        String packageAndOrgName = orgName + FORWARD_SLASH + packageName;
 
+        ModuleName modName = dependency.packageInstance().getDefaultModule().moduleName();
+        String moduleName = modName.moduleNamePart() != null ? modName.moduleNamePart() : packageName;
+
+        ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, version);
+        Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
         for (Module module : dependency.packageInstance().modules()) {
-            String moduleName = module.moduleName().moduleNamePart() != null ?
+            moduleName = module.moduleName().moduleNamePart() != null ?
                     module.moduleName().moduleNamePart() : EMPTY_STRING;
-            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, packageName, moduleName,
-                    false);
+
+            List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, packageAndOrgName,
+                    moduleName, false, semanticModel.orElse(null));
             if (!variables.isEmpty()) {
                 moduleConfigs.put(moduleName, variables);
             }
