@@ -499,7 +499,7 @@ export const Form = forwardRef((props: FormProps) => {
                 if (defaultValues[field.key] === undefined) {
                     if (field.hidden) {
                         defaultValues[field.key] = field.value;
-                    } else (isDropdownField(field)) {
+                    } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG") {
                         defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
