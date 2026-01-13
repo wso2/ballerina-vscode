@@ -62,6 +62,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
             workspaceName: singleProjectData.workspaceName,
             orgName: singleProjectData.orgName || undefined,
             version: singleProjectData.version || undefined,
+            isLibrary: singleProjectData.isLibrary,
         });
     };
 
