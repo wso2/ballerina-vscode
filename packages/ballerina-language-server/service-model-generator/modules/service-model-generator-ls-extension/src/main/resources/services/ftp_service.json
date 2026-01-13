@@ -848,7 +848,7 @@
           "name": {
             "enabled": true,
             "editable": true,
-            "value": "deletedFiles",
+            "value": "deleteFiles",
             "valueType": "IDENTIFIER",
             "valueTypeConstraint": "string",
             "isType": false,
