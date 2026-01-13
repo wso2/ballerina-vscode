@@ -111,7 +111,6 @@ export type FormSubmitOptions = {
 };
 
 export function BIFlowDiagram(props: BIFlowDiagramProps) {
-    console.log(">>> BIFlowDiagram breakpointState", props.breakpointState);
     const { projectPath, breakpointState, syntaxTree, onUpdate, onReady, onSave } = props;
     const { rpcClient } = useRpcContext();
 
