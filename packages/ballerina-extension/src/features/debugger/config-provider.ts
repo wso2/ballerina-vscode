@@ -513,7 +513,6 @@ async function handleDebugHitVisualization(uri: Uri, clientBreakpoint: DebugProt
         endLine: res.endLine.line,
         endColumn: res.endLine.offset
     };
-    console.log("=====Updated context for debug hit visualization: ", newContext);
     openView(EVENT_TYPE.OPEN_VIEW, newContext);
 }
 
