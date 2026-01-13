@@ -177,7 +177,7 @@
           "description": "Define the agent's primary function"
         },
         "valueType": "STRING",
-        "value": "string ````Role Prompt Inside Backticks````",
+        "value": "role",
         "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
         "optional": true,
         "editable": true,
@@ -194,7 +194,7 @@
           "description": "Detailed instructions for the agent"
         },
         "valueType": "STRING",
-        "value": "string ````Instructions Prompt Inside Backticks````",
+        "value": "instructions",
         "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
         "optional": true,
         "editable": true,
@@ -301,7 +301,7 @@
             "character": 0
           }
         },
-        "newText": "final ai:Agent aiAgent = check new (\n    systemPrompt = {role: string `${\"`\"}${\"`\"}${\"`\"}Role Prompt Inside Backticks${\"`\"}${\"`\"}${\"`\"}`, instructions: string `${\"`\"}${\"`\"}${\"`\"}Instructions Prompt Inside Backticks${\"`\"}${\"`\"}${\"`\"}`}, model = aiWso2modelprovider\n);"
+        "newText": "final ai:Agent aiAgent = check new (\n    systemPrompt = {role: role, instructions: instructions}, model = aiWso2modelprovider\n);"
       },
       {
         "range": {
