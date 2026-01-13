@@ -617,6 +617,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [readmeContent, setReadmeContent] = useState<string>("");
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
+    const [isLibrary, setIsLibrary] = useState<boolean>(false);
 
     const [enabled, setEnableICP] = useState(false);
     const { data: devantMetadata } = useQuery({
@@ -635,6 +636,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 setIsWorkspace(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
+                    setIsLibrary(project.isLibrary ?? false);
                 }
             });
 
@@ -894,13 +896,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 {isEmptyProject() ? (
                                     <EmptyStateContainer>
                                         <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                            Your integration is empty
+                                            {isLibrary ? "Your library is empty" : "Your integration is empty"}
                                         </Typography>
                                         <Typography
                                             variant="body1"
                                             sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                         >
-                                            Start by adding artifacts or use AI to generate your integration structure
+                                            Start by adding artifacts or use AI to generate your {isLibrary ? "library structure" : "integration structure"}
                                         </Typography>
                                         <ButtonContainer>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
