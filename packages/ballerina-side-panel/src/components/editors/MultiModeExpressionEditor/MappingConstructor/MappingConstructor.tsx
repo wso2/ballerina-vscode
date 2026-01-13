@@ -143,6 +143,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                             onRemove={expressionFieldProps.onRemove}
                             isInExpandedMode={expressionFieldProps.isInExpandedMode}
                             configuration={new ChipExpressionEditorDefaultConfiguration()}
+                            placeholder={expressionFieldProps.field.placeholder}
                         />
                     </S.KeyValueContainer>
                     <S.DeleteButton
