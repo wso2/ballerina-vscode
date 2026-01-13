@@ -462,7 +462,8 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
-        version: params.version
+        version: params.version,
+        isLibrary: params.isLibrary
     };
 
     return createBIProjectPure(projectRequest);

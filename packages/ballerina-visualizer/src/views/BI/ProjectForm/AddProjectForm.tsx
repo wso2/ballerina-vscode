@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
     Button,
     Icon,
@@ -85,6 +85,7 @@ export function AddProjectForm() {
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
@@ -114,6 +115,7 @@ export function AddProjectForm() {
             workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
+            isLibrary: formData.isLibrary,
         });
     };
 
