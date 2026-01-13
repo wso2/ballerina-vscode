@@ -829,13 +829,15 @@ export function PackageOverview(props: PackageOverviewProps) {
                 Configure
             </Button>
             {!isLibrary && (
-                <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                    <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-                </Button>
+                <>
+                    <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="play" sx={{ marginRight: 5 }} /> Run
+                    </Button>
+                    <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+                    </Button>
+                </>
             )}
-            <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
-            </Button>
         </>
     );
 
@@ -904,7 +906,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                             variant="body1"
                                             sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                         >
-                                            Start by adding artifacts or use AI to generate your {isLibrary ? "library structure" : "integration structure"}
+                                            Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
                                         </Typography>
                                         <ButtonContainer>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
