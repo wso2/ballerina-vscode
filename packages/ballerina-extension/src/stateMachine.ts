@@ -671,6 +671,10 @@ const stateMachine = createMachine<MachineContext>(
                 }
 
                 if (selectedEntry && (selectedEntry.location.view === MACHINE_VIEW.ERDiagram || selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner || selectedEntry.location.view === MACHINE_VIEW.BIDiagram || selectedEntry.location.view === MACHINE_VIEW.ReviewMode)) {
+                    if (selectedEntry.location.view === MACHINE_VIEW.ServiceDesigner) {
+                        const updatedView = await getView(selectedEntry.location.documentUri, selectedEntry.location.position, context?.projectPath);
+                        return resolve(updatedView.location);
+                    }
                     return resolve(selectedEntry.location);
                 }
 
