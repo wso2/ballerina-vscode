@@ -58,7 +58,7 @@ export function ComponentListView(props: ComponentListViewProps) {
                 setIsLibrary(project.isLibrary ?? false);
             }
         });
-    }, []);
+    }, [rpcClient, projectPath]);
 
     const getTriggers = () => {
         if (cacheTriggers.local.length > 0) {

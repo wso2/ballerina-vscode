@@ -251,13 +251,13 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
 
     const EMPTY = "\n";
 
+    const libraryLine = projectRequest.isLibrary ? '\nlibrary = true' : '';
     const ballerinaTomlContent = `
 [package]
 org = "${finalOrgName}"
 name = "${finalPackageName}"
 version = "${finalVersion}"
-title = "${integrationName}"${projectRequest.isLibrary ? `
-library = true` : ''}
+title = "${integrationName}"${libraryLine}
 
 [build-options]
 sticky = true
