@@ -26,6 +26,7 @@ import { ExpressionContainer } from "./styles";
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     value,
     onChange,
+    field,
     completions = [],
     fileName,
     targetLineRange,
@@ -59,7 +60,8 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                     isExpandedVersion={true}
                     inputMode={inputMode}
                     configuration={getEditorConfiguration(inputMode)}
-                    />
+                    placeholder={field.placeholder}
+                />
             </ExpressionContainer>
             {error ?
                 <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
