@@ -497,7 +497,9 @@ export const Form = forwardRef((props: FormProps) => {
             formFields.forEach((field) => {
                 // Only set field defaults if no existing value is present
                 if (defaultValues[field.key] === undefined) {
-                    if (isDropdownField(field)) {
+                    if (field.hidden) {
+                        defaultValues[field.key] = field.value;
+                    } else (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG") {
                         defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);

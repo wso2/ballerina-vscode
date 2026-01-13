@@ -368,7 +368,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                 property: type?.properties["name"] ?
                     {
                         ...type.properties["name"],
-                        types: [{fieldType: type.properties["name"].valueType as FormFieldInputType, ballerinaType: "Global", selected: false}]
+                        types: [{fieldType: type.properties["name"].valueType as FormFieldInputType, scope: "Global", selected: false}]
                     } :
                     {
                         metadata: {
@@ -376,7 +376,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
                             description: "",
                         },
                         value: "",
-                        types: [{fieldType: "IDENTIFIER", ballerinaType: "Global", selected: false}],
+                        types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false}],
                         optional: false,
                         editable: true
                     }
