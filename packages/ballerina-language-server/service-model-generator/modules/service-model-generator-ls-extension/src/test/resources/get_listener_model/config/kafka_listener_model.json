@@ -42,7 +42,7 @@
         },
         "bootstrapServers": {
           "metadata": {
-            "label": "bootstrapServers",
+            "label": "Bootstrap Servers",
             "description": "List of remote server endpoints of Kafka brokers"
           },
           "codedata": {
@@ -75,7 +75,7 @@
         },
         "groupId": {
           "metadata": {
-            "label": "groupId",
+            "label": "Group Id",
             "description": "Unique string that identifies the consumer"
           },
           "codedata": {
@@ -103,7 +103,7 @@
         },
         "topics": {
           "metadata": {
-            "label": "topics",
+            "label": "Topics",
             "description": "Topics to be subscribed by the consumer"
           },
           "codedata": {
@@ -136,7 +136,7 @@
         },
         "offsetReset": {
           "metadata": {
-            "label": "offsetReset",
+            "label": "Offset Reset",
             "description": "Offset reset strategy if no initial offset"
           },
           "codedata": {
@@ -178,7 +178,7 @@
         },
         "partitionAssignmentStrategy": {
           "metadata": {
-            "label": "partitionAssignmentStrategy",
+            "label": "Partition Assignment Strategy",
             "description": "Strategy class for handling the partition assignment among consumers"
           },
           "codedata": {
@@ -206,7 +206,7 @@
         },
         "metricsRecordingLevel": {
           "metadata": {
-            "label": "metricsRecordingLevel",
+            "label": "Metrics Recording Level",
             "description": "Metrics recording level"
           },
           "codedata": {
@@ -234,7 +234,7 @@
         },
         "metricsReporterClasses": {
           "metadata": {
-            "label": "metricsReporterClasses",
+            "label": "Metrics Reporter Classes",
             "description": "Metrics reporter classes"
           },
           "codedata": {
@@ -262,7 +262,7 @@
         },
         "clientId": {
           "metadata": {
-            "label": "clientId",
+            "label": "Client Id",
             "description": "Identifier to be used for server side logging"
           },
           "codedata": {
@@ -290,7 +290,7 @@
         },
         "interceptorClasses": {
           "metadata": {
-            "label": "interceptorClasses",
+            "label": "Interceptor Classes",
             "description": "Interceptor classes to be used before sending the records"
           },
           "codedata": {
@@ -318,7 +318,7 @@
         },
         "isolationLevel": {
           "metadata": {
-            "label": "isolationLevel",
+            "label": "Isolation Level",
             "description": "Transactional message reading method"
           },
           "codedata": {
@@ -356,7 +356,7 @@
         },
         "schemaRegistryUrl": {
           "metadata": {
-            "label": "schemaRegistryUrl",
+            "label": "Schema Registry Url",
             "description": "Avro schema registry URL. Use this field to specify the schema registry URL, if the Avro serializer\nis used"
           },
           "codedata": {
@@ -384,7 +384,7 @@
         },
         "schemaRegistryConfig": {
           "metadata": {
-            "label": "schemaRegistryConfig",
+            "label": "Schema Registry Config",
             "description": "Configurations to initialize a schema registry"
           },
           "codedata": {
@@ -412,7 +412,7 @@
         },
         "keyDeserializerType": {
           "metadata": {
-            "label": "keyDeserializerType",
+            "label": "Key Deserializer Type",
             "description": "Key deserialization type"
           },
           "codedata": {
@@ -450,7 +450,7 @@
         },
         "valueDeserializerType": {
           "metadata": {
-            "label": "valueDeserializerType",
+            "label": "Value Deserializer Type",
             "description": "Value deserialization type"
           },
           "codedata": {
@@ -488,7 +488,7 @@
         },
         "additionalProperties": {
           "metadata": {
-            "label": "additionalProperties",
+            "label": "Additional Properties",
             "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use\nthis with caution since this can override any of the fields. It is not recomendded to use\nthis field except in an extreme situation"
           },
           "codedata": {
@@ -516,7 +516,7 @@
         },
         "sessionTimeout": {
           "metadata": {
-            "label": "sessionTimeout",
+            "label": "Session Timeout",
             "description": "Timeout (in seconds) used to detect consumer failures when the heartbeat threshold is reached"
           },
           "codedata": {
@@ -544,7 +544,7 @@
         },
         "heartBeatInterval": {
           "metadata": {
-            "label": "heartBeatInterval",
+            "label": "Heart Beat Interval",
             "description": "Expected time (in seconds) between the heartbeats"
           },
           "codedata": {
@@ -572,7 +572,7 @@
         },
         "metadataMaxAge": {
           "metadata": {
-            "label": "metadataMaxAge",
+            "label": "Metadata Max Age",
             "description": "Maximum time (in seconds) to force a refresh of metadata"
           },
           "codedata": {
@@ -600,7 +600,7 @@
         },
         "autoCommitInterval": {
           "metadata": {
-            "label": "autoCommitInterval",
+            "label": "Auto Commit Interval",
             "description": "Auto committing interval (in seconds) for commit offset when auto-committing is enabled"
           },
           "codedata": {
@@ -628,7 +628,7 @@
         },
         "maxPartitionFetchBytes": {
           "metadata": {
-            "label": "maxPartitionFetchBytes",
+            "label": "Max Partition Fetch Bytes",
             "description": "The maximum amount of data the server returns per partition"
           },
           "codedata": {
@@ -656,7 +656,7 @@
         },
         "sendBuffer": {
           "metadata": {
-            "label": "sendBuffer",
+            "label": "Send Buffer",
             "description": "Size of the TCP send buffer (SO_SNDBUF)"
           },
           "codedata": {
@@ -684,7 +684,7 @@
         },
         "receiveBuffer": {
           "metadata": {
-            "label": "receiveBuffer",
+            "label": "Receive Buffer",
             "description": "Size of the TCP receive buffer (SO_RCVBUF)"
           },
           "codedata": {
@@ -712,7 +712,7 @@
         },
         "fetchMinBytes": {
           "metadata": {
-            "label": "fetchMinBytes",
+            "label": "Fetch Min Bytes",
             "description": "Minimum amount of data the server should return for a fetch request"
           },
           "codedata": {
@@ -740,7 +740,7 @@
         },
         "fetchMaxBytes": {
           "metadata": {
-            "label": "fetchMaxBytes",
+            "label": "Fetch Max Bytes",
             "description": "Maximum amount of data the server should return for a fetch request"
           },
           "codedata": {
@@ -768,7 +768,7 @@
         },
         "fetchMaxWaitTime": {
           "metadata": {
-            "label": "fetchMaxWaitTime",
+            "label": "Fetch Max Wait Time",
             "description": "Maximum amount of time (in seconds) the server will block before answering the fetch request"
           },
           "codedata": {
@@ -796,7 +796,7 @@
         },
         "reconnectBackoffTimeMax": {
           "metadata": {
-            "label": "reconnectBackoffTimeMax",
+            "label": "Reconnect Backoff Time Max",
             "description": "Maximum amount of time in seconds to wait when reconnecting"
           },
           "codedata": {
@@ -824,7 +824,7 @@
         },
         "retryBackoff": {
           "metadata": {
-            "label": "retryBackoff",
+            "label": "Retry Backoff",
             "description": "Time (in seconds) to wait before attempting to retry a failed request"
           },
           "codedata": {
@@ -852,7 +852,7 @@
         },
         "metricsSampleWindow": {
           "metadata": {
-            "label": "metricsSampleWindow",
+            "label": "Metrics Sample Window",
             "description": "Window of time (in seconds) a metrics sample is computed over"
           },
           "codedata": {
@@ -880,7 +880,7 @@
         },
         "metricsNumSamples": {
           "metadata": {
-            "label": "metricsNumSamples",
+            "label": "Metrics Num Samples",
             "description": "Number of samples maintained to compute metrics"
           },
           "codedata": {
@@ -908,7 +908,7 @@
         },
         "requestTimeout": {
           "metadata": {
-            "label": "requestTimeout",
+            "label": "Request Timeout",
             "description": "Wait time (in seconds) for response of a request"
           },
           "codedata": {
@@ -936,7 +936,7 @@
         },
         "connectionMaxIdleTime": {
           "metadata": {
-            "label": "connectionMaxIdleTime",
+            "label": "Connection Max Idle Time",
             "description": "Close idle connections after the number of seconds"
           },
           "codedata": {
@@ -964,7 +964,7 @@
         },
         "maxPollRecords": {
           "metadata": {
-            "label": "maxPollRecords",
+            "label": "Max Poll Records",
             "description": "Maximum number of records returned in a single call to poll"
           },
           "codedata": {
@@ -992,7 +992,7 @@
         },
         "maxPollInterval": {
           "metadata": {
-            "label": "maxPollInterval",
+            "label": "Max Poll Interval",
             "description": "Maximum delay between invocations of poll"
           },
           "codedata": {
@@ -1020,7 +1020,7 @@
         },
         "reconnectBackoffTime": {
           "metadata": {
-            "label": "reconnectBackoffTime",
+            "label": "Reconnect Backoff Time",
             "description": "Time (in seconds) to wait before attempting to reconnect"
           },
           "codedata": {
@@ -1048,7 +1048,7 @@
         },
         "pollingTimeout": {
           "metadata": {
-            "label": "pollingTimeout",
+            "label": "Polling Timeout",
             "description": "Timeout interval for polling in seconds"
           },
           "codedata": {
@@ -1076,7 +1076,7 @@
         },
         "pollingInterval": {
           "metadata": {
-            "label": "pollingInterval",
+            "label": "Polling Interval",
             "description": "Polling interval for the consumer in seconds"
           },
           "codedata": {
@@ -1104,7 +1104,7 @@
         },
         "concurrentConsumers": {
           "metadata": {
-            "label": "concurrentConsumers",
+            "label": "Concurrent Consumers",
             "description": "Number of concurrent consumers"
           },
           "codedata": {
@@ -1132,7 +1132,7 @@
         },
         "defaultApiTimeout": {
           "metadata": {
-            "label": "defaultApiTimeout",
+            "label": "Default Api Timeout",
             "description": "Default API timeout value (in seconds) for APIs with duration"
           },
           "codedata": {
@@ -1160,7 +1160,7 @@
         },
         "autoCommit": {
           "metadata": {
-            "label": "autoCommit",
+            "label": "Auto Commit",
             "description": "Enables auto committing offsets"
           },
           "codedata": {
@@ -1188,7 +1188,7 @@
         },
         "checkCRCS": {
           "metadata": {
-            "label": "checkCRCS",
+            "label": "Check CRCS",
             "description": "Checks the CRC32 of the records consumed. This ensures that no on-the-wire or on-disk corruption occurred\nto the messages. This may add some overhead and might need to be set to `false` if extreme\nperformance is required"
           },
           "codedata": {
@@ -1216,7 +1216,7 @@
         },
         "excludeInternalTopics": {
           "metadata": {
-            "label": "excludeInternalTopics",
+            "label": "Exclude Internal Topics",
             "description": "Whether records from internal topics should be exposed to the consumer"
           },
           "codedata": {
@@ -1244,7 +1244,7 @@
         },
         "decoupleProcessing": {
           "metadata": {
-            "label": "decoupleProcessing",
+            "label": "Decouple Processing",
             "description": "Decouples processing"
           },
           "codedata": {
@@ -1272,7 +1272,7 @@
         },
         "validation": {
           "metadata": {
-            "label": "validation",
+            "label": "Validation",
             "description": "Configuration related to constraint validation check"
           },
           "codedata": {
@@ -1300,7 +1300,7 @@
         },
         "autoSeekOnValidationFailure": {
           "metadata": {
-            "label": "autoSeekOnValidationFailure",
+            "label": "Auto Seek On Validation Failure",
             "description": "Automatically seeks past the errornous records in the event of an data-binding or\nvalidating constraints failure"
           },
           "codedata": {
@@ -1328,7 +1328,7 @@
         },
         "secureSocket": {
           "metadata": {
-            "label": "secureSocket",
+            "label": "Secure Socket",
             "description": "Configurations related to SSL/TLS encryption"
           },
           "codedata": {
@@ -1364,7 +1364,7 @@
         },
         "auth": {
           "metadata": {
-            "label": "auth",
+            "label": "Auth",
             "description": "Authentication-related configurations for the `kafka:Consumer`"
           },
           "codedata": {
@@ -1400,7 +1400,7 @@
         },
         "securityProtocol": {
           "metadata": {
-            "label": "securityProtocol",
+            "label": "Security Protocol",
             "description": "Type of the security protocol to use in the broker connection"
           },
           "codedata": {

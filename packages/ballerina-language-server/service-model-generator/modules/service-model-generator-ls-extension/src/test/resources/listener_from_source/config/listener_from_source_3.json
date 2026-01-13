@@ -54,7 +54,7 @@
         },
         "port": {
           "metadata": {
-            "label": "port",
+            "label": "Port",
             "description": "Listening port of the HTTP service listener"
           },
           "codedata": {
@@ -82,7 +82,7 @@
         },
         "config": {
           "metadata": {
-            "label": "config",
+            "label": "Config",
             "description": "Configurations for the HTTP service listener"
           },
           "codedata": {
