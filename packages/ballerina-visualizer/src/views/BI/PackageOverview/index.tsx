@@ -101,10 +101,10 @@ const HeaderControls = styled.div`
     margin-right: 16px;
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.div<{ fullWidth?: boolean }>`
     padding: 16px;
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: ${(props: { fullWidth?: boolean }) => props.fullWidth ? '1fr' : '3fr 1fr'};
     min-height: 0; // Prevents grid blowout
     overflow: auto;
     max-height: calc(100vh - 90px); // Adjust based on header and any margins
@@ -828,9 +828,11 @@ export function PackageOverview(props: PackageOverviewProps) {
                 />
                 Configure
             </Button>
-            <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                <Codicon name="play" sx={{ marginRight: 5 }} /> Run
-            </Button>
+            {!isLibrary && (
+                <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                    <Codicon name="play" sx={{ marginRight: 5 }} /> Run
+                </Button>
+            )}
             <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
                 <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
             </Button>
@@ -844,7 +846,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 {isWorkspace ? (
                     <TitleBar
                         title={projectName}
-                        subtitle="Integration"
+                        subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
                     />
@@ -860,7 +862,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </HeaderControls>
                     </HeaderRow>
                 )}
-                <MainContent>
+                <MainContent fullWidth={isLibrary}>
                     <LeftContent>
                         <DiagramPanel noPadding={true}>
                             {showAlert && (
@@ -946,30 +948,32 @@ export function PackageOverview(props: PackageOverviewProps) {
                             </ReadmeContent>
                         </FooterPanel>
                     </LeftContent>
-                    <SidePanel>
-                        {!isInDevant &&
-                            <>
-                                <DeploymentOptions
-                                    handleDockerBuild={handleDockerBuild}
-                                    handleJarBuild={handleJarBuild}
+                    {!isLibrary && (
+                        <SidePanel>
+                            {!isInDevant &&
+                                <>
+                                    <DeploymentOptions
+                                        handleDockerBuild={handleDockerBuild}
+                                        handleJarBuild={handleJarBuild}
+                                        handleDeploy={handleDeploy}
+                                        goToDevant={goToDevant}
+                                        devantMetadata={devantMetadata}
+                                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                                    />
+                                    <Divider sx={{ margin: "16px 0" }} />
+                                    <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                </>
+                            }
+                            {isInDevant &&
+                                <DevantDashboard
+                                    projectStructure={projectStructure}
                                     handleDeploy={handleDeploy}
                                     goToDevant={goToDevant}
                                     devantMetadata={devantMetadata}
-                                    hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                                 />
-                                <Divider sx={{ margin: "16px 0" }} />
-                                <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
-                            </>
-                        }
-                        {isInDevant &&
-                            <DevantDashboard
-                                projectStructure={projectStructure}
-                                handleDeploy={handleDeploy}
-                                goToDevant={goToDevant}
-                                devantMetadata={devantMetadata}
-                            />
-                        }
-                    </SidePanel>
+                            }
+                        </SidePanel>
+                    )}
                 </MainContent>
             </PageLayout>
         </>
