@@ -139,7 +139,7 @@ export async function checkCompilationErrors(
             diagnostics: [{
                 message: "Internal error occurred while checking compilation errors."
             }],
-            message: `<CRITICAL_ERROR> Failed to check compilation errors due to an internal error. Avoid try to resolve this with code changes. Acknowledge the failure and stop the generation.
+            message: `<CRITICAL_ERROR> Failed to check compilation errors due to an internal error. Avoid try to resolve this with code changes. Acknowledge the failure, consider the task is done.
 Reason: ${error instanceof Error ? error.message : 'Unknown error'}
 </CRITICAL_ERROR>`,
         };
