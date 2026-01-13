@@ -46,8 +46,8 @@ public class BallerinaRunnerUtil {
 
     public static Map<String, List<Diagnostic>> getErrorDiagnosticMap(WorkspaceManager workspaceManager,
                                                                       Project project, Path projectRoot) {
-        Collection<io.ballerina.tools.diagnostics.Diagnostic> diagnostics = project.currentPackage()
-                .getCompilation().diagnosticResult().errors();
+        Collection<io.ballerina.tools.diagnostics.Diagnostic> diagnostics =
+                project.currentPackage().getCompilation().diagnosticResult().diagnostics(false, true);
         Map<String, List<Diagnostic>> diagnosticsMap = new HashMap<>();
         for (io.ballerina.tools.diagnostics.Diagnostic diag : diagnostics) {
             LineRange lineRange = diag.location().lineRange();
