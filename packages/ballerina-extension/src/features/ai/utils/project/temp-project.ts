@@ -137,16 +137,28 @@ export async function getTempProject(ctx: ExecutionContext): Promise<TempProject
 
 /**
  * Cleans up a temporary project directory
+ * Sends didClose notifications to Language Server for both file:// and ai:// schemas
+ * before deleting files to prevent orphaned LS references
  *
  * @param tempPath Path to the temporary project to delete
  */
-export function cleanupTempProject(tempPath: string): void {
-    if (fs.existsSync(tempPath)) {
-        try {
-            fs.rmSync(tempPath, { recursive: true, force: true });
-        } catch (error) {
-            console.error(`Failed to cleanup temp project at ${tempPath}:`, error);
+export async function cleanupTempProject(tempPath: string): Promise<void> {
+    if (!fs.existsSync(tempPath)) {
+        return;
+    }
+
+    try {
+        // Find all .bal files and send didClose notifications
+        const balFiles = findAllBalFiles(tempPath);
+        if (balFiles.length > 0) {
+            sendAgentDidCloseBatch(tempPath, balFiles); // Handles both file:// and ai:// schemas
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for LS to process
         }
+
+        // Delete temp directory
+        fs.rmSync(tempPath, { recursive: true, force: true });
+    } catch (error) {
+        console.error(`Failed to cleanup temp project at ${tempPath}:`, error);
     }
 }
 

@@ -33,9 +33,8 @@ import {
     ProgressRingWrapper
 } from "./styles";
 import { Button, Codicon, ProgressRing } from "@wso2/ui-toolkit";
-import {  ClauseEditor } from "./ClauseEditor";
+import {  ClauseEditor, clauseTypeLabels } from "./ClauseEditor";
 import { DMFormProps, IntermediateClause, IntermediateClauseType, LinePosition } from "@wso2/ballerina-core";
-import { set } from "lodash";
 
 export interface ClauseItemProps {
     index: number;
@@ -71,7 +70,9 @@ export function ClauseItem(props: ClauseItemProps) {
         onAdd(clause, index);
     }
 
-    const label = 
+    const clauseTypeLabel = clauseTypeLabels[clauseType];
+
+    const expressionLabel = 
         clauseType === IntermediateClauseType.LET ? `${clauseProps.type} ${clauseProps.name} = ${clauseProps.expression}` : 
         clauseType === IntermediateClauseType.ORDER_BY ? `${clauseProps.expression} ${clauseProps.order}` :
         clauseProps.expression;
@@ -82,9 +83,9 @@ export function ClauseItem(props: ClauseItemProps) {
                 <ContentWrapper onClick={() => setEditing(index)}>
                     <IconTextWrapper>
                         <IconWrapper> <Codicon name="filter-filled" /> </IconWrapper>
-                        <TypeWrapper title={clauseType}> {clauseType} </TypeWrapper>
+                        <TypeWrapper title={clauseTypeLabel}> {clauseTypeLabel} </TypeWrapper>
                     </IconTextWrapper>
-                    <ValueTextWrapper title={label}> {label} </ValueTextWrapper>
+                    <ValueTextWrapper title={expressionLabel}> {expressionLabel} </ValueTextWrapper>
                 </ContentWrapper>
                 <ActionWrapper>
                     <ActionIconWrapper>
