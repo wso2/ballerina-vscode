@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { S } from '../styles';
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
