@@ -61,11 +61,12 @@ const getNextId = (items: any[]): number => {
 
 export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
     //used this to manually trigger rerenders when value prop changes
-    const [_ , setManualRerenderTrigger] = useState(true);
+    const [_, setManualRerenderTrigger] = useState(true);
     const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
     const internalValueRef = useRef<any[]>([]);
 
     useEffect(() => {
+        if (JSON.stringify(toOutputFormat(internalValueRef.current)) === JSON.stringify(value)) return;
         internalValueRef.current = transformExternalValueToInternal(value);
         setManualRerenderTrigger(prev => !prev);
     }, [value]);
@@ -74,26 +75,30 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
         const updatedValue = [...internalValueRef.current, newPair];
         setHasUntouchedPairs(true);
+        internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleDeletePair = (id: number) => {
         const updatedValue = internalValueRef.current.filter(pair => pair.id !== id);
+        internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleKeyChange = (id: number, newKey: string) => {
-        const updatedValue = internalValueRef.current.map(pair => 
+        const updatedValue = internalValueRef.current.map(pair =>
             pair.id === id ? { ...pair, key: newKey } : pair
         );
         setHasUntouchedPairs(newKey === "");
+        internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleValueChange = (id: number, newValue: string) => {
-        const updatedValue = internalValueRef.current.map(pair => 
+        const updatedValue = internalValueRef.current.map(pair =>
             pair.id === id ? { ...pair, value: newValue } : pair
         );
+        internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
 
@@ -145,7 +150,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                 appearance="secondary"
                 disabled={hasUntouchedPairs}
             >
-                <Codicon name="add" sx={{marginRight: "5px"}}/>
+                <Codicon name="add" sx={{ marginRight: "5px" }} />
                 Add Item
             </S.AddButton>
         </S.Container>
