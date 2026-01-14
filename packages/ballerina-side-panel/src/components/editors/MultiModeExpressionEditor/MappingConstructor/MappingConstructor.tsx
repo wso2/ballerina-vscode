@@ -140,12 +140,10 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
             ))}
             <Button
                 onClick={handleAddPair}
-                appearance="icon"
+                appearance="secondary"
             >
-                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
-                    <Codicon name="add" />
-                    Add Item
-                </div>
+                <Codicon name="add" sx={{marginRight: "5px"}}/>
+                Add Item
             </Button>
         </S.Container>
     );
