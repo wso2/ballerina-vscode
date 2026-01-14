@@ -661,6 +661,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
             ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, version);
             Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
 
+            moduleName = moduleNamePart != null ? moduleNamePart : EMPTY_STRING;
             List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, packageAndOrgName,
                     moduleName, false, semanticModel.orElse(null));
             if (!variables.isEmpty()) {
