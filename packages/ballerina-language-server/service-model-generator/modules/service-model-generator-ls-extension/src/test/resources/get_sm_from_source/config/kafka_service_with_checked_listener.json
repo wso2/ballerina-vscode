@@ -76,7 +76,10 @@
           {
             "fieldType": "SINGLE_SELECT_LISTENER",
             "options": [
-              "kafkaListener"
+              {
+                "label": "kafkaListener",
+                "value": "kafkaListener"
+              }
             ],
             "selected": true
           }
@@ -100,8 +103,14 @@
           {
             "fieldType": "SINGLE_SELECT",
             "options": [
-              "",
-              "Service"
+              {
+                "label": "",
+                "value": ""
+              },
+              {
+                "label": "Service",
+                "value": "Service"
+              }
             ],
             "selected": true
           }

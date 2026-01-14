@@ -22,8 +22,34 @@
         "label": "auth",
         "description": "Configurations related to client authentication"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+      "types": [
+        {
+          "fieldType": "RECORD_MAP_EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "typeMembers": [
+            {
+              "type": "BearerTokenConfig",
+              "packageInfo": "ballerina:http:2.10.11",
+              "packageName": "http",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            },
+            {
+              "type": "OAuth2RefreshTokenGrantConfig",
+              "packageInfo": "ballerinax:docusign.dsadmin:2.0.0",
+              "packageName": "docusign.dsadmin",
+              "kind": "RECORD_TYPE",
+              "selected": false
+            }
+          ],
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "http:BearerTokenConfig|dsadmin:OAuth2RefreshTokenGrantConfig",
+          "selected": false
+        }
+      ],
       "placeholder": "{token: \"\"}",
       "optional": false,
       "editable": true,

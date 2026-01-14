@@ -49,13 +49,14 @@ public abstract class DiagnosticsRequest extends DebouncedExpressionEditorReques
             throw new IllegalArgumentException("Property cannot be null");
         }
 
-        return switch (Property.ValueType.valueOf(property.valueType())) {
+        Property.ValueType fieldType = property.propertyType().fieldType();
+        return switch (fieldType) {
             case EXPRESSION -> new ExpressionDiagnosticsRequest(context);
             case LV_EXPRESSION -> new LvExpressionDiagnosticRequest(context);
             case ACTION_OR_EXPRESSION -> new ActionOrExpressionDiagnosticsRequest(context);
             case IDENTIFIER -> new IdentifierDiagnosticsRequest(context);
             case TYPE, ACTION_TYPE -> new TypeDiagnosticRequest(context);
-            default -> throw new IllegalArgumentException("Unsupported property type: " + property.valueType());
+            default -> throw new IllegalArgumentException("Unsupported property type: " + fieldType);
         };
     }
 

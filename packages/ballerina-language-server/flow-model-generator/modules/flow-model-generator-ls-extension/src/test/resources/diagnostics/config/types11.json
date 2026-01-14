@@ -28,9 +28,13 @@
         "label": "Type",
         "description": "Type of the variable"
       },
-      "valueType": "TYPE",
       "value": "",
-      "valueTypeConstraint": "MyError|MyRecord",
+      "types": [
+        {
+          "fieldType": "TYPE",
+          "ballerinaType": "MyError|MyRecord"
+        }
+      ],
       "placeholder": "var",
       "optional": false,
       "editable": true,

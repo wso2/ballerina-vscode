@@ -29,8 +29,13 @@
         "label": "Variable",
         "description": "Name of the variable/field"
       },
-      "valueType": "DATA_MAPPING_EXPRESSION",
-      "valueTypeConstraint": "int",
+      "types": [
+        {
+          "fieldType": "DATA_MAPPING_EXPRESSION",
+          "ballerinaType": "int",
+          "selected": true
+        }
+      ],
       "placeholder": "0",
       "optional": false,
       "editable": true,

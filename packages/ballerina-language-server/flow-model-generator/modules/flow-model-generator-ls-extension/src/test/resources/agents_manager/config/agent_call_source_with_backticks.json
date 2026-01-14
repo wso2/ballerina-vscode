@@ -5,7 +5,7 @@
     "id": "31",
     "metadata": {
       "label": "run",
-      "description": "Executes the agent for a given user query.\n",
+      "description": "Executes the agent for a given user query.",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
     },
     "codedata": {
@@ -177,7 +177,7 @@
           "description": "Define the agent's primary function"
         },
         "valueType": "STRING",
-        "value": "```Role Prompt Inside Backticks```",
+        "value": "string ````Role Prompt Inside Backticks````",
         "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
         "optional": true,
         "editable": true,
@@ -194,7 +194,7 @@
           "description": "Detailed instructions for the agent"
         },
         "valueType": "STRING",
-        "value": "```Instructions Prompt Inside Backticks```",
+        "value": "string ````Instructions Prompt Inside Backticks````",
         "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
         "optional": true,
         "editable": true,

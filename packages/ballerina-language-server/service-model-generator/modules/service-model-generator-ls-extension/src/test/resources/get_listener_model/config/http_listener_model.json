@@ -1,21 +1,24 @@
 {
   "description": "Test getting http listener model",
-  "orgName": "ballerina",
-  "pkgName": "http",
-  "moduleName": "http",
+  "codedata": {
+    "orgName": "ballerina",
+    "packageName": "http",
+    "moduleName": "http",
+    "version": "2.15.3"
+  },
+  "filePath": "sample1/main.bal",
   "response": {
     "listener": {
-      "id": "1",
       "name": "Http Listener",
       "type": "http",
       "displayName": "Http",
-      "description": "This is used for creating HTTP server endpoints. An HTTP server endpoint is capable of responding to\nremote callers. The `Listener` is responsible for initializing the endpoint using the provided configurations.",
+      "description": "Gets invoked during module initialization to initialize the listener.\n",
       "moduleName": "http",
       "orgName": "ballerina",
-      "version": "2.14.0",
+      "version": "2.15.3",
       "packageName": "http",
       "listenerProtocol": "http",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.3.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -25,9 +28,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -35,7 +42,7 @@
         },
         "port": {
           "metadata": {
-            "label": "port",
+            "label": "Port",
             "description": "Listening port of the HTTP service listener"
           },
           "codedata": {
@@ -43,14 +50,16 @@
             "originalName": "port"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -61,22 +70,24 @@
         },
         "host": {
           "metadata": {
-            "label": "host",
+            "label": "Host",
             "description": "The host name/IP of the endpoint"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "host"
           },
-          "placeholder": "\"0.0.0.0\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
+          "placeholder": "\"\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -87,7 +98,7 @@
         },
         "http1Settings": {
           "metadata": {
-            "label": "http1Settings",
+            "label": "Http1 Settings",
             "description": "Configurations related to HTTP/1.x protocol"
           },
           "codedata": {
@@ -95,14 +106,24 @@
             "originalName": "http1Settings"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerHttp1Settings",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "ListenerHttp1Settings",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerHttp1Settings",
+              "typeMembers": [
+                {
+                  "type": "ListenerHttp1Settings",
+                  "packageInfo": "ballerina:http:2.15.3",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerHttp1Settings",
               "selected": false
             }
           ],
@@ -113,7 +134,7 @@
         },
         "secureSocket": {
           "metadata": {
-            "label": "secureSocket",
+            "label": "Secure Socket",
             "description": "The SSL configurations for the service endpoint. This needs to be configured in order to\ncommunicate through HTTPS."
           },
           "codedata": {
@@ -121,20 +142,24 @@
             "originalName": "secureSocket"
           },
           "placeholder": "()",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ListenerSecureSocket|()",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ListenerSecureSocket",
+              "typeMembers": [
+                {
+                  "type": "ListenerSecureSocket",
+                  "packageInfo": "ballerina:http:2.15.3",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
             },
             {
-              "type": "ListenerSecureSocket",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ListenerSecureSocket?",
               "selected": false
             }
           ],
@@ -145,22 +170,38 @@
         },
         "httpVersion": {
           "metadata": {
-            "label": "httpVersion",
+            "label": "Http Version",
             "description": "Highest HTTP version supported by the endpoint"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "httpVersion"
           },
-          "placeholder": "http:HTTP_2_0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:HttpVersion",
+          "placeholder": "\"2.0\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "HttpVersion",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "http:HttpVersion",
+              "options": [
+                {
+                  "label": "2.0",
+                  "value": "\"2.0\""
+                },
+                {
+                  "label": "1.1",
+                  "value": "\"1.1\""
+                },
+                {
+                  "label": "1.0",
+                  "value": "\"1.0\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:HttpVersion",
               "selected": false
             }
           ],
@@ -171,22 +212,24 @@
         },
         "timeout": {
           "metadata": {
-            "label": "timeout",
+            "label": "Timeout",
             "description": "Period of time in seconds that a connection waits for a read/write operation. Use value 0 to\ndisable timeout"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "timeout"
           },
-          "placeholder": "http:DEFAULT_LISTENER_TIMEOUT",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "placeholder": "0.0d",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -197,7 +240,7 @@
         },
         "server": {
           "metadata": {
-            "label": "server",
+            "label": "Server",
             "description": "The server name which should appear as a response header"
           },
           "codedata": {
@@ -205,20 +248,16 @@
             "originalName": "server"
           },
           "placeholder": "()",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|()",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "()",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
-              "selected": false
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string?",
               "selected": false
             }
           ],
@@ -229,7 +268,7 @@
         },
         "requestLimits": {
           "metadata": {
-            "label": "requestLimits",
+            "label": "Request Limits",
             "description": "Configurations associated with inbound request size limits"
           },
           "codedata": {
@@ -237,14 +276,24 @@
             "originalName": "requestLimits"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:RequestLimitConfigs",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "RequestLimitConfigs",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:RequestLimitConfigs",
+              "typeMembers": [
+                {
+                  "type": "RequestLimitConfigs",
+                  "packageInfo": "ballerina:http:2.15.3",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:RequestLimitConfigs",
               "selected": false
             }
           ],
@@ -255,22 +304,24 @@
         },
         "gracefulStopTimeout": {
           "metadata": {
-            "label": "gracefulStopTimeout",
+            "label": "Graceful Stop Timeout",
             "description": "Grace period of time in seconds for listener gracefulStop"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "gracefulStopTimeout"
           },
-          "placeholder": "http:DEFAULT_GRACEFULSTOP_TIMEOUT",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "placeholder": "0.0d",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -281,7 +332,7 @@
         },
         "socketConfig": {
           "metadata": {
-            "label": "socketConfig",
+            "label": "Socket Config",
             "description": "Provides settings related to server socket configuration"
           },
           "codedata": {
@@ -289,14 +340,24 @@
             "originalName": "socketConfig"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "http:ServerSocketConfig",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "ServerSocketConfig",
-              "packageInfo": "ballerina:http:2.14.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "http:ServerSocketConfig",
+              "typeMembers": [
+                {
+                  "type": "ServerSocketConfig",
+                  "packageInfo": "ballerina:http:2.15.3",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "http:ServerSocketConfig",
               "selected": false
             }
           ],
@@ -307,22 +368,24 @@
         },
         "http2InitialWindowSize": {
           "metadata": {
-            "label": "http2InitialWindowSize",
+            "label": "Http2 Initial Window Size",
             "description": "Configuration to change the initial window size in HTTP/2"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "http2InitialWindowSize"
           },
-          "placeholder": "65535",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
+          "placeholder": "0",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -333,22 +396,24 @@
         },
         "minIdleTimeInStaleState": {
           "metadata": {
-            "label": "minIdleTimeInStaleState",
+            "label": "Min Idle Time In Stale State",
             "description": "Minimum time in seconds for a connection to be kept open which has received a GOAWAY.\nThis only applies for HTTP/2. Default value is 5 minutes. If the value is set to -1,\nthe connection will be closed after all in-flight streams are completed"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "minIdleTimeInStaleState"
           },
-          "placeholder": "300",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "placeholder": "0.0d",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -359,22 +424,24 @@
         },
         "timeBetweenStaleEviction": {
           "metadata": {
-            "label": "timeBetweenStaleEviction",
+            "label": "Time Between Stale Eviction",
             "description": "Time between the connection stale eviction runs in seconds. This only applies for HTTP/2.\nDefault value is 30 seconds"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "timeBetweenStaleEviction"
           },
-          "placeholder": "30",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
+          "placeholder": "0.0d",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],

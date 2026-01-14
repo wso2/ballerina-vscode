@@ -21,8 +21,34 @@
         "label": "httpVersion",
         "description": ""
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "\"2.0\"|\"1.1\"|\"1.0\"",
+      "types": [
+        {
+          "fieldType": "SINGLE_SELECT",
+          "options": [
+            {
+              "label": "2.0",
+              "value": "\"2.0\""
+            },
+            {
+              "label": "1.1",
+              "value": "\"1.1\""
+            },
+            {
+              "label": "1.0",
+              "value": "\"1.0\""
+            }
+          ],
+          "selected": false
+        },
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "\"2.0\"|\"1.1\"|\"1.0\"",
+          "selected": true
+        }
+      ],
+      "imports": {
+        "http": "ballerina/http:2.14.0"
+      },
       "placeholder": "\"2.0\"",
       "optional": true,
       "editable": true,

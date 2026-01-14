@@ -30,6 +30,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.FunctionBuilderRoute
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.MetaData;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
@@ -47,10 +48,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.BiFunction;
 
-import static io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel.KEY_EXISTING_LISTENER;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_INCLUDED_FIELD;
 
 /**
@@ -60,9 +59,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
  */
 public final class JmsUtil {
 
-    private static final String EXISTING_LISTENER_CHOICE_DESCRIPTION = "Select from the existing %s listeners";
     private static final String VALUE_TYPE_STRING = "string";
-    private static final String CREATE_NEW_LISTENER_CHOICE_DESCRIPTION = "Create a new %s listener";
     private static final String CALLER_PARAM_DESCRIPTION = "%s caller object for message acknowledgment";
     public static final String CALLER_PARAM_NAME = "caller";
 
@@ -71,60 +68,6 @@ public final class JmsUtil {
     public static final String ON_MESSAGE_FUNCTION_NAME = "onMessage";
     private static final String LABEL_SESSION_ACK_MODE = "Session Acknowledgment Mode";
     private static final String DESC_SESSION_ACK_MODE = "How messages received should be acknowledged.";
-
-    private static Value buildUseExistingListenerChoice(Set<String> listeners, String moduleName) {
-        Map<String, Value> existingListenerProps = new LinkedHashMap<>();
-        List<String> items = listeners.stream().toList();
-        List<Object> itemsAsObject = listeners.stream().map(item -> (Object) item).toList();
-        Value existingListenerOptions = new Value.ValueBuilder()
-                .metadata("Select Listener", String.format(EXISTING_LISTENER_CHOICE_DESCRIPTION, moduleName))
-                .value(items.getFirst())
-                .types(List.of(PropertyType.types(Value.FieldType.SINGLE_SELECT, itemsAsObject)))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(false)
-                .build();
-        existingListenerProps.put(KEY_EXISTING_LISTENER, existingListenerOptions);
-
-        return new Value.ValueBuilder()
-                .metadata("Use Existing Listener", "Use Existing Listener")
-                .value("true")
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(false).
-                editable(false)
-                .setAdvanced(false)
-                .setProperties(existingListenerProps)
-                .build();
-    }
-
-    private static Value buildCreateNewListenerChoice(Map<String, Value> existingListenerProps, String moduleName) {
-        return new Value.ValueBuilder()
-                .metadata("Create New Listener", String.format(CREATE_NEW_LISTENER_CHOICE_DESCRIPTION, moduleName))
-                .value("true")
-                .types(List.of(PropertyType.types(Value.FieldType.FORM)))
-                .enabled(false)
-                .editable(false)
-                .setAdvanced(false)
-                .setProperties(existingListenerProps)
-                .build();
-    }
-
-    public static Value buildListenerChoice(Map<String, Value> existingListenerProps, Set<String> listeners,
-                                            String moduleName) {
-        Value choicesProperty = new Value.ValueBuilder()
-                .metadata("Use Existing Listener", "Use Existing Listener or Create New Listener")
-                .value(true)
-                .types(List.of(PropertyType.types(Value.FieldType.CHOICE)))
-                .enabled(true)
-                .editable(true)
-                .setAdvanced(true)
-                .build();
-
-        choicesProperty.setChoices(List.of(buildUseExistingListenerChoice(listeners, moduleName),
-                buildCreateNewListenerChoice(existingListenerProps, moduleName)));
-        return choicesProperty;
-
-    }
 
     public static void addCallerParameter(Function onMessageFunction, String callerTypeStr, String moduleName) {
         Value callerType = new Value.ValueBuilder()
@@ -160,11 +103,15 @@ public final class JmsUtil {
      * @return Value configured for session ack mode selection.
      */
     public static Value buildSessionAckModeProperty() {
-        List<Object> ackModeOptions = List.of(
-                AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
-                AcknowledgmentMode.SESSION_TRANSACTED.getValue()
+        List<Option> ackModeOptions = List.of(
+                new Option(AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.AUTO_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.CLIENT_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue(),
+                        AcknowledgmentMode.DUPS_OK_ACKNOWLEDGE.getValue()),
+                new Option(AcknowledgmentMode.SESSION_TRANSACTED.getValue(),
+                        AcknowledgmentMode.SESSION_TRANSACTED.getValue())
         );
 
         return new Value.ValueBuilder()

@@ -48,6 +48,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.ServiceBuilderRouter
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.Listener;
+import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceClass;
 import io.ballerina.servicemodelgenerator.extension.model.TriggerBasicInfo;
@@ -217,13 +218,26 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
      * @param request Listener model request
      * @return {@link ListenerModelResponse} of the listener model response
      */
-    @Deprecated
     @JsonRequest
     public CompletableFuture<ListenerModelResponse> getListenerModel(ListenerModelRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return ListenerUtil.getListenerModelByName(request.orgName(),
-                                request.moduleName()).map(ListenerModelResponse::new)
+                Path filePath = Path.of(request.filePath());
+
+                this.workspaceManager.loadProject(filePath);
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                Optional<Document> documentOpt = this.workspaceManager.document(filePath);
+
+                if (documentOpt.isEmpty() || semanticModel.isEmpty()) {
+                    throw new RuntimeException("Unable to load the document or semantic model for the " +
+                            "provided file path: " + filePath);
+                }
+
+                Document document = documentOpt.get();
+                ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
+
+                return ListenerUtil.getListenerModelByName(request.codedata(), semanticModel.get(), moduleInfo)
+                        .map(ListenerModelResponse::new)
                         .orElseGet(ListenerModelResponse::new);
             } catch (Throwable e) {
                 return new ListenerModelResponse(e);
@@ -347,8 +361,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 }
                 Set<String> listenersList = ListenerUtil.getCompatibleListeners(request.moduleName(), semanticModel,
                         project);
-                serviceModel.getListener().getTypes().getFirst().options()
-                        .addAll(listenersList.stream().map(l -> (Object) l).toList());
+                serviceModel.getListener().getTypes().getFirst().options().addAll(Option.of(listenersList));
                 return new ServiceModelResponse(serviceModel);
             } catch (Throwable e) {
                 return new ServiceModelResponse(e);

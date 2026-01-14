@@ -107,7 +107,7 @@ public class ServiceClassUtil {
 
         builder.name(classDef.className().text().trim())
                 .type(getClassType(classDef))
-                .documentation(addServiceClassDoc(classDef))
+                .documentation(addServiceClassDoc(classDef, context))
                 .properties(Map.of("name", buildClassNameProperty(classDef.className().text().trim(),
                         classDef.className().lineRange(), context)))
                 .codedata(new Codedata(classDef.lineRange()))
@@ -365,8 +365,8 @@ public class ServiceClassUtil {
         edits.add(new TextEdit(Utils.toRange(range), docEdit));
     }
 
-    public static Value addServiceClassDoc(ClassDefinitionNode classDef) {
-        Value serviceClassDoc = getServiceDocumentation();
+    public static Value addServiceClassDoc(ClassDefinitionNode classDef, ServiceClassContext context) {
+        Value serviceClassDoc = getServiceDocumentation(context);
         Optional<MetadataNode> metadata = classDef.metadata();
         if (metadata.isEmpty()) {
             return serviceClassDoc;

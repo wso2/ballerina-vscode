@@ -17,7 +17,7 @@
     "documentation": {
       "metadata": {
         "label": "Description",
-        "description": "The description of the class"
+        "description": "The description of the object"
       },
       "codedata": {
         "type": "DOCUMENTATION"

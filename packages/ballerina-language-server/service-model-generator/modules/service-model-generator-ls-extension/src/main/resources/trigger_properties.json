@@ -117,5 +117,15 @@
       "event"
     ],
     "triggerName": "Solace"
+  },
+  "12": {
+    "name": "mssql",
+    "orgName": "ballerinax",
+    "packageName": "mssql",
+    "keywords": [
+      "mssql",
+      "cdc",
+      "event"
+    ]
   }
 }

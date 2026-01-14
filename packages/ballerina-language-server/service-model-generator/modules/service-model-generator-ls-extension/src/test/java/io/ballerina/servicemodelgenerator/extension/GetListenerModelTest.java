@@ -21,6 +21,7 @@ package io.ballerina.servicemodelgenerator.extension;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.ballerina.modelgenerator.commons.AbstractLSTest;
+import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.request.ListenerModelRequest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -35,7 +36,6 @@ import java.nio.file.Path;
  *
  * @since 1.0.0
  */
-@Deprecated
 public class GetListenerModelTest extends AbstractLSTest {
 
     @Override
@@ -47,15 +47,15 @@ public class GetListenerModelTest extends AbstractLSTest {
                 GetListenerModelTest.TestConfig.class);
         bufferedReader.close();
 
-        ListenerModelRequest request = new ListenerModelRequest(testConfig.orgName(), testConfig.pkgName(),
-                testConfig.moduleName());
+        String sourcePath = sourceDir.resolve(testConfig.filePath()).toAbsolutePath().toString();
+        ListenerModelRequest request = new ListenerModelRequest(testConfig.codedata(), sourcePath);
         JsonObject jsonMap = getResponse(request);
 
         boolean assertTrue = testConfig.response().getAsJsonObject().equals(jsonMap);
         if (!assertTrue) {
             GetListenerModelTest.TestConfig updatedConfig =
-                    new GetListenerModelTest.TestConfig(testConfig.description(), testConfig.orgName(),
-                            testConfig.pkgName(), testConfig.moduleName(), jsonMap);
+                    new GetListenerModelTest.TestConfig(testConfig.description(), testConfig.codedata(),
+                            testConfig.filePath(), jsonMap);
 //            updateConfig(configJsonPath, updatedConfig);
             Assert.fail(String.format("Failed test: '%s' (%s)", testConfig.description(), configJsonPath));
         }
@@ -86,13 +86,12 @@ public class GetListenerModelTest extends AbstractLSTest {
      * Represents the test configuration.
      *
      * @param description description of the test
-     * @param orgName     organization name
-     * @param pkgName     package name
-     * @param moduleName  module name
+     * @param codedata    codedata for the test
+     * @param filePath    file path of the test
      * @param response    expected response
      * @since 1.0.0
      */
-    private record TestConfig(String description, String orgName, String pkgName, String moduleName,
+    private record TestConfig(String description, Codedata codedata, String filePath,
                               JsonElement response) {
         public String description() {
             return description == null ? "" : description;

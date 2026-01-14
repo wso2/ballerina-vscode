@@ -1178,7 +1178,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .value(value)
                 .type()
                     .fieldType(Property.ValueType.SINGLE_SELECT)
-                    .options(List.of("service", "client"))
+                    .options(Option.of(List.of("service", "client")))
                     .selected(true)
                     .stepOut();
         addProperty(Property.NETWORK_QUALIFIER_KEY);
@@ -1202,7 +1202,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
     }
 
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
-                                    List<String> options) {
+                                    List<Option> options) {
         propertyBuilder.typeWithOptions(valueType, options);
         return parameter(type, name, token);
     }

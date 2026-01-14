@@ -1,0 +1,915 @@
+{
+  "id": "0",
+  "name": "FTP Integration",
+  "description": "Implement an FTP service to handle file events from a remote server",
+  "orgName": "ballerina",
+  "packageName": "ftp",
+  "moduleName": "ftp",
+  "version": "2.15.1",
+  "type": "ftp",
+  "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+  "properties": {
+    "listener": {
+      "metadata": {
+        "label": "Listeners",
+        "description": ""
+      },
+      "codedata": {
+        "type": "LISTENER"
+      },
+      "enabled": true,
+      "editable": false,
+      "value": "",
+      "values": [],
+      "types": [
+        {
+          "fieldType": "MULTIPLE_SELECT_LISTENER",
+          "selected": true,
+          "options": []
+        }
+      ],
+      "valueTypeConstraint": "ftp:Listener",
+      "isType": false,
+      "placeholder": "",
+      "optional": false,
+      "advanced": false,
+      "addNewButton": true
+    }
+  },
+  "functions": [
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "CSV",
+          "description": "CSV file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileCsv",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "stream": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "CSV file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string[][]",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string[]",
+            "isType": true,
+            "placeholder": "string[][]",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:FileInfo",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "ftp:FileInfo",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "ftp:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "JSON",
+          "description": "JSON file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileJson",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "json",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Parsed JSON file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "json",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "json",
+            "isType": true,
+            "placeholder": "json",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "XML",
+          "description": "XML file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileXml",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "xml",
+        "isType": false,
+        "placeholder": "xml",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "canDataBind": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Parsed XML file content"
+          },
+          "kind": "DATA_BINDING",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "xml",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "xml",
+            "isType": true,
+            "placeholder": "xml",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:FileInfo",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "ftp:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "CHECKBOX",
+            "valueTypeConstraint": "ftp:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "TEXT",
+          "description": "Text file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileText",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Text file content"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onCreate",
+        "description": "onCreate Category"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "RAW",
+          "description": "Raw file creation handler"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFile",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "properties": {
+        "stream": {
+          "value": "true",
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        }
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "Content",
+            "description": "Raw file content as byte array"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "byte[]",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "byte[]",
+            "isType": true,
+            "placeholder": "byte[]",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "content",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "File Metadata (fileInfo)",
+            "description": "Additional file properties"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:FileInfo",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "ftp:FileInfo",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "fileInfo",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "ftp:Caller",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    },
+    {
+      "metadata": {
+        "label": "onDelete",
+        "description": "Handle file deletion on remote server"
+      },
+      "kind": "REMOTE",
+      "enabled": false,
+      "optional": true,
+      "editable": true,
+      "codedata": {
+        "moduleName": "ftp"
+      },
+      "name": {
+        "metadata": {
+          "label": "onFileDelete",
+          "description": "Handle file deletion events"
+        },
+        "enabled": true,
+        "editable": false,
+        "value": "onFileDelete",
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "",
+        "isType": false,
+        "placeholder": "",
+        "optional": false,
+        "advanced": false
+      },
+      "parameters": [
+        {
+          "metadata": {
+            "label": "deleteFiles",
+            "description": "The FTP Payload"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "string",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "string",
+            "isType": true,
+            "placeholder": "string",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "deleteFiles",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        {
+          "metadata": {
+            "label": "FTP Connection (caller)",
+            "description": "FTP connection for further operations"
+          },
+          "kind": "REQUIRED",
+          "type": {
+            "enabled": true,
+            "editable": false,
+            "value": "ftp:Caller",
+            "valueType": "TYPE",
+            "valueTypeConstraint": "",
+            "isType": true,
+            "placeholder": "",
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "enabled": true,
+            "editable": true,
+            "value": "caller",
+            "valueType": "IDENTIFIER",
+            "valueTypeConstraint": "string",
+            "isType": false,
+            "placeholder": "request",
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": true
+        }
+      ],
+      "returnType": {
+        "metadata": {
+          "label": "Return type",
+          "description": "Return type of the function"
+        },
+        "enabled": true,
+        "editable": true,
+        "value": "error?",
+        "valueType": "TYPE",
+        "valueTypeConstraint": "anydata",
+        "isType": true,
+        "placeholder": "json",
+        "optional": true,
+        "advanced": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "source": "variable9.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable9.bal",
+      "startLine": {
+        "line": 25,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 26,
+        "offset": 2
+      }
+    },
+    "sourceCode": ""
+  },
+  "mapping": {
+    "output": "transform1.courses",
+    "expression": "person.personalDetails.courseDetails"
+  },
+  "propertyKey": "expression",
+  "targetField": "transform1",
+  "clauseType": "select",
+  "output": {
+    "variable9.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 26,
+            "character": 0
+          },
+          "end": {
+            "line": 26,
+            "character": 0
+          }
+        },
+        "newText": "courses: from var courseDetailsItem in person.personalDetails.courseDetails select {id: \"\", name: \"\", credits: 0.0}"
+      }
+    ]
+  }
+}

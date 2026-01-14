@@ -38,10 +38,12 @@ import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -87,6 +89,8 @@ public class AgentCallBuilder extends CallBuilder {
     public static final String INSTRUCTIONS_DOC = "Detailed instructions for the agent";
     public static final String INSTRUCTIONS_PLACEHOLDER = "e.g., You are a friendly assistant. Your goal is to...";
 
+    public static final String DESCRIPTION = "Executes the agent for a given user query.";
+
     static final Set<String> AGENT_PARAMS_TO_HIDE =
             Set.of(SYSTEM_PROMPT, TOOLS, MEMORY, MODEL, Property.TYPE_KEY, Property.VARIABLE_KEY);
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
@@ -107,6 +111,7 @@ public class AgentCallBuilder extends CallBuilder {
     @Override
     public void setConcreteConstData() {
         codedata().node(NodeKind.AGENT_CALL);
+        metadata().description(DESCRIPTION);
     }
 
     @Override
@@ -114,33 +119,75 @@ public class AgentCallBuilder extends CallBuilder {
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
         super.setConcreteTemplateData(context);
+        // TODO: This is a temporary solution until we have a proper plan for handling all generic types.
+        makeInferredTypePropertyOptional();
+        overrideVariableName(context);
+    }
+
+    private void makeInferredTypePropertyOptional() {
+        if (formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = formBuilder.build();
+        for (Map.Entry<String, Property> entry : props.entrySet()) {
+            Property prop = entry.getValue();
+            if (prop.codedata() != null &&
+                    ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(prop.codedata().kind())) {
+                props.put(entry.getKey(), AiUtils.copyAsOptionalAdvanced(prop));
+            }
+        }
+    }
+
+    private void overrideVariableName(TemplateContext context) {
+        if (formBuilder == null) {
+            return;
+        }
+        Map<String, Property> props = formBuilder.build();
+        Property variableProp = props.get(Property.VARIABLE_KEY);
+        if (variableProp == null) {
+            return;
+        }
+        String uniqueVarName = NameUtil.generateVariableName("string", context.getAllVisibleSymbolNames());
+        props.put(Property.VARIABLE_KEY, AiUtils.createUpdatedProperty(variableProp, uniqueVarName));
     }
 
     public static void setAgentProperties(NodeBuilder nodeBuilder, TemplateContext context,
-                                          Map<String, String> propertyValues) {
+                                          Map<String, AiUtils.AgentPropertyValue> propertyValues) {
         FlowNode agentNodeTemplate = getOrCreateAgentTemplate(context);
         agentNodeTemplate.properties().forEach((key, property) -> {
             String value = (propertyValues != null && propertyValues.containsKey(key))
-                    ? propertyValues.get(key)
+                    ? propertyValues.get(key).value()
                     : null;
             boolean isHidden = AGENT_PARAMS_TO_HIDE.contains(key);
             AiUtils.addPropertyFromTemplate(nodeBuilder, key, property, value, isHidden);
         });
     }
 
-    public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder, Map<String, String> propertyValues) {
-        String roleValue = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
-                propertyValues.get(ROLE) : "";
-        String instructionsValue = (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
-                propertyValues.get(INSTRUCTIONS) : "";
+    public static void setAdditionalAgentProperties(NodeBuilder nodeBuilder,
+                                                    Map<String, AiUtils.AgentPropertyValue> propertyValues) {
+        AiUtils.AgentPropertyValue roleProperty = (propertyValues != null && propertyValues.containsKey(ROLE)) ?
+                propertyValues.get(ROLE) : null;
+        AiUtils.AgentPropertyValue instructionsProperty =
+                (propertyValues != null && propertyValues.containsKey(INSTRUCTIONS)) ?
+                        propertyValues.get(INSTRUCTIONS) : null;
+
+        String roleValue = roleProperty != null ? roleProperty.value() : "";
+        String instructionsValue = instructionsProperty != null ? instructionsProperty.value() : "";
 
         // Restore backticks for UI display (in case values contain ${"`"} from templates)
         roleValue = AiUtils.restoreBackticksFromStringTemplate(roleValue);
         instructionsValue = AiUtils.restoreBackticksFromStringTemplate(instructionsValue);
 
-        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue);
+        // Default to PROMPT when no property value is provided (new/empty values)
+        Property.ValueType roleSelectedType = roleProperty != null ?
+                roleProperty.selectedType() : Property.ValueType.PROMPT;
+        Property.ValueType instructionsSelectedType = instructionsProperty != null ?
+                instructionsProperty.selectedType() : Property.ValueType.PROMPT;
+
+        AiUtils.addStringProperty(nodeBuilder, ROLE, ROLE_LABEL, ROLE_DOC, ROLE_PLACEHOLDER, roleValue,
+                roleSelectedType);
         AiUtils.addStringProperty(nodeBuilder, INSTRUCTIONS, INSTRUCTIONS_LABEL, INSTRUCTIONS_DOC,
-                INSTRUCTIONS_PLACEHOLDER, instructionsValue);
+                INSTRUCTIONS_PLACEHOLDER, instructionsValue, instructionsSelectedType);
     }
 
     private static FlowNode getOrCreateAgentTemplate(TemplateContext context) {
@@ -153,9 +200,43 @@ public class AgentCallBuilder extends CallBuilder {
         );
     }
 
+    private void newVariableWithInferredTypeAndDefault(SourceBuilder sourceBuilder) {
+        FlowNode flowNode = sourceBuilder.flowNode;
+        Optional<Property> optionalType = sourceBuilder.getProperty(Property.TYPE_KEY);
+        Optional<Property> variable = sourceBuilder.getProperty(Property.VARIABLE_KEY);
+
+        if (optionalType.isEmpty() || variable.isEmpty()) {
+            return;
+        }
+
+        Property type = optionalType.get();
+        String typeName = type.value().toString();
+
+        if (flowNode.codedata().inferredReturnType() != null) {
+            Optional<Property> inferredParam = flowNode.properties().values().stream()
+                    .filter(property -> property.codedata() != null && property.codedata().kind() != null &&
+                            property.codedata().kind().equals(ParameterData.Kind.PARAM_FOR_TYPE_INFER.name()))
+                    .findFirst();
+            if (inferredParam.isPresent()) {
+                String returnType = flowNode.codedata().inferredReturnType();
+                Object inferredValue = inferredParam.get().value();
+                // Default to "string" when the inferred type value is null or empty
+                String inferredType = (inferredValue != null && !inferredValue.toString().isEmpty())
+                        ? inferredValue.toString()
+                        : "string";
+                String inferredTypeDef = inferredParam.get()
+                        .codedata().originalName();
+                typeName = returnType.replace(inferredTypeDef, inferredType);
+            }
+        }
+
+        sourceBuilder.token().expressionWithType(typeName, variable.get()).keyword(SyntaxKind.EQUAL_TOKEN);
+    }
+
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        sourceBuilder.newVariable();
+        // Use custom variable declaration with inferred type handling and default to "string"
+        newVariableWithInferredTypeAndDefault(sourceBuilder);
 
         FlowNode agentCallNode = sourceBuilder.flowNode;
         Path projectRoot = sourceBuilder.workspaceManager.projectRoot(sourceBuilder.filePath);
@@ -331,7 +412,7 @@ public class AgentCallBuilder extends CallBuilder {
         String escapedInstructions = AiUtils.replaceBackticksForStringTemplate(instructions);
 
         String systemPromptValue =
-                "{role: string `" + escapedRole + "`, instructions: string `" + escapedInstructions + "`}";
+                "{role: " + escapedRole + ", instructions: " + escapedInstructions + "}";
 
         Property updatedProperty = AiUtils.createUpdatedProperty(systemPrompt, systemPromptValue);
         agentNode.properties().put(SYSTEM_PROMPT, updatedProperty);

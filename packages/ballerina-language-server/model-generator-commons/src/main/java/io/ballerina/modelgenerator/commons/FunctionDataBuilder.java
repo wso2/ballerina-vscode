@@ -98,6 +98,7 @@ import java.util.stream.Stream;
 
 import static io.ballerina.modelgenerator.commons.FunctionData.Kind.isAiClassKind;
 import static io.ballerina.modelgenerator.commons.FunctionData.Kind.isConnector;
+import static io.ballerina.modelgenerator.commons.FunctionData.Kind.isListener;
 
 /**
  * Factory class to create {@link FunctionData} instances from function symbols.
@@ -369,6 +370,22 @@ public class FunctionDataBuilder {
                         throw new IllegalStateException("The init method should not be empty");
                     }
                     // Fetch the init method if it is a class related to AI
+                    functionSymbol = initMethod.get();
+                } else if (isListener(functionKind)) {
+                    ClassSymbol classSymbol = (ClassSymbol) parentSymbol;
+                    Optional<MethodSymbol> initMethod = classSymbol.initMethod();
+
+                    // If the init method is not found, create the function data without parameters
+                    if (initMethod.isEmpty()) {
+                        String clientName = getFunctionName();
+                        FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
+                                getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
+                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                false, false, null);
+                        functionData.setParameters(Map.of());
+                        return functionData;
+                    }
+                    // Fetch the init method if it is a connector or a model provider or an embedding provider
                     functionSymbol = initMethod.get();
                 } else if (isConnector(functionKind)) {
                     if ((parentSymbol.kind() != SymbolKind.CLASS ||

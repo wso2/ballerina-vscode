@@ -102,15 +102,15 @@ public class TypeDiagnosticRequest extends DiagnosticsRequest {
         }
 
         // Check if the type is a subtype of the type constraint
-        String typeConstraint = context.getProperty().valueTypeConstraint();
-        if (typeConstraint == null) {
+        String ballerinaType = context.getProperty().propertyType().ballerinaType();
+        if (ballerinaType == null) {
             return diagnostics;
         }
         Optional<TypeSymbol> typeConstraintTypeSymbol =
-                BallerinaCompilerApi.getInstance().getType(types, document.get(), typeConstraint);
+                BallerinaCompilerApi.getInstance().getType(types, document.get(), ballerinaType);
         if (typeConstraintTypeSymbol.isPresent()) {
             if (!typeSymbol.get().subtypeOf(typeConstraintTypeSymbol.get())) {
-                String message = String.format(INVALID_SUBTYPE, typeConstraint, inputExpression);
+                String message = String.format(INVALID_SUBTYPE, ballerinaType, inputExpression);
                 diagnostics.add(CommonUtils.createDiagnostic(message, context.getExpressionLineRange(),
                         "", DiagnosticSeverity.ERROR));
             }

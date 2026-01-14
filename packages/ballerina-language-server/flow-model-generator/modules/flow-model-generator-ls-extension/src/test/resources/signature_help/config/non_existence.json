@@ -3,7 +3,14 @@
   "filePath": "proj",
   "context": {
     "expression": "io:println(1);",
-    "offset": 12
+    "offset": 12,
+    "property": {
+      "types": [
+        {
+          "fieldType": "EXPRESSION"
+        }
+      ]
+    }
   },
   "signatureHelpContext": {
     "triggerKind": "Invoked",

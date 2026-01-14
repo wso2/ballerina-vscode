@@ -29,7 +29,11 @@
         "label": "Expression",
         "description": "Initialize with value"
       },
-      "valueType": "ACTION_OR_EXPRESSION",
+      "types": [
+        {
+          "fieldType": "ACTION_OR_EXPRESSION"
+        }
+      ],
       "value": "string `\n\nUser log: ${req.id}\n${req.message}\n`",
       "optional": true,
       "editable": true,

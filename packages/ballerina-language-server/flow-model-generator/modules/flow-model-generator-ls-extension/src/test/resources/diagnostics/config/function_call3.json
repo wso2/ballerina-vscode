@@ -16,8 +16,13 @@
       "metadata": {
         "label": "rec"
       },
-      "valueType": "EXPRESSION",
-      "valueTypeConstraint": "MyRecord",
+      "types": [
+        {
+          "fieldType": "EXPRESSION",
+          "ballerinaType": "MyRecord",
+          "selected": true
+        }
+      ],
       "value": "{id: 0}",
       "placeholder": "{id: 0}",
       "optional": false,

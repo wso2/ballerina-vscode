@@ -21,7 +21,7 @@
             "label": "Use Existing Listener",
             "description": "Use Existing Listener or Create New Listener"
           },
-          "value": true,
+          "value": "",
           "choices": [
             {
               "metadata": {
@@ -40,8 +40,14 @@
                     {
                       "fieldType": "SINGLE_SELECT",
                       "options": [
-                        "orderListener",
-                        "deliveryListener"
+                        {
+                          "label": "orderListener",
+                          "value": "orderListener"
+                        },
+                        {
+                          "label": "deliveryListener",
+                          "value": "deliveryListener"
+                        }
                       ],
                       "selected": true
                     }
@@ -58,7 +64,7 @@
                   "selected": true
                 }
               ],
-              "enabled": false,
+              "enabled": true,
               "editable": false,
               "optional": false,
               "advanced": false

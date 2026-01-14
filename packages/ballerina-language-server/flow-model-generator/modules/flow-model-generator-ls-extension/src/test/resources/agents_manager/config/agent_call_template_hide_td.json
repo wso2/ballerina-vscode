@@ -1,0 +1,484 @@
+{
+  "source": "agent_1/agents.bal",
+  "position": {
+    "line": 0,
+    "offset": 0
+  },
+  "description": "",
+  "codedata": {
+    "node": "AGENT_CALL",
+    "org": "ballerina",
+    "module": "ai",
+    "packageName": "ai",
+    "object": "Agent",
+    "symbol": "run",
+    "version": "1.9.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "run",
+      "description": "Executes the agent for a given user query.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
+    },
+    "codedata": {
+      "node": "AGENT_CALL",
+      "org": "ballerina",
+      "module": "ai",
+      "packageName": "ai",
+      "object": "Agent",
+      "symbol": "run",
+      "version": "1.9.0",
+      "isNew": true,
+      "inferredReturnType": "td"
+    },
+    "returning": false,
+    "properties": {
+      "systemPrompt": {
+        "metadata": {
+          "label": "System Prompt",
+          "description": "The system prompt assigned to the agent"
+        },
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "ai:SystemPrompt",
+            "typeMembers": [
+              {
+                "type": "SystemPrompt",
+                "packageInfo": "ballerina:ai:1.9.0",
+                "packageName": "ai",
+                "kind": "RECORD_TYPE",
+                "selected": false
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:SystemPrompt",
+            "selected": false
+          }
+        ],
+        "placeholder": "{role: \"\", instructions: \"\"}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "{role: \"\", instructions: \"\"}"
+      },
+      "model": {
+        "metadata": {
+          "label": "Model",
+          "description": "The model used by the agent"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ModelProvider",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "object {}"
+      },
+      "tools": {
+        "metadata": {
+          "label": "Tools",
+          "description": "The tools available for the agent"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION_SET",
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "[]"
+      },
+      "maxIter": {
+        "metadata": {
+          "label": "Maximum Iterations",
+          "description": "The maximum number of iterations the agent performs to complete the task.\nBy default, it is set to the number of tools + 1."
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "int",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "\"INFER_TOOL_COUNT\"|int",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"INFER_TOOL_COUNT\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "\"INFER_TOOL_COUNT\""
+      },
+      "verbose": {
+        "metadata": {
+          "label": "Verbose",
+          "description": "Specifies whether verbose logging is enabled"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "ballerinaType": "boolean",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "boolean",
+            "selected": false
+          }
+        ],
+        "placeholder": "false",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "false"
+      },
+      "memory": {
+        "metadata": {
+          "label": "Memory",
+          "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Memory?",
+            "selected": false
+          }
+        ],
+        "placeholder": "()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "()"
+      },
+      "toolLoadingStrategy": {
+        "metadata": {
+          "label": "Tool Loading Strategy",
+          "description": "Defines the strategies for loading tool schemas into an Agent. \nBy default, all tools are loaded without any filtering."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "LLM_FILTER",
+                "value": "\"LLM_FILTER\""
+              },
+              {
+                "label": "NO_FILTER",
+                "value": "\"NO_FILTER\""
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ToolLoadingStrategy",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"LLM_FILTER\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "\"LLM_FILTER\""
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "td",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {}
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "stringResult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "scope": {
+        "metadata": {
+          "label": "Connection Scope",
+          "description": "Scope of the connection, Global or Local"
+        },
+        "types": [
+          {
+            "fieldType": "ENUM",
+            "selected": true
+          }
+        ],
+        "value": "Global",
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "codedata": {
+          "kind": ""
+        }
+      },
+      "role": {
+        "metadata": {
+          "label": "Role",
+          "description": "Define the agent's primary function"
+        },
+        "types": [
+          {
+            "fieldType": "PROMPT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "placeholder": "e.g., Customer Support Assistant, Sales Advisor, Data Analyst",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "defaultValue": ""
+      },
+      "instructions": {
+        "metadata": {
+          "label": "Instructions",
+          "description": "Detailed instructions for the agent"
+        },
+        "types": [
+          {
+            "fieldType": "PROMPT",
+            "ballerinaType": "string",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "placeholder": "e.g., You are a friendly assistant. Your goal is to...",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED"
+        },
+        "defaultValue": ""
+      },
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Agent",
+            "selected": false
+          }
+        ],
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "query": {
+        "metadata": {
+          "label": "Query",
+          "description": "The natural language input provided to the agent"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "query"
+        }
+      },
+      "sessionId": {
+        "metadata": {
+          "label": "Session ID",
+          "description": "The ID associated with the agent memory"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "ballerinaType": "string",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "string",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "sessionId"
+        },
+        "defaultValue": "\"\""
+      },
+      "context": {
+        "metadata": {
+          "label": "Context",
+          "description": "The additional context that can be used during agent tool execution"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Context",
+            "selected": false
+          }
+        ],
+        "placeholder": "new ()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "context"
+        },
+        "defaultValue": "new ()"
+      },
+      "td": {
+        "metadata": {
+          "label": "Td",
+          "description": "Type descriptor specifying the expected return type format"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "ai:Trace|string",
+            "selected": false
+          }
+        ],
+        "placeholder": "ai:Trace|string",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "td"
+        },
+        "defaultValue": "ai:Trace|string"
+      }
+    },
+    "flags": 0
+  }
+}

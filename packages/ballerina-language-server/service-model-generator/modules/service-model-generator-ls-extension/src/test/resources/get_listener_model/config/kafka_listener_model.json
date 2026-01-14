@@ -1,21 +1,24 @@
 {
   "description": "Test getting kafka listener model",
-  "orgName": "ballerinax",
-  "pkgName": "kafka",
-  "moduleName": "kafka",
+  "codedata": {
+    "orgName": "ballerinax",
+    "packageName": "kafka",
+    "moduleName": "kafka",
+    "version": "4.6.0"
+  },
+  "filePath": "sample1/main.bal",
   "response": {
     "listener": {
-      "id": "11",
       "name": "Kafka Listener",
       "type": "kafka",
       "displayName": "Kafka",
-      "description": "Represents a Kafka consumer endpoint.\n",
+      "description": "Creates a new `kafka:Listener`.\n",
       "moduleName": "kafka",
       "orgName": "ballerinax",
-      "version": "4.5.0",
+      "version": "4.6.0",
       "packageName": "kafka",
       "listenerProtocol": "kafka",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.5.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.0.png",
       "properties": {
         "variableNameKey": {
           "metadata": {
@@ -25,9 +28,13 @@
           "codedata": {
             "type": "LISTENER_VAR_NAME"
           },
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "Global",
           "value": "",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
           "enabled": true,
           "editable": true,
           "optional": false,
@@ -35,7 +42,7 @@
         },
         "bootstrapServers": {
           "metadata": {
-            "label": "bootstrapServers",
+            "label": "Bootstrap Servers",
             "description": "List of remote server endpoints of Kafka brokers"
           },
           "codedata": {
@@ -43,20 +50,21 @@
             "originalName": "bootstrapServers"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "ARRAY_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
               "selected": false
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
               "selected": false
             }
           ],
@@ -67,7 +75,7 @@
         },
         "groupId": {
           "metadata": {
-            "label": "groupId",
+            "label": "Group Id",
             "description": "Unique string that identifies the consumer"
           },
           "codedata": {
@@ -75,14 +83,16 @@
             "originalName": "groupId"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -93,7 +103,7 @@
         },
         "topics": {
           "metadata": {
-            "label": "topics",
+            "label": "Topics",
             "description": "Topics to be subscribed by the consumer"
           },
           "codedata": {
@@ -101,20 +111,21 @@
             "originalName": "topics"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string|string[]",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "ARRAY_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION_SET",
+              "ballerinaType": "string[]",
               "selected": false
             },
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string|string[]",
               "selected": false
             }
           ],
@@ -125,7 +136,7 @@
         },
         "offsetReset": {
           "metadata": {
-            "label": "offsetReset",
+            "label": "Offset Reset",
             "description": "Offset reset strategy if no initial offset"
           },
           "codedata": {
@@ -133,14 +144,30 @@
             "originalName": "offsetReset"
           },
           "placeholder": "\"earliest\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:OffsetResetMethod",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "OffsetResetMethod",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:OffsetResetMethod",
+              "options": [
+                {
+                  "label": "earliest",
+                  "value": "\"earliest\""
+                },
+                {
+                  "label": "latest",
+                  "value": "\"latest\""
+                },
+                {
+                  "label": "none",
+                  "value": "\"none\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:OffsetResetMethod",
               "selected": false
             }
           ],
@@ -151,7 +178,7 @@
         },
         "partitionAssignmentStrategy": {
           "metadata": {
-            "label": "partitionAssignmentStrategy",
+            "label": "Partition Assignment Strategy",
             "description": "Strategy class for handling the partition assignment among consumers"
           },
           "codedata": {
@@ -159,14 +186,16 @@
             "originalName": "partitionAssignmentStrategy"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -177,7 +206,7 @@
         },
         "metricsRecordingLevel": {
           "metadata": {
-            "label": "metricsRecordingLevel",
+            "label": "Metrics Recording Level",
             "description": "Metrics recording level"
           },
           "codedata": {
@@ -185,14 +214,16 @@
             "originalName": "metricsRecordingLevel"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -203,7 +234,7 @@
         },
         "metricsReporterClasses": {
           "metadata": {
-            "label": "metricsReporterClasses",
+            "label": "Metrics Reporter Classes",
             "description": "Metrics reporter classes"
           },
           "codedata": {
@@ -211,14 +242,16 @@
             "originalName": "metricsReporterClasses"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -229,7 +262,7 @@
         },
         "clientId": {
           "metadata": {
-            "label": "clientId",
+            "label": "Client Id",
             "description": "Identifier to be used for server side logging"
           },
           "codedata": {
@@ -237,14 +270,16 @@
             "originalName": "clientId"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -255,7 +290,7 @@
         },
         "interceptorClasses": {
           "metadata": {
-            "label": "interceptorClasses",
+            "label": "Interceptor Classes",
             "description": "Interceptor classes to be used before sending the records"
           },
           "codedata": {
@@ -263,14 +298,16 @@
             "originalName": "interceptorClasses"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -281,7 +318,7 @@
         },
         "isolationLevel": {
           "metadata": {
-            "label": "isolationLevel",
+            "label": "Isolation Level",
             "description": "Transactional message reading method"
           },
           "codedata": {
@@ -289,14 +326,26 @@
             "originalName": "isolationLevel"
           },
           "placeholder": "\"read_committed\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:IsolationLevel",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "IsolationLevel",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:IsolationLevel",
+              "options": [
+                {
+                  "label": "read_committed",
+                  "value": "\"read_committed\""
+                },
+                {
+                  "label": "read_uncommitted",
+                  "value": "\"read_uncommitted\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:IsolationLevel",
               "selected": false
             }
           ],
@@ -307,7 +356,7 @@
         },
         "schemaRegistryUrl": {
           "metadata": {
-            "label": "schemaRegistryUrl",
+            "label": "Schema Registry Url",
             "description": "Avro schema registry URL. Use this field to specify the schema registry URL, if the Avro serializer\nis used"
           },
           "codedata": {
@@ -315,14 +364,16 @@
             "originalName": "schemaRegistryUrl"
           },
           "placeholder": "\"\"",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "string",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "TEXT",
+              "ballerinaType": "string",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "string",
               "selected": false
             }
           ],
@@ -333,7 +384,7 @@
         },
         "schemaRegistryConfig": {
           "metadata": {
-            "label": "schemaRegistryConfig",
+            "label": "Schema Registry Config",
             "description": "Configurations to initialize a schema registry"
           },
           "codedata": {
@@ -341,14 +392,16 @@
             "originalName": "schemaRegistryConfig"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "map<anydata> & readonly",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "map<anydata> & readonly",
-              "packageInfo": "",
-              "kind": "MAP_TYPE",
+              "fieldType": "MAPPING_EXPRESSION_SET",
+              "ballerinaType": "map<anydata> & readonly",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "map<anydata> & readonly",
               "selected": false
             }
           ],
@@ -359,22 +412,34 @@
         },
         "keyDeserializerType": {
           "metadata": {
-            "label": "keyDeserializerType",
+            "label": "Key Deserializer Type",
             "description": "Key deserialization type"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "keyDeserializerType"
           },
-          "placeholder": "kafka:DES_BYTE_ARRAY",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:DeserializerType",
+          "placeholder": "\"DES_AVRO\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "DeserializerType",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:DeserializerType",
+              "options": [
+                {
+                  "label": "DES_AVRO",
+                  "value": "\"DES_AVRO\""
+                },
+                {
+                  "label": "DES_BYTE_ARRAY",
+                  "value": "\"DES_BYTE_ARRAY\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:DeserializerType",
               "selected": false
             }
           ],
@@ -385,22 +450,34 @@
         },
         "valueDeserializerType": {
           "metadata": {
-            "label": "valueDeserializerType",
+            "label": "Value Deserializer Type",
             "description": "Value deserialization type"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "valueDeserializerType"
           },
-          "placeholder": "kafka:DES_BYTE_ARRAY",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:DeserializerType",
+          "placeholder": "\"DES_AVRO\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "DeserializerType",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:DeserializerType",
+              "options": [
+                {
+                  "label": "DES_AVRO",
+                  "value": "\"DES_AVRO\""
+                },
+                {
+                  "label": "DES_BYTE_ARRAY",
+                  "value": "\"DES_BYTE_ARRAY\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:DeserializerType",
               "selected": false
             }
           ],
@@ -411,7 +488,7 @@
         },
         "additionalProperties": {
           "metadata": {
-            "label": "additionalProperties",
+            "label": "Additional Properties",
             "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use\nthis with caution since this can override any of the fields. It is not recomendded to use\nthis field except in an extreme situation"
           },
           "codedata": {
@@ -419,14 +496,16 @@
             "originalName": "additionalProperties"
           },
           "placeholder": "{}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "map<string>",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "map<string>",
-              "packageInfo": "",
-              "kind": "MAP_TYPE",
+              "fieldType": "MAPPING_EXPRESSION_SET",
+              "ballerinaType": "map<string>",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "map<string>",
               "selected": false
             }
           ],
@@ -437,7 +516,7 @@
         },
         "sessionTimeout": {
           "metadata": {
-            "label": "sessionTimeout",
+            "label": "Session Timeout",
             "description": "Timeout (in seconds) used to detect consumer failures when the heartbeat threshold is reached"
           },
           "codedata": {
@@ -445,14 +524,16 @@
             "originalName": "sessionTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -463,7 +544,7 @@
         },
         "heartBeatInterval": {
           "metadata": {
-            "label": "heartBeatInterval",
+            "label": "Heart Beat Interval",
             "description": "Expected time (in seconds) between the heartbeats"
           },
           "codedata": {
@@ -471,14 +552,16 @@
             "originalName": "heartBeatInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -489,7 +572,7 @@
         },
         "metadataMaxAge": {
           "metadata": {
-            "label": "metadataMaxAge",
+            "label": "Metadata Max Age",
             "description": "Maximum time (in seconds) to force a refresh of metadata"
           },
           "codedata": {
@@ -497,14 +580,16 @@
             "originalName": "metadataMaxAge"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -515,7 +600,7 @@
         },
         "autoCommitInterval": {
           "metadata": {
-            "label": "autoCommitInterval",
+            "label": "Auto Commit Interval",
             "description": "Auto committing interval (in seconds) for commit offset when auto-committing is enabled"
           },
           "codedata": {
@@ -523,14 +608,16 @@
             "originalName": "autoCommitInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -541,7 +628,7 @@
         },
         "maxPartitionFetchBytes": {
           "metadata": {
-            "label": "maxPartitionFetchBytes",
+            "label": "Max Partition Fetch Bytes",
             "description": "The maximum amount of data the server returns per partition"
           },
           "codedata": {
@@ -549,14 +636,16 @@
             "originalName": "maxPartitionFetchBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -567,7 +656,7 @@
         },
         "sendBuffer": {
           "metadata": {
-            "label": "sendBuffer",
+            "label": "Send Buffer",
             "description": "Size of the TCP send buffer (SO_SNDBUF)"
           },
           "codedata": {
@@ -575,14 +664,16 @@
             "originalName": "sendBuffer"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -593,7 +684,7 @@
         },
         "receiveBuffer": {
           "metadata": {
-            "label": "receiveBuffer",
+            "label": "Receive Buffer",
             "description": "Size of the TCP receive buffer (SO_RCVBUF)"
           },
           "codedata": {
@@ -601,14 +692,16 @@
             "originalName": "receiveBuffer"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -619,7 +712,7 @@
         },
         "fetchMinBytes": {
           "metadata": {
-            "label": "fetchMinBytes",
+            "label": "Fetch Min Bytes",
             "description": "Minimum amount of data the server should return for a fetch request"
           },
           "codedata": {
@@ -627,14 +720,16 @@
             "originalName": "fetchMinBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -645,7 +740,7 @@
         },
         "fetchMaxBytes": {
           "metadata": {
-            "label": "fetchMaxBytes",
+            "label": "Fetch Max Bytes",
             "description": "Maximum amount of data the server should return for a fetch request"
           },
           "codedata": {
@@ -653,14 +748,16 @@
             "originalName": "fetchMaxBytes"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -671,7 +768,7 @@
         },
         "fetchMaxWaitTime": {
           "metadata": {
-            "label": "fetchMaxWaitTime",
+            "label": "Fetch Max Wait Time",
             "description": "Maximum amount of time (in seconds) the server will block before answering the fetch request"
           },
           "codedata": {
@@ -679,14 +776,16 @@
             "originalName": "fetchMaxWaitTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -697,7 +796,7 @@
         },
         "reconnectBackoffTimeMax": {
           "metadata": {
-            "label": "reconnectBackoffTimeMax",
+            "label": "Reconnect Backoff Time Max",
             "description": "Maximum amount of time in seconds to wait when reconnecting"
           },
           "codedata": {
@@ -705,14 +804,16 @@
             "originalName": "reconnectBackoffTimeMax"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -723,7 +824,7 @@
         },
         "retryBackoff": {
           "metadata": {
-            "label": "retryBackoff",
+            "label": "Retry Backoff",
             "description": "Time (in seconds) to wait before attempting to retry a failed request"
           },
           "codedata": {
@@ -731,14 +832,16 @@
             "originalName": "retryBackoff"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -749,7 +852,7 @@
         },
         "metricsSampleWindow": {
           "metadata": {
-            "label": "metricsSampleWindow",
+            "label": "Metrics Sample Window",
             "description": "Window of time (in seconds) a metrics sample is computed over"
           },
           "codedata": {
@@ -757,14 +860,16 @@
             "originalName": "metricsSampleWindow"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -775,7 +880,7 @@
         },
         "metricsNumSamples": {
           "metadata": {
-            "label": "metricsNumSamples",
+            "label": "Metrics Num Samples",
             "description": "Number of samples maintained to compute metrics"
           },
           "codedata": {
@@ -783,14 +888,16 @@
             "originalName": "metricsNumSamples"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -801,7 +908,7 @@
         },
         "requestTimeout": {
           "metadata": {
-            "label": "requestTimeout",
+            "label": "Request Timeout",
             "description": "Wait time (in seconds) for response of a request"
           },
           "codedata": {
@@ -809,14 +916,16 @@
             "originalName": "requestTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -827,7 +936,7 @@
         },
         "connectionMaxIdleTime": {
           "metadata": {
-            "label": "connectionMaxIdleTime",
+            "label": "Connection Max Idle Time",
             "description": "Close idle connections after the number of seconds"
           },
           "codedata": {
@@ -835,14 +944,16 @@
             "originalName": "connectionMaxIdleTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -853,7 +964,7 @@
         },
         "maxPollRecords": {
           "metadata": {
-            "label": "maxPollRecords",
+            "label": "Max Poll Records",
             "description": "Maximum number of records returned in a single call to poll"
           },
           "codedata": {
@@ -861,14 +972,16 @@
             "originalName": "maxPollRecords"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -879,7 +992,7 @@
         },
         "maxPollInterval": {
           "metadata": {
-            "label": "maxPollInterval",
+            "label": "Max Poll Interval",
             "description": "Maximum delay between invocations of poll"
           },
           "codedata": {
@@ -887,14 +1000,16 @@
             "originalName": "maxPollInterval"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -905,7 +1020,7 @@
         },
         "reconnectBackoffTime": {
           "metadata": {
-            "label": "reconnectBackoffTime",
+            "label": "Reconnect Backoff Time",
             "description": "Time (in seconds) to wait before attempting to reconnect"
           },
           "codedata": {
@@ -913,14 +1028,16 @@
             "originalName": "reconnectBackoffTime"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -931,7 +1048,7 @@
         },
         "pollingTimeout": {
           "metadata": {
-            "label": "pollingTimeout",
+            "label": "Polling Timeout",
             "description": "Timeout interval for polling in seconds"
           },
           "codedata": {
@@ -939,14 +1056,16 @@
             "originalName": "pollingTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -957,7 +1076,7 @@
         },
         "pollingInterval": {
           "metadata": {
-            "label": "pollingInterval",
+            "label": "Polling Interval",
             "description": "Polling interval for the consumer in seconds"
           },
           "codedata": {
@@ -965,14 +1084,16 @@
             "originalName": "pollingInterval"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -983,7 +1104,7 @@
         },
         "concurrentConsumers": {
           "metadata": {
-            "label": "concurrentConsumers",
+            "label": "Concurrent Consumers",
             "description": "Number of concurrent consumers"
           },
           "codedata": {
@@ -991,14 +1112,16 @@
             "originalName": "concurrentConsumers"
           },
           "placeholder": "0",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "int",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "int",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "int",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "int",
               "selected": false
             }
           ],
@@ -1009,7 +1132,7 @@
         },
         "defaultApiTimeout": {
           "metadata": {
-            "label": "defaultApiTimeout",
+            "label": "Default Api Timeout",
             "description": "Default API timeout value (in seconds) for APIs with duration"
           },
           "codedata": {
@@ -1017,14 +1140,16 @@
             "originalName": "defaultApiTimeout"
           },
           "placeholder": "0.0d",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "decimal",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "decimal",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "NUMBER",
+              "ballerinaType": "decimal",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "decimal",
               "selected": false
             }
           ],
@@ -1035,22 +1160,24 @@
         },
         "autoCommit": {
           "metadata": {
-            "label": "autoCommit",
+            "label": "Auto Commit",
             "description": "Enables auto committing offsets"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "autoCommit"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1061,22 +1188,24 @@
         },
         "checkCRCS": {
           "metadata": {
-            "label": "checkCRCS",
+            "label": "Check CRCS",
             "description": "Checks the CRC32 of the records consumed. This ensures that no on-the-wire or on-disk corruption occurred\nto the messages. This may add some overhead and might need to be set to `false` if extreme\nperformance is required"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "checkCRCS"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1087,22 +1216,24 @@
         },
         "excludeInternalTopics": {
           "metadata": {
-            "label": "excludeInternalTopics",
+            "label": "Exclude Internal Topics",
             "description": "Whether records from internal topics should be exposed to the consumer"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "excludeInternalTopics"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1113,7 +1244,7 @@
         },
         "decoupleProcessing": {
           "metadata": {
-            "label": "decoupleProcessing",
+            "label": "Decouple Processing",
             "description": "Decouples processing"
           },
           "codedata": {
@@ -1121,14 +1252,16 @@
             "originalName": "decoupleProcessing"
           },
           "placeholder": "false",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1139,22 +1272,24 @@
         },
         "validation": {
           "metadata": {
-            "label": "validation",
+            "label": "Validation",
             "description": "Configuration related to constraint validation check"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "validation"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1165,22 +1300,24 @@
         },
         "autoSeekOnValidationFailure": {
           "metadata": {
-            "label": "autoSeekOnValidationFailure",
+            "label": "Auto Seek On Validation Failure",
             "description": "Automatically seeks past the errornous records in the event of an data-binding or\nvalidating constraints failure"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "autoSeekOnValidationFailure"
           },
-          "placeholder": "true",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "boolean",
+          "placeholder": "false",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "boolean",
-              "packageInfo": "",
-              "kind": "BASIC_TYPE",
+              "fieldType": "FLAG",
+              "ballerinaType": "boolean",
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "boolean",
               "selected": false
             }
           ],
@@ -1191,7 +1328,7 @@
         },
         "secureSocket": {
           "metadata": {
-            "label": "secureSocket",
+            "label": "Secure Socket",
             "description": "Configurations related to SSL/TLS encryption"
           },
           "codedata": {
@@ -1199,14 +1336,24 @@
             "originalName": "secureSocket"
           },
           "placeholder": "{cert: {path: \"\", password: \"\"}}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:SecureSocket",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "SecureSocket",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "kafka:SecureSocket",
+              "typeMembers": [
+                {
+                  "type": "SecureSocket",
+                  "packageInfo": "ballerinax:kafka:4.6.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:SecureSocket",
               "selected": false
             }
           ],
@@ -1217,7 +1364,7 @@
         },
         "auth": {
           "metadata": {
-            "label": "auth",
+            "label": "Auth",
             "description": "Authentication-related configurations for the `kafka:Consumer`"
           },
           "codedata": {
@@ -1225,14 +1372,24 @@
             "originalName": "auth"
           },
           "placeholder": "{username: \"\", password: \"\"}",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:AuthenticationConfiguration",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "AuthenticationConfiguration",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "RECORD_TYPE",
+              "fieldType": "RECORD_MAP_EXPRESSION",
+              "ballerinaType": "kafka:AuthenticationConfiguration",
+              "typeMembers": [
+                {
+                  "type": "AuthenticationConfiguration",
+                  "packageInfo": "ballerinax:kafka:4.6.0",
+                  "kind": "RECORD_TYPE",
+                  "selected": false
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:AuthenticationConfiguration",
               "selected": false
             }
           ],
@@ -1243,22 +1400,42 @@
         },
         "securityProtocol": {
           "metadata": {
-            "label": "securityProtocol",
+            "label": "Security Protocol",
             "description": "Type of the security protocol to use in the broker connection"
           },
           "codedata": {
             "type": "LISTENER_INIT_PARAM",
             "originalName": "securityProtocol"
           },
-          "placeholder": "kafka:PROTOCOL_PLAINTEXT",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "kafka:SecurityProtocol",
+          "placeholder": "\"PLAINTEXT\"",
           "value": "",
-          "typeMembers": [
+          "types": [
             {
-              "type": "SecurityProtocol",
-              "packageInfo": "ballerinax:kafka:4.5.0",
-              "kind": "BASIC_TYPE",
+              "fieldType": "SINGLE_SELECT",
+              "ballerinaType": "kafka:SecurityProtocol",
+              "options": [
+                {
+                  "label": "PLAINTEXT",
+                  "value": "\"PLAINTEXT\""
+                },
+                {
+                  "label": "SASL_PLAINTEXT",
+                  "value": "\"SASL_PLAINTEXT\""
+                },
+                {
+                  "label": "SASL_SSL",
+                  "value": "\"SASL_SSL\""
+                },
+                {
+                  "label": "SSL",
+                  "value": "\"SSL\""
+                }
+              ],
+              "selected": true
+            },
+            {
+              "fieldType": "EXPRESSION",
+              "ballerinaType": "kafka:SecurityProtocol",
               "selected": false
             }
           ],

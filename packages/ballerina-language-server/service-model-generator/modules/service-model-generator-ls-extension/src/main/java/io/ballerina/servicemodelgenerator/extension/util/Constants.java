@@ -66,6 +66,7 @@ public class Constants {
     public static final String ASB = "asb";
     public static final String SF = "salesforce";
     public static final String TRIGGER_GITHUB = "trigger.github";
+    public static final String MSSQL = "mssql";
 
     public static final String FTP = "ftp";
     public static final String FILE = "file";
@@ -88,6 +89,7 @@ public class Constants {
 
     public static final String PARAMETER = "parameter";
     public static final String SERVICE = "service";
+    public static final String SERVICE_TYPE = "Service";
     public static final String RESOURCE = "resource";
     public static final String REMOTE = "remote";
     public static final String BASE_PATH = "basePath";
@@ -199,9 +201,12 @@ public class Constants {
             "The description of the resource");
     public static final MetaData SERVICE_DOCUMENTATION_METADATA = new MetaData("Description", "The " +
             "description of the class");
+    public static final MetaData GRAPHQL_OBJECT_DOCUMENTATION_METADATA = new MetaData("Description",
+            "The description of the object");
 
     // organization names
     public static final String BALLERINA = "ballerina";
+    public static final String BALLERINAX = "ballerinax";
 
     // types
     public static final String USER_DEFINED_TYPE = "User-Defined";

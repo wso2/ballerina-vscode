@@ -91,6 +91,7 @@ public class AiUtils {
     private static final String INIT_METHOD = "init";
 
     public static final String MEMORY_DEFAULT_VALUE = "10";
+    public static final String AI_PROMPT_TYPE = "ai:Prompt";
 
     static {
         versionToFeatures.put("1.0.0",
@@ -178,7 +179,7 @@ public class AiUtils {
     }
 
     /**
-     * Creates an updated property with a new value while preserving metadata.
+     * Creates an updated property with a new value while preserving all other fields.
      *
      * @param <T>              the type of the new value
      * @param originalProperty the original property
@@ -190,17 +191,55 @@ public class AiUtils {
             throw new IllegalArgumentException("Original property cannot be null");
         }
 
-        Property.Builder<T> builder = new Property.Builder<T>(null)
-                .types(originalProperty.types())
-                .value(newValue);
+        return new Property(
+                originalProperty.metadata(),
+                originalProperty.types(),
+                newValue,
+                originalProperty.oldValue(),
+                originalProperty.placeholder(),
+                originalProperty.optional(),
+                originalProperty.editable(),
+                originalProperty.advanced(),
+                originalProperty.hidden(),
+                originalProperty.modified(),
+                originalProperty.diagnostics(),
+                originalProperty.codedata(),
+                originalProperty.advancedValue(),
+                originalProperty.imports(),
+                originalProperty.defaultValue(),
+                originalProperty.comment()
+        );
+    }
 
-        if (originalProperty.codedata() != null) {
-            builder.codedata()
-                    .kind(originalProperty.codedata().kind())
-                    .originalName(originalProperty.codedata().originalName());
+    /**
+     * Creates a copy of a property marked as optional and advanced. All other fields are preserved from the original
+     * property.
+     *
+     * @param original the property to copy from
+     * @return the new property with optional=true and advanced=true
+     */
+    public static Property copyAsOptionalAdvanced(Property original) {
+        if (original == null) {
+            throw new IllegalArgumentException("Original property cannot be null");
         }
-
-        return builder.build();
+        return new Property(
+                original.metadata(),
+                original.types(),
+                original.value(),
+                original.oldValue(),
+                original.placeholder(),
+                true,  // optional
+                original.editable(),
+                true,  // advanced
+                original.hidden(),
+                original.modified(),
+                original.diagnostics(),
+                original.codedata(),
+                original.advancedValue(),
+                original.imports(),
+                original.defaultValue(),
+                original.comment()
+        );
     }
 
     /**
@@ -251,18 +290,21 @@ public class AiUtils {
     /**
      * Adds a simple string property to a NodeBuilder with the specified configuration.
      *
-     * @param nodeBuilder the node builder to add the property to
-     * @param key         the property key
-     * @param label       the property label
-     * @param description the property description
-     * @param placeholder the placeholder text
-     * @param value       the property value
+     * @param nodeBuilder  the node builder to add the property to
+     * @param key          the property key
+     * @param label        the property label
+     * @param description  the property description
+     * @param placeholder  the placeholder text
+     * @param value        the property value
+     * @param selectedType the selected field type (PROMPT or EXPRESSION)
      */
     public static void addStringProperty(NodeBuilder nodeBuilder, String key, String label, String description,
-                                         String placeholder, String value) {
+                                         String placeholder, String value, Property.ValueType selectedType) {
         if (nodeBuilder == null || key == null) {
             throw new IllegalArgumentException("NodeBuilder and key cannot be null");
         }
+
+        boolean isPromptSelected = selectedType == Property.ValueType.PROMPT;
 
         nodeBuilder.properties().custom()
                 .metadata()
@@ -271,7 +313,16 @@ public class AiUtils {
                     .stepOut()
                 .value(value != null && !value.isEmpty() ? value : "")
                 .defaultValue("")
-                .type(Property.ValueType.TEXT)
+                .type()
+                    .fieldType(Property.ValueType.PROMPT)
+                    .ballerinaType("string")
+                    .selected(isPromptSelected)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.EXPRESSION)
+                    .ballerinaType("string")
+                    .selected(!isPromptSelected)
+                    .stepOut()
                 .placeholder(placeholder != null ? placeholder : "")
                 .optional(true)
                 .editable()
@@ -342,6 +393,9 @@ public class AiUtils {
     }
 
     public record Module(String org, String name, String version) {
+    }
+
+    public record AgentPropertyValue(String value, Property.ValueType selectedType) {
     }
 
     public static String getBallerinaAiModuleVersion(Project project) {
@@ -632,10 +686,18 @@ public class AiUtils {
      * @return the string with backticks replaced by ${"`"} for safe use in string templates
      */
     public static String replaceBackticksForStringTemplate(String input) {
-        if (input == null) {
-            return "";
+        if (input == null || input.isEmpty()) {
+            return "string ``";
         }
-        return input.replace("`", "${\"`\"}");
+        // Check if input is a string template
+        if (input.matches("string\\s+`.*`")) {
+            int firstBacktick = input.indexOf('`');
+            String prefix = input.substring(0, firstBacktick + 1);
+            String content = input.substring(firstBacktick + 1, input.length() - 1);
+            String replacedContent = content.replace("`", "${\"`\"}");
+            return prefix + replacedContent + "`";
+        }
+        return input;
     }
 
     /**

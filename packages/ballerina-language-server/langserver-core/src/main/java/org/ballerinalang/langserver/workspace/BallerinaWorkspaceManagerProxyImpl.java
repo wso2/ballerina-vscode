@@ -81,8 +81,7 @@ public class BallerinaWorkspaceManagerProxyImpl implements BallerinaWorkspaceMan
             Optional<Project> project = this.baseWorkspaceManager.project(path.get());
             project.ifPresent(this.clonedWorkspaceManager::open);
         } else if (this.isAIScheme(uri)) {
-            Optional<Project> project = this.baseWorkspaceManager.project(path.get());
-            project.ifPresent(this.aiWorkspaceManager::open);
+            this.aiWorkspaceManager.didOpen(path.get(), params);
         } else {
             this.baseWorkspaceManager.didOpen(path.get(), params);
 

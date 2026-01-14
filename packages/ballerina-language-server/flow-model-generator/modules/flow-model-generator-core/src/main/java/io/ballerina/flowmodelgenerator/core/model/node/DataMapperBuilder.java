@@ -30,6 +30,7 @@ import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Option;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -123,7 +124,7 @@ public class DataMapperBuilder extends NodeBuilder {
                     .label(INPUTS_LABEL)
                     .description(INPUTS_DOC)
                     .stepOut()
-                .typeWithOptions(Property.ValueType.MULTIPLE_SELECT, new ArrayList<>(visibleTypes))
+                .typeWithOptions(Property.ValueType.MULTIPLE_SELECT, Option.of(visibleTypes))
                 .value("")
                 .optional(false)
                 .editable()
@@ -134,7 +135,7 @@ public class DataMapperBuilder extends NodeBuilder {
                     .label(OUTPUT_LABEL)
                     .description(OUTPUT_DOC)
                     .stepOut()
-                .typeWithOptions(Property.ValueType.SINGLE_SELECT, new ArrayList<>(visibleTypes))
+                .typeWithOptions(Property.ValueType.SINGLE_SELECT, Option.of(visibleTypes))
                 .value("")
                 .optional(false)
                 .editable()
