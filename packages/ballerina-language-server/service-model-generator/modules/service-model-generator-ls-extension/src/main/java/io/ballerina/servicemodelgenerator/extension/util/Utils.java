@@ -1253,13 +1253,6 @@ public final class Utils {
         return value.substring(0, 1).toUpperCase(Locale.ROOT) + value.substring(1).toLowerCase(Locale.ROOT);
     }
 
-    public static String removeLeadingSingleQuote(String input) {
-        if (input != null && input.startsWith("'")) {
-            return input.substring(1);
-        }
-        return input;
-    }
-
     /**
      * Resolves a Ballerina module by organization, package, and module name.
      * If the module is not found locally, attempts to pull it from the central repository,

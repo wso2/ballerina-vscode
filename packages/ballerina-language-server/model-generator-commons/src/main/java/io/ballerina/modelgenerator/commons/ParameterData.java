@@ -24,6 +24,8 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingleQuote;
+
 /**
  * Represents the result of a parameter.
  *
@@ -72,6 +74,11 @@ public record ParameterData(
                                      TypeSymbol typeSymbol) {
         return new ParameterData(0, name, type, kind, placeholder, defaultValue, description, label, optional,
                 importStatements, new ArrayList<>(), typeSymbol);
+    }
+
+    @Override
+    public String label() {
+        return label != null ? label : removeLeadingSingleQuote(name);
     }
 
     public enum Kind {
