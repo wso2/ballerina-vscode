@@ -33,6 +33,7 @@ import { HelperpaneOnChangeOptions } from "../../../Form/types";
 import { useFormContext } from "../../../../context/form";
 import { createChipPlugin, createChipSchema, updateChipTokens } from "./plugins/chipPlugin";
 import { createXMLTagDecorationPlugin } from "./plugins/xmlTagDecorationPlugin";
+import { createPlaceholderPlugin } from "./plugins/placeholderPlugin";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -125,6 +126,15 @@ const EditorContainer = styled.div`
     .ProseMirror .xml-tag-selfClosing {
         color: var(--vscode-charts-green);
     }
+
+    .ProseMirror .placeholder {
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+        opacity: 0.6;
+        pointer-events: none;
+        position: absolute;
+        top: 14px;
+        left: 12px;
+    }
 `;
 
 const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]);
@@ -154,6 +164,7 @@ interface RichTextTemplateEditorProps {
     value: string;
     onChange: (value: string, cursorPosition: number) => void;
     completions?: CompletionItem[];
+    placeholder?: string;
     fileName?: string;
     targetLineRange?: LineRange;
     configuration: ChipExpressionEditorDefaultConfiguration;
@@ -179,6 +190,7 @@ interface RichTextTemplateEditorProps {
 export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     value,
     onChange,
+    placeholder,
     fileName,
     targetLineRange,
     configuration,
@@ -417,7 +429,8 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 gapCursor(),
                 chipPlugin,
                 xmlTagPlugin,
-                cursorMovePlugin
+                cursorMovePlugin,
+                ...(placeholder ? [createPlaceholderPlugin(placeholder)] : [])
             ]
         });
 
