@@ -56,7 +56,7 @@ export interface ExpressionFieldProps {
     rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
-    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    onChange: (updatedValue: string | any[], updatedCursorPosition: number) => void;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -151,7 +151,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         isInExpandedMode
     } = props;
 
-    if (Array.isArray(value) || inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
+    if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
         return (
             <DynamicArrayBuilder
                 value={value}
@@ -164,13 +164,16 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
     if (inputMode === InputMode.MAP) {
         return (
             <MappingConstructor
-                value={value}
+                value={value as any[]}
                 label={field.label}
                 onChange={(val) => onChange(val, val.length)}
                 expressionFieldProps={props}
             />
         );
     }
+
+    //below editors cannot have input value in array type
+    if (Array.isArray(value)) return null;
 
     const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
