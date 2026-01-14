@@ -1245,7 +1245,7 @@
         "bootstrapServers": {
           "label": "Bootstrap Servers",
           "description": "List of remote server endpoints of the Kafka brokers",
-          "defaultValue": "",
+          "defaultValue": "\"localhost:9092\"",
           "placeholder": "\"localhost:9092\"",
           "types": [
             {
@@ -1266,7 +1266,7 @@
         "topics": {
           "label": "Topic(s)",
           "description": "The topic(s) to subscribe to",
-          "defaultValue": "",
+          "defaultValue": "\"myTopic\"",
           "placeholder": "\"myTopic\"",
           "types": [
             {
