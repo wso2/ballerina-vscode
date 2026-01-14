@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExpressionFieldProps } from "../../ExpressionField";
-import { Button, Codicon } from '@wso2/ui-toolkit';
+import { Codicon } from '@wso2/ui-toolkit';
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
@@ -196,13 +196,13 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <Button
+            <S.AddButton
                 onClick={handleAdd}
                 appearance="secondary"
             >
                 <Codicon name="add" sx={{marginRight: "5px"}}/>
                 Add Item
-            </Button>
+            </S.AddButton>
         </S.Container>
     );
 };

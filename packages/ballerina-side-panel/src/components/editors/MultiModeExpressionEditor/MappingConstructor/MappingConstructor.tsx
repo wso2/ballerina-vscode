@@ -16,9 +16,9 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { S } from '../styles';
-import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { ExpressionFieldProps } from "../../ExpressionField";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
@@ -32,12 +32,14 @@ interface MappingConstructorProps {
 
 const transformExternalValueToInternal = (externalValue: any[]): any[] => {
     if (!externalValue) return [];
-    return externalValue.map((item, index) => {
-        // Each item is like {someKey: "someValue"}, extract key and value
-        const entries = Object.entries(item);
-        const [key, value] = entries.length > 0 ? entries[0] : ["", ""];
-        return { id: index, key: key || "", value: value || "" };
-    });
+    return externalValue
+        .filter((item) => item != null)
+        .map((item, index) => {
+            // Each item is like {someKey: "someValue"}, extract key and value
+            const entries = Object.entries(item);
+            const [key, value] = entries.length > 0 ? entries[0] : ["", ""];
+            return { id: index, key: key || "", value: value || "" };
+        });
 }
 
 const toOutputFormat = (pairs: any[]): any[] => {
@@ -58,32 +60,38 @@ const getNextId = (items: any[]): number => {
 
 
 export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
-    const [internalValue, setInternalValue] = useState<any[]>([]);
+    //used this to manually trigger rerenders when value prop changes
+    const [_ , setManualRerenderTrigger] = useState(true);
+    const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
+    const internalValueRef = useRef<any[]>([]);
 
     useEffect(() => {
-        setInternalValue(transformExternalValueToInternal(value));
+        internalValueRef.current = transformExternalValueToInternal(value);
+        setManualRerenderTrigger(prev => !prev);
     }, [value]);
 
     const handleAddPair = () => {
-        const newPair = { id: getNextId(internalValue), key: "", value: "" };
-        const updatedValue = [...internalValue, newPair];
+        const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
+        const updatedValue = [...internalValueRef.current, newPair];
+        setHasUntouchedPairs(true);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleDeletePair = (id: number) => {
-        const updatedValue = internalValue.filter(pair => pair.id !== id);
+        const updatedValue = internalValueRef.current.filter(pair => pair.id !== id);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleKeyChange = (id: number, newKey: string) => {
-        const updatedValue = internalValue.map(pair => 
+        const updatedValue = internalValueRef.current.map(pair => 
             pair.id === id ? { ...pair, key: newKey } : pair
         );
+        setHasUntouchedPairs(newKey === "");
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleValueChange = (id: number, newValue: string) => {
-        const updatedValue = internalValue.map(pair => 
+        const updatedValue = internalValueRef.current.map(pair => 
             pair.id === id ? { ...pair, value: newValue } : pair
         );
         onChange(toOutputFormat(updatedValue));
@@ -91,7 +99,7 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
 
     return (
         <S.Container>
-            {internalValue.map((pair) => (
+            {internalValueRef.current.map((pair) => (
                 <S.ItemContainer style={{
                     border: "1px solid var(--dropdown-border)",
                     padding: "8px",
@@ -132,13 +140,14 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <Button
+            <S.AddButton
                 onClick={handleAddPair}
                 appearance="secondary"
+                disabled={hasUntouchedPairs}
             >
                 <Codicon name="add" sx={{marginRight: "5px"}}/>
                 Add Item
-            </Button>
+            </S.AddButton>
         </S.Container>
     );
 };
