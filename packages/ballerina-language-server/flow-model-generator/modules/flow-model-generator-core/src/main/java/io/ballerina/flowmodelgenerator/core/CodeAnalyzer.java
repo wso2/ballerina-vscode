@@ -1364,7 +1364,22 @@ public class CodeAnalyzer extends NodeVisitor {
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
-            builder.type(Property.ValueType.RAW_TEMPLATE);
+            String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+            if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+                builder.type()
+                        .fieldType(Property.ValueType.PROMPT)
+                        .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                        .selected(isPromptSelected)
+                        .stepOut();
+                builder.type()
+                        .fieldType(Property.ValueType.EXPRESSION)
+                        .ballerinaType(typeSignature)
+                        .selected(!isPromptSelected)
+                        .stepOut();
+            } else {
+                builder.type(Property.ValueType.RAW_TEMPLATE);
+            }
         } else {
             builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }
