@@ -402,19 +402,21 @@ export class AiPanelRpcManager implements AIPanelAPI {
         const workspaceId = ctx.projectPath;
         const threadId = 'default';
 
-        // Get the current under_review generation
+        // Get the LATEST under_review generation (not the first one)
         const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
-        const underReviewGeneration = thread.generations.find(
+        const underReviewGenerations = thread.generations.filter(
             g => g.reviewState.status === 'under_review'
         );
 
-        if (!underReviewGeneration) {
+        if (underReviewGenerations.length === 0) {
             console.log(">>> No pending review generation, returning empty affected packages");
             return [];
         }
 
-        const affectedPackages = underReviewGeneration.reviewState.affectedPackagePaths || [];
-        console.log(`>>> Returning ${affectedPackages.length} affected packages:`, affectedPackages);
+        // Return packages from the LATEST under_review generation
+        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+        const affectedPackages = latestReview.reviewState.affectedPackagePaths || [];
+        console.log(`>>> Returning ${affectedPackages.length} affected packages from generation ${latestReview.id}:`, affectedPackages);
         return affectedPackages;
     }
 
@@ -471,6 +473,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
+            // Clear affectedPackagePaths from all completed reviews to prevent stale data
+            for (const generation of underReviewGenerations) {
+                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                    affectedPackagePaths: []
+                });
+            }
+            console.log("[Review Actions] Cleared affected packages from accepted generations");
+
             // Notify AI panel webview to hide review actions
             RPCLayer._messenger.sendNotification(onHideReviewActions, {
                 type: 'webview',
@@ -514,6 +524,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
+
+            // Clear affectedPackagePaths from all completed reviews to prevent stale data
+            for (const generation of underReviewGenerations) {
+                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                    affectedPackagePaths: []
+                });
+            }
+            console.log("[Review Actions] Cleared affected packages from declined generations");
 
             // Notify AI panel webview to hide review actions
             RPCLayer._messenger.sendNotification(onHideReviewActions, {
