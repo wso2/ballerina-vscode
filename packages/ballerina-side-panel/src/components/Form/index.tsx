@@ -497,17 +497,18 @@ export const Form = forwardRef((props: FormProps) => {
             formFields.forEach((field) => {
                 // Only set field defaults if no existing value is present
                 if (defaultValues[field.key] === undefined) {
-                    if (field.hidden) {
-                        defaultValues[field.key] = field.value;
-                    } else if (isDropdownField(field)) {
-                        defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                    } else if (field.type === "FLAG") {
-                        defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
-                    } else if (typeof field.value === "string") {
-                        defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
-                    } else {
-                        defaultValues[field.key] = field.value ?? "";
-                    }
+                  if (field.hidden) {
+                      defaultValues[field.key] = field.value;
+                  } else if (isDropdownField(field)) {
+                      defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                  } else if (field.type === "FLAG" && field.types?.length > 1) {
+                      defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                  } else if (field.type === "FLAG") {
+                      defaultValues[field.key] = field.value || "true";
+                  } else if (typeof field.value === "string") {
+                      defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
+                  } else {
+                      defaultValues[field.key] = field.value ?? "";
                 }
                 if (field.key === "variable") {
                     defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
@@ -536,8 +537,10 @@ export const Form = forwardRef((props: FormProps) => {
 
                     if (selectedChoice && selectedChoice?.properties) {
                         Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            // Only set choice property defaults if no existing value is present
-                            if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
+                            // Preserve existing form values if they exist, otherwise use propValue.value
+                            if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
+                                defaultValues[propKey] = formValues[propKey];
+                            } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
                                 defaultValues[propKey] = propValue.value;
                             }
 

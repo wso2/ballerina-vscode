@@ -34,6 +34,7 @@ const ExpressionContainer = styled.div`
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     value,
     onChange,
+    field,
     completions = [],
     fileName,
     targetLineRange,
@@ -66,6 +67,7 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
                     isInExpandedMode={true}
                     isExpandedVersion={true}
                     inputMode={inputMode}
+                    placeholder={field.placeholder}
                 />
             </ExpressionContainer>
             {error ?

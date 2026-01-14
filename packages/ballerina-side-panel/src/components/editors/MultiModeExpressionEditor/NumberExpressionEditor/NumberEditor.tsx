@@ -39,6 +39,7 @@ export const NumberExpressionEditor: React.FC<ChipExpressionEditorComponentProps
             onRemove={props.onRemove}
             isInExpandedMode={props.isInExpandedMode}
             configuration={new NumberExpressionEditorConfig()}
+            placeholder={props.placeholder}
         />
     );
 };
