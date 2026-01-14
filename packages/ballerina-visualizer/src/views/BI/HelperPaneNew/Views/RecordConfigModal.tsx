@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { debounce } from "lodash";
 import ReactMarkdown from "react-markdown";
 import { updateFieldsSelection } from "../Components/RecordConstructView/utils";
+import { ChipExpressionEditorDefaultConfiguration } from "@wso2/ballerina-side-panel/lib/components/editors/MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 type ConfigureRecordPageProps = {
     fileName: string;
@@ -703,6 +704,7 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
                                             sx={{ height: "350px" }}
+                                            configuration={new ChipExpressionEditorDefaultConfiguration()}
                                             isExpandedVersion={false}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
