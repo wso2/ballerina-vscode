@@ -17,7 +17,6 @@
  */
 
 import React, { useState, useRef } from "react";
-import styled from "@emotion/styled";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
 import { EditorView as ProseMirrorView } from "prosemirror-view";
 import { EditorModeExpressionProps } from "./types";
@@ -28,15 +27,7 @@ import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolb
 import { ErrorBanner } from "@wso2/ui-toolkit";
 import { RawTemplateEditorConfig, StringTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
 import { getPrimaryInputType } from "@wso2/ballerina-core";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-`;
+import { FlexExpressionContainer } from "./styles";
 
 const SIMPLE_PROMPT_FIELDS = ["query", "instructions", "role"];
 
@@ -112,7 +103,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 />
             )}
             {isSourceView ? (
-                <ExpressionContainer>
+                <FlexExpressionContainer>
                     <ChipExpressionEditorComponent
                         value={value}
                         onChange={handleChange}
@@ -134,9 +125,9 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                         placeholder={field.placeholder}
                     />
-                </ExpressionContainer>
+                </FlexExpressionContainer>
             ) : (
-                <ExpressionContainer>
+                <FlexExpressionContainer>
                     <RichTextTemplateEditor
                         value={value}
                         onChange={handleChange}
@@ -150,7 +141,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
                         placeholder={field.placeholder}
                     />
-                </ExpressionContainer>
+                </FlexExpressionContainer>
             )
             }
             {error ?
