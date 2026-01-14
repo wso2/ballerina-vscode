@@ -85,7 +85,7 @@ const ActionButtons = styled.div`
     gap: 8px;
     padding-left: 16px;
     border-left: 1px solid var(--vscode-panel-border);
-    min-width: 180px;
+    min-width: 158px;
 `;
 
 interface ReviewNavigationProps {
