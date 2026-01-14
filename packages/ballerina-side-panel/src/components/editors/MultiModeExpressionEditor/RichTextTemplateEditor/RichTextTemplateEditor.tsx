@@ -436,6 +436,37 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         const view = new EditorView(editorRef.current, {
             state,
+            handlePaste(view, event, _slice) {
+                const text = event.clipboardData?.getData('text/plain');
+                if (!text) return false;
+
+                // Check if the pasted text looks like markdown
+                const markdownPatterns = [
+                    /^#{1,6}\s/m,           // Headings
+                    /\*\*[^*]+\*\*/,        // Bold
+                    /\*[^*]+\*/,            // Italic
+                    /^[-*+]\s/m,            // Unordered list
+                    /^\d+\.\s/m,            // Ordered list
+                    /^>\s/m,                // Blockquote
+                    /`[^`]+`/,              // Inline code
+                    /```[\s\S]*```/,        // Code block
+                    /\[.+\]\(.+\)/          // Links
+                ];
+
+                const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(text));
+
+                if (looksLikeMarkdown) {
+                    const doc = customMarkdownParser.parse(text);
+                    if (doc && doc.content.size > 0) {
+                        const { from, to } = view.state.selection;
+                        const tr = (view.state.tr as any).replaceWith(from, to, doc.content);
+                        view.dispatch(tr);
+                        return true;
+                    }
+                }
+
+                return false;
+            },
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
                 view.updateState(newState);
