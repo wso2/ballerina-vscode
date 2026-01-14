@@ -73,7 +73,6 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleDependency;
-import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.PlatformLibraryScope;
@@ -656,14 +655,11 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         String version = packageInstance.packageVersion().value().toString();
         String packageAndOrgName = orgName + FORWARD_SLASH + packageName;
 
-        ModuleName modName = dependency.packageInstance().getDefaultModule().moduleName();
-        String moduleName = modName.moduleNamePart() != null ? modName.moduleNamePart() : packageName;
-
-        ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, version);
-        Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
         for (Module module : dependency.packageInstance().modules()) {
-            moduleName = module.moduleName().moduleNamePart() != null ?
-                    module.moduleName().moduleNamePart() : EMPTY_STRING;
+            String moduleNamePart = module.moduleName().moduleNamePart();
+            String moduleName = moduleNamePart != null ? moduleNamePart : packageName;
+            ModuleInfo moduleInfo = new ModuleInfo(orgName, packageName, moduleName, version);
+            Optional<SemanticModel> semanticModel = PackageUtil.getSemanticModel(moduleInfo);
 
             List<FlowNode> variables = extractModuleConfigVariables(module, configTomlValues, packageAndOrgName,
                     moduleName, false, semanticModel.orElse(null));
