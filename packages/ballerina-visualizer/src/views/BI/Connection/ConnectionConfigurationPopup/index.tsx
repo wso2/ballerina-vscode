@@ -150,7 +150,6 @@ const ConfigContent = styled.div<{ hasFooterButton?: boolean }>`
 const FormContainer = styled.div<{}>`
     flex: 1;
     min-height: 0;
-    height: 100%;
     display: flex;
     flex-direction: column;
 `;
@@ -159,7 +158,6 @@ const ConnectionDetailsSection = styled.div`
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 16px;
 `;
 
 const ConnectionDetailsTitle = styled(Typography)`
