@@ -53,10 +53,23 @@ const ViewCounter = styled.div`
     color: var(--vscode-foreground);
 `;
 
+const PackageLabel = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--vscode-statusBarItem-prominentForeground);
+    background: var(--vscode-statusBarItem-prominentBackground);
+    padding: 2px 8px;
+    border-radius: 2px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
 const ViewLabel = styled.div`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
-    max-width: 200px;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -79,6 +92,8 @@ interface ReviewNavigationProps {
     currentIndex: number;
     totalViews: number;
     currentLabel?: string;
+    currentPackageName?: string;
+    showPackage?: boolean;
     onPrevious: () => void;
     onNext: () => void;
     onAccept: () => void;
@@ -92,6 +107,8 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         currentIndex,
         totalViews,
         currentLabel,
+        currentPackageName,
+        showPackage = false,
         onPrevious,
         onNext,
         onAccept,
@@ -161,6 +178,11 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 <ViewCounter>
                     {currentIndex + 1} / {totalViews}
                 </ViewCounter>
+                {showPackage && currentPackageName && (
+                    <PackageLabel title={`Package: ${currentPackageName}`}>
+                        📦 {currentPackageName}
+                    </PackageLabel>
+                )}
                 {currentLabel && <ViewLabel title={currentLabel}>{currentLabel}</ViewLabel>}
             </ViewInfo>
 

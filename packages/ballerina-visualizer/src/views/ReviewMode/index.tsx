@@ -54,6 +54,40 @@ const ReviewModeBadge = styled.div`
     white-space: nowrap;
 `;
 
+const PackageBadge = styled.div`
+    padding: 4px 10px;
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    &::before {
+        content: "📦";
+        font-size: 10px;
+    }
+`;
+
+const CurrentPackageBadge = styled.div`
+    padding: 4px 10px;
+    background: var(--vscode-statusBarItem-prominentBackground);
+    color: var(--vscode-statusBarItem-prominentForeground);
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+`;
+
 const CloseButton = styled.button`
     background: transparent;
     border: none;
@@ -141,11 +175,15 @@ function getDiagramType(nodeKind: number): DiagramType {
 }
 
 // Utility function to convert SemanticDiff to ReviewView
-function convertToReviewView(diff: SemanticDiff, projectPath: string): ReviewView {
+function convertToReviewView(diff: SemanticDiff, projectPath: string, packageName?: string): ReviewView {
     const fileName = diff.uri.split("/").pop() || diff.uri;
     const changeTypeStr = getChangeTypeString(diff.changeType);
     const nodeKindStr = getNodeKindString(diff.nodeKind);
-    const changeLabel = `${changeTypeStr}: ${nodeKindStr} in ${fileName}`;
+    
+    // Include package name in label if provided (for multi-package scenarios)
+    const changeLabel = packageName
+        ? `${changeTypeStr}: ${nodeKindStr} in ${packageName}/${fileName}`
+        : `${changeTypeStr}: ${nodeKindStr} in ${fileName}`;
 
     return {
         type: getDiagramType(diff.nodeKind),
@@ -161,9 +199,46 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string): ReviewVie
     };
 }
 
-// Utility function to fetch semantic diff data
+// Utility function to fetch semantic diff data for a single project
 async function fetchSemanticDiff(rpcClient: any, projectPath: string): Promise<SemanticDiffResponse> {
     return await rpcClient.getAiPanelRpcClient().getSemanticDiff({ projectPath });
+}
+
+// Utility function to fetch semantic diffs for multiple packages
+async function fetchSemanticDiffForMultiplePackages(
+    rpcClient: any,
+    packagePaths: string[]
+): Promise<SemanticDiffResponse> {
+    console.log(`[ReviewMode] Fetching semantic diffs for ${packagePaths.length} packages:`, packagePaths);
+
+    const allDiffs: SemanticDiff[] = [];
+    let loadDesignDiagrams = false;
+
+    // Fetch semantic diff for each affected package
+    for (const packagePath of packagePaths) {
+        try {
+            const response = await rpcClient.getAiPanelRpcClient().getSemanticDiff({ projectPath: packagePath });
+            if (response) {
+                allDiffs.push(...response.semanticDiffs);
+                loadDesignDiagrams = loadDesignDiagrams || response.loadDesignDiagrams;
+                console.log(`[ReviewMode] Fetched ${response.semanticDiffs.length} diffs from package: ${packagePath}`);
+            }
+        } catch (error) {
+            console.error(`[ReviewMode] Error fetching semantic diff for package ${packagePath}:`, error);
+        }
+    }
+
+    console.log(`[ReviewMode] Total diffs collected: ${allDiffs.length}`);
+    return {
+        semanticDiffs: allDiffs,
+        loadDesignDiagrams,
+    };
+}
+
+// Helper to extract package name from path
+function getPackageName(packagePath: string): string {
+    const parts = packagePath.split("/");
+    return parts[parts.length - 1] || packagePath;
 }
 
 interface ItemMetadata {
@@ -181,6 +256,7 @@ export function ReviewMode(): JSX.Element {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
+    const [affectedPackages, setAffectedPackages] = useState<string[]>([]);
 
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView =
@@ -199,9 +275,31 @@ export function ReviewMode(): JSX.Element {
                 return;
             }
             setProjectPath(tempDirPath);
-            
-            const semanticDiffResponse = await fetchSemanticDiff(rpcClient, tempDirPath);
-            console.log("[ReviewMode] semanticDiff Response:", semanticDiffResponse);
+
+            // Fetch affected packages from review context
+            let fetchedPackages: string[] = [];
+            try {
+                fetchedPackages = await rpcClient.getAiPanelRpcClient().getAffectedPackages();
+                console.log("[ReviewMode] Affected packages from review context:", fetchedPackages);
+            } catch (error) {
+                console.warn("[ReviewMode] Could not fetch affected packages, using temp directory:", error);
+            }
+
+            // Use affected packages if available, otherwise fallback to temp directory
+            const packagesToReview = fetchedPackages.length > 0 ? fetchedPackages : [tempDirPath];
+            const isMultiPackage = packagesToReview.length > 1;
+
+            // Store affected packages in state
+            setAffectedPackages(packagesToReview);
+
+            console.log(`[ReviewMode] Reviewing ${packagesToReview.length} package(s):`, packagesToReview);
+
+            // Fetch semantic diffs for all affected packages
+            const semanticDiffResponse = isMultiPackage
+                ? await fetchSemanticDiffForMultiplePackages(rpcClient, packagesToReview)
+                : await fetchSemanticDiff(rpcClient, tempDirPath);
+
+            console.log("[ReviewMode] Combined semanticDiff Response:", semanticDiffResponse);
             setSemanticDiffData(semanticDiffResponse);
 
             const allViews: ReviewView[] = [];
@@ -209,27 +307,41 @@ export function ReviewMode(): JSX.Element {
             // If loadDesignDiagrams is true, add component diagram as first view
             if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
                 // Component diagram shows the entire project design, not a specific file/position
-                // We use the first diff's file just as a reference, but the actual diagram
-                // loads the entire design model for the project
+                // For multi-package, use the first package as reference
                 allViews.push({
                     type: DiagramType.COMPONENT,
-                    filePath: tempDirPath, // Use project path instead of specific file
+                    filePath: packagesToReview[0],
                     position: {
                         startLine: 0,
                         endLine: 0,
                         startColumn: 0,
                         endColumn: 0,
                     },
-                    projectPath: tempDirPath,
+                    projectPath: packagesToReview[0],
                     label: "Design Diagram",
                 });
             }
 
             // Convert all semantic diffs to flow diagram views
             const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
-                const view = convertToReviewView(diff, tempDirPath);
-                return view;
+                // Determine which package this diff belongs to
+                let belongsToPackage = tempDirPath;
+                let packageName: string | undefined;
+
+                if (isMultiPackage) {
+                    // Find the package that contains this file
+                    for (const pkgPath of packagesToReview) {
+                        if (diff.uri.includes(pkgPath) || diff.uri.startsWith(getPackageName(pkgPath))) {
+                            belongsToPackage = pkgPath;
+                            packageName = getPackageName(pkgPath);
+                            break;
+                        }
+                    }
+                }
+
+                return convertToReviewView(diff, belongsToPackage, packageName);
             });
+
             allViews.push(...flowViews);
 
             setViews(allViews);
@@ -427,9 +539,30 @@ export function ReviewMode(): JSX.Element {
     const headerText = getHeaderText();
     const subtitleElement = getTitleBarSubEl(headerText.name, headerText.accessor || "", isResource, isAutomation);
 
+    // Get current package name for display
+    const getCurrentPackageName = () => {
+        if (!currentView || affectedPackages.length <= 1) {
+            return null;
+        }
+        const currentPackage = currentView.projectPath;
+        return getPackageName(currentPackage);
+    };
+
+    const currentPackageName = getCurrentPackageName();
+
     // Create actions for the right side
     const headerActions = (
         <>
+            {affectedPackages.length > 1 && currentPackageName && (
+                <CurrentPackageBadge title={`Currently viewing: ${currentPackageName}`}>
+                    {currentPackageName}
+                </CurrentPackageBadge>
+            )}
+            {affectedPackages.length > 1 && (
+                <PackageBadge title={`Changes in ${affectedPackages.length} packages`}>
+                    {affectedPackages.length} packages
+                </PackageBadge>
+            )}
             <ReviewModeBadge>Review Mode</ReviewModeBadge>
             <CloseButton onClick={handleClose} title="Close Review Mode">
                 <Icon name="bi-close" />
@@ -452,6 +585,8 @@ export function ReviewMode(): JSX.Element {
                 currentIndex={currentIndex}
                 totalViews={views.length}
                 currentLabel={currentView?.label}
+                currentPackageName={currentPackageName}
+                showPackage={affectedPackages.length > 1}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
                 onAccept={handleAccept}
