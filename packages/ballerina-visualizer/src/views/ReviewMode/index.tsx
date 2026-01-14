@@ -258,7 +258,6 @@ export function ReviewMode(): JSX.Element {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
-    const [affectedPackages, setAffectedPackages] = useState<string[]>([]);
     const [isWorkspace, setIsWorkspace] = useState(false);
 
     // Derive current view from views array and currentIndex - no separate state needed
@@ -299,10 +298,7 @@ export function ReviewMode(): JSX.Element {
             }
 
             // Use affected packages if available, otherwise fallback to temp directory
-            const packagesToReview = fetchedPackages.length > 0 ? fetchedPackages : [tempDirPath];
-
-            // Store affected packages in state
-            setAffectedPackages(packagesToReview);
+            const packagesToReview = isWorkspaceProject ? fetchedPackages : [tempDirPath];
 
             console.log(`[ReviewMode] Reviewing ${packagesToReview.length} package(s) in ${isWorkspaceProject ? 'workspace' : 'single'} project:`, packagesToReview);
 
@@ -318,21 +314,29 @@ export function ReviewMode(): JSX.Element {
 
             const allViews: ReviewView[] = [];
 
-            // If loadDesignDiagrams is true, add component diagram as first view
+            // If loadDesignDiagrams is true, add component diagram(s)
             if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
-                // Component diagram shows the entire project design, not a specific file/position
-                // For multi-package, use the first package as reference
-                allViews.push({
-                    type: DiagramType.COMPONENT,
-                    filePath: packagesToReview[0],
-                    position: {
-                        startLine: 0,
-                        endLine: 0,
-                        startColumn: 0,
-                        endColumn: 0,
-                    },
-                    projectPath: packagesToReview[0],
-                    label: "Design Diagram",
+                // For workspace projects, create a component diagram for each affected package
+                // For single package projects, create one component diagram
+                
+                packagesToReview.forEach((packagePath) => {
+                    const packageName = getPackageName(packagePath);
+                    const label = isWorkspaceProject 
+                        ? `Design Diagram - ${packageName}`
+                        : "Design Diagram";
+                    
+                    allViews.push({
+                        type: DiagramType.COMPONENT,
+                        filePath: packagePath,
+                        position: {
+                            startLine: 0,
+                            endLine: 0,
+                            startColumn: 0,
+                            endColumn: 0,
+                        },
+                        projectPath: packagePath,
+                        label: label,
+                    });
                 });
             }
 
