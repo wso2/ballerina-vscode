@@ -527,7 +527,10 @@ export const Form = forwardRef((props: FormProps) => {
 
                     if (selectedChoice && selectedChoice?.properties) {
                         Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            if (propValue?.value !== undefined) {
+                            // Preserve existing form values if they exist, otherwise use propValue.value
+                            if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
+                                defaultValues[propKey] = formValues[propKey];
+                            } else if (propValue?.value !== undefined) {
                                 defaultValues[propKey] = propValue.value;
                             }
 
