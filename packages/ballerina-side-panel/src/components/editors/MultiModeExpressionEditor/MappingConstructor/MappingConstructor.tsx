@@ -67,13 +67,11 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
     const handleAddPair = () => {
         const newPair = { id: getNextId(internalValue), key: "", value: "" };
         const updatedValue = [...internalValue, newPair];
-        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleDeletePair = (id: number) => {
         const updatedValue = internalValue.filter(pair => pair.id !== id);
-        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
@@ -81,7 +79,6 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         const updatedValue = internalValue.map(pair => 
             pair.id === id ? { ...pair, key: newKey } : pair
         );
-        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
@@ -89,7 +86,6 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         const updatedValue = internalValue.map(pair => 
             pair.id === id ? { ...pair, value: newValue } : pair
         );
-        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
