@@ -101,7 +101,8 @@ public class ConnectorSearchCommand extends SearchCommand {
         List<ScoredConnector> scoredConnectors = new ArrayList<>();
         for (SearchResult connector : localConnectors) {
             int score = RelevanceCalculator.calculateFuzzyRelevanceScore(
-                    getConnectorName(connector, connector.packageInfo()), connector.description(), query);
+                    ConnectorUtil.getConnectorName(connector.name(), connector.packageInfo().moduleName()),
+                    connector.description(), query);
             if (score > 0) {
                 scoredConnectors.add(new ScoredConnector(connector, score));
             }
