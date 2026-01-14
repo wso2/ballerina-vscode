@@ -550,7 +550,7 @@ export const Form = forwardRef((props: FormProps) => {
                 }
 
                 diagnosticsMap.push({ key: field.key, diagnostics: [] });
-            });
+            }});
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
 
