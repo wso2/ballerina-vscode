@@ -153,20 +153,44 @@ export function sendAISchemaDidChange(tempProjectPath: string, filePath: string)
 /**
  * Sends didOpen notifications for all initial project files from project sources
  * Includes source files, module files, and test files
+ * For workspace projects, prepends the package path to each file path
  * @param tempProjectPath The root path of the temporary project
  * @param projects Array of project sources containing source files, modules, and tests
  */
 export function sendAgentDidOpenForFreshProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
+  
   projects.forEach(project => {
-    allFiles.push(...project.sourceFiles.map(f => f.filePath));
-    project.projectModules?.forEach(module => {
-      allFiles.push(...module.sourceFiles.map(f => f.filePath));
+    const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
+    
+    // Add root-level source files
+    project.sourceFiles.forEach(f => {
+      const relativePath = pkgPath ? path.join(pkgPath, f.filePath) : f.filePath;
+      allFiles.push(relativePath);
     });
+    
+    // Add module files
+    project.projectModules?.forEach(module => {
+      module.sourceFiles.forEach(f => {
+        const relativePath = pkgPath 
+          ? path.join(pkgPath, 'modules', module.moduleName, f.filePath)
+          : path.join('modules', module.moduleName, f.filePath);
+        allFiles.push(relativePath);
+      });
+    });
+    
+    // Add test files
     if (project.projectTests) {
-      allFiles.push(...project.projectTests.map(f => f.filePath));
+      project.projectTests.forEach(f => {
+        const relativePath = pkgPath 
+          ? path.join(pkgPath, 'tests', f.filePath)
+          : path.join('tests', f.filePath);
+        allFiles.push(relativePath);
+      });
     }
   });
+  
+  console.log(`[AgentNotification] Sending didOpen for ${allFiles.length} files across ${projects.length} project(s)`);
   allFiles.forEach(file => sendBothSchemaDidOpen(tempProjectPath, file));
 }
 
@@ -219,19 +243,43 @@ export function sendAgentDidCloseBatch(tempProjectPath: string, files: string[])
 /**
  * Sends didClose notifications for all project files from project sources
  * Includes source files, module files, and test files
+ * For workspace projects, prepends the package path to each file path
  * @param tempProjectPath The root path of the temporary project
  * @param projects Array of project sources containing source files, modules, and tests
  */
 export function sendAgentDidCloseForProjects(tempProjectPath: string, projects: ProjectSource[]): void {
   const allFiles: string[] = [];
+  
   projects.forEach(project => {
-    allFiles.push(...project.sourceFiles.map(f => f.filePath));
-    project.projectModules?.forEach(module => {
-      allFiles.push(...module.sourceFiles.map(f => f.filePath));
+    const pkgPath = project.packagePath || ""; // Empty for single package, relative path for workspace
+    
+    // Add root-level source files
+    project.sourceFiles.forEach(f => {
+      const relativePath = pkgPath ? path.join(pkgPath, f.filePath) : f.filePath;
+      allFiles.push(relativePath);
     });
+    
+    // Add module files
+    project.projectModules?.forEach(module => {
+      module.sourceFiles.forEach(f => {
+        const relativePath = pkgPath 
+          ? path.join(pkgPath, 'modules', module.moduleName, f.filePath)
+          : path.join('modules', module.moduleName, f.filePath);
+        allFiles.push(relativePath);
+      });
+    });
+    
+    // Add test files
     if (project.projectTests) {
-      allFiles.push(...project.projectTests.map(f => f.filePath));
+      project.projectTests.forEach(f => {
+        const relativePath = pkgPath 
+          ? path.join(pkgPath, 'tests', f.filePath)
+          : path.join('tests', f.filePath);
+        allFiles.push(relativePath);
+      });
     }
   });
+  
+  console.log(`[AgentNotification] Sending didClose for ${allFiles.length} files across ${projects.length} project(s)`);
   sendAgentDidCloseBatch(tempProjectPath, allFiles);
 }
