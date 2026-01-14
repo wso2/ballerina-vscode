@@ -145,6 +145,10 @@ export class VisualizerWebview {
         return this._panel;
     }
 
+    public static isVisualizerActive(): boolean {
+        return VisualizerWebview.currentPanel?.getWebview()?.active ?? false;
+    }
+
     private getWebviewContent(webView: Webview) {
         // Check if devant.editor extension is active
         const isDevantEditor = vscode.commands.executeCommand('getContext', 'devant.editor') !== undefined;
