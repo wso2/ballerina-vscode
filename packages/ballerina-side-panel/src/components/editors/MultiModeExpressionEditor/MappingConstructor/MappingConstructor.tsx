@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { S } from '../styles';
 import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
@@ -58,46 +58,44 @@ const getNextId = (items: any[]): number => {
 
 
 export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
-    const [_ , setManualRerenderTrigger] = useState(true);
-    const internalValueRef = useRef<any[]>([]);
+    const [internalValue, setInternalValue] = useState<any[]>([]);
 
     useEffect(() => {
-        internalValueRef.current = transformExternalValueToInternal(value);
-        setManualRerenderTrigger(prev => !prev);
+        setInternalValue(transformExternalValueToInternal(value));
     }, [value]);
 
     const handleAddPair = () => {
-        const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
-        const updatedValue = [...internalValueRef.current, newPair];
-        internalValueRef.current = updatedValue;
+        const newPair = { id: getNextId(internalValue), key: "", value: "" };
+        const updatedValue = [...internalValue, newPair];
+        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleDeletePair = (id: number) => {
-        const updatedValue = internalValueRef.current.filter(pair => pair.id !== id);
-        internalValueRef.current = updatedValue;
+        const updatedValue = internalValue.filter(pair => pair.id !== id);
+        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleKeyChange = (id: number, newKey: string) => {
-        const updatedValue = internalValueRef.current.map(pair => 
+        const updatedValue = internalValue.map(pair => 
             pair.id === id ? { ...pair, key: newKey } : pair
         );
-        internalValueRef.current = updatedValue;
+        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
     const handleValueChange = (id: number, newValue: string) => {
-        const updatedValue = internalValueRef.current.map(pair => 
+        const updatedValue = internalValue.map(pair => 
             pair.id === id ? { ...pair, value: newValue } : pair
         );
-        internalValueRef.current = updatedValue;
+        setInternalValue(updatedValue);
         onChange(toOutputFormat(updatedValue));
     }
 
     return (
         <S.Container>
-            {internalValueRef.current.map((pair) => (
+            {internalValue.map((pair) => (
                 <S.ItemContainer style={{
                     border: "1px solid var(--dropdown-border)",
                     padding: "8px",
