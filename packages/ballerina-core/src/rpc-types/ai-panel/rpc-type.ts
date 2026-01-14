@@ -76,6 +76,7 @@ export const openAIPanel: RequestType<AIPanelPrompt, void> = { method: `${_preFi
 export const isPlanModeFeatureEnabled: RequestType<void, boolean> = { method: `${_preFix}/isPlanModeFeatureEnabled` };
 export const getSemanticDiff: RequestType<SemanticDiffRequest, SemanticDiffResponse> = { method: `${_preFix}/getSemanticDiff` };
 export const getAffectedPackages: RequestType<void, string[]> = { method: `${_preFix}/getAffectedPackages` };
+export const isWorkspaceProject: RequestType<void, boolean> = { method: `${_preFix}/isWorkspaceProject` };
 export const acceptChanges: RequestType<void, void> = { method: `${_preFix}/acceptChanges` };
 export const declineChanges: RequestType<void, void> = { method: `${_preFix}/declineChanges` };
 export const approvePlan: RequestType<PlanApprovalRequest, void> = { method: `${_preFix}/approvePlan` };

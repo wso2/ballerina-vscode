@@ -55,6 +55,7 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getAffectedPackages,
+    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
@@ -113,6 +114,7 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
     messenger.onRequest(getAffectedPackages, () => rpcManger.getAffectedPackages());
+    messenger.onRequest(isWorkspaceProject, () => rpcManger.isWorkspaceProject());
     messenger.onRequest(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onRequest(declineChanges, () => rpcManger.declineChanges());
     messenger.onRequest(approvePlan, (args: PlanApprovalRequest) => rpcManger.approvePlan(args));
