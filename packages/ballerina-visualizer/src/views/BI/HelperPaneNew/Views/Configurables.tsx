@@ -34,7 +34,6 @@ import { HelperPaneCustom } from "@wso2/ui-toolkit";
 import { useHelperPaneNavigation } from "../hooks/useHelperPaneNavigation";
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation";
 import { InputMode } from "@wso2/ballerina-side-panel";
-import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type ConfigVariablesState = {
     [category: string]: {
@@ -174,9 +173,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }
 
     const handleItemClicked = (name: string) => {
-        // Wrap in template interpolation if in template mode
-        const wrappedName = wrapInTemplateInterpolation(name, inputMode);
-        onChange(wrappedName, false)
+        onChange(name, false)
         onClose && onClose();
     }
 
