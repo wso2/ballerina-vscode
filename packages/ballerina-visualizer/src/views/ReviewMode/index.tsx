@@ -24,7 +24,7 @@ import { ReadonlyComponentDiagram } from "./ReadonlyComponentDiagram";
 import { ReadonlyFlowDiagram } from "./ReadonlyFlowDiagram";
 import { ReadonlyTypeDiagram } from "./ReadonlyTypeDiagram";
 import { ReviewNavigation } from "./ReviewNavigation";
-import { Icon, ThemeColors } from "@wso2/ui-toolkit";
+import { Codicon, Icon, ThemeColors } from "@wso2/ui-toolkit";
 import { TitleBar } from "../../components/TitleBar";
 import { getTitleBarSubEl } from "../BI/DiagramWrapper";
 
@@ -46,12 +46,14 @@ const DiagramContainer = styled.div`
 
 const ReviewModeBadge = styled.div`
     padding: 4px 12px;
-    background: ${ThemeColors.PRIMARY};
-    color: white;
+    border: 1px solid ${ThemeColors.PRIMARY};
+    color: ${ThemeColors.ON_SURFACE};
     border-radius: 2px;
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
+    cursor: default;
+    user-select: none;
 `;
 
 const PackageBadge = styled.div`
@@ -82,7 +84,7 @@ const CurrentPackageBadge = styled.div`
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 8px;
     max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -554,14 +556,10 @@ export function ReviewMode(): JSX.Element {
     const headerActions = (
         <>
             {affectedPackages.length > 1 && currentPackageName && (
-                <CurrentPackageBadge title={`Currently viewing: ${currentPackageName}`}>
+                <CurrentPackageBadge title={`Currently viewing: ${currentPackageName} Integration`}>
+                    <Codicon name="project"/>
                     {currentPackageName}
                 </CurrentPackageBadge>
-            )}
-            {affectedPackages.length > 1 && (
-                <PackageBadge title={`Changes in ${affectedPackages.length} packages`}>
-                    {affectedPackages.length} packages
-                </PackageBadge>
             )}
             <ReviewModeBadge>Review Mode</ReviewModeBadge>
             <CloseButton onClick={handleClose} title="Close Review Mode">

@@ -178,11 +178,6 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 <ViewCounter>
                     {currentIndex + 1} / {totalViews}
                 </ViewCounter>
-                {showPackage && currentPackageName && (
-                    <PackageLabel title={`Package: ${currentPackageName}`}>
-                        📦 {currentPackageName}
-                    </PackageLabel>
-                )}
                 {currentLabel && <ViewLabel title={currentLabel}>{currentLabel}</ViewLabel>}
             </ViewInfo>
 
