@@ -396,6 +396,28 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
+    async getAffectedPackages(): Promise<string[]> {
+        // Get workspace ID and thread ID
+        const ctx = createExecutionContextFromStateMachine();
+        const workspaceId = ctx.projectPath;
+        const threadId = 'default';
+
+        // Get the current under_review generation
+        const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+        const underReviewGeneration = thread.generations.find(
+            g => g.reviewState.status === 'under_review'
+        );
+
+        if (!underReviewGeneration) {
+            console.log(">>> No pending review generation, returning empty affected packages");
+            return [];
+        }
+
+        const affectedPackages = underReviewGeneration.reviewState.affectedPackagePaths || [];
+        console.log(`>>> Returning ${affectedPackages.length} affected packages:`, affectedPackages);
+        return affectedPackages;
+    }
+
     async acceptChanges(): Promise<void> {
         try {
             // Get workspace ID and thread ID
