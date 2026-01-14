@@ -80,6 +80,7 @@ export interface AIPanelAPI {
     isPlanModeFeatureEnabled: () => Promise<boolean>;
     // AI schema related functions
     getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
+    getAffectedPackages: () => Promise<string[]>;
     acceptChanges: () => Promise<void>;
     declineChanges: () => Promise<void>;
     // ==================================
