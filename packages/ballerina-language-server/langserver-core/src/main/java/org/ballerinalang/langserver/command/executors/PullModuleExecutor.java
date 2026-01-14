@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Command executor for pulling a package from central.
@@ -86,15 +87,21 @@ public class PullModuleExecutor implements LSCommandExecutor {
                 default:
             }
         }
-        return resolveModules(fileUri, context.getLanguageClient(), context.workspace(),
-                context.languageServercontext());
+        try {
+            return resolveModules(fileUri, context.getLanguageClient(), context.workspace(),
+                    context.languageServercontext()).get();
+        } catch (InterruptedException | ExecutionException e) {
+            // TODO: Add tracing after the workspace manager rewrite.
+            // Tracked with https://github.com/wso2/product-ballerina-integrator/issues/1488
+            throw new RuntimeException(e);
+        }
     }
 
     public static CompletableFuture<Void> resolveModules(String fileUri, ExtendedLanguageClient languageClient,
                                                          WorkspaceManager workspaceManager,
                                                          LanguageServerContext languageServerContext) {
         return resolveModules(fileUri, languageClient, workspaceManager, languageServerContext, false);
-}
+    }
 
     /**
      * Resolves missing modules for the given file.
