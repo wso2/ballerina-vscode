@@ -397,7 +397,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const effectiveTargetLineRange = targetLineRange ?? contextTargetLineRange;
     const effectiveFileName = fileName ?? contextFileName;
 
-    const initialFieldValue = useRef(field.value);
+    if (field.placeholder === 'object {}' || field.placeholder === '""') {
+        field.placeholder = '';
+    }
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
