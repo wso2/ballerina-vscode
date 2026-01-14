@@ -125,7 +125,7 @@ You can use this tool multiple times after making changes to ensure there are no
 If you think you can't fix the error after multiple attempts, make sure to keep bring the code into a good state and finish off the task.
 
 ### Step 5: Provide a consise summary
-Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and making documentations via ${FILE_WRITE_TOOL_NAME} unless explicitly asked in the user query.
+Once the code is written and validated, provide a very concise summary of the overall changes made. Avoid adding detailed explanations and NEVER create documentations files via ${FILE_WRITE_TOOL_NAME}.
 
 # Code Generation Guidelines
 When generating Ballerina code strictly follow these syntax and structure guidelines:
@@ -178,7 +178,7 @@ ${getLanglibInstructions()}
         ", "
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
-- Do not add/modify documentation such as .md files unless explicitly asked to be modified in the query.
+- Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
 - Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 

@@ -491,8 +491,10 @@ export const Form = forwardRef((props: FormProps) => {
                     defaultValues[field.key] = field.value;
                 } else if (isDropdownField(field)) {
                     defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                } else if (field.type === "FLAG") {
+                } else if (field.type === "FLAG" && field.types?.length > 1) {
                     defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                } else if (field.type === "FLAG") {
+                    defaultValues[field.key] = field.value || "true";
                 } else if (typeof field.value === "string") {
                     defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
                 } else {
