@@ -132,6 +132,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         enableListContinuation={true}
                         inputMode={inputMode}
                         configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        placeholder={field.placeholder}
                     />
                 </ExpressionContainer>
             ) : (
