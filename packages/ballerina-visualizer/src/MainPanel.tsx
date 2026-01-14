@@ -206,23 +206,23 @@ const MainPanel = () => {
     const [breakpointState, setBreakpointState] = useState<number>(0);
     const breakpointStateRef = useRef<number>(0);
 
-    rpcClient?.onStateChanged((newState: MachineStateValue) => {
-        if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
-            debounceFetchContext();
-        }
-    });
-
     const debounceFetchContext = useCallback(
         debounce(() => {
             fetchContext();
         }, 200), []
     );
 
-    rpcClient?.onPopupStateChanged((newState: PopupMachineStateValue) => {
-        setPopupState(newState);
-    });
-
     useEffect(() => {
+        rpcClient?.onStateChanged((newState: MachineStateValue) => {
+            if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
+                debounceFetchContext();
+            }
+        });
+
+        rpcClient?.onPopupStateChanged((newState: PopupMachineStateValue) => {
+            setPopupState(newState);
+        });
+
         rpcClient?.onBreakpointChanges((state: boolean) => {
             console.log("Breakpoint changes - updating state");
             setBreakpointState(prev => {
