@@ -89,7 +89,7 @@ const Container = styled.div`
 
 export interface BIFlowDiagramProps {
     projectPath: string;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
@@ -168,7 +168,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewChunker = useRef<boolean>(false);
 
     useEffect(() => {
-        debouncedGetFlowModel();
+        debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
 
     useEffect(() => {
@@ -249,6 +249,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             getFlowModel();
         }, 1000),
         [hasDraft]
+    );
+
+    // Shorter debounce specifically for breakpoint changes (faster feedback)
+    const debouncedGetFlowModelForBreakpoints = useCallback(
+        debounce(() => {
+            getFlowModel();
+        }, 200),
+        []
     );
 
     // Navigation stack helpers
