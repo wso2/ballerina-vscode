@@ -310,9 +310,9 @@ function getFormFieldValue(expression: Property, clientName?: string) {
 function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
     if (getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
         return connections.map((connection) => connection.properties?.variable?.value as string);
-    } else if (expression.types.length > 1 && (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT")) {
+    } else if (expression.types?.length > 1 && (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT")) {
         return expression.types?.map(inputType => inputType.ballerinaType) as string[];
-    } else if (expression.types.length === 1 && isDropDownType(expression.types[0])) {
+    } else if (expression.types?.length === 1 && isDropDownType(expression.types[0])) {
         return (expression.types[0] as DropdownType).options.map((option) => option.value);
     }
     return undefined;
