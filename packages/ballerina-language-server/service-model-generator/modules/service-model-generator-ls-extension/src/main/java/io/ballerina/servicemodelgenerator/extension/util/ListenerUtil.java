@@ -74,6 +74,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
@@ -102,7 +103,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.SF_DEF
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TCP_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.TRIGGER_GITHUB;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.removeLeadingSingleQuote;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.upperCaseFirstLetter;
 
 /**
@@ -358,13 +358,10 @@ public class ListenerUtil {
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
             codedata.setOriginalName(paramResult.name());
 
-            String label = paramResult.label();
-            label = label != null ? label : unescapedParamName;
-
             List<PropertyType> propertyTypes = ListenerDeclAnalyzer.buildPropertyType(paramResult, semanticModel,
                     moduleInfo);
             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
-                    .setMetadata(new MetaData(label, paramResult.description()))
+                    .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                     .setCodedata(codedata)
                     .value("")
                     .types(propertyTypes)

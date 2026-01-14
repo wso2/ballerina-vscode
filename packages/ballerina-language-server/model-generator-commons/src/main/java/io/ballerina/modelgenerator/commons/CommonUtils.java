@@ -1345,4 +1345,17 @@ public class CommonUtils {
 
         return DOUBLE_QUOTE + content + DOUBLE_QUOTE;
     }
+
+    /**
+     * Removes the leading single quote from the specified string if present.
+     *
+     * @param input the string to be processed
+     * @return the string without the leading single quote, or the original string
+     */
+    public static String removeLeadingSingleQuote(String input) {
+        if (input != null && input.startsWith("'")) {
+            return input.substring(1);
+        }
+        return input;
+    }
 }
