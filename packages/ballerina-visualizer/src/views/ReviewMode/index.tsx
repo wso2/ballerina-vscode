@@ -259,6 +259,7 @@ export function ReviewMode(): JSX.Element {
     const [isLoading, setIsLoading] = useState(true);
     const [currentItemMetadata, setCurrentItemMetadata] = useState<ItemMetadata | null>(null);
     const [affectedPackages, setAffectedPackages] = useState<string[]>([]);
+    const [isWorkspace, setIsWorkspace] = useState(false);
 
     // Derive current view from views array and currentIndex - no separate state needed
     const currentView =
@@ -278,6 +279,16 @@ export function ReviewMode(): JSX.Element {
             }
             setProjectPath(tempDirPath);
 
+            // Check if the project is a workspace (multi-package)
+            let isWorkspaceProject = false;
+            try {
+                isWorkspaceProject = await rpcClient.getAiPanelRpcClient().isWorkspaceProject();
+                console.log("[ReviewMode] Is workspace project:", isWorkspaceProject);
+                setIsWorkspace(isWorkspaceProject);
+            } catch (error) {
+                console.warn("[ReviewMode] Could not determine if workspace, assuming single package:", error);
+            }
+
             // Fetch affected packages from review context
             let fetchedPackages: string[] = [];
             try {
@@ -289,15 +300,16 @@ export function ReviewMode(): JSX.Element {
 
             // Use affected packages if available, otherwise fallback to temp directory
             const packagesToReview = fetchedPackages.length > 0 ? fetchedPackages : [tempDirPath];
-            const isMultiPackage = packagesToReview.length > 1;
 
             // Store affected packages in state
             setAffectedPackages(packagesToReview);
 
-            console.log(`[ReviewMode] Reviewing ${packagesToReview.length} package(s):`, packagesToReview);
+            console.log(`[ReviewMode] Reviewing ${packagesToReview.length} package(s) in ${isWorkspaceProject ? 'workspace' : 'single'} project:`, packagesToReview);
 
             // Fetch semantic diffs for all affected packages
-            const semanticDiffResponse = isMultiPackage
+            // For workspace projects, always fetch for each package even if only one is affected
+            // For single package projects, just fetch once
+            const semanticDiffResponse = isWorkspaceProject
                 ? await fetchSemanticDiffForMultiplePackages(rpcClient, packagesToReview)
                 : await fetchSemanticDiff(rpcClient, tempDirPath);
 
@@ -330,7 +342,7 @@ export function ReviewMode(): JSX.Element {
                 let belongsToPackage = tempDirPath;
                 let packageName: string | undefined;
 
-                if (isMultiPackage) {
+                if (isWorkspaceProject) {
                     // Find the package that contains this file
                     for (const pkgPath of packagesToReview) {
                         if (diff.uri.includes(pkgPath) || diff.uri.startsWith(getPackageName(pkgPath))) {
@@ -542,10 +554,12 @@ export function ReviewMode(): JSX.Element {
     const subtitleElement = getTitleBarSubEl(headerText.name, headerText.accessor || "", isResource, isAutomation);
 
     // Get current package name for display
+    // Show package names for workspace projects
     const getCurrentPackageName = () => {
-        if (!currentView || affectedPackages.length <= 1) {
+        if (!currentView) {
             return null;
         }
+        // Extract package name from the projectPath for workspace projects
         const currentPackage = currentView.projectPath;
         return getPackageName(currentPackage);
     };
@@ -555,7 +569,7 @@ export function ReviewMode(): JSX.Element {
     // Create actions for the right side
     const headerActions = (
         <>
-            {affectedPackages.length > 1 && currentPackageName && (
+            {isWorkspace && currentPackageName && (
                 <CurrentPackageBadge title={`Currently viewing: ${currentPackageName} Integration`}>
                     <Codicon name="project"/>
                     {currentPackageName}
@@ -584,7 +598,7 @@ export function ReviewMode(): JSX.Element {
                 totalViews={views.length}
                 currentLabel={currentView?.label}
                 currentPackageName={currentPackageName}
-                showPackage={affectedPackages.length > 1}
+                showPackage={isWorkspace}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
                 onAccept={handleAccept}

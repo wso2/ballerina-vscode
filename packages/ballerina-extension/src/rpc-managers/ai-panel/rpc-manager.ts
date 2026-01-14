@@ -418,6 +418,13 @@ export class AiPanelRpcManager implements AIPanelAPI {
         return affectedPackages;
     }
 
+    async isWorkspaceProject(): Promise<boolean> {
+        const context = StateMachine.context();
+        const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';
+        console.log(`>>> isWorkspaceProject: ${isWorkspace}`);
+        return isWorkspace;
+    }
+
     async acceptChanges(): Promise<void> {
         try {
             // Get workspace ID and thread ID

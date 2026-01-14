@@ -73,6 +73,7 @@ import {
     getLoginMethod,
     getSemanticDiff,
     getAffectedPackages,
+    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
@@ -208,6 +209,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getAffectedPackages(): Promise<string[]> {
         return this._messenger.sendRequest(getAffectedPackages, HOST_EXTENSION);
+    }
+
+    isWorkspaceProject(): Promise<boolean> {
+        return this._messenger.sendRequest(isWorkspaceProject, HOST_EXTENSION);
     }
 
     acceptChanges(): Promise<void> {
