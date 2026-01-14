@@ -64,7 +64,7 @@ const customSqlHighlightStyle = HighlightStyle.define([
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
-        if (value == "\"TEXT_HERE\"") return "TEXT_HERE";
+        if (value === "\"TEXT_HERE\"") return "TEXT_HERE";
         return `\$\{${value}\}`;
     }
     getSerializationPrefix() {
