@@ -30,8 +30,9 @@ export const PopupContainer = styled.div`
     transform: translate(-50%, -50%);
     width: 80%;
     max-width: 800px;
-    height: 80%;
+    height: 80vh;
     max-height: 800px;
+    min-height: 480px;
     z-index: 2000;
     background-color: ${ThemeColors.SURFACE_BRIGHT};
     border-radius: 10px;
