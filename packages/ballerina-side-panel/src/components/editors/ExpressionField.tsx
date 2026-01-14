@@ -173,7 +173,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
     }
 
     //below editors cannot have input value in array type
-    if (Array.isArray(value)) return;
+    if (Array.isArray(value)) return null;
 
     const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
