@@ -1375,22 +1375,22 @@
           "label": "Event Channel",
           "description": "The event channel name",
           "defaultValue": "",
-          "placeholder": "\"IssuesService\"",
+          "placeholder": "IssuesService",
           "types": [
             {
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "github:GenericServiceType",
               "options": [
-                "IssuesService",
-                "IssueCommentService",
-                "PullRequestService",
-                "PullRequestReviewService",
-                "PullRequestReviewCommentService",
-                "ReleaseService",
-                "LabelService",
-                "MilestoneService",
-                "PushService",
-                "ProjectCardService"
+                {"label": "IssuesService", "value": "IssuesService"},
+                {"label": "IssueCommentService", "value": "IssueCommentService"},
+                {"label": "PullRequestService", "value": "PullRequestService"},
+                {"label": "PullRequestReviewService", "value": "PullRequestReviewService"},
+                {"label": "PullRequestReviewCommentService", "value": "PullRequestReviewCommentService"},
+                {"label": "ReleaseService", "value": "ReleaseService"},
+                {"label": "LabelService", "value": "LabelService"},
+                {"label": "MilestoneService", "value": "MilestoneService"},
+                {"label": "PushService", "value": "PushService"},
+                {"label": "ProjectCardService", "value": "ProjectCardService"}
               ]
             }
           ],
@@ -1467,8 +1467,8 @@
               "fieldType": "SINGLE_SELECT",
               "ballerinaType": "twilio:GenericServiceType",
                 "options": [
-                    "CallStatusService",
-                    "SmsStatusService"
+                  {"label": "CallStatusService", "value": "CallStatusService"},
+                  {"label": "SmsStatusService", "value": "SmsStatusService"}
                 ]
             }
           ],
