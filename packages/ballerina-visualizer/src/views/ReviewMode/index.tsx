@@ -349,7 +349,10 @@ export function ReviewMode(): JSX.Element {
                 if (isWorkspaceProject) {
                     // Find the package that contains this file
                     for (const pkgPath of packagesToReview) {
-                        if (diff.uri.includes(pkgPath) || diff.uri.startsWith(getPackageName(pkgPath))) {
+                        // Normalize paths and check if diff.uri starts with package path
+                        const normalizedUri = diff.uri.replace(/\\/g, '/');
+                        const normalizedPkgPath = pkgPath.replace(/\\/g, '/');
+                        if (normalizedUri.startsWith(normalizedPkgPath + '/') || normalizedUri === normalizedPkgPath) {
                             belongsToPackage = pkgPath;
                             packageName = getPackageName(pkgPath);
                             break;
