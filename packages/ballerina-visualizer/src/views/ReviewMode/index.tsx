@@ -238,9 +238,17 @@ async function fetchSemanticDiffForMultiplePackages(
 }
 
 // Helper to extract package name from path
-function getPackageName(packagePath: string): string {
-    const parts = packagePath.split("/");
-    return parts[parts.length - 1] || packagePath;
+function getPackageName(path: string): string {
+    const parts = path.split("/");
+    const lastPart = parts[parts.length - 1];
+    
+    // If the last part is a .bal file, the package name is the directory before it
+    if (lastPart && lastPart.endsWith('.bal')) {
+        return parts[parts.length - 2] || path;
+    }
+    
+    // Otherwise, the last part is the package name
+    return lastPart || path;
 }
 
 interface ItemMetadata {
@@ -566,9 +574,7 @@ export function ReviewMode(): JSX.Element {
         if (!currentView) {
             return null;
         }
-        // Extract package name from the projectPath for workspace projects
-        const currentPackage = currentView.projectPath;
-        return getPackageName(currentPackage);
+        return getPackageName(currentView.filePath);
     };
 
     const currentPackageName = getCurrentPackageName();
