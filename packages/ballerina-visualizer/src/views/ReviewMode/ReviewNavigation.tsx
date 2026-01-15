@@ -92,8 +92,6 @@ interface ReviewNavigationProps {
     currentIndex: number;
     totalViews: number;
     currentLabel?: string;
-    currentPackageName?: string;
-    showPackage?: boolean;
     onPrevious: () => void;
     onNext: () => void;
     onAccept: () => void;
@@ -107,8 +105,6 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         currentIndex,
         totalViews,
         currentLabel,
-        currentPackageName,
-        showPackage = false,
         onPrevious,
         onNext,
         onAccept,

@@ -601,8 +601,6 @@ export function ReviewMode(): JSX.Element {
                 currentIndex={currentIndex}
                 totalViews={views.length}
                 currentLabel={currentView?.label}
-                currentPackageName={currentPackageName}
-                showPackage={isWorkspace}
                 onPrevious={handlePrevious}
                 onNext={handleNext}
                 onAccept={handleAccept}
