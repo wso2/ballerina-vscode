@@ -120,17 +120,17 @@ public class ListenerDeclAnalyzer {
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
 
-                List<PropertyType> propertyTypes = buildPropertyType(paramResult, semanticModel, moduleInfo);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                         .setCodedata(codedata)
                         .value("")
-                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
                         .setAdvanced(paramResult.optional());
+
+                buildPropertyType(valueBuilder, paramResult, semanticModel, moduleInfo);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             return;
@@ -163,18 +163,17 @@ public class ListenerDeclAnalyzer {
                     Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                     codedata.setOriginalName(paramResult.name());
 
-                    List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue, semanticModel,
-                            moduleInfo);
                     Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                             .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                             .setCodedata(codedata)
                             .value(value)
-                            .types(propertyTypes)
                             .setPlaceholder(paramResult.placeholder())
                             .editable(true)
                             .enabled(true)
                             .optional(paramResult.optional())
                             .setAdvanced(paramResult.optional());
+
+                    buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                     properties.put(unescapedParamName, valueBuilder.build());
                 }
 
@@ -193,18 +192,17 @@ public class ListenerDeclAnalyzer {
                 String label = restParamResult.label();
                 label = label != null ? label : unescapedParamName;
 
-                List<PropertyType> propertyTypes = buildPropertyType(restParamResult, semanticModel, moduleInfo);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(label, restParamResult.description()))
                         .setCodedata(codedata)
                         .value("[%s]".formatted(String.join(", ", restArgs)))
-                        .types(propertyTypes)
                         .setPlaceholder(restParamResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(restParamResult.optional())
                         .setAdvanced(restParamResult.optional());
 
+                buildPropertyType(valueBuilder, restParamResult, semanticModel, moduleInfo);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             // iterate over functionParamMap
@@ -244,19 +242,17 @@ public class ListenerDeclAnalyzer {
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
 
-                            List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue,
-                                    semanticModel, moduleInfo);
                             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                                     .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                                     .setCodedata(codedata)
                                     .value(value)
-                                    .types(propertyTypes)
                                     .setPlaceholder(paramResult.placeholder())
                                     .editable(true)
                                     .enabled(true)
                                     .optional(paramResult.optional())
                                     .setAdvanced(paramResult.optional());
 
+                            buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                             properties.put(unescapedParamName, valueBuilder.build());
                         } else {
                             if (funcParamMap.containsKey(argName)) { // included record attribute
@@ -271,21 +267,18 @@ public class ListenerDeclAnalyzer {
                                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                                 codedata.setOriginalName(paramResult.name());
 
-                                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue,
-                                        semanticModel, moduleInfo);
                                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                                         .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                                         .setCodedata(codedata)
                                         .value(value)
-                                        .types(propertyTypes)
                                         .setPlaceholder(paramResult.placeholder())
                                         .editable(true)
                                         .enabled(true)
                                         .optional(paramResult.optional())
                                         .setAdvanced(paramResult.optional());
 
+                                buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                                 properties.put(unescapedParamName, valueBuilder.build());
-
                             }
                         }
 
@@ -297,19 +290,17 @@ public class ListenerDeclAnalyzer {
                             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                             codedata.setOriginalName(paramResult.name());
 
-                            List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue,
-                                    semanticModel, moduleInfo);
                             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                                     .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                                     .setCodedata(codedata)
                                     .value(value)
-                                    .types(propertyTypes)
                                     .setPlaceholder(paramResult.placeholder())
                                     .editable(true)
                                     .enabled(true)
                                     .optional(paramResult.optional())
                                     .setAdvanced(paramResult.optional());
 
+                            buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                             properties.put(unescapedParamName, valueBuilder.build());
                             return;
                         }
@@ -326,18 +317,17 @@ public class ListenerDeclAnalyzer {
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
 
-                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue, semanticModel,
-                        moduleInfo);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                         .setCodedata(codedata)
                         .value(value)
-                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
                         .setAdvanced(paramResult.optional());
+
+                buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
 
@@ -353,18 +343,17 @@ public class ListenerDeclAnalyzer {
                 Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
                 codedata.setOriginalName(paramResult.name());
 
-                List<PropertyType> propertyTypes = buildPropertyType(paramResult, paramValue,
-                        semanticModel, moduleInfo);
                 Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                         .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                         .setCodedata(codedata)
                         .value(value)
-                        .types(propertyTypes)
                         .setPlaceholder(paramResult.placeholder())
                         .editable(true)
                         .enabled(true)
                         .optional(paramResult.optional())
                         .setAdvanced(paramResult.optional());
+
+                buildPropertyType(valueBuilder, paramResult, paramValue, semanticModel, moduleInfo);
                 properties.put(unescapedParamName, valueBuilder.build());
             }
             addRemainingParamsToPropertyMap(funcParamMap);
@@ -383,38 +372,41 @@ public class ListenerDeclAnalyzer {
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
             codedata.setOriginalName(paramResult.name());
 
-            List<PropertyType> propertyTypes = buildPropertyType(paramResult, semanticModel, moduleInfo);
             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                     .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                     .setCodedata(codedata)
                     .value("")
-                    .types(propertyTypes)
                     .setPlaceholder(paramResult.placeholder())
                     .editable(true)
                     .enabled(true)
                     .optional(paramResult.optional())
                     .setAdvanced(paramResult.optional());
+
+            buildPropertyType(valueBuilder, paramResult, semanticModel, moduleInfo);
             properties.put(unescapedParamName, valueBuilder.build());
         }
     }
 
-    public static List<PropertyType> buildPropertyType(ParameterData paramData, SemanticModel semanticModel,
+    public static void buildPropertyType(Value.ValueBuilder valueBuilder,
+                                                       ParameterData paramData,
+                                                       SemanticModel semanticModel,
                                                        ModuleInfo moduleInfo) {
-        return buildPropertyType(paramData, null, semanticModel, moduleInfo);
+        buildPropertyType(valueBuilder, paramData, null, semanticModel, moduleInfo);
     }
 
-    private static List<PropertyType> buildPropertyType(ParameterData paramData, Node value,
+    private static void buildPropertyType(Value.ValueBuilder valueBuilder,
+                                                        ParameterData paramData, Node value,
                                                         SemanticModel semanticModel,
                                                         ModuleInfo moduleInfo) {
         ParameterData.Kind kind = paramData.kind();
         if (kind == ParameterData.Kind.REST_PARAMETER) {
-            return List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET));
+             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET)));
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
-            return List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET));
+            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET)));
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
-            return List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE));
+            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE)));
         }
-        return PropertyType.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
+        PropertyType.typeWithExpression(valueBuilder, paramData.typeSymbol(), moduleInfo, value, semanticModel);
     }
 
     private static boolean isSubTypeOfRawTemplate(TypeSymbol typeSymbol, SemanticModel semanticModel) {
