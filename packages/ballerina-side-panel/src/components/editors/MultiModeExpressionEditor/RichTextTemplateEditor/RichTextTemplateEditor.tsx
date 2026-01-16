@@ -139,6 +139,16 @@ const EditorContainer = styled.div`
 
 const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]);
 
+// Helper function to sanitize text by removing invisible characters
+const sanitizeText = (text: string): string => {
+    return text
+        .replace(/\u00A0/g, ' ')  // Replace non-breaking spaces with regular spaces
+        .replace(/\u200B/g, '')   // Remove zero-width spaces
+        .replace(/\u200C/g, '')   // Remove zero-width non-joiners
+        .replace(/\u200D/g, '')   // Remove zero-width joiners
+        .replace(/\uFEFF/g, '');  // Remove zero-width no-break spaces
+};
+
 // Create chip schema once
 const chipSchema = createChipSchema();
 
@@ -315,7 +325,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
-        const newEditorValue = configuration.deserializeValue(serialized);
+        const newEditorValue = sanitizeText(configuration.deserializeValue(serialized));
         onChange(newEditorValue, cursorPosition);
     };
 
@@ -440,6 +450,9 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 const text = event.clipboardData?.getData('text/plain');
                 if (!text) return false;
 
+                // Sanitize pasted text to remove invisible characters
+                const sanitizedText = sanitizeText(text);
+
                 // Check if the pasted text looks like markdown
                 const markdownPatterns = [
                     /^#{1,6}\s/m,           // Headings
@@ -453,19 +466,28 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                     /\[.+\]\(.+\)/          // Links
                 ];
 
-                const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(text));
+                const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(sanitizedText));
 
                 if (looksLikeMarkdown) {
-                    const doc = customMarkdownParser.parse(text);
+                    const doc = customMarkdownParser.parse(sanitizedText);
                     if (doc && doc.content.size > 0) {
                         const { from, to } = view.state.selection;
                         const tr = (view.state.tr as any).replaceWith(from, to, doc.content);
                         view.dispatch(tr);
                         return true;
                     }
+                } else {
+                    // For plain text, insert sanitized text
+                    const { from, to } = view.state.selection;
+                    const tr = view.state.tr.insertText(sanitizedText, from, to);
+                    view.dispatch(tr);
+                    return true;
                 }
 
                 return false;
+            },
+            transformPastedText(text) {
+                return sanitizeText(text);
             },
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
@@ -498,7 +520,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
                     // Call onChange when document changes
                     const serialized = customMarkdownSerializer.serialize(newState.doc);
-                    const newValue = configuration.deserializeValue(serialized);
+                    const newValue = sanitizeText(configuration.deserializeValue(serialized));
                     const cursorPos = (newState.selection as any).$head?.pos || 0;
                     onChange(newValue, cursorPos);
                 }
