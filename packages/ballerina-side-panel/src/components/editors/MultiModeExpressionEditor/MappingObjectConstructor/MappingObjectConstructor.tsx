@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { S } from '../styles';
 import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
@@ -43,13 +43,26 @@ const transformExternalValueToInternal = (externalValue: any): any[] => {
 
 const toOutputFormat = (pairs: any[]): any => {
     const result: any = {};
+    const keyCount: Record<string, number> = {};
+
     pairs.forEach(pair => {
-        if (pair.key) {
-            result[pair.key] = pair.value;
+        if (!pair.key) return;
+
+        const baseKey = pair.key;
+
+        if (keyCount[baseKey] === undefined) {
+            keyCount[baseKey] = 0;
+            result[baseKey] = pair.value;
+        } else {
+            keyCount[baseKey] += 1;
+            const newKey = `${baseKey}_${keyCount[baseKey]}`;
+            result[newKey] = pair.value;
         }
     });
+
     return result;
-}
+};
+
 
 const getNextId = (items: any[]): number => {
     if (items.length === 0) {
@@ -62,7 +75,6 @@ const getNextId = (items: any[]): number => {
 export const MappingObjectConstructor: React.FC<MappingObjectConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
     //used this to manually trigger rerenders when value prop changes
     const [_, setManualRerenderTrigger] = useState(true);
-    const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
     const internalValueRef = useRef<any[]>([]);
 
     useEffect(() => {
@@ -71,10 +83,14 @@ export const MappingObjectConstructor: React.FC<MappingObjectConstructorProps> =
         setManualRerenderTrigger(prev => !prev);
     }, [value]);
 
+    const hasUntouchedPairs = useMemo(() => {
+        return internalValueRef.current.some(pair => pair.key === "");
+    }, [internalValueRef.current]);
+
+
     const handleAddPair = () => {
         const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
         const updatedValue = [...internalValueRef.current, newPair];
-        setHasUntouchedPairs(true);
         internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
@@ -89,7 +105,6 @@ export const MappingObjectConstructor: React.FC<MappingObjectConstructorProps> =
         const updatedValue = internalValueRef.current.map(pair =>
             pair.id === id ? { ...pair, key: newKey } : pair
         );
-        setHasUntouchedPairs(newKey === "");
         internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
