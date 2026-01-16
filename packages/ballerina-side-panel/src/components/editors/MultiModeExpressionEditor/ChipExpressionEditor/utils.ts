@@ -62,6 +62,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
         return InputMode.MAP;
     }
+    if (inputType.fieldType === "MAPPING_EXPRESSION") {
+        return InputMode.MAP_EXP;
+    }
     if (inputType.fieldType === "PROMPT") {
         return InputMode.PROMPT;
     }
@@ -460,4 +463,4 @@ export const processFunctionWithArguments = async (
 };
 
 export const normalizeEditorValue = (v: unknown) =>
-  typeof v === 'string' ? v.trim() : v;
+    typeof v === 'string' ? v.trim() : v;
