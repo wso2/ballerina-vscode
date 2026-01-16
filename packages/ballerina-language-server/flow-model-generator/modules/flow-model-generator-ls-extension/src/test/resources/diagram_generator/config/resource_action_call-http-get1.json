@@ -148,7 +148,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -360,7 +360,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -579,7 +579,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -791,7 +791,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -1007,7 +1007,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -1219,7 +1219,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": true
               },
@@ -1432,7 +1432,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -1644,7 +1644,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
@@ -1856,7 +1856,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string|string[]>",
                 "selected": false
               },
