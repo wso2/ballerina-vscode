@@ -94,6 +94,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "EXPRESSION_SET" ||
             type.fieldType === "TEXT_SET" ||
             type.fieldType === "MAPPING_EXPRESSION_SET" ||
+            type.fieldType === "MAPPING_EXPRESSION" ||
             (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
             type.fieldType === "RECORD_MAP_EXPRESSION" ||
             (field.type === "FLAG" && field.types?.length > 1)
