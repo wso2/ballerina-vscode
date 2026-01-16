@@ -69,7 +69,7 @@ const ContentContainer = styled.div<{ hasFooterButton?: boolean }>`
     display: flex;
     flex-direction: column;
     overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
-    padding: 24px 32px;
+    padding: 24px;
     padding-bottom: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"};
     min-height: 0;
 `;
