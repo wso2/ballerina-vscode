@@ -179,8 +179,12 @@ public class PropertyType {
             // need to check if it's a map or a record if its a map then need to set the matching type
             if (matchingValueType == Value.FieldType.MAPPING_EXPRESSION_SET) {
                 Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
-                    matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                if (paramType.isPresent()) {
+                    if (paramType.get().typeKind() == TypeDescKind.MAP) {
+                        matchingValueType = Value.FieldType.MAPPING_EXPRESSION;
+                    } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                    }
                 }
                 Value.FieldType finalMatchingValueType = matchingValueType;
                 propertyTypes.stream()
@@ -237,7 +241,7 @@ public class PropertyType {
             case STRING, STRING_CHAR -> Optional.of(PropertyType.types(Value.FieldType.TEXT, ballerinaType));
             case BOOLEAN -> Optional.of(PropertyType.types(Value.FieldType.FLAG, ballerinaType));
             case ARRAY -> Optional.of(PropertyType.types(Value.FieldType.EXPRESSION_SET, ballerinaType));
-            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET, ballerinaType));
+            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION, ballerinaType));
             case RECORD -> {
                 if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                     // not an anonymous record
