@@ -36,7 +36,6 @@ import { FunctionFormStatic } from "../../FunctionFormStatic";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils";
 import { HelperPaneListItem } from "../Components/HelperPaneListItem";
-import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type FunctionsPageProps = {
     fieldKey: string;
@@ -178,8 +177,7 @@ export const FunctionsPage = ({
 
     const handleFunctionItemSelect = async (item: HelperPaneCompletionItem) => {
         const { value, cursorOffset } = await onFunctionItemSelect(item);
-        const wrappedValue = wrapInTemplateInterpolation(value, inputMode);
-        onChange({ value: wrappedValue, cursorOffset });
+        onChange({ value, cursorOffset });
         onClose();
     };
 
@@ -311,7 +309,7 @@ export const FunctionsPage = ({
                     title="Open Function Browser"
                     onClick={handleOpenLibraryBrowser}
                     startIcon="bi-arrow-outward"
-                />            
+                />
             </div>
         </div>
     )
