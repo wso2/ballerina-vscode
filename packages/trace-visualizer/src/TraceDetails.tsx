@@ -21,6 +21,7 @@ import styled from "@emotion/styled";
 import { TraceData, SpanData } from "./index";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { SpanInputOutput } from "./components/SpanInputOutput";
+import { WaterfallView } from "./components/WaterfallView";
 
 interface TraceDetailsProps {
     traceData: TraceData;
@@ -156,6 +157,39 @@ const ModeToggleButton = styled.button`
     }
 `;
 
+const ViewModeToggle = styled.div`
+    display: flex;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    overflow: hidden;
+`;
+
+const ViewModeButton = styled.button<{ isActive: boolean }>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    background: ${(props: { isActive: boolean }) => props.isActive
+        ? 'var(--vscode-button-background)'
+        : 'transparent'};
+    color: ${(props: { isActive: boolean }) => props.isActive
+        ? 'var(--vscode-button-foreground)'
+        : 'var(--vscode-foreground)'};
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: ${(props: { isActive: boolean }) => props.isActive
+        ? 'var(--vscode-button-hoverBackground)'
+        : 'var(--vscode-list-hoverBackground)'};
+    }
+
+    &:first-of-type {
+        border-right: 1px solid var(--vscode-panel-border);
+    }
+`;
+
 // Agent Chat Logs Styles
 const AgentChatLogsContainer = styled.div`
     display: flex;
@@ -248,6 +282,10 @@ const AISpanBadge = styled.span<{ type: string }>`
 const AISpanLabel = styled.span`
     flex: 1;
     font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
 `;
 
 const AISpanDuration = styled.span`
@@ -349,7 +387,7 @@ const AdvancedSpanKind = styled.span`
     font-size: 10px;
     padding: 2px 6px;
     border-radius: 3px;
-    background-color: var(--vscode-badge-background);
+    background-color: var(--vscode-list-hoverBackground);
     color: var(--vscode-badge-foreground);
     flex-shrink: 0;
 `;
@@ -429,28 +467,28 @@ const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null
 const timeContainsSpan = (parentSpan: SpanData, childSpan: SpanData): boolean => {
     const parentRange = getSpanTimeRange(parentSpan);
     const childRange = getSpanTimeRange(childSpan);
-    
+
     if (!parentRange || !childRange) return false;
-    
+
     // Parent contains child if it starts before/at and ends after/at, but they're not identical
-    return parentRange.start <= childRange.start && 
-           parentRange.end >= childRange.end && 
-           (parentRange.start < childRange.start || parentRange.end > childRange.end);
+    return parentRange.start <= childRange.start &&
+        parentRange.end >= childRange.end &&
+        (parentRange.start < childRange.start || parentRange.end > childRange.end);
 };
 
 const sortSpansByUmbrellaFirst = (spans: SpanData[]): SpanData[] => {
     return [...spans].sort((a, b) => {
         const aRange = getSpanTimeRange(a);
         const bRange = getSpanTimeRange(b);
-        
+
         if (!aRange || !bRange) return 0;
-        
+
         const aContainsB = timeContainsSpan(a, b);
         const bContainsA = timeContainsSpan(b, a);
-        
+
         if (aContainsB) return -1; // a comes first (umbrella)
         if (bContainsA) return 1;  // b comes first (umbrella)
-        
+
         // Neither contains the other, sort by start time
         return aRange.start - bRange.start;
     });
@@ -538,6 +576,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
     const [showFullTrace, setShowFullTrace] = useState<boolean>(false);
     const [isAdvancedMode, setIsAdvancedMode] = useState<boolean>(false);
+    const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
     const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
     const [aiSpanTreeDimensions, setAISpanTreeDimensions] = useState({ height: 180, maxHeight: 600, minHeight: 50 });
@@ -778,7 +817,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
         const aiSpans = traceData.spans.filter(span =>
             span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
         );
-        
+
         const aiCount = aiSpans.length;
         const nonAiCount = 0;
 
@@ -1142,28 +1181,30 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                                     {badgeType === 'other' && 'Operation'}
                                 </span>
                             </AISpanBadge>
-                            <AISpanLabel>{stripSpanPrefix(span.name)}</AISpanLabel>
-                            {spanHasError(span) && (
-                                <AISpanErrorIcon>
-                                    <Icon
-                                        name="bi-error"
-                                        sx={{
-                                            fontSize: '16px',
-                                            width: '16px',
-                                            height: '16px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}
-                                        iconSx={{
-                                            fontSize: "16px",
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}
-                                    />
-                                </AISpanErrorIcon>
-                            )}
+                            <AISpanLabel>
+                                {stripSpanPrefix(span.name)}
+                                {spanHasError(span) && (
+                                    <AISpanErrorIcon>
+                                        <Icon
+                                            name="bi-error"
+                                            sx={{
+                                                fontSize: '16px',
+                                                width: '16px',
+                                                height: '16px',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                            iconSx={{
+                                                fontSize: "16px",
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}
+                                        />
+                                    </AISpanErrorIcon>
+                                )}
+                            </AISpanLabel>
                         </div>
                         <AISpanMetadataGroup>
                             {!isNarrow && (
@@ -1263,28 +1304,31 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                     onClick={() => setSelectedSpanId(span.spanId)}
                 >
                     <AIBadge type={badgeType} />
-                    <AISpanLabel>{stripSpanPrefix(span.name)}</AISpanLabel>
-                    {spanHasError(span) && (
-                        <AISpanErrorIcon>
-                            <Icon
-                                name="bi-error"
-                                sx={{
-                                    fontSize: '16px',
-                                    width: '16px',
-                                    height: '16px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                                iconSx={{
-                                    fontSize: "16px",
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            />
-                        </AISpanErrorIcon>
-                    )}
+                    <AISpanLabel>
+                        {stripSpanPrefix(span.name)}
+                        {spanHasError(span) && (
+                            <AISpanErrorIcon>
+                                <Icon
+                                    name="bi-error"
+                                    sx={{
+                                        fontSize: '16px',
+                                        width: '16px',
+                                        height: '16px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                    iconSx={{
+                                        fontSize: "16px",
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                />
+                            </AISpanErrorIcon>
+                        )}
+                    </AISpanLabel>
+
                     <AISpanMetadataGroup>
                         {!isNarrow && (
                             <AISpanStartTime>
@@ -1306,29 +1350,29 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                         </AISpanDuration>
                     </AISpanMetadataGroup>
                 </AISpanTreeItem>
-                
+
                 {/* Render advanced mode spans if enabled */}
                 {isAdvancedMode && groupedNonAISpans.size > 0 && (
                     <AdvancedSpanGroup level={level}>
                         {Array.from(groupedNonAISpans.entries()).map(([category, spans]) => {
                             const categoryKey = `${groupKey}-${category}`;
                             const isExpanded = expandedAdvancedSpanGroups.has(categoryKey);
-                            
+
                             // Find root spans in this category (spans without parent in the list)
                             const spanIdsInCategory = new Set(spans.map((s: SpanData) => s.spanId));
-                            const rootSpansInCategory = spans.filter((s: SpanData) => 
-                                !s.parentSpanId || 
-                                s.parentSpanId === '0000000000000000' || 
+                            const rootSpansInCategory = spans.filter((s: SpanData) =>
+                                !s.parentSpanId ||
+                                s.parentSpanId === '0000000000000000' ||
                                 !spanIdsInCategory.has(s.parentSpanId)
                             );
-                            
+
                             // Sort root spans by start time
                             rootSpansInCategory.sort((a: SpanData, b: SpanData) => {
                                 const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
                                 const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
                                 return aStart - bStart;
                             });
-                            
+
                             return (
                                 <div key={categoryKey}>
                                     <AdvancedSpanGroupHeader
@@ -1348,7 +1392,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                                     </AdvancedSpanGroupHeader>
                                     {isExpanded && (
                                         <AdvancedSpanGroupContent>
-                                            {rootSpansInCategory.map((rootSpan: SpanData) => 
+                                            {rootSpansInCategory.map((rootSpan: SpanData) =>
                                                 renderNonAISpanTreeItem(rootSpan, spans, 0)
                                             )}
                                         </AdvancedSpanGroupContent>
@@ -1358,7 +1402,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                         })}
                     </AdvancedSpanGroup>
                 )}
-                
+
                 {/* Render AI children */}
                 {children.length > 0 && (
                     <>
@@ -1373,7 +1417,50 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     const renderAgentChatLogs = () => (
         <>
             <NavigationBar>
-                <div />
+                <ViewModeToggle>
+                    <ViewModeButton
+                        isActive={viewMode === 'tree'}
+                        onClick={() => setViewMode('tree')}
+                        title="Tree View"
+                    >
+                        <Icon name="bi-list-tree"
+                            sx={{
+                                fontSize: '16px',
+                                width: '16px',
+                                height: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            iconSx={{
+                                fontSize: "16px",
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }} />
+                    </ViewModeButton>
+                    <ViewModeButton
+                        isActive={viewMode === 'timeline'}
+                        onClick={() => setViewMode('timeline')}
+                        title="Timeline View"
+                    >
+                        <Icon name="bi-timeline"
+                            sx={{
+                                fontSize: '16px',
+                                width: '16px',
+                                height: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            iconSx={{
+                                fontSize: "16px",
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }} />
+                    </ViewModeButton>
+                </ViewModeToggle>
                 <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
                     <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
                     {isAdvancedMode ? 'Simplified View' : 'Advanced View'}
@@ -1472,16 +1559,28 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                 </EmptyState>
             ) : (
                 <AgentChatLogsContainer>
-                    <AISpanTreeContainer
-                        height={aiSpanTreeDimensions.height}
-                        maxHeight={aiSpanTreeDimensions.maxHeight}
-                        minHeight={aiSpanTreeDimensions.minHeight}
-                    >
-                        {isAdvancedMode 
-                            ? sortedRootSpans.map(span => renderMixedSpanTreeItem(span, 0))
-                            : rootAISpans.map(span => renderAISpanTreeItem(span, 0))
-                        }
-                    </AISpanTreeContainer>
+                    {viewMode === 'tree' ? (
+                        <AISpanTreeContainer
+                            height={aiSpanTreeDimensions.height}
+                            maxHeight={aiSpanTreeDimensions.maxHeight}
+                            minHeight={aiSpanTreeDimensions.minHeight}
+                        >
+                            {isAdvancedMode
+                                ? sortedRootSpans.map(span => renderMixedSpanTreeItem(span, 0))
+                                : rootAISpans.map(span => renderAISpanTreeItem(span, 0))
+                            }
+                        </AISpanTreeContainer>
+                    ) : (
+                        <WaterfallView
+                            spans={isAdvancedMode ? traceData.spans : rootAISpans}
+                            selectedSpanId={selectedSpanId}
+                            onSpanSelect={selectSpan}
+                            isAdvancedMode={isAdvancedMode}
+                            getChildSpans={isAdvancedMode ? getChildSpans : getAIChildSpans}
+                            traceStartTime={traceData.firstSeen}
+                            traceDuration={duration}
+                        />
+                    )}
                     {selectedSpan && (
                         <DetailsPanel>
                             <SpanInputOutput
