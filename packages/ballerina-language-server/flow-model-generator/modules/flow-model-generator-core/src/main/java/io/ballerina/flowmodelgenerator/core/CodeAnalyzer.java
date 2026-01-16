@@ -855,7 +855,7 @@ public class CodeAnalyzer extends NodeVisitor {
                     nodeBuilder.properties()
                             .custom()
                                 .metadata()
-                                .label(unescapedParamName)
+                                .label(paramResult.label())
                                 .description(paramResult.description())
                                 .stepOut()
                             .codedata()
@@ -924,11 +924,10 @@ public class CodeAnalyzer extends NodeVisitor {
             }
 
             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-            String label = paramResult.label();
             Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
             customPropBuilder
                     .metadata()
-                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                        .label(paramResult.label())
                         .description(paramResult.description())
                         .stepOut()
                     .codedata()
@@ -999,11 +998,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
 
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                String label = paramResult.label();
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder = nodeBuilder.properties().custom();
                 customPropBuilder
                         .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .label(paramResult.label())
                             .description(paramResult.description())
                             .stepOut()
                         .codedata()
@@ -1063,10 +1061,10 @@ public class CodeAnalyzer extends NodeVisitor {
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                     String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                    String label = paramResult.label();
+
                     FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                             .metadata()
-                                .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                .label(paramResult.label())
                                 .description(paramResult.description())
                                 .stepOut()
                             .imports(paramResult.importStatements())
@@ -1157,10 +1155,10 @@ public class CodeAnalyzer extends NodeVisitor {
                                     nodeBuilder.properties().custom();
                             String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                            String label = paramResult.label();
+
                             FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                                     .metadata()
-                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .label(paramResult.label())
                                         .description(paramResult.description())
                                         .stepOut()
                                     .imports(paramResult.importStatements())
@@ -1190,10 +1188,10 @@ public class CodeAnalyzer extends NodeVisitor {
                                 }
                                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
                                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                                String label = paramResult.label();
+
                                 FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                                         .metadata()
-                                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                            .label(paramResult.label())
                                             .description(paramResult.description())
                                             .stepOut()
                                         .imports(paramResult.importStatements())
@@ -1222,11 +1220,10 @@ public class CodeAnalyzer extends NodeVisitor {
                             String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                             funcParamMap.remove(escapedParamName);
                             String value = paramValue.toSourceCode().strip();
-                            String label = paramResult.label();
 
                             FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                                     .metadata()
-                                        .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                                        .label(paramResult.label())
                                         .description(paramResult.description())
                                         .stepOut()
                                     .imports(paramResult.importStatements())
@@ -1258,11 +1255,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 funcParamMap.remove(escapedParamName);
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                String label = paramResult.label();
 
                 FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                         .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .label(paramResult.label())
                             .description(paramResult.description())
                             .stepOut()
                         .imports(paramResult.importStatements())
@@ -1295,11 +1291,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
                 Node paramValue = entry.getValue();
                 String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-                String label = paramResult.label();
 
                 FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
                         .metadata()
-                            .label(label == null || label.isEmpty() ? unescapedParamName : label)
+                            .label(paramResult.label())
                             .description(paramResult.description())
                             .stepOut()
                         .imports(paramResult.importStatements())
@@ -1322,11 +1317,10 @@ public class CodeAnalyzer extends NodeVisitor {
                 funcParamMap.remove("Additional Values");
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String unescapedParamName = ParamUtils.removeLeadingSingleQuote(includedRecordRest.name());
                 buildPropertyType(customPropBuilder, includedRecordRest);
                 customPropBuilder
                         .metadata()
-                            .label(unescapedParamName)
+                            .label(includedRecordRest.label())
                             .description(includedRecordRest.description())
                             .stepOut()
                         .imports(includedRecordRest.importStatements())

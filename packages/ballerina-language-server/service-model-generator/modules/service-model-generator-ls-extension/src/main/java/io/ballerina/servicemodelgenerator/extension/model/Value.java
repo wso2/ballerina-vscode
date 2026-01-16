@@ -131,7 +131,7 @@ public class Value {
     public boolean isEnabledWithValue() {
         return enabled && ((value != null && ((value instanceof String && !((String) value).isEmpty())
                 || (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty())))
-                || (values != null && !values.isEmpty())) || (value instanceof Map<?,?>);
+                || (values != null && !values.isEmpty())) || (value instanceof Map<?, ?>);
     }
 
     public boolean isEditable() {
@@ -165,7 +165,7 @@ public class Value {
         if (value instanceof JsonPrimitive) {
             return ((JsonPrimitive) value).getAsString();
         }
-        if (value instanceof Map<?,?> mapValue) {
+        if (value instanceof Map<?, ?> mapValue) {
             return CommonUtils.convertMapToString(mapValue);
         }
         return null;
