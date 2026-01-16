@@ -349,8 +349,8 @@ export function ReviewMode(): JSX.Element {
             }
 
             // Convert semantic diffs to diagram views
-            // For type diagrams, deduplicate by file path since one diagram shows all types in the file
-            const seenTypeFiles = new Set<string>();
+            // For type diagrams, only show one view since the diagram shows all types across all files
+            let hasTypeView = false;
             const diagramViews: ReviewView[] = [];
 
             for (const diff of semanticDiffResponse.semanticDiffs) {
@@ -374,12 +374,12 @@ export function ReviewMode(): JSX.Element {
 
                 const diagramType = getDiagramType(diff.nodeKind);
 
-                // For type diagrams, only add one view per file since the diagram shows all types
+                // For type diagrams, only add one view total since the diagram shows all types
                 if (diagramType === DiagramType.TYPE) {
-                    if (seenTypeFiles.has(diff.uri)) {
-                        continue; // Skip duplicate type views for the same file
+                    if (hasTypeView) {
+                        continue; // Skip - already have a type view
                     }
-                    seenTypeFiles.add(diff.uri);
+                    hasTypeView = true;
                 }
 
                 diagramViews.push(convertToReviewView(diff, belongsToPackage, packageName));
