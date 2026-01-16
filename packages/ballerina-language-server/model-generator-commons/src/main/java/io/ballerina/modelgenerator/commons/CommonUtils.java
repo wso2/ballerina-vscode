@@ -85,7 +85,6 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -1381,7 +1380,7 @@ public class CommonUtils {
     }
 
     /**
-     * Convert mapping expression to a map
+     * Convert mapping expression to a map.
      *
      * @param mapExpr the map expression node
      * @return the map representation of the string
