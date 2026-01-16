@@ -780,7 +780,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<anydata>",
                 "selected": false
               },
@@ -882,7 +882,7 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
+                "fieldType": "MAPPING_EXPRESSION",
                 "ballerinaType": "map<string>",
                 "selected": false
               },

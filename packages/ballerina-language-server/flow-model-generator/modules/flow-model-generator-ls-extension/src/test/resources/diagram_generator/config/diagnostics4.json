@@ -633,7 +633,10 @@
                 "selected": false
               }
             ],
-            "value": "{name: \"John\", age: 30}",
+            "value": {
+              "name": "\"John\"",
+              "age": "30"
+            },
             "placeholder": "()",
             "optional": false,
             "editable": true,

@@ -217,7 +217,7 @@
           "_module": {
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET"
+                "fieldType": "MAPPING_EXPRESSION"
               }
             ],
             "value": {
@@ -237,7 +237,7 @@
               "_moduleInfo": {
                 "types": [
                   {
-                    "fieldType": "MAPPING_EXPRESSION_SET"
+                    "fieldType": "MAPPING_EXPRESSION"
                   }
                 ],
                 "value": {

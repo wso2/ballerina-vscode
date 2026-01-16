@@ -47,11 +47,14 @@ import io.ballerina.compiler.syntax.tree.DoStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.InterpolationNode;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
+import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.compiler.syntax.tree.TemplateExpressionNode;
@@ -83,6 +86,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1357,5 +1361,40 @@ public class CommonUtils {
             return input.substring(1);
         }
         return input;
+    }
+
+    /**
+     * Converts a map to a string representation.
+     *
+     * @param map the map to convert
+     * @return the string representation of the map
+     */
+    public static String convertMapToString(Map<?, ?> map) {
+        if (map == null || map.isEmpty()) {
+            return "{}";
+        }
+        return map.entrySet()
+                .stream()
+                .map(entry -> entry.getKey() + ": " + entry.getValue())
+                .collect(Collectors.joining(", ", "{ ", " }"));
+    }
+
+    /**
+     * Convert mapping expression to a map.
+     *
+     * @param mapExpr the map expression node
+     * @return the map representation of the mapping expression node
+     */
+    public static Map<String, Object> convertMappingExprToMap(MappingConstructorExpressionNode mapExpr) {
+        Map<String, Object> resultMap = new LinkedHashMap<>();
+        for (MappingFieldNode fieldNode : mapExpr.fields()) {
+            if (fieldNode instanceof SpecificFieldNode specificFieldNode) {
+                String key = specificFieldNode.fieldName().toString().trim();
+                Object value = specificFieldNode.valueExpr().map(exprNode -> exprNode.toString().trim())
+                        .orElse("");
+                resultMap.put(key, value);
+            }
+        }
+        return resultMap;
     }
 }

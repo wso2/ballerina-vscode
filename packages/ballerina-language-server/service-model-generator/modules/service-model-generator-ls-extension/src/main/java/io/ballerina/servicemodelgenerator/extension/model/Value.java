@@ -90,6 +90,7 @@ public class Value {
         SINGLE_SELECT,
         MULTI_SELECT,
         MULTIPLE_SELECT,
+        MAPPING_EXPRESSION,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
         TEXT_SET,
@@ -128,9 +129,11 @@ public class Value {
     }
 
     public boolean isEnabledWithValue() {
-        return enabled && ((value != null && ((value instanceof String && !((String) value).isEmpty())
-                || (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty())))
-                || (values != null && !values.isEmpty()));
+        return enabled && (
+                (value != null && ((value instanceof String && !((String) value).isEmpty()) ||
+                        (value instanceof JsonPrimitive jsonPrimitive && !jsonPrimitive.getAsString().isEmpty()) ||
+                                (value instanceof Map<?, ?>))) ||
+                        (values != null && !values.isEmpty()));
     }
 
     public boolean isEditable() {
@@ -163,6 +166,9 @@ public class Value {
         }
         if (value instanceof JsonPrimitive) {
             return ((JsonPrimitive) value).getAsString();
+        }
+        if (value instanceof Map<?, ?> mapValue) {
+            return CommonUtils.convertMapToString(mapValue);
         }
         return null;
     }

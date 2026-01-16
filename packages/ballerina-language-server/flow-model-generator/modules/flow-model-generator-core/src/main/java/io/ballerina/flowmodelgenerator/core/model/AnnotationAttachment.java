@@ -69,7 +69,7 @@ public record AnnotationAttachment(String modulePrefix, String name, Map<String,
         }
 
         // Object with attributes
-        if (Property.ValueType.MAPPING_EXPRESSION_SET.name().equals(valueType(prop))) {
+        if (Property.ValueType.MAPPING_EXPRESSION.name().equals(valueType(prop))) {
             Map<String, Object> valueMap = (Map<String, Object>) prop.value();
             return handleProperty(valueMap);
         }

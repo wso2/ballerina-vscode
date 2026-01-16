@@ -38,7 +38,7 @@
         },
         "types": [
           {
-            "fieldType": "MAPPING_EXPRESSION_SET",
+            "fieldType": "MAPPING_EXPRESSION",
             "ballerinaType": "map<map:Type>",
             "selected": false
           },
