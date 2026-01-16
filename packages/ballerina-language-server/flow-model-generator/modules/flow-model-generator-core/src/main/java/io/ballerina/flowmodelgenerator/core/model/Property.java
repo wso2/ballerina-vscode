@@ -250,7 +250,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
-        if (value instanceof Map<?,?> valueMap) {
+        if (value instanceof Map<?, ?> valueMap) {
             return CommonUtils.convertMapToString(valueMap);
         }
         return CommonUtils.extractLiteralFromStringTemplate(value.toString());
