@@ -206,7 +206,7 @@
           "_module": {
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET"
+                "fieldType": "MAPPING_EXPRESSION"
               }
             ],
             "value": {
@@ -226,7 +226,7 @@
               "_moduleInfo": {
                 "types": [
                   {
-                    "fieldType": "MAPPING_EXPRESSION_SET"
+                    "fieldType": "MAPPING_EXPRESSION"
                   }
                 ],
                 "value": {
@@ -305,7 +305,7 @@
             "character": 2
           }
         },
-        "newText": "\n@Url{\nprotocol: \"Protocol\",\nhost: \"localhost\",\npath: \"http://example.com/url\"\n}\n@Module{\n__id: 12,\n_namespace: \"http://example.com/gen\",\n_module: {_uri={types=[{fieldType=EXPRESSION, ballerinaType=string}], value=\"http://example.com/gen\", optional=false, editable=false, advanced=false, hidden=false}, _moduleInfo={types=[{fieldType=MAPPING_EXPRESSION_SET}], value={_moduleName={types=[{fieldType=EXPRESSION, ballerinaType=string}], value=\"types\", optional=false, editable=false, advanced=false, hidden=false}, __uuid={types=[{fieldType=EXPRESSION, ballerinaType=string}], value=\"100272ydhdh\", optional=false, editable=false, advanced=false, hidden=false}}, optional=false, editable=false, advanced=false, hidden=false}}\n}\n@xmldata:Namespace{\nuri: \"http://example.com/jsonpath\"\n}\ntype Person record {\n\tstring Name;\n\t@xmldata:Attribute\n\tstring uuid;\n};"
+        "newText": "\n@Url{\nprotocol: \"Protocol\",\nhost: \"localhost\",\npath: \"http://example.com/url\"\n}\n@Module{\n__id: 12,\n_namespace: \"http://example.com/gen\",\n_module: {\n_uri: \"http://example.com/gen\",\n_moduleInfo: {\n_moduleName: \"types\",\n__uuid: \"100272ydhdh\"\n}\n}\n}\n@xmldata:Namespace{\nuri: \"http://example.com/jsonpath\"\n}\ntype Person record {\n\tstring Name;\n\t@xmldata:Attribute\n\tstring uuid;\n};"
       }
     ]
   }
