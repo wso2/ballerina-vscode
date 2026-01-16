@@ -769,7 +769,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
                                     ariaLabel={field.label}
                                     placeholder={placeholder}
-                                    onChange={async (updatedValue: string | any[], updatedCursorPosition: number) => {
+                                    onChange={async (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => {
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);

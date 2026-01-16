@@ -58,7 +58,7 @@ export interface ExpressionFieldProps {
     rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
-    onChange: (updatedValue: string | any[], updatedCursorPosition: number) => void;
+    onChange: (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => void;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -158,7 +158,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             <MappingObjectConstructor
                 value={value as Record<string, unknown>}
                 label={field.label}
-                onChange={(val) => onChange(val, val.length)}
+                onChange={(val) => onChange(val, JSON.stringify(val).length)}
                 expressionFieldProps={props}
             />
         );
