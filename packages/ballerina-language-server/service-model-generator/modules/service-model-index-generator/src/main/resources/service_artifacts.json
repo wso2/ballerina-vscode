@@ -599,8 +599,8 @@
         "serviceUri": {
           "label": "Service URI",
           "description": "The URI of the MQTT broker",
-          "defaultValue": "",
-          "placeholder": "\"mqtt://localhost:1883\"",
+          "defaultValue": "\"mqtt://localhost:1883\"",
+          "placeholder": "mqtt://localhost:1883",
           "types": [
             {
               "fieldType": "TEXT",
@@ -616,8 +616,8 @@
         "clientId": {
           "label": "Client ID",
           "description": "A unique identifier to identify by the MQTT broker",
-          "defaultValue": "",
-          "placeholder": "\"unique_client_001\"",
+          "defaultValue": "\"unique_client_001\"",
+          "placeholder": "unique_client_001",
           "types": [
             {
               "fieldType": "TEXT",
@@ -633,8 +633,8 @@
         "subscriptions": {
           "label": "Subscriptions",
           "description": "The topics to subscribe to",
-          "defaultValue": "",
-          "placeholder": "\"topic1\"",
+          "defaultValue": "\"topic1\"",
+          "placeholder": "topic1",
           "types": [
             {
               "fieldType": "TEXT",
@@ -880,8 +880,8 @@
         "connectionString": {
           "label": "Connection String",
           "description": "The connection string to connect to the Azure Service Bus namespace",
-          "defaultValue": "",
-          "placeholder": "\"Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>\"",
+          "defaultValue": "\"Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>\"",
+          "placeholder": "Endpoint=sb://<NAMESPACE>.servicebus.windows.net/;SharedAccessKeyName=<KEY_NAME>;SharedAccessKey=<KEY_VALUE>",
           "types": [
             {
               "fieldType": "TEXT",
@@ -897,7 +897,7 @@
         "entityConfig": {
           "label": "Entity Config",
           "description": "The entity configuration to connect to the Azure Service Bus",
-          "defaultValue": "",
+          "defaultValue": "{}",
           "placeholder": "{}",
           "valueType": "EXPRESSION",
           "typeConstraint": "asb:TopicSubsConfig|asb:QueueConfig",
@@ -1089,8 +1089,8 @@
         "basePath": {
           "label": "Queue Name",
           "description": "The name of the queue to listen to",
-          "defaultValue": "",
-          "placeholder": "\"myQueue\"",
+          "defaultValue": "\"myQueue\"",
+          "placeholder": "myQueue",
           "types": [
             {
               "fieldType": "TEXT",
@@ -1106,8 +1106,8 @@
         "host": {
           "label": "Host",
           "description": "The host used for establishing the connection",
-          "defaultValue": "",
-          "placeholder": "\"localhost\"",
+          "defaultValue": "\"localhost\"",
+          "placeholder": "localhost",
           "types": [
             {
               "fieldType": "TEXT",
@@ -1123,7 +1123,7 @@
         "port": {
           "label": "Port",
           "description": "The port used for establishing the connection",
-          "defaultValue": "",
+          "defaultValue": "5672",
           "placeholder": "5672",
           "types": [
             {
@@ -1246,7 +1246,7 @@
           "label": "Bootstrap Servers",
           "description": "List of remote server endpoints of the Kafka brokers",
           "defaultValue": "\"localhost:9092\"",
-          "placeholder": "\"localhost:9092\"",
+          "placeholder": "localhost:9092",
           "types": [
             {
               "fieldType": "TEXT",
@@ -1267,7 +1267,7 @@
           "label": "Topic(s)",
           "description": "The topic(s) to subscribe to",
           "defaultValue": "\"myTopic\"",
-          "placeholder": "\"myTopic\"",
+          "placeholder": "myTopic",
           "types": [
             {
               "fieldType": "TEXT",
@@ -1322,7 +1322,7 @@
         "auth": {
           "label": "Auth",
           "description": "Configurations related to username/password authentication",
-          "defaultValue": "",
+          "defaultValue": "{username: \"\", password: \"\"}",
           "placeholder": "{username: \"\", password: \"\"}",
           "types": [
             {
@@ -1374,7 +1374,7 @@
         "basePath": {
           "label": "Event Channel",
           "description": "The event channel name",
-          "defaultValue": "",
+          "defaultValue": "IssuesService",
           "placeholder": "IssuesService",
           "types": [
             {

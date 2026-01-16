@@ -24,8 +24,8 @@
           "codedata": {
             "argType": "SERVICE_BASE_PATH"
           },
-          "placeholder": "\"myQueue\"",
-          "value": "",
+          "placeholder": "myQueue",
+          "value": "\"myQueue\"",
           "types": [
             {
               "fieldType": "TEXT",
@@ -51,8 +51,8 @@
           "codedata": {
             "argType": "LISTENER_PARAM_REQUIRED"
           },
-          "placeholder": "\"localhost\"",
-          "value": "",
+          "placeholder": "localhost",
+          "value": "\"localhost\"",
           "types": [
             {
               "fieldType": "TEXT",
@@ -79,7 +79,7 @@
             "argType": "LISTENER_PARAM_REQUIRED"
           },
           "placeholder": "5672",
-          "value": "",
+          "value": "5672",
           "types": [
             {
               "fieldType": "NUMBER",
