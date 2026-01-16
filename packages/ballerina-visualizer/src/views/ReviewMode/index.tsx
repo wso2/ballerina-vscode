@@ -348,8 +348,12 @@ export function ReviewMode(): JSX.Element {
                 });
             }
 
-            // Convert all semantic diffs to flow diagram views
-            const flowViews = semanticDiffResponse.semanticDiffs.map((diff) => {
+            // Convert semantic diffs to diagram views
+            // For type diagrams, deduplicate by file path since one diagram shows all types in the file
+            const seenTypeFiles = new Set<string>();
+            const diagramViews: ReviewView[] = [];
+
+            for (const diff of semanticDiffResponse.semanticDiffs) {
                 // Determine which package this diff belongs to
                 let belongsToPackage = tempDirPath;
                 let packageName: string | undefined;
@@ -368,10 +372,20 @@ export function ReviewMode(): JSX.Element {
                     }
                 }
 
-                return convertToReviewView(diff, belongsToPackage, packageName);
-            });
+                const diagramType = getDiagramType(diff.nodeKind);
 
-            allViews.push(...flowViews);
+                // For type diagrams, only add one view per file since the diagram shows all types
+                if (diagramType === DiagramType.TYPE) {
+                    if (seenTypeFiles.has(diff.uri)) {
+                        continue; // Skip duplicate type views for the same file
+                    }
+                    seenTypeFiles.add(diff.uri);
+                }
+
+                diagramViews.push(convertToReviewView(diff, belongsToPackage, packageName));
+            }
+
+            allViews.push(...diagramViews);
 
             setViews(allViews);
             setCurrentIndex(0);
