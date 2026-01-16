@@ -29,7 +29,6 @@ import { AIDocumentType } from "./Documents";
 import { VariableItem } from "./Variables";
 import FooterButtons from "../Components/FooterButtons";
 import { POPUP_IDS, useModalStack } from "../../../../Context";
-import { wrapInTemplateInterpolation } from "../utils/utils";
 
 type DocumentConfigProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
@@ -47,9 +46,6 @@ const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 // Helper function to wrap content in document structure
 const wrapInDocumentType = (documentType: AIDocumentType, content: string, isTemplateMode: boolean): string => {
     const wrappedContent = `<${documentType}>{content: ${content}}`;
-    if (isTemplateMode) {
-        return wrapInTemplateInterpolation(wrappedContent, InputMode.TEMPLATE);
-    }
     return wrappedContent;
 };
 

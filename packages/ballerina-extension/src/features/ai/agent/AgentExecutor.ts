@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_VIEW, refreshReviewMode } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -33,6 +33,76 @@ import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
 import { openView } from '../../../stateMachine';
 import { RPCLayer } from '../../../RPCLayer';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
+import * as path from 'path';
+
+/**
+ * Determines which packages have been affected by analyzing modified files
+ * Returns temp directory package paths for use with Language Server semantic diff API
+ * @param modifiedFiles Array of relative file paths that were modified
+ * @param projects Array of project sources with package information
+ * @param ctx Execution context with project and workspace paths
+ * @param tempProjectPath Temp project root path
+ * @returns Array of temp package paths that have changes
+ */
+function determineAffectedPackages(
+    modifiedFiles: string[],
+    projects: ProjectSource[],
+    ctx: ExecutionContext,
+    tempProjectPath: string
+): string[] {
+    const affectedPackages = new Set<string>();
+
+    console.log(`[determineAffectedPackages] Analyzing ${modifiedFiles.length} modified files across ${projects.length} projects`);
+    console.log(`[determineAffectedPackages] Temp project path: ${tempProjectPath}`);
+
+    // For non-workspace scenario (single package)
+    if (!ctx.workspacePath || projects.length === 1) {
+        console.log(`[determineAffectedPackages] Non-workspace scenario, using temp project path: ${tempProjectPath}`);
+        affectedPackages.add(tempProjectPath);
+        return Array.from(affectedPackages);
+    }
+
+    // For workspace scenario with multiple packages
+    // We need to map modified files to their temp package paths
+    for (const modifiedFile of modifiedFiles) {
+        let matched = false;
+
+        for (const project of projects) {
+            if (project.packagePath === "") {
+                // Root package in workspace (edge case)
+                if (!modifiedFile.includes('/') || 
+                    !projects.some(p => p.packagePath && modifiedFile.startsWith(p.packagePath + '/'))) {
+                    // Root package is at the temp project path directly
+                    affectedPackages.add(tempProjectPath);
+                    matched = true;
+                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to root package (temp): ${tempProjectPath}`);
+                    break;
+                }
+            } else {
+                // Package with a specific path in workspace
+                if (modifiedFile.startsWith(project.packagePath + '/') || 
+                    modifiedFile === project.packagePath) {
+                    // Map to temp package path: tempProjectPath + relative package path
+                    const tempPackagePath = path.join(tempProjectPath, project.packagePath);
+                    affectedPackages.add(tempPackagePath);
+                    matched = true;
+                    console.log(`[determineAffectedPackages] File '${modifiedFile}' belongs to package '${project.packagePath}' (temp): ${tempPackagePath}`);
+                    break;
+                }
+            }
+        }
+
+        if (!matched) {
+            // Fallback: if we can't determine the package, include the temp project root
+            console.warn(`[determineAffectedPackages] Could not determine package for file '${modifiedFile}', using temp project root`);
+            affectedPackages.add(tempProjectPath);
+        }
+    }
+
+    const result = Array.from(affectedPackages);
+    console.log(`[determineAffectedPackages] Found ${result.length} affected temp package paths:`, result);
+    return result;
+}
 
 /**
  * AgentExecutor - Executes agent-based code generation with tools and streaming
@@ -223,6 +293,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 throw error;
             }
 
+            this.config.eventHandler({
+                type: "error",
+                content: "An error occurred during agent execution. Plese check the logs for details."
+            });
+
             // For other errors, return result with error
             return {
                 tempProjectPath,
@@ -358,11 +433,21 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             return;
         }
 
+        // Determine which packages have been affected by the changes
+        // This returns temp package paths for use with Language Server APIs
+        const affectedPackagePaths = determineAffectedPackages(
+            accumulatedModifiedFiles,
+            context.projects,
+            context.ctx,
+            tempProjectPath
+        );
+
         // Update review state and open review mode
         chatStateStorage.updateReviewState(workspaceId, threadId, context.messageId, {
             status: 'under_review',
             tempProjectPath,
             modifiedFiles: accumulatedModifiedFiles,
+            affectedPackagePaths: affectedPackagePaths,
         });
 
         // Automatically open review mode
