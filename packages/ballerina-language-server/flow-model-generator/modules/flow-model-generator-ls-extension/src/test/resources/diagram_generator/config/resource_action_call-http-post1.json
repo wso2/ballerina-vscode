@@ -426,7 +426,9 @@
                 "selected": false
               }
             ],
-            "value": "{\"type\": \"red apple\"}",
+            "value": {
+              "\"type\"": "\"red apple\""
+            },
             "placeholder": "{}",
             "optional": false,
             "editable": true,
@@ -1263,7 +1265,10 @@
                 "selected": false
               }
             ],
-            "value": "{\n            \"first-header\": \"first\",\n            \"second-header\": \"second\"\n        }",
+            "value": {
+              "\"first-header\"": "\"first\"",
+              "\"second-header\"": "\"second\""
+            },
             "placeholder": "()",
             "optional": true,
             "editable": true,

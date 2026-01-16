@@ -1229,7 +1229,10 @@
                 "selected": false
               }
             ],
-            "value": "{\n            \"first-header\": \"first\",\n            \"second-header\": \"second\"\n        }",
+            "value": {
+              "\"first-header\"": "\"first\"",
+              "\"second-header\"": "\"second\""
+            },
             "placeholder": "()",
             "optional": true,
             "editable": true,

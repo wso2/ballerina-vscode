@@ -1832,7 +1832,9 @@
                                 "selected": false
                               }
                             ],
-                            "value": "{body: e.message()}",
+                            "value": {
+                              "body": "e.message()"
+                            },
                             "placeholder": "{}",
                             "optional": false,
                             "editable": true,
