@@ -724,7 +724,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const getNodeAfter = (targetNode: FlowNode, nodes: FlowNode[]): FlowNode | undefined => {
         const flattened = flattenNodes(nodes);
         const index = flattened.findIndex(node => node.id === targetNode.id);
-        if (index > 0) {
+        if (index >= 0 && index < flattened.length - 1) {
             return flattened[index + 1];
         }
         return undefined;
@@ -1396,11 +1396,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                         let newTargetLineRange = targetLineRange;
                         if (!selectedNodeRef.current?.codedata?.isNew) {
-                            const updatedInsertedNode = searchNodesByStartLine(
+                            const insertedVariableNode = searchNodesByStartLine(
                                 updatedModel.flowModel.nodes,
                                 selectedNodeRef.current.codedata.lineRange.startLine
                             );
-                            const updatedSelectedNode = getNodeAfter(updatedInsertedNode, updatedModel.flowModel.nodes)
+                            if (!insertedVariableNode) {
+                                console.error(">>> Inserted node not found in updated flow model");
+                                return;
+                            }
+                            const updatedSelectedNode = getNodeAfter(insertedVariableNode, updatedModel.flowModel.nodes);
                             if (!updatedSelectedNode) {
                                 console.error(">>> Selected node not found in updated flow model");
                                 return;
