@@ -24,7 +24,7 @@ import { ExpressionFieldProps } from "../../ExpressionField";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { isRecord } from "../../utils";
 
-interface MappingConstructorProps {
+interface MappingObjectConstructorProps {
     label: string;
     value: Record<string, unknown>;
     onChange: (updated: any) => void;
@@ -59,7 +59,7 @@ const getNextId = (items: any[]): number => {
 }
 
 
-export const MappingObjectConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
+export const MappingObjectConstructor: React.FC<MappingObjectConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
     //used this to manually trigger rerenders when value prop changes
     const [_, setManualRerenderTrigger] = useState(true);
     const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
