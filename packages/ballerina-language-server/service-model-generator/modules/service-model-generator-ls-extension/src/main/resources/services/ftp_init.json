@@ -64,7 +64,7 @@
               ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "placeholder": "\"127.0.0.1\"",
+              "placeholder": "127.0.0.1",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -123,7 +123,7 @@
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "\"/\"",
+              "placeholder": "/",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -274,7 +274,7 @@
               ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "placeholder": "\"127.0.0.1\"",
+              "placeholder": "127.0.0.1",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -333,7 +333,7 @@
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "\"/\"",
+              "placeholder": "/",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -496,7 +496,7 @@
               ],
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
-              "placeholder": "\"127.0.0.1\"",
+              "placeholder": "127.0.0.1",
               "optional": false,
               "advanced": false,
               "codedata": {
@@ -555,7 +555,7 @@
               "valueType": "EXPRESSION",
               "valueTypeConstraint": "string",
               "isType": false,
-              "placeholder": "\"/\"",
+              "placeholder": "/",
               "optional": false,
               "advanced": false,
               "codedata": {
