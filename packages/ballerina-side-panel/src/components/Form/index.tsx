@@ -139,7 +139,6 @@ namespace S {
     export const FooterActionButtonContainer = styled.div<{}>`
         position: sticky;
         bottom: 0;
-        padding: 20px 0px;
         display: flex;
         justify-content: center;
         align-items: center;
