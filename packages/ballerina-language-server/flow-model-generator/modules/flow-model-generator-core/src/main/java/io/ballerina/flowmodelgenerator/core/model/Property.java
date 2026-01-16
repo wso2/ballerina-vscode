@@ -250,6 +250,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
+        if (value instanceof Map<?,?> valueMap) {
+            return CommonUtils.convertMapToString(valueMap);
+        }
         return CommonUtils.extractLiteralFromStringTemplate(value.toString());
     }
 
@@ -265,6 +268,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         RAW_TEMPLATE,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
+        MAPPING_EXPRESSION,
         TEXT_SET,
         LV_EXPRESSION,
         ACTION_PATH,
@@ -627,8 +631,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 // need to check if it's a map or a record if its a map then need to set the matching type
                 if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                    if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
-                        matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
+                    if (paramType.isPresent()) {
+                        if (paramType.get().typeKind() == TypeDescKind.MAP) {
+                            matchingValueType = ValueType.MAPPING_EXPRESSION;
+                        } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                            matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
+                        }
                     }
                     ValueType finalMatchingValueType = matchingValueType;
                     this.types.stream()
@@ -700,7 +708,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
                 case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
-                case MAP -> type(ValueType.MAPPING_EXPRESSION_SET, ballerinaType);
+                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record

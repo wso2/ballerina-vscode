@@ -1358,4 +1358,20 @@ public class CommonUtils {
         }
         return input;
     }
+
+    /**
+     * Converts a map to a string representation.
+     *
+     * @param map the map to convert
+     * @return the string representation of the map
+     */
+    public static String convertMapToString(Map<?, ?> map) {
+            if (map == null || map.isEmpty()) {
+                return "{}";
+            }
+            return map.entrySet()
+                    .stream()
+                    .map(entry -> entry.getKey() + ": " + entry.getValue())
+                    .collect(Collectors.joining(", ", "{ ", " }"));
+        }
 }
