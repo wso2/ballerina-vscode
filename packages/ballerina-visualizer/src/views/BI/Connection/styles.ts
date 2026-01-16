@@ -46,7 +46,7 @@ export const PopupHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 32px;
+    padding: 16px 20px;
     gap: 16px;
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
