@@ -1383,7 +1383,7 @@ public class CommonUtils {
      * Convert mapping expression to a map.
      *
      * @param mapExpr the map expression node
-     * @return the map representation of the string
+     * @return the map representation of the mapping expression node
      */
     public static Map<String, Object> convertMappingExprToMap(MappingConstructorExpressionNode mapExpr) {
         Map<String, Object> resultMap = new LinkedHashMap<>();

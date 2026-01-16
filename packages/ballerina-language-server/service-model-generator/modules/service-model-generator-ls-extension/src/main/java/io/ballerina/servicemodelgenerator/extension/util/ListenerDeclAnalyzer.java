@@ -395,18 +395,19 @@ public class ListenerDeclAnalyzer {
     }
 
     private static void buildPropertyType(Value.ValueBuilder valueBuilder,
-                                                        ParameterData paramData, Node value,
-                                                        SemanticModel semanticModel,
-                                                        ModuleInfo moduleInfo) {
+                                          ParameterData paramData, Node value,
+                                          SemanticModel semanticModel,
+                                          ModuleInfo moduleInfo) {
         ParameterData.Kind kind = paramData.kind();
         if (kind == ParameterData.Kind.REST_PARAMETER) {
-             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET)));
+            valueBuilder.types(List.of(PropertyType.types(Value.FieldType.EXPRESSION_SET)));
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET)));
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol(), semanticModel)) {
             valueBuilder.types(List.of(PropertyType.types(Value.FieldType.RAW_TEMPLATE)));
+        } else {
+            PropertyType.typeWithExpression(valueBuilder, paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }
-        PropertyType.typeWithExpression(valueBuilder, paramData.typeSymbol(), moduleInfo, value, semanticModel);
     }
 
     private static boolean isSubTypeOfRawTemplate(TypeSymbol typeSymbol, SemanticModel semanticModel) {
