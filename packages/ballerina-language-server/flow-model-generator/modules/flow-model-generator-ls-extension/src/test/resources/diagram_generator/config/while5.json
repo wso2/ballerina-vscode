@@ -356,7 +356,7 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
+                        "fieldType": "MAPPING_EXPRESSION",
                         "ballerinaType": "map<string|string[]>",
                         "selected": false
                       },
@@ -1832,7 +1832,9 @@
                                 "selected": false
                               }
                             ],
-                            "value": "{body: e.message()}",
+                            "value": {
+                              "body": "e.message()"
+                            },
                             "placeholder": "{}",
                             "optional": false,
                             "editable": true,
@@ -1850,7 +1852,7 @@
                             },
                             "types": [
                               {
-                                "fieldType": "MAPPING_EXPRESSION_SET",
+                                "fieldType": "MAPPING_EXPRESSION",
                                 "ballerinaType": "map<string|string[]>",
                                 "selected": false
                               },

@@ -32,6 +32,7 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -87,10 +88,12 @@ public class PropertyType {
         return new Builder().fieldType(fieldType).ballerinaType(ballerinaType).build();
     }
 
-    public static List<PropertyType> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                         Node value, SemanticModel semanticModel) {
+    public static void typeWithExpression(Value.ValueBuilder valueBuilder, TypeSymbol typeSymbol,
+                                                        ModuleInfo moduleInfo, Node value,
+                                                        SemanticModel semanticModel) {
         if (typeSymbol == null) {
-            return List.of();
+            valueBuilder.types(List.of());
+            return;
         }
         String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
@@ -179,8 +182,14 @@ public class PropertyType {
             // need to check if it's a map or a record if its a map then need to set the matching type
             if (matchingValueType == Value.FieldType.MAPPING_EXPRESSION_SET) {
                 Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                if (paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD) {
-                    matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                if (paramType.isPresent()) {
+                    if (paramType.get().typeKind() == TypeDescKind.MAP) {
+                        valueBuilder.value(CommonUtils.convertMappingExprToMap(
+                                (MappingConstructorExpressionNode) value));
+                        matchingValueType = Value.FieldType.MAPPING_EXPRESSION;
+                    } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        matchingValueType = Value.FieldType.RECORD_MAP_EXPRESSION;
+                    }
                 }
                 Value.FieldType finalMatchingValueType = matchingValueType;
                 propertyTypes.stream()
@@ -225,7 +234,7 @@ public class PropertyType {
                         .ifPresent(propType -> propType.selected(true));
             }
         }
-        return propertyTypes;
+        valueBuilder.types(propertyTypes);
     }
 
     private static Optional<PropertyType> handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
@@ -237,7 +246,7 @@ public class PropertyType {
             case STRING, STRING_CHAR -> Optional.of(PropertyType.types(Value.FieldType.TEXT, ballerinaType));
             case BOOLEAN -> Optional.of(PropertyType.types(Value.FieldType.FLAG, ballerinaType));
             case ARRAY -> Optional.of(PropertyType.types(Value.FieldType.EXPRESSION_SET, ballerinaType));
-            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION_SET, ballerinaType));
+            case MAP -> Optional.of(PropertyType.types(Value.FieldType.MAPPING_EXPRESSION, ballerinaType));
             case RECORD -> {
                 if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                     // not an anonymous record

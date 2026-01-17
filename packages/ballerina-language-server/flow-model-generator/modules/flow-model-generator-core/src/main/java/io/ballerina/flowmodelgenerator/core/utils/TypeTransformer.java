@@ -805,7 +805,7 @@ public class TypeTransformer {
                     properties.put(keyStr, property);
                 } else if (entryConstValue.value() instanceof LinkedHashMap<?, ?>) {
                     Property property = new Property.Builder<>(null)
-                            .type(Property.ValueType.MAPPING_EXPRESSION_SET)
+                            .type(Property.ValueType.EXPRESSION_SET)
                             .value(transformAnnotConstant(entryConstValue))
                             .build();
                     properties.put(keyStr, property);

@@ -358,18 +358,18 @@ public class ListenerUtil {
             Codedata codedata = new Codedata("LISTENER_INIT_PARAM");
             codedata.setOriginalName(paramResult.name());
 
-            List<PropertyType> propertyTypes = ListenerDeclAnalyzer.buildPropertyType(paramResult, semanticModel,
-                    moduleInfo);
+
             Value.ValueBuilder valueBuilder = new Value.ValueBuilder()
                     .setMetadata(new MetaData(paramResult.label(), paramResult.description()))
                     .setCodedata(codedata)
                     .value("")
-                    .types(propertyTypes)
                     .setPlaceholder(paramResult.placeholder())
                     .editable(true)
                     .enabled(true)
                     .optional(paramResult.optional())
                     .setAdvanced(paramResult.optional());
+
+            ListenerDeclAnalyzer.buildPropertyType(valueBuilder, paramResult, semanticModel, moduleInfo);
             properties.put(unescapedParamName, valueBuilder.build());
         }
     }

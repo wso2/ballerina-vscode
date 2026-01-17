@@ -24,7 +24,7 @@
           "codedata": {
             "argType": "LISTENER_PARAM_REQUIRED"
           },
-          "placeholder": "\"localhost:9092\"",
+          "placeholder": "localhost:9092",
           "value": "\"localhost:9092\"",
           "types": [
             {
@@ -56,7 +56,7 @@
           "codedata": {
             "argType": "LISTENER_PARAM_INCLUDED_FIELD"
           },
-          "placeholder": "\"myTopic\"",
+          "placeholder": "myTopic",
           "value": "\"myTopic\"",
           "types": [
             {

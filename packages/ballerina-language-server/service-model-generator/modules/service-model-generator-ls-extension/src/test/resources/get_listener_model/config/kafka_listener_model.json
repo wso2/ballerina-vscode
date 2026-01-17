@@ -395,7 +395,7 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION_SET",
+              "fieldType": "MAPPING_EXPRESSION",
               "ballerinaType": "map<anydata> & readonly",
               "selected": true
             },
@@ -499,7 +499,7 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION_SET",
+              "fieldType": "MAPPING_EXPRESSION",
               "ballerinaType": "map<string>",
               "selected": true
             },

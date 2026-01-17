@@ -31,7 +31,7 @@
       "object": "Client",
       "symbol": "get",
       "isNew": true,
-      "inferredReturnType" : "targetType"
+      "inferredReturnType": "targetType"
     },
     "returning": false,
     "properties": {
@@ -80,7 +80,7 @@
         },
         "types": [
           {
-            "fieldType": "MAPPING_EXPRESSION_SET",
+            "fieldType": "MAPPING_EXPRESSION",
             "ballerinaType": "map<string|string[]>",
             "selected": false
           },
