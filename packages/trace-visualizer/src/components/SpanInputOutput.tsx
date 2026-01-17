@@ -29,6 +29,9 @@ import { extractUserErrorDetails } from "../utils";
 interface SpanInputOutputProps {
     spanData: SpanData;
     spanName?: string;
+    // Totals across the whole trace (optional)
+    totalInputTokens?: number;
+    totalOutputTokens?: number;
 }
 
 const Container = styled.div`
@@ -175,7 +178,6 @@ const MetricsPills = styled.div`
 const MetricPill = styled.div`
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 500;
@@ -512,7 +514,7 @@ function stripSpanPrefix(spanName: string): string {
     return spanName;
 }
 
-export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
+export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOutputTokens }: SpanInputOutputProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isIdPopupOpen, setIsIdPopupOpen] = useState(false);
     const [showRawError, setShowRawError] = useState(false);
@@ -602,8 +604,19 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
             textContainsSearch(metrics.model, searchQuery) ||
             textContainsSearch(metrics.toolDescription, searchQuery) ||
             textContainsSearch(String(metrics.inputTokens), searchQuery) ||
-            textContainsSearch(String(metrics.outputTokens), searchQuery);
-    }, [searchQuery, metrics]);
+            textContainsSearch(String(metrics.outputTokens), searchQuery) ||
+            textContainsSearch(String(totalInputTokens || ''), searchQuery) ||
+            textContainsSearch(String(totalOutputTokens || ''), searchQuery) ||
+            textContainsSearch('Latency', searchQuery) ||
+            textContainsSearch('Temperature', searchQuery) ||
+            textContainsSearch('Provider', searchQuery) ||
+            textContainsSearch('Model', searchQuery) ||
+            textContainsSearch('Tool Description', searchQuery) ||
+            textContainsSearch('Input Tokens', searchQuery) ||
+            textContainsSearch('Output Tokens', searchQuery) ||
+            textContainsSearch('Total Input Tokens', searchQuery) ||
+            textContainsSearch('Total Output Tokens', searchQuery);
+    }, [searchQuery, metrics, totalInputTokens, totalOutputTokens]);
 
     // Advanced attributes (not shown in input/output)
     const advancedAttributes = useMemo(() => {
@@ -626,7 +639,12 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
             textContainsSearch(spanData.traceId, searchQuery) ||
             textContainsSearch(spanData.parentSpanId, searchQuery) ||
             textContainsSearch(spanData.startTime, searchQuery) ||
-            textContainsSearch(spanData.endTime, searchQuery);
+            textContainsSearch(spanData.endTime, searchQuery) ||
+            textContainsSearch('Span ID', searchQuery) ||
+            textContainsSearch('Trace ID', searchQuery) ||
+            textContainsSearch('Parent Span ID', searchQuery) ||
+            textContainsSearch('Start Time', searchQuery) ||
+            textContainsSearch('End Time', searchQuery);
     }, [searchQuery, spanData]);
 
     // Check if advanced section has any matches
@@ -757,7 +775,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                 <MetricsPills>
                     {metrics.latency && (
                         <MetricPill>
-                            <Icon name="bi-clock" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                            <Icon name="bi-clock" sx={{ marginRight: "4px", fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                             {highlightText(`Latency: ${metrics.latency}`, searchQuery)}
                         </MetricPill>
                     )}
@@ -771,9 +789,19 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                             {highlightText(`Output Tokens: ${metrics.outputTokens}`, searchQuery)}
                         </MetricPill>
                     )}
+                    {spanType === 'invoke' && typeof totalInputTokens === 'number' && totalInputTokens > 0 && (
+                        <MetricPill>
+                            {highlightText(`Total Input Tokens: ${totalInputTokens}`, searchQuery)}
+                        </MetricPill>
+                    )}
+                    {spanType === 'invoke' && typeof totalOutputTokens === 'number' && totalOutputTokens > 0 && (
+                        <MetricPill>
+                            {highlightText(`Total Output Tokens: ${totalOutputTokens}`, searchQuery)}
+                        </MetricPill>
+                    )}
                     {metrics.temperature && (
                         <MetricPill>
-                            <Icon name="bi-thermostat" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                            <Icon name="bi-thermostat" sx={{ marginRight: "4px", fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                             {highlightText(`Temperature: ${metrics.temperature}`, searchQuery)}
                         </MetricPill>
                     )}
@@ -929,7 +957,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                 <SubSectionTitle>Technical IDs</SubSectionTitle>
                                 <TechnicalIdsGrid>
                                     <TechnicalRow>
-                                        <TechnicalLabel>Span ID:</TechnicalLabel>
+                                        <TechnicalLabel>{highlightText("Span ID:", searchQuery)}</TechnicalLabel>
                                         <TechnicalValue>{highlightText(spanData.spanId, searchQuery)}</TechnicalValue>
                                         <CopyWrapper>
                                             <CopyButton text={spanData.spanId} size="small" />
@@ -937,7 +965,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                     </TechnicalRow>
 
                                     <TechnicalRow>
-                                        <TechnicalLabel>Trace ID:</TechnicalLabel>
+                                        <TechnicalLabel>{highlightText("Trace ID:", searchQuery)}</TechnicalLabel>
                                         <TechnicalValue>{highlightText(spanData.traceId, searchQuery)}</TechnicalValue>
                                         <CopyWrapper>
                                             <CopyButton text={spanData.traceId} size="small" />
@@ -945,7 +973,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                     </TechnicalRow>
 
                                     <TechnicalRow>
-                                        <TechnicalLabel>Parent Span ID:</TechnicalLabel>
+                                        <TechnicalLabel>{highlightText("Parent Span ID:", searchQuery)}</TechnicalLabel>
                                         <TechnicalValue>
                                             {spanData.parentSpanId && spanData.parentSpanId !== '0000000000000000'
                                                 ? highlightText(spanData.parentSpanId, searchQuery)
@@ -960,7 +988,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
 
                                     {spanData.startTime && (
                                         <TechnicalRow>
-                                            <TechnicalLabel>Start Time:</TechnicalLabel>
+                                            <TechnicalLabel>{highlightText("Start Time:", searchQuery)}</TechnicalLabel>
                                             <TechnicalValue>{highlightText(formatDate(spanData.startTime), searchQuery)}</TechnicalValue>
                                             <CopyWrapper>
                                                 <CopyButton text={formatDate(spanData.startTime)} size="small" />
@@ -970,7 +998,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
 
                                     {spanData.endTime && (
                                         <TechnicalRow>
-                                            <TechnicalLabel>End Time:</TechnicalLabel>
+                                            <TechnicalLabel>{highlightText("End Time:", searchQuery)}</TechnicalLabel>
                                             <TechnicalValue>{highlightText(formatDate(spanData.endTime), searchQuery)}</TechnicalValue>
                                             <CopyWrapper>
                                                 <CopyButton text={formatDate(spanData.endTime)} size="small" />
@@ -990,7 +1018,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                 <AttributesList>
                                     {filteredAdvancedAttributes.map((attr, index) => (
                                         <AttributeRow key={index}>
-                                            <AttributeKey>{highlightText(attr.key, searchQuery)}:</AttributeKey>
+                                            <AttributeKey>{highlightText(`${attr.key}:`, searchQuery)}</AttributeKey>
                                             <AttributeValue>{highlightText(attr.value, searchQuery)}</AttributeValue>
                                             <CopyWrapper>
                                                 <CopyButton text={`${attr.key}: ${attr.value}`} size="small" />

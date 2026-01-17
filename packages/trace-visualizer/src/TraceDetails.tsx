@@ -969,6 +969,19 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         return inputTokens + outputTokens;
     };
 
+    // Totals across the trace (input/output separately)
+    const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {
+        let inTotal = 0;
+        let outTotal = 0;
+        traceData.spans.forEach(span => {
+            const inT = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0');
+            const outT = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0');
+            if (!isNaN(inT)) inTotal += inT;
+            if (!isNaN(outT)) outTotal += outT;
+        });
+        return { totalInputTokens: inTotal, totalOutputTokens: outTotal };
+    }, [traceData.spans]);
+
     // Format date for display in tree
     const formatStartTime = (dateString: string | undefined): string => {
         if (!dateString) return '';
@@ -1714,6 +1727,8 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                             <SpanInputOutput
                                 spanData={selectedSpan}
                                 spanName={selectedSpan.name}
+                                totalInputTokens={totalInputTokens}
+                                totalOutputTokens={totalOutputTokens}
                             />
                         </DetailsPanel>
                     )}
