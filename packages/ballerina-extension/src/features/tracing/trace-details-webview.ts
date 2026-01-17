@@ -67,6 +67,7 @@ export class TraceDetailsWebview {
     private _disposables: vscode.Disposable[] = [];
     private _trace: Trace | undefined;
     private _isAgentChat: boolean = false;
+    private _focusSpanId: string | undefined;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
@@ -89,6 +90,7 @@ export class TraceDetailsWebview {
                                 command: 'traceData',
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
+                                focusSpanId: this._focusSpanId,
                             });
                         }
                         break;
@@ -125,7 +127,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -135,6 +137,7 @@ export class TraceDetailsWebview {
         const instance = TraceDetailsWebview.instance;
         instance._trace = trace;
         instance._isAgentChat = isAgentChat;
+        instance._focusSpanId = focusSpanId;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
@@ -159,6 +162,7 @@ export class TraceDetailsWebview {
             command: 'traceData',
             data: traceData,
             isAgentChat: this._isAgentChat,
+            focusSpanId: this._focusSpanId,
         });
     }
 
@@ -244,12 +248,13 @@ export class TraceDetailsWebview {
             window.vscode = vscode; // Make vscode API available globally
             let traceData = null;
             let isAgentChat = false;
+            let focusSpanId = undefined;
 
             function renderTraceDetails() {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId);
                     }
                 } else if (!traceData) {
                     // Request trace data from extension
@@ -267,6 +272,7 @@ export class TraceDetailsWebview {
                     case 'traceData':
                         traceData = message.data;
                         isAgentChat = message.isAgentChat || false;
+                        focusSpanId = message.focusSpanId;
                         renderTraceDetails();
                         break;
                 }

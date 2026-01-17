@@ -20,6 +20,7 @@ import {
     AgentChatAPI,
     ChatReqMessage,
     ChatRespMessage,
+    ToolCallSummary,
     TraceInput,
     TraceStatus,
     ChatHistoryMessage,
@@ -74,13 +75,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     this.currentAbortController.signal
                 );
                 if (response && response.message) {
-                    // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(params.message);
-
-                    const chatResponse: ChatRespMessage = {
-                        message: response.message
-                    };
-
                     // Store agent response in history
                     this.addMessageToHistory(sessionId, {
                         type: 'message',
@@ -89,7 +83,13 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         traceId: trace?.traceId
                     });
 
-                    resolve(chatResponse);
+                    // Find trace and extract tool calls
+                    const trace = this.findTraceForMessage(params.message);
+
+                    resolve({
+                        message: response.message,
+                        traceId: trace?.traceId
+                    } as ChatRespMessage);
                 } else {
                     reject(new Error("Invalid response format:", response));
                 }
@@ -266,6 +266,66 @@ export class AgentChatRpcManager implements AgentChatAPI {
     }
 
     /**
+     * Extract tool call summaries from a trace
+     * @param trace The trace to extract tool calls from
+     * @returns Array of tool call summaries
+     */
+    private extractToolCalls(trace: Trace): ToolCallSummary[] {
+        const toolCalls: ToolCallSummary[] = [];
+
+        // Helper function to extract string value from attribute value
+        const extractValue = (value: any): string => {
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (value && typeof value === 'object' && 'stringValue' in value) {
+                return String(value.stringValue);
+            }
+            return '';
+        };
+
+        // Helper to check if a span is a tool execution span
+        const isToolExecutionSpan = (span: any): boolean => {
+            const attributes = span.attributes || [];
+            for (const attr of attributes) {
+                if (attr.key === 'gen_ai.operation.name') {
+                    const value = extractValue(attr.value);
+                    return value.startsWith('execute_tool');
+                }
+            }
+            return false;
+        };
+
+        // Iterate through spans to find tool executions
+        for (const span of trace.spans || []) {
+            if (isToolExecutionSpan(span)) {
+                const attributes = span.attributes || [];
+
+                let toolName = 'Unknown';
+                let output = '';
+
+                // Extract tool name and output
+                for (const attr of attributes) {
+                    const value = extractValue(attr.value);
+                    if (attr.key === 'gen_ai.tool.name') {
+                        toolName = value;
+                    } else if (attr.key === 'gen_ai.tool.output') {
+                        output = value;
+                    }
+                }
+
+                toolCalls.push({
+                    spanId: span.spanId,
+                    toolName,
+                    output
+                });
+            }
+        }
+
+        return toolCalls;
+    }
+
+    /**
      * Show trace details webview for a given chat message
      * Finds the trace matching the message and opens it in the trace details webview
      * @param userMessage The user's input message
@@ -292,7 +352,31 @@ export class AgentChatRpcManager implements AgentChatAPI {
     }
 
     async showTraceView(params: TraceInput): Promise<void> {
-        await this.showTraceDetailsForMessage(params.message);
+        try {
+            let trace: Trace | undefined;
+
+            // Support direct trace lookup by traceId
+            if (params.traceId) {
+                const traces = TraceServer.getTraces();
+                trace = traces.find(t => t.traceId === params.traceId);
+            } else if (params.message) {
+                // Fallback to message-based lookup
+                trace = this.findTraceForMessage(params.message);
+            }
+
+            if (!trace) {
+                const errorMessage = 'No trace found. Make sure tracing is enabled and the agent has processed this message.';
+                vscode.window.showErrorMessage(errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            // Open the trace details webview with isAgentChat=true and optional focusSpanId
+            TraceDetailsWebview.show(trace, true, params.focusSpanId);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
+            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            throw error;
+        }
     }
 
     async getChatHistory(): Promise<ChatHistoryResponse> {
