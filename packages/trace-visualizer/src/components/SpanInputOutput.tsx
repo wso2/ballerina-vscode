@@ -181,8 +181,9 @@ const MetricPill = styled.div`
     padding: 4px 10px;
     font-size: 11px;
     font-weight: 500;
-    background-color: var(--vscode-list-hoverBackground);
-    color: var(--vscode-badge-foreground);
+    background-color: var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-editor-foreground);
     border-radius: 4px;
 `;
 

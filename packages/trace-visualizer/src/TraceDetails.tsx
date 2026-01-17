@@ -31,7 +31,7 @@ interface TraceDetailsProps {
 
 const Container = styled.div`
     margin: 0;
-    padding: 16px;
+    padding: 0 16px;
     font-family: var(--vscode-font-family);
     background-color: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
@@ -106,6 +106,7 @@ const NavigationBar = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-top: 16px;
     margin-bottom: 8px;
 `;
 
@@ -175,6 +176,7 @@ const AgentChatLogsContainer = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
+    margin-bottom: 16px;
 `;
 
 const AISpanTreeContainer = styled.div<{ height: number; maxHeight: number; minHeight: number }>`
@@ -199,7 +201,7 @@ const AISpanTreeItem = styled.div<{ level: number; isSelected: boolean }>`
     gap: 8px;
     position: relative;
     background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-hoverBackground)' : 'transparent'};
+        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
     flex-wrap: wrap;
 
     &:hover {

@@ -168,9 +168,18 @@ const MarkdownContent = styled.div`
         color: var(--vscode-editor-foreground);
     }
 
-    h1 { font-size: 1.3em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
-    h2 { font-size: 1.25em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
-    h3 { font-size: 1.15em; }
+    h1:first-child,
+    h2:first-child,
+    h3:first-child,
+    h4:first-child,
+    h5:first-child,
+    h6:first-child {
+        margin-top: 0;
+    }
+
+    h1 { font-size: 1.25em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
+    h2 { font-size: 1.2em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
+    h3 { font-size: 1.1em; }
     h4 { font-size: 1em; }
     h5 { font-size: 0.875em; }
     h6 { font-size: 0.85em; color: var(--vscode-descriptionForeground); }
