@@ -261,6 +261,49 @@ const NoMatchMessage = styled.div`
     font-size: 13px;
 `;
 
+const NoResultsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 12px;
+`;
+
+const NoResultsTitle = styled.div`
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+`;
+
+const NoResultsSubtitle = styled.div`
+    font-size: 13px;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 8px;
+`;
+
+const ClearSearchButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+`;
+
 // Advanced Details styles
 const AdvancedDetailsContainer = styled.div`
     display: flex;
@@ -350,7 +393,8 @@ function highlightText(text: string, searchQuery: string): ReactNode {
 }
 
 function textContainsSearch(text: string | undefined, searchQuery: string): boolean {
-    if (!searchQuery || !text) return true;
+    if (!searchQuery) return true; // No search query = show everything
+    if (!text) return false; // No text to search = no match
     return text.toLowerCase().includes(searchQuery.toLowerCase());
 }
 
@@ -753,9 +797,18 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
 
             {/* No Matches Message */}
             {noMatches && (
-                <NoMatchMessage>
-                    No results found for "{searchQuery}"
-                </NoMatchMessage>
+                <NoResultsContainer>
+                    <NoResultsTitle>No results found</NoResultsTitle>
+                    <NoResultsSubtitle>Try different keywords - or search by type, title, span ID</NoResultsSubtitle>
+                    <ClearSearchButton onClick={() => setSearchQuery('')}>
+                        <Icon
+                            name="bi-close"
+                            sx={{ fontSize: "16px", width: "16px", height: "16px" }}
+                            iconSx={{ display: "flex" }}
+                        />
+                        Clear search
+                    </ClearSearchButton>
+                </NoResultsContainer>
             )}
 
             {/* Input and Output Sections in Responsive Grid */}
@@ -767,6 +820,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                             title="Input"
                             icon="bi-input"
                             defaultOpen={true}
+                            key={searchQuery ? `input-${searchQuery}` : 'input'}
                         >
                             <SectionContent>
                                 {inputData.systemInstructions && textContainsSearch(inputData.systemInstructions, searchQuery) && (
@@ -808,6 +862,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                             title="Output"
                             icon="bi-output"
                             defaultOpen={true}
+                            key={searchQuery ? `output-${searchQuery}` : 'output'}
                         >
                             <SectionContent>
                                 {outputData.error && textContainsSearch(outputData.error, searchQuery) && (
@@ -864,7 +919,8 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
             {advancedMatches && (
                 <CollapsibleSection
                     title="Advanced Details"
-                    defaultOpen={spanType === 'other' || (!hasInput && !hasOutput)}
+                    defaultOpen={spanType === 'other' || (!hasInput && !hasOutput) || (searchQuery && advancedMatches)}
+                    key={searchQuery ? `advanced-${searchQuery}` : 'advanced'}
                 >
                     <AdvancedDetailsContainer>
                         {/* Technical IDs */}
@@ -943,12 +999,6 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                     ))}
                                 </AttributesList>
                             </SubSection>
-                        )}
-
-                        {searchQuery && filteredAdvancedAttributes.length === 0 && !technicalIdsMatch && (
-                            <NoMatchMessage>
-                                No attributes match your search
-                            </NoMatchMessage>
                         )}
                     </AdvancedDetailsContainer>
                 </CollapsibleSection>
