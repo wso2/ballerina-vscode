@@ -1197,7 +1197,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                         </span>
                         <AdvancedSpanName>{span.name}</AdvancedSpanName>
                     </div>
-                    <AdvancedSpanKind>{getSpanKindLabel(span.kind)}</AdvancedSpanKind>
                     {duration !== null && (
                         <span style={{ fontSize: '11px', color: 'var(--vscode-descriptionForeground)', minWidth: '60px', textAlign: 'right' }}>
                             {formatDuration(duration)}
@@ -1358,11 +1357,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                             </span>
                             <AdvancedSpanName>{span.name}</AdvancedSpanName>
                         </div>
-                        <AdvancedSpanKind>{getSpanKindLabel(span.kind)}</AdvancedSpanKind>
                         {duration !== null && (
-                            <span style={{ fontSize: '11px', color: 'var(--vscode-descriptionForeground)', minWidth: '60px', textAlign: 'right' }}>
-                                {formatDuration(duration)}
-                            </span>
+                            <AISpanDuration>
+                                <>
+                                    <Icon name="bi-clock" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                                    {formatDuration(duration)}
+                                </>
+                            </AISpanDuration>
                         )}
                     </AdvancedSpanItem>
                     {hasChildren && isExpanded && (

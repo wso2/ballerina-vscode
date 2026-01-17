@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { useState, useMemo, ReactNode, useEffect } from "react";
+import React, { useState, useMemo, ReactNode, useEffect } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { JsonTreeViewer, DEFAULT_AUTO_EXPAND_DEPTH } from "./JsonTreeViewer";
@@ -478,20 +478,20 @@ function syntaxHighlightJSON(json: string, searchQuery: string): ReactNode[] {
 // Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
 function preprocessLatex(text: string): string {
     if (!text || typeof text !== 'string') return text;
-    
+
     // Convert display math \[...\] to $$...$$
     let processed = text.replace(/\\\[(.*?)\\\]/gs, (_, math) => `$$${math}$$`);
-    
+
     // Convert inline math \(...\) to $...$
     processed = processed.replace(/\\\((.*?)\\\)/gs, (_, math) => `$${math}$`);
-    
+
     return processed;
 }
 
 // Check if text might contain markdown syntax
 function mightContainMarkdown(text: string): boolean {
     if (!text || typeof text !== 'string') return false;
-    
+
     // Check for common markdown patterns with more lenient matching
     const markdownPatterns = [
         /^#{1,6}\s+.+/m,           // Headers (# Header)
@@ -514,7 +514,7 @@ function mightContainMarkdown(text: string): boolean {
         /!\[.*?\]\(.+?\)/,          // Images (![alt](url))
         /^\s*[-*_]{3,}\s*$/m,       // Horizontal rules (--- or ***)
     ];
-    
+
     return markdownPatterns.some(pattern => pattern.test(text));
 }
 
@@ -540,7 +540,37 @@ export function JsonViewer({
         const result = !isJSON && mightContainMarkdown(value);
         return result;
     }, [value, isJSON]);
-    
+
+    const markdownComponents = useMemo(() => {
+        const create = (tag: any) => ({ children, ...props }: any) => {
+            const mapped = React.Children.map(children, (child: any) =>
+                typeof child === 'string' ? highlightText(child, searchQuery) : child
+            );
+            return React.createElement(tag, props, mapped);
+        };
+
+        return {
+            p: create('p'),
+            li: create('li'),
+            h1: create('h1'),
+            h2: create('h2'),
+            h3: create('h3'),
+            h4: create('h4'),
+            h5: create('h5'),
+            h6: create('h6'),
+            a: ({ children, ...props }: any) =>
+                React.createElement('a', props, React.Children.map(children, (c: any) =>
+                    typeof c === 'string' ? highlightText(c, searchQuery) : c
+                )),
+            strong: create('strong'),
+            em: create('em'),
+            code: ({ inline, children, className, ...props }: any) => {
+                if (inline) return React.createElement('code', { className, ...props }, children);
+                return React.createElement('pre', props, React.createElement('code', { className }, children));
+            }
+        };
+    }, [searchQuery]);
+
     const [viewMode, setViewMode] = useState<ViewMode>('formatted');
     const [collapseAll, setCollapseAll] = useState(false);
     const [expandAll, setExpandAll] = useState(false);
@@ -601,6 +631,7 @@ export function JsonViewer({
                             <ReactMarkdown
                                 remarkPlugins={[remarkMath, remarkGfm]}
                                 rehypePlugins={[rehypeKatex]}
+                                components={markdownComponents}
                             >
                                 {preprocessLatex(value)}
                             </ReactMarkdown>

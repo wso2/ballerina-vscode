@@ -293,6 +293,42 @@ function collectAllPaths(data: unknown, path: string = ''): Set<string> {
     return paths;
 }
 
+// Find paths that match search query and their parent paths
+function findMatchingPaths(data: unknown, searchQuery: string): Set<string> {
+    if (!searchQuery) return new Set();
+
+    const matchingPaths = new Set<string>();
+    const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+
+    const traverse = (obj: unknown, currentPath: string, parentPaths: string[], key: string = '') => {
+        // Check if key or value matches
+        const keyMatches = key && regex.test(key);
+        const valueMatches = obj != null && typeof obj !== 'object' && regex.test(String(obj));
+
+        if (keyMatches || valueMatches) {
+            // Add all parent paths and current path
+            parentPaths.forEach(p => matchingPaths.add(p));
+            matchingPaths.add(currentPath);
+            return;
+        }
+
+        if (Array.isArray(obj)) {
+            obj.forEach((item, index) => {
+                const itemPath = `${currentPath}[${index}]`;
+                traverse(item, itemPath, [...parentPaths, currentPath], String(index));
+            });
+        } else if (obj != null && typeof obj === 'object') {
+            Object.entries(obj).forEach(([k, v]) => {
+                const itemPath = `${currentPath}.${k}`;
+                traverse(v, itemPath, [...parentPaths, currentPath], k);
+            });
+        }
+    };
+
+    traverse(data, 'root', []);
+    return matchingPaths;
+}
+
 export function JsonTreeViewer({
     data,
     searchQuery = '',
@@ -311,6 +347,18 @@ export function JsonTreeViewer({
         }
         return generateInitialExpanded(parsedData, maxAutoExpandDepth);
     }, [parsedData, maxAutoExpandDepth, expandLastOnly]);
+
+    const [expandedPaths, setExpandedPaths] = useState<Set<string>>(initialExpanded);
+
+    // Auto-expand only matching paths when searching, restore initial state when cleared
+    useEffect(() => {
+        if (searchQuery) {
+            const matchingPaths = findMatchingPaths(parsedData, searchQuery);
+            setExpandedPaths(matchingPaths);
+        } else {
+            setExpandedPaths(initialExpanded);
+        }
+    }, [searchQuery, parsedData, initialExpanded]);
 
     // Handle collapse/expand all
     useEffect(() => {
