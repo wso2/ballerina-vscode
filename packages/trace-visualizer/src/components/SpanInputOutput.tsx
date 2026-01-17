@@ -690,13 +690,11 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                             <SectionContent>
                                 {inputData.systemInstructions && textContainsSearch(inputData.systemInstructions, searchQuery) && (
                                     <SubSection>
-                                        <SubSectionTitle>
-                                            System Instructions
-                                            <CopyButton text={inputData.systemInstructions} size="small" />
-                                        </SubSectionTitle>
-                                        <TextContent>
-                                            {highlightText(inputData.systemInstructions, searchQuery)}
-                                        </TextContent>
+                                        <JsonViewer
+                                            value={inputData.systemInstructions}
+                                            title="System Instructions"
+                                            searchQuery={searchQuery}
+                                        />
                                     </SubSection>
                                 )}
                                 {inputData.messages && textContainsSearch(inputData.messages, searchQuery) && (
