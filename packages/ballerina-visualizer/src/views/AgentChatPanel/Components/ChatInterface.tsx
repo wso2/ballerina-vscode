@@ -25,6 +25,10 @@ import LoadingIndicator from "./LoadingIndicator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
+import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
 enum ChatMessageType {
     MESSAGE = "message",
@@ -131,6 +135,8 @@ const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading
         isUser ? "var(--vscode-button-background)" : "var(--vscode-tab-inactiveBackground)"};
         opacity: ${({ isUser }: { isUser: boolean }) => (isUser ? "0.3" : "1")};
         border-radius: inherit;
+        border: 1px solid ${({ isUser }: { isUser: boolean }) =>
+            isUser ? "var(--vscode-peekView-border)" : "var(--vscode-panel-border)"};;
         z-index: -1;
     }
 
@@ -279,6 +285,19 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
         </Modal>
     );
 };
+
+// Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
+function preprocessLatex(text: string): string {
+    if (!text || typeof text !== 'string') return text;
+    
+    // Convert display math \[...\] to $$...$$
+    let processed = text.replace(/\\\[(.*?)\\\]/gs, (_, math) => `$$${math}$$`);
+    
+    // Convert inline math \(...\) to $...$
+    processed = processed.replace(/\\\((.*?)\\\)/gs, (_, math) => `$${math}$`);
+    
+    return processed;
+}
 
 const ChatInterface: React.FC = () => {
     const { rpcClient } = useRpcContext();
@@ -449,7 +468,12 @@ const ChatInterface: React.FC = () => {
                                     </ProfilePic>
                                 )}
                                 <MessageBubble isUser={msg.isUser} isError={msg.type === ChatMessageType.ERROR}>
-                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkMath, remarkGfm]}
+                                        rehypePlugins={[rehypeKatex]}
+                                    >
+                                        {preprocessLatex(msg.text)}
+                                    </ReactMarkdown>
                                 </MessageBubble>
                                 {msg.isUser && (
                                     <ProfilePic>
