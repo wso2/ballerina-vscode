@@ -41,10 +41,10 @@ const Header = styled.button`
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background: var(--vscode-list-hoverBackground);
+    background: var(--vscode-sideBar-background);
     border: none;
     cursor: pointer;
-    color: var(--vscode-badge-foreground);
+    color: var(--vscode-editor-foreground);
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
@@ -58,15 +58,14 @@ const HeaderLeft = styled.div`
 `;
 
 const HeaderTitle = styled.span`
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--vscode-badge-foreground);
+    font-family: var(--vscode-font-family);
 `;
 
 const HeaderIcon = styled.span`
     display: flex;
     align-items: center;
-    color: var(--vscode-badge-foreground);
 `;
 
 const ChevronIcon = styled.span`
