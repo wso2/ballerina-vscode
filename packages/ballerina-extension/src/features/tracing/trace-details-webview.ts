@@ -18,6 +18,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { Trace } from './trace-server';
@@ -79,7 +80,7 @@ export class TraceDetailsWebview {
         }
 
         this._panel.webview.onDidReceiveMessage(
-            (message) => {
+            async (message) => {
                 switch (message.command) {
                     case 'requestTraceData':
                         if (this._trace) {
@@ -89,6 +90,11 @@ export class TraceDetailsWebview {
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
                             });
+                        }
+                        break;
+                    case 'exportTrace':
+                        if (message.data) {
+                            await this.exportTrace(message.data);
                         }
                         break;
                 }
@@ -183,6 +189,46 @@ export class TraceDetailsWebview {
         };
     }
 
+    private async exportTrace(traceData: TraceData): Promise<void> {
+        try {
+            const fileName = `trace-${traceData.traceId}.json`;
+            // Default to ./traces inside the first workspace folder; fallback to home directory
+            const wf = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+            let defaultUri: vscode.Uri;
+
+            if (wf) {
+                const tracesDirPath = path.join(wf.uri.fsPath, 'traces');
+                const tracesDirUri = vscode.Uri.file(tracesDirPath);
+                try {
+                    // Ensure the traces directory exists (create if missing)
+                    await vscode.workspace.fs.createDirectory(tracesDirUri);
+                } catch (e) {
+                    // Ignore errors and fall back to workspace root below
+                }
+
+                defaultUri = vscode.Uri.file(path.join(tracesDirPath, fileName));
+            } else {
+                defaultUri = vscode.Uri.file(path.join(os.homedir(), fileName));
+            }
+
+            const fileUri = await vscode.window.showSaveDialog({
+                defaultUri,
+                filters: {
+                    'JSON Files': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (fileUri) {
+                const jsonContent = JSON.stringify(traceData, null, 2);
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                vscode.window.showInformationMessage(`Trace exported to ${fileUri.fsPath}`);
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to export trace: ${error}`);
+        }
+    }
+
     private getWebviewContent(trace: Trace, webView: Webview): string {
         const body = `<div class="container" id="webview-container"></div>`;
         const bodyCss = ``;
@@ -195,6 +241,7 @@ export class TraceDetailsWebview {
         `;
         const scripts = `
             const vscode = acquireVsCodeApi();
+            window.vscode = vscode; // Make vscode API available globally
             let traceData = null;
             let isAgentChat = false;
 
@@ -222,6 +269,16 @@ export class TraceDetailsWebview {
                         isAgentChat = message.isAgentChat || false;
                         renderTraceDetails();
                         break;
+                }
+            });
+
+            // Listen for export requests from React component
+            window.addEventListener('exportTrace', (event) => {
+                if (event.detail && event.detail.traceData) {
+                    vscode.postMessage({
+                        command: 'exportTrace',
+                        data: event.detail.traceData
+                    });
                 }
             });
 
