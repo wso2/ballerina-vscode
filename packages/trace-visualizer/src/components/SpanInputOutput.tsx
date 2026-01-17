@@ -18,12 +18,13 @@
 
 import { useState, useMemo, ReactNode, useRef, useEffect } from "react";
 import styled from "@emotion/styled";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Icon } from "@wso2/ui-toolkit";
 import { SearchInput } from "./SearchInput";
 import { CollapsibleSection } from "./CollapsibleSection";
-import { JsonViewer } from "./JsonViewer";
+import { JsonViewer, ToggleGroup, ToggleButton } from "./JsonViewer";
 import { CopyButton } from "./CopyButton";
 import { SpanData } from "../index";
+import { extractUserErrorDetails } from "../utils";
 
 interface SpanInputOutputProps {
     spanData: SpanData;
@@ -194,7 +195,7 @@ const InputOutputGrid = styled.div`
     grid-template-columns: 1fr;
     gap: 16px;
     
-    @media (min-width: 800px) {
+    @media (min-width: 900px) {
         grid-template-columns: 1fr 1fr;
     }
 `;
@@ -211,19 +212,6 @@ const SubSectionTitle = styled.h4`
     display: flex;
     align-items: center;
     gap: 6px;
-`;
-
-const TextContent = styled.div`
-    background-color: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 12px;
-    font-family: var(--vscode-font-family);
-    font-size: 13px;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-word;
-    color: var(--vscode-editor-foreground);
 `;
 
 const ErrorContent = styled.div`
@@ -244,6 +232,19 @@ const ErrorHeader = styled.div`
     gap: 6px;
     margin-bottom: 8px;
     color: var(--vscode-errorForeground);
+`;
+
+const ErrorHeaderLeft = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+`;
+
+const ErrorHeaderRight = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 4px;
 `;
 
 const Highlight = styled.mark`
@@ -366,6 +367,85 @@ function formatDate(isoString: string): string {
     });
 }
 
+function formatErrorText(rawText: string): string {
+    if (typeof rawText !== "string") return rawText;
+
+    const lines = rawText.split("\n");
+
+    // Find where stack trace starts (first line with "at ")
+    const stackTraceStartIndex = lines.findIndex(l => l.trim().startsWith("at "));
+
+    let stackTrace: string[] = [];
+    let nonStack: string;
+
+    if (stackTraceStartIndex !== -1) {
+        // Everything before stack trace
+        nonStack = lines.slice(0, stackTraceStartIndex).join("\n");
+
+        // Stack trace: from "at " line onwards (includes all subsequent indented lines)
+        stackTrace = lines.slice(stackTraceStartIndex);
+    } else {
+        nonStack = lines.join("\n");
+    }
+
+    const output: string[] = [];
+
+    output.push("Error Summary");
+    output.push("=============");
+
+    // Split summary and steps block
+    const stepsIndex = nonStack.indexOf('{"steps":[');
+
+    if (stepsIndex === -1) {
+        output.push(nonStack.trim());
+    } else {
+        const summary = nonStack.slice(0, stepsIndex).trim();
+        const stepsBlock = nonStack.slice(stepsIndex).trim();
+
+        if (summary) output.push(summary);
+
+
+        // ---- Error Details (extracted from embedded body JSON) ----
+        const errorDetails = extractUserErrorDetails(rawText);
+
+        if (errorDetails?.length) {
+            output.push("");
+            output.push("Error Details");
+            output.push("=============");
+
+            errorDetails.forEach((d, i) => {
+                if (i > 0) output.push("");
+
+                if (d.error_message) {
+                    output.push(`Message: ${d.error_message}${d.code ? ` (${d.code})` : ""}`);
+                }
+
+                if (d.error_description) {
+                    output.push(`Description: ${d.error_description}`);
+                }
+            });
+        }
+
+        // ---- Steps (verbatim) ----
+        if (stepsBlock) {
+            output.push("");
+            output.push("Steps");
+            output.push("=====");
+            output.push(stepsBlock);
+        }
+    }
+
+    // ---- Stack trace ----
+    if (stackTrace.length) {
+        output.push("");
+        output.push("Stack Trace");
+        output.push("===========");
+        output.push(stackTrace.join("\n"));
+    }
+
+    return output.join("\n");
+}
+
 // Attributes to exclude from "Other Attributes" (shown elsewhere)
 const EXCLUDED_ATTRIBUTE_KEYS = [
     'gen_ai.input.messages',
@@ -391,6 +471,7 @@ function stripSpanPrefix(spanName: string): string {
 export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isIdPopupOpen, setIsIdPopupOpen] = useState(false);
+    const [showRawError, setShowRawError] = useState(false);
     const popupRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -703,6 +784,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                             value={inputData.messages}
                                             title={inputData.messagesLabel}
                                             searchQuery={searchQuery}
+                                            expandLastOnly={true}
                                         />
                                     </SubSection>
                                 )}
@@ -731,14 +813,34 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                 {outputData.error && textContainsSearch(outputData.error, searchQuery) && (
                                     <SubSection>
                                         <ErrorHeader>
-                                            <Icon name="bi-error" sx={{ fontSize: "16px", width: "16px", height: "16px" }} iconSx={{ display: "flex" }} />
-                                            <SubSectionTitle style={{ margin: 0, color: 'var(--vscode-errorForeground)' }}>
-                                                Error
-                                            </SubSectionTitle>
-                                            <CopyButton text={outputData.error} size="small" />
+                                            <ErrorHeaderLeft>
+                                                <Icon name="bi-error" sx={{ fontSize: "16px", width: "16px", height: "16px" }} iconSx={{ display: "flex" }} />
+                                                <SubSectionTitle style={{ margin: 0, color: 'var(--vscode-errorForeground)' }}>
+                                                    Error
+                                                </SubSectionTitle>
+                                                <CopyButton text={outputData.error} size="small" />
+                                            </ErrorHeaderLeft>
+                                            <ErrorHeaderRight>
+                                                <ToggleGroup>
+                                                    <ToggleButton
+                                                        active={!showRawError}
+                                                        onClick={() => setShowRawError(false)}
+                                                        title="Show formatted error"
+                                                    >
+                                                        Formatted
+                                                    </ToggleButton>
+                                                    <ToggleButton
+                                                        active={showRawError}
+                                                        onClick={() => setShowRawError(true)}
+                                                        title="Show raw error"
+                                                    >
+                                                        Raw
+                                                    </ToggleButton>
+                                                </ToggleGroup>
+                                            </ErrorHeaderRight>
                                         </ErrorHeader>
                                         <ErrorContent>
-                                            {highlightText(outputData.error, searchQuery)}
+                                            {highlightText(showRawError ? outputData.error : formatErrorText(outputData.error), searchQuery)}
                                         </ErrorContent>
                                     </SubSection>
                                 )}
@@ -748,6 +850,7 @@ export function SpanInputOutput({ spanData, spanName }: SpanInputOutputProps) {
                                             value={outputData.messages}
                                             title={outputData.messagesLabel}
                                             searchQuery={searchQuery}
+                                            expandLastOnly={true}
                                         />
                                     </SubSection>
                                 )}

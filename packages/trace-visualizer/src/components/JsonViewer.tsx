@@ -34,6 +34,7 @@ interface JsonViewerProps {
     title?: string;
     searchQuery?: string;
     maxAutoExpandDepth?: number;
+    expandLastOnly?: boolean;
 }
 
 const Container = styled.div``;
@@ -66,7 +67,7 @@ const Title = styled.h4`
     letter-spacing: 0.5px;
 `;
 
-const ToggleGroup = styled.div`
+export const ToggleGroup = styled.div`
     display: flex;
     gap: 2px;
 `;
@@ -89,11 +90,11 @@ const IconButton = styled.button`
     }
 `;
 
-interface ToggleButtonProps {
+export interface ToggleButtonProps {
     active: boolean;
 }
 
-const ToggleButton = styled.button<ToggleButtonProps>`
+export const ToggleButton = styled.button<ToggleButtonProps>`
     padding: 4px 10px;
     font-size: 11px;
     font-family: var(--vscode-font-family);
@@ -531,7 +532,8 @@ export function JsonViewer({
     value,
     title,
     searchQuery = '',
-    maxAutoExpandDepth = DEFAULT_AUTO_EXPAND_DEPTH
+    maxAutoExpandDepth = DEFAULT_AUTO_EXPAND_DEPTH,
+    expandLastOnly = false
 }: JsonViewerProps) {
     const isJSON = useMemo(() => isJSONString(value), [value]);
     const hasMarkdown = useMemo(() => {
@@ -671,6 +673,7 @@ export function JsonViewer({
                         maxAutoExpandDepth={maxAutoExpandDepth}
                         collapseAll={collapseAll}
                         expandAll={expandAll}
+                        expandLastOnly={expandLastOnly}
                     />
                 ) : (
                     <RawContent>

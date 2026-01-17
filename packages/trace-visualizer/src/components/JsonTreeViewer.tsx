@@ -30,6 +30,7 @@ interface JsonTreeViewerProps {
     maxAutoExpandDepth?: number;
     collapseAll?: boolean;
     expandAll?: boolean;
+    expandLastOnly?: boolean;
 }
 
 const Container = styled.div`
@@ -234,6 +235,38 @@ function generateInitialExpanded(data: unknown, maxDepth: number, path: string =
     return expanded;
 }
 
+// Generate expanded set that expands only the last item of root array (and its descendants up to depth)
+function generateExpandedForLastItem(data: unknown, maxDepth: number): Set<string> {
+    const expanded = new Set<string>();
+    if (!Array.isArray(data) || data.length === 0) return expanded;
+
+    const lastIndex = data.length - 1;
+    const startPath = `root[${lastIndex}]`;
+
+    const traverse = (obj: unknown, currentPath: string, depth: number) => {
+        if (depth >= maxDepth) return;
+
+        if (Array.isArray(obj)) {
+            expanded.add(currentPath);
+            obj.forEach((item, index) => {
+                if (typeof item === 'object' && item !== null) {
+                    traverse(item, `${currentPath}[${index}]`, depth + 1);
+                }
+            });
+        } else if (obj !== null && typeof obj === 'object') {
+            expanded.add(currentPath);
+            Object.entries(obj).forEach(([key, val]) => {
+                if (typeof val === 'object' && val !== null) {
+                    traverse(val, `${currentPath}.${key}`, depth + 1);
+                }
+            });
+        }
+    };
+
+    traverse(data[lastIndex], startPath, 0);
+    return expanded;
+}
+
 // Collect all paths in the data structure
 function collectAllPaths(data: unknown, path: string = ''): Set<string> {
     const paths = new Set<string>();
@@ -265,15 +298,19 @@ export function JsonTreeViewer({
     searchQuery = '',
     maxAutoExpandDepth = DEFAULT_AUTO_EXPAND_DEPTH,
     collapseAll = false,
-    expandAll = false
+    expandAll = false,
+    expandLastOnly = false
 }: JsonTreeViewerProps) {
     // Parse nested JSON strings
     const parsedData = useMemo(() => parseNestedJSON(data), [data]);
 
     // Initialize expanded state
-    const [expandedPaths, setExpandedPaths] = useState<Set<string>>(() =>
-        generateInitialExpanded(parsedData, maxAutoExpandDepth)
-    );
+    const initialExpanded = useMemo(() => {
+        if (expandLastOnly && Array.isArray(parsedData)) {
+            return generateExpandedForLastItem(parsedData, maxAutoExpandDepth);
+        }
+        return generateInitialExpanded(parsedData, maxAutoExpandDepth);
+    }, [parsedData, maxAutoExpandDepth, expandLastOnly]);
 
     // Handle collapse/expand all
     useEffect(() => {
