@@ -48,33 +48,6 @@ const InfoGrid = styled.div`
     gap: 8px 12px;
 `;
 
-const InfoLabel = styled.div`
-    color: var(--vscode-descriptionForeground);
-`;
-
-const InfoValue = styled.div`
-    word-break: break-all;
-    color: var(--vscode-editor-foreground);
-`;
-
-const AttributesContainer = styled.div`
-    margin-top: 10px;
-`;
-
-const AttributeItem = styled.div`
-    padding: 4px 0;
-    margin-bottom: 5px;
-`;
-
-const AttributeKey = styled.span`
-    color: var(--vscode-textLink-foreground);
-`;
-
-const AttributeValue = styled.span`
-    margin-left: 10px;
-    color: var(--vscode-editor-foreground);
-`;
-
 const TreeItem = styled.div<{ level: number; isSelected: boolean }>`
     display: flex;
     align-items: center;
@@ -155,6 +128,12 @@ const ModeToggleButton = styled.button`
     &:active {
         transform: scale(0.98);
     }
+`;
+
+const ButtonGroup = styled.div`
+    display: flex;
+    gap: 4px;
+    align-items: center;
 `;
 
 const ViewModeToggle = styled.div`
@@ -269,7 +248,7 @@ const AISpanBadge = styled.span<{ type: string }>`
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
             case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-background)';
+            default: return 'var(--vscode-badge-foreground)';
         }
     }};
     border: 1px solid var(--vscode-dropdown-border);
@@ -531,7 +510,7 @@ const AIBadge: React.FC<AIBadgeProps> = ({ type }) => {
             case 'invoke': return 'bi-ai-agent';
             case 'chat': return 'bi-chat';
             case 'tool': return 'bi-wrench';
-            default: return 'bi-wrench';
+            default: return 'bi-action';
         }
     };
 
@@ -580,7 +559,10 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
     const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
     const [aiSpanTreeDimensions, setAISpanTreeDimensions] = useState({ height: 180, maxHeight: 600, minHeight: 50 });
+    const [waterfallDimensions, setWaterfallDimensions] = useState({ height: 300, maxHeight: 800, minHeight: 150 });
+    const [totalSpanCounts, setTotalSpanCounts] = useState({ aiCount: 0, nonAiCount: 0 });
     const containerRef = React.useRef<HTMLDivElement>(null);
+    const hasAutoExpandedRef = React.useRef<boolean>(false);
 
     // Track container width for responsive behavior
     useEffect(() => {
@@ -689,6 +671,31 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
     }, [sortedRootSpans.length]);
+
+    // Auto-expand first 3 levels of spans in advanced mode (only once)
+    useEffect(() => {
+        if (!isAdvancedMode || hasAutoExpandedRef.current || sortedRootSpans.length === 0) return;
+
+        const spansToExpand = new Set<string>();
+        
+        const expandRecursively = (spanId: string, currentLevel: number) => {
+            if (currentLevel >= 3) return;
+            
+            const children = getChildSpans(spanId);
+            if (children.length > 0) {
+                spansToExpand.add(spanId);
+                children.forEach(child => expandRecursively(child.spanId, currentLevel + 1));
+            }
+        };
+
+        // Start from root spans
+        sortedRootSpans.forEach(rootSpan => {
+            expandRecursively(rootSpan.spanId, 0);
+        });
+
+        setExpandedSpans(spansToExpand);
+        hasAutoExpandedRef.current = true;
+    }, [sortedRootSpans, isAdvancedMode]);
 
     const formatDate = (dateString: string): string => {
         return new Date(dateString).toLocaleString();
@@ -824,12 +831,20 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
         return { aiCount, nonAiCount };
     };
 
+    // Calculate total span counts once when spans change (for waterfall)
+    useEffect(() => {
+        const aiSpans = traceData.spans.filter(span => isAISpan(span));
+        const aiCount = aiSpans.length;
+        const nonAiCount = traceData.spans.length - aiCount;
+        setTotalSpanCounts({ aiCount, nonAiCount });
+    }, [traceData.spans]);
+
     // Calculate container dimensions based on number of items
     useEffect(() => {
         const { aiCount, nonAiCount } = countTotalVisibleItems();
         const aiItemHeight = 36; // Height per AI span item
-        const nonAiItemHeight = 27 + 8; // Height per non-AI span item
-        const calculatedHeight = (aiCount * aiItemHeight) + (nonAiCount * nonAiItemHeight);
+        const nonAiItemHeight = 27 + 4; // Height per non-AI span item
+        let calculatedHeight = (aiCount * aiItemHeight) + (nonAiCount * nonAiItemHeight);
 
         // Default height: content size up to 180px (or 400px in advanced mode)
         const maxDefaultHeight = isAdvancedMode ? 400 : 180;
@@ -840,7 +855,21 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
         const minHeight = Math.min(calculatedHeight, 50);
 
         setAISpanTreeDimensions({ height, maxHeight, minHeight });
-    }, [traceData.spans, isAgentChat, showFullTrace, isAdvancedMode, expandedAdvancedSpanGroups, expandedSpans]);
+
+        // Calculate waterfall height
+        const spanBarHeight = 30;
+        const waterfallSpanCount = isAdvancedMode 
+            ? (totalSpanCounts.aiCount + totalSpanCounts.nonAiCount)
+            : totalSpanCounts.aiCount;
+        const waterfallCalculatedHeight = (waterfallSpanCount * spanBarHeight) + 70;
+
+        // Set waterfall dimensions (simpler, fixed heights)
+        const maxDefaultWaterfallHeight = isAdvancedMode ? 400 : 300;
+        const waterfallHeight = Math.min(waterfallCalculatedHeight, maxDefaultWaterfallHeight);
+        const waterfallMaxHeight = waterfallCalculatedHeight;
+        const waterfallMinHeight = Math.min(waterfallCalculatedHeight, 150);
+        setWaterfallDimensions({ height: waterfallHeight, maxHeight: waterfallMaxHeight, minHeight: waterfallMinHeight });
+    }, [traceData.spans, isAgentChat, showFullTrace, isAdvancedMode, expandedAdvancedSpanGroups, expandedSpans, totalSpanCounts]);
 
     // Select first AI span when in agent chat view
     useEffect(() => {
@@ -854,9 +883,9 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     // Get span type badge
     const getSpanTypeBadge = (span: SpanData): string => {
         const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
-        if (operationName.includes('invoke')) return 'invoke';
-        if (operationName.includes('chat') || span.name.toLowerCase().includes('chat')) return 'chat';
-        if (operationName.includes('tool') || span.name.toLowerCase().includes('tool')) return 'tool';
+        if (operationName.startsWith('invoke_agent')) return 'invoke';
+        if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
+        if (operationName.startsWith('execute_tool') || span.name.toLowerCase().startsWith('execute_tool')) return 'tool';
         return 'other';
     };
 
@@ -1158,7 +1187,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                             </span>
                             <AISpanBadge type={badgeType}>
                                 <Icon
-                                    name={badgeType === 'invoke' ? 'bi-ai-agent' : badgeType === 'chat' ? 'bi-chat' : badgeType === 'tool' ? 'bi-wrench' : 'bi-wrench'}
+                                    name={badgeType === 'invoke' ? 'bi-ai-agent' : badgeType === 'chat' ? 'bi-chat' : badgeType === 'tool' ? 'bi-wrench' : 'bi-action'}
                                     sx={{
                                         fontSize: '16px',
                                         width: '16px',
@@ -1486,14 +1515,15 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                                 justifyContent: 'center'
                             }} />
                     </ModeToggleButton>
-                <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
-                    <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
-                    {isAdvancedMode ? 'Simplified View' : 'Advanced View'}
-                </ModeToggleButton>
+                    <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
+                        <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
+                        {isAdvancedMode ? 'Hide Advanced Spans' : 'Show Hidden Spans'}
+                    </ModeToggleButton>
+                </ButtonGroup>
             </NavigationBar>
 
             {/* Advanced mode: Show trace information sections */}
-            {isAdvancedMode && (
+            {/* {isAdvancedMode && (
                 <>
                     <InfoSectionContainer>
                         <InfoSectionHeader onClick={() => toggleSection('trace')}>
@@ -1568,7 +1598,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                         </InfoSectionContent>
                     </InfoSectionContainer>
                 </>
-            )}
+            )} */}
 
             {rootAISpans.length === 0 ? (
                 <EmptyState>
@@ -1604,6 +1634,9 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                             getChildSpans={isAdvancedMode ? getChildSpans : getAIChildSpans}
                             traceStartTime={traceData.firstSeen}
                             traceDuration={duration}
+                            height={waterfallDimensions.height}
+                            maxHeight={waterfallDimensions.maxHeight}
+                            minHeight={waterfallDimensions.minHeight}
                         />
                     )}
                     {selectedSpan && (

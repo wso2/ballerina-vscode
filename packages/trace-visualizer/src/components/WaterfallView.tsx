@@ -29,6 +29,9 @@ interface WaterfallViewProps {
     getChildSpans: (spanId: string) => SpanData[];
     traceStartTime: string;
     traceDuration: number;
+    height: number;
+    maxHeight: number;
+    minHeight: number;
 }
 
 interface FlatSpan extends SpanData {
@@ -108,10 +111,13 @@ const ZoomLabel = styled.span`
     min-width: 35px;
 `;
 
-const TimelineContent = styled.div`
+const TimelineContent = styled.div<{ height: number; maxHeight: number; minHeight: number }>`
     overflow-x: auto;
     overflow-y: auto;
-    max-height: 400px;
+    height: ${(props: { height: number }) => props.height}px;
+    max-height: ${(props: { maxHeight: number }) => props.maxHeight}px;
+    min-height: ${(props: { minHeight: number }) => props.minHeight}px;
+    resize: vertical;
 `;
 
 const TimelineInner = styled.div<{ width: number }>`
@@ -148,15 +154,34 @@ const TimeMarkerLabel = styled.span`
 
 const SpansContainer = styled.div`
     position: relative;
-    width: 100%;
+    width: 100%;\n`;
+
+const GridLinesContainer = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+`;
+
+const GridLineVertical = styled.div<{ position: number }>`
+    position: absolute;
+    left: ${(props: { position: number }) => props.position}%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--vscode-panel-border);
+    opacity: 0.3;
 `;
 
 const SpanRow = styled.div<{ isSelected: boolean; level: number }>`
     position: relative;
     height: 36px;
     width: 100%;
+    min-width: 100%;
     border-bottom: 1px solid var(--vscode-panel-border);
-    padding-left: ${(props: { isSelected: boolean; level: number }) => props.level * 20}px;
     background-color: ${(props: { isSelected: boolean; level: number }) => props.isSelected
         ? 'var(--vscode-list-inactiveSelectionBackground)'
         : 'transparent'};
@@ -168,22 +193,16 @@ const SpanRow = styled.div<{ isSelected: boolean; level: number }>`
     }
 `;
 
-const GridLine = styled.div<{ position: number }>`
-    position: absolute;
-    left: ${(props: { position: number }) => props.position}%;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: var(--vscode-panel-border);
-    opacity: 0.3;
-    pointer-events: none;
-`;
-
 interface SpanBarProps {
     type: string;
     left: number;
     width: number;
     isSelected: boolean;
+    level: number;
+}
+
+interface SpanBarIconProps {
+    type: string;
 }
 
 interface SpanBarIconProps {
@@ -194,22 +213,24 @@ const SpanBar = styled.div<SpanBarProps>`
     position: absolute;
     top: 6px;
     height: 24px;
-    left: ${(props: SpanBarProps) => props.left}%;
+    left: calc(${(props: SpanBarProps) => props.left}% + ${(props: SpanBarProps) => props.level * 20}px);
     width: ${(props: SpanBarProps) => props.width}%;
-    min-width: 2px;
+    min-width: 1px;
     border-radius: 3px;
     cursor: pointer;
     display: flex;
     align-items: center;
     padding: 0 8px;
     gap: 6px;
-    overflow: hidden;
+    overflow: visible;
     transition: box-shadow 0.15s ease;
+    z-index: 1;
 
-    background-color: ${(props: SpanBarProps) => {
+    border: 1px solid;
+    border-color: ${(props: SpanBarIconProps) => {
         switch (props.type) {
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-charts-yellow)';
+            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
             default: return 'var(--vscode-badge-background)';
         }
@@ -233,26 +254,30 @@ const SpanBar = styled.div<SpanBarProps>`
     }
 `;
 
-const SpanBarIcon = styled.span`
+const SpanBarIcon = styled.span<SpanBarIconProps>`
     display: flex;
     align-items: center;
     flex-shrink: 0;
     opacity: 0.9;
+    color: ${(props: SpanBarIconProps) => {
+        switch (props.type) {
+            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
+            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
+            default: return 'var(--vscode-badge-background)';
+        }
+    }};
 `;
 
 const SpanBarLabel = styled.span`
     font-size: 12px;
-    color: var(--vscode-editor-background);
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     flex: 1;
     font-weight: 500;
 `;
 
 const SpanBarDuration = styled.span`
     font-size: 11px;
-    color: var(--vscode-editor-background);
     opacity: 0.85;
     flex-shrink: 0;
     margin-left: auto;
@@ -287,7 +312,7 @@ const TooltipBadge = styled.span<{ type: string }>`
     background-color: ${(props: { type: string }) => {
         switch (props.type) {
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-charts-yellow)';
+            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
             default: return 'var(--vscode-badge-background)';
         }
@@ -335,9 +360,9 @@ const formatDuration = (durationMs: number): string => {
 
 const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'other' => {
     const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
-    if (operationName.includes('invoke')) return 'invoke';
-    if (operationName.includes('chat') || span.name.toLowerCase().includes('chat')) return 'chat';
-    if (operationName.includes('tool') || span.name.toLowerCase().includes('tool')) return 'tool';
+    if (operationName.startsWith('invoke_agent')) return 'invoke';
+    if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
+    if (operationName.startsWith('execute_tool') || span.name.toLowerCase().startsWith('execute_tool')) return 'tool';
     return 'other';
 };
 
@@ -355,7 +380,7 @@ const getTypeIcon = (type: string): string => {
         case 'invoke': return 'bi-ai-agent';
         case 'chat': return 'bi-chat';
         case 'tool': return 'bi-wrench';
-        default: return 'bi-wrench';
+        default: return 'bi-action';
     }
 };
 
@@ -381,7 +406,10 @@ export function WaterfallView({
     onSpanSelect,
     getChildSpans,
     traceStartTime,
-    traceDuration
+    traceDuration,
+    height,
+    maxHeight,
+    minHeight
 }: WaterfallViewProps) {
     const [zoom, setZoom] = useState(0.8);
     const [hoveredSpan, setHoveredSpan] = useState<{ span: FlatSpan; x: number; y: number } | null>(null);
@@ -414,9 +442,7 @@ export function WaterfallView({
         roots.forEach(findEarliestStart);
 
         const calculatedStart = earliestStart !== Infinity ? earliestStart : traceStartMs;
-        console.log(`[WaterfallView] traceStartTime prop: ${traceStartTime} (${traceStartMs})`);
-        console.log(`[WaterfallView] calculated earliest start: ${calculatedStart}, difference: ${traceStartMs - calculatedStart}ms`);
-        
+
         return calculatedStart;
     }, [spans, traceStartMs, traceStartTime, getChildSpans]);
 
@@ -431,11 +457,6 @@ export function WaterfallView({
             const range = getSpanTimeRange(span);
             if (range) {
                 const endOffset = range.end - actualTraceStartMs;
-                console.log(`[WaterfallView] Span: ${span.name}`);
-                console.log(`  - startTime: ${span.startTime} (${range.start})`);
-                console.log(`  - endTime: ${span.endTime} (${range.end})`);
-                console.log(`  - actualTraceStartMs: ${actualTraceStartMs}`);
-                console.log(`  - endOffset: ${endOffset}ms`);
                 maxEndOffset = Math.max(maxEndOffset, endOffset);
             }
             const children = getChildSpans(span.spanId);
@@ -452,8 +473,7 @@ export function WaterfallView({
         roots.forEach(processSpan);
 
         const finalDuration = Math.max(maxEndOffset, traceDuration);
-        console.log(`[WaterfallView] maxEndOffset: ${maxEndOffset}ms, traceDuration: ${traceDuration}ms, finalDuration: ${finalDuration}ms`);
-        
+
         // Use the maximum of the calculated duration and the provided traceDuration
         return finalDuration;
     }, [spans, actualTraceStartMs, traceDuration, getChildSpans]);
@@ -509,8 +529,6 @@ export function WaterfallView({
                         actualTraceDuration <= 30000 ? 5000 :
                             actualTraceDuration <= 60000 ? 10000 : 15000;
 
-        console.log(`[WaterfallView] actualTraceDuration: ${actualTraceDuration}ms, intervalMs: ${intervalMs}ms`);
-
         for (let t = 0; t <= actualTraceDuration; t += intervalMs) {
             markers.push(t);
         }
@@ -520,9 +538,7 @@ export function WaterfallView({
         if (lastMarker < actualTraceDuration && actualTraceDuration - lastMarker > intervalMs * 0.1) {
             markers.push(actualTraceDuration);
         }
-        
-        console.log(`[WaterfallView] Generated ${markers.length} time markers:`, markers);
-        
+
         return markers;
     }, [actualTraceDuration]);
 
@@ -552,7 +568,7 @@ export function WaterfallView({
                 <ZoomControlsLabel>Timeline</ZoomControlsLabel>
                 <ZoomControlsGroup>
                     <ZoomButton
-                        onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+                        onClick={() => setZoom(Math.max(0.2, zoom - 0.1))}
                         title="Zoom out"
                     >
                         <Codicon name="zoom-out" />
@@ -567,7 +583,7 @@ export function WaterfallView({
                     />
                     <ZoomLabel>{Math.round(zoom * 100)}%</ZoomLabel>
                     <ZoomButton
-                        onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+                        onClick={() => setZoom(Math.min(1, zoom + 0.1))}
                         title="Zoom in"
                     >
                         <Codicon name="zoom-in" />
@@ -576,12 +592,16 @@ export function WaterfallView({
             </ZoomControlsBar>
 
             {/* Timeline Content */}
-            <TimelineContent>
+            <TimelineContent
+                height={height}
+                maxHeight={maxHeight}
+                minHeight={minHeight}
+            >
                 <TimelineInner width={timelineWidth}>
                     {/* Time Axis */}
                     <TimeAxis>
                         {timeMarkers.map((ms) => (
-                            <TimeMarker key={ms} position={(ms / actualTraceDuration) * 100}>
+                            <TimeMarker key={ms} position={(ms / actualTraceDuration) * 100 * zoom}>
                                 <TimeMarkerTick />
                                 <TimeMarkerLabel>{formatTimeMarker(ms)}</TimeMarkerLabel>
                             </TimeMarker>
@@ -590,38 +610,41 @@ export function WaterfallView({
 
                     {/* Spans */}
                     <SpansContainer>
+                        {/* Grid lines layer */}
+                        <GridLinesContainer>
+                            {timeMarkers.map((ms) => (
+                                <GridLineVertical
+                                    key={ms}
+                                    position={(ms / actualTraceDuration) * 100 * zoom}
+                                />
+                            ))}
+                        </GridLinesContainer>
+
                         {flatSpans.map((span) => {
-                            // Calculate percentages relative to the trace duration
+                            // Calculate percentages relative to the trace duration and apply zoom
                             const leftPercent = actualTraceDuration > 0
-                                ? (span.startOffsetMs / actualTraceDuration) * 100
+                                ? (span.startOffsetMs / actualTraceDuration) * 100 * zoom
                                 : 0;
                             const widthPercent = actualTraceDuration > 0
-                                ? Math.max(0.1, (span.durationMs / actualTraceDuration) * 100)
+                                ? Math.max(0.1, (span.durationMs / actualTraceDuration) * 100 * zoom)
                                 : 0;
                             const spanType = getSpanType(span);
                             const isSelected = selectedSpanId === span.spanId;
 
                             return (
                                 <SpanRow key={span.spanId} isSelected={isSelected} level={span.level}>
-                                    {/* Grid lines */}
-                                    {timeMarkers.map((ms) => (
-                                        <GridLine
-                                            key={ms}
-                                            position={(ms / actualTraceDuration) * 100}
-                                        />
-                                    ))}
-
                                     {/* Span bar */}
                                     <SpanBar
                                         type={spanType}
                                         left={leftPercent}
                                         width={widthPercent}
                                         isSelected={isSelected}
+                                        level={span.level}
                                         onClick={() => onSpanSelect(span.spanId)}
                                         onMouseEnter={(e) => handleSpanMouseEnter(span, e)}
                                         onMouseLeave={handleSpanMouseLeave}
                                     >
-                                        <SpanBarIcon>
+                                        <SpanBarIcon type={spanType}>
                                             <Icon
                                                 name={getTypeIcon(spanType)}
                                                 sx={{
@@ -630,13 +653,11 @@ export function WaterfallView({
                                                     height: '14px',
                                                     display: 'flex',
                                                     alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    color: 'var(--vscode-editor-background)'
+                                                    justifyContent: 'center'
                                                 }}
                                                 iconSx={{
                                                     fontSize: '14px',
-                                                    display: 'flex',
-                                                    color: 'var(--vscode-editor-background)'
+                                                    display: 'flex'
                                                 }}
                                             />
                                         </SpanBarIcon>
