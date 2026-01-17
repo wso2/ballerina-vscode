@@ -60,16 +60,16 @@ export interface AttributeData {
 declare global {
     interface Window {
         traceVisualizer: {
-            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement) => void;
+            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string) => void;
         };
     }
 }
 
-export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement) {
+export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string) {
     const root = createRoot(target);
     root.render(
         <React.StrictMode>
-            <TraceDetails traceData={traceData} isAgentChat={isAgentChat} />
+            <TraceDetails traceData={traceData} isAgentChat={isAgentChat} focusSpanId={focusSpanId} />
         </React.StrictMode>
     );
 }

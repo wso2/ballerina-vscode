@@ -26,6 +26,7 @@ import { WaterfallView } from "./components/WaterfallView";
 interface TraceDetailsProps {
     traceData: TraceData;
     isAgentChat: boolean;
+    focusSpanId?: string;
 }
 
 const Container = styled.div`
@@ -547,7 +548,7 @@ const AIBadge: React.FC<AIBadgeProps> = ({ type }) => {
     );
 };
 
-export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
+export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetailsProps) {
     const [expandedSections, setExpandedSections] = useState<Set<string>>(
         new Set(['trace', 'resource', 'scope', 'spans'])
     );
@@ -563,6 +564,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     const [totalSpanCounts, setTotalSpanCounts] = useState({ aiCount: 0, nonAiCount: 0 });
     const containerRef = React.useRef<HTMLDivElement>(null);
     const hasAutoExpandedRef = React.useRef<boolean>(false);
+    const hasFocusedRef = React.useRef<boolean>(false);
 
     // Track container width for responsive behavior
     useEffect(() => {
@@ -666,21 +668,28 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     const sortedRootSpans = sortSpansByUmbrellaFirst(rootSpans);
 
     // Select first span on load
+    // Debug: Log when selectedSpanId changes
     useEffect(() => {
-        if (!selectedSpanId && sortedRootSpans.length > 0) {
+        console.log('[TraceDetails] selectedSpanId changed to:', selectedSpanId);
+    }, [selectedSpanId]);
+
+    useEffect(() => {
+        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
+        if (!selectedSpanId && sortedRootSpans.length > 0 && !focusSpanId && !hasFocusedRef.current) {
+            console.log('[TraceDetails] Auto-selecting first root span:', sortedRootSpans[0].spanId);
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [sortedRootSpans.length]);
+    }, [sortedRootSpans.length, focusSpanId, selectedSpanId]);
 
     // Auto-expand first 3 levels of spans in advanced mode (only once)
     useEffect(() => {
         if (!isAdvancedMode || hasAutoExpandedRef.current || sortedRootSpans.length === 0) return;
 
         const spansToExpand = new Set<string>();
-        
+
         const expandRecursively = (spanId: string, currentLevel: number) => {
             if (currentLevel >= 3) return;
-            
+
             const children = getChildSpans(spanId);
             if (children.length > 0) {
                 spansToExpand.add(spanId);
@@ -697,9 +706,58 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
         hasAutoExpandedRef.current = true;
     }, [sortedRootSpans, isAdvancedMode]);
 
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleString();
-    };
+    // Auto-focus on specific span if focusSpanId is provided
+    useEffect(() => {
+        if (focusSpanId && traceData.spans.length > 0) {
+            if (hasFocusedRef.current) {
+                console.log('[TraceDetails] Already focused, skipping');
+                return;
+            }
+            console.log('[TraceDetails] Focusing on span:', focusSpanId);
+            hasFocusedRef.current = true;
+
+            // Expand all parent spans to make the focused span visible FIRST
+            const span = traceData.spans.find(s => s.spanId === focusSpanId);
+            if (!span) {
+                console.error('[TraceDetails] Span not found:', focusSpanId);
+                return;
+            }
+
+            console.log('[TraceDetails] Found span:', span.name);
+
+            const newExpanded = new Set(expandedSpans);
+            let currentParentId = span.parentSpanId;
+
+            while (currentParentId && currentParentId !== '0000000000000000') {
+                const parentSpan = traceData.spans.find(s => s.spanId === currentParentId);
+                if (parentSpan) {
+                    newExpanded.add(currentParentId);
+                    console.log('[TraceDetails] Expanding parent:', parentSpan.name);
+                    currentParentId = parentSpan.parentSpanId;
+                } else {
+                    break;
+                }
+            }
+
+            // Set expanded state and select span
+            setExpandedSpans(newExpanded);
+            setSelectedSpanId(focusSpanId);
+
+            console.log('[TraceDetails] Switched to tree view and selected span:', focusSpanId);
+
+            // Scroll to the focused span after rendering
+            setTimeout(() => {
+                const spanElement = document.querySelector(`[data-span-id="${focusSpanId}"]`);
+                console.log('[TraceDetails] Looking for element with data-span-id:', focusSpanId, 'Found:', !!spanElement);
+                if (spanElement) {
+                    console.log('[TraceDetails] Scrolling to span element');
+                    spanElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    console.error('[TraceDetails] Could not find span element to scroll to');
+                }
+            }, 500);
+        }
+    }, [focusSpanId]);
 
     const getChildSpans = (spanId: string): SpanData[] => {
         const children = traceData.spans.filter(s => s.parentSpanId === spanId);
@@ -715,7 +773,12 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
 
         return (
             <React.Fragment key={span.spanId}>
-                <TreeItem level={level} isSelected={isSelected} onClick={() => selectSpan(span.spanId)}>
+                <TreeItem
+                    level={level}
+                    isSelected={isSelected}
+                    onClick={() => selectSpan(span.spanId)}
+                    data-span-id={span.spanId}
+                >
                     <TreeChevronIcon
                         hasChildren={hasChildren}
                         isExpanded={isExpanded}
@@ -858,7 +921,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
 
         // Calculate waterfall height
         const spanBarHeight = 30;
-        const waterfallSpanCount = isAdvancedMode 
+        const waterfallSpanCount = isAdvancedMode
             ? (totalSpanCounts.aiCount + totalSpanCounts.nonAiCount)
             : totalSpanCounts.aiCount;
         const waterfallCalculatedHeight = (waterfallSpanCount * spanBarHeight) + 70;
@@ -873,12 +936,17 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
 
     // Select first AI span when in agent chat view
     useEffect(() => {
+        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
+        if (focusSpanId || hasFocusedRef.current) {
+            return;
+        }
+
         if (isAgentChat && !showFullTrace && rootAISpans.length > 0) {
             setSelectedSpanId(rootAISpans[0].spanId);
         } else if (!isAgentChat && !selectedSpanId && sortedRootSpans.length > 0) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length]);
+    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
 
     // Get span type badge
     const getSpanTypeBadge = (span: SpanData): string => {
@@ -1331,6 +1399,7 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                     level={level}
                     isSelected={isSelected}
                     onClick={() => setSelectedSpanId(span.spanId)}
+                    data-span-id={span.spanId}
                 >
                     <AIBadge type={badgeType} />
                     <AISpanLabel>
