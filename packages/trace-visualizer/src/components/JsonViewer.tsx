@@ -16,13 +16,18 @@
  * under the License.
  */
 
-import { useState, useMemo, ReactNode } from "react";
+import { useState, useMemo, ReactNode, useEffect } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { JsonTreeViewer, DEFAULT_AUTO_EXPAND_DEPTH } from "./JsonTreeViewer";
 import { CopyButton } from "./CopyButton";
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 
-type ViewMode = 'formatted' | 'raw';
+type ViewMode = 'formatted' | 'raw' | 'markdown';
 
 interface JsonViewerProps {
     value: string;
@@ -146,6 +151,137 @@ const PlainText = styled.div`
     white-space: pre-wrap;
     word-break: break-word;
     color: var(--vscode-editor-foreground);
+`;
+
+const MarkdownContent = styled.div`
+    font-family: var(--vscode-font-family);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--vscode-editor-foreground);
+
+    h1, h2, h3, h4, h5, h6 {
+        margin-top: 12px;
+        margin-bottom: 8px;
+        font-weight: 600;
+        line-height: 1.25;
+        color: var(--vscode-editor-foreground);
+    }
+
+    h1 { font-size: 1.3em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
+    h2 { font-size: 1.25em; border-bottom: 1px solid var(--vscode-panel-border); padding-bottom: 0.2em; }
+    h3 { font-size: 1.15em; }
+    h4 { font-size: 1em; }
+    h5 { font-size: 0.875em; }
+    h6 { font-size: 0.85em; color: var(--vscode-descriptionForeground); }
+
+    p {
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    code {
+        padding: 2px 6px;
+        margin: 0;
+        font-size: 85%;
+        background-color: var(--vscode-textCodeBlock-background);
+        border-radius: 3px;
+        font-family: var(--vscode-editor-font-family, monospace);
+    }
+
+    pre {
+        padding: 12px;
+        overflow: auto;
+        font-size: 85%;
+        line-height: 1.45;
+        background-color: var(--vscode-textCodeBlock-background);
+        border-radius: 3px;
+        margin-bottom: 10px;
+
+        code {
+            padding: 0;
+            background-color: transparent;
+        }
+    }
+
+    blockquote {
+        margin: 0 0 10px 0;
+        padding: 0 1em;
+        color: var(--vscode-descriptionForeground);
+        border-left: 4px solid var(--vscode-panel-border);
+    }
+
+    ul, ol {
+        margin-top: 0;
+        margin-bottom: 10px;
+        padding-left: 2em;
+    }
+
+    li {
+        margin-bottom: 4px;
+    }
+
+    table {
+        border-collapse: collapse;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+
+    table th,
+    table td {
+        padding: 6px 13px;
+        border: 1px solid var(--vscode-panel-border);
+    }
+
+    table tr {
+        background-color: var(--vscode-editor-background);
+    }
+
+    table tr:nth-of-type(2n) {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    table th {
+        font-weight: 600;
+        background-color: var(--vscode-list-activeSelectionBackground);
+    }
+
+    a {
+        color: var(--vscode-textLink-foreground);
+        text-decoration: none;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    hr {
+        height: 1px;
+        border: 0;
+        background-color: var(--vscode-panel-border);
+        margin: 16px 0;
+    }
+
+    img {
+        max-width: 100%;
+        border-radius: 3px;
+    }
+
+    /* KaTeX math styling */
+    .katex {
+        font-size: 1.1em;
+        color: var(--vscode-editor-foreground);
+    }
+
+    .katex-display {
+        margin: 1em 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        text-align: center;
+    }
+
+    .katex .base {
+        color: var(--vscode-editor-foreground);
+    }
 `;
 
 const Highlight = styled.mark`
@@ -338,6 +474,49 @@ function syntaxHighlightJSON(json: string, searchQuery: string): ReactNode[] {
     return tokens;
 }
 
+// Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
+function preprocessLatex(text: string): string {
+    if (!text || typeof text !== 'string') return text;
+    
+    // Convert display math \[...\] to $$...$$
+    let processed = text.replace(/\\\[(.*?)\\\]/gs, (_, math) => `$$${math}$$`);
+    
+    // Convert inline math \(...\) to $...$
+    processed = processed.replace(/\\\((.*?)\\\)/gs, (_, math) => `$${math}$`);
+    
+    return processed;
+}
+
+// Check if text might contain markdown syntax
+function mightContainMarkdown(text: string): boolean {
+    if (!text || typeof text !== 'string') return false;
+    
+    // Check for common markdown patterns with more lenient matching
+    const markdownPatterns = [
+        /^#{1,6}\s+.+/m,           // Headers (# Header)
+        /\*\*.+?\*\*/,              // Bold (**text**)
+        /__.+?__/,                  // Bold (__text__)
+        /\*.+?\*/,                  // Italic (*text*)
+        /_.+?_/,                    // Italic (_text_)
+        /`[^`\n]+`/,                // Inline code (`code`)
+        /```/,                      // Code blocks (```)
+        /^\s*[-*+]\s+.+/m,          // Unordered lists (- item)
+        /^\s*\d+\.\s+.+/m,          // Ordered lists (1. item)
+        /\[.+?\]\(.+?\)/,           // Links ([text](url))
+        /^>\s*.+/m,                 // Blockquotes (> quote)
+        /\$\$.+?\$\$/s,              // Block LaTeX ($$...$$)
+        /\$.+?\$/,                  // Inline LaTeX ($...$)
+        /\\\[.*?\\\]/s,            // LaTeX display math (\[...\])
+        /\\\(.*?\\\)/s,            // LaTeX inline math (\(...\))
+        /\\[a-zA-Z]+\{/,            // LaTeX commands (\command{)
+        /^\|.+\|.+\|/m,             // Tables (| col | col |)
+        /!\[.*?\]\(.+?\)/,          // Images (![alt](url))
+        /^\s*[-*_]{3,}\s*$/m,       // Horizontal rules (--- or ***)
+    ];
+    
+    return markdownPatterns.some(pattern => pattern.test(text));
+}
+
 // Highlight text for plain text display
 function highlightText(text: string, searchQuery: string): ReactNode {
     if (!searchQuery) return text;
@@ -355,10 +534,21 @@ export function JsonViewer({
     maxAutoExpandDepth = DEFAULT_AUTO_EXPAND_DEPTH
 }: JsonViewerProps) {
     const isJSON = useMemo(() => isJSONString(value), [value]);
+    const hasMarkdown = useMemo(() => {
+        const result = !isJSON && mightContainMarkdown(value);
+        return result;
+    }, [value, isJSON]);
+    
     const [viewMode, setViewMode] = useState<ViewMode>('formatted');
     const [collapseAll, setCollapseAll] = useState(false);
     const [expandAll, setExpandAll] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
+
+    // Reset view mode when value changes (new content)
+    useEffect(() => {
+        const newViewMode = isJSON ? 'formatted' : (hasMarkdown ? 'markdown' : 'raw');
+        setViewMode(newViewMode);
+    }, [value, isJSON, hasMarkdown]);
 
     const parsedData = useMemo(() => {
         if (!isJSON) return null;
@@ -375,20 +565,47 @@ export function JsonViewer({
         return formatJSON(value);
     }, [value, isJSON]);
 
-    // If not JSON, just show plain text
+    // If not JSON, show raw text or markdown
     if (!isJSON) {
         return (
             <Container>
-                {title && (
-                    <Header>
-                        <TitleContainer>
-                            <Title>{title}</Title>
-                            <CopyButton text={value} size="small" />
-                        </TitleContainer>
-                    </Header>
-                )}
+                <Header>
+                    <TitleContainer>
+                        {title && <Title>{title}</Title>}
+                        <CopyButton text={value} size="small" />
+                    </TitleContainer>
+                    {hasMarkdown && (
+                        <ActionButtons>
+                            <ToggleGroup>
+                                <ToggleButton
+                                    active={viewMode === 'markdown'}
+                                    onClick={() => setViewMode('markdown')}
+                                >
+                                    Formatted
+                                </ToggleButton>
+                                <ToggleButton
+                                    active={viewMode === 'raw'}
+                                    onClick={() => setViewMode('raw')}
+                                >
+                                    Raw
+                                </ToggleButton>
+                            </ToggleGroup>
+                        </ActionButtons>
+                    )}
+                </Header>
                 <ContentWrapper>
-                    <PlainText>{highlightText(value, searchQuery)}</PlainText>
+                    {viewMode === 'markdown' && hasMarkdown ? (
+                        <MarkdownContent>
+                            <ReactMarkdown
+                                remarkPlugins={[remarkMath, remarkGfm]}
+                                rehypePlugins={[rehypeKatex]}
+                            >
+                                {preprocessLatex(value)}
+                            </ReactMarkdown>
+                        </MarkdownContent>
+                    ) : (
+                        <PlainText>{highlightText(value, searchQuery)}</PlainText>
+                    )}
                 </ContentWrapper>
             </Container>
         );
@@ -424,7 +641,7 @@ export function JsonViewer({
                             title={isCollapsed ? 'Expand all' : 'Collapse all'}
                         >
                             <Icon
-                                name={isCollapsed ? 'bi-expand' : 'bi-collapse'}
+                                name={isCollapsed ? 'bi-expand-item' : 'bi-collapse-item'}
                                 sx={{ fontSize: "12px", width: "12px", height: "12px" }}
                                 iconSx={{ display: "flex" }}
                             />

@@ -54,11 +54,11 @@ const Header = styled.button`
 const HeaderLeft = styled.div`
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 `;
 
 const HeaderTitle = styled.span`
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     color: var(--vscode-badge-foreground);
 `;
