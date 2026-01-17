@@ -1414,6 +1414,13 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     };
 
     // Render Agent Chat Logs view
+    const handleExportTrace = () => {
+        // Dispatch custom event to communicate with webview script
+        window.dispatchEvent(new CustomEvent('exportTrace', {
+            detail: { traceData }
+        }));
+    };
+
     const renderAgentChatLogs = () => (
         <>
             <NavigationBar>
@@ -1461,6 +1468,24 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
                             }} />
                     </ViewModeButton>
                 </ViewModeToggle>
+                <ButtonGroup>
+                    <ModeToggleButton onClick={handleExportTrace} title="Export trace as JSON">
+                        <Icon name="bi-download"
+                            sx={{
+                                fontSize: '16px',
+                                width: '16px',
+                                height: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            iconSx={{
+                                fontSize: "16px",
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }} />
+                    </ModeToggleButton>
                 <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
                     <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
                     {isAdvancedMode ? 'Simplified View' : 'Advanced View'}
