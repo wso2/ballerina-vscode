@@ -22,8 +22,7 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import ChatInput from "./ChatInput";
 import LoadingIndicator from "./LoadingIndicator";
-import ExecutionStepsButton from "./ExecutionStepsButton";
-import ExecutionStepsList from "./ExecutionStepsList";
+import { ExecutionTimeline } from "./ExecutionTimeline";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
@@ -31,7 +30,7 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { ToolCallSummary } from "@wso2/ballerina-core";
+import { ToolCallSummary, ExecutionStep } from "@wso2/ballerina-core";
 
 enum ChatMessageType {
     MESSAGE = "message",
@@ -43,6 +42,7 @@ interface ChatMessage {
     text: string;
     isUser: boolean;
     traceId?: string;
+    executionSteps?: ExecutionStep[];
 }
 
 // ---------- WATER MARK ----------
@@ -369,7 +369,8 @@ const ChatInterface: React.FC = () => {
                     text: chatResponse.message,
                     isUser: false,
                     traceId: chatResponse.traceId,
-                    toolCalls: chatResponse.toolCalls
+                    toolCalls: chatResponse.toolCalls,
+                    executionSteps: chatResponse.executionSteps
                 },
             ]);
         } catch (error) {
@@ -473,6 +474,14 @@ const ChatInterface: React.FC = () => {
                     {/* Render each message */}
                     {messages.map((msg, idx) => (
                         <React.Fragment key={idx}>
+                            {/* Show execution timeline ABOVE agent message if available */}
+                            {!msg.isUser && msg?.executionSteps && msg.executionSteps.length > 0 && msg.traceId && (
+                                <ExecutionTimeline
+                                    steps={msg.executionSteps}
+                                    traceId={msg.traceId}
+                                    onViewInTrace={handleViewInTrace}
+                                />
+                            )}
                             <MessageContainer isUser={msg.isUser}>
                                 {!msg.isUser && (
                                     <ProfilePic>
@@ -509,28 +518,13 @@ const ChatInterface: React.FC = () => {
                                     </ProfilePic>
                                 )}
                             </MessageContainer>
-                            {!msg.isUser && (msg?.toolCalls || isTracingEnabled) && (
+                            {/* Show "View All Logs" link below message if tracing is enabled */}
+                            {!msg.isUser && isTracingEnabled && (
                                 <MessageActionsContainer>
-                                    {isTracingEnabled && (
-                                        <ShowLogsButton onClick={() => handleShowLogs(idx)}>
-                                            Show logs
-                                        </ShowLogsButton>
-                                    )}
-                                    {msg?.toolCalls?.length > 0 && msg.traceId && (
-                                        <ExecutionStepsButton
-                                            isExpanded={expandedSteps[idx] || false}
-                                            onToggle={() => setExpandedSteps(prev => ({ ...prev, [idx]: !prev[idx] }))}
-                                        />
-                                    )}
+                                    <ShowLogsButton onClick={() => handleShowLogs(idx)}>
+                                        View All Logs
+                                    </ShowLogsButton>
                                 </MessageActionsContainer>
-                            )}
-                            {/* Show ExecutionStepsList in a separate container when expanded */}
-                            {!msg.isUser && msg?.toolCalls?.length > 0 && msg.traceId && expandedSteps[idx] && (
-                                <ExecutionStepsList
-                                    toolCalls={msg.toolCalls}
-                                    traceId={msg.traceId}
-                                    onViewInTrace={handleViewInTrace}
-                                />
                             )}
                         </React.Fragment>
                     ))}
