@@ -21,6 +21,7 @@ import {
     ChatReqMessage,
     ChatRespMessage,
     ToolCallSummary,
+    ExecutionStep,
     TraceInput,
     TraceStatus,
     ChatHistoryMessage,
@@ -83,12 +84,15 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         traceId: trace?.traceId
                     });
 
-                    // Find trace and extract tool calls
+                    // Find trace and extract tool calls and execution steps
                     const trace = this.findTraceForMessage(params.message);
+                    const toolCalls = trace ? this.extractToolCalls(trace) : undefined;
+                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     resolve({
                         message: response.message,
-                        traceId: trace?.traceId
+                        traceId: trace?.traceId,
+                        executionSteps
                     } as ChatRespMessage);
                 } else {
                     reject(new Error("Invalid response format:", response));
@@ -323,6 +327,111 @@ export class AgentChatRpcManager implements AgentChatAPI {
         }
 
         return toolCalls;
+    }
+
+    /**
+     * Remove operation prefixes from span names
+     * @param name The span name to clean
+     * @returns The cleaned span name
+     */
+    private stripSpanPrefix(name: string): string {
+        const prefixes = ['invoke_agent ', 'execute_tool ', 'chat '];
+        for (const prefix of prefixes) {
+            if (name.startsWith(prefix)) {
+                return name.substring(prefix.length);
+            }
+        }
+        return name;
+    }
+
+    /**
+     * Extract execution steps from a trace
+     * @param trace The trace to extract execution steps from
+     * @returns Array of execution steps sorted chronologically
+     */
+    private extractExecutionSteps(trace: Trace): ExecutionStep[] {
+        const steps: ExecutionStep[] = [];
+
+        // Helper function to extract string value from attribute value
+        const extractValue = (value: any): string => {
+            if (typeof value === 'string') {
+                return value;
+            }
+            if (value && typeof value === 'object' && 'stringValue' in value) {
+                return String(value.stringValue);
+            }
+            return '';
+        };
+
+        // Iterate through all spans in the trace
+        for (const span of trace.spans || []) {
+            const attributes = span.attributes || [];
+
+            let operationName = '';
+            let toolName = '';
+            let hasError = false;
+
+            // Extract relevant attributes
+            for (const attr of attributes) {
+                const value = extractValue(attr.value);
+
+                if (attr.key === 'gen_ai.operation.name') {
+                    operationName = value;
+                } else if (attr.key === 'gen_ai.tool.name') {
+                    toolName = value;
+                } else if (attr.key === 'error.message') {
+                    hasError = true;
+                }
+            }
+
+            // Determine operation type based on operation name
+            let operationType: 'invoke' | 'chat' | 'tool' | 'other' = 'other';
+            let displayName = operationName;
+
+            if (operationName.startsWith('invoke_agent')) {
+                operationType = 'invoke';
+                displayName = this.stripSpanPrefix(span.name);
+            } else if (operationName.startsWith('chat')) {
+                operationType = 'chat';
+                displayName = this.stripSpanPrefix(span.name);
+            } else if (operationName.startsWith('execute_tool')) {
+                operationType = 'tool';
+                displayName = toolName || this.stripSpanPrefix(span.name);
+            } else {
+                // Skip spans that don't match our criteria
+                continue;
+            }
+
+            // Calculate duration from ISO timestamps
+            const startTimeISO = span.startTime;
+            const endTimeISO = span.endTime;
+            let duration = 0;
+
+            if (startTimeISO && endTimeISO) {
+                const startMs = new Date(startTimeISO).getTime();
+                const endMs = new Date(endTimeISO).getTime();
+                duration = endMs - startMs;
+            }
+
+            steps.push({
+                spanId: span.spanId,
+                operationType,
+                name: displayName,
+                fullName: operationName,
+                duration,
+                startTime: startTimeISO,
+                endTime: endTimeISO,
+                hasError
+            });
+        }
+
+        // Sort by start time chronologically
+        steps.sort((a, b) => {
+            if (!a.startTime || !b.startTime) { return 0; }
+            return a.startTime.localeCompare(b.startTime);
+        });
+
+        return steps;
     }
 
     /**

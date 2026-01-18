@@ -24,12 +24,24 @@ export interface ChatRespMessage {
     message: string;
     traceId?: string;
     toolCalls?: ToolCallSummary[];
+    executionSteps?: ExecutionStep[];
 }
 
 export interface ToolCallSummary {
     spanId: string;
     toolName: string;
     output: string;
+}
+
+export interface ExecutionStep {
+    spanId: string;
+    operationType: 'invoke' | 'chat' | 'tool' | 'other';
+    name: string;
+    fullName: string;
+    duration: number;
+    startTime?: string;
+    endTime?: string;
+    hasError?: boolean;
 }
 
 export interface TraceStatus {

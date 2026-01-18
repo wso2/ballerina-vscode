@@ -190,7 +190,7 @@ const AISpanDuration = styled.span`
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 4px;
+    gap: 3px;
     flex-shrink: 0;
     min-width: 80px;
     text-align: right;
@@ -1078,7 +1078,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                             <AISpanDuration>
                                 {duration !== null ? (
                                     <>
-                                        <Icon name="bi-clock" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                                        <Icon name="bi-clock" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                                         {duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`}
                                     </>
                                 ) : ''}
@@ -1122,7 +1122,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                         {duration !== null && (
                             <AISpanDuration>
                                 <>
-                                    <Icon name="bi-clock" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                                    <Icon name="bi-clock" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                                     {formatDuration(duration)}
                                 </>
                             </AISpanDuration>
@@ -1204,7 +1204,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                         <AISpanDuration>
                             {duration !== null ? (
                                 <>
-                                    <Icon name="bi-clock" sx={{ fontSize: "16px", width: "16px", height: "16px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                                    <Icon name="bi-clock" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                                     {duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`}
                                 </>
                             ) : ''}
