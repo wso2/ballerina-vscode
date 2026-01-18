@@ -442,7 +442,8 @@ const ChatInterface: React.FC = () => {
         try {
             await rpcClient.getAgentChatRpcClient().showTraceView({
                 traceId,
-                focusSpanId: spanId
+                focusSpanId: spanId,
+                openInFocusMode: true
             });
         } catch (error) {
             console.error('Failed to show trace view:', error);

@@ -480,7 +480,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
             }
 
             // Open the trace details webview with isAgentChat=true and optional focusSpanId
-            TraceDetailsWebview.show(trace, true, params.focusSpanId);
+            TraceDetailsWebview.show(trace, true, params.focusSpanId, params.openInFocusMode);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
             vscode.window.showErrorMessage(`Error: ${errorMessage}`);

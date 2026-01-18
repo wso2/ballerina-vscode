@@ -23,7 +23,7 @@ import { CopyButton } from "./CopyButton";
 import { parseNestedJSON } from "../utils";
 
 // Configurable auto-expand depth
-export const DEFAULT_AUTO_EXPAND_DEPTH = 2;
+export const DEFAULT_AUTO_EXPAND_DEPTH = 3;
 
 interface JsonTreeViewerProps {
     data: unknown;
