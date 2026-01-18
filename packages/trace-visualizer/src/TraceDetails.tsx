@@ -42,6 +42,7 @@ interface TraceDetailsProps {
     traceData: TraceData;
     isAgentChat: boolean;
     focusSpanId?: string;
+    openInFocusMode?: boolean;
 }
 
 // ============================================================================
@@ -353,13 +354,21 @@ const ViewModeButton = styled.button<{ isActive: boolean }>`
     cursor: pointer;
     transition: background-color 0.15s ease;
 
-    &:hover {
+    &:hover:not(:disabled) {
         background: ${(props: { isActive: boolean }) => props.isActive
         ? 'var(--vscode-button-hoverBackground)'
         : 'var(--vscode-list-hoverBackground)'};
     }
 
+    &:disabled {
+        cursor: not-allowed;
+    }
+
     &:first-of-type {
+        border-right: 1px solid var(--vscode-panel-border);
+    }
+
+    &:not(:first-of-type):not(:last-of-type) {
         border-right: 1px solid var(--vscode-panel-border);
     }
 `;
@@ -397,12 +406,12 @@ const TreeChevronIcon: React.FC<ChevronProps> = ({ hasChildren, isExpanded, onCl
     </TreeChevron>
 );
 
-export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetailsProps) {
+export function TraceDetails({ traceData, isAgentChat, focusSpanId, openInFocusMode }: TraceDetailsProps) {
     const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
     const [showFullTrace] = useState<boolean>(false);
     const [isAdvancedMode, setIsAdvancedMode] = useState<boolean>(false);
-    const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
+    const [viewMode, setViewMode] = useState<'tree' | 'timeline' | 'focus'>(openInFocusMode ? 'focus' : 'tree');
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
     const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
     const [aiSpanTreeDimensions, setAISpanTreeDimensions] = useState({ height: 180, maxHeight: 600, minHeight: 50 });
@@ -490,10 +499,11 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
 
     useEffect(() => {
         // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
-        if (!selectedSpanId && sortedRootSpans.length > 0 && !focusSpanId && !hasFocusedRef.current) {
+        // Also don't auto-select if we're opening in focus mode
+        if (!selectedSpanId && sortedRootSpans.length > 0 && !focusSpanId && !hasFocusedRef.current && !openInFocusMode) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [sortedRootSpans.length, focusSpanId, selectedSpanId]);
+    }, [sortedRootSpans.length, focusSpanId, selectedSpanId, openInFocusMode]);
 
     // Auto-expand first 3 levels of spans in advanced mode (only once)
     useEffect(() => {
@@ -746,7 +756,8 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
     // Select first AI span when in agent chat view
     useEffect(() => {
         // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
-        if (focusSpanId || hasFocusedRef.current) {
+        // Also don't auto-select if we're opening in focus mode
+        if (focusSpanId || hasFocusedRef.current || openInFocusMode) {
             return;
         }
 
@@ -755,7 +766,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         } else if (!isAgentChat && !selectedSpanId && sortedRootSpans.length > 0) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
+    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId, openInFocusMode]);
 
     // Totals across the trace (input/output separately)
     const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {
@@ -1328,6 +1339,29 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                                 justifyContent: 'center'
                             }} />
                     </ViewModeButton>
+                    <ViewModeButton
+                        isActive={viewMode === 'focus'}
+                        onClick={() => setViewMode('focus')}
+                        title="Focus Mode - Show only selected span details"
+                        disabled={!selectedSpan}
+                        style={{ opacity: !selectedSpan ? 0.5 : 1 }}
+                    >
+                        <Icon name="bi-focus"
+                            sx={{
+                                fontSize: '16px',
+                                width: '16px',
+                                height: '16px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                            iconSx={{
+                                fontSize: "16px",
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }} />
+                    </ViewModeButton>
                 </ViewModeToggle>
                 <ButtonGroup>
                     <ModeToggleButton onClick={handleExportTrace} title="Export trace as JSON">
@@ -1347,10 +1381,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                                 justifyContent: 'center'
                             }} />
                     </ModeToggleButton>
-                    <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
-                        <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
-                        {isAdvancedMode ? 'Hide Advanced Spans' : 'Show Hidden Spans'}
-                    </ModeToggleButton>
+                    {viewMode !== 'focus' && (
+                        <ModeToggleButton onClick={() => setIsAdvancedMode(!isAdvancedMode)}>
+                            <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
+                            {isAdvancedMode ? 'Hide Advanced Spans' : 'Show Hidden Spans'}
+                        </ModeToggleButton>
+                    )}
                 </ButtonGroup>
             </NavigationBar>
 
@@ -1440,7 +1476,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                 />
             ) : (
                 <AgentChatLogsContainer>
-                    {viewMode === 'tree' ? (
+                    {viewMode === 'tree' && (
                         <AISpanTreeContainer
                             height={aiSpanTreeDimensions.height}
                             maxHeight={aiSpanTreeDimensions.maxHeight}
@@ -1451,7 +1487,8 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                                 : rootAISpans.map(span => renderAISpanTreeItem(span, 0))
                             }
                         </AISpanTreeContainer>
-                    ) : (
+                    )}
+                    {viewMode === 'timeline' && (
                         <WaterfallView
                             spans={isAdvancedMode ? traceData.spans : rootAISpans}
                             selectedSpanId={selectedSpanId}

@@ -68,6 +68,7 @@ export class TraceDetailsWebview {
     private _trace: Trace | undefined;
     private _isAgentChat: boolean = false;
     private _focusSpanId: string | undefined;
+    private _openInFocusMode: boolean = false;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
@@ -91,6 +92,7 @@ export class TraceDetailsWebview {
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
                                 focusSpanId: this._focusSpanId,
+                                openInFocusMode: this._openInFocusMode,
                             });
                         }
                         break;
@@ -127,7 +129,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, openInFocusMode?: boolean): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -138,6 +140,7 @@ export class TraceDetailsWebview {
         instance._trace = trace;
         instance._isAgentChat = isAgentChat;
         instance._focusSpanId = focusSpanId;
+        instance._openInFocusMode = openInFocusMode;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
@@ -163,6 +166,7 @@ export class TraceDetailsWebview {
             data: traceData,
             isAgentChat: this._isAgentChat,
             focusSpanId: this._focusSpanId,
+            openInFocusMode: this._openInFocusMode,
         });
     }
 
@@ -249,12 +253,13 @@ export class TraceDetailsWebview {
             let traceData = null;
             let isAgentChat = false;
             let focusSpanId = undefined;
+            let openInFocusMode = false;
 
             function renderTraceDetails() {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, openInFocusMode);
                     }
                 } else if (!traceData) {
                     // Request trace data from extension
@@ -273,6 +278,7 @@ export class TraceDetailsWebview {
                         traceData = message.data;
                         isAgentChat = message.isAgentChat || false;
                         focusSpanId = message.focusSpanId;
+                        openInFocusMode = message.openInFocusMode || false;
                         renderTraceDetails();
                         break;
                 }
@@ -318,7 +324,7 @@ export class TraceDetailsWebview {
 
         this._panel = undefined;
         this._trace = undefined;
-        
+
         // Clear the static instance when disposed
         if (TraceDetailsWebview.instance === this) {
             TraceDetailsWebview.instance = undefined;
