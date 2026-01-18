@@ -22,12 +22,31 @@ import { TraceData, SpanData } from "./index";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
 import { SpanInputOutput } from "./components/SpanInputOutput";
 import { WaterfallView } from "./components/WaterfallView";
+import { AIBadge } from "./components/AIBadge";
+import { TraceEmptyState } from "./components/TraceEmptyState";
+import {
+    timeContainsSpan,
+    sortSpansByUmbrellaFirst,
+    formatDuration,
+    getSpanDuration,
+    formatStartTime,
+    getSpanKindLabel,
+    stripSpanPrefix,
+    getSpanTypeBadge,
+    spanHasError,
+    getSpanTokens,
+    isAISpan
+} from "./utils";
 
 interface TraceDetailsProps {
     traceData: TraceData;
     isAgentChat: boolean;
     focusSpanId?: string;
 }
+
+// ============================================================================
+// BASE LAYOUT STYLES
+// ============================================================================
 
 const Container = styled.div`
     margin: 0;
@@ -41,13 +60,16 @@ const Container = styled.div`
     overflow-y: auto;
 `;
 
-const InfoGrid = styled.div`
-    font-size: 13px;
-    line-height: 1.4;
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    gap: 8px 12px;
+const AgentChatLogsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
 `;
+
+// ============================================================================
+// TREE VIEW STYLES
+// ============================================================================
 
 const TreeItem = styled.div<{ level: number; isSelected: boolean }>`
     display: flex;
@@ -92,16 +114,187 @@ const SpanKindBadge = styled.span`
     flex-shrink: 0;
 `;
 
-// Span Details Panel Styles
-const DetailsPanel = styled.div`
+// ============================================================================
+// AI SPAN TREE STYLES
+// ============================================================================
+
+const AISpanTreeContainer = styled.div<{ height: number; maxHeight: number; minHeight: number }>`
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    padding: 16px;
+    padding: 12px;
+    height: ${(props: { height: number }) => props.height}px;
+    max-height: ${(props: { maxHeight: number }) => props.maxHeight}px;
+    min-height: ${(props: { minHeight: number }) => props.minHeight}px;
+    overflow-y: auto;
+    resize: vertical;
+`;
+
+const AISpanTreeItem = styled.div<{ level: number; isSelected: boolean }>`
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    padding-left: ${(props: { level: number }) => props.level * 20 + 8}px;
+    cursor: pointer;
+    border-radius: 3px;
+    gap: 8px;
+    position: relative;
+    background-color: ${(props: { isSelected: boolean }) =>
+        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
+    flex-wrap: wrap;
+
+    &:hover {
+        background-color: ${(props: { isSelected: boolean }) =>
+        props.isSelected ? 'var(--vscode-list-hoverBackground)' : 'var(--vscode-list-hoverBackground)'};
+    }
+
+    /* Vertical line for tree structure */
+    ${(props: { level: number }) => props.level > 0 && `
+        &::before {
+            content: '';
+            position: absolute;
+            left: ${props.level * 20 - 4}px;
+            top: 0;
+            bottom: 50%;
+            width: 1px;
+            background-color: var(--vscode-tree-indentGuidesStroke);
+            opacity: 0.4;
+        }
+
+        /* Horizontal branch line */
+        &::after {
+            content: '';
+            position: absolute;
+            left: ${props.level * 20 - 4}px;
+            top: 50%;
+            width: 8px;
+            height: 1px;
+            background-color: var(--vscode-tree-indentGuidesStroke);
+            opacity: 0.4;
+        }
+    `}
+`;
+
+const AISpanLabel = styled.span`
+    flex: 1;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+`;
+
+const AISpanDuration = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    min-width: 80px;
+    text-align: right;
+`;
+
+const AISpanTokenCount = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+    min-width: 110px;
+    text-align: right;
+`;
+
+const AISpanStartTime = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-width: 190px;
+    text-align: right;
+`;
+
+const AISpanMetadataGroup = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    flex-shrink: 0;
+`;
+
+const AISpanErrorIcon = styled.span`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vscode-errorForeground);
+    flex-shrink: 0;
+`;
+
+// ============================================================================
+// ADVANCED MODE STYLES
+// ============================================================================
+
+const AdvancedSpanGroup = styled.div<{ level: number }>`
+    margin-left: ${(props: { level: number }) => props.level * 20 + 8}px;
+    margin-top: 4px;
     margin-bottom: 4px;
 `;
 
-// Navigation button styles
+const AdvancedSpanGroupHeader = styled.div<{ isExpanded: boolean }>`
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    cursor: pointer;
+    border-radius: 3px;
+    gap: 8px;
+    background-color: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-panel-border);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 4px;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+`;
+
+const AdvancedSpanGroupContent = styled.div`
+    margin-left: 16px;
+    border-left: 1px solid var(--vscode-tree-indentGuidesStroke);
+    padding-left: 8px;
+`;
+
+const AdvancedSpanItem = styled.div<{ isSelected: boolean }>`
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 3px;
+    gap: 8px;
+    margin: 2px 0;
+    background-color: ${(props: { isSelected: boolean }) =>
+        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
+
+    &:hover {
+        background-color: ${(props: { isSelected: boolean }) =>
+        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'var(--vscode-list-hoverBackground)'};
+    }
+`;
+
+const AdvancedSpanName = styled.span`
+    flex: 1;
+    font-size: 12px;
+    color: var(--vscode-foreground);
+`;
+
+// ============================================================================
+// NAVIGATION & CONTROLS
+// ============================================================================
+
 const NavigationBar = styled.div`
     display: flex;
     align-items: center;
@@ -171,319 +364,21 @@ const ViewModeButton = styled.button<{ isActive: boolean }>`
     }
 `;
 
-// Agent Chat Logs Styles
-const AgentChatLogsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
-`;
+// ============================================================================
+// DETAILS PANEL
+// ============================================================================
 
-const AISpanTreeContainer = styled.div<{ height: number; maxHeight: number; minHeight: number }>`
+const DetailsPanel = styled.div`
     background-color: var(--vscode-editor-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    padding: 12px;
-    height: ${(props: { height: number }) => props.height}px;
-    max-height: ${(props: { maxHeight: number }) => props.maxHeight}px;
-    min-height: ${(props: { minHeight: number }) => props.minHeight}px;
-    overflow-y: auto;
-    resize: vertical;
-`;
-
-const AISpanTreeItem = styled.div<{ level: number; isSelected: boolean }>`
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    padding-left: ${(props: { level: number }) => props.level * 20 + 8}px;
-    cursor: pointer;
-    border-radius: 3px;
-    gap: 8px;
-    position: relative;
-    background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
-    flex-wrap: wrap;
-
-    &:hover {
-        background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-hoverBackground)' : 'var(--vscode-list-hoverBackground)'};
-    }
-
-    /* Vertical line for tree structure */
-    ${(props: { level: number }) => props.level > 0 && `
-        &::before {
-            content: '';
-            position: absolute;
-            left: ${props.level * 20 - 4}px;
-            top: 0;
-            bottom: 50%;
-            width: 1px;
-            background-color: var(--vscode-tree-indentGuidesStroke);
-            opacity: 0.4;
-        }
-
-        /* Horizontal branch line */
-        &::after {
-            content: '';
-            position: absolute;
-            left: ${props.level * 20 - 4}px;
-            top: 50%;
-            width: 8px;
-            height: 1px;
-            background-color: var(--vscode-tree-indentGuidesStroke);
-            opacity: 0.4;
-        }
-    `}
-`;
-
-const AISpanBadge = styled.span<{ type: string }>`
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-weight: 500;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background-color: var(--vscode-editor-background);
-    color: ${(props: { type: string }) => {
-        switch (props.type) {
-            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-foreground)';
-        }
-    }};
-    border: 1px solid var(--vscode-dropdown-border);
-
-    .ai-span-label {
-        color: var(--vscode-foreground);
-    }
-`;
-
-const AISpanLabel = styled.span`
-    flex: 1;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 6px;
-`;
-
-const AISpanDuration = styled.span`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    flex-shrink: 0;
-    min-width: 80px;
-    text-align: right;
-`;
-
-const AISpanTokenCount = styled.span`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 4px;
-    flex-shrink: 0;
-    min-width: 110px;
-    text-align: right;
-`;
-
-const AISpanStartTime = styled.span`
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    flex-shrink: 0;
-    white-space: nowrap;
-    min-width: 190px;
-    text-align: right;
-`;
-
-const AISpanMetadataGroup = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-left: auto;
-    flex-shrink: 0;
-`;
-
-const AdvancedSpanGroup = styled.div<{ level: number }>`
-    margin-left: ${(props: { level: number }) => props.level * 20 + 8}px;
-    margin-top: 4px;
+    padding: 16px;
     margin-bottom: 4px;
 `;
 
-const AdvancedSpanGroupHeader = styled.div<{ isExpanded: boolean }>`
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    cursor: pointer;
-    border-radius: 3px;
-    gap: 8px;
-    background-color: var(--vscode-editorWidget-background);
-    border: 1px solid var(--vscode-panel-border);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--vscode-descriptionForeground);
-    margin-bottom: 4px;
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-`;
-
-const AdvancedSpanGroupContent = styled.div`
-    margin-left: 16px;
-    border-left: 1px solid var(--vscode-tree-indentGuidesStroke);
-    padding-left: 8px;
-`;
-
-const AdvancedSpanItem = styled.div<{ isSelected: boolean }>`
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    cursor: pointer;
-    border-radius: 3px;
-    gap: 8px;
-    margin: 2px 0;
-    background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
-
-    &:hover {
-        background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'var(--vscode-list-hoverBackground)'};
-    }
-`;
-
-const AdvancedSpanName = styled.span`
-    flex: 1;
-    font-size: 12px;
-    color: var(--vscode-foreground);
-`;
-
-const AdvancedSpanKind = styled.span`
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background-color: var(--vscode-list-hoverBackground);
-    color: var(--vscode-badge-foreground);
-    flex-shrink: 0;
-`;
-
-const InfoSectionContainer = styled.div`
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    background-color: var(--vscode-editor-background);
-    overflow: hidden;
-    margin-bottom: 12px;
-`;
-
-const InfoSectionHeader = styled.button`
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-foreground);
-    font-size: 13px;
-    font-weight: 500;
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-`;
-
-const InfoSectionContent = styled.div<{ isOpen: boolean }>`
-    display: ${(props: { isOpen: boolean }) => props.isOpen ? 'block' : 'none'};
-    border-top: 1px solid var(--vscode-panel-border);
-    padding: 12px;
-`;
-
-const AISpanErrorIcon = styled.span`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--vscode-errorForeground);
-    flex-shrink: 0;
-`;
-
-const EmptyState = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 400px;
-    text-align: center;
-    padding: 40px;
-    color: var(--vscode-descriptionForeground);
-`;
-
-const EmptyStateIcon = styled.div`
-    font-size: 48px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-`;
-
-const EmptyStateText = styled.div`
-    font-size: 16px;
-    margin-bottom: 8px;
-`;
-
-// Helper functions
-const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null => {
-    if (!span.startTime || !span.endTime) return null;
-    return {
-        start: new Date(span.startTime).getTime(),
-        end: new Date(span.endTime).getTime()
-    };
-};
-
-const timeContainsSpan = (parentSpan: SpanData, childSpan: SpanData): boolean => {
-    const parentRange = getSpanTimeRange(parentSpan);
-    const childRange = getSpanTimeRange(childSpan);
-
-    if (!parentRange || !childRange) return false;
-
-    // Parent contains child if it starts before/at and ends after/at, but they're not identical
-    return parentRange.start <= childRange.start &&
-        parentRange.end >= childRange.end &&
-        (parentRange.start < childRange.start || parentRange.end > childRange.end);
-};
-
-const sortSpansByUmbrellaFirst = (spans: SpanData[]): SpanData[] => {
-    return [...spans].sort((a, b) => {
-        const aRange = getSpanTimeRange(a);
-        const bRange = getSpanTimeRange(b);
-
-        if (!aRange || !bRange) return 0;
-
-        const aContainsB = timeContainsSpan(a, b);
-        const bContainsA = timeContainsSpan(b, a);
-
-        if (aContainsB) return -1; // a comes first (umbrella)
-        if (bContainsA) return 1;  // b comes first (umbrella)
-
-        // Neither contains the other, sort by start time
-        return aRange.start - bRange.start;
-    });
-};
-
-const formatDuration = (durationMs: number): string => {
-    return durationMs < 1000 ? `${durationMs}ms` : `${(durationMs / 1000).toFixed(2)}s`;
-};
-
-const getSpanDuration = (span: SpanData): number | null => {
-    const range = getSpanTimeRange(span);
-    return range ? range.end - range.start : null;
-};
+// ============================================================================
+// COMPONENT DEFINITIONS
+// ============================================================================
 
 // Chevron component for tree items
 interface ChevronProps {
@@ -502,61 +397,10 @@ const TreeChevronIcon: React.FC<ChevronProps> = ({ hasChildren, isExpanded, onCl
     </TreeChevron>
 );
 
-// AI Span Badge Component
-interface AIBadgeProps {
-    type: string;
-}
-
-const AIBadge: React.FC<AIBadgeProps> = ({ type }) => {
-    const getIconName = () => {
-        switch (type) {
-            case 'invoke': return 'bi-ai-agent';
-            case 'chat': return 'bi-chat';
-            case 'tool': return 'bi-wrench';
-            default: return 'bi-action';
-        }
-    };
-
-    const getLabel = () => {
-        switch (type) {
-            case 'invoke': return 'Invoke Agent';
-            case 'chat': return 'Chat';
-            case 'tool': return 'Execute Tool';
-            default: return 'Operation';
-        }
-    };
-
-    return (
-        <AISpanBadge type={type}>
-            <Icon
-                name={getIconName()}
-                sx={{
-                    fontSize: '16px',
-                    width: '16px',
-                    height: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-                iconSx={{
-                    fontSize: "16px",
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-            />
-            <span className="ai-span-label">{getLabel()}</span>
-        </AISpanBadge>
-    );
-};
-
 export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetailsProps) {
-    const [expandedSections, setExpandedSections] = useState<Set<string>>(
-        new Set(['trace', 'resource', 'scope', 'spans'])
-    );
     const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
-    const [showFullTrace, setShowFullTrace] = useState<boolean>(false);
+    const [showFullTrace] = useState<boolean>(false);
     const [isAdvancedMode, setIsAdvancedMode] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
@@ -584,16 +428,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
             resizeObserver.disconnect();
         };
     }, []);
-
-    const toggleSection = (section: string) => {
-        const newExpanded = new Set(expandedSections);
-        if (newExpanded.has(section)) {
-            newExpanded.delete(section);
-        } else {
-            newExpanded.add(section);
-        }
-        setExpandedSections(newExpanded);
-    };
 
     const toggleSpanExpansion = (spanId: string) => {
         const newExpanded = new Set(expandedSpans);
@@ -633,21 +467,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
 
     const duration = new Date(traceData.lastSeen).getTime() - new Date(traceData.firstSeen).getTime();
 
-    const getSpanKindLabel = (kind: string | number): string => {
-        if (typeof kind === 'string') {
-            return kind;
-        }
-        const kindMap: { [key: number]: string } = {
-            0: 'UNSPECIFIED',
-            1: 'INTERNAL',
-            2: 'SERVER',
-            3: 'CLIENT',
-            4: 'PRODUCER',
-            5: 'CONSUMER'
-        };
-        return kindMap[kind] || `UNKNOWN(${kind})`;
-    };
-
     // Build span hierarchy
     const spanMap = new Map<string, SpanData>();
     const rootSpans: SpanData[] = [];
@@ -669,16 +488,9 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
     // Sort root spans: umbrella spans (those that contain others) come first, then by start time
     const sortedRootSpans = sortSpansByUmbrellaFirst(rootSpans);
 
-    // Select first span on load
-    // Debug: Log when selectedSpanId changes
-    useEffect(() => {
-        console.log('[TraceDetails] selectedSpanId changed to:', selectedSpanId);
-    }, [selectedSpanId]);
-
     useEffect(() => {
         // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
         if (!selectedSpanId && sortedRootSpans.length > 0 && !focusSpanId && !hasFocusedRef.current) {
-            console.log('[TraceDetails] Auto-selecting first root span:', sortedRootSpans[0].spanId);
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
     }, [sortedRootSpans.length, focusSpanId, selectedSpanId]);
@@ -712,20 +524,15 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
     useEffect(() => {
         if (focusSpanId && traceData.spans.length > 0) {
             if (hasFocusedRef.current) {
-                console.log('[TraceDetails] Already focused, skipping');
                 return;
             }
-            console.log('[TraceDetails] Focusing on span:', focusSpanId);
             hasFocusedRef.current = true;
 
             // Expand all parent spans to make the focused span visible FIRST
             const span = traceData.spans.find(s => s.spanId === focusSpanId);
             if (!span) {
-                console.error('[TraceDetails] Span not found:', focusSpanId);
                 return;
             }
-
-            console.log('[TraceDetails] Found span:', span.name);
 
             const newExpanded = new Set(expandedSpans);
             let currentParentId = span.parentSpanId;
@@ -734,7 +541,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                 const parentSpan = traceData.spans.find(s => s.spanId === currentParentId);
                 if (parentSpan) {
                     newExpanded.add(currentParentId);
-                    console.log('[TraceDetails] Expanding parent:', parentSpan.name);
                     currentParentId = parentSpan.parentSpanId;
                 } else {
                     break;
@@ -745,14 +551,10 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
             setExpandedSpans(newExpanded);
             setSelectedSpanId(focusSpanId);
 
-            console.log('[TraceDetails] Switched to tree view and selected span:', focusSpanId);
-
             // Scroll to the focused span after rendering
             setTimeout(() => {
                 const spanElement = document.querySelector(`[data-span-id="${focusSpanId}"]`);
-                console.log('[TraceDetails] Looking for element with data-span-id:', focusSpanId, 'Found:', !!spanElement);
                 if (spanElement) {
-                    console.log('[TraceDetails] Scrolling to span element');
                     spanElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 } else {
                     console.error('[TraceDetails] Could not find span element to scroll to');
@@ -807,7 +609,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
 
     const selectedSpan = selectedSpanId ? spanMap.get(selectedSpanId) : null;
 
-    // Build AI span hierarchy based on time containment
+    /**
+     * Builds a hierarchy of AI spans based on time containment.
+     * Uses temporal relationships to determine parent-child structure.
+     * For each span, finds the smallest containing span as its parent.
+     * @returns Root AI spans (those with no time-based parent) sorted by start time
+     */
     const buildAISpanHierarchy = () => {
         // First, identify all AI spans
         const aiSpans = traceData.spans.filter(span =>
@@ -950,27 +757,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         }
     }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
 
-    // Get span type badge
-    const getSpanTypeBadge = (span: SpanData): string => {
-        const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
-        if (operationName.startsWith('invoke_agent')) return 'invoke';
-        if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
-        if (operationName.startsWith('execute_tool') || span.name.toLowerCase().startsWith('execute_tool')) return 'tool';
-        return 'other';
-    };
-
-    // Check if span has an error
-    const spanHasError = (span: SpanData): boolean => {
-        return span.attributes?.some(attr => attr.key === 'error.message' && attr.value) || false;
-    };
-
-    // Calculate total tokens for a span
-    const getSpanTokens = (span: SpanData): number => {
-        const inputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0');
-        const outputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0');
-        return inputTokens + outputTokens;
-    };
-
     // Totals across the trace (input/output separately)
     const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {
         let inTotal = 0;
@@ -984,32 +770,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         return { totalInputTokens: inTotal, totalOutputTokens: outTotal };
     }, [traceData.spans]);
 
-    // Format date for display in tree
-    const formatStartTime = (dateString: string | undefined): string => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-            hour12: false
-        });
-    };
-
-    // Remove common prefixes from span names
-    const stripSpanPrefix = (spanName: string): string => {
-        const prefixes = ['invoke_agent ', 'execute_tool ', 'chat '];
-        for (const prefix of prefixes) {
-            if (spanName.startsWith(prefix)) {
-                return spanName.substring(prefix.length);
-            }
-        }
-        return spanName;
-    };
-
-    // Get AI child spans based on time containment
+    /**
+     * Gets AI child spans contained within a parent span's timeframe.
+     * Finds direct children only (not nested through intermediate AI spans).
+     * @param spanId - Parent span ID to find children for
+     * @returns Array of child AI spans sorted by start time
+     */
     const getAIChildSpans = (spanId: string): SpanData[] => {
         const parentSpan = traceData.spans.find(s => s.spanId === spanId);
         if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) {
@@ -1075,7 +841,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         });
     };
 
-    // Get non-AI child spans within an AI span's timeframe
+    /**
+     * Gets non-AI child spans within an AI span's timeframe.
+     * Excludes spans that are nested within child AI spans.
+     * @param parentSpanId - Parent AI span ID to find non-AI children for
+     * @returns Array of non-AI spans sorted by start time
+     */
     const getNonAIChildSpans = (parentSpanId: string): SpanData[] => {
         const parentSpan = traceData.spans.find(s => s.spanId === parentSpanId);
         if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) {
@@ -1131,7 +902,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
         });
     };
 
-    // Group non-AI spans by type
+    /**
+     * Groups non-AI spans by their type/category.
+     * Categorizes spans as HTTP Calls, Database Operations, Client Calls, Server Operations, or Other.
+     * @param spans - Array of non-AI spans to group
+     * @returns Map of category names to arrays of spans
+     */
     const groupNonAISpans = (spans: SpanData[]): Map<string, SpanData[]> => {
         const groups = new Map<string, SpanData[]>();
 
@@ -1172,11 +948,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
     const getChildSpansFromList = (parentSpanId: string, spanList: SpanData[]): SpanData[] => {
         const children = spanList.filter(s => s.parentSpanId === parentSpanId);
         return sortSpansByUmbrellaFirst(children);
-    };
-
-    // Check if a span is an AI span
-    const isAISpan = (span: SpanData): boolean => {
-        return span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai') || false;
     };
 
     // Render non-AI span tree item hierarchically
@@ -1267,31 +1038,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
                                     <span style={{ width: '16px' }} />
                                 )}
                             </span>
-                            <AISpanBadge type={badgeType}>
-                                <Icon
-                                    name={badgeType === 'invoke' ? 'bi-ai-agent' : badgeType === 'chat' ? 'bi-chat' : badgeType === 'tool' ? 'bi-wrench' : 'bi-action'}
-                                    sx={{
-                                        fontSize: '16px',
-                                        width: '16px',
-                                        height: '16px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                    iconSx={{
-                                        fontSize: "16px",
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                />
-                                <span className="ai-span-label">
-                                    {badgeType === 'invoke' && 'Invoke Agent'}
-                                    {badgeType === 'chat' && 'Chat'}
-                                    {badgeType === 'tool' && 'Execute Tool'}
-                                    {badgeType === 'other' && 'Operation'}
-                                </span>
-                            </AISpanBadge>
+                            <AIBadge type={badgeType} />
                             <AISpanLabel>
                                 {stripSpanPrefix(span.name)}
                                 {spanHasError(span) && (
@@ -1686,17 +1433,11 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId }: TraceDetai
             )} */}
 
             {rootAISpans.length === 0 ? (
-                <EmptyState>
-                    <EmptyStateIcon>
-                        <Codicon name="comment-discussion" />
-                    </EmptyStateIcon>
-                    <EmptyStateText>
-                        No AI agent interactions found in this trace
-                    </EmptyStateText>
-                    <EmptyStateText style={{ fontSize: '14px', opacity: 0.7 }}>
-                        AI spans with span.type='ai' will appear here
-                    </EmptyStateText>
-                </EmptyState>
+                <TraceEmptyState
+                    icon="comment-discussion"
+                    title="No AI agent interactions found in this trace"
+                    subtitle="AI spans with span.type='ai' will appear here"
+                />
             ) : (
                 <AgentChatLogsContainer>
                     {viewMode === 'tree' ? (

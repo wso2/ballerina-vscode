@@ -20,6 +20,7 @@ import { useState, useMemo, ReactNode, useEffect } from "react";
 import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
 import { CopyButton } from "./CopyButton";
+import { parseNestedJSON } from "../utils";
 
 // Configurable auto-expand depth
 export const DEFAULT_AUTO_EXPAND_DEPTH = 2;
@@ -54,7 +55,8 @@ const NodeRow = styled.div`
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
 
-        & > span:last-child {
+        & > span:last-child,
+        & > span:last-child button {
             opacity: 1;
         }
     }
@@ -71,7 +73,8 @@ const ExpandableRow = styled.div`
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
 
-        & > span:last-child {
+        & > span:last-child,
+        & > span:last-child button {
             opacity: 1;
         }
     }
@@ -102,18 +105,19 @@ const KeyBadge = styled.span<{ isArrayIndex?: boolean }>`
     border-radius: 3px;
     min-height: 18px;
     background-color: ${(props: { isArrayIndex?: boolean }) => props.isArrayIndex
-        ? 'var(--vscode-list-hoverBackground)'
-        : 'var(--vscode-badge-background)'};
+        ? 'var(--vscode-badge-background)'
+        : 'var(--vscode-list-hoverBackground)'};
     color: ${(props: { isArrayIndex?: boolean }) => props.isArrayIndex
-        ? 'var(--vscode-editor-foreground)'
-        : 'var(--vscode-badge-foreground)'};
+        ? 'var(--vscode-badge-foreground)'
+        : 'var(--vscode-editor-foreground)'};
+    border: 1px solid var(--vscode-button-border);
     flex-shrink: 0;
 `;
 
 const ValueText = styled.span`
     color: var(--vscode-editor-foreground);
     word-break: break-word;
-    flex: 1;
+    flex: 0 1 auto;
     margin-left: 6px;
 `;
 
@@ -135,65 +139,8 @@ const Highlight = styled.mark`
 const CopyWrapper = styled.span`
     opacity: 0;
     transition: opacity 0.15s ease;
+    margin-left: 6px;
 `;
-
-// Helper function to fix invalid JSON escape sequences
-function fixJSONEscapes(str: string): string {
-    // Strategy: First escape all backslashes, then unescape valid JSON sequences
-    // This handles cases like \times where \t would be interpreted as tab
-
-    // Step 1: Escape all backslashes
-    let result = str.replace(/\\/g, '\\\\');
-
-    // Step 2: Unescape valid JSON escape sequences
-    // Valid: \", \\, \/, \b, \f, \n, \r, \t, \uXXXX
-    result = result.replace(/\\\\\\(["\\/@bfnrt])/g, '\\$1');
-    result = result.replace(/\\\\\\u([0-9a-fA-F]{4})/g, '\\u$1');
-
-    return result;
-}
-
-// Helper function to check if a string is valid JSON
-function isJSONString(str: string): boolean {
-    if (!str || typeof str !== 'string') return false;
-    const trimmed = str.trim();
-    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return false;
-    try {
-        const fixed = fixJSONEscapes(trimmed);
-        JSON.parse(fixed);
-        return true;
-    } catch (e) {
-        console.log('JSON parse failed:', e, 'Input:', trimmed.substring(0, 100));
-        return false;
-    }
-}
-
-// Parse nested JSON strings recursively
-function parseNestedJSON(value: unknown): unknown {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (isJSONString(trimmed)) {
-            try {
-                const parsed = JSON.parse(fixJSONEscapes(trimmed));
-                return parseNestedJSON(parsed);
-            } catch (e) {
-                console.log('Failed to parse nested JSON:', e, 'Value:', trimmed.substring(0, 100));
-                return value;
-            }
-        }
-    }
-    if (Array.isArray(value)) {
-        return value.map(item => parseNestedJSON(item));
-    }
-    if (value !== null && typeof value === 'object') {
-        const result: Record<string, unknown> = {};
-        for (const [key, val] of Object.entries(value)) {
-            result[key] = parseNestedJSON(val);
-        }
-        return result;
-    }
-    return value;
-}
 
 // Highlight search matches in text
 function highlightText(text: string, searchQuery: string): ReactNode {
@@ -385,6 +332,16 @@ export function JsonTreeViewer({
         });
     };
 
+    const isFlatRoot = useMemo(() => {
+        if (Array.isArray(parsedData)) {
+            return parsedData.every(item => item === null || typeof item !== 'object');
+        }
+        if (parsedData !== null && typeof parsedData === 'object') {
+            return Object.values(parsedData).every(v => v === null || typeof v !== 'object');
+        }
+        return true;
+    }, [parsedData]);
+
     const renderValue = (
         value: unknown,
         key: string,
@@ -455,7 +412,7 @@ export function JsonTreeViewer({
         // Handle primitives
         return (
             <NodeRow key={path}>
-                <Spacer />
+                {!isFlatRoot && <Spacer />}
                 <KeyBadge isArrayIndex={isArrayIndex}>
                     {highlightText(key, searchQuery)}
                 </KeyBadge>

@@ -21,6 +21,7 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { JsonTreeViewer, DEFAULT_AUTO_EXPAND_DEPTH } from "./JsonTreeViewer";
 import { CopyButton } from "./CopyButton";
+import { tryParseJSON, isJSONString, parseNestedJSON } from "../utils";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -326,73 +327,15 @@ const JsonPunctuation = styled.span`
     color: var(--vscode-foreground);
 `;
 
-// Helper function to fix invalid JSON escape sequences
-function fixJSONEscapes(str: string): string {
-    // Strategy: First escape all backslashes, then unescape valid JSON sequences
-    // This handles cases like \times where \t would be interpreted as tab
-
-    // Step 1: Escape all backslashes
-    let result = str.replace(/\\/g, '\\\\');
-
-    // Step 2: Unescape valid JSON escape sequences
-    // Valid: \", \\, \/, \b, \f, \n, \r, \t, \uXXXX
-    result = result.replace(/\\\\\\(["\\/@bfnrt])/g, '\\$1');
-    result = result.replace(/\\\\\\u([0-9a-fA-F]{4})/g, '\\u$1');
-
-    return result;
-}
-
-// Helper function to check if a string is valid JSON
-function isJSONString(str: string): boolean {
-    if (!str || typeof str !== 'string') return false;
-    const trimmed = str.trim();
-    if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) return false;
-    try {
-        const fixed = fixJSONEscapes(trimmed);
-        JSON.parse(fixed);
-        return true;
-    } catch (e) {
-        console.log('JSON parse failed:', e, 'Input:', trimmed.substring(0, 100));
-        return false;
-    }
-}
-
-// Parse nested JSON strings recursively for formatting
-function parseNestedJSON(value: unknown): unknown {
-    if (typeof value === 'string') {
-        const trimmed = value.trim();
-        if (isJSONString(trimmed)) {
-            try {
-                const parsed = JSON.parse(fixJSONEscapes(trimmed));
-                return parseNestedJSON(parsed);
-            } catch (e) {
-                console.log('Failed to parse nested JSON:', e, 'Value:', trimmed.substring(0, 100));
-                return value;
-            }
-        }
-    }
-    if (Array.isArray(value)) {
-        return value.map(item => parseNestedJSON(item));
-    }
-    if (value !== null && typeof value === 'object') {
-        const result: Record<string, unknown> = {};
-        for (const [key, val] of Object.entries(value)) {
-            result[key] = parseNestedJSON(val);
-        }
-        return result;
-    }
-    return value;
-}
-
 // Format JSON with nested parsing
 function formatJSON(str: string): string {
     try {
         const trimmed = str.trim();
-        const parsed = JSON.parse(fixJSONEscapes(trimmed));
+        const parsed = tryParseJSON(trimmed);
         const deepParsed = parseNestedJSON(parsed);
         return JSON.stringify(deepParsed, null, 2);
     } catch (e) {
-        console.log('Failed to format JSON:', e);
+        console.error('Failed to format JSON:', e);
         return str;
     }
 }
@@ -544,7 +487,10 @@ export function JsonViewer({
     maxAutoExpandDepth = DEFAULT_AUTO_EXPAND_DEPTH,
     expandLastOnly = false
 }: JsonViewerProps) {
-    const isJSON = useMemo(() => isJSONString(value), [value]);
+    const isJSON = useMemo(() => {
+        const result = isJSONString(value);
+        return result;
+    }, [value]);
     const hasMarkdown = useMemo(() => {
         const result = !isJSON && mightContainMarkdown(value);
         return result;
@@ -595,7 +541,17 @@ export function JsonViewer({
         if (!isJSON) return null;
         try {
             const trimmed = value.trim();
-            return JSON.parse(fixJSONEscapes(trimmed));
+            let jsonStr = trimmed;
+
+            // If it's a stringified JSON (starts with quotes), unwrap it first
+            if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+                const unescaped = JSON.parse(trimmed);
+                if (typeof unescaped === 'string') {
+                    jsonStr = unescaped;
+                }
+            }
+
+            return tryParseJSON(jsonStr);
         } catch {
             return null;
         }
@@ -603,7 +559,21 @@ export function JsonViewer({
 
     const formattedJSON = useMemo(() => {
         if (!isJSON) return value;
-        return formatJSON(value);
+
+        let jsonStr = value.trim();
+        // If it's a stringified JSON, unwrap it first
+        if (jsonStr.startsWith('"') && jsonStr.endsWith('"')) {
+            try {
+                const unescaped = JSON.parse(jsonStr);
+                if (typeof unescaped === 'string') {
+                    jsonStr = unescaped;
+                }
+            } catch {
+                // Keep original if unwrapping fails
+            }
+        }
+
+        return formatJSON(jsonStr);
     }, [value, isJSON]);
 
     // If not JSON, show raw text or markdown
