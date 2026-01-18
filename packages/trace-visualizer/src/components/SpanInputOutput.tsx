@@ -75,7 +75,7 @@ const IdButton = styled.button`
     display: flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    background: var(--vscode-sideBar-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
     padding: 4px 8px;
