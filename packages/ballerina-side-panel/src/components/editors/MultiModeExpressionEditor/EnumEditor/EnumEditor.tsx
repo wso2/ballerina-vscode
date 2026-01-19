@@ -28,14 +28,15 @@ interface EnumEditorProps {
 }
 
 export const EnumEditor = (props: EnumEditorProps) => {
-
+    // Ensure value is in items, otherwise use first item's value
+    const selectedValue = props.value && props.value !== "" && props.items.some(item => item.value === props.value) ? props.value : props.items[0].value;
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         props.onChange(e.target.value, e.target.value.length)
     }
     return (
         <Dropdown
             id={props.field.key}
-            value={props.value.trim()}
+            value={selectedValue.trim()}
             items={props.items}
             onChange={handleChange}
             sx={{ width: "100%" }}
