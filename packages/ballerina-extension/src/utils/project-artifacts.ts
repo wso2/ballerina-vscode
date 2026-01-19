@@ -21,6 +21,7 @@ import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTOR
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
+import { isLibraryProject } from "./config";
 
 export async function buildProjectsStructure(
     projectInfo: ProjectInfo,
@@ -67,6 +68,9 @@ async function buildProjectArtifactsStructure(
         projectName: packageName,
         projectPath: projectPath,
         projectTitle: packageTitle,
+        // Workaround to check if the project is a library project.
+        // This will be removed once the projectInfo is updated to include the library flag.
+        isLibrary: await isLibraryProject(projectPath),
         directoryMap: {
             [DIRECTORY_MAP.AUTOMATION]: [],
             [DIRECTORY_MAP.SERVICE]: [],
@@ -491,6 +495,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-mcp";
         case "solace":
             return "bi-solace";
+        case "mssql":
+            return "bi-mssql";
         default:
             return "bi-globe";
     }

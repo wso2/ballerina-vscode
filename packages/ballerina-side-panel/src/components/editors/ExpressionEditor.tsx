@@ -44,11 +44,12 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { ExpressionField } from './ExpressionField';
+import { ExpressionField, getEditorConfiguration } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
+import { NumberExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
@@ -436,6 +437,18 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     }, [fieldValue, targetLineRange]);
 
+    const getFallBackSelectedType = (): InputType => {
+        if (
+            typeof field.value === 'string' &&
+            field.value.trim() !== ''
+        ) {
+            return field?.types[field.types.length - 1];
+        }
+        else {
+            return field?.types[0];
+        }
+    }
+
     useEffect(() => {
         // If recordTypeField is present, always use GUIDED mode
         if (recordTypeField) {
@@ -448,7 +461,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         };
         let selectedInputType = field?.types.find(type => type.selected);
         if (!selectedInputType) {
-            selectedInputType = field?.types[0];
+            selectedInputType = getFallBackSelectedType();
         }
         const inputMode = getInputModeFromTypes(selectedInputType);
         if (!inputMode) {
@@ -535,28 +548,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
-    const isExpToBooleanSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        return ["true", "false"].includes(expValue.trim().toLowerCase())
-    }
-
-    const isExpToTemplateSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('`') && trimmed.endsWith('`')) return true;
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
-    }
-
-    const isExpToTextSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-            const content = trimmed.slice(1, -1);
-            return !/(?<!\\)"/.test(content);
-        }
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
+    const isSwitchToPrimaryModeSafe = (expValue: string) => {
+        if (!expValue) return true;
+        const primaryInputType = getPrimaryInputType(field.types);
+        const primaryInputMode = getInputModeFromTypes(primaryInputType);
+        const valueConfigObject = getEditorConfiguration(primaryInputMode);
+        return valueConfigObject.getIsValueCompatible(expValue);
     }
 
     const handleModeChange = (value: InputMode) => {
@@ -566,36 +563,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(value);
             return;
         }
-        const primaryInputType = getPrimaryInputType(field.types);
-        const primaryInputMode = getInputModeFromTypes(primaryInputType);
-        switch (primaryInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (currentValue && currentValue.trim() !== '') {
-                    if (!isExpToTemplateSafe(currentValue)) {
-                        targetInputModeRef.current = value;
-                        setShowModeSwitchWarning(true)
-                        return;
-                    } else {
-                        setInputMode(primaryInputMode);
-                        return;
-                    }
-                }
-                break;
+        if (!isSwitchToPrimaryModeSafe(currentValue)) {
+            targetInputModeRef.current = value;
+            setShowModeSwitchWarning(true)
+            return;
         }
         setInputMode(value);
     };
@@ -604,7 +575,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (targetInputModeRef.current !== null) {
             setInputMode(targetInputModeRef.current);
             const targetMode = targetInputModeRef.current;
-            const shouldClearValue = [InputMode.PROMPT, InputMode.TEMPLATE, InputMode.TEXT].includes(targetMode) && inputMode === InputMode.EXP;
+            const shouldClearValue = [
+                InputMode.PROMPT,
+                InputMode.TEMPLATE,
+                InputMode.TEXT,
+                InputMode.NUMBER,
+                InputMode.BOOLEAN,
+            ]
+                .includes(targetMode) && inputMode === InputMode.EXP;
             if (shouldClearValue) {
                 setValue(key, "");
             }
@@ -700,8 +678,67 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 <Controller
                     control={control}
                     name={key}
-                    rules={{ required: required ?? (!field.optional && !field.placeholder) }}
-                    render={({ field: { name, value, onChange }, fieldState: { error } }) => (
+                    rules={(() => {
+                        const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
+                        const patternType = field.types?.find(t => t.pattern);
+                        const rules: any = {};
+
+                        // Only use 'required' if there's no pattern validation (pattern will handle empty values)
+                        if (!patternType?.pattern && !expressionSetType?.pattern) {
+                            rules.required = required ?? (!field.optional && !field.placeholder);
+                        }
+
+                        if (expressionSetType?.pattern) {
+                            // For EXPRESSION_SET or TEXT_SET (arrays), validate each item
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    try {
+                                        if (!Array.isArray(value)) return true;
+
+                                        const regex = new RegExp(expressionSetType.pattern);
+                                        for (const item of value) {
+                                            if (!regex.test(item)) {
+                                                return expressionSetType.patternErrorMessage || "Invalid format";
+                                            }
+                                        }
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, expressionSetType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
+                                    }
+                                },
+                                minItems: (value: any) => {
+                                    if (!Array.isArray(value)) return true;
+                                    const minItems = expressionSetType.minItems ?? 0;
+                                    if (minItems > 0 && value.length < minItems) {
+                                        return `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required`;
+                                    }
+                                    return true;
+                                }
+                            };
+                        } else if (patternType?.pattern) {
+                            // For non-array fields, use validate function instead of pattern rule
+                            // This ensures validation runs even on empty strings
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    try {
+                                        const regex = new RegExp(patternType.pattern);
+                                        if (!regex.test(value || '')) {
+                                            return patternType.patternErrorMessage || "Invalid format";
+                                        }
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, patternType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
+                                    }
+                                }
+                            };
+                        }
+
+                        return rules;
+                    })()}
+                    render={({ field: { name, value, onChange }, fieldState: { error } }) => {
+                        return (
                         <div>
                             <ExpressionField
                                 field={field}
@@ -843,7 +880,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 />
                             )}
                         </div>
-                    )}
+                        );
+                    }}
                 />
             </S.Container>
             {showModeSwitchWarning && (

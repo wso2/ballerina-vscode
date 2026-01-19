@@ -347,16 +347,12 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                 .then((response) => {
                     console.log(">>> Updated source code", response);
                     if (!isConnector) {
-                        selectedNodeRef.current = undefined;
                         if (options?.postUpdateCallBack) {
                             options.postUpdateCallBack();
                         }
                         return;
                     }
                     if (response.artifacts.length > 0) {
-                        // clear memory
-                        selectedNodeRef.current = undefined;
-                        setSavingFormStatus(SavingFormStatus.SUCCESS);
                         const newConnection = response.artifacts.find((artifact) => artifact.isNew);
                         onClose({ recentIdentifier: newConnection.name, artifactType: DIRECTORY_MAP.CONNECTION });
                     } else {
@@ -373,6 +369,16 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
 
     const handleResetUpdatedExpressionField = () => {
         setUpdatedExpressionField(undefined);
+    };
+
+    // Remove description property from node before passing to form
+    // since it's already shown in the connector info card
+    const getNodeForForm = (node: FlowNode) => {
+        const nodeWithoutDescription = cloneDeep(node);
+        if (nodeWithoutDescription?.metadata?.description) {
+            delete nodeWithoutDescription.metadata.description;
+        }
+        return nodeWithoutDescription;
     };
 
     const getConnectorTag = () => {
@@ -473,37 +479,29 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                             )}
                         </StatusContainer>
                     )}
-                    {!pullingStatus && selectedNodeRef.current && (() => {
-                        // Remove description property from node before passing to form
-                        // since it's already shown in the connector info card
-                        const nodeWithoutDescription = cloneDeep(selectedNodeRef.current);
-                        if (nodeWithoutDescription.metadata?.description) {
-                            delete nodeWithoutDescription.metadata.description;
-                        }
-                        return (
-                            <>
-                                <ConnectionDetailsSection>
-                                    <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
-                                    <ConnectionDetailsSubtitle variant="body2">
-                                        Configure your connection settings
-                                    </ConnectionDetailsSubtitle>
-                                </ConnectionDetailsSection>
-                                <FormContainer>
-                                    <ConnectionConfigView
-                                        fileName={fileName}
-                                        submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
-                                        isSaving={savingFormStatus === SavingFormStatus.SAVING}
-                                        selectedNode={nodeWithoutDescription}
-                                        onSubmit={handleOnFormSubmit}
-                                        updatedExpressionField={updatedExpressionField}
-                                        resetUpdatedExpressionField={handleResetUpdatedExpressionField}
-                                        isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
-                                        footerActionButton={true}
-                                    />
-                                </FormContainer>
-                            </>
-                        );
-                    })()}
+                    {!pullingStatus && selectedNodeRef.current && (
+                        <>
+                            <ConnectionDetailsSection>
+                                <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
+                                <ConnectionDetailsSubtitle variant="body2">
+                                    Configure your connection settings
+                                </ConnectionDetailsSubtitle>
+                            </ConnectionDetailsSection>
+                            <FormContainer>
+                                <ConnectionConfigView
+                                    fileName={fileName}
+                                    submitText={savingFormStatus === SavingFormStatus.SAVING ? "Saving..." : "Save Connection"}
+                                    isSaving={savingFormStatus === SavingFormStatus.SAVING}
+                                    selectedNode={getNodeForForm(selectedNodeRef.current)}
+                                    onSubmit={handleOnFormSubmit}
+                                    updatedExpressionField={updatedExpressionField}
+                                    resetUpdatedExpressionField={handleResetUpdatedExpressionField}
+                                    isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
+                                    footerActionButton={true}
+                                />
+                            </FormContainer>
+                        </>
+                    )}
                 </ConfigContent>
             </PopupContainer>
         </>

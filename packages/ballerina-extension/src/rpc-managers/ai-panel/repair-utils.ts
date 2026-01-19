@@ -43,11 +43,16 @@ export async function attemptRepairProject(langClient: ExtendedLangClient, tempD
     return projectDiags;
 }
 
-export async function checkProjectDiagnostics(langClient: ExtendedLangClient, tempDir: string): Promise<Diagnostics[]> {
+export async function checkProjectDiagnostics(langClient: ExtendedLangClient, tempDir: string, isAISchema: boolean = false): Promise<Diagnostics[]> {
     const allDiags: Diagnostics[] = [];
+    let projectUri = Uri.from({ scheme: 'file', path: tempDir }).toString();
+    if (isAISchema) {
+        projectUri = Uri.from({ scheme: 'ai', path: tempDir }).toString();
+    }
+    console.log("Getting project diagnostics for URI:", projectUri);
     let response: ProjectDiagnosticsResponse = await langClient.getProjectDiagnostics({
         projectRootIdentifier: {
-            uri: Uri.file(tempDir).toString()
+            uri: projectUri
         }
     });
     if (!response.errorDiagnosticMap) {
@@ -96,7 +101,9 @@ export async function isModuleNotFoundDiagsExist(diagnosticsResult: Diagnostics[
         const response = dependenciesResponse as SyntaxTree;
         if (response.parseSuccess) {
             // Read and save content to a string
-            const sourceFile = await workspace.openTextDocument(Uri.parse(uri));
+            // Convert ai: scheme to file: scheme for opening the document
+            const fileUri = uri.replace(/^ai:/, 'file:');
+            const sourceFile = await workspace.openTextDocument(Uri.parse(fileUri));
             const content = sourceFile.getText();
 
             langClient.didOpen({
