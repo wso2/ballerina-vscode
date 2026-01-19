@@ -18,10 +18,17 @@
 
 import React from "react";
 import { useEffect, useState } from "react";
-import { EditorFactory, FormField } from "../..";
+import styled from '@emotion/styled';
+import { EditorFactory, FormField, InputMode, S } from "../..";
 import { InputType } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
+import ModeSwitcher from "../ModeSwitcher";
+import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
+
+const Container = styled.div`
+    width: 100%;
+`;
 
 type FieldFactoryProps = {
     field: FormField;
@@ -45,6 +52,7 @@ type FieldFactoryProps = {
 
 export const FieldFactory = (props: FieldFactoryProps) => {
     const [renderingEditors, setRenderingEditors] = useState<InputType[]>(null);
+    const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
 
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) throw new Error("Field types are not defined");
@@ -59,13 +67,26 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
 
     return (
-        <div>
-            {renderingEditors && renderingEditors.map((type) => (
-                <EditorFactory
-                    {...props}
-                    fieldInputType={type}
+        <Container>
+            <S.FieldInfoSection>
+                <ModeSwitcher
+                    value={inputMode}
+                    isRecordTypeField={false}
+                    onChange={(mode) => setInputMode(mode)}
+                    types={props.field.types}
                 />
-            ))}
-        </div>
+            </S.FieldInfoSection>
+            {renderingEditors && renderingEditors.map((type) => {
+                if (inputMode === getInputModeFromTypes(type)) {
+                    return (
+                        <EditorFactory
+                            {...props}
+                            fieldInputType={type}
+                        />
+                    );
+                }
+                return null;
+            })}
+        </Container>
     );
 };
