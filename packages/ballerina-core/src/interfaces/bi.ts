@@ -19,6 +19,7 @@
 import { NodePosition } from "@wso2/syntax-tree";
 import { LinePosition } from "./common";
 import { Diagnostic as VSCodeDiagnostic } from "vscode-languageserver-types";
+import { ValueTypeConstraint } from "../rpc-types/ai-agent/interfaces";
 
 export type { NodePosition };
 
@@ -139,32 +140,48 @@ export type FormFieldInputType = "TEXT" |
     "MULTIPLE_SELECT_LISTENER" |
     "SINGLE_SELECT_LISTENER" |
     "EXPRESSION_SET" |
+    "TEXT_SET" |
     "FLAG" |
     "CHOICE"|
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
-    "RECORD_MAP_EXPRESSION";
+    "FIXED_PROPERTY" |
+    "REPEATABLE_PROPERTY" |
+    "MAPPING_EXPRESSION_SET" |
+    "ENUM" |
+    "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
+    "RECORD_MAP_EXPRESSION" |
+    "PROMPT";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
     ballerinaType?: string;
     selected: boolean;
     typeMembers?: PropertyTypeMemberInfo[];
+    minItems?: number; // minimum items for EXPRESSION_SET fields
+    defaultItems?: number; // default number of items for EXPRESSION_SET fields
+    pattern?: string; // regex pattern for validation (e.g., for TEXT fields)
+    patternErrorMessage?: string; // custom error message when pattern validation fails
+}
+
+export interface EnumOptions {
+    label: string;
+    value: string;
 }
 
 export interface DropdownType extends BaseType {
     fieldType: "SINGLE_SELECT" | "MULTIPLE_SELECT";
-    options: string[];
+    options: EnumOptions[];
 }
 
 export interface TemplateType extends BaseType {
-    template: Property;
+    template: Property | ValueTypeConstraint;
 }
 
 export interface IdentifierType extends BaseType {
     fieldType: "IDENTIFIER";
-    scope: Scope;
+    scope: FieldScope;
 }
 
 export type InputType =
@@ -330,6 +347,7 @@ export interface ProjectStructure {
     projectName: string;
     projectPath?: string;
     projectTitle?: string;
+    isLibrary?: boolean;
     directoryMap: ProjectDirectoryMap;
 }
 
@@ -441,6 +459,8 @@ export type BranchKind = "block" | "worker";
 export type Repeatable = "ONE_OR_MORE" | "ZERO_OR_ONE" | "ONE" | "ZERO_OR_MORE";
 
 export type Scope = "module" | "local" | "object";
+
+export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
