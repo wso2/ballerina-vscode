@@ -17,7 +17,7 @@
  */
 
 import { Dropdown, OptionProps } from "@wso2/ui-toolkit";
-import React, { ChangeEvent, useMemo } from "react"
+import React, { ChangeEvent, useEffect, useMemo } from "react"
 import { FormField } from "../../../Form/types";
 
 interface EnumEditorProps {
@@ -34,9 +34,18 @@ export const EnumEditor = (props: EnumEditorProps) => {
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
         props.onChange(e.target.value, e.target.value.length)
     }
+
+    // Set the selected value as field value by calling onChange only if the value is not already set
+    useEffect(() => {
+        if (props.value === undefined || props.value === null || props.value === "") {
+            props.onChange(selectedValue, selectedValue.length)
+        }
+    }, [selectedValue, props.value])
+
     return (
         <Dropdown
             id={props.field.key}
+            aria-label={props.field.label}
             value={selectedValue.trim()}
             items={itemsList}
             onChange={handleChange}
