@@ -100,7 +100,7 @@ export async function checkCompilationErrors(
             diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
         } catch (diagError) {
             // Resolve module dependencies using ai scheme
-            const aiUri = Uri.from({ scheme: 'ai', path: tempProjectPath }).toString();
+            const aiUri = Uri.file(tempProjectPath).with({ scheme: 'ai' }).toString();
             await langClient.resolveModuleDependencies({
                 documentIdentifier: {
                     uri: aiUri
