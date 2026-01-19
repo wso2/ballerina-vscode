@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025, WSO2 LLC. (http://www.wso2.com)
+ *  Copyright (c) 2026, WSO2 LLC. (http://www.wso2.com)
  *
  *  WSO2 LLC. licenses this file to you under the Apache License,
  *  Version 2.0 (the "License"); you may not use this file except
@@ -33,10 +33,10 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_B
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 
 /**
- * Represents the PostgreSQL CDC function builder of the service model generator. Handles special-case logic for onUpdate
- * function which has two databinding parameters (beforeEntry and afterEntry) that must share the same type.
+ * Represents the PostgreSQL CDC function builder of the service model generator. Handles special-case logic for
+ * onUpdate function which has two databinding parameters (beforeEntry and afterEntry) that must share the same type.
  *
- * @since 1.5.0
+ * @since 1.6.0
  */
 public final class PostgresqlCdcFunctionBuilder extends AbstractFunctionBuilder {
 
