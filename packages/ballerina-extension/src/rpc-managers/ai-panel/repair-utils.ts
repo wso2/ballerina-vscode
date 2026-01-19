@@ -45,9 +45,9 @@ export async function attemptRepairProject(langClient: ExtendedLangClient, tempD
 
 export async function checkProjectDiagnostics(langClient: ExtendedLangClient, tempDir: string, isAISchema: boolean = false): Promise<Diagnostics[]> {
     const allDiags: Diagnostics[] = [];
-    let projectUri = Uri.from({ scheme: 'file', path: tempDir }).toString();
+    let projectUri = Uri.file(tempDir).toString();
     if (isAISchema) {
-        projectUri = Uri.from({ scheme: 'ai', path: tempDir }).toString();
+        projectUri = Uri.file(tempDir).with({ scheme: 'ai' }).toString();
     }
     console.log("Getting project diagnostics for URI:", projectUri);
     let response: ProjectDiagnosticsResponse = await langClient.getProjectDiagnostics({
