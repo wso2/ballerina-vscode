@@ -423,7 +423,7 @@
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "category": "Ballerina"
             },
             {
@@ -589,7 +589,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "category": "BI"
             },
             {
@@ -647,7 +647,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -668,7 +668,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -683,7 +683,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },

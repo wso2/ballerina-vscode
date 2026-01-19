@@ -33,14 +33,14 @@ import { PopupOverlay, PopupContainer, PopupHeader, PopupTitle, CloseButton } fr
 const PopupContent = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 24px 32px;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
 `;
 
 const IntroText = styled(Typography)`
-    font-size: 14px;
+    font-size: 12px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
     line-height: 1.5;
     margin: 0;
@@ -57,7 +57,7 @@ const StyledSearchBox = styled(SearchBox)`
 const Section = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 `;
 
 const SectionTitle = styled(Typography)`
@@ -70,15 +70,15 @@ const SectionTitle = styled(Typography)`
 const CreateConnectorOptions = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
 `;
 
 const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
     position: relative;
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
+    gap: 12px;
+    padding: 12px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
@@ -98,8 +98,8 @@ const ConnectorOptionIcon = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_CONTAINER};
     flex-shrink: 0;
@@ -109,7 +109,7 @@ const ConnectorOptionContent = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 `;
 
 const ConnectorOptionTitleContainer = styled.div`
@@ -738,7 +738,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                             </FilterButtons>
                         </SectionHeader>
                         {isLoading && (
-                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "40px" }}>
+                            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "24px" }}>
                                 <ProgressRing />
                             </div>
                         )}
@@ -786,7 +786,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                             </ConnectorsGrid>
                         )}
                         {!isLoading && (!filteredCategories || filteredCategories.length === 0) && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", padding: "40px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", padding: "24px" }}>
                                 {filterType === "Organization" ? (
                                     <>
                                         <BodyTinyInfo style={{ textAlign: "center" }}>

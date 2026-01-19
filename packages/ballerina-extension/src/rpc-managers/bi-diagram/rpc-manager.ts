@@ -1511,7 +1511,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             let projectPath: string;
             if (params?.projectPath) {
-                const uri = Uri.parse(params.projectPath);
+                const uri = Uri.file(params.projectPath);
                 projectPath = uri.with({ scheme: 'ai' }).toString();
             } else {
                 projectPath = StateMachine.context().projectPath;
