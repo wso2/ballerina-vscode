@@ -157,13 +157,13 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
+        let path: string;
         if (params.createAsWorkspace) {
-            const workspaceRoot = createBIWorkspace(params);
-            openInVSCode(workspaceRoot);
+            path = createBIWorkspace(params);
         } else {
-            const projectRoot = createBIProjectPure(params);
-            openInVSCode(projectRoot);
+            path = createBIProjectPure(params);
         }
+        return path;
     });
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
