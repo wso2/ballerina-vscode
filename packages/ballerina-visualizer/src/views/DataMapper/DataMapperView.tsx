@@ -115,7 +115,7 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        if (viewStateRef.current.subMappingName && !positionChanged) {
+        if (viewStateRef.current.subMappingName && positionChanged) {
             const viewId = viewStateRef.current.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
