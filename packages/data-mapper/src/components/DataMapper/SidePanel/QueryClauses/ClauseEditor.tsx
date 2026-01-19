@@ -79,7 +79,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         key: "type",
         label: "Type",
         type: "TYPE",
-        optional: false,
+        optional: true,
         editable: true,
         documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
@@ -160,6 +160,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const generateFields = () => {
         switch (clauseType) {
             case IntermediateClauseType.LET:
+                return [nameField, typeField, expressionField];
             case IntermediateClauseType.FROM:
                 return [expressionField, nameField];
             case IntermediateClauseType.ORDER_BY:

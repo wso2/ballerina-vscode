@@ -97,7 +97,17 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
     return `${fieldKey}.advanceProperties.${advancePropKey}`;
 }
 
-export const getValueForTextModeEditor = (value: string | any[]) => {
+
+export const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+};
+
+export const getValueForTextModeEditor = (value: string | any[] | Record<string, unknown>) => {
+    if (isRecord(value)) return null;
     if (Array.isArray(value)) return value.at(0);
     if (value) {
         // Only remove starting and ending double quotes, preserve quotes within the string
