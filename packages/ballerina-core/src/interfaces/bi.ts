@@ -142,7 +142,7 @@ export type FormFieldInputType = "TEXT" |
     "EXPRESSION_SET" |
     "TEXT_SET" |
     "FLAG" |
-    "CHOICE"|
+    "CHOICE" |
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
@@ -152,7 +152,17 @@ export type FormFieldInputType = "TEXT" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
-    "PROMPT";
+    "PROMPT" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "CONDITIONAL_FIELDS"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
