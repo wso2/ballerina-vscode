@@ -103,13 +103,14 @@ export const ToggleButton = styled.button<ToggleButtonProps>`
     cursor: pointer;
     transition: all 0.15s ease;
 
+
     background-color: ${(props: ToggleButtonProps) =>
         props.active
-            ? 'var(--vscode-button-background)'
+            ? 'var(--vscode-badge-background)'
             : 'var(--vscode-input-background)'};
     color: ${(props: ToggleButtonProps) =>
         props.active
-            ? 'var(--vscode-button-foreground)'
+            ? 'var(--vscode-badge-foreground)'
             : 'var(--vscode-foreground)'};
 
     &:first-of-type {
@@ -121,10 +122,7 @@ export const ToggleButton = styled.button<ToggleButtonProps>`
     }
 
     &:hover {
-        background-color: ${(props: ToggleButtonProps) =>
-        props.active
-            ? 'var(--vscode-button-hoverBackground)'
-            : 'var(--vscode-list-hoverBackground)'};
+        background-color: var(--vscode-list-hoverBackground);
     }
 `;
 

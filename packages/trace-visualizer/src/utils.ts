@@ -248,3 +248,12 @@ export function parseNestedJSON(value: unknown): unknown {
   }
   return value;
 }
+
+export const getSpanLabel = (type: string) => {
+  switch (type) {
+    case 'invoke': return 'Invoke Agent';
+    case 'chat': return 'Chat';
+    case 'tool': return 'Execute Tool';
+    default: return 'Operation';
+  }
+};
