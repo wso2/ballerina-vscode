@@ -433,9 +433,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         updateEditorState();
     }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
 
-
-    // this keeps completions ref updated
-    // just don't touch this.
     useEffect(() => {
         completionsRef.current = props.completions;
         completionsFetchScheduledRef.current = false;
