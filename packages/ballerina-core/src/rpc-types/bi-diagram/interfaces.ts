@@ -31,6 +31,7 @@ export interface ProjectRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface AddProjectToWorkspaceRequest {
@@ -41,6 +42,7 @@ export interface AddProjectToWorkspaceRequest {
     workspaceName?: string;
     orgName?: string;
     version?: string;
+    isLibrary?: boolean;
 }
 
 export interface WorkspacesResponse {
