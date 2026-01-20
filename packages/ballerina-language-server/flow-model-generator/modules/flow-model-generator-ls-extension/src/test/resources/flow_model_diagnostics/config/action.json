@@ -1,0 +1,347 @@
+{
+  "source": "kafka_action/automation.bal",
+  "description": "Test diagnostics with simple flow node",
+  "flowNode": {
+    "id": "31",
+    "metadata": {
+      "label": "poll",
+      "description": "Polls the external broker to retrieve messages.\n```ballerina\nkafka:AnydataConsumerRecord[] result = check consumer->poll(10);\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "kafka",
+      "packageName": "kafka",
+      "object": "Consumer",
+      "symbol": "poll",
+      "version": "4.6.3",
+      "isNew": true,
+      "inferredReturnType": "T",
+      "lineRange": {
+        "startLine": {
+          "line": 3,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 8
+        }
+      }
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "kafka:Consumer",
+            "selected": false
+          }
+        ],
+        "value": "kafkaConsumer",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "modified": false
+      },
+      "timeout": {
+        "metadata": {
+          "label": "Timeout",
+          "description": "Polling time in seconds"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "placeholder": "0.0d",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "timeout"
+        },
+        "value": "12",
+        "modified": false
+      },
+      "T": {
+        "metadata": {
+          "label": "T",
+          "description": "Optional type description of the required data type"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "kafka:AnydataConsumerRecord[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "kafka:AnydataConsumerRecord[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "T"
+        },
+        "defaultValue": "kafka:AnydataConsumerRecord[]",
+        "value": "News",
+        "modified": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "T",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "modified": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "t",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "modified": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true,
+        "modified": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "id": "35015",
+    "metadata": {
+      "label": "poll",
+      "description": "Polls the external broker to retrieve messages.\n```ballerina\nkafka:AnydataConsumerRecord[] result = check consumer->poll(10);\n```\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "kafka",
+      "packageName": "kafka",
+      "object": "Consumer",
+      "symbol": "poll",
+      "version": "4.6.3",
+      "lineRange": {
+        "fileName": "automation.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 8
+        },
+        "endLine": {
+          "line": 3,
+          "offset": 47
+        }
+      },
+      "sourceCode": "News t = check kafkaConsumer->poll(12);",
+      "inferredReturnType": "T"
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "selected": true
+          }
+        ],
+        "value": "kafkaConsumer",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "timeout": {
+        "metadata": {
+          "label": "Timeout",
+          "description": "Polling time in seconds"
+        },
+        "types": [
+          {
+            "fieldType": "NUMBER",
+            "ballerinaType": "decimal",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "decimal",
+            "selected": false
+          }
+        ],
+        "value": "12",
+        "placeholder": "0.0d",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "diagnostics": {
+          "hasDiagnostics": true,
+          "diagnostics": [
+            {
+              "severity": "ERROR",
+              "message": "incompatible type for parameter 'T' with inferred typedesc value: expected 'typedesc<ballerinax/kafka:4.6.3:AnydataConsumerRecord[]>', found 'typedesc<wso2/kafka_action:0.1.0:News>'"
+            }
+          ]
+        },
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "timeout"
+        }
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      },
+      "T": {
+        "metadata": {
+          "label": "T",
+          "description": "Optional type description of the required data type"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "kafka:AnydataConsumerRecord[]",
+            "selected": false
+          }
+        ],
+        "value": "News",
+        "placeholder": "kafka:AnydataConsumerRecord[]",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "T"
+        },
+        "defaultValue": "kafka:AnydataConsumerRecord[]"
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "t",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "lineRange": {
+            "fileName": "automation.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 13
+            },
+            "endLine": {
+              "line": 3,
+              "offset": 14
+            }
+          }
+        }
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "News",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true,
+        "codedata": {}
+      }
+    },
+    "diagnostics": {
+      "hasDiagnostics": true
+    },
+    "flags": 1
+  }
+}
