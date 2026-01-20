@@ -147,6 +147,8 @@ export class TraceDetailsWebview {
             instance._panel.title = isAgentChat ? 'Agent Chat Logs' : 'Trace Details';
         }
 
+        vscode.commands.executeCommand('workbench.action.closeSidebar');
+
         instance._panel!.reveal(ViewColumn.One);
         instance.updateWebview();
     }
