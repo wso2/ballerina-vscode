@@ -43,7 +43,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -61,7 +60,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -83,7 +81,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
