@@ -47,12 +47,12 @@ const Node = styled.div`
     color: ${ThemeColors.ON_SURFACE};
 `;
 
-const ClickableArea = styled.div`
+const ClickableArea = styled.div<{ readonly?: boolean }>`
     display: flex;
     flex-direction: row-reverse;
     align-items: center;
     gap: 12px;
-    cursor: pointer;
+    cursor: ${(props) => props.readonly ? "default" : "pointer"};
 `;
 
 const Header = styled.div`
@@ -131,7 +131,7 @@ export interface NodeWidgetProps extends Omit<ListenerNodeWidgetProps, "children
 export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     const { model, engine } = props;
     const [isHovered, setIsHovered] = React.useState(false);
-    const { onListenerSelect, onDeleteComponent } = useDiagramContext();
+    const { onListenerSelect, onDeleteComponent, readonly } = useDiagramContext();
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isMenuOpen = Boolean(menuAnchorEl);
 
@@ -193,10 +193,11 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
     return (
         <Node>
             <ClickableArea
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
+                onMouseEnter={() => !readonly && setIsHovered(true)}
+                onMouseLeave={() => !readonly && setIsHovered(false)}
+                onMouseDown={!readonly ? handleMouseDown : undefined}
+                onMouseUp={!readonly ? handleMouseUp : undefined}
+                readonly={readonly}
             >
                 <Circle hovered={isHovered}>
                     <LeftPortWidget port={model.getPort("in")!} engine={engine} />
@@ -207,8 +208,9 @@ export function ListenerNodeWidget(props: ListenerNodeWidgetProps) {
                 <MenuButton 
                     appearance="icon" 
                     onClick={handleOnMenuClick}
-                    onMouseDown={handleMenuMouseDown}
-                    onMouseUp={handleMenuMouseUp}
+                    onMouseDown={!readonly ? handleMenuMouseDown : undefined}
+                    onMouseUp={!readonly ? handleMenuMouseUp : undefined}
+                    disabled={readonly}
                 >
                     <MoreVertIcon />
                 </MenuButton>

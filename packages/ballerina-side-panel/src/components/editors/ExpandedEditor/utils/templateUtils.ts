@@ -17,6 +17,7 @@
  */
 
 import { EditorView, KeyBinding } from "@codemirror/view";
+import { undo, redo, undoDepth, redoDepth } from "@codemirror/commands";
 
 /**
  * Inserts or removes markdown formatting around selected text (toggles)
@@ -215,7 +216,7 @@ const toggleList = (view: EditorView | null, config: ListConfig) => {
 
     const allListed = lines.every(line => {
         const trimmed = line.trim();
-        return trimmed === "" || config.isListed(trimmed);
+        return trimmed !== "" && config.isListed(trimmed);
     });
 
     const processedLines = lines.map((line, index) => {
@@ -261,14 +262,6 @@ export const insertMarkdownOrderedList = (view: EditorView | null) => {
         isListed: t => /^\d+\.\s/.test(t),
         strip: t => t.replace(/^\d+\.\s/, ""),
         add: (t, i) => `${i + 1}. ${t}`
-    });
-};
-
-export const insertMarkdownTaskList = (view: EditorView | null) => {
-    toggleList(view, {
-        isListed: t => /^-\s\[[ x]\]\s/.test(t),
-        strip: t => t.replace(/^-\s\[[ x]\]\s/, ""),
-        add: t => `- [ ] ${t}`
     });
 };
 
@@ -351,3 +344,41 @@ export const listContinuationKeymap: KeyBinding[] = [
         run: handleEnterForListContinuation
     }
 ];
+
+// --- Undo/Redo Commands ---
+
+/**
+ * Executes undo command
+ */
+export const undoCommand = (view: EditorView | null) => {
+    if (!view) return false;
+    const result = undo(view);
+    view.focus();
+    return result;
+};
+
+/**
+ * Executes redo command
+ */
+export const redoCommand = (view: EditorView | null) => {
+    if (!view) return false;
+    const result = redo(view);
+    view.focus();
+    return result;
+};
+
+/**
+ * Checks if undo is available
+ */
+export const canUndo = (view: EditorView | null): boolean => {
+    if (!view) return false;
+    return undoDepth(view.state) > 0;
+};
+
+/**
+ * Checks if redo is available
+ */
+export const canRedo = (view: EditorView | null): boolean => {
+    if (!view) return false;
+    return redoDepth(view.state) > 0;
+};

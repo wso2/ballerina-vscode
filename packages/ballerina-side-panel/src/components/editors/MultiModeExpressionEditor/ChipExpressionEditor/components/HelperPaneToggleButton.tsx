@@ -26,13 +26,15 @@ interface HelperPaneToggleButtonProps {
     onClick: () => void;
     sx?: React.CSSProperties;
     disabled?: boolean;
+    title?: string;
+    displayText?: string;
 }
 
-const OutlineButton = styled.button<{ isOpen: boolean}>`
+const OutlineButton = styled.button<{ isOpen: boolean }>`
     padding: 6px 12px;
     border-radius: 3px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    background-color: ${props => props.isOpen
+    background-color: ${(props: { isOpen: boolean }) => props.isOpen
         ? ThemeColors.SURFACE
         : ThemeColors.SURFACE_BRIGHT};
     color: ${ThemeColors.ON_SURFACE};
@@ -82,7 +84,9 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
     isOpen,
     onClick,
     sx,
-    disabled
+    disabled,
+    title,
+    displayText
 }, ref) => {
 
     return (
@@ -96,9 +100,10 @@ export const HelperPaneToggleButton = React.forwardRef<HTMLButtonElement, Helper
             isOpen={isOpen}
             style={sx}
             disabled={disabled}
+            title={title}
         >
             {isOpen ? <CloseHelperIcon /> : <OpenHelperIcon />}
-            <ButtonText>Helper Panel</ButtonText>
+            <ButtonText>{displayText ? displayText : "Helper Panel"}</ButtonText>
         </OutlineButton>
     );
 });

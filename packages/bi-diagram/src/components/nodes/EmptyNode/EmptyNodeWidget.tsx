@@ -25,7 +25,6 @@ import { EmptyNodeModel } from "./EmptyNodeModel";
 import { EMPTY_NODE_WIDTH, NODE_PADDING } from "../../../resources/constants";
 import { useDiagramContext } from "../../DiagramContext";
 import AddCommentPopup from "../../AddCommentPopup";
-import AddPromptPopup from "../../AddPromptPopup";
 
 namespace S {
     export const Node = styled.div<{ readOnly: boolean }>`
@@ -88,9 +87,7 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
     const [isNodeButtonHovered, setIsNodeButtonHovered] = useState(false);
     const [isPromptButtonHovered, setIsPromptButtonHovered] = useState(false);
     const [commentAnchorEl, setCommentAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
-    const [promptAnchorEl, setPromptAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
     const isCommentBoxOpen = Boolean(commentAnchorEl);
-    const isPromptBoxOpen = Boolean(promptAnchorEl);
 
     const handleAddNode = () => {
         if (readOnly) {
@@ -117,18 +114,18 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
             console.error(">>> EmptyNodeWidget: handleAddPrompt: onAddNodePrompt not found");
             return;
         }
+        const topNode = node.getTopNode();
+        if (!topNode) {
+            console.error(">>> EmptyNodeWidget: handleAddPrompt: top node not found");
+            return;
+        }
         const target = node.getTarget();
         if (!target) {
             console.error(">>> EmptyNodeWidget: handleAddPrompt: target not found");
             return;
         }
-        setPromptAnchorEl(event.currentTarget);
-        setCommentAnchorEl(null);
-    };
-
-    const handleClosePromptBox = () => {
-        setPromptAnchorEl(null);
-        setIsHovered(false);
+        // Directly open AI Chat with CodeContext instead of showing prompt popup
+        onAddNodePrompt(topNode, { startLine: target, endLine: target }, "");
     };
 
     const handleAddComment = (event: React.MouseEvent<HTMLElement | SVGSVGElement>) => {
@@ -243,25 +240,6 @@ export function EmptyNodeWidget(props: EmptyNodeWidgetProps) {
                             }}
                         >
                             <AddCommentPopup target={node.getTarget()} onClose={handleCloseCommentBox} />
-                        </Popover>
-                    </foreignObject>
-                )}
-                {isPromptBoxOpen && (
-                    <foreignObject>
-                        <Popover
-                            open={isPromptBoxOpen}
-                            anchorEl={promptAnchorEl}
-                            sx={{
-                                padding: 0,
-                                borderRadius: 0,
-                                backgroundColor: "unset",
-                            }}
-                        >
-                            <AddPromptPopup
-                                node={node.getTopNode()}
-                                target={node.getTarget()}
-                                onClose={handleClosePromptBox}
-                            />
                         </Popover>
                     </foreignObject>
                 )}

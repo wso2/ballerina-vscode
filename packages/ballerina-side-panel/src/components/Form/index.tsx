@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { forwardRef, useMemo, useEffect, useImperativeHandle, useState, useRef } from "react";
+import React, { forwardRef, useMemo, useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import ReactMarkdown from "react-markdown";
 import {
@@ -31,7 +31,7 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { ExpressionFormField, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
+import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
 import { EditorFactory } from "../editors/EditorFactory";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
@@ -49,6 +49,7 @@ import {
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
+    getPrimaryInputType,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -63,15 +64,35 @@ import FormDescription from "./FormDescription";
 import TypeHelperText from "./TypeHelperText";
 
 namespace S {
-    export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean }>`
+    export const Container = styled(SidePanelBody) <{ nestedForm?: boolean; compact?: boolean; footerActionButton?: boolean }>`
         display: flex;
         flex-direction: column;
         gap: ${({ compact }) => (compact ? "8px" : "20px")};
-        height: ${({ nestedForm }) => (nestedForm ? "unset" : "calc(100vh - 100px)")};
-        overflow-y: ${({ nestedForm }) => (nestedForm ? "visible" : "auto")};
+        height: ${({ nestedForm, footerActionButton }) => {
+            if (nestedForm) return "unset";
+            if (footerActionButton) return "100%";
+            return "calc(100vh - 50px)";
+        }};
+        max-height: ${({ footerActionButton }) => footerActionButton ? "100%" : "none"};
+        min-height: ${({ footerActionButton }) => footerActionButton ? "0" : "auto"};
+        overflow: ${({ nestedForm, footerActionButton }) => {
+            if (nestedForm) return "visible";
+            if (footerActionButton) return "hidden";
+            return "auto";
+        }};
+        position: ${({ footerActionButton }) => footerActionButton ? "relative" : "static"};
         & > :last-child {
             margin-top: ${({ compact }) => (compact ? "12px" : "0")};
         }
+    `;
+
+    export const ScrollableContent = styled.div<{}>`
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     `;
 
     export const Row = styled.div<{}>`
@@ -113,6 +134,25 @@ namespace S {
         align-items: center;
         margin-top: 8px;
         width: 100%;
+    `;
+
+    export const FooterActionButtonContainer = styled.div<{}>`
+        position: sticky;
+        bottom: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        width: 100%;
+    `;
+
+    export const FooterActionButton = styled(Button)`
+        width: 100% !important;
+        min-width: 0 !important;
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        height: 35px !important;
     `;
 
     export const TitleContainer = styled.div<{}>`
@@ -207,6 +247,7 @@ namespace S {
     export const MarkdownWrapper = styled.div`
         position: relative;
         width: 100%;
+        margin-bottom: -12px;
     `;
 
     export const MarkdownContainer = styled.div<{ isExpanded: boolean }>`
@@ -357,9 +398,11 @@ export interface FormProps {
         index: number;
     }[];
     hideSaveButton?: boolean; // Option to hide the save button
+    footerActionButton?: boolean; // Render save button as footer action button
     onValidityChange?: (isValid: boolean) => void; // Callback for form validity status
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
+    derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -397,9 +440,11 @@ export const Form = forwardRef((props: FormProps) => {
         scopeFieldAddon,
         injectedComponents,
         hideSaveButton = false,
+        footerActionButton = false,
         onValidityChange,
         changeOptionalFieldTitle = undefined,
-        openFormTypeEditor
+        openFormTypeEditor,
+        derivedFields = []
     } = props;
 
     const {
@@ -421,6 +466,7 @@ export const Form = forwardRef((props: FormProps) => {
     const [diagnosticsInfo, setDiagnosticsInfo] = useState<FormDiagnostics[] | undefined>(undefined);
     const [isMarkdownExpanded, setIsMarkdownExpanded] = useState(false);
     const [isIdentifierEditing, setIsIdentifierEditing] = useState(false);
+    const [manuallyEditedFields, setManuallyEditedFields] = useState<Set<string>>(new Set());
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
     const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Advanced Configurations");
 
@@ -439,15 +485,29 @@ export const Form = forwardRef((props: FormProps) => {
             const diagnosticsMap: FormDiagnostics[] = [];
             const formValues = getValues();
             console.log("Existing form values: ", formValues);
+
+            // First, preserve ALL existing form values
+            Object.keys(formValues).forEach(key => {
+                if (formValues[key] !== undefined && formValues[key] !== "") {
+                    defaultValues[key] = formValues[key];
+                }
+            });
+
             formFields.forEach((field) => {
-                if (isDropdownField(field)) {
-                    defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                } else if (field.type === "FLAG") {
-                    defaultValues[field.key] = field.value === "true" || (typeof field.value === "boolean" && field.value);
-                } else if (typeof field.value === "string") {
-                    defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
-                } else {
-                    defaultValues[field.key] = field.value ?? "";
+                // Only set field defaults if no existing value is present
+                if (defaultValues[field.key] === undefined) {
+                  if (field.hidden) {
+                      defaultValues[field.key] = field.value;
+                  } else if (isDropdownField(field)) {
+                      defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                  } else if (field.type === "FLAG" && field.types?.length > 1) {
+                      defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                  } else if (field.type === "FLAG") {
+                      defaultValues[field.key] = field.value || "true";
+                  } else if (typeof field.value === "string") {
+                      defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
+                  } else {
+                      defaultValues[field.key] = field.value ?? "";
                 }
                 if (field.key === "variable") {
                     defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
@@ -476,7 +536,10 @@ export const Form = forwardRef((props: FormProps) => {
 
                     if (selectedChoice && selectedChoice?.properties) {
                         Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            if (propValue?.value !== undefined) {
+                            // Preserve existing form values if they exist, otherwise use propValue.value
+                            if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
+                                defaultValues[propKey] = formValues[propKey];
+                            } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
                                 defaultValues[propKey] = propValue.value;
                             }
 
@@ -485,11 +548,8 @@ export const Form = forwardRef((props: FormProps) => {
                     }
                 }
 
-                if (formValues[field.key] !== undefined && formValues[field.key] !== "" && !field.value) {
-                    defaultValues[field.key] = formValues[field.key];
-                }
                 diagnosticsMap.push({ key: field.key, diagnostics: [] });
-            });
+            }});
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
 
@@ -585,8 +645,77 @@ export const Form = forwardRef((props: FormProps) => {
         );
     };
 
+    // Recursively collect advanced fields from selected choices (including nested choices)
+    const advancedChoiceFields = useMemo(() => {
+        const fields: FormField[] = [];
+        const formValues = getValues();
+
+        // Recursive function to traverse nested choices
+        const collectAdvancedFields = (properties: any) => {
+            if (!properties) return;
+
+            Object.entries(properties).forEach(([propKey, propValue]: [string, any]) => {
+                // If this property is a choice field, recurse into selected choice
+                if (propValue?.choices && propValue.choices.length > 0) {
+                    const selectedChoiceIndex = formValues[propKey] !== undefined ? Number(formValues[propKey]) : 0;
+                    const selectedChoice = propValue.choices[selectedChoiceIndex];
+
+                    if (selectedChoice && selectedChoice?.properties && !selectedChoice.advanced && !propValue.advanced) {
+                        // Recursively collect from nested choice properties
+                        collectAdvancedFields(selectedChoice.properties);
+                    }
+                }
+                // If this property is advanced, add it to the list
+                else if (propValue.advanced && propValue.enabled && !propValue.hidden && !propValue.choices) {
+                    const choiceFormField: FormField = {
+                        key: propKey,
+                        label: propValue?.metadata?.label || propKey.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^./, str => str.toUpperCase()),
+                        type: getPrimaryInputType(propValue.types)?.fieldType,
+                        documentation: propValue?.metadata?.description || "",
+                        types: propValue.types,
+                        editable: propValue.editable,
+                        enabled: propValue?.enabled ?? true,
+                        optional: propValue.optional,
+                        value: propValue.value,
+                        advanced: propValue.advanced,
+                        diagnostics: [],
+                        items: propValue.items,
+                        choices: propValue.choices,
+                        placeholder: propValue.placeholder,
+                    };
+                    fields.push(choiceFormField);
+                }
+            });
+        };
+
+        // Start collection from top-level form fields
+        formFields.forEach((field) => {
+            if (field?.choices && field.choices.length > 0) {
+                const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
+                const selectedChoice = field.choices[selectedChoiceIndex];
+
+                if (selectedChoice && selectedChoice?.properties && !field.advanced) {
+                    collectAdvancedFields(selectedChoice.properties);
+                }
+            }
+        });
+
+        return fields;
+    }, [formFields, watch()]);
+
+    // Initialize form values for advanced choice fields
+    useEffect(() => {
+        advancedChoiceFields.forEach(field => {
+            const currentValue = getValues(field.key);
+            // Only set the value if it's currently undefined and the field has a value
+            if (currentValue === undefined && field.value !== undefined) {
+                setValue(field.key, field.value);
+            }
+        });
+    }, [advancedChoiceFields, getValues, setValue]);
+
     // has advance fields
-    const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden);
+    const hasAdvanceFields = formFields.some((field) => field.advanced && field.enabled && !field.hidden) || advancedChoiceFields.length > 0;
     const variableField = formFields.find((field) => field.key === "variable");
     const typeField = formFields.find((field) => field.key === "type");
     const expressionField = formFields.find((field) => field.key === "expression");
@@ -714,6 +843,54 @@ export const Form = forwardRef((props: FormProps) => {
         }
     }, [watchedValues]);
 
+    // Handle derived fields: auto-generate target field values from source fields
+    useEffect(() => {
+        if (derivedFields.length === 0) return;
+
+        derivedFields.forEach(({ sourceField, targetField, deriveFn, breakOnManualEdit = true }) => {
+            const sourceValue = watchedValues[sourceField];
+            const currentTargetValue = watchedValues[targetField];
+
+            // Skip if this field has been manually edited and breakOnManualEdit is true
+            if (breakOnManualEdit && manuallyEditedFields.has(targetField)) {
+                return;
+            }
+
+            // Derive the new target value
+            const derivedValue = deriveFn(sourceValue);
+
+            // Only update if the value has actually changed
+            if (derivedValue !== currentTargetValue) {
+                setValue(targetField, derivedValue);
+            }
+        });
+    }, [watchedValues, derivedFields, manuallyEditedFields, setValue]);
+
+    // Track manual edits to derived target fields
+    useEffect(() => {
+        if (derivedFields.length === 0) return;
+
+        const prevValues = prevValuesRef.current;
+        derivedFields.forEach(({ targetField, breakOnManualEdit = true }) => {
+            if (!breakOnManualEdit) return;
+
+            const currentValue = watchedValues[targetField];
+            const prevValue = prevValues[targetField];
+
+            if (currentValue !== prevValue && prevValue !== undefined) {
+                // Mark this field as manually edited
+                setManuallyEditedFields(prev => {
+                    if (!prev.has(targetField)) {
+                        const newSet = new Set(prev);
+                        newSet.add(targetField);
+                        return newSet;
+                    }
+                    return prev;
+                });
+            }
+        });
+    }, [watchedValues, derivedFields]);
+
     const handleOnOpenInDataMapper = () => {
         setSavingButton('dataMapper');
         handleSubmit((data) => {
@@ -726,18 +903,24 @@ export const Form = forwardRef((props: FormProps) => {
 
     const handleOnSaveClick = async () => {
         setSavingButton('save');
+
+        // Check for existing form errors (including pattern validation errors)
+        if (Object.keys(errors).length > 0) {
+            setSavingButton(null);
+            return;
+        }
+
         const isValidForm = onFormValidation ? await handleFormValidation() : true;
         if (isValidForm) {
             handleSubmit(handleOnSave)();
         }
     };
 
-    return (
-        <Provider {...contextValue}>
-            <S.Container nestedForm={nestedForm} compact={compact} className="side-panel-body">
-                {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
-                {infoLabel && !compact && (
-                    <S.MarkdownWrapper>
+    const formContent = (
+        <>
+            {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
+            {infoLabel && !compact && (
+                <S.MarkdownWrapper>
                         <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
                             <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
                         </S.MarkdownContainer>
@@ -906,6 +1089,28 @@ export const Form = forwardRef((props: FormProps) => {
                             }
                             return null;
                         })}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        advancedChoiceFields.map((field) => {
+                            const updatedField = updateFormFieldWithImports(field, formImports);
+                            return (
+                                <S.Row key={updatedField.key}>
+                                    <EditorFactory
+                                        field={updatedField}
+                                        openRecordEditor={
+                                            openRecordEditor &&
+                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                        }
+                                        subPanelView={subPanelView}
+                                        handleOnFieldFocus={handleOnFieldFocus}
+                                        recordTypeFields={recordTypeFields}
+                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                        handleOnTypeChange={handleOnTypeChange}
+                                        onBlur={handleOnBlur}
+                                    />
+                                </S.Row>
+                            );
+                        })}
                 </S.CategoryRow>
 
                 {!preserveOrder && (variableField || typeField || targetTypeField) && (
@@ -935,7 +1140,7 @@ export const Form = forwardRef((props: FormProps) => {
 
                             />
                         )}
-                        {targetTypeField && (
+                        {targetTypeField && !targetTypeField.advanced && (
                             <>
                                 <EditorFactory
                                     field={targetTypeField}
@@ -957,13 +1162,25 @@ export const Form = forwardRef((props: FormProps) => {
                     </S.CategoryRow>
                 )}
 
-                {concertMessage && (
-                    <S.ConcertContainer>
-                        <CheckBox checked={isUserConcert} onChange={handleConcertChange} label={concertMessage} />
-                    </S.ConcertContainer>
-                )}
+            {concertMessage && (
+                <S.ConcertContainer>
+                    <CheckBox checked={isUserConcert} onChange={handleConcertChange} label={concertMessage} />
+                </S.ConcertContainer>
+            )}
+        </>
+    );
 
-                {onSubmit && !hideSaveButton && (
+    return (
+        <Provider {...contextValue}>
+            <S.Container nestedForm={nestedForm} compact={compact} footerActionButton={footerActionButton} className="side-panel-body">
+                {footerActionButton ? (
+                    <S.ScrollableContent>
+                        {formContent}
+                    </S.ScrollableContent>
+                ) : (
+                    formContent
+                )}
+                {onSubmit && !hideSaveButton && !footerActionButton && (
                     <S.Footer>
                         {onCancelForm && (
                             <Button appearance="secondary" onClick={onCancelForm}>
@@ -996,6 +1213,24 @@ export const Form = forwardRef((props: FormProps) => {
                             )}
                         </Button>
                     </S.Footer>
+                )}
+                {onSubmit && !hideSaveButton && footerActionButton && (
+                    <S.FooterActionButtonContainer>
+                        <S.FooterActionButton
+                            appearance="primary"
+                            onClick={handleOnSaveClick}
+                            disabled={disableSaveButton || isSaving}
+                            buttonSx={{ width: "100%", height: "35px" }}
+                        >
+                            {isValidatingForm ? (
+                                <Typography variant="progress">Validating...</Typography>
+                            ) : isSaving && savingButton === 'save' ? (
+                                <Typography variant="progress">{submitText || "Saving..."}</Typography>
+                            ) : (
+                                submitText || "Save"
+                            )}
+                        </S.FooterActionButton>
+                    </S.FooterActionButtonContainer>
                 )}
             </S.Container>
         </Provider>

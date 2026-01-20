@@ -25,6 +25,8 @@ import { ThemeColors, Overlay } from "@wso2/ui-toolkit";
 import EditConnectionWizard from "./views/BI/Connection/EditConnectionWizard";
 import { FunctionForm } from "./views/BI";
 import { DataMapper } from "./views/DataMapper";
+import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
+import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;
@@ -46,10 +48,11 @@ const TopBar = styled.div`
 interface PopupPanelProps {
     formState: PopupMachineStateValue;
     onClose: (parent?: ParentPopupData) => void;
+    handleNavigateToOverview: () => void;
 }
 
 const PopupPanel = (props: PopupPanelProps) => {
-    const { formState, onClose } = props;
+    const { formState, onClose, handleNavigateToOverview } = props;
     const { rpcClient } = useRpcContext();
     const [viewComponent, setViewComponent] = useState<React.ReactNode>();
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -70,12 +73,13 @@ const PopupPanel = (props: PopupPanelProps) => {
                 case MACHINE_VIEW.AddConnectionWizard:
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
-                            <AddConnectionWizard
+                            <AddConnectionPopup
                                 projectPath={location.projectPath}
                                 fileName={location.documentUri || location.projectPath}
                                 target={machineState.metadata?.target || undefined}
                                 onClose={onClose}
-                                isPopupScreen={true}
+                                onNavigateToOverview={handleNavigateToOverview}
+                                isPopup={true}
                             />
                         );
                     });
@@ -84,11 +88,10 @@ const PopupPanel = (props: PopupPanelProps) => {
                     rpcClient.getVisualizerLocation().then((location) => {
                         setViewComponent(
                             <>
-                                <EditConnectionWizard
+                                <EditConnectionPopup
                                     connectionName={machineState?.identifier}
                                     onClose={onClose}
                                 />
-                                <Overlay sx={{ background: `${ThemeColors.SURFACE_CONTAINER}`, opacity: `0.3`, zIndex: 1000 }} />
                             </>
                         );
                     });

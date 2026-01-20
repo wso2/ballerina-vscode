@@ -36,9 +36,6 @@ export class ExpressionLabelFactory extends AbstractReactFactory<ExpressionLabel
 
 	generateReactWidget(event: GenerateWidgetEvent<ExpressionLabelModel>): JSX.Element {
 		if (event.model.link?.pendingMappingType) {
-			if(event.model.link.pendingMappingType === MappingType.ArrayJoin) {
-				return <></>;
-			}
 			return <MappingOptionsWidget model={event.model} />;
 		}
 		return <ExpressionLabelWidget model={event.model} engine={this.engine} />;

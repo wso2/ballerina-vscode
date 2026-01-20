@@ -18,12 +18,18 @@
 
 import { LANGUAGE } from "../../../core";
 import { extension } from "../../../BalExtensionContext";
-import { commands, window } from "vscode";
+import { commands, QuickPickItem, window } from "vscode";
 import {
     TM_EVENT_PROJECT_ADD, TM_EVENT_ERROR_EXECUTE_PROJECT_ADD, CMP_PROJECT_ADD, sendTelemetryEvent, sendTelemetryException, getMessageObject
 } from "../../telemetry";
 import { runCommand, BALLERINA_COMMANDS, MESSAGES, PROJECT_TYPE, PALETTE_COMMANDS } from "./cmd-runner";
-import { getCurrentBallerinaProject } from "../../../utils/project-utils";
+import {
+    getCurrentBallerinaProject,
+    getCurrentProjectRoot
+} from "../../../utils/project-utils";
+import { MACHINE_VIEW, ProjectInfo } from "@wso2/ballerina-core";
+import { StateMachine } from "../../../stateMachine";
+import { selectPackageOrPrompt } from "../../../utils/command-utils";
 
 function activateAddCommand() {
     // register ballerina add handler
@@ -36,9 +42,38 @@ function activateAddCommand() {
                 return;
             }
 
-            const currentProject = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
-                : await getCurrentBallerinaProject();
+            const context = StateMachine.context();
+            const { workspacePath, view: webviewType, projectPath, projectInfo } = context;
+
+            let targetPath = projectPath ?? "";
+            if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+                const selection = await getPackage(projectInfo);
+                if (!selection) {
+                    return;
+                }
+                targetPath = selection;
+                
+            } else if (workspacePath && !projectPath) {
+                try {
+                    targetPath = await getCurrentProjectRoot();
+                } catch (error){
+                    const selection = await getPackage(projectInfo);
+                    if (!selection) {
+                        return;
+                    }
+                    targetPath = selection;
+                }
+            } else {
+                targetPath = await getCurrentProjectRoot();
+            }
+  
+            if (!targetPath) {
+                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                return;
+            }
+
+            const currentProject = await getCurrentBallerinaProject(targetPath);
+
             if (currentProject.kind === PROJECT_TYPE.SINGLE_FILE || !currentProject.path) {
                 sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_ADD, CMP_PROJECT_ADD,
                     getMessageObject(MESSAGES.NOT_IN_PROJECT));
@@ -64,3 +99,15 @@ function activateAddCommand() {
 }
 
 export { activateAddCommand };
+
+// Prompts user to select a package
+async function getPackage(projectInfo: ProjectInfo): Promise<string | undefined> {
+    const packages = projectInfo?.children.map((child) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(packages, "Select a package to add the module to");
+    if (!selectedPackage) {
+        return undefined;
+    }
+
+    return selectedPackage;
+}

@@ -18,7 +18,7 @@
 
 export const CONFIG_FILE_NAME = "Config.toml";
 export const CONFIGURE_DEFAULT_MODEL_COMMAND = "ballerina.configureWso2DefaultModelProvider";
-export const OPEN_AI_PANEL_COMMAND = "ballerina.open.ai.panel";
+
 export const CLOSE_AI_PANEL_COMMAND = "ballerina.close.ai.panel";
 export const SIGN_IN_BI_COPILOT = "Sign in to BI Copilot";
 export const PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL = "Fetching and saving access token for WSO2 default model provider.";
@@ -26,49 +26,3 @@ export const ERROR_NO_BALLERINA_SOURCES = "No Ballerina sources";
 export const LOGIN_REQUIRED_WARNING = "Please sign in to BI Copilot to use this feature.";
 export const LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL = "Please sign in to BI Copilot to configure the WSO2 default model provider.";
 export const DEFAULT_PROVIDER_ADDED = "WSO2 default model provider configuration values were added to the Config.toml file.";
-
-// Datamapper Constants
-// Primitive data types supported by the datamapper
-export enum PrimitiveType {
-  STRING = "string",
-  INT = "int",
-  FLOAT = "float",
-  DECIMAL = "decimal",
-  BOOLEAN = "boolean"
-}
-
-// Nullable primitive data types
-export enum NullablePrimitiveType {
-  STRING = "string?",
-  INT = "int?",
-  FLOAT = "float?",
-  DECIMAL = "decimal?",
-  BOOLEAN = "boolean?"
-}
-
-// Array types for primitive data types
-export enum PrimitiveArrayType {
-  // Basic array types
-  STRING_ARRAY = "string[]",
-  STRING_ARRAY_NULLABLE = "string[]?",
-  INT_ARRAY = "int[]",
-  INT_ARRAY_NULLABLE = "int[]?",
-  FLOAT_ARRAY = "float[]",
-  FLOAT_ARRAY_NULLABLE = "float[]?",
-  DECIMAL_ARRAY = "decimal[]",
-  DECIMAL_ARRAY_NULLABLE = "decimal[]?",
-  BOOLEAN_ARRAY = "boolean[]",
-  BOOLEAN_ARRAY_NULLABLE = "boolean[]?",
-  
-  // Arrays with nullable elements
-  STRING_OR_NULL_ARRAY = "string?[]",
-  STRING_OR_NULL_ARRAY_NULLABLE = "string?[]?",
-  INT_OR_NULL_ARRAY = "int?[]",
-  INT_OR_NULL_ARRAY_NULLABLE = "int?[]?",
-  FLOAT_OR_NULL_ARRAY = "float?[]",
-  FLOAT_OR_NULL_ARRAY_NULLABLE = "float?[]?",
-  DECIMAL_OR_NULL_ARRAY = "decimal?[]",
-  DECIMAL_OR_NULL_ARRAY_NULLABLE = "decimal?[]?",
-  BOOLEAN_OR_NULL_ARRAY = "boolean?[]",
-  BOOLEAN_OR_NULL_ARRAY_NULLABLE = "boolean?[]?"
-}

@@ -29,7 +29,7 @@ export const EmptyItemsPlaceHolder = ({ message = "No items found" }: EmptyItems
             height: '100%',
             width: '100%'
         }}>
-            <span>{message}</span>
+            <span style={{ margin: "0 10px" }}>{message}</span>
         </div>
     )
 }

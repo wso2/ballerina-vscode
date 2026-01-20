@@ -39,9 +39,12 @@ import {
     Member,
     TypeNodeKind,
     NodeKind,
-    DataMapperDisplayMode
+    DataMapperDisplayMode,
+    InputType,
+    getPrimaryInputType
 } from "@wso2/ballerina-core";
 import {
+    FieldDerivation,
     FormField,
     FormValues,
     Form,
@@ -143,6 +146,8 @@ interface FormProps {
     navigateToPanel?: (panel: SidePanelView, connectionKind?: ConnectionKind) => void;
     fieldPriority?: Record<string, number>; // Map of field keys to priority numbers (lower = rendered first)
     fieldOverrides?: Record<string, Partial<FormField>>;
+    footerActionButton?: boolean; // Render save button as footer action button
+    derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
 }
 
 // Styled component for the action button description
@@ -217,15 +222,29 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         onChange,
         injectedComponents,
         fieldPriority,
+        footerActionButton,
     } = props;
 
     const { rpcClient } = useRpcContext();
-    const [fields, setFields] = useState<FormField[]>([]);
+    const [baseFields, setBaseFields] = useState<FormField[]>([]);
     const [formImports, setFormImports] = useState<FormImports>({});
     const [typeEditorState, setTypeEditorState] = useState<TypeEditorState>({ isOpen: false, newTypeValue: "" });
     const [visualizableField, setVisualizableField] = useState<VisualizableField>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
     const [valueTypeConstraints, setValueTypeConstraints] = useState<string>();
+
+    const fields = useMemo(() => {
+        if (!props.fieldOverrides || baseFields.length === 0) {
+            return baseFields;
+        }
+        return baseFields.map(field => {
+            const override = props.fieldOverrides[field.key];
+            if (override) {
+                return { ...field, ...override };
+            }
+            return field;
+        });
+    }, [baseFields, props.fieldOverrides]);
 
     /* Expression editor related state and ref variables */
     const prevCompletionFetchText = useRef<string>("");
@@ -355,6 +374,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         };
     }, [node]);
 
+
     const handleFormOpen = () => {
         rpcClient
             .getBIDiagramRpcClient()
@@ -422,34 +442,25 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         // Extract fields with typeMembers where kind is RECORD_TYPE
         const recordTypeFields = Object.entries(formProperties)
-            .filter(([_, property]) =>
-                property.typeMembers &&
-                property.typeMembers.some(member => member.kind === "RECORD_TYPE")
-            )
+            .filter(([_, property]) => {
+                const primaryInputType = getPrimaryInputType(property?.types);
+            
+                return primaryInputType?.typeMembers &&
+                    primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
+            })
             .map(([key, property]) => ({
                 key,
                 property,
-                recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+                recordTypeMembers: getPrimaryInputType(property?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
             }));
 
         setRecordTypeFields(recordTypeFields);
 
         // get node properties
-        let fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
-
-        // Apply field overrides if provided
-        if (props.fieldOverrides) {
-            fields = fields.map(field => {
-                const override = props.fieldOverrides[field.key];
-                if (override) {
-                    return { ...field, ...override };
-                }
-                return field;
-            });
-        }
+        const fields = convertNodePropertiesToFormFields(enrichedNodeProperties || formProperties, connections, clientName);
 
         const sortedFields = sortFieldsByPriority(fields);
-        setFields(sortedFields);
+        setBaseFields(sortedFields);
         setFormImports(getImportsForFormFields(sortedFields));
     };
 
@@ -472,7 +483,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }
             return updatedField;
         });
-        setFields(updatedFields);
+        setBaseFields(updatedFields);
     }
 
     const handleOnSubmit = (data: FormValues, dirtyFields: any) => {
@@ -524,7 +535,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             }
             return updatedField;
         });
-        setFields(updatedFields);
+        setBaseFields(updatedFields);
         setTypeEditorState({ isOpen, fieldKey: editingField?.key, newTypeValue: f[editingField?.key] });
     };
 
@@ -691,8 +702,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, types?: InputType[]) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, getPrimaryInputType(types)?.ballerinaType);
         },
         [debouncedGetVisibleTypes]
     );
@@ -842,7 +853,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (type.codedata.node === "RECORD") {
             handleSelectedTypeChange(convertRecordTypeToCompletionItem(type));
         }
-        setFields(updatedFields);
+        setBaseFields(updatedFields);
     };
 
     const handleValueTypeConstChange = async (valueTypeConstraint: string) => {
@@ -898,7 +909,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        defaultValueTypeConstraint?: string,
+        defaultTypes?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -926,7 +937,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: isInModal,
-            valueTypeConstraint: defaultValueTypeConstraint,
+            types: defaultTypes,
             handleRetrieveCompletions: handleRetrieveCompletions,
             forcedValueTypeConstraint: valueTypeConstraints,
             handleValueTypeConstChange: handleValueTypeConstChange,
@@ -936,7 +947,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -959,7 +970,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            valueTypeConstraint: valueTypeConstraint,
+            types: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: updateLineRange(targetLineRange, expressionOffsetRef.current),
@@ -1038,10 +1049,9 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
             onOpenRecordConfigPage: openRecordConfigPage,
-            helperPaneOrigin: "vertical",
-            helperPaneHeight: "default",
-            helperPaneZIndex: isInModal ? 40001 : undefined,
-        } as FormExpressionEditorProps;
+            helperPaneOrigin: "vertical" as const,
+            helperPaneHeight: "default" as const,
+        } satisfies FormExpressionEditorProps;
     }, [
         filteredCompletions,
         types,
@@ -1172,7 +1182,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     };
 
     const findMatchedType = (items: TypeHelperItem[], typeName: string) => {
-        return items?.find(item => `${item.codedata.module}:${item.insertText}` === typeName);
+        return items?.find(item => {
+            const moduleName = item.codedata.module?.split(".").pop() ?? item.codedata.module;
+            return `${moduleName}:${item.insertText}` === typeName;
+        });
     }
 
     /**
@@ -1349,6 +1362,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 subPanelView={subPanelView}
                 disableSaveButton={disableSaveButton}
                 navigateToPanel={props.navigateToPanel}
+                footerActionButton={footerActionButton}
             />
         );
     }
@@ -1408,6 +1422,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
+                    footerActionButton={footerActionButton}
                     actionButton={actionButton}
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
@@ -1525,6 +1540,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     visualizableField={visualizableField}
                     infoLabel={infoLabel}
                     disableSaveButton={disableSaveButton}
+                    footerActionButton={footerActionButton}
                     actionButton={actionButton}
                     recordTypeFields={recordTypeFields}
                     isInferredReturnType={!!node.codedata?.inferredReturnType}
@@ -1538,6 +1554,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                     scopeFieldAddon={scopeFieldAddon}
                     onChange={onChange}
                     injectedComponents={injectedComponents}
+                    derivedFields={props.derivedFields}
                 />
             )}
             {stack.map((item, i) => (

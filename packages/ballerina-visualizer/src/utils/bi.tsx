@@ -57,6 +57,10 @@ import {
     SubPanelView,
     NodeMetadata,
     Type,
+    getPrimaryInputType,
+    isTemplateType,
+    DropdownType,
+    isDropDownType,
 } from "@wso2/ballerina-core";
 import {
     HelperPaneVariableInfo,
@@ -124,11 +128,12 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
     // HACK: use the icon of the first item in the category
     const icon = category.items.at(0)?.metadata.icon;
     const codedata = (category.items.at(0) as AvailableNode)?.codedata;
+    const connectorType = (category?.metadata?.data as NodeMetadata)?.connectorType;
 
     return {
         title: category.metadata.label,
         description: category.metadata.description,
-        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} />,
+        icon: <ConnectorIcon url={icon} style={{ width: "20px", height: "20px", fontSize: "20px" }} codedata={codedata} connectorType={connectorType} />,
         items: items,
     };
 }
@@ -259,7 +264,7 @@ export function convertNodePropertyToFormField(
     const formField: FormField = {
         key,
         label: property.metadata?.label || "",
-        type: property.valueType,
+        type: getPrimaryInputType(property.types)?.fieldType ?? "",
         optional: property.optional,
         advanced: property.advanced,
         placeholder: property.placeholder,
@@ -270,11 +275,10 @@ export function convertNodePropertyToFormField(
         documentation: property.metadata?.description || "",
         value: getFormFieldValue(property, clientName),
         advanceProps: convertNodePropertiesToFormFields(property.advanceProperties),
-        valueType: property.valueType,
         items: getFormFieldItems(property, connections),
         itemOptions: property.itemOptions,
         diagnostics: property.diagnostics?.diagnostics || [],
-        valueTypeConstraint: property.valueTypeConstraint,
+        types: property.types,
         lineRange: property?.codedata?.lineRange,
         metadata: property.metadata,
         codedata: property.codedata,
@@ -287,7 +291,7 @@ function isFieldEditable(expression: Property, connections?: FlowNode[], clientN
     if (
         connections &&
         clientName &&
-        expression.valueType === "Identifier" &&
+        getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" &&
         expression.metadata.label === "Connection"
     ) {
         return false;
@@ -296,30 +300,20 @@ function isFieldEditable(expression: Property, connections?: FlowNode[], clientN
 }
 
 function getFormFieldValue(expression: Property, clientName?: string) {
-    if (clientName && expression.valueType === "Identifier" && expression.metadata.label === "Connection") {
+    if (clientName && getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
         console.log(">>> client name as set field value", clientName);
         return clientName;
     }
     return expression.value as string;
 }
 
-function getFormFieldValueType(expression: Property): string | undefined {
-    if (Array.isArray(expression.valueTypeConstraint)) {
-        return undefined;
-    }
-
-    if (expression.valueTypeConstraint) {
-        return expression.valueTypeConstraint;
-    }
-
-    return expression.valueType;
-}
-
 function getFormFieldItems(expression: Property, connections: FlowNode[]): string[] {
-    if (expression.valueType === "Identifier" && expression.metadata.label === "Connection") {
+    if (getPrimaryInputType(expression.types)?.fieldType === "IDENTIFIER" && expression.metadata.label === "Connection") {
         return connections.map((connection) => connection.properties?.variable?.value as string);
-    } else if (expression.valueType === "MULTIPLE_SELECT" || expression.valueType === "SINGLE_SELECT") {
-        return expression.valueTypeConstraint as string[];
+    } else if (expression.types?.length > 1 && (getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT")) {
+        return expression.types?.map(inputType => inputType.ballerinaType) as string[];
+    } else if (expression.types?.length === 1 && isDropDownType(expression.types[0])) {
+        return (expression.types[0] as DropdownType).options.map((option) => option.value);
     }
     return undefined;
 }
@@ -409,6 +403,9 @@ export function getContainerTitle(view: SidePanelView, activeNode: FlowNode, cli
             if (!activeNode) {
                 return "";
             }
+            if (activeNode.codedata?.node === "AGENT_CALL") {
+                return `AI Agent`;
+            }
             if (activeNode.codedata?.node === "KNOWLEDGE_BASE" && activeNode.codedata?.object === "VectorKnowledgeBase") {
                 return `ai: Vector Knowledge Base`;
             }
@@ -481,7 +478,7 @@ export function enrichFormTemplatePropertiesWithValues(
             ) {
                 // Copy the value from formProperties to formTemplateProperties
                 enrichedFormTemplateProperties[key as NodePropertyKey].value = formProperty.value;
-                
+
                 if (formProperty.hasOwnProperty('editable')) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].editable = formProperty.editable;
                     enrichedFormTemplateProperties[key as NodePropertyKey].codedata = formProperty?.codedata;
@@ -489,7 +486,11 @@ export function enrichFormTemplatePropertiesWithValues(
 
                 if (formProperty.diagnostics) {
                     enrichedFormTemplateProperties[key as NodePropertyKey].diagnostics = formProperty.diagnostics;
-               }
+                }
+
+                if (formProperty.types) {
+                    enrichedFormTemplateProperties[key as NodePropertyKey].types = formProperty.types;
+                }
             }
         }
     }
@@ -698,6 +699,9 @@ async function getDocumentation(fnDescription: string, argsDescription: string[]
 };
 
 export async function convertToFnSignature(signatureHelp: SignatureHelpResponse) {
+    if (!signatureHelp) {
+        return undefined;
+    }
     const currentSignature = signatureHelp.signatures[0];
     if (!currentSignature) {
         return undefined;
@@ -749,7 +753,7 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
 
 export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     const label = type?.name ?? "";
-    const value = label; 
+    const value = label;
     const kind = "struct";
     const description = type?.metadata?.description;
     const labelDetails = (() => {
@@ -916,14 +920,13 @@ function handleRepeatableProperty(property: Property, formField: FormField): voi
     const paramFields: FormField[] = [];
 
     // Create parameter fields
-    for (const [paramKey, param] of Object.entries((property.valueTypeConstraint as any).value as NodeProperties)) {
-        const paramField = convertNodePropertyToFormField(paramKey, param);
-        paramFields.push(paramField);
+    const primaryInputType = getPrimaryInputType(property.types);
+    if (isTemplateType(primaryInputType)) {
+        for (const [paramKey, param] of Object.entries((primaryInputType.template).value as NodeProperties)) {
+            const paramField = convertNodePropertyToFormField(paramKey, param);
+            paramFields.push(paramField);
+        }
     }
-
-    // Set up parameter manager properties
-    formField.valueType = "PARAM_MANAGER";
-    formField.type = "PARAM_MANAGER";
 
     // Create existing parameter values
     const paramValues = Object.entries(property.value as NodeProperties).map(([paramValueKey, paramValue], index) =>
@@ -966,7 +969,7 @@ export function convertConfig(properties: NodeProperties, skipKeys: string[] = [
         const property = properties[key as keyof NodeProperties];
         const formField = convertNodePropertyToFormField(key, property);
 
-        if (property.valueType === "REPEATABLE_PROPERTY") {
+        if (getPrimaryInputType(property.types)?.fieldType === "REPEATABLE_PROPERTY") {
             handleRepeatableProperty(property, formField);
         }
 
@@ -1036,6 +1039,38 @@ export function getImportsForFormFields(formFields: FormField[]): FormImports {
 export function filterUnsupportedDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
     return diagnostics.filter((diagnostic) => {
         return !diagnostic.message.startsWith('unknown type') && !diagnostic.message.startsWith('undefined module');
+    });
+}
+
+/**
+ * Filter out "undefined symbol" diagnostics when the symbol is a known Tool Input parameter
+ * @param diagnostics - Array of diagnostics to filter
+ * @param toolInputParameterNames - Array of Tool Input parameter names to exclude from diagnostics
+ * @returns Filtered diagnostics array
+ */
+export function filterToolInputSymbolDiagnostics(
+    diagnostics: Diagnostic[],
+    toolInputs?: { type: string, variable: string }[]
+): Diagnostic[] {
+    if (!toolInputs || toolInputs.length === 0) {
+        return diagnostics;
+    }
+
+    return diagnostics.filter((diagnostic) => {
+        // Only filter "undefined symbol" diagnostics
+        if (!diagnostic.message.includes('undefined symbol')) {
+            return true;
+        }
+
+        // Extract symbol name from message like "undefined symbol 'code'"
+        const match = diagnostic.message.match(/['"`]([^'"`]+)['"`]/);
+        if (!match) {
+            return true; // Keep diagnostic if we can't parse it
+        }
+
+        const symbolName = match[1];
+        // Filter out if symbol is a Tool Input parameter
+        return !toolInputs.some(input => input.variable === symbolName);
     });
 }
 

@@ -515,12 +515,12 @@ export const parseToolsString = (toolsStr: string, removeQuotes: boolean = false
  * Extracts access token from auth value string.
  * Expected format: {token: "..."}
  */
-export const extractAccessToken = (authValue: string): string => {
-    if (!authValue) return "";
+export const extractAccessToken = (authValue: string): string | null => {
+    if (authValue === null) return null;
 
     try {
         const tokenMatch = authValue.match(/token:\s*"([^"]*)"/);
-        return tokenMatch?.[1] ?? "";
+        return tokenMatch?.[1] ?? null;
     } catch (error) {
         console.error("Failed to parse auth token:", error);
         return "";
@@ -566,7 +566,7 @@ export const getEndOfFileLineRange = async (
  */
 export const isStringLiteral = (value: string): boolean => {
     const trimmed = value.trim();
-    return trimmed.startsWith('"') && trimmed.endsWith('"');
+    return (trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("string `") && trimmed.endsWith("`"));
 };
 
 /**
@@ -575,6 +575,9 @@ export const isStringLiteral = (value: string): boolean => {
 export const removeQuotes = (value: string): string => {
     const trimmed = value.trim();
     if (isStringLiteral(trimmed)) {
+        if (trimmed.startsWith("string `") && trimmed.endsWith("`")) {
+            return trimmed.substring(8, trimmed.length - 1);
+        }
         return trimmed.substring(1, trimmed.length - 1);
     }
     return trimmed;
@@ -583,17 +586,23 @@ export const removeQuotes = (value: string): string => {
 /**
  * Finds a variable value in module variables.
  */
-export const findValueInModuleVariables = (
+export const findValueInModuleVariables = async (
     variableName: string,
-    moduleVariables: FlowNode[]
-): string | null => {
-    if (!moduleVariables || !Array.isArray(moduleVariables)) {
+    rpcClient: BallerinaRpcClient,
+    filePath: string
+): Promise<string | null> => {
+    const queryMap: SearchNodesQueryParams = {
+        kind: "VARIABLE",
+        exactMatch: variableName
+    };
+
+    const variables = await findFlowNode(rpcClient, filePath, undefined, queryMap);
+
+    if (!variables || variables.length === 0) {
         return null;
     }
 
-    const variable = moduleVariables.find(
-        (varNode) => varNode.properties?.variable?.value === variableName
-    );
+    const variable = variables[0];
 
     if (variable?.properties?.expression?.value && !variable?.codedata?.sourceCode?.includes("configurable")) {
         return variable.properties.expression.value as string;
@@ -637,9 +646,9 @@ export const findValueInConfigVariables = async (
                 );
                 if (variable) {
                     // Return the value from configValue or defaultValue
-                    const configValue = variable.properties?.configValue?.value as string;
-                    const defaultValue = variable.properties?.defaultValue?.value as string;
-                    return configValue || defaultValue || null;
+                    const configValue = variable.properties?.configValue?.value as string | null;
+                    if (configValue === "" || configValue === null) return null;
+                    return configValue;
                 }
             }
         }
@@ -668,19 +677,25 @@ export const isUrl = (value: string): boolean => {
 
 export const resolveVariableValue = async (
     value: string,
-    moduleVariables: FlowNode[],
-    rpcClient?: BallerinaRpcClient,
-    projectPathUri?: string
-): Promise<string> => {
+    rpcClient: BallerinaRpcClient,
+    projectPathUri: string,
+    filePath: string
+): Promise<string | null> => {
     if (!value) {
-        return "";
+        return null;
     }
 
     const trimmed = value.trim();
 
-    // String literal - remove quotes
+    // String literal - remove quotes and check for interpolation
     if (isStringLiteral(trimmed)) {
-        return removeQuotes(trimmed);
+        const content = removeQuotes(trimmed);
+        const interpolationMatch = content.match(/^\s*\$\{([^}]+)\}\s*$/);
+        if (interpolationMatch) {
+            const variableName = interpolationMatch[1];
+            return resolveVariableValue(variableName, rpcClient, projectPathUri, filePath);
+        }
+        return content;
     }
 
     // URL - return as-is to skip variable lookups
@@ -689,21 +704,18 @@ export const resolveVariableValue = async (
     }
 
     // Check module variables
-    const moduleValue = findValueInModuleVariables(trimmed, moduleVariables);
+    const moduleValue = await findValueInModuleVariables(trimmed, rpcClient, filePath);
     if (moduleValue) {
         return removeQuotes(moduleValue);
     }
 
     // Check config variables
-    if (rpcClient && projectPathUri) {
-        const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
-        if (configValue) {
-            return removeQuotes(configValue);
-        }
+    const configValue = await findValueInConfigVariables(trimmed, rpcClient, projectPathUri);
+    if (configValue) {
+        return removeQuotes(configValue);
     }
 
-    // Treat as literal value
-    return trimmed;
+    return null;
 };
 
 /**
@@ -712,10 +724,10 @@ export const resolveVariableValue = async (
  */
 export const resolveAuthConfig = async (
     authValue: string,
-    moduleVariables: FlowNode[],
-    rpcClient?: BallerinaRpcClient,
-    projectPathUri?: string
-): Promise<string> => {
+    rpcClient: BallerinaRpcClient,
+    projectPathUri: string,
+    filePath: string
+): Promise<string | null> => {
     if (!authValue) {
         return "";
     }
@@ -738,10 +750,15 @@ export const resolveAuthConfig = async (
         // Resolve the variable
         const resolvedValue = await resolveVariableValue(
             variableOrValue,
-            moduleVariables,
             rpcClient,
-            projectPathUri
+            projectPathUri,
+            filePath
         );
+
+        // Return null if the variable cannot be resolved
+        if (resolvedValue === null) {
+            return null;
+        }
 
         // Replace in the auth string with quoted value
         resolvedAuth = resolvedAuth.replace(

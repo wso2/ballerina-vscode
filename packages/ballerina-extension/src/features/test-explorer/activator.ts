@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { tests, workspace,  TestRunProfileKind, TestController, Uri } from "vscode";
+import { tests, workspace, TestRunProfileKind, TestController, Uri } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
@@ -32,6 +32,10 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
 
     const workspaceRoot = getWorkspaceRoot();
+
+    if (!workspaceRoot) {
+        return;
+    }
 
     const isBallerinaWorkspace = await checkIsBallerinaWorkspace(Uri.file(workspaceRoot));
     const isBallerinaProject = !isBallerinaWorkspace && await checkIsBallerinaPackage(Uri.file(workspaceRoot));

@@ -25,7 +25,8 @@ import {
     EVENT_TYPE,
     MACHINE_VIEW,
     TypeNodeKind,
-    Member
+    Member,
+    Protocol
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { TypeDiagram as TypeDesignDiagram } from "@wso2/type-diagram";
@@ -509,8 +510,8 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                                     type={peekTypeStack()?.type}
                                     newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                                     newTypeValue={peekTypeStack()?.type?.name ?? ''}
-                                    isGraphql={true}
                                     isPopupTypeForm={true}
+                                    isGraphql={true}
                                     onTypeChange={onTypeChange}
                                     onTypeCreate={() => { }}
                                     onSaveType={onSaveType}

@@ -17,18 +17,10 @@
  */
 
 import React from "react";
-import styled from "@emotion/styled";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 import { ErrorBanner } from "@wso2/ui-toolkit";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-`;
+import { ExpressionContainer } from "./styles";
 
 /**
  * Expression mode editor - uses ChipExpressionBaseComponent in expanded mode
@@ -36,6 +28,7 @@ const ExpressionContainer = styled.div`
 export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
     value,
     onChange,
+    field,
     completions = [],
     fileName,
     targetLineRange,
@@ -66,12 +59,13 @@ export const ExpressionMode: React.FC<EditorModeExpressionProps> = ({
                     rawExpression={rawExpression}
                     isInExpandedMode={true}
                     isExpandedVersion={true}
+                    placeholder={field.placeholder}
                 />
             </ExpressionContainer>
             {error ?
-                <ErrorBanner errorMsg={error.message.toString()} /> :
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
                 formDiagnostics && formDiagnostics.length > 0 &&
-                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
             }
         </>
     );

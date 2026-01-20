@@ -21,11 +21,13 @@ import { commands, Uri, window } from "vscode";
 import {
     TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN, sendTelemetryEvent, sendTelemetryException
 } from "../../telemetry";
-import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGES, getRunCommand } from "./cmd-runner";
+import { runCommand, PROJECT_TYPE, PALETTE_COMMANDS, runCommandWithConf, MESSAGES, getRunCommand } from "./cmd-runner";
 import { getCurrentBallerinaProject, getCurrentBallerinaFile, getCurrenDirectoryPath } from "../../../utils/project-utils";
 import { prepareAndGenerateConfig } from '../../config-generator/configGenerator';
 import { LANGUAGE } from "../../../core";
-import { TracerMachine } from "../../../features/tracing";
+import { StateMachine } from "../../../stateMachine";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
+import { requiresPackageSelection } from "../../../utils/command-utils";
 
 function activateRunCmdCommand() {
 
@@ -36,15 +38,40 @@ function activateRunCmdCommand() {
         } else if (filePath instanceof Uri) {
             actualFilePath = filePath.fsPath;
         }
-        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath);
+
+        let needsPackageSelection = false;
+        const isActiveTextEditor = window.activeTextEditor;
+
+        if (!actualFilePath && !isActiveTextEditor) {    
+        
+            const context = StateMachine.context();
+            const { workspacePath, view, projectPath, projectInfo } = context;
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+
+            needsPackageSelection = requiresPackageSelection(
+                workspacePath, view, projectPath, isWebviewOpen, !!isActiveTextEditor
+            );
+            
+            if (needsPackageSelection && projectInfo?.children.length === 0) {
+                window.showErrorMessage("No packages found in the workspace.");
+                return;
+            } else if (!needsPackageSelection && !projectPath) {
+                window.showErrorMessage("No project found.");
+                return;
+            }
+
+            actualFilePath = needsPackageSelection ? workspacePath : projectPath;
+        }
+
+        prepareAndGenerateConfig(extension.ballerinaExtInstance, actualFilePath, false, false, true, needsPackageSelection);
     });
 
     // register ballerina run handler
-    commands.registerCommand(PALETTE_COMMANDS.RUN_CMD, async (...args: any[]) => {
-        await run(args);
+    commands.registerCommand(PALETTE_COMMANDS.RUN_CMD, async (filePath: string) => {
+        await run(filePath);
     });
 
-    async function run(args: any[]) {
+    async function run(filePath: string) {
         try {
 
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_RUN, CMP_PROJECT_RUN);
@@ -58,7 +85,7 @@ function activateRunCmdCommand() {
                     window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                     return;
                 }
-                currentProject = await getCurrentBallerinaProject();
+                currentProject = await getCurrentBallerinaProject(filePath);
             } else {
                 const document = extension.ballerinaExtInstance.getDocumentContext().getLatestDocument();
                 if (document) {
@@ -71,6 +98,9 @@ function activateRunCmdCommand() {
                         }
                     }
                 }
+                if (!currentProject) {
+                    currentProject = await getCurrentBallerinaProject(filePath);
+                }
             }
 
             if (!currentProject) {
@@ -78,12 +108,43 @@ function activateRunCmdCommand() {
                 return;
             }
 
+            // TODO: Test in the cloud editor environment and remove the comments if working
+            // This should be handles automatically by the platform
+
+            // Check if we should update auth token (only in cloud editor with private package dependencies)
+            // const shouldUpdate = await shouldUpdateAuthToken();
+            
+            // if (shouldUpdate) {
+            //     try {
+            //         // Get the STS token from platform extension for authenticated operations
+            //         const stsToken = await getDevantStsToken();
+            //         console.log("Cloud editor detected with dependencies, checking STS token...");
+                    
+            //         // Only update Settings.toml if token needs updating
+            //         if (stsToken && stsToken.trim() !== "") {
+            //             const currentToken = await getCurrentAccessToken();
+                        
+            //             if (shouldUpdateToken(currentToken, stsToken)) {
+            //                 await updateBallerinaSettingsWithStsToken(stsToken);
+            //                 console.log('Token updated in Settings.toml for cloud editor');
+            //                 // Don't show notification in cloud editor to avoid noise
+            //             }
+            //         } else {
+            //             console.warn('Unable to retrieve STS token in cloud editor environment');
+            //         }
+            //     } catch (error) {
+            //         console.warn('Failed to update authentication token in cloud editor:', error);
+            //         // Continue execution even if token update fails
+            //     }
+            // }
+
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
                 const configPath: string = extension.ballerinaExtInstance.getBallerinaConfigPath();
                 extension.ballerinaExtInstance.setBallerinaConfigPath('');
                 runCommandWithConf(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(),
                     getRunCommand(),
-                    configPath, currentProject.path!, ...args);
+                    configPath, currentProject.path!
+                );
             } else {
                 runCurrentFile();
             }

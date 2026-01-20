@@ -32,7 +32,9 @@ export interface VisualizerAPI {
     redo: (count: number) => Promise<string>;
     addToUndoStack: (params: AddToUndoStackRequest) => void;
     undoRedoState: () => Promise<UndoRedoStateResponse>;
+    resetUndoRedoStack: () => void;
     joinProjectPath: (params: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
+    reviewAccepted: () => void;
 }

@@ -17,7 +17,7 @@
  */
 
 import { debug } from "../../utils/logger";
-import toml from "toml";
+import { parse } from "@iarna/toml";
 import { CompletionItem, CompletionItemKind, Position, TextDocument, Uri } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { findPropertyValues, getConfigValue, getCurrentBallerinaProjectFromContext } from "./configGenerator";
@@ -33,7 +33,7 @@ export const typeOfComment = 'Type of';
  */
 export function parseTomlToConfig(tomlContent: string): object {
     try {
-        return toml.parse(tomlContent);
+        return parse(tomlContent);
     } catch (error) {
         debug("Error while parsing the Config.toml file content: " + error);
     }

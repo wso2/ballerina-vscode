@@ -328,7 +328,12 @@ export function Diagram(props: DiagramProps) {
         project: project,
         readOnly: onAddNode === undefined || onDeleteNode === undefined || onNodeSelect === undefined || readOnly,
         isUserAuthenticated: isUserAuthenticated,
-        expressionContext: expressionContext,
+        expressionContext: expressionContext || {
+            completions: [],
+            triggerCharacters: [],
+            retrieveCompletions: () => Promise.resolve(),
+            getHelperPane: undefined,
+        },
     };
 
     const getActiveBreakpointNode = (nodes: NodeModel[]): NodeModel => {

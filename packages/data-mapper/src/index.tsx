@@ -24,12 +24,13 @@ import type {} from "@projectstorm/react-diagrams-core";
 import type {} from "@projectstorm/react-diagrams";
 import { css, Global } from '@emotion/react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType, Property, LinePosition } from "@wso2/ballerina-core";
-import { CompletionItem, ErrorBoundary } from "@wso2/ui-toolkit";
+import { DMFormProps, ModelState, IntermediateClause, Mapping, CodeData, FnMetadata, LineRange, ResultClauseType, IOType, Property, LinePosition, TypeKind } from "@wso2/ballerina-core";
+import { CompletionItem } from "@wso2/ui-toolkit";
 
 import { DataMapperEditor } from "./components/DataMapper/DataMapperEditor";
 import { ExpressionProvider } from "./context/ExpressionContext";
-import { ISSUES_URL } from "./components/Diagram/utils/constants";
+import { DataMapperErrorBoundary } from "./components/DataMapper/ErrorBoundary";
+export { DataMapperErrorBoundary };
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -83,22 +84,24 @@ export interface DataMapperEditorProps {
     handleView: (viewId: string, isSubMapping?: boolean) => void;
     generateForm: (formProps: DMFormProps) => JSX.Element;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
+    getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
     undoRedoGroup: () => JSX.Element;
 }
 
 export interface DataMapperProps extends DataMapperEditorProps {
+    goToSource: () => void;
     expressionBar: ExpressionBarProps;
 }
 
-export function DataMapper({ expressionBar, ...props }: DataMapperProps) {
+export function DataMapper({ goToSource, expressionBar, ...props }: DataMapperProps) {
     return (
-        <ErrorBoundary errorMsg="An error occurred while rendering the Data Mapper" issueUrl={ISSUES_URL}>
+        <DataMapperErrorBoundary onClose={props.onClose} goToSource={goToSource}>
             <QueryClientProvider client={queryClient}>
                 <Global styles={globalStyles} />
                 <ExpressionProvider {...expressionBar}>
-                    <DataMapperEditor {...props} />
+                    <DataMapperEditor {...props}/>
                 </ExpressionProvider>
             </QueryClientProvider>
-        </ErrorBoundary>
+        </DataMapperErrorBoundary>
     );
 }
