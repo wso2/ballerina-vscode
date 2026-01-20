@@ -68,7 +68,7 @@ export class TraceDetailsWebview {
     private _trace: Trace | undefined;
     private _isAgentChat: boolean = false;
     private _focusSpanId: string | undefined;
-    private _openInFocusMode: boolean = false;
+    private _openWithSidebarCollapsed: boolean = false;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
@@ -92,7 +92,7 @@ export class TraceDetailsWebview {
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
                                 focusSpanId: this._focusSpanId,
-                                openInFocusMode: this._openInFocusMode,
+                                openWithSidebarCollapsed: this._openWithSidebarCollapsed,
                             });
                         }
                         break;
@@ -112,7 +112,7 @@ export class TraceDetailsWebview {
         const panel = vscode.window.createWebviewPanel(
             'ballerina.trace-details',
             'Trace Details',
-            ViewColumn.Active,
+            ViewColumn.One,
             {
                 enableScripts: true,
                 localResourceRoots: [
@@ -129,7 +129,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, openInFocusMode?: boolean): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, openWithSidebarCollapsed?: boolean): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -140,14 +140,14 @@ export class TraceDetailsWebview {
         instance._trace = trace;
         instance._isAgentChat = isAgentChat;
         instance._focusSpanId = focusSpanId;
-        instance._openInFocusMode = openInFocusMode;
+        instance._openWithSidebarCollapsed = openWithSidebarCollapsed;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
             instance._panel.title = isAgentChat ? 'Agent Chat Logs' : 'Trace Details';
         }
 
-        instance._panel!.reveal();
+        instance._panel!.reveal(ViewColumn.One);
         instance.updateWebview();
     }
 
@@ -166,7 +166,7 @@ export class TraceDetailsWebview {
             data: traceData,
             isAgentChat: this._isAgentChat,
             focusSpanId: this._focusSpanId,
-            openInFocusMode: this._openInFocusMode,
+            openWithSidebarCollapsed: this._openWithSidebarCollapsed,
         });
     }
 
@@ -253,13 +253,13 @@ export class TraceDetailsWebview {
             let traceData = null;
             let isAgentChat = false;
             let focusSpanId = undefined;
-            let openInFocusMode = false;
+            let openWithSidebarCollapsed = false;
 
             function renderTraceDetails() {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, openInFocusMode);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, openWithSidebarCollapsed);
                     }
                 } else if (!traceData) {
                     // Request trace data from extension
@@ -278,7 +278,7 @@ export class TraceDetailsWebview {
                         traceData = message.data;
                         isAgentChat = message.isAgentChat || false;
                         focusSpanId = message.focusSpanId;
-                        openInFocusMode = message.openInFocusMode || false;
+                        openWithSidebarCollapsed = message.openWithSidebarCollapsed || false;
                         renderTraceDetails();
                         break;
                 }

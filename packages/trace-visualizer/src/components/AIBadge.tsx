@@ -25,7 +25,7 @@ interface AIBadgeProps {
 
 const AISpanBadge = styled.span<{ type: string }>`
     font-size: 10px;
-    padding: 3px 8px;
+    padding: 4px;
     border-radius: 3px;
     font-weight: 500;
     flex-shrink: 0;
@@ -58,15 +58,6 @@ export function AIBadge({ type }: AIBadgeProps) {
         }
     };
 
-    const getLabel = () => {
-        switch (type) {
-            case 'invoke': return 'Invoke Agent';
-            case 'chat': return 'Chat';
-            case 'tool': return 'Execute Tool';
-            default: return 'Operation';
-        }
-    };
-
     return (
         <AISpanBadge type={type}>
             <Icon
@@ -86,7 +77,6 @@ export function AIBadge({ type }: AIBadgeProps) {
                     justifyContent: 'center'
                 }}
             />
-            <span className="ai-span-label">{getLabel()}</span>
         </AISpanBadge>
     );
 }

@@ -51,16 +51,10 @@ const WaterfallContainer = styled.div`
 const ZoomControlsBar = styled.div`
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: 8px 12px;
     border-bottom: 1px solid var(--vscode-panel-border);
     background-color: var(--vscode-editorWidget-background);
-`;
-
-const ZoomControlsLabel = styled.span`
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
 `;
 
 const ZoomControlsGroup = styled.div`
@@ -565,7 +559,6 @@ export function WaterfallView({
         <WaterfallContainer>
             {/* Zoom Controls */}
             <ZoomControlsBar>
-                <ZoomControlsLabel>Timeline</ZoomControlsLabel>
                 <ZoomControlsGroup>
                     <ZoomButton
                         onClick={() => setZoom(Math.max(0.2, zoom - 0.1))}

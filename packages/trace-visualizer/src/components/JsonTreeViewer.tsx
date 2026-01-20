@@ -105,11 +105,11 @@ const KeyBadge = styled.span<{ isArrayIndex?: boolean }>`
     border-radius: 3px;
     min-height: 18px;
     background-color: ${(props: { isArrayIndex?: boolean }) => props.isArrayIndex
-        ? 'var(--vscode-badge-background)'
-        : 'var(--vscode-list-hoverBackground)'};
+        ? 'var(--vscode-list-hoverBackground)'
+        : 'var(--vscode-button-background)'};
     color: ${(props: { isArrayIndex?: boolean }) => props.isArrayIndex
         ? 'var(--vscode-badge-foreground)'
-        : 'var(--vscode-editor-foreground)'};
+        : 'var(--vscode-button-foreground)'};
     border: 1px solid var(--vscode-button-border);
     flex-shrink: 0;
 `;

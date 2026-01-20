@@ -197,10 +197,6 @@ const InputOutputGrid = styled.div`
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
-    
-    @media (min-width: 900px) {
-        grid-template-columns: 1fr 1fr;
-    }
 `;
 
 const SubSection = styled.div``;
