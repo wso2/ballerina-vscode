@@ -106,12 +106,11 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         int cumulativeLength = 0;
         LinePosition endLinePosition = null;
         if (lspEdits != null) {
-            int totalEdits = lspEdits.size();
-            int editIndex = 0;
+            int numTotalEdits = lspEdits.size();
             // Transform every LSP TextEdit to a Ballerina TextEdit
-            for (TextEdit edit : lspEdits) {
+            for (int editIndex = 0; editIndex < numTotalEdits; editIndex++) {
+                TextEdit edit = lspEdits.get(editIndex);
                 // Generate the Ballerina TextEdit from the LSP TextEdit
-                editIndex++;
                 Range editRange = edit.getRange();
                 int startLine = editRange.getStart().getLine();
                 int endLine = editRange.getEnd().getLine();
@@ -126,7 +125,7 @@ public class DiagnosticRequest implements Callable<JsonElement> {
                 //  currently no known cases where this assumption breaks. However, this makes the approach
                 //  algorithmically incomplete. Ideally, the algorithm should consider the line range of the flow
                 //  node and compute the corresponding start and end ranges accordingly.
-                if (editIndex == totalEdits) {
+                if (editIndex == numTotalEdits - 1) {
                     start = cumulativeLength + startPos;
                 } else {
                     cumulativeLength += edit.getNewText().length();
