@@ -162,7 +162,7 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
                         label: "",
                         description: "",
                     },
-                    valueType: "TYPE",
+                    types: [{ fieldType: "TYPE", selected: false }],
                     value: "",
                     optional: false,
                     editable: true

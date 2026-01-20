@@ -91,7 +91,7 @@ interface Origin {
 
 export function EntityHeadWidget(props: ServiceHeadProps) {
     const { engine, node, isSelected } = props;
-    const { setFocusedNodeId, onEditNode, goToSource, onNodeDelete, verifyTypeDelete } = useContext(DiagramContext);
+    const { setFocusedNodeId, onEditNode, goToSource, onNodeDelete, verifyTypeDelete, readonly } = useContext(DiagramContext);
 
     const displayName: string = node.getID()?.slice(node.getID()?.lastIndexOf(':') + 1);
     const isImported = !node?.entityObject?.editable;
@@ -111,7 +111,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     };
 
     const onNodeEdit = () => {
-        if (onEditNode && node?.entityObject?.editable) {
+        if (onEditNode && node?.entityObject?.editable && !readonly) {
             if (node.isGraphqlRoot) {
                 onEditNode(node.getID(), true);
             } else {
@@ -122,7 +122,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     };
 
     const onNodeDeleteWithConfirm = async () => {
-        if (node?.entityObject?.editable && onNodeDelete) {
+        if (node?.entityObject?.editable && onNodeDelete && !readonly) {
             onNodeDelete(node.getID());
         }
         setAnchorEl(null);
@@ -224,7 +224,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
     return (
         <CtrlClickGo2Source node={node.entityObject}>
             <EntityHead
-                isSelected={isSelected}
+                isSelected={isSelected && !readonly}
                 data-testid={`type-node-${displayName}`}
             >
                 <EntityPortWidget
@@ -239,7 +239,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                             </GraphqlIconContainer>
                         )}
                         <EntityName
-                            isClickable={isClickable && !isImported}
+                            isClickable={isClickable && !isImported && !readonly}
                             onClick={onNodeEdit}
                             onDoubleClick={onFocusedView}
                         >
@@ -252,7 +252,7 @@ export function EntityHeadWidget(props: ServiceHeadProps) {
                         )}
                     </EntityNameContainer>
                     <HeaderButtonsContainer>
-                        <MenuButton appearance="icon" onClick={handleOnMenuClick} data-testid={`type-node-${displayName}-menu`}>
+                        <MenuButton appearance="icon" onClick={handleOnMenuClick} data-testid={`type-node-${displayName}-menu`} disabled={readonly}>
                             <MoreVertIcon />
                         </MenuButton>
                     </HeaderButtonsContainer>

@@ -53,7 +53,7 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
     const [isHovered, setIsHovered] = useState(false);
     const [menuAnchorEl, setMenuAnchorEl] = useState<HTMLElement | SVGSVGElement>(null);
 
-    const { onFunctionSelect, onDeleteComponent } = useDiagramContext();
+    const { onFunctionSelect, onDeleteComponent, readonly } = useDiagramContext();
     const isMenuOpen = Boolean(menuAnchorEl);
 
     const serviceFunctions = [];
@@ -99,21 +99,23 @@ export function AIServiceWidget({ model, engine }: BaseNodeWidgetProps) {
             <TopPortWidget port={model.getPort("in")!} engine={engine} />
             <Box hovered={isHovered}>
                 <ServiceBox
-                    onMouseEnter={() => setIsHovered(true)}
-                    onMouseLeave={() => setIsHovered(false)}
-                    onMouseDown={handleMouseDown}
-                    onMouseUp={handleMouseUp}
+                    onMouseEnter={() => !readonly && setIsHovered(true)}
+                    onMouseLeave={() => !readonly && setIsHovered(false)}
+                    onMouseDown={!readonly ? handleMouseDown : undefined}
+                    onMouseUp={!readonly ? handleMouseUp : undefined}
+                    readonly={readonly}
                 >
                     <IconWrapper><Icon name="bi-ai-agent" /></IconWrapper>
-                    <Header hovered={isHovered}>
+                    <Header hovered={isHovered} inactive={readonly}>
                         <Title hovered={isHovered}>{getNodeTitle(model)}</Title>
                         <Description>{getNodeDescription(model)}</Description>
                     </Header>
                     <MenuButton 
                         appearance="icon" 
-                        onClick={handleOnMenuClick}
-                        onMouseDown={handleMenuMouseDown}
-                        onMouseUp={handleMenuMouseUp}
+                        onClick={!readonly ? handleOnMenuClick : undefined}
+                        onMouseDown={!readonly ? handleMenuMouseDown : undefined}
+                        onMouseUp={!readonly ? handleMenuMouseUp : undefined}
+                        disabled={readonly}
                     >
                         <MoreVertIcon />
                     </MenuButton>

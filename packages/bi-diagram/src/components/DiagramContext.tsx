@@ -16,10 +16,11 @@
  * under the License.
  */
 
-import React, { useState } from "react";
+import React, { useState, RefObject } from "react";
 import { Flow, FlowNode, Branch, LineRange, NodePosition, ToolData } from "../utils/types";
-import { CompletionItem } from "@wso2/ui-toolkit";
-import { ExpressionProperty, JoinProjectPathRequest, JoinProjectPathResponse, TextEdit, VisualizerLocation } from "@wso2/ballerina-core";
+import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight } from "@wso2/ui-toolkit";
+import { ExpressionProperty, JoinProjectPathRequest, JoinProjectPathResponse, RecordTypeField, TextEdit, VisualizerLocation } from "@wso2/ballerina-core";
+import { HelperpaneOnChangeOptions, InputMode } from "@wso2/ballerina-side-panel";
 
 type CompletionConditionalProps = {
     completions: CompletionItem[];
@@ -28,7 +29,6 @@ type CompletionConditionalProps = {
         value: string,
         property: ExpressionProperty,
         offset: number,
-        invalidateCache: boolean,
         triggerCharacter?: string
     ) => Promise<void>;
 } | {
@@ -37,11 +37,32 @@ type CompletionConditionalProps = {
     retrieveCompletions?: never;
 }
 
+export type GetHelperPaneFunction = (
+    fieldKey: string,
+    exprRef: RefObject<FormExpressionEditorRef>,
+    anchorRef: RefObject<HTMLDivElement>,
+    defaultValue: string,
+    value: string,
+    onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
+    changeHelperPaneState: (isOpen: boolean) => void,
+    helperPaneHeight: HelperPaneHeight,
+    recordTypeField?: RecordTypeField,
+    isAssignIdentifier?: boolean,
+    valueTypeConstraint?: string | string[],
+    inputMode?: InputMode
+) => JSX.Element;
+
 export type ExpressionContextProps = CompletionConditionalProps & {
     onCompletionItemSelect?: (value: string, additionalTextEdits?: TextEdit[]) => Promise<void>;
     onFocus?: () => void | Promise<void>;
     onBlur?: () => void | Promise<void>;
     onCancel?: () => void;
+    getHelperPane?: GetHelperPaneFunction;
+    getExpressionTokens?: (
+        expression: string,
+        filePath: string,
+        position: { line: number; offset: number }
+    ) => Promise<number[]>;
 }
 
 export interface DiagramContextState {

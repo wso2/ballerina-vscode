@@ -19,6 +19,24 @@
 
 import { ComponentInfo } from "../interfaces/ballerina";
 import { BallerinaProjectComponents } from "../interfaces/extended-lang-client";
+import { SCOPE } from "../state-machine-types";
+
+const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
+const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
+const FILE_INTEGRATION_MODULES = ["ftp", "file"];
+const AI_AGENT_MODULE = "ai";
+
+export function findScopeByModule(moduleName: string): SCOPE {
+    if (AI_AGENT_MODULE === moduleName) {
+        return SCOPE.AI_AGENT;
+    } else if (INTEGRATION_API_MODULES.includes(moduleName)) {
+        return SCOPE.INTEGRATION_AS_API;
+    } else if (EVENT_INTEGRATION_MODULES.includes(moduleName)) {
+        return SCOPE.EVENT_INTEGRATION;
+    } else if (FILE_INTEGRATION_MODULES.includes(moduleName)) {
+        return SCOPE.FILE_INTEGRATION;
+    }
+}
 
 export function getAllVariablesForAiFrmProjectComponents(projectComponents: BallerinaProjectComponents): { [key: string]: any } {
     const variableCollection: { [key: string]: any } = {};

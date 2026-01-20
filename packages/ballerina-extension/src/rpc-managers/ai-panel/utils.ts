@@ -16,19 +16,21 @@
  * under the License.
  */
 
-import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest} from "@wso2/ballerina-core";
+import { Attachment, AttachmentStatus, DiagnosticEntry, DataMapperModelResponse, Mapping, FileChanges, DMModel, SourceFile, repairCodeRequest, RepairedMapping} from "@wso2/ballerina-core";
 import { Position, Range, Uri, workspace, WorkspaceEdit } from 'vscode';
 
 import path from "path";
 import * as fs from 'fs';
 import { AIChatError } from "./utils/errors";
-import { processDataMapperInput } from "../../../src/features/ai/service/datamapper/context_api";
-import { DataMapperRequest, DataMapperResponse, FileData } from "../../../src/features/ai/service/datamapper/types";
-import { getAskResponse } from "../../../src/features/ai/service/ask/ask";
+import { processDataMapperInput } from "../../features/ai/data-mapper/context-api";
+import { DataMapperRequest, DataMapperResponse, FileData, RepairedMappings } from "../../features/ai/data-mapper/types";
+import { getAskResponse } from "../../features/ai/ask/index";
 import { MappingFileRecord} from "./types";
-import { generateAutoMappings, generateRepairCode } from "../../../src/features/ai/service/datamapper/datamapper";
+import { generateAutoMappings, generateRepairCode } from "../../features/ai/data-mapper/index";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
-import { CopilotEventHandler } from "../../../src/features/ai/service/event";
+import { CopilotEventHandler } from "../../features/ai/utils/events";
+import { VisualizerRpcManager } from "../visualizer/rpc-manager";
+import { renderDatamapper } from "../../../src/views/ai-panel/checkpoint/checkpointUtils";
 
 // const BACKEND_BASE_URL = BACKEND_URL.replace(/\/v2\.0$/, "");
 //TODO: Temp workaround as custom domain seem to block file uploads
@@ -36,38 +38,7 @@ const CONTEXT_UPLOAD_URL_V1 = "https://e95488c8-8511-4882-967f-ec3ae2a0f86f-prod
 // const CONTEXT_UPLOAD_URL_V1 = BACKEND_BASE_URL + "/context-api/v1.0";
 // const ASK_API_URL_V1 = BACKEND_BASE_URL + "/ask-api/v1.0";
 
-export class AIPanelAbortController {
-    private static instance: AIPanelAbortController;
-    private abortController: AbortController;
-
-    private constructor() {
-        this.abortController = new AbortController();
-    }
-
-    public static getInstance(): AIPanelAbortController {
-        if (!AIPanelAbortController.instance) {
-            AIPanelAbortController.instance = new AIPanelAbortController();
-        }
-        return AIPanelAbortController.instance;
-    }
-
-    public get signal(): AbortSignal {
-        return this.abortController.signal;
-    }
-
-    public abort(): void {
-        this.abortController.abort();
-        // Create a new AbortController for the next operation
-        this.abortController = new AbortController();
-    }
-}
-
 // Common functions
-
-// Aborts the current AI panel operation
-export function handleStop() {
-    AIPanelAbortController.getInstance().abort();
-}
 
 // Checks if an error object has both 'code' and 'message' properties
 export function isErrorCode(error: any): boolean {
@@ -113,6 +84,8 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         }
         fs.writeFileSync(absoluteFilePath, fileChange.content, 'utf8');
     }
+    await renderDatamapper();
+
     return new Promise((resolve, reject) => {
         if (!isBalFileAdded) {
             resolve([]);
@@ -121,6 +94,7 @@ export async function addToIntegration(workspaceFolderPath: string, fileChanges:
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Subscribe to artifact updated notifications
         let unsubscribe = notificationHandler.subscribe(ArtifactsUpdated.method, undefined, async (payload) => {
+            new VisualizerRpcManager().updateCurrentArtifactLocation({ artifacts: payload.data });
             clearTimeout(timeoutId);
             resolve(payload.data);
             unsubscribe();
@@ -201,11 +175,11 @@ export async function enrichModelWithMappingInstructions(mappingInstructionFiles
     };
 }
 
-// Processes a repair request and returns the repaired source files using AI
-export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<SourceFile[]> {
+// Processes a repair request and returns the repaired mappings using AI
+export async function repairSourceFilesWithAI(codeRepairRequest: repairCodeRequest): Promise<{ repairedMappings: RepairedMapping[] }> {
     try {
         const repairResponse = await generateRepairCode(codeRepairRequest);
-        return repairResponse.repairedFiles;
+        return { repairedMappings: repairResponse.repairedMappings };
     } catch (error) {
         console.error(error);
         throw error;

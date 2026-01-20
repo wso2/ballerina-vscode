@@ -21,7 +21,7 @@ import { BallerinaExtension } from '../core';
 import { WorkspaceConfiguration, workspace, Uri, RelativePattern } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse } from 'toml';
+import { parse } from '@iarna/toml';
 
 export enum VERSION {
     BETA = 'beta',
@@ -303,12 +303,12 @@ export function getOrgPackageName(projectPath: string): { orgName: string, packa
     }
 }
 
-export async function getProjectTomlValues(projectPath: string): Promise<PackageTomlValues | undefined> {
+export async function getProjectTomlValues(projectPath: string): Promise<Partial<PackageTomlValues> | undefined> {
     const ballerinaTomlPath = path.join(projectPath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
         try {
-            return parse(tomlContent);
+            return parse(tomlContent) as Partial<PackageTomlValues>;
         } catch (error) {
             console.error("Failed to load Ballerina.toml content for project at path: ", projectPath, error);
             return;
@@ -316,12 +316,12 @@ export async function getProjectTomlValues(projectPath: string): Promise<Package
     }
 }
 
-export async function getWorkspaceTomlValues(workspacePath: string): Promise<WorkspaceTomlValues | undefined> {
+export async function getWorkspaceTomlValues(workspacePath: string): Promise<Partial<WorkspaceTomlValues> | undefined> {
     const ballerinaTomlPath = path.join(workspacePath, 'Ballerina.toml');
     if (fs.existsSync(ballerinaTomlPath)) {
         const tomlContent = await fs.promises.readFile(ballerinaTomlPath, 'utf-8');
         try {
-            return parse(tomlContent);
+            return parse(tomlContent) as Partial<WorkspaceTomlValues>;
         } catch (error) {
             console.error("Failed to load Ballerina.toml content for workspace at path: ", workspacePath, error);
             return;

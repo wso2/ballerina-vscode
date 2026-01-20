@@ -30,7 +30,9 @@ import {
     PROMPT_NODE_HEIGHT,
     PROMPT_NODE_WIDTH,
 } from "../../../resources/constants";
-import { Button, CompletionItem, FormExpressionEditor, FormExpressionEditorRef, Icon, Item, ThemeColors } from "@wso2/ui-toolkit";
+import { Button, Icon, Item, ThemeColors } from "@wso2/ui-toolkit";
+import { NPPromptEditor } from "../../editors/NPPromptEditor";
+import { InputMode } from "@wso2/ballerina-side-panel";
 import NodeIcon from "../../NodeIcon";
 import { useDiagramContext } from "../../DiagramContext";
 import { PromptNodeModel } from "./PromptNodeModel";
@@ -216,6 +218,7 @@ export interface NodeWidgetProps extends Omit<PromptNodeWidgetProps, "children">
 export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const { model, engine } = props;
     const {
+        flow,
         project,
         goToSource,
         openView,
@@ -225,6 +228,11 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         selectedNodeId,
     } = useDiagramContext();
 
+    const npFunctionNode = useMemo(
+        () => flow.nodes.find(node => node.codedata?.node === "NP_FUNCTION"),
+        [flow.nodes]
+    );
+
     const isSelected = selectedNodeId === model.node.id;
     const {
         completions,
@@ -233,7 +241,9 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         onCompletionItemSelect,
         onFocus,
         onBlur,
-        onCancel
+        onCancel,
+        getHelperPane,
+        getExpressionTokens
     } = expressionContext;
 
     const [isHovered, setIsHovered] = useState(false);
@@ -242,11 +252,7 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     const hasBreakpoint = model.hasBreakpoint();
     const isActiveBreakpoint = model.isActiveBreakpoint();
 
-    const exprRef = useRef<FormExpressionEditorRef>(null);
-    const anchorRef = useRef<HTMLDivElement>(null);
     const cursorPositionRef = useRef<number | undefined>(undefined);
-    const fetchingStateRef = useRef<FetchCompletionsState>(FETCH_COMPLETIONS_STATE.IDLE);
-    const invalidateCacheRef = useRef<boolean>(false);
     const field: ExpressionProperty = useMemo(() => model.node.properties['prompt'], [model]);
     const nodeMetadata = (model.node.properties?.modelProvider?.metadata?.data as NodeMetadata);
     const nodeModelType = nodeMetadata?.type === "ModelProvider" ? nodeMetadata?.module : nodeMetadata?.type;
@@ -309,6 +315,16 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
     };
 
     const toggleEditable = () => {
+        if (editable) {
+            // Reset to original value when canceling
+            const prompt = model.node.properties?.['prompt']?.value as string;
+            if (!prompt) {
+                handleBodyTextChange("");
+            } else {
+                const promptWithoutQuotes = prompt.replace(/^`|`$/g, "");
+                handleBodyTextChange(promptWithoutQuotes);
+            }
+        }
         setEditable(!editable);
     };
 
@@ -352,94 +368,33 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
         }
     }, [model.node.properties]);
 
-    const handleCompletionSelect = async (value: string, item: CompletionItem) => {
-        // Trigger actions on completion select
-        await onCompletionItemSelect?.(value, item.additionalTextEdits);
-
-        // Set cursor position
-        const cursorPosition = exprRef.current?.shadowRoot?.querySelector('textarea')?.selectionStart;
-        cursorPositionRef.current = cursorPosition;
-    };
-
-    const handleFocus = async () => {
-        // Retrive completions
-        const cursorPosition = exprRef.current?.shadowRoot?.querySelector('textarea')?.selectionStart;
-        cursorPositionRef.current = cursorPosition;
-        const triggerCharacter =
-            cursorPosition > 0 ? triggerCharacters.find((char) => bodyTextTemplate[cursorPosition - 1] === char) : undefined;
-        if (triggerCharacter) {
-            await retrieveCompletions(
-                bodyTextTemplate,
-                field,
-                cursorPosition + 1,
-                true,
-                triggerCharacter
-            );
-        } else {
-            await retrieveCompletions(
-                bodyTextTemplate,
-                field,
-                cursorPosition + 1,
-                true
-            );
-        }
-
-        // Trigger actions on focus
-        await onFocus?.();
-    };
-
-    const handleBlur = async () => {
-        // Trigger actions on blur
-        await onBlur?.();
-
-        // Clean up memory
-        cursorPositionRef.current = undefined;
-    };
-
     const handleChange = async (newValue: string, updatedCursorPosition: number) => {
         handleBodyTextChange(newValue);
         cursorPositionRef.current = updatedCursorPosition;
-
-        // Check state to invalidate completion cache
-        if (
-            fetchingStateRef.current === FETCH_COMPLETIONS_STATE.IDLE &&
-            isExpression(newValue, updatedCursorPosition)
-        ) {
-            invalidateCacheRef.current = true;
-            fetchingStateRef.current = FETCH_COMPLETIONS_STATE.FETCHING;
-        } else if (
-            fetchingStateRef.current === FETCH_COMPLETIONS_STATE.FETCHING &&
-            isExpression(newValue, updatedCursorPosition)
-        ) {
-            invalidateCacheRef.current = false;
-            fetchingStateRef.current = FETCH_COMPLETIONS_STATE.DONE;
-        } else if (
-            fetchingStateRef.current === FETCH_COMPLETIONS_STATE.DONE &&
-            !isExpression(newValue, updatedCursorPosition)
-        ) {
-            fetchingStateRef.current = FETCH_COMPLETIONS_STATE.IDLE;
-        }
 
         // Check if the current character is a trigger character
         const triggerCharacter =
             updatedCursorPosition > 0
                 ? triggerCharacters.find((char) => newValue[updatedCursorPosition - 1] === char)
                 : undefined;
-        if (triggerCharacter) {
-            await retrieveCompletions(
-                newValue,
-                field,
-                updatedCursorPosition + 1,
-                invalidateCacheRef.current,
-                triggerCharacter
-            );
-        } else {
-            await retrieveCompletions(
-                newValue,
-                field,
-                updatedCursorPosition + 1,
-                invalidateCacheRef.current
-            );
+
+        try {
+            if (triggerCharacter) {
+                await retrieveCompletions(
+                    newValue,
+                    field,
+                    updatedCursorPosition + 1,
+                    triggerCharacter
+                );
+            } else {
+                await retrieveCompletions(
+                    newValue,
+                    field,
+                    updatedCursorPosition + 1,
+                );
+            }
+        } catch (error) {
+            console.error('Failed to retrieve completions:', error);
         }
     }
 
@@ -499,22 +454,25 @@ export function PromptNodeWidget(props: PromptNodeWidgetProps) {
                     )}
                 </NodeStyles.Row>
                 <NodeStyles.Body>
-                    <FormExpressionEditor
-                        ref={exprRef}
-                        anchorRef={anchorRef}
-                        completions={completions}
+                    <NPPromptEditor
+                        node={npFunctionNode}
+                        fileName={flow.fileName || model.node.codedata?.lineRange.fileName}
+                        targetLineRange={npFunctionNode?.properties['prompt']?.codedata?.lineRange}
                         value={bodyTextTemplate}
-                        placeholder="Enter your prompt here..."
                         onChange={handleChange}
-                        onCompletionSelect={handleCompletionSelect}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
+                        placeholder="Enter your prompt here..."
+                        completions={completions}
+                        triggerCharacters={triggerCharacters}
+                        retrieveCompletions={retrieveCompletions}
+                        onCompletionItemSelect={onCompletionItemSelect}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
                         onCancel={onCancel}
-                        growRange={{ start: 12, offset: 0 }}
+                        getHelperPane={getHelperPane}
+                        getExpressionTokens={getExpressionTokens}
+                        inputMode={InputMode.PROMPT}
+                        sx={{ width: '100%', height: '100%' }}
                         disabled={!editable}
-                        resize="disabled"
-                        sx={{ paddingInline: '0' }}
-                        completionSx={{ width: '331px' }}
                     />
                 </NodeStyles.Body>
 

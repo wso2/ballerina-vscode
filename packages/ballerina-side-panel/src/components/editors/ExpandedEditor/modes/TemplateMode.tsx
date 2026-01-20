@@ -16,29 +16,17 @@
  * under the License.
  */
 
-import React, { useEffect, useState, useRef } from "react";
-import styled from "@emotion/styled";
-import { EditorView } from "@codemirror/view";
+import React from "react";
 import { EditorModeExpressionProps } from "./types";
 import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
-import { TemplateMarkdownToolbar } from "../controls/TemplateMarkdownToolbar";
-import { MarkdownPreview } from "../controls/MarkdownPreview";
-import { transformExpressionToMarkdown } from "../utils/transformToMarkdown";
-import { useFormContext } from "../../../../context/form";
 import { ErrorBanner } from "@wso2/ui-toolkit";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-`;
+import { getEditorConfiguration } from "../../ExpressionField";
+import { ExpressionContainer } from "./styles";
 
 export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     value,
     onChange,
+    field,
     completions = [],
     fileName,
     targetLineRange,
@@ -46,113 +34,35 @@ export const TemplateMode: React.FC<EditorModeExpressionProps> = ({
     extractArgsFromFunction,
     getHelperPane,
     rawExpression,
-    isPreviewMode = false,
-    onTogglePreview,
     error,
-    formDiagnostics
+    formDiagnostics,
+    inputMode
 }) => {
-    const [transformedContent, setTransformedContent] = useState<string>("");
-    const [editorView, setEditorView] = useState<EditorView | null>(null);
-    const [helperPaneToggle, setHelperPaneToggle] = useState<{
-        ref: React.RefObject<HTMLButtonElement>;
-        isOpen: boolean;
-        onClick: () => void;
-    } | null>(null);
-    const toolbarRef = useRef<HTMLDivElement>(null);
-    const { expressionEditor } = useFormContext();
-    const expressionEditorRpcManager = expressionEditor?.rpcManager;
-
     // Convert onChange signature from (value: string) => void to (value: string, cursorPosition: number) => void
     const handleChange = (updatedValue: string, updatedCursorPosition: number) => {
         onChange(updatedValue, updatedCursorPosition);
     };
 
-    // Transform expression to markdown when entering preview mode
-    useEffect(() => {
-        const transformContent = async () => {
-            if (isPreviewMode && value && expressionEditorRpcManager) {
-                try {
-                    // Fetch token stream from language server
-                    const startLine = targetLineRange?.startLine;
-                    const tokenStream = await expressionEditorRpcManager.getExpressionTokens(
-                        value,
-                        fileName,
-                        startLine !== undefined ? startLine : undefined
-                    );
-
-                    // Get sanitized value for display
-                    const displayValue = sanitizedExpression ? sanitizedExpression(value) : value;
-
-                    if (tokenStream && tokenStream.length > 0) {
-                        // Transform expression with tokens to markdown with chip tags
-                        const markdown = transformExpressionToMarkdown(displayValue, tokenStream);
-                        setTransformedContent(markdown);
-                    } else {
-                        // No tokens, use sanitized value as-is
-                        setTransformedContent(displayValue);
-                    }
-                } catch (error) {
-                    console.error('Error transforming expression to markdown:', error);
-                    // Fallback to sanitized value on error
-                    const displayValue = sanitizedExpression ? sanitizedExpression(value) : value;
-                    setTransformedContent(displayValue);
-                }
-            }
-        };
-
-        transformContent();
-    }, [isPreviewMode, value, fileName, targetLineRange?.startLine, expressionEditorRpcManager, sanitizedExpression]);
-
-    // Only show toolbar and preview if preview props are provided
-    const hasPreviewSupport = onTogglePreview !== undefined;
-
-    const handleHelperPaneStateChange = (state: {
-        isOpen: boolean;
-        ref: React.RefObject<HTMLButtonElement>;
-        toggle: () => void;
-    }) => {
-        setHelperPaneToggle({
-            ref: state.ref,
-            isOpen: state.isOpen,
-            onClick: state.toggle
-        });
-    };
-
     return (
         <>
-            {hasPreviewSupport && (
-                <TemplateMarkdownToolbar
-                    ref={toolbarRef}
-                    editorView={editorView}
-                    isPreviewMode={isPreviewMode}
-                    onTogglePreview={() => onTogglePreview(!isPreviewMode)}
-                    helperPaneToggle={helperPaneToggle || undefined}
+            <ExpressionContainer>
+                <ChipExpressionEditorComponent
+                    value={value}
+                    onChange={handleChange}
+                    completions={completions}
+                    sanitizedExpression={sanitizedExpression}
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
+                    extractArgsFromFunction={extractArgsFromFunction}
+                    getHelperPane={getHelperPane}
+                    rawExpression={rawExpression}
+                    isInExpandedMode={true}
+                    isExpandedVersion={true}
+                    inputMode={inputMode}
+                    configuration={getEditorConfiguration(inputMode)}
+                    placeholder={field.placeholder}
                 />
-            )}
-            {isPreviewMode ? (
-                <MarkdownPreview content={transformedContent} />
-            ) : (
-                <ExpressionContainer>
-                    <ChipExpressionEditorComponent
-                        value={value}
-                        onChange={handleChange}
-                        completions={completions}
-                        sanitizedExpression={sanitizedExpression}
-                        fileName={fileName}
-                        targetLineRange={targetLineRange}
-                        extractArgsFromFunction={extractArgsFromFunction}
-                        getHelperPane={getHelperPane}
-                        rawExpression={rawExpression}
-                        isInExpandedMode={true}
-                        isExpandedVersion={true}
-                        showHelperPaneToggle={false}
-                        onHelperPaneStateChange={handleHelperPaneStateChange}
-                        onEditorViewReady={setEditorView}
-                        toolbarRef={toolbarRef}
-                        enableListContinuation={true}
-                    />
-                </ExpressionContainer>
-            )}
+            </ExpressionContainer>
             {error ?
                 <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
                 formDiagnostics && formDiagnostics.length > 0 &&

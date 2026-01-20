@@ -105,12 +105,13 @@ interface TitleBarProps {
     subtitleElement?: ReactNode;
     actions?: ReactNode;
     hideBack?: boolean;
+    hideUndoRedo?: boolean;
     onBack?: () => void; // Override back functionality
     isBetaFeature?: boolean;
 }
 
 export function TitleBar(props: TitleBarProps) {
-    const { title, subtitle, subtitleElement, actions, hideBack, onBack, isBetaFeature } = props;
+    const { title, subtitle, subtitleElement, actions, hideBack, hideUndoRedo, onBack, isBetaFeature } = props;
     const { rpcClient } = useRpcContext();
 
     const [isDiagramView, setIsDiagramView] = useState(false);
@@ -153,7 +154,7 @@ export function TitleBar(props: TitleBarProps) {
                 )}
             </LeftContainer>
             <RightContainer>
-                {(actions || isDiagramView) && <UndoRedoGroup key={Date.now()} />}
+                {(!hideUndoRedo && (actions || isDiagramView)) && <UndoRedoGroup key={Date.now()} />}
                 {actions && <ActionsContainer>{actions}</ActionsContainer>}
             </RightContainer>
         </TitleBarContainer>

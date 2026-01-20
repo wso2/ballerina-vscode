@@ -44,9 +44,9 @@ type DocumentConfigProps = {
 const AI_DOCUMENT_TYPES = Object.values(AIDocumentType);
 
 // Helper function to wrap content in document structure
-const wrapInDocumentType = (documentType: AIDocumentType, content: string, addInterpolation: boolean = true): string => {
-    const docStructure = `<${documentType}>{content: ${content}}`;
-    return addInterpolation ? `\${${docStructure}}` : docStructure;
+const wrapInDocumentType = (documentType: AIDocumentType, content: string, isTemplateMode: boolean): string => {
+    const wrappedContent = `<${documentType}>{content: ${content}}`;
+    return wrappedContent;
 };
 
 export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCompletions, currentValue, handleRetrieveCompletions, isInModal, inputMode }: DocumentConfigProps) => {
@@ -159,12 +159,12 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
         const needsTypeCasting = typeInfo.includes("string") || typeInfo.includes("byte[]") || typeInfo.includes("ai:Url");
 
         // Check if we're in template mode
-        const isTemplateMode = inputMode === InputMode.TEMPLATE;
+        const isTemplateMode = inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE;
 
         if (isAIDocumentType) {
             // For AI document types, wrap in string interpolation only in template mode
             if (isTemplateMode) {
-                onChange(`\${${fullPath}}`, false);
+                onChange(`${fullPath}`, false);
             } else {
                 onChange(fullPath, false);
             }
@@ -211,7 +211,7 @@ export const DocumentConfig = ({ onChange, onClose, targetLineRange, filteredCom
             if (!url.trim()) {
                 return;
             }
-            const isTemplateMode = inputMode === InputMode.TEMPLATE;
+            const isTemplateMode = inputMode === InputMode.PROMPT;
             const wrappedValue = wrapInDocumentType(documentType, `"${url.trim()}"`, isTemplateMode);
             onChange(wrappedValue, false, false);
             closeModal(POPUP_IDS.DOCUMENT_URL);

@@ -17,7 +17,7 @@
  */
 
 import { TypeInfo } from "./ballerina";
-import { CodeData } from "./bi";
+import { CodeData, InputType } from "./bi";
 import { LineRange } from "./common";
 
 export enum TypeKind {
@@ -54,11 +54,11 @@ export enum InputCategory {
 }
 
 export enum IntermediateClauseType {
-    LET = "let",
     WHERE = "where",
-    FROM = "from",
+    LET = "let",
     ORDER_BY = "order-by",
     LIMIT = "limit",
+    FROM = "from",
     JOIN = "join",
     GROUP_BY = "group-by"
 }
@@ -69,18 +69,8 @@ export enum ResultClauseType {
 }
 
 export interface DMDiagnostic {
-    kind: string;
+    code: string;
     message: string;
-    range: {
-        start: {
-            line: number;
-            character: number;
-        };
-        end: {
-            line: number;
-            character: number;
-        };
-    };
 }
 
 export interface IOType {
@@ -179,6 +169,8 @@ export interface IOTypeField {
     ref?: string;
     focusExpression?: string;
     isSeq?: boolean;
+    isIterationVariable?: boolean;
+    isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
 }
 
@@ -269,7 +261,7 @@ export interface DMFormField {
     editable: boolean;
     documentation: string;
     value: any;
-    valueTypeConstraint: string;
+    types: InputType[];
     enabled: boolean;
     items?: string[];
 }

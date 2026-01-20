@@ -66,11 +66,14 @@ export const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 export enum BALLERINA_COMMANDS {
     TEST = "test", BUILD = "build", FORMAT = "format", RUN = "run", RUN_WITH_WATCH = "run --watch", DOC = "doc",
     ADD = "add", OTHER = "other", PACK = "pack", RUN_WITH_EXPERIMENTAL = "run --experimental",
-    BUILD_WITH_EXPERIMENTAL = "build --experimental",
+    BUILD_WITH_EXPERIMENTAL = "build --experimental", PACK_WITH_EXPERIMENTAL = "pack --experimental",
 }
 
 export enum PROJECT_TYPE {
-    SINGLE_FILE = "SINGLE_FILE_PROJECT", BUILD_PROJECT = "BUILD_PROJECT", BALR_PROJECT = "BALR_PROJECT"
+    SINGLE_FILE = "SINGLE_FILE_PROJECT",
+    BUILD_PROJECT = "BUILD_PROJECT",
+    BALR_PROJECT = "BALR_PROJECT",
+    WORKSPACE = "WORKSPACE_PROJECT"
 }
 
 export enum COMMAND_OPTIONS {
@@ -204,3 +207,4 @@ export function getRunCommand(): BALLERINA_COMMANDS {
     }
     return BALLERINA_COMMANDS.RUN;
 }
+

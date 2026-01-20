@@ -15,72 +15,91 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { DataMapperModelResponse } from "../../interfaces/extended-lang-client";
 import { LoginMethod } from "../../state-machine-types";
-import { AddToProjectRequest, GetFromFileRequest, DeleteFromProjectRequest, ProjectSource, ProjectDiagnostics, PostProcessRequest, PostProcessResponse, FetchDataRequest, FetchDataResponse, TestGenerationRequest, TestGenerationResponse, TestGenerationMentions, AIChatSummary, DeveloperDocument, RequirementSpecification, LLMDiagnostics, GetModuleDirParams, AIPanelPrompt, AIMachineSnapshot, SubmitFeedbackRequest, RelevantLibrariesAndFunctionsRequest, GenerateOpenAPIRequest, GenerateCodeRequest, TestPlanGenerationRequest, TestGeneratorIntermediaryState, RepairParams, RelevantLibrariesAndFunctionsResponse, DocGenerationRequest, AddFilesToProjectRequest, MetadataWithAttachments, DatamapperModelContext, ProcessContextTypeCreationRequest, ProcessMappingParametersRequest } from "./interfaces";
+import {
+    TestGenerationMentions,
+    RequirementSpecification,
+    LLMDiagnostics,
+    AIPanelPrompt,
+    AIMachineSnapshot,
+    SubmitFeedbackRequest,
+    GenerateOpenAPIRequest,
+    GenerateAgentCodeRequest,
+    DocGenerationRequest,
+    AddFilesToProjectRequest,
+    MetadataWithAttachments,
+    ProcessContextTypeCreationRequest,
+    ProcessMappingParametersRequest,
+    SemanticDiffRequest,
+    SemanticDiffResponse,
+    RestoreCheckpointRequest,
+    UpdateChatMessageRequest,
+    PlanApprovalRequest,
+    ApproveTaskRequest,
+    TaskDeclineRequest,
+    ConnectorSpecRequest,
+    ConnectorSpecCancelRequest,
+    UIChatMessage,
+    CheckpointInfo,
+    AbortAIGenerationRequest,
+} from "./interfaces";
 
 export interface AIPanelAPI {
     // ==================================
     // General Functions
     // ==================================
-    getBackendUrl: () => Promise<string>;
-    getProjectUuid: () => Promise<string>;
     getLoginMethod: () => Promise<LoginMethod>;
-    getAccessToken: () => Promise<string>;
-    getRefreshedAccessToken: () => Promise<string>;
-    getDefaultPrompt: () => Promise<AIPanelPrompt>;
-    getAIMachineSnapshot: () => Promise<AIMachineSnapshot>;
-    fetchData: (params: FetchDataRequest) => Promise<FetchDataResponse>;
-    addToProject: (params: AddToProjectRequest) => Promise<boolean>;
-    getFromFile: (params: GetFromFileRequest) => Promise<string>;
-    getFileExists: (params: GetFromFileRequest) => Promise<boolean>;
-    deleteFromProject: (params: DeleteFromProjectRequest) => void;
-    getShadowDiagnostics: (params: ProjectSource) => Promise<ProjectDiagnostics>;
-    checkSyntaxError: (params: ProjectSource) => Promise<boolean>;
-    clearInitialPrompt: () => void;
+    getDefaultPrompt: () => Promise<AIPanelPrompt>; //starting args
+    getAIMachineSnapshot: () => Promise<AIMachineSnapshot>; //login state machine
+    clearInitialPrompt: () => void; //starting args
     // Data-mapper related functions
     openChatWindowWithCommand: () => void;
     generateContextTypes: (params: ProcessContextTypeCreationRequest) => void;
     generateMappingCode: (params: ProcessMappingParametersRequest) => void;
     generateInlineMappingCode: (params: MetadataWithAttachments) => void;
-    // Test-generator related functions
-    getGeneratedTests: (params: TestGenerationRequest) => Promise<TestGenerationResponse>;
-    getTestDiagnostics: (params: TestGenerationResponse) => Promise<ProjectDiagnostics>;
-    getServiceSourceForName: (params: string) => Promise<string>;
-    getResourceSourceForMethodAndPath: (params: string) => Promise<string>;
     getServiceNames: () => Promise<TestGenerationMentions>;
-    getResourceMethodAndPaths: () => Promise<TestGenerationMentions>;
-    abortTestGeneration: () => void;
-    applyDoOnFailBlocks: () => void;
-    postProcess: (params: PostProcessRequest) => Promise<PostProcessResponse>;
     promptGithubAuthorize: () => Promise<boolean>;
-    promptWSO2AILogout: () => Promise<boolean>;
     isCopilotSignedIn: () => Promise<boolean>;
     showSignInAlert: () => Promise<boolean>;
     markAlertShown: () => void;
     getFromDocumentation: (params: string) => Promise<string>;
-    isRequirementsSpecificationFileExist:(params: string) => Promise<boolean>;
-    getDriftDiagnosticContents:(params: string) => Promise<LLMDiagnostics>;
-    addChatSummary:(params: AIChatSummary) => Promise<boolean>;
-    handleChatSummaryError:(params: string) => void;
-    isNaturalProgrammingDirectoryExists:(params: string) => Promise<boolean>;
-    readDeveloperMdFile:(params: string) => Promise<string>;
-    updateDevelopmentDocument:(params: DeveloperDocument) => void;
-    updateRequirementSpecification:(params: RequirementSpecification) => void;
-    createTestDirecoryIfNotExists:(params: string) => void;
+    getDriftDiagnosticContents: () => Promise<LLMDiagnostics>;
+    updateRequirementSpecification: (params: RequirementSpecification) => void;
+    createTestDirecoryIfNotExists: () => void;
     submitFeedback: (params: SubmitFeedbackRequest) => Promise<boolean>;
-    getRelevantLibrariesAndFunctions: (params: RelevantLibrariesAndFunctionsRequest) => Promise<RelevantLibrariesAndFunctionsResponse>;
     generateOpenAPI: (params: GenerateOpenAPIRequest) => void;
-    generateCode: (params: GenerateCodeRequest) => void;
-    repairGeneratedCode: (params: RepairParams) => void;
-    generateTestPlan: (params: TestPlanGenerationRequest) => void;
-    generateFunctionTests: (params: TestGeneratorIntermediaryState) => void;
-    generateHealthcareCode: (params: GenerateCodeRequest) => void;
-    abortAIGeneration: () => void;
+    generateAgent: (params: GenerateAgentCodeRequest) => Promise<boolean>;
+    abortAIGeneration: (params: AbortAIGenerationRequest) => void;
     // ==================================
     // Doc Generation Related Functions
     // ==================================
     getGeneratedDocumentation: (params: DocGenerationRequest) => Promise<void>;
     addFilesToProject: (params: AddFilesToProjectRequest) => Promise<boolean>;
     isUserAuthenticated: () => Promise<boolean>;
+    openAIPanel: (params: AIPanelPrompt) => Promise<void>;
+    isPlanModeFeatureEnabled: () => Promise<boolean>;
+    // AI schema related functions
+    getSemanticDiff: (params: SemanticDiffRequest) => Promise<SemanticDiffResponse>;
+    getAffectedPackages: () => Promise<string[]>;
+    isWorkspaceProject: () => Promise<boolean>;
+    acceptChanges: () => Promise<void>;
+    declineChanges: () => Promise<void>;
+    // ==================================
+    // Approval Related Functions (Human-in-the-Loop)
+    // ==================================
+    approvePlan: (params: PlanApprovalRequest) => Promise<void>;
+    declinePlan: (params: PlanApprovalRequest) => Promise<void>;
+    approveTask: (params: ApproveTaskRequest) => Promise<void>;
+    declineTask: (params: TaskDeclineRequest) => Promise<void>;
+    provideConnectorSpec: (params: ConnectorSpecRequest) => Promise<void>;
+    cancelConnectorSpec: (params: ConnectorSpecCancelRequest) => Promise<void>;
+    // ==================================
+    // Chat State Management
+    // ==================================
+    getChatMessages: () => Promise<UIChatMessage[]>;
+    getCheckpoints: () => Promise<CheckpointInfo[]>;
+    restoreCheckpoint: (params: RestoreCheckpointRequest) => Promise<void>;
+    clearChat: () => Promise<void>;
+    updateChatMessage: (params: UpdateChatMessageRequest) => Promise<void>;
+    getActiveTempDir: () => Promise<string>;
 }

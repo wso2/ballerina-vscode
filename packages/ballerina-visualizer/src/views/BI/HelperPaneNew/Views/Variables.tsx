@@ -32,7 +32,6 @@ import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
-import { wrapInTemplateInterpolation } from "../utils/utils"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -162,7 +161,7 @@ export const Variables = (props: VariablesPageProps) => {
             updatedNode,
             dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
             {
-                closeSidePanel: false, updateLineRange: true, postUpdateCallBack: () => {
+                closeSidePanel: false, isChangeFromHelperPane: true, postUpdateCallBack: () => {
                     onClose()
                     closeModal(POPUP_IDS.VARIABLE);
                     onChange(newNodeNameRef.current, false, true);
@@ -198,9 +197,7 @@ export const Variables = (props: VariablesPageProps) => {
     const handleItemSelect = (value: string, _item?: CompletionItem) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
-        // Wrap in template interpolation if in template mode
-        const wrappedPath = wrapInTemplateInterpolation(fullPath, inputMode);
-        onChange(wrappedPath, false);
+        onChange(fullPath, false);
     }
 
     const handleAddNewVariable = () => {
@@ -282,7 +279,7 @@ export const Variables = (props: VariablesPageProps) => {
                     label: "Name",
                     description: "Name of the variable",
                 },
-                valueType: "IDENTIFIER",
+                types: [{ fieldType: "IDENTIFIER", selected: false }],
                 value: "var1",
                 optional: false,
                 editable: true,
@@ -295,7 +292,7 @@ export const Variables = (props: VariablesPageProps) => {
                     label: "Expression",
                     description: "Expression of the variable",
                 },
-                valueType: "ACTION_OR_EXPRESSION",
+                types: [{ fieldType: "ACTION_OR_EXPRESSION", selected: false }],
                 value: "",
                 optional: true,
                 editable: true,

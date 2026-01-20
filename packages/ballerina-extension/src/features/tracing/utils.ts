@@ -17,7 +17,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { parse } from 'toml';
+import { parse, stringify } from '@iarna/toml';
 import { OTLP_PORT } from './constants';
 
 /**
@@ -145,7 +145,7 @@ function updateOrAddSection(content: string, sectionName: string, values: Record
     // Build the new section content
     let sectionLines: string[] = [sectionHeader];
     for (const [key, value] of Object.entries(values)) {
-        const formattedValue = typeof value === 'string' ? `"${value}"` : String(value);
+        const formattedValue = stringify.value(value);
         sectionLines.push(`${key} = ${formattedValue}`);
     }
     const sectionContent = sectionLines.join('\n');

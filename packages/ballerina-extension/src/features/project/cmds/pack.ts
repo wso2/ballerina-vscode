@@ -23,12 +23,15 @@ import {
 } from "../../telemetry";
 import { runCommand, BALLERINA_COMMANDS, PROJECT_TYPE, PALETTE_COMMANDS, MESSAGES }
     from "./cmd-runner";
-import { getCurrentBallerinaProject }
+import { getCurrentBallerinaProject, getCurrentProjectRoot }
     from "../../../utils/project-utils";
 import { LANGUAGE } from "../../../core";
+import { StateMachine } from "../../../stateMachine";
+import { MACHINE_VIEW } from "@wso2/ballerina-core";
+import { createVersionNumber, isSupportedSLVersion } from "../../../utils";
 
 export function activatePackCommand() {
-    // register run project build handler
+    // register run project pack handler
     commands.registerCommand(PALETTE_COMMANDS.PACK, async () => {
         try {
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_PACK, CMP_PROJECT_PACK);
@@ -38,11 +41,37 @@ export function activatePackCommand() {
                 return;
             }
 
-            const currentProject = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram() ? await
-                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
-                : await getCurrentBallerinaProject();
+            const context = StateMachine.context();
+            const { workspacePath, view: webviewType, projectPath } = context;
+
+            let targetPath = projectPath ?? "";          
+            if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
+                targetPath = workspacePath;
+            } else if (workspacePath && !projectPath) {
+                try {
+                    targetPath = await getCurrentProjectRoot();
+                } catch (error) {
+                    targetPath = workspacePath;
+                }
+            } else {
+                targetPath = await getCurrentProjectRoot();
+            }
+
+            if (!targetPath) {
+                window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                return;
+            }
+
+            const currentProject = await getCurrentBallerinaProject(targetPath);
+
+            let balCommand = BALLERINA_COMMANDS.PACK;
+
+            if (isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0)) && extension.ballerinaExtInstance.enabledExperimentalFeatures()) {
+                balCommand = BALLERINA_COMMANDS.PACK_WITH_EXPERIMENTAL;
+            }
+
             if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(), BALLERINA_COMMANDS.PACK,
+                runCommand(currentProject, extension.ballerinaExtInstance.getBallerinaCmd(), balCommand,
                     currentProject.path!);
             } else {
                 window.showErrorMessage(MESSAGES.INVALID_PACK);
@@ -58,3 +87,4 @@ export function activatePackCommand() {
         }
     });
 }
+

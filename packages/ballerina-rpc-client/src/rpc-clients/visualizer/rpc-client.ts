@@ -38,9 +38,11 @@ import {
     joinProjectPath,
     openView,
     redo,
+    resetUndoRedoStack,
     undo,
     undoRedoState,
-    updateCurrentArtifactLocation
+    updateCurrentArtifactLocation,
+    reviewAccepted
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -92,6 +94,10 @@ export class VisualizerRpcClient implements VisualizerAPI {
         return this._messenger.sendRequest(undoRedoState, HOST_EXTENSION);
     }
 
+    resetUndoRedoStack(): void {
+        return this._messenger.sendNotification(resetUndoRedoStack, HOST_EXTENSION);
+    }
+
     joinProjectPath(params: JoinProjectPathRequest): Promise<JoinProjectPathResponse> {
         return this._messenger.sendRequest(joinProjectPath, HOST_EXTENSION, params);
     }
@@ -102,5 +108,9 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
         return this._messenger.sendRequest(updateCurrentArtifactLocation, HOST_EXTENSION, params);
+    }
+
+    reviewAccepted(): void {
+        return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
     }
 }

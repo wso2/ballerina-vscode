@@ -27,11 +27,20 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AddProjectFormFields, AddProjectFormData } from "./AddProjectFormFields";
 import { isFormValidAddProject } from "./utils";
 
+const PageWrapper = styled.div`
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    padding: 40px 120px;
+    box-sizing: border-box;
+    overflow: hidden;
+`;
+
 const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
-    margin: 80px 120px;
     max-width: 600px;
+    overflow: hidden;
 `;
 
 const TitleContainer = styled.div`
@@ -39,12 +48,22 @@ const TitleContainer = styled.div`
     align-items: center;
     gap: 8px;
     margin-bottom: 32px;
+    flex-shrink: 0;
+`;
+
+const ScrollableContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 8px;
+    min-height: 0;
 `;
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
+    padding-top: 16px;
     display: flex;
     justify-content: flex-end;
+    flex-shrink: 0;
 `;
 
 const IconButton = styled.div`
@@ -103,44 +122,48 @@ export function AddProjectForm() {
     };
 
     return (
-        <FormContainer>
-            <TitleContainer>
-                <IconButton onClick={goBack}>
-                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-                </IconButton>
-                <Typography variant="h2">
-                    {!isInWorkspace 
-                        ? "Convert to Workspace & Add Integration"
-                        : "Add New Integration"}
-                </Typography>
-            </TitleContainer>
+        <PageWrapper>
+            <FormContainer>
+                <TitleContainer>
+                    <IconButton onClick={goBack}>
+                        <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                    </IconButton>
+                    <Typography variant="h2">
+                        {!isInWorkspace 
+                            ? "Convert to Workspace & Add Integration"
+                            : "Add New Integration"}
+                    </Typography>
+                </TitleContainer>
 
-            <AddProjectFormFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-                isInWorkspace={isInWorkspace}
-            />
+                <ScrollableContent>
+                    <AddProjectFormFields
+                        formData={formData}
+                        onFormDataChange={handleFormDataChange}
+                        isInWorkspace={isInWorkspace}
+                    />
+                </ScrollableContent>
 
-            <ButtonWrapper>
-                <Button
-                    disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
-                    onClick={handleAddProject}
-                    appearance="primary"
-                >
-                    {isLoading ? (
-                        <Typography variant="progress">
-                            {!isInWorkspace 
-                                ? "Converting & Adding..."
-                                : "Adding..."}
-                        </Typography>
-                    ) : (
-                        !isInWorkspace 
-                            ? "Convert & Add Integration"
-                            : "Add Integration"
-                    )}
-                </Button>
-            </ButtonWrapper>
-        </FormContainer>
+                <ButtonWrapper>
+                    <Button
+                        disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
+                        onClick={handleAddProject}
+                        appearance="primary"
+                    >
+                        {isLoading ? (
+                            <Typography variant="progress">
+                                {!isInWorkspace 
+                                    ? "Converting & Adding..."
+                                    : "Adding..."}
+                            </Typography>
+                        ) : (
+                            !isInWorkspace 
+                                ? "Convert & Add Integration"
+                                : "Add Integration"
+                        )}
+                    </Button>
+                </ButtonWrapper>
+            </FormContainer>
+        </PageWrapper>
     );
 }
 
