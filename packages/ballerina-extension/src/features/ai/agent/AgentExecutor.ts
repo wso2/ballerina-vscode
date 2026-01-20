@@ -295,7 +295,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
             this.config.eventHandler({
                 type: "error",
-                content: "An error occurred during agent execution. Plese check the logs for details."
+                content: "An error occurred during agent execution. Please check the logs for details."
             });
 
             // For other errors, return result with error
