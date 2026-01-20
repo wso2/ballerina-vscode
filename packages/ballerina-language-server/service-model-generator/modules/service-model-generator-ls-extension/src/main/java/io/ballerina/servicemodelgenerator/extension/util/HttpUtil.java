@@ -465,8 +465,7 @@ public final class HttpUtil {
         return type.trim().equals(HTTP_RESPONSE_TYPE);
     }
 
-    public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
-                                                        Document document, List<String> newTypeDefinitions,
+    public static String generateHttpResourceDefinition(Function function, List<String> newTypeDefinitions,
                                                         Map<String, String> importsForMainBal,
                                                         Map<String, String> importsForTypesBal) {
         StringBuilder builder = new StringBuilder();
@@ -488,9 +487,8 @@ public final class HttpUtil {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-        Set<String> visibleSymbols = getVisibleSymbols(semanticModel, document);
         String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, importsForMainBal,
-                importsForTypesBal, visibleSymbols, true);
+                importsForTypesBal, true);
         builder.append(functionSignature);
 
         // function body
@@ -511,7 +509,6 @@ public final class HttpUtil {
     public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
                                                        Map<String, String> importsForMainBal,
                                                        Map<String, String> importsForTypesBal,
-                                                       Set<String> visibleSymbols,
                                                        boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
@@ -527,7 +524,7 @@ public final class HttpUtil {
                 List<String> responses = new ArrayList<>(returnType.getResponses().stream()
                         .filter(HttpResponse::isEnabled)
                         .map(response -> HttpUtil.getStatusCodeResponse(response, newTypeDefinitions, importsForMainBal,
-                                importsForTypesBal, visibleSymbols, defaultStatusCode))
+                                importsForTypesBal, defaultStatusCode))
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
@@ -738,7 +735,6 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
                                                Map<String, String> importsForMainBal,
                                                Map<String, String> importsForTypesBal,
-                                               Set<String> visibleSymbols,
                                                int defaultStatusCode) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
@@ -772,7 +768,7 @@ public final class HttpUtil {
             }
         }
         Value headers = response.getHeaders();
-        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValue().isEmpty()) {
+        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValuesAsObjects().isEmpty()) {
             createNewType = true;
         }
 
