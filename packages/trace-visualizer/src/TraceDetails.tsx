@@ -1621,9 +1621,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                         getChildSpans={isAdvancedMode ? getChildSpans : getAIChildSpans}
                                         traceStartTime={traceData.firstSeen}
                                         traceDuration={duration}
-                                        height={waterfallDimensions.height}
-                                        maxHeight={waterfallDimensions.maxHeight}
-                                        minHeight={waterfallDimensions.minHeight}
                                     />
                                 )}
                             </>
