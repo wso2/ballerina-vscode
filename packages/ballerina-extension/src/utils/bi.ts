@@ -251,12 +251,13 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
 
     const EMPTY = "\n";
 
+    const libraryLine = projectRequest.isLibrary ? '\nlibrary = true' : '';
     const ballerinaTomlContent = `
 [package]
 org = "${finalOrgName}"
 name = "${finalPackageName}"
 version = "${finalVersion}"
-title = "${integrationName}"
+title = "${integrationName}"${libraryLine}
 
 [build-options]
 sticky = true
@@ -461,7 +462,8 @@ function createProjectInWorkspace(params: AddProjectToWorkspaceRequest, workspac
         projectPath: workspacePath,
         createDirectory: true,
         orgName: params.orgName,
-        version: params.version
+        version: params.version,
+        isLibrary: params.isLibrary
     };
 
     return createBIProjectPure(projectRequest);
