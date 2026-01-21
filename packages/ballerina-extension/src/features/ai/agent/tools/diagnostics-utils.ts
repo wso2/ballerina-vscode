@@ -2,6 +2,7 @@ import { DiagnosticEntry, Diagnostics } from '@wso2/ballerina-core';
 import { checkProjectDiagnostics, isModuleNotFoundDiagsExist as resolveModuleNotFoundDiagnostics } from '../../../../rpc-managers/ai-panel/repair-utils';
 import { StateMachine } from '../../../../stateMachine';
 import * as path from 'path';
+import { Uri } from 'vscode';
 
 /**
  * Diagnostic entry enriched with resolving hints
@@ -94,8 +95,19 @@ export async function checkCompilationErrors(
 
         // Get diagnostics from language server for the current project
         console.log(`[DiagnosticsUtils] Calling language server for diagnostics on ${tempProjectPath}`);
-        let diagnostics: Diagnostics[] = await checkProjectDiagnostics(langClient, tempProjectPath, true);
-
+        let diagnostics: Diagnostics[] = [];
+        try {
+            diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
+        } catch (diagError) {
+            // Resolve module dependencies using ai scheme
+            const aiUri = Uri.file(tempProjectPath).with({ scheme: 'ai' }).toString();
+            await langClient.resolveModuleDependencies({
+                documentIdentifier: {
+                    uri: aiUri
+                }
+            });
+            diagnostics = await checkProjectDiagnostics(langClient, tempProjectPath, true);
+        }
         // Check if there are module not found diagnostics and attempt to resolve them
         const isDiagsChanged = await resolveModuleNotFoundDiagnostics(diagnostics, langClient);
         if (isDiagsChanged) {
@@ -127,7 +139,7 @@ export async function checkCompilationErrors(
             diagnostics: [{
                 message: "Internal error occurred while checking compilation errors."
             }],
-            message: `<CRITICAL_ERROR> Failed to check compilation errors due to an internal error. Avoid try to resolve this with code changes. Acknowledge the failure and stop the generation.
+            message: `<CRITICAL_ERROR> Failed to check compilation errors due to an internal error. Avoid try to resolve this with code changes. Acknowledge the failure, consider the task is done.
 Reason: ${error instanceof Error ? error.message : 'Unknown error'}
 </CRITICAL_ERROR>`,
         };

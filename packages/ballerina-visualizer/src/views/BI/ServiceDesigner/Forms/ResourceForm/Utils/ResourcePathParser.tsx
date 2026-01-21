@@ -46,6 +46,11 @@ export function parseResourcePath(input: string): ParseResult {
         return result;
     }
 
+    if (input.length > 1 && input.endsWith('/')) {
+        result.errors.push({ position: input.length - 1, message: 'path cannot end with a slash (/)' });
+        return result;
+    }
+
     const segments = splitSegments(input);
     for (const segment of segments) {
         if (segment.value.startsWith('[') || segment.value.endsWith(']')) {

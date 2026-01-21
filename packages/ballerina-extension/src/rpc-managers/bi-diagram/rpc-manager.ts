@@ -1377,7 +1377,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 new vscode.Location(vscode.Uri.file(params.filePath), new vscode.Position(params.breakpoint.line, params.breakpoint?.column)));
             vscode.debug.addBreakpoints([breakpoint]);
 
-            notifyBreakpointChange();
         });
     }
 
@@ -1406,7 +1405,6 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 vscode.debug.removeBreakpoints(breakpoints);
             }
 
-            notifyBreakpointChange();
         });
     }
 
@@ -1513,7 +1511,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             let projectPath: string;
             if (params?.projectPath) {
-                const uri = Uri.parse(params.projectPath);
+                const uri = Uri.file(params.projectPath);
                 projectPath = uri.with({ scheme: 'ai' }).toString();
             } else {
                 projectPath = StateMachine.context().projectPath;

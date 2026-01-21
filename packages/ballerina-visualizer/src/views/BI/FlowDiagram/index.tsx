@@ -89,7 +89,7 @@ const Container = styled.div`
 
 export interface BIFlowDiagramProps {
     projectPath: string;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
@@ -168,7 +168,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewChunker = useRef<boolean>(false);
 
     useEffect(() => {
-        debouncedGetFlowModel();
+        debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
 
     useEffect(() => {
@@ -249,6 +249,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             getFlowModel();
         }, 1000),
         [hasDraft]
+    );
+
+    // Shorter debounce specifically for breakpoint changes (faster feedback)
+    const debouncedGetFlowModelForBreakpoints = useCallback(
+        debounce(() => {
+            getFlowModel();
+        }, 200),
+        []
     );
 
     // Navigation stack helpers
@@ -642,7 +650,10 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     }
 
     const findNodeWithStartLine = (node: FlowNode, startLine: LinePosition) => {
-        return node?.codedata?.lineRange?.startLine === startLine;
+        return (
+            node?.codedata?.lineRange?.startLine.line === startLine.line &&
+            node?.codedata?.lineRange?.startLine.offset === startLine.offset
+        );
     }
 
     const searchNodesByName = (nodes: FlowNode[], name: string): FlowNode | undefined => {
@@ -706,6 +717,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         const index = flattened.findIndex(node => node.id === targetNode.id);
         if (index > 0) {
             return flattened[index - 1];
+        }
+        return undefined;
+    };
+
+    const getNodeAfter = (targetNode: FlowNode, nodes: FlowNode[]): FlowNode | undefined => {
+        const flattened = flattenNodes(nodes);
+        const index = flattened.findIndex(node => node.id === targetNode.id);
+        if (index >= 0 && index < flattened.length - 1) {
+            return flattened[index + 1];
         }
         return undefined;
     };
@@ -1376,10 +1396,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                         let newTargetLineRange = targetLineRange;
                         if (!selectedNodeRef.current?.codedata?.isNew) {
-                            const updatedSelectedNode = searchNodesByStartLine(
+                            const insertedVariableNode = searchNodesByStartLine(
                                 updatedModel.flowModel.nodes,
                                 selectedNodeRef.current.codedata.lineRange.startLine
                             );
+                            if (!insertedVariableNode) {
+                                console.error(">>> Inserted node not found in updated flow model");
+                                return;
+                            }
+                            const updatedSelectedNode = getNodeAfter(insertedVariableNode, updatedModel.flowModel.nodes);
                             if (!updatedSelectedNode) {
                                 console.error(">>> Selected node not found in updated flow model");
                                 return;

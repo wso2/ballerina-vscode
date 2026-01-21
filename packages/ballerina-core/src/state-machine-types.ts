@@ -461,6 +461,8 @@ export interface GenerationReviewState {
     tempProjectPath?: string;
     /** Files modified in this specific generation */
     modifiedFiles: string[];
+    /** Packages that have changes (absolute package paths) */
+    affectedPackagePaths?: string[];
     /** Error message if status is 'error' */
     errorMessage?: string;
 }
