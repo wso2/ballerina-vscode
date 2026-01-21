@@ -304,6 +304,34 @@
         },
         "newText": "\n\tremote function onConsumerRecord(KafkaAnydataConsumer[] messages, kafka:Caller caller) returns error? {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}"
       }
+    ],
+    "sample1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerinax/kafka;\n\n\nimport ballerina/ai;\n\n"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 0,
+            "character": 0
+          },
+          "end": {
+            "line": 0,
+            "character": 0
+          }
+        },
+        "newText": "type KafkaAnydataConsumer record {|\n    *kafka:AnydataConsumerRecord;\n    ai:Schema value;\n|};"
+      }
     ]
   }
 }
