@@ -31,3 +31,23 @@ export interface TraceStatus {
 export interface TraceInput {
     message: string;
 }
+
+export interface ChatHistoryMessage {
+    type: 'message' | 'error';
+    text: string;
+    isUser: boolean;
+    traceId?: string;
+}
+
+export interface ChatHistoryResponse {
+    messages: ChatHistoryMessage[];
+    isAgentRunning: boolean;
+}
+
+export interface AgentStatusResponse {
+    isRunning: boolean;
+}
+
+export interface ClearChatResponse {
+    newSessionId: string;
+}

@@ -21,16 +21,26 @@ import {
     ChatReqMessage,
     ChatRespMessage,
     TraceInput,
-    TraceStatus
+    TraceStatus,
+    ChatHistoryMessage,
+    ChatHistoryResponse,
+    AgentStatusResponse,
+    ClearChatResponse
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { TracerMachine, TraceServer } from "../../features/tracing";
 import { TraceDetailsWebview } from "../../features/tracing/trace-details-webview";
 import { Trace } from "../../features/tracing/trace-server";
+import { v4 as uuidv4 } from "uuid";
+import { updateChatSessionId } from "../../features/tryit/activator";
 
 export class AgentChatRpcManager implements AgentChatAPI {
     private currentAbortController: AbortController | null = null;
+    // Store chat history per session ID
+    private static chatHistoryMap: Map<string, ChatHistoryMessage[]> = new Map();
+    // Track active sessions
+    private static activeSessions: Set<string> = new Set();
 
     async getChatMessage(params: ChatReqMessage): Promise<ChatRespMessage> {
         return new Promise(async (resolve, reject) => {
@@ -42,18 +52,64 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     throw new Error('Invalid Agent Chat Context: Missing or incorrect ChatEP or ChatSessionID!');
                 }
 
+                // Store user message in history
+                const sessionId = extension.agentChatContext.chatSessionId;
+                // Mark session as active when first message is sent
+                AgentChatRpcManager.activeSessions.add(sessionId);
+
+                this.addMessageToHistory(sessionId, {
+                    type: 'message',
+                    text: params.message,
+                    isUser: true
+                });
+
                 this.currentAbortController = new AbortController();
+
+                const payload = { sessionId: extension.agentChatContext.chatSessionId, ...params };
+                console.log('[Agent Chat] Sending message with session ID:', payload.sessionId);
+
                 const response = await this.fetchTestData(
                     extension.agentChatContext.chatEp,
-                    { sessionId: extension.agentChatContext.chatSessionId, ...params },
+                    payload,
                     this.currentAbortController.signal
                 );
                 if (response && response.message) {
                     resolve(response as ChatRespMessage);
+                    // Find trace and extract tool calls and execution steps
+                    const trace = this.findTraceForMessage(params.message);
+
+                    const chatResponse: ChatRespMessage = {
+                        message: response.message
+                    };
+
+                    // Store agent response in history
+                    this.addMessageToHistory(sessionId, {
+                        type: 'message',
+                        text: response.message,
+                        isUser: false,
+                        traceId: trace?.traceId
+                    });
+
+                    resolve(chatResponse);
                 } else {
                     reject(new Error("Invalid response format:", response));
                 }
             } catch (error) {
+                // Store error message in history
+                const errorMessage =
+                    error && typeof error === "object" && "message" in error
+                        ? String(error.message)
+                        : "An unknown error occurred";
+
+                const sessionId = extension.agentChatContext?.chatSessionId;
+                if (sessionId) {
+                    this.addMessageToHistory(sessionId, {
+                        type: 'error',
+                        text: errorMessage,
+                        isUser: false
+                    });
+                }
+
                 reject(error);
             } finally {
                 this.currentAbortController = null;
@@ -61,7 +117,14 @@ export class AgentChatRpcManager implements AgentChatAPI {
         });
     }
 
-    async abortChatRequest(): Promise<void> {
+    private addMessageToHistory(sessionId: string, message: ChatHistoryMessage): void {
+        if (!AgentChatRpcManager.chatHistoryMap.has(sessionId)) {
+            AgentChatRpcManager.chatHistoryMap.set(sessionId, []);
+        }
+        AgentChatRpcManager.chatHistoryMap.get(sessionId)!.push(message);
+    }
+
+    abortChatRequest(): void {
         if (this.currentAbortController) {
             this.currentAbortController.abort();
             this.currentAbortController = null;
@@ -231,5 +294,70 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
     async showTraceView(params: TraceInput): Promise<void> {
         await this.showTraceDetailsForMessage(params.message);
+    }
+
+    async getChatHistory(): Promise<ChatHistoryResponse> {
+        return new Promise(async (resolve) => {
+            const sessionId = extension.agentChatContext?.chatSessionId;
+
+            if (!sessionId) {
+                resolve({
+                    messages: [],
+                    isAgentRunning: false
+                });
+                return;
+            }
+
+            // Session is considered "running" if it's in the active sessions set
+            const isAgentRunning = AgentChatRpcManager.activeSessions.has(sessionId);
+            const messages = AgentChatRpcManager.chatHistoryMap.get(sessionId) || [];
+
+            resolve({
+                messages,
+                isAgentRunning
+            });
+        });
+    }
+
+    async clearChatHistory(): Promise<ClearChatResponse> {
+        return new Promise(async (resolve) => {
+            const oldSessionId = extension.agentChatContext?.chatSessionId;
+            if (oldSessionId) {
+                // Clear the old session's history and mark it as inactive
+                AgentChatRpcManager.chatHistoryMap.delete(oldSessionId);
+                AgentChatRpcManager.activeSessions.delete(oldSessionId);
+            }
+
+            // Generate a new session ID
+            const newSessionId = uuidv4();
+
+            // Update the agent chat context with the new session ID
+            if (extension.agentChatContext) {
+                extension.agentChatContext.chatSessionId = newSessionId;
+
+                // Mark the new session as active
+                AgentChatRpcManager.activeSessions.add(newSessionId);
+
+                // Update the activator's chatSessionMap with the new session ID
+                const chatEp = extension.agentChatContext.chatEp;
+                if (chatEp) {
+                    updateChatSessionId(chatEp, newSessionId);
+                }
+            }
+
+            resolve({
+                newSessionId
+            });
+        });
+    }
+
+    async getAgentStatus(): Promise<AgentStatusResponse> {
+        return new Promise(async (resolve) => {
+            const sessionId = extension.agentChatContext?.chatSessionId;
+            const isRunning = sessionId ? AgentChatRpcManager.activeSessions.has(sessionId) : false;
+            resolve({
+                isRunning
+            });
+        });
     }
 }
