@@ -75,7 +75,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const indentation = fields ? 0 : ((treeDepth + 1) * 16) + 8;
 
     const label = (
-        <TruncatedLabelGroup style={{ marginRight: "auto", alignItems: "baseline", opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
+        <TruncatedLabelGroup style={{ alignItems: "baseline", opacity: portOut?.attributes.isPreview ? 0.5 : 1 }}>
             <TruncatedLabel className={classes.valueLabel} style={{ marginLeft: indentation }}>
                 <InputSearchHighlight>{displayName}</InputSearchHighlight>
                 {dmType.optional && "?"}

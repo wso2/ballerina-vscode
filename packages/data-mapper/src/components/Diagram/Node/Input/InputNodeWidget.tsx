@@ -152,7 +152,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
-                    {portOut &&
+                    {portOut && !expanded && portOut.linkedPorts.length > 0 &&
                         <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
                     }
                 </span>
