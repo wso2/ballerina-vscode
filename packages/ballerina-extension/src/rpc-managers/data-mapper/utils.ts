@@ -32,7 +32,8 @@ import {
     ExpandModelOptions,
     ExpandedDMModel,
     MACHINE_VIEW,
-    IntermediateClauseType
+    IntermediateClauseType,
+    InputCategory
 } from "@wso2/ballerina-core";
 import { updateSourceCode, UpdateSourceCodeRequest } from "../../utils";
 import { StateMachine, updateDataMapperView } from "../../stateMachine";
@@ -481,10 +482,13 @@ export function expandDMModel(
  */
 function processInputRoots(model: DMModel): IOType[] {
     const inputs: IORoot[] = [];
+    const moduleLevelInputs: IORoot[] = [];
     const focusInputs: Record<string, IOTypeField> = {};
     for (const input of model.inputs) {
         if (input.focusExpression && (input.isIterationVariable || input.isSeq || input.isGroupingKey)) {
             focusInputs[input.focusExpression] = input as IOTypeField;
+        } else if (isModuleLevelInput(input)) {
+            moduleLevelInputs.push(input);
         } else {
             inputs.push(input);
         }
@@ -497,10 +501,39 @@ function processInputRoots(model: DMModel): IOType[] {
         focusInputs
     };
 
-    return inputs.map(input => {
+    const processedInputs = inputs.map(input => {
         preProcessedModel.traversingRoot = input.name;
         return processIORoot(input, preProcessedModel);
     });
+
+    return moduleLevelInputs.length
+        ? [buildModuleLevelInputsGroup(moduleLevelInputs, preProcessedModel), ...processedInputs]
+        : processedInputs;
+}
+
+function isModuleLevelInput(input: IORoot): boolean {
+    return input.category === InputCategory.Constant
+        || input.category === InputCategory.Configurable
+        || input.category === InputCategory.ModuleVariable
+        || input.category === InputCategory.Variable;
+}
+
+function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
+    
+    const id = "$MODULE_LEVEL_INPUTS$";
+    model.traversingRoot = id;
+    const fields = moduleLevelInputs.map(input => {
+        model.focusInputRootMap[input.name] = model.traversingRoot;
+        return processIORoot(input, model);
+    });
+
+    return {
+        id,
+        name: id,
+        displayName: "Module Level Inputs",
+        kind: TypeKind.Record,
+        fields
+    };
 }
 
 /**
@@ -787,4 +820,3 @@ function processEnum(
         ...(member.optional && { optional: member.optional })
     }));
 }
-
