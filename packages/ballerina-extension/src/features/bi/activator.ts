@@ -36,7 +36,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
+import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -157,7 +157,13 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
-        return createBIProjectPure(params);
+        let path: string;
+        if (params.createAsWorkspace) {
+            path = createBIWorkspace(params);
+        } else {
+            path = createBIProjectPure(params);
+        }
+        return path;
     });
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
@@ -392,7 +398,7 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const {projectPath, projectInfo} = StateMachine.context();
+    const { projectPath, projectInfo } = StateMachine.context();
     const projectRoot = await findBallerinaPackageRoot(filePath);
     if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
         await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);

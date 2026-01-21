@@ -33,6 +33,7 @@ import { HelperpaneOnChangeOptions } from "../../../Form/types";
 import { useFormContext } from "../../../../context/form";
 import { createChipPlugin, createChipSchema, updateChipTokens } from "./plugins/chipPlugin";
 import { createXMLTagDecorationPlugin } from "./plugins/xmlTagDecorationPlugin";
+import { createPlaceholderPlugin } from "./plugins/placeholderPlugin";
 import { HelperPane } from "../ChipExpressionEditor/components/HelperPane";
 import {
     toggleBold,
@@ -125,9 +126,28 @@ const EditorContainer = styled.div`
     .ProseMirror .xml-tag-selfClosing {
         color: var(--vscode-charts-green);
     }
+
+    .ProseMirror .placeholder {
+        color: ${ThemeColors.ON_SURFACE_VARIANT};
+        opacity: 0.6;
+        pointer-events: none;
+        position: absolute;
+        top: 14px;
+        left: 12px;
+    }
 `;
 
 const markdownTokenizer = markdownit("commonmark", { html: false }).disable(["autolink", "html_inline", "html_block"]);
+
+// Helper function to sanitize text by removing invisible characters
+const sanitizeText = (text: string): string => {
+    return text
+        .replace(/\u00A0/g, ' ')  // Replace non-breaking spaces with regular spaces
+        .replace(/\u200B/g, '')   // Remove zero-width spaces
+        .replace(/\u200C/g, '')   // Remove zero-width non-joiners
+        .replace(/\u200D/g, '')   // Remove zero-width joiners
+        .replace(/\uFEFF/g, '');  // Remove zero-width no-break spaces
+};
 
 // Create chip schema once
 const chipSchema = createChipSchema();
@@ -154,6 +174,7 @@ interface RichTextTemplateEditorProps {
     value: string;
     onChange: (value: string, cursorPosition: number) => void;
     completions?: CompletionItem[];
+    placeholder?: string;
     fileName?: string;
     targetLineRange?: LineRange;
     configuration: ChipExpressionEditorDefaultConfiguration;
@@ -179,6 +200,7 @@ interface RichTextTemplateEditorProps {
 export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     value,
     onChange,
+    placeholder,
     fileName,
     targetLineRange,
     configuration,
@@ -250,26 +272,35 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     };
 
     // Handle helper pane selection
-    const onHelperItemSelect = async (newValue: string, options?: HelperpaneOnChangeOptions) => {
+    const onHelperItemSelect = async (selectedValue: string, options?: HelperpaneOnChangeOptions) => {
         if (!viewRef.current) return;
 
         const view = viewRef.current;
-        let finalValue = newValue;
-        let cursorPosition;
+
+        // Check if selection is on a chip/token
+        const isOnChip = helperPaneState.clickedChipPos !== undefined && helperPaneState.clickedChipNode;
+        const transformedValue = configuration.getHelperValue(selectedValue);
+
+        let finalValue = transformedValue;
+        let cursorPosition: number;
+
+        // HACK: this should be handled properly with completion items template
+        // current API response sends an incorrect response
+        // if API sends $1,$2.. for the arguments in the template
+        // then we can directly handled it without explicitly calling the API
+        // and extracting args
+        if (transformedValue.endsWith('()') || transformedValue.endsWith(')}')) {
+            if (extractArgsFromFunction) {
+                const result = await processFunctionWithArguments(transformedValue, extractArgsFromFunction);
+                finalValue = result.finalValue;
+            }
+        }
 
         // If a chip was clicked, replace it
-        if (helperPaneState.clickedChipPos !== undefined && helperPaneState.clickedChipNode) {
-            const chipPos = helperPaneState.clickedChipPos;
+        if (isOnChip) {
+            const chipPos = helperPaneState.clickedChipPos!;
             const chipNode = helperPaneState.clickedChipNode;
             const chipSize = chipNode.nodeSize;
-
-            // HACK: this should be handled properly with completion items template
-            if (newValue.endsWith('()') || newValue.endsWith(')}')) {
-                if (extractArgsFromFunction) {
-                    const result = await processFunctionWithArguments(newValue, extractArgsFromFunction);
-                    finalValue = result.finalValue;
-                }
-            }
 
             // Replace the chip with the new text
             const textNode = view.state.schema.text(finalValue);
@@ -294,7 +325,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
         // Trigger onChange to update parent
         const serialized = customMarkdownSerializer.serialize(view.state.doc);
-        const newEditorValue = configuration.deserializeValue(serialized);
+        const newEditorValue = sanitizeText(configuration.deserializeValue(serialized));
         onChange(newEditorValue, cursorPosition);
     };
 
@@ -408,12 +439,56 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
                 gapCursor(),
                 chipPlugin,
                 xmlTagPlugin,
-                cursorMovePlugin
+                cursorMovePlugin,
+                ...(placeholder ? [createPlaceholderPlugin(placeholder)] : [])
             ]
         });
 
         const view = new EditorView(editorRef.current, {
             state,
+            handlePaste(view, event, _slice) {
+                const text = event.clipboardData?.getData('text/plain');
+                if (!text) return false;
+
+                // Sanitize pasted text to remove invisible characters
+                const sanitizedText = sanitizeText(text);
+
+                // Check if the pasted text looks like markdown
+                const markdownPatterns = [
+                    /^#{1,6}\s/m,           // Headings
+                    /\*\*[^*]+\*\*/,        // Bold
+                    /\*[^*]+\*/,            // Italic
+                    /^[-*+]\s/m,            // Unordered list
+                    /^\d+\.\s/m,            // Ordered list
+                    /^>\s/m,                // Blockquote
+                    /`[^`]+`/,              // Inline code
+                    /```[\s\S]*```/,        // Code block
+                    /\[.+\]\(.+\)/          // Links
+                ];
+
+                const looksLikeMarkdown = markdownPatterns.some(pattern => pattern.test(sanitizedText));
+
+                if (looksLikeMarkdown) {
+                    const doc = customMarkdownParser.parse(sanitizedText);
+                    if (doc && doc.content.size > 0) {
+                        const { from, to } = view.state.selection;
+                        const tr = (view.state.tr as any).replaceWith(from, to, doc.content);
+                        view.dispatch(tr);
+                        return true;
+                    }
+                } else {
+                    // For plain text, insert sanitized text
+                    const { from, to } = view.state.selection;
+                    const tr = view.state.tr.insertText(sanitizedText, from, to);
+                    view.dispatch(tr);
+                    return true;
+                }
+
+                return false;
+            },
+            transformPastedText(text) {
+                return sanitizeText(text);
+            },
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
                 view.updateState(newState);
@@ -445,7 +520,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
                     // Call onChange when document changes
                     const serialized = customMarkdownSerializer.serialize(newState.doc);
-                    const newValue = configuration.deserializeValue(serialized);
+                    const newValue = sanitizeText(configuration.deserializeValue(serialized));
                     const cursorPos = (newState.selection as any).$head?.pos || 0;
                     onChange(newValue, cursorPos);
                 }
