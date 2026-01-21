@@ -80,13 +80,15 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         expanded = false;
     }
 
+    const isNotGroupHeaderPort = !isGroupHeaderPort(portOut);
+
     const headerLabel = valueLabel || dmType.displayName || dmType.name || id;
     const label = (
         <TruncatedLabelGroup style={{ alignItems: "baseline" }}>
             <TruncatedLabel className={classes.valueLabelHeader}>
                 <InputSearchHighlight>{headerLabel}</InputSearchHighlight>
             </TruncatedLabel>
-            {typeName && !isGroupHeaderPort(portOut) && (
+            {typeName && isNotGroupHeaderPort && (
                 <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </TruncatedLabel>
@@ -153,7 +155,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
-                    {portOut && !expanded && portOut.linkedPorts.length > 0 &&
+                    {portOut && (isNotGroupHeaderPort || !expanded && portOut.linkedPorts.length > 0) &&
                         <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
                     }
                 </span>
