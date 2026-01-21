@@ -43,7 +43,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -61,7 +60,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -83,7 +81,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
@@ -465,8 +462,7 @@ public final class HttpUtil {
         return type.trim().equals(HTTP_RESPONSE_TYPE);
     }
 
-    public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
-                                                        Document document, List<String> newTypeDefinitions,
+    public static String generateHttpResourceDefinition(Function function, List<String> newTypeDefinitions,
                                                         Map<String, String> importsForMainBal,
                                                         Map<String, String> importsForTypesBal) {
         StringBuilder builder = new StringBuilder();
@@ -488,9 +484,8 @@ public final class HttpUtil {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-        Set<String> visibleSymbols = getVisibleSymbols(semanticModel, document);
         String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, importsForMainBal,
-                importsForTypesBal, visibleSymbols, true);
+                importsForTypesBal, true);
         builder.append(functionSignature);
 
         // function body
@@ -511,7 +506,6 @@ public final class HttpUtil {
     public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
                                                        Map<String, String> importsForMainBal,
                                                        Map<String, String> importsForTypesBal,
-                                                       Set<String> visibleSymbols,
                                                        boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
@@ -527,7 +521,7 @@ public final class HttpUtil {
                 List<String> responses = new ArrayList<>(returnType.getResponses().stream()
                         .filter(HttpResponse::isEnabled)
                         .map(response -> HttpUtil.getStatusCodeResponse(response, newTypeDefinitions, importsForMainBal,
-                                importsForTypesBal, visibleSymbols, defaultStatusCode))
+                                importsForTypesBal, defaultStatusCode))
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
@@ -738,7 +732,6 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
                                                Map<String, String> importsForMainBal,
                                                Map<String, String> importsForTypesBal,
-                                               Set<String> visibleSymbols,
                                                int defaultStatusCode) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
@@ -772,7 +765,7 @@ public final class HttpUtil {
             }
         }
         Value headers = response.getHeaders();
-        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValue().isEmpty()) {
+        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValuesAsObjects().isEmpty()) {
             createNewType = true;
         }
 
