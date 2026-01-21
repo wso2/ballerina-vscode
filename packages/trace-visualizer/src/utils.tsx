@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import styled from "@emotion/styled";
 import { SpanData } from './index';
 
 export const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null => {
@@ -256,4 +257,43 @@ export const getSpanLabel = (type: string) => {
     case 'tool': return 'Execute Tool';
     default: return 'Operation';
   }
+};
+
+export const doesSpanMatch = (span: SpanData, query: string): boolean => {
+  if (!query) return true;
+  const lowerQuery = query.toLowerCase();
+
+  // Search in Name
+  if (span.name.toLowerCase().includes(lowerQuery)) return true;
+
+  // Search in Span Kind (optional, good for advanced view)
+  if (getSpanKindLabel(span.kind).toLowerCase().includes(lowerQuery)) return true;
+
+  return false;
+};
+
+const HighlightMark = styled.mark`
+    background-color: var(--vscode-editor-findMatchHighlightBackground);
+    color: inherit;
+    padding: 0;
+    border-radius: 2px;
+`;
+
+export const HighlightText = ({ text, query }: { text: string; query: string }) => {
+  if (!query || !text) return <>{text} </>;
+
+  // Escape regex characters in query
+  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+
+  return (
+    <>
+      {
+        parts.map((part, i) =>
+          part.toLowerCase() === query.toLowerCase()
+            ? <HighlightMark key={i} > {part} </HighlightMark>
+            : part
+        )}
+    </>
+  );
 };

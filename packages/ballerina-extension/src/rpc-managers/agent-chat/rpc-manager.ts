@@ -76,6 +76,10 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     this.currentAbortController.signal
                 );
                 if (response && response.message) {
+                    // Find trace and extract tool calls and execution steps
+                    const trace = this.findTraceForMessage(params.message);
+                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
+
                     // Store agent response in history
                     this.addMessageToHistory(sessionId, {
                         type: 'message',
@@ -83,11 +87,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         isUser: false,
                         traceId: trace?.traceId
                     });
-
-                    // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(params.message);
-                    const toolCalls = trace ? this.extractToolCalls(trace) : undefined;
-                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     resolve({
                         message: response.message,

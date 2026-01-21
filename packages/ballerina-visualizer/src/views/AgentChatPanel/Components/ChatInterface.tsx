@@ -146,6 +146,14 @@ const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading
     border-radius: ${({ isUser }: { isUser: boolean }) => (isUser ? "12px 12px 0px 12px" : "12px 12px 12px 0px")};
 `;
 
+const MessageActionsContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -4px 0 0 24px;
+    flex-wrap: wrap;
+`;
+
 // ---------- CHAT FOOTER ----------
 const ChatFooter = styled.div`
     position: sticky;
