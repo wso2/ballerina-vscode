@@ -29,6 +29,7 @@ import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore } from '../../../../store/store';
 import { getTypeName, isEnumMember } from "../../utils/type-utils";
 import { InputNode } from "./InputNode";
+import { InputCategoryIcon } from "./InputCategoryIcon";
 
 export interface InputNodeTreeItemWidgetProps {
     parentId: string;
@@ -51,7 +52,8 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
     const fieldName = dmType.name;
     const displayName = dmType.displayName || fieldName;
     const typeName = getTypeName(dmType);
-    const fieldId = dmType.isFocused ? fieldName : `${parentId}.${fieldName}`;
+    const skipParentId = dmType.isFocused || dmType.category;
+    const fieldId = skipParentId ? fieldName : `${parentId}.${fieldName}`;
     const portOut = getPort(`${fieldId}.OUT`);
     const isUnknownType = dmType.kind === TypeKind.Unknown;
 
@@ -134,6 +136,7 @@ export function InputNodeTreeItemWidget(props: InputNodeTreeItemWidgetProps) {
                             {expanded ? <Codicon name="chevron-down" /> : <Codicon name="chevron-right" />}
                         </Button>}
                     {label}
+                    <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
                     {portOut && !portOut.attributes.isPreview &&

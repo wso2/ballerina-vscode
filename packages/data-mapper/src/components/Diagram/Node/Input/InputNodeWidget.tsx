@@ -79,10 +79,11 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         expanded = false;
     }
 
+    const headerLabel = valueLabel || dmType.displayName || dmType.name || id;
     const label = (
         <TruncatedLabelGroup style={{ alignItems: "baseline" }}>
             <TruncatedLabel className={classes.valueLabelHeader}>
-                <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
+                <InputSearchHighlight>{headerLabel}</InputSearchHighlight>
             </TruncatedLabel>
             {typeName && (
                 <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
