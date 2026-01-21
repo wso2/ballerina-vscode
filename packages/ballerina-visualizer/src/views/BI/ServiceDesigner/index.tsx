@@ -949,6 +949,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                         return nameMatch || iconMatch;
                                                     })
                                                     .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
+                                                    .sort((a, b) => a.position?.startLine - b.position?.startLine)
                                                     .map((resource, index) => (
                                                         <ResourceAccordionV2
                                                             key={`${index}-${resource.name}`}
