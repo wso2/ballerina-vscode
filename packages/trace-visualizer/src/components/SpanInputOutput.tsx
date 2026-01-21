@@ -49,15 +49,33 @@ const SpanHeader = styled.div`
     position: relative;
 `;
 
-const SpanIcon = styled.span<{ type: string }>`
+const SpanIcon = styled.span<{ type: string; spanKind?: string }>`
     display: flex;
     align-items: center;
     justify-content: center;
-    color: ${(props: { type: string }) => {
+    padding: 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    background-color: ${(props: { type: string; spanKind?: string }) => {
+        // Only non-AI spans get background
+        return props.type === 'other' ? 'var(--vscode-editor-background)' : 'transparent';
+    }};
+    border: ${(props: { type: string; spanKind?: string }) => {
+        // Only non-AI spans get border
+        return props.type === 'other' ? '1px solid var(--vscode-dropdown-border)' : 'none';
+    }};
+    color: ${(props: { type: string; spanKind?: string }) => {
         switch (props.type) {
             case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
             case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
             case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
+            case 'other':
+                // Use span kind colors for non-AI spans (matching TraceDetails)
+                switch (props.spanKind?.toLowerCase()) {
+                    case 'client': return 'var(--vscode-terminal-ansiBlue)';
+                    case 'server': return 'var(--vscode-terminal-ansiGreen)';
+                    default: return 'var(--vscode-foreground)';
+                }
             default: return 'var(--vscode-badge-foreground)';
         }
     }};
@@ -511,6 +529,30 @@ function stripSpanPrefix(spanName: string): string {
     return spanName;
 }
 
+// Get icon name based on span type and kind
+function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'other', spanKind?: string): string {
+    switch (spanType) {
+        case 'invoke':
+            return 'bi-ai-agent';
+        case 'chat':
+            return 'bi-chat';
+        case 'tool':
+            return 'bi-wrench';
+        case 'other':
+            // For non-AI spans, use icons based on span kind (server/client)
+            switch (spanKind?.toLowerCase()) {
+                case 'client':
+                    return 'bi-arrow-outward';
+                case 'server':
+                    return 'bi-server';
+                default:
+                    return 'bi-action';
+            }
+        default:
+            return 'bi-action';
+    }
+}
+
 export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOutputTokens }: SpanInputOutputProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isIdPopupOpen, setIsIdPopupOpen] = useState(false);
@@ -526,6 +568,23 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
         if (operationName.startsWith('execute_tool') || spanName?.toLowerCase().startsWith('execute_tool')) return 'tool';
         return 'other';
     }, [operationName, spanName]);
+
+    // Get span kind for non-AI spans
+    const spanKind = useMemo(() => {
+        const kind = spanData.kind;
+        if (typeof kind === 'string') {
+            return kind;
+        }
+        const kindMap: { [key: number]: string } = {
+            0: 'UNSPECIFIED',
+            1: 'INTERNAL',
+            2: 'SERVER',
+            3: 'CLIENT',
+            4: 'PRODUCER',
+            5: 'CONSUMER'
+        };
+        return kindMap[kind] || `UNKNOWN(${kind})`;
+    }, [spanData.kind]);
 
     // Extract metrics
     const metrics = useMemo(() => {
@@ -548,7 +607,9 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
             temperature,
             provider,
             model,
-            toolDescription
+            toolDescription,
+            startTime: spanData.startTime ? formatDate(spanData.startTime) : null,
+            endTime: spanData.endTime ? formatDate(spanData.endTime) : null
         };
     }, [spanData]);
 
@@ -604,6 +665,8 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
             textContainsSearch(String(metrics.outputTokens), searchQuery) ||
             textContainsSearch(String(totalInputTokens || ''), searchQuery) ||
             textContainsSearch(String(totalOutputTokens || ''), searchQuery) ||
+            textContainsSearch(metrics.startTime, searchQuery) ||
+            textContainsSearch(metrics.endTime, searchQuery) ||
             textContainsSearch('Latency', searchQuery) ||
             textContainsSearch('Temperature', searchQuery) ||
             textContainsSearch('Provider', searchQuery) ||
@@ -612,7 +675,9 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
             textContainsSearch('Input Tokens', searchQuery) ||
             textContainsSearch('Output Tokens', searchQuery) ||
             textContainsSearch('Total Input Tokens', searchQuery) ||
-            textContainsSearch('Total Output Tokens', searchQuery);
+            textContainsSearch('Total Output Tokens', searchQuery) ||
+            textContainsSearch('Start Time', searchQuery) ||
+            textContainsSearch('End Time', searchQuery);
     }, [searchQuery, metrics, totalInputTokens, totalOutputTokens]);
 
     // Advanced attributes (not shown in input/output)
@@ -677,9 +742,9 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
             {/* Span Header */}
             {spanName && (
                 <SpanHeader>
-                    <SpanIcon type={spanType}>
+                    <SpanIcon type={spanType} spanKind={spanKind}>
                         <Icon
-                            name={spanType === 'invoke' ? 'bi-ai-agent' : spanType === 'chat' ? 'bi-chat' : spanType === 'tool' ? 'bi-wrench' : 'bi-action'}
+                            name={getSpanIconName(spanType, spanKind)}
                             sx={{
                                 fontSize: '24px',
                                 width: '24px',
@@ -702,6 +767,8 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
                             {spanType === 'invoke' && 'Invoke Agent - '}
                             {spanType === 'chat' && 'Chat - '}
                             {spanType === 'tool' && 'Execute Tool - '}
+                            {spanType === 'other' && spanKind.toLowerCase() === 'server' && 'Server - '}
+                            {spanType === 'other' && spanKind.toLowerCase() === 'client' && 'Client - '}
                         </span>
                         {stripSpanPrefix(spanName)}
                     </SpanTitle>
@@ -815,6 +882,16 @@ export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOut
                     {metrics.toolDescription && (
                         <MetricPill>
                             {highlightText(`Tool Description: ${metrics.toolDescription}`, searchQuery)}
+                        </MetricPill>
+                    )}
+                    {metrics.startTime && (
+                        <MetricPill>
+                            {highlightText(`Start Time: ${metrics.startTime}`, searchQuery)}
+                        </MetricPill>
+                    )}
+                    {metrics.endTime && (
+                        <MetricPill>
+                            {highlightText(`End Time: ${metrics.endTime}`, searchQuery)}
                         </MetricPill>
                     )}
                 </MetricsPills>

@@ -31,6 +31,8 @@ interface WaterfallViewProps {
     getChildSpans: (spanId: string) => SpanData[];
     traceStartTime: string;
     traceDuration: number;
+    collapsedSpanIds: Set<string>;
+    setCollapsedSpanIds: (ids: Set<string>) => void;
 }
 
 interface FlatSpan extends SpanData {
@@ -57,7 +59,7 @@ const WaterfallContainer = styled.div`
 const ZoomControlsBar = styled.div`
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     padding: 8px 0;
     border-bottom: 1px solid var(--vscode-panel-border);
     flex-shrink: 0;
@@ -473,10 +475,11 @@ export function WaterfallView({
     getChildSpans,
     traceStartTime,
     traceDuration,
+    collapsedSpanIds,
+    setCollapsedSpanIds
 }: WaterfallViewProps) {
     const [zoom, setZoom] = useState(1);
     const [hoveredSpan, setHoveredSpan] = useState<{ span: FlatSpan; x: number; y: number } | null>(null);
-    const [collapsedSpanIds, setCollapsedSpanIds] = useState<Set<string>>(new Set());
     const [isCompact, setIsCompact] = useState(false);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -645,17 +648,6 @@ export function WaterfallView({
         <WaterfallContainer ref={containerRef}>
             {/* Zoom Controls */}
             <ZoomControlsBar>
-                <ZoomButton
-                    onClick={handleToggleAll}
-                    title={isAnyCollapsed ? "Expand All Spans" : "Collapse All Spans"}
-                >
-                    <Icon
-                        name={isAnyCollapsed ? 'bi-expand-item' : 'bi-collapse-item'}
-                        sx={{ fontSize: "14px", width: "14px", height: "14px" }}
-                        iconSx={{ display: "flex" }}
-                    />
-                    {!isCompact && (isAnyCollapsed ? 'Expand' : 'Collapse')}
-                </ZoomButton>
                 <ZoomControlsGroup>
                     <ZoomButton
                         onClick={() => setZoom(Math.max(1, zoom - 1))}

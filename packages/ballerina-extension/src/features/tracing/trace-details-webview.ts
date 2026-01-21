@@ -144,7 +144,7 @@ export class TraceDetailsWebview {
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
-            instance._panel.title = isAgentChat ? 'Agent Chat Logs' : 'Trace Details';
+            instance._panel.title = 'Trace Logs';
         }
 
         vscode.commands.executeCommand('workbench.action.closeSidebar');
