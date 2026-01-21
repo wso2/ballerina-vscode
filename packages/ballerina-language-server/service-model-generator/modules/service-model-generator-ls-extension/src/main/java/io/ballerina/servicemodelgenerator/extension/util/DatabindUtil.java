@@ -513,8 +513,10 @@ public final class DatabindUtil {
                 new Value.ValueBuilder().value(typeName).build()
         );
 
-        return createTypeDefinitionEdits(context.project(), typeName, baseType,
-                newDataBindingType, payloadFieldName, context.filePath(), context.workspaceManager());
+        Map<String, String> importsForTypeDef = dataBindingParam.getType().getImports();
+
+        return createTypeDefinitionEdits(context.project(), typeName, baseType, newDataBindingType, payloadFieldName,
+                context.filePath(), context.workspaceManager(), importsForTypeDef);
     }
 
     /**
@@ -625,27 +627,29 @@ public final class DatabindUtil {
         Map<String, List<TextEdit>> typesEdits;
         String typeName;
 
+        Map<String, String> importsForTypeDef = dataBindingParam.getType().getImports();
         if (customWrapperTypeName != null && !customWrapperTypeName.equals(existingTypeName)) {
             typeName = customWrapperTypeName;
             if (existingTypeName != null) {
                 typesEdits = updateTypeDefinitionEdits(context, existingTypeName, baseType, newDataBindingType,
-                        payloadFieldName, customWrapperTypeName);
+                        payloadFieldName, customWrapperTypeName, importsForTypeDef);
             } else {
                 typesEdits =
                         createTypeDefinitionEdits(context.project(), customWrapperTypeName, baseType,
-                                newDataBindingType, payloadFieldName, context.filePath(), context.workspaceManager());
+                                newDataBindingType, payloadFieldName, context.filePath(), context.workspaceManager(),
+                                importsForTypeDef);
             }
         } else if (existingTypeName != null) {
             typeName = existingTypeName;
             typesEdits = updateTypeDefinitionEdits(context, existingTypeName, baseType, newDataBindingType,
-                    payloadFieldName, null);
+                    payloadFieldName, null, importsForTypeDef);
         } else {
             typeName =
                     generateNewDataBindTypeName(context.filePath(), context.workspaceManager(), context.semanticModel(),
                             context.functionNode(),
                             prefix);
             typesEdits = createTypeDefinitionEdits(context.project(), typeName, baseType, newDataBindingType,
-                    payloadFieldName, context.filePath(), context.workspaceManager());
+                    payloadFieldName, context.filePath(), context.workspaceManager(), importsForTypeDef);
         }
 
         updateFunctionParameters(function, dataBindingParam, typeName, isArray);
@@ -885,9 +889,11 @@ public final class DatabindUtil {
      *
      * @param baseType       The base record type (e.g., "kafka:AnydataConsumerRecord")
      * @param modulePartNode The module part node to check existing imports
+     * @param importsForTypeDef Map of imports needed for the type definition
      * @return Set of import statements to add
      */
-    private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode) {
+    private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode,
+                                                      Map<String, String> importsForTypeDef) {
         Set<String> imports = new HashSet<>();
 
         if (baseType.contains(COLON)) {
@@ -899,6 +905,15 @@ public final class DatabindUtil {
                 imports.add(getImportStmt(org, importModule));
             }
         }
+
+        importsForTypeDef.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(modulePartNode, orgName, moduleName)) {
+                imports.add(getImportStmt(orgName, moduleName));
+            }
+        });
 
         return imports;
     }
@@ -915,14 +930,15 @@ public final class DatabindUtil {
      */
     private static TypeDefinitionEditContext prepareTypeDefinitionEditContext(Project project, String baseType,
                                                                               String contextFilePath,
-                                                                              WorkspaceManager workspaceManager) {
+                                                                              WorkspaceManager workspaceManager,
+                                                                              Map<String, String> importsForTypeDef) {
         Document typesDocument = getTypesDocument(contextFilePath, workspaceManager);
         if (typesDocument == null || typesDocument.syntaxTree() == null) {
             return null;
         }
 
         ModulePartNode modulePartNode = typesDocument.syntaxTree().rootNode();
-        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode);
+        Set<String> requiredImports = extractRequiredImports(baseType, modulePartNode, importsForTypeDef);
 
         return new TypeDefinitionEditContext(typesDocument, modulePartNode, requiredImports, project);
     }
@@ -935,15 +951,20 @@ public final class DatabindUtil {
      * @param baseType         The base record type (e.g., "kafka:AnydataConsumerRecord")
      * @param dataBindingType  The data binding field type (e.g., "Order")
      * @param payloadFieldName The field name for the payload (e.g., "value" or "content")
+     * @param contextFilePath  The context file path for locating types.bal
+     * @param workspaceManager The workspace manager for document retrieval
+     * @param importsForTypeDef Map of imports needed for the type definition
      * @return Map of file paths to TextEdit lists
      */
     private static Map<String, List<TextEdit>> createTypeDefinitionEdits(Project project, String typeName,
                                                                          String baseType, String dataBindingType,
                                                                          String payloadFieldName,
                                                                          String contextFilePath,
-                                                                         WorkspaceManager workspaceManager) {
+                                                                         WorkspaceManager workspaceManager,
+                                                                         Map<String, String> importsForTypeDef) {
         TypeDefinitionEditContext context =
-                prepareTypeDefinitionEditContext(project, baseType, contextFilePath, workspaceManager);
+                prepareTypeDefinitionEditContext(project, baseType, contextFilePath, workspaceManager,
+                        importsForTypeDef);
         if (context == null) {
             return Map.of();
         }
@@ -1172,6 +1193,7 @@ public final class DatabindUtil {
      * @param newDataBindingType The new data binding field type (e.g., "Customer")
      * @param payloadFieldName   The field name for the payload (e.g., "value")
      * @param newTypeName        The new type name to rename to (optional, if null uses existingTypeName)
+     * @param importsForTypeDef  Map of imports needed for the type definition
      * @return Map of file paths to TextEdit lists
      */
     private static Map<String, List<TextEdit>> updateTypeDefinitionEdits(UpdateModelContext context,
@@ -1179,10 +1201,13 @@ public final class DatabindUtil {
                                                                          String baseType,
                                                                          String newDataBindingType,
                                                                          String payloadFieldName,
-                                                                         String newTypeName) {
+                                                                         String newTypeName,
+                                                                         Map<String, String> importsForTypeDef) {
+
         Project project = context.project() != null ? context.project() : context.document().module().project();
         TypeDefinitionEditContext editContext =
-                prepareTypeDefinitionEditContext(project, baseType, context.filePath(), context.workspaceManager());
+                prepareTypeDefinitionEditContext(project, baseType, context.filePath(), context.workspaceManager(),
+                        importsForTypeDef);
         if (editContext == null) {
             return Map.of();
         }
@@ -1203,7 +1228,7 @@ public final class DatabindUtil {
         if (existingTypeDef == null) {
             // Type doesn't exist, create it instead
             return createTypeDefinitionEdits(context.project(), existingTypeName, baseType, newDataBindingType,
-                    payloadFieldName, context.filePath(), context.workspaceManager());
+                    payloadFieldName, context.filePath(), context.workspaceManager(), importsForTypeDef);
         }
 
         // Use newTypeName if provided for renaming, otherwise use existingTypeName
