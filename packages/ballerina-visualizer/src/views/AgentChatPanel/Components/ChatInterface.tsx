@@ -35,6 +35,7 @@ interface ChatMessage {
     type: ChatMessageType;
     text: string;
     isUser: boolean;
+    traceId?: string;
 }
 
 // ---------- WATER MARK ----------
@@ -391,12 +392,16 @@ const ChatInterface: React.FC = () => {
     };
 
     const confirmClearChat = async () => {
-        // Clear the messages in the UI
-        setMessages([]);
-        // Clear the chat history on the backend and get a new session ID
-        await rpcClient.getAgentChatRpcClient().clearChatHistory();
-        // Close the warning popup
-        setShowClearWarning(false);
+        try {
+            // Clear the chat history on the backend and get a new session ID
+            await rpcClient.getAgentChatRpcClient().clearChatHistory();
+            // Clear the messages in the UI
+            setMessages([]);
+            // Close the warning popup
+            setShowClearWarning(false);
+        } catch (error) {
+            console.error("Failed to clear chat history:", error);
+        }
     };
 
     const cancelClearChat = () => {

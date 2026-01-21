@@ -74,7 +74,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     this.currentAbortController.signal
                 );
                 if (response && response.message) {
-                    resolve(response as ChatRespMessage);
                     // Find trace and extract tool calls and execution steps
                     const trace = this.findTraceForMessage(params.message);
 
