@@ -31,6 +31,7 @@ import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanel
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
+import { isGroupHeaderPort } from "../../utils/common-utils";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -85,7 +86,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             <TruncatedLabel className={classes.valueLabelHeader}>
                 <InputSearchHighlight>{headerLabel}</InputSearchHighlight>
             </TruncatedLabel>
-            {typeName && (
+            {typeName && !isGroupHeaderPort(portOut) && (
                 <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </TruncatedLabel>
