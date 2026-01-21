@@ -475,8 +475,7 @@ const ChatInterface: React.FC = () => {
                     {/* Render each message */}
                     {messages.map((msg, idx) => (
                         <React.Fragment key={idx}>
-                            {/* Show execution timeline ABOVE agent message if available */}
-                            {!msg.isUser && msg?.executionSteps && msg.executionSteps.length > 0 && msg.traceId && (
+                            {!msg.isUser && isTracingEnabled && msg?.executionSteps && msg.executionSteps.length > 0 && msg.traceId && (
                                 <ExecutionTimeline
                                     steps={msg.executionSteps}
                                     traceId={msg.traceId}

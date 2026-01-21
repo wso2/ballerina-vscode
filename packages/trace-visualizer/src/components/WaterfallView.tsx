@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,10 +16,12 @@
  * under the License.
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { SpanData } from '../index';
 import { Codicon, Icon } from '@wso2/ui-toolkit';
+
+// --- Interfaces ---
 
 interface WaterfallViewProps {
     spans: SpanData[];
@@ -29,32 +31,37 @@ interface WaterfallViewProps {
     getChildSpans: (spanId: string) => SpanData[];
     traceStartTime: string;
     traceDuration: number;
-    height: number;
-    maxHeight: number;
-    minHeight: number;
 }
 
 interface FlatSpan extends SpanData {
+    status: any;
     level: number;
     startOffsetMs: number;
     durationMs: number;
+    hasChildren: boolean;
+    isCollapsed: boolean;
 }
 
-// Styled Components
+// --- Styled Components ---
+
 const WaterfallContainer = styled.div`
     background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
+    margin: 0 8px;
+    height: 100%;
+    container-type: inline-size;
 `;
 
 const ZoomControlsBar = styled.div`
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 8px 12px;
+    justify-content: space-between;
+    padding: 8px 0;
     border-bottom: 1px solid var(--vscode-panel-border);
-    background-color: var(--vscode-editorWidget-background);
+    flex-shrink: 0;
+    gap: 8px;
 `;
 
 const ZoomControlsGroup = styled.div`
@@ -66,17 +73,28 @@ const ZoomControlsGroup = styled.div`
 const ZoomButton = styled.button`
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: var(--vscode-button-secondaryBackground);
+    gap: 4px;
+    padding: 4px 8px;
+    background: transparent;
     border: 1px solid var(--vscode-panel-border);
-    border-radius: 3px;
-    cursor: pointer;
     color: var(--vscode-foreground);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.15s ease;
+    height: 26px; /* Explicit height for consistency */
 
     &:hover {
-        background: var(--vscode-button-secondaryHoverBackground);
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+    
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 `;
 
@@ -102,53 +120,75 @@ const ZoomSlider = styled.input`
 const ZoomLabel = styled.span`
     font-size: 11px;
     color: var(--vscode-descriptionForeground);
-    min-width: 35px;
+    min-width: 12px;
+    text-align: right;
 `;
 
-const TimelineContent = styled.div<{ height: number; maxHeight: number; minHeight: number }>`
+const TimelineScrollArea = styled.div`
+    flex: 1;
     overflow-x: auto;
     overflow-y: auto;
-    height: ${(props: { height: number }) => props.height}px;
-    max-height: ${(props: { maxHeight: number }) => props.maxHeight}px;
-    min-height: ${(props: { minHeight: number }) => props.minHeight}px;
-    resize: vertical;
+    position: relative;
+    
+    &::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--vscode-scrollbarSlider-background);
+        border-radius: 5px;
+    }
+    &::-webkit-scrollbar-corner {
+        background: transparent;
+    }
 `;
 
-const TimelineInner = styled.div<{ width: number }>`
-    min-width: ${(props: { width: number }) => props.width}%;
+const TimelineContent = styled.div<{ widthPercent: number }>`
+    width: ${(props: { widthPercent: number }) => props.widthPercent}%;
+    min-width: 100%;
+    position: relative;
+    height: 100%;
 `;
 
 const TimeAxis = styled.div`
-    position: relative;
-    height: 28px;
+    position: sticky;
+    top: 0;
+    height: 24px;
     width: 100%;
     border-bottom: 1px solid var(--vscode-panel-border);
     background-color: var(--vscode-editorWidget-background);
+    z-index: 10;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 `;
 
-const TimeMarker = styled.div<{ position: number }>`
+const TimeMarker = styled.div<{ left: number }>`
     position: absolute;
-    left: ${(props: { position: number }) => props.position}%;
+    left: ${(props: { left: number }) => props.left}%;
+    transform: translateX(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
+    pointer-events: none;
 `;
 
 const TimeMarkerTick = styled.div`
     width: 1px;
-    height: 8px;
-    background-color: var(--vscode-panel-border);
+    height: 4px;
+    background-color: var(--vscode-descriptionForeground);
 `;
 
 const TimeMarkerLabel = styled.span`
-    font-size: 11px;
+    font-size: 10px;
     color: var(--vscode-descriptionForeground);
     margin-top: 2px;
+    white-space: nowrap;
 `;
 
 const SpansContainer = styled.div`
     position: relative;
-    width: 100%;\n`;
+    width: 100%;
+    min-height: calc(100% - 24px); 
+`;
 
 const GridLinesContainer = styled.div`
     position: absolute;
@@ -160,121 +200,116 @@ const GridLinesContainer = styled.div`
     z-index: 0;
 `;
 
-const GridLineVertical = styled.div<{ position: number }>`
+const GridLineVertical = styled.div<{ left: number }>`
     position: absolute;
-    left: ${(props: { position: number }) => props.position}%;
+    left: ${(props: { left: number }) => props.left}%;
     top: 0;
     bottom: 0;
     width: 1px;
-    background-color: var(--vscode-panel-border);
-    opacity: 0.3;
+    background-color: var(--vscode-editor-lineHighlightBorder);
+    opacity: 0.4;
 `;
 
 const SpanRow = styled.div<{ isSelected: boolean; level: number }>`
     position: relative;
-    height: 36px;
+    height: 44px;
     width: 100%;
-    min-width: 100%;
-    border-bottom: 1px solid var(--vscode-panel-border);
-    background-color: ${(props: { isSelected: boolean; level: number }) => props.isSelected
+    display: flex;
+    align-items: center;
+    background-color: ${(props: { isSelected: boolean }) => props.isSelected
         ? 'var(--vscode-list-inactiveSelectionBackground)'
         : 'transparent'};
 
     &:hover {
-        background-color: ${(props: { isSelected: boolean; level: number }) => props.isSelected
+        background-color: ${(props: { isSelected: boolean }) => props.isSelected
         ? 'var(--vscode-list-inactiveSelectionBackground)'
         : 'var(--vscode-list-hoverBackground)'};
     }
+`;
+
+const HierarchyGuide = styled.div<{ level: number }>`
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: ${(props: { level: number }) => props.level * 12}px;
+    border-right: 1px solid transparent;
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent 95%, var(--vscode-tree-indentGuidesStroke) 100%);
+    background-size: 12px 100%;
+    opacity: 0.3;
+    z-index: 0;
 `;
 
 interface SpanBarProps {
     type: string;
     left: number;
     width: number;
-    isSelected: boolean;
-    level: number;
-}
-
-interface SpanBarIconProps {
-    type: string;
-}
-
-interface SpanBarIconProps {
-    type: string;
 }
 
 const SpanBar = styled.div<SpanBarProps>`
     position: absolute;
-    top: 6px;
+    top: 4px;
     height: 24px;
-    left: calc(${(props: SpanBarProps) => props.left}% + ${(props: SpanBarProps) => props.level * 20}px);
-    width: ${(props: SpanBarProps) => props.width}%;
-    min-width: 1px;
+    left: ${(props: SpanBarProps) => props.left}%;
+    width: ${(props: SpanBarProps) => Math.max(props.width, 0.1)}%; 
+    
     border-radius: 3px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    padding: 0 8px;
+    padding: 6px 6px;
     gap: 6px;
     overflow: visible;
-    transition: box-shadow 0.15s ease;
-    z-index: 1;
+    transition: opacity 0.15s ease;
+    z-index: 2;
 
     border: 1px solid;
-    border-color: ${(props: SpanBarIconProps) => {
-        switch (props.type) {
-            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-background)';
-        }
-    }};
+    border-color: ${(props: SpanBarProps) => getSpanColor(props.type)};
+    background-color: ${(props: SpanBarProps) => getSpanBgColor(props.type)};
 
-    &:before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-color: ${(props: SpanBarIconProps) => {
-        switch (props.type) {
-            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-background)';
-        }
-    }};
-        opacity: 0.1;
-        border-radius: inherit;
-        z-index: -1;
+    &:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 3;
     }
 `;
 
-const SpanBarIcon = styled.span<SpanBarIconProps>`
+const ChevronWrapper = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+`;
+
+const SpanBarIcon = styled.span<{ type: string }>`
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    opacity: 0.9;
-    color: ${(props: SpanBarIconProps) => {
-        switch (props.type) {
-            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-background)';
-        }
-    }};
+    color: ${(props: { type: string; }) => getSpanColor(props.type)};
 `;
 
 const SpanBarLabel = styled.span`
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
     flex: 1;
     font-weight: 500;
+    color: var(--vscode-foreground);
+    mix-blend-mode: hard-light;
 `;
 
 const SpanBarDuration = styled.span`
-    font-size: 11px;
-    opacity: 0.85;
+    font-size: 10px;
+    opacity: 0.8;
     flex-shrink: 0;
     margin-left: auto;
+    padding-left: 4px;
 `;
 
 const Tooltip = styled.div<{ x: number; y: number }>`
@@ -284,10 +319,10 @@ const Tooltip = styled.div<{ x: number; y: number }>`
     background-color: var(--vscode-editorHoverWidget-background);
     border: 1px solid var(--vscode-editorHoverWidget-border);
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 10px;
     z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    max-width: 300px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    max-width: 320px;
     pointer-events: none;
 `;
 
@@ -295,29 +330,25 @@ const TooltipHeader = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    padding-bottom: 6px;
 `;
 
 const TooltipBadge = styled.span<{ type: string }>`
     font-size: 10px;
     padding: 2px 6px;
     border-radius: 3px;
-    font-weight: 500;
-    background-color: ${(props: { type: string }) => {
-        switch (props.type) {
-            case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-            case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-            case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-            default: return 'var(--vscode-badge-background)';
-        }
-    }};
+    font-weight: 600;
+    background-color: ${(props: { type: string }) => getSpanColor(props.type)};
     color: var(--vscode-editor-background);
 `;
 
 const TooltipName = styled.span`
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 12px;
+    font-weight: 600;
     color: var(--vscode-foreground);
+    word-break: break-all;
 `;
 
 const TooltipDetails = styled.div`
@@ -327,19 +358,44 @@ const TooltipDetails = styled.div`
 `;
 
 const TooltipRow = styled.div`
-    font-size: 12px;
+    font-size: 11px;
     color: var(--vscode-descriptionForeground);
     display: flex;
-    align-items: center;
-    gap: 4px;
+    justify-content: space-between;
+    gap: 12px;
 
     span.value {
         color: var(--vscode-foreground);
-        font-weight: 500;
+        font-family: var(--vscode-editor-font-family);
     }
 `;
 
-// Helper functions
+// --- Helper Functions ---
+
+const getSpanKindString = (kind: any): string => {
+    if (kind === 3 || kind === 'CLIENT') return 'client';
+    if (kind === 2 || kind === 'SERVER') return 'server';
+    if (kind === 4 || kind === 'PRODUCER') return 'producer';
+    if (kind === 5 || kind === 'CONSUMER') return 'consumer';
+    return 'internal';
+};
+
+const getSpanColor = (type: string) => {
+    switch (type) {
+        case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
+        case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+        case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
+        case 'error': return 'var(--vscode-terminal-ansiRed)';
+        case 'client': return 'var(--vscode-terminal-ansiBlue)';
+        case 'server': return 'var(--vscode-terminal-ansiGreen)';
+        default: return 'var(--vscode-badge-background)';
+    }
+};
+
+const getSpanBgColor = (type: string) => {
+    return 'var(--vscode-editor-background)';
+};
+
 const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null => {
     if (!span.startTime || !span.endTime) return null;
     return {
@@ -349,14 +405,22 @@ const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null
 };
 
 const formatDuration = (durationMs: number): string => {
-    return durationMs < 1000 ? `${durationMs}ms` : `${(durationMs / 1000).toFixed(2)}s`;
+    if (durationMs === 0) return '< 1ms';
+    return durationMs < 1000 ? `${durationMs.toFixed(0)}ms` : `${(durationMs / 1000).toFixed(3)}s`;
 };
 
-const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'other' => {
+const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'error' | 'client' | 'server' | 'other' => {
+    if (span.status?.code === 2) return 'error';
+
     const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
     if (operationName.startsWith('invoke_agent')) return 'invoke';
     if (operationName.startsWith('chat') || span.name.toLowerCase().startsWith('chat')) return 'chat';
     if (operationName.startsWith('execute_tool') || span.name.toLowerCase().startsWith('execute_tool')) return 'tool';
+
+    const kind = getSpanKindString(span.kind);
+    if (kind === 'client') return 'client';
+    if (kind === 'server') return 'server';
+
     return 'other';
 };
 
@@ -365,7 +429,10 @@ const getTypeLabel = (type: string): string => {
         case 'invoke': return 'Agent';
         case 'chat': return 'Model';
         case 'tool': return 'Tool';
-        default: return 'Operation';
+        case 'error': return 'Error';
+        case 'client': return 'Client';
+        case 'server': return 'Server';
+        default: return 'Span';
     }
 };
 
@@ -374,6 +441,9 @@ const getTypeIcon = (type: string): string => {
         case 'invoke': return 'bi-ai-agent';
         case 'chat': return 'bi-chat';
         case 'tool': return 'bi-wrench';
+        case 'error': return 'bi-error';
+        case 'client': return 'bi-arrow-outward';
+        case 'server': return 'bi-server';
         default: return 'bi-action';
     }
 };
@@ -394,6 +464,8 @@ const getSpanTokens = (span: SpanData): number => {
     return inputTokens + outputTokens;
 };
 
+// --- Main Component ---
+
 export function WaterfallView({
     spans,
     selectedSpanId,
@@ -401,242 +473,287 @@ export function WaterfallView({
     getChildSpans,
     traceStartTime,
     traceDuration,
-    height,
-    maxHeight,
-    minHeight
 }: WaterfallViewProps) {
-    const [zoom, setZoom] = useState(0.8);
+    const [zoom, setZoom] = useState(1);
     const [hoveredSpan, setHoveredSpan] = useState<{ span: FlatSpan; x: number; y: number } | null>(null);
+    const [collapsedSpanIds, setCollapsedSpanIds] = useState<Set<string>>(new Set());
+    const [isCompact, setIsCompact] = useState(false);
+
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
     const traceStartMs = useMemo(() => new Date(traceStartTime).getTime(), [traceStartTime]);
 
-    // Calculate the actual earliest start time from all spans
-    const actualTraceStartMs = useMemo(() => {
-        if (spans.length === 0) return traceStartMs;
+    // Resize Observer for Compact Mode
+    useEffect(() => {
+        if (!containerRef.current) return;
 
-        let earliestStart = Infinity;
-
-        const findEarliestStart = (span: SpanData) => {
-            const range = getSpanTimeRange(span);
-            if (range) {
-                earliestStart = Math.min(earliestStart, range.start);
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // If width < 300px, switch to compact mode
+                setIsCompact(entry.contentRect.width < 300);
             }
-            const children = getChildSpans(span.spanId);
-            children.forEach(findEarliestStart);
-        };
-
-        // Find root spans
-        const spanIds = new Set(spans.map(s => s.spanId));
-        const roots = spans.filter(span =>
-            !span.parentSpanId ||
-            span.parentSpanId === '0000000000000000' ||
-            !spanIds.has(span.parentSpanId)
-        );
-
-        roots.forEach(findEarliestStart);
-
-        const calculatedStart = earliestStart !== Infinity ? earliestStart : traceStartMs;
-
-        return calculatedStart;
-    }, [spans, traceStartMs, traceStartTime, getChildSpans]);
-
-    // Calculate actual duration based on spans to ensure all spans are visible
-    const actualTraceDuration = useMemo(() => {
-        if (spans.length === 0) return traceDuration;
-
-        let maxEndOffset = 0;
-
-        // Recursively process all spans including children
-        const processSpan = (span: SpanData) => {
-            const range = getSpanTimeRange(span);
-            if (range) {
-                const endOffset = range.end - actualTraceStartMs;
-                maxEndOffset = Math.max(maxEndOffset, endOffset);
-            }
-            const children = getChildSpans(span.spanId);
-            children.forEach(processSpan);
-        };
-
-        // Find root spans and process their hierarchies
-        const spanIds = new Set(spans.map(s => s.spanId));
-        const roots = spans.filter(span =>
-            !span.parentSpanId ||
-            span.parentSpanId === '0000000000000000' ||
-            !spanIds.has(span.parentSpanId)
-        );
-        roots.forEach(processSpan);
-
-        const finalDuration = Math.max(maxEndOffset, traceDuration);
-
-        // Use the maximum of the calculated duration and the provided traceDuration
-        return finalDuration;
-    }, [spans, actualTraceStartMs, traceDuration, getChildSpans]);
-
-    // Find root spans (no parent or parent not in our span list)
-    const rootSpans = useMemo(() => {
-        const spanIds = new Set(spans.map(s => s.spanId));
-        return spans.filter(span =>
-            !span.parentSpanId ||
-            span.parentSpanId === '0000000000000000' ||
-            !spanIds.has(span.parentSpanId)
-        ).sort((a, b) => {
-            const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
-            const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
-            return aTime - bTime;
         });
-    }, [spans]);
 
-    // Flatten span hierarchy for rendering
+        observer.observe(containerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    // Flatten Span Hierarchy
     const flatSpans = useMemo(() => {
         const result: FlatSpan[] = [];
+        const processed = new Set<string>();
 
         const processSpan = (span: SpanData, level: number) => {
+            if (processed.has(span.spanId)) return;
+            processed.add(span.spanId);
+
             const range = getSpanTimeRange(span);
-            const startOffsetMs = range ? Math.max(0, range.start - actualTraceStartMs) : 0;
-            const durationMs = range ? range.end - range.start : 0;
+            const startOffsetMs = range ? Math.max(0, range.start - traceStartMs) : 0;
+            const durationMs = range ? Math.max(0, range.end - range.start) : 0;
+
+            // Check children presence and sort them
+            let children = getChildSpans(span.spanId);
+            children.sort((a, b) => {
+                const aStart = getSpanTimeRange(a)?.start || 0;
+                const bStart = getSpanTimeRange(b)?.start || 0;
+                return aStart - bStart;
+            });
+            const hasChildren = children.length > 0;
+            const isCollapsed = collapsedSpanIds.has(span.spanId);
 
             result.push({
                 ...span,
                 level,
                 startOffsetMs,
-                durationMs
+                durationMs,
+                hasChildren,
+                isCollapsed
             });
 
-            const children = getChildSpans(span.spanId);
-            children.forEach(child => processSpan(child, level + 1));
+            // Recurse only if not collapsed
+            if (hasChildren && !isCollapsed) {
+                children.forEach(child => processSpan(child, level + 1));
+            }
         };
 
-        rootSpans.forEach(span => processSpan(span, 0));
+        const allSpanIds = new Set(spans.map(s => s.spanId));
+        const roots = spans.filter(span =>
+            !span.parentSpanId ||
+            span.parentSpanId === '0000000000000000' ||
+            !allSpanIds.has(span.parentSpanId)
+        ).sort((a, b) => {
+            const aStart = getSpanTimeRange(a)?.start || 0;
+            const bStart = getSpanTimeRange(b)?.start || 0;
+            return aStart - bStart;
+        });
+
+        roots.forEach(span => processSpan(span, 0));
         return result;
-    }, [rootSpans, getChildSpans, actualTraceStartMs]);
+    }, [spans, getChildSpans, traceStartMs, collapsedSpanIds]);
 
-    // Calculate time markers based on total duration
-    const timeMarkers = useMemo(() => {
+    // Calculate actual content duration (longest span)
+    const contentMaxDurationMs = useMemo(() => {
+        let max = traceDuration;
+        flatSpans.forEach(s => {
+            if (s.startOffsetMs + s.durationMs > max) {
+                max = s.startOffsetMs + s.durationMs;
+            }
+        });
+        return max > 0 ? max : 1000;
+    }, [flatSpans, traceDuration]);
+
+    // Generate Layout Data: Ticks and View Duration
+    const timelineLayout = useMemo(() => {
+        const totalPixels = zoom * (scrollContainerRef.current?.clientWidth || 1000);
+        const targetTicks = Math.max(5, Math.floor(totalPixels / 150));
+
+        const rawInterval = contentMaxDurationMs / targetTicks;
+        const magnitude = Math.pow(10, Math.floor(Math.log10(rawInterval)));
+        const normalized = rawInterval / magnitude;
+
+        let interval;
+        if (normalized < 1.5) interval = 1 * magnitude;
+        else if (normalized < 3) interval = 2 * magnitude;
+        else if (normalized < 7.5) interval = 5 * magnitude;
+        else interval = 10 * magnitude;
+
+        const viewDuration = Math.ceil(contentMaxDurationMs / interval) * interval;
+        const finalViewDuration = viewDuration < contentMaxDurationMs ? viewDuration + interval : viewDuration;
+
         const markers: number[] = [];
-        if (actualTraceDuration <= 0) return markers;
-
-        // Dynamic interval calculation for better scaling
-        const intervalMs = actualTraceDuration <= 1000 ? 200 :
-            actualTraceDuration <= 2000 ? 500 :
-                actualTraceDuration <= 5000 ? 1000 :
-                    actualTraceDuration <= 10000 ? 2000 :
-                        actualTraceDuration <= 30000 ? 5000 :
-                            actualTraceDuration <= 60000 ? 10000 : 15000;
-
-        for (let t = 0; t <= actualTraceDuration; t += intervalMs) {
+        for (let t = 0; t <= finalViewDuration; t += interval) {
             markers.push(t);
         }
 
-        // Ensure we have a marker at or very close to the end
-        const lastMarker = markers[markers.length - 1];
-        if (lastMarker < actualTraceDuration && actualTraceDuration - lastMarker > intervalMs * 0.1) {
-            markers.push(actualTraceDuration);
-        }
-
-        return markers;
-    }, [actualTraceDuration]);
+        return {
+            markers,
+            viewDuration: finalViewDuration
+        };
+    }, [contentMaxDurationMs, zoom]);
 
     const formatTimeMarker = (ms: number): string => {
-        return ms < 1000 ? `${ms}ms` : `${(ms / 1000).toFixed(ms % 1000 === 0 ? 0 : 1)}s`;
+        if (ms === 0) return '0ms';
+        if (ms < 1000) return `${ms}ms`;
+        return `${(ms / 1000).toFixed(2)}s`;
     };
 
     const handleSpanMouseEnter = (span: FlatSpan, event: React.MouseEvent) => {
         const rect = event.currentTarget.getBoundingClientRect();
+        const screenWidth = window.innerWidth;
+        const x = Math.min(rect.left + rect.width / 2, screenWidth - 340);
+
         setHoveredSpan({
             span,
-            x: rect.left + rect.width / 2,
+            x: Math.max(10, x),
             y: rect.top - 10
         });
     };
 
-    const handleSpanMouseLeave = () => {
-        setHoveredSpan(null);
+    // Collapse Actions
+    const handleToggleCollapse = (spanId: string) => {
+        const newSet = new Set(collapsedSpanIds);
+        if (newSet.has(spanId)) {
+            newSet.delete(spanId);
+        } else {
+            newSet.add(spanId);
+        }
+        setCollapsedSpanIds(newSet);
     };
 
-    const timelineWidth = 100 * zoom;
+    const handleToggleAll = () => {
+        // If we have any collapsed spans, we expand all (clear set)
+        // If nothing is collapsed, we collapse all parents
+        if (collapsedSpanIds.size > 0) {
+            setCollapsedSpanIds(new Set());
+        } else {
+            const allParentIds = new Set<string>();
+            spans.forEach(s => {
+                const children = getChildSpans(s.spanId);
+                if (children.length > 0) {
+                    allParentIds.add(s.spanId);
+                }
+            });
+            setCollapsedSpanIds(allParentIds);
+        }
+    };
+
+    // Determine icon for the "Toggle All" button
+    const isAnyCollapsed = collapsedSpanIds.size > 0;
 
     return (
-        <WaterfallContainer>
+        <WaterfallContainer ref={containerRef}>
             {/* Zoom Controls */}
             <ZoomControlsBar>
+                <ZoomButton
+                    onClick={handleToggleAll}
+                    title={isAnyCollapsed ? "Expand All Spans" : "Collapse All Spans"}
+                >
+                    <Icon
+                        name={isAnyCollapsed ? 'bi-expand-item' : 'bi-collapse-item'}
+                        sx={{ fontSize: "14px", width: "14px", height: "14px" }}
+                        iconSx={{ display: "flex" }}
+                    />
+                    {!isCompact && (isAnyCollapsed ? 'Expand' : 'Collapse')}
+                </ZoomButton>
                 <ZoomControlsGroup>
                     <ZoomButton
-                        onClick={() => setZoom(Math.max(0.2, zoom - 0.1))}
+                        onClick={() => setZoom(Math.max(1, zoom - 1))}
                         title="Zoom out"
+                        disabled={zoom <= 1}
                     >
                         <Codicon name="zoom-out" />
                     </ZoomButton>
-                    <ZoomSlider
-                        type="range"
-                        min="0.2"
-                        max="1"
-                        step="0.1"
-                        value={zoom}
-                        onChange={(e) => setZoom(parseFloat(e.target.value))}
-                    />
-                    <ZoomLabel>{Math.round(zoom * 100)}%</ZoomLabel>
+                    {!isCompact && (
+                        <>
+                            <ZoomSlider
+                                type="range"
+                                min="1"
+                                max="20"
+                                step="0.5"
+                                value={zoom}
+                                onChange={(e) => setZoom(parseFloat(e.target.value))}
+                            />
+                            <ZoomLabel>{zoom.toFixed(1)}x</ZoomLabel>
+                        </>
+                    )}
                     <ZoomButton
-                        onClick={() => setZoom(Math.min(1, zoom + 0.1))}
+                        onClick={() => setZoom(Math.min(20, zoom + 1))}
                         title="Zoom in"
+                        disabled={zoom >= 20}
                     >
                         <Codicon name="zoom-in" />
                     </ZoomButton>
                 </ZoomControlsGroup>
             </ZoomControlsBar>
 
-            {/* Timeline Content */}
-            <TimelineContent
-                height={height}
-                maxHeight={maxHeight}
-                minHeight={minHeight}
-            >
-                <TimelineInner width={timelineWidth}>
+            {/* Scroll Area */}
+            <TimelineScrollArea ref={scrollContainerRef}>
+                <TimelineContent widthPercent={zoom * 100}>
                     {/* Time Axis */}
                     <TimeAxis>
-                        {timeMarkers.map((ms) => (
-                            <TimeMarker key={ms} position={(ms / actualTraceDuration) * 100 * zoom}>
+                        {timelineLayout.markers.map((ms) => (
+                            <TimeMarker key={ms} left={(ms / timelineLayout.viewDuration) * 100}>
                                 <TimeMarkerTick />
                                 <TimeMarkerLabel>{formatTimeMarker(ms)}</TimeMarkerLabel>
                             </TimeMarker>
                         ))}
                     </TimeAxis>
 
-                    {/* Spans */}
                     <SpansContainer>
-                        {/* Grid lines layer */}
+                        {/* Background Grid */}
                         <GridLinesContainer>
-                            {timeMarkers.map((ms) => (
+                            {timelineLayout.markers.map((ms) => (
                                 <GridLineVertical
                                     key={ms}
-                                    position={(ms / actualTraceDuration) * 100 * zoom}
+                                    left={(ms / timelineLayout.viewDuration) * 100}
                                 />
                             ))}
                         </GridLinesContainer>
 
+                        {/* Span Rows */}
                         {flatSpans.map((span) => {
-                            // Calculate percentages relative to the trace duration and apply zoom
-                            const leftPercent = actualTraceDuration > 0
-                                ? (span.startOffsetMs / actualTraceDuration) * 100 * zoom
-                                : 0;
-                            const widthPercent = actualTraceDuration > 0
-                                ? Math.max(0.1, (span.durationMs / actualTraceDuration) * 100 * zoom)
-                                : 0;
                             const spanType = getSpanType(span);
                             const isSelected = selectedSpanId === span.spanId;
+                            const leftPercent = (span.startOffsetMs / timelineLayout.viewDuration) * 100;
+                            const widthPercent = (span.durationMs / timelineLayout.viewDuration) * 100;
 
                             return (
-                                <SpanRow key={span.spanId} isSelected={isSelected} level={span.level}>
-                                    {/* Span bar */}
+                                <SpanRow
+                                    key={span.spanId}
+                                    isSelected={isSelected}
+                                    level={span.level}
+                                >
+                                    <HierarchyGuide level={span.level} />
                                     <SpanBar
                                         type={spanType}
                                         left={leftPercent}
                                         width={widthPercent}
-                                        isSelected={isSelected}
-                                        level={span.level}
-                                        onClick={() => onSpanSelect(span.spanId)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSpanSelect(span.spanId);
+                                        }}
                                         onMouseEnter={(e) => handleSpanMouseEnter(span, e)}
-                                        onMouseLeave={handleSpanMouseLeave}
+                                        onMouseLeave={() => setHoveredSpan(null)}
+                                        style={{
+                                            backgroundColor: `color-mix(in srgb, ${getSpanColor(spanType)} 15%, transparent)`
+                                        }}
                                     >
+                                        {/* Expand/Collapse Chevron */}
+                                        {span.hasChildren && (
+                                            <ChevronWrapper
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggleCollapse(span.spanId);
+                                                }}
+                                            >
+                                                <Codicon
+                                                    name={span.isCollapsed ? "chevron-right" : "chevron-down"}
+                                                    sx={{ fontSize: '12px' }}
+                                                />
+                                            </ChevronWrapper>
+                                        )}
+
                                         <SpanBarIcon type={spanType}>
                                             <Icon
                                                 name={getTypeIcon(spanType)}
@@ -661,12 +778,12 @@ export function WaterfallView({
                             );
                         })}
                     </SpansContainer>
-                </TimelineInner>
-            </TimelineContent>
+                </TimelineContent>
+            </TimelineScrollArea>
 
-            {/* Tooltip */}
+            {/* Hover Tooltip */}
             {hoveredSpan && (
-                <Tooltip x={hoveredSpan.x} y={hoveredSpan.y - 80}>
+                <Tooltip x={hoveredSpan.x} y={hoveredSpan.y - 100}>
                     <TooltipHeader>
                         <TooltipBadge type={getSpanType(hoveredSpan.span)}>
                             {getTypeLabel(getSpanType(hoveredSpan.span))}
@@ -674,6 +791,9 @@ export function WaterfallView({
                         <TooltipName>{stripSpanPrefix(hoveredSpan.span.name)}</TooltipName>
                     </TooltipHeader>
                     <TooltipDetails>
+                        <TooltipRow>
+                            Start: <span className="value">+{formatDuration(hoveredSpan.span.startOffsetMs)}</span>
+                        </TooltipRow>
                         <TooltipRow>
                             Duration: <span className="value">{formatDuration(hoveredSpan.span.durationMs)}</span>
                         </TooltipRow>
@@ -683,7 +803,11 @@ export function WaterfallView({
                             </TooltipRow>
                         )}
                         <TooltipRow>
-                            Offset: <span className="value">{formatDuration(hoveredSpan.span.startOffsetMs)}</span>
+                            Status: <span className="value" style={{
+                                color: hoveredSpan.span.status?.code === 2 ? 'var(--vscode-terminal-ansiRed)' : 'inherit'
+                            }}>
+                                {hoveredSpan.span.status?.code === 2 ? 'Error' : 'Success'}
+                            </span>
                         </TooltipRow>
                     </TooltipDetails>
                 </Tooltip>
