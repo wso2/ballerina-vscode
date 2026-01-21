@@ -30,6 +30,7 @@ export interface TraceData {
 }
 
 export interface SpanData {
+    status: any;
     spanId: string;
     traceId: string;
     parentSpanId: string;
