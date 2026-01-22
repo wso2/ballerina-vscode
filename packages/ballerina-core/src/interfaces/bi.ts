@@ -348,6 +348,7 @@ export interface ProjectStructure {
     projectName: string;
     projectPath?: string;
     projectTitle?: string;
+    isLibrary?: boolean;
     directoryMap: ProjectDirectoryMap;
 }
 

@@ -311,6 +311,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                         {category.items.filter((item) => item.name !== "record").map((item) => (
                                                             <SlidingPaneNavContainer
                                                                 key={`${category.category}-${item.name}`}
+                                                                data-testid={`type-helper-item-${item.name}`}
                                                                 onClick={() => handleTypeItemClick(item)}
                                                             >
                                                                 <ExpandableList.Item>

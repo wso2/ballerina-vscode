@@ -21,7 +21,7 @@ import { debug, log } from '../logger';
 import { ServerOptions, ExecutableOptions } from 'vscode-languageclient/node';
 import { isWindows } from '..';
 import { BallerinaExtension } from '../../core';
-import { isSupportedSLVersion, createVersionNumber } from '../config';
+import { isSupportedSLVersion, createVersionNumber, isWSL } from '../config';
 import * as fs from 'fs';
 import * as path from 'path';
 import { orderBy } from 'lodash';
@@ -122,6 +122,81 @@ export function findHighestVersionJdk(directory: string): string | null {
 
         if (jdkInfos.length === 0) {
             debug(`No JDK directories found matching pattern in: ${directory}`);
+            // If no JDK directories found, check for system set jdk version by using JAVA_HOME environment variable
+            // Try to find JAVA_HOME using environment variables on Windows, WSL, Ubuntu, or Mac
+            let javaHome = process.env.JAVA_HOME;
+
+            // For WSL, try to detect Linux JAVA_HOME if not found or is a windows path
+            if ((!javaHome || javaHome.includes('\\')) && isWSL()) {
+                try {
+                    // Try to run 'bash -c "echo $JAVA_HOME"' to get the Linux side JAVA_HOME
+                    const wslJavaHome = require('child_process').execSync('bash -c "echo $JAVA_HOME"', { encoding: 'utf8' }).trim();
+                    if (wslJavaHome) {
+                        debug(`Using WSL system set JDK from Linux environment: ${wslJavaHome}`);
+                        return wslJavaHome;
+                    }
+                } catch (e) {
+                    debug(`Could not get JAVA_HOME from WSL Linux environment: ${e}`);
+                }
+            }
+
+            if (javaHome) {
+                debug(`Using system set JDK: ${javaHome}`);
+                return javaHome;
+            }
+
+            // Try some common fallback locations for Ubuntu / Mac
+            const platform = process.platform;
+            let commonJavaDirs: string[] = [];
+            debug(`Detecting platform-specific common Java directories for platform: ${platform}`);
+
+            if (platform === 'darwin') { // macOS
+                debug('Platform is macOS. Checking default Java and SDKMAN directories.');
+                commonJavaDirs = [
+                    '/Library/Java/JavaVirtualMachines',
+                    process.env.HOME ? `${process.env.HOME}/.sdkman/candidates/java/current` : ''
+                ];
+                debug(`Common Java directories for macOS: ${JSON.stringify(commonJavaDirs)}`);
+            } else if (platform === 'linux' || isWSL()) { // Linux, also WSL
+                debug('Platform is Linux or WSL. Checking standard Java and SDKMAN directories.');
+                commonJavaDirs = [
+                    '/usr/lib/jvm',
+                    '/usr/java',
+                    process.env.HOME ? `${process.env.HOME}/.sdkman/candidates/java/current` : ''
+                ];
+                debug(`Common Java directories for Linux/WSL: ${JSON.stringify(commonJavaDirs)}`);
+            } else if (platform === 'win32') { // Windows
+                debug('Platform is Windows. Checking ProgramFiles Java directories.');
+                if (process.env['ProgramFiles']) {
+                    debug(`Adding Java directory from ProgramFiles: ${process.env['ProgramFiles']}\\Java`);
+                    commonJavaDirs.push(`${process.env['ProgramFiles']}\\Java`);
+                }
+                if (process.env['ProgramFiles(x86)']) {
+                    debug(`Adding Java directory from ProgramFiles(x86): ${process.env['ProgramFiles(x86)']}\\Java`);
+                    commonJavaDirs.push(`${process.env['ProgramFiles(x86)']}\\Java`);
+                }
+                debug(`Common Java directories for Windows: ${JSON.stringify(commonJavaDirs)}`);
+            } else {
+                debug(`Unknown or unsupported platform for Java directory detection: ${platform}`);
+            }
+
+            for (const dir of commonJavaDirs) {
+                if (dir && fs.existsSync(dir)) {
+                    // Check for JDK subdirectories
+                    const subDirs = fs.readdirSync(dir);
+                    for (const sub of subDirs) {
+                        // JDK dir must contain bin/java[.exe]
+                        const javaBin = platform === 'win32'
+                            ? path.join(dir, sub, 'bin', 'java.exe')
+                            : path.join(dir, sub, 'bin', 'java');
+                        if (fs.existsSync(javaBin)) {
+                            debug(`Found JDK in fallback directory: ${path.join(dir, sub)}`);
+                            return path.join(dir, sub);
+                        }
+                    }
+                }
+            }
+            debug(`No system set JDK found, returning null`);
             return null;
         }
 
@@ -243,7 +318,7 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
         "bal-shell-service*",
         "org.eclipse.lsp4j*",
         "diagram-util*",
-		"openapi-ls-extension*",
+        "openapi-ls-extension*",
         "sqlite-jdbc*"
     ];
 
@@ -316,11 +391,6 @@ function getServerOptionsUsingJava(extension: BallerinaExtension): ServerOptions
         throw new Error(`JDK not found in ${dependenciesDir}`);
     }
 
-    const jdkVersionMatch = jdkDir.match(/jdk-(.+)-jre/);
-    if (jdkVersionMatch) {
-        log(`JDK Version: ${jdkVersionMatch[1]}`);
-    }
-    debug(`JDK Version: ${jdkVersionMatch[1]}`);
     const javaExecutable = isWindows() ? 'java.exe' : 'java';
     const cmd = join(jdkDir, 'bin', javaExecutable);
     const args = ['-cp', classpath, `-Dballerina.home=${ballerinaHome}`, 'org.ballerinalang.langserver.launchers.stdio.Main'];
