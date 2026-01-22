@@ -24,8 +24,8 @@
           "codedata": {
             "argType": "LISTENER_PARAM_INCLUDED_FIELD"
           },
-          "placeholder": "\"/tmp\"",
-          "value": "",
+          "placeholder": "/tmp",
+          "value": "/tmp",
           "types": [
             {
               "fieldType": "TEXT",
