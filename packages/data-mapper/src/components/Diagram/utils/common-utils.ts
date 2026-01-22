@@ -347,12 +347,12 @@ export function isWithinSubMappingRootView(views: View[]): boolean {
 }
 
 export function isQueryHeaderPort(port: InputOutputPortModel): boolean {
-    // This function intentionally place here instead of port-utils.ts to avoid cyclic dependency issues
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
     return port.attributes.portName.endsWith(".#");
 }
 
 export function isGroupHeaderPort(port: InputOutputPortModel): boolean {
-    // This function intentionally place here instead of port-utils.ts to avoid cyclic dependency issues
+    // This function intentionally placed here instead of port-utils.ts to avoid cyclic dependency issues
     return port.attributes.portName.endsWith("$");
 }
 
