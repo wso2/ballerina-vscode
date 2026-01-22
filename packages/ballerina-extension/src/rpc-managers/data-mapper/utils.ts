@@ -518,7 +518,7 @@ function isModuleLevelInput(input: IORoot): boolean {
     return input.category === InputCategory.Constant
         || input.category === InputCategory.Configurable
         || input.category === InputCategory.ModuleVariable
-        || input.category === InputCategory.Variable;
+        || input.category === InputCategory.Enum;
 }
 
 /**
@@ -536,7 +536,7 @@ function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel
     return {
         id,
         name: id,
-        displayName: "Module Level Inputs",
+        displayName: "Global Inputs",
         kind: TypeKind.Record,
         fields
     };
