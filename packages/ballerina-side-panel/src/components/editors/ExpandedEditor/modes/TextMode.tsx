@@ -17,40 +17,54 @@
  */
 
 import React from "react";
-import styled from "@emotion/styled";
-import { ThemeColors } from "@wso2/ui-toolkit";
-import { EditorModeProps } from "./types";
-
-const TextArea = styled.textarea`
-    width: 100%;
-    height: 100%;
-    padding: 12px !important;
-    fontSize: 13px;
-    font-family: var(--vscode-editor-font-family);
-    background: var(--input-background);
-    color: ${ThemeColors.ON_SURFACE};
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 4px;
-    resize: none;
-    outline: none;
-    box-sizing: border-box;
-
-    &:focus {
-        border-color: ${ThemeColors.OUTLINE};
-        box-shadow: 0 0 0 1px ${ThemeColors.OUTLINE};
-    }
-`;
+import { EditorModeExpressionProps } from "./types";
+import { ExpressionContainer } from "./styles";
+import { ChipExpressionEditorComponent } from "../../MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
+import { getEditorConfiguration } from "../../ExpressionField";
+import { ErrorBanner } from "@wso2/ui-toolkit";
 
 /**
  * Text mode editor - simple textarea without any formatting tools
  */
-export const TextMode: React.FC<EditorModeProps> = ({ value, onChange, field }) => {
+export const TextMode: React.FC<EditorModeExpressionProps> = ({
+    value,
+    onChange,
+    completions = [],
+    fileName,
+    targetLineRange,
+    sanitizedExpression,
+    extractArgsFromFunction,
+    getHelperPane,
+    rawExpression,
+    error,
+    formDiagnostics,
+    inputMode
+}) => {
+
     return (
-        <TextArea
-            value={value}
-            onChange={(e) => onChange(e.target.value, e.target.selectionStart)}
-            placeholder={field.placeholder || "Enter your text here..."}
-            autoFocus
-        />
+        <>
+            <ExpressionContainer>
+                <ChipExpressionEditorComponent
+                    value={value}
+                    onChange={onChange}
+                    completions={completions}
+                    sanitizedExpression={sanitizedExpression}
+                    fileName={fileName}
+                    targetLineRange={targetLineRange}
+                    extractArgsFromFunction={extractArgsFromFunction}
+                    getHelperPane={getHelperPane}
+                    rawExpression={rawExpression}
+                    isInExpandedMode={true}
+                    isExpandedVersion={true}
+                    inputMode={inputMode}
+                    configuration={getEditorConfiguration(inputMode)}
+                />
+            </ExpressionContainer>
+            {error ?
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={error.message.toString()} /> :
+                formDiagnostics && formDiagnostics.length > 0 &&
+                <ErrorBanner sx={{ maxHeight: "50px", overflowY: "auto" }} errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+            }
+        </>
     );
 };

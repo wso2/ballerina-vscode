@@ -26,9 +26,16 @@ import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
 import { FormSubmitOptions } from "../../FlowDiagram";
 
-const Container = styled.div`
-    max-width: 600px;
-    height: calc(100% - 32px);
+const Container = styled.div<{ footerActionButton?: boolean }>`
+    max-width: 800px;
+    ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? `
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    ` : `
+        height: calc(100% - 32px);
+    `}
 `;
 
 export interface SidePanelProps {
@@ -58,6 +65,7 @@ interface ConnectionConfigViewProps {
     isActiveSubPanel?: boolean;
     isPullingConnector?: boolean;
     navigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
+    footerActionButton?: boolean; // Render save button as footer action button
 }
 
 export function ConnectionConfigView(props: ConnectionConfigViewProps) {
@@ -72,6 +80,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
         submitText,
         isSaving,
         navigateToPanel,
+        footerActionButton,
     } = props;
     const { rpcClient } = useRpcContext();
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -101,7 +110,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
     }, [fileName, selectedNode, rpcClient]);
 
     return (
-        <Container>
+        <Container footerActionButton={footerActionButton}>
             {targetLineRange && (
                 <FormGenerator
                     showProgressIndicator={isSaving}
@@ -114,6 +123,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     updatedExpressionField={updatedExpressionField}
                     resetUpdatedExpressionField={resetUpdatedExpressionField}
                     disableSaveButton={isPullingConnector}
+                    footerActionButton={footerActionButton}
                     navigateToPanel={navigateToPanel}
                     handleOnFormSubmit={onSubmit}
                 />

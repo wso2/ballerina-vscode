@@ -18,7 +18,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable, DIRECTORY_MAP, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -439,10 +439,10 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         for (const key in service.properties) {
             const expression = service.properties[key];
             if (
-                expression.valueType === "MULTIPLE_SELECT_LISTENER" ||
-                expression.valueType === "SINGLE_SELECT_LISTENER"
+                getPrimaryInputType(expression.types)?.fieldType === "MULTIPLE_SELECT_LISTENER" ||
+                getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER"
             ) {
-                detectedType = expression.valueType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
+                detectedType = getPrimaryInputType(expression.types)?.fieldType === "SINGLE_SELECT_LISTENER" ? "SINGLE" : "MULTIPLE";
                 // Check if only one property is enabled
                 const enabledCount = Object.values(service.properties).filter((prop: any) => prop.enabled).length;
                 if (enabledCount === 1) {
@@ -687,7 +687,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             {configTitle}
                                                         </Typography>
 
-                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges}>
+                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges} id="save-changes-btn">
                                                             {isSaving ? <Typography variant="progress">Saving...</Typography> : <>Save Changes</>}
                                                         </Button>
                                                     </TitleContent>
@@ -743,6 +743,9 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                         addModal(
                                                                             <AttachListenerModal
                                                                                 filePath={props.filePath}
+                                                                                orgName={serviceModel.orgName}
+                                                                                packageName={serviceModel.packageName}
+                                                                                version={serviceModel.version}
                                                                                 moduleName={serviceModel.moduleName}
                                                                                 onAttachListener={handleOnAttachListener}
                                                                                 attachedListeners={listeners.map(listener => listener.name)}
@@ -849,11 +852,12 @@ namespace S {
     `;
 }
 
-
-
 interface AttachListenerModalProps {
     filePath: string;
+    orgName: string;
     moduleName: string;
+    packageName: string;
+    version: string;
     attachedListeners: string[];
     onAttachListener: (listenerName: string) => void;
 }
@@ -884,8 +888,19 @@ function AttachListenerModal(props: AttachListenerModalProps) {
 
     const handleTabChange = (tabId: string) => {
         setActiveTab(tabId as "existing" | "new");
+
+        const payload = {
+            codedata: {
+                orgName: props.orgName,
+                packageName: props.packageName,
+                moduleName: props.moduleName,
+                version: props.version,
+            },
+            filePath: props.filePath
+        };
+
         if (tabId === "new") {
-            rpcClient.getServiceDesignerRpcClient().getListenerModel({ moduleName: props.moduleName }).then(res => {
+            rpcClient.getServiceDesignerRpcClient().getListenerModel(payload).then(res => {
                 console.log("New listener model: ", res.listener)
                 setListenerModel(res.listener);
             })

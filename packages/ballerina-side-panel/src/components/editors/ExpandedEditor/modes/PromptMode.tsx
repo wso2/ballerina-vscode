@@ -17,7 +17,6 @@
  */
 
 import React, { useState, useRef } from "react";
-import styled from "@emotion/styled";
 import { EditorView as CodeMirrorView } from "@codemirror/view";
 import { EditorView as ProseMirrorView } from "prosemirror-view";
 import { EditorModeExpressionProps } from "./types";
@@ -27,15 +26,8 @@ import { RichTemplateMarkdownToolbar } from "../controls/RichTemplateMarkdownToo
 import { RawTemplateMarkdownToolbar } from "../controls/RawTemplateMarkdownToolbar";
 import { ErrorBanner } from "@wso2/ui-toolkit";
 import { RawTemplateEditorConfig, StringTemplateEditorConfig } from "../../MultiModeExpressionEditor/Configurations";
-
-const ExpressionContainer = styled.div`
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    overflow: hidden;
-`;
+import { getPrimaryInputType } from "@wso2/ballerina-core";
+import { FlexExpressionContainer } from "./styles";
 
 const SIMPLE_PROMPT_FIELDS = ["query", "instructions", "role"];
 
@@ -111,7 +103,7 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                 />
             )}
             {isSourceView ? (
-                <ExpressionContainer>
+                <FlexExpressionContainer>
                     <ChipExpressionEditorComponent
                         value={value}
                         onChange={handleChange}
@@ -130,11 +122,12 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         toolbarRef={isSimpleMode ? undefined : rawToolbarRef}
                         enableListContinuation={true}
                         inputMode={inputMode}
-                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        placeholder={field.placeholder}
                     />
-                </ExpressionContainer>
+                </FlexExpressionContainer>
             ) : (
-                <ExpressionContainer>
+                <FlexExpressionContainer>
                     <RichTextTemplateEditor
                         value={value}
                         onChange={handleChange}
@@ -145,9 +138,10 @@ export const PromptMode: React.FC<EditorModeExpressionProps> = ({
                         getHelperPane={isSimpleMode ? undefined : getHelperPane}
                         onEditorViewReady={setProseMirrorView}
                         onHelperPaneStateChange={handleHelperPaneStateChange}
-                        configuration={field.valueTypeConstraint === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        configuration={getPrimaryInputType(field.types)?.ballerinaType === "string" ? new StringTemplateEditorConfig() : new RawTemplateEditorConfig()}
+                        placeholder={field.placeholder}
                     />
-                </ExpressionContainer>
+                </FlexExpressionContainer>
             )
             }
             {error ?

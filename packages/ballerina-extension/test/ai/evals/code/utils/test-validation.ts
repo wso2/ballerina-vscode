@@ -49,6 +49,7 @@ export async function validateTestResult(result: TestEventResult, useCase: TestU
         passed,
         failureReason: failureReason || undefined,
         validationDetails,
-        evaluationResult: evaluation
+        evaluationResult: evaluation,
+        generatedSources: finalSources
     };
 }

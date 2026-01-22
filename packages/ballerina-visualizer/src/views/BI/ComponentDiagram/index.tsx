@@ -65,7 +65,7 @@ export function ComponentDiagram(props: ComponentDiagramProps) {
     const fetchProject = () => {
         rpcClient
             .getBIDiagramRpcClient()
-            .getDesignModel()
+            .getDesignModel({})
             .then((response) => {
                 console.log(">>> design model", response);
                 if (response?.designModel) {

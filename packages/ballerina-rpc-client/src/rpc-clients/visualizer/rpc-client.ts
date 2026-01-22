@@ -41,7 +41,8 @@ import {
     resetUndoRedoStack,
     undo,
     undoRedoState,
-    updateCurrentArtifactLocation
+    updateCurrentArtifactLocation,
+    reviewAccepted
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -107,5 +108,9 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     updateCurrentArtifactLocation(params: UpdatedArtifactsResponse): Promise<ProjectStructureArtifactResponse> {
         return this._messenger.sendRequest(updateCurrentArtifactLocation, HOST_EXTENSION, params);
+    }
+
+    reviewAccepted(): void {
+        return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
     }
 }

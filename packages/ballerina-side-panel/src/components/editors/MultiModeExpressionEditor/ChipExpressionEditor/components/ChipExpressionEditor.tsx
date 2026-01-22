@@ -43,7 +43,7 @@ import {
     createTooltipContainer,
     createTooltipPositioningHandlers
 } from "../CodeUtils";
-import { correctTokenStreamPositions } from "../utils";
+import { correctTokenStreamPositions, normalizeEditorValue } from "../utils";
 import { history } from "@codemirror/commands";
 import { autocompletion } from "@codemirror/autocomplete";
 import { FloatingButtonContainer, FloatingToggleButton, ChipEditorContainer } from "../styles";
@@ -335,10 +335,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     activateOnTyping: true,
                     closeOnBlur: true
                 }),
-                ...(props.placeholder ? [placeholder(props.placeholder)] : []),
                 tooltips({ position: "absolute" }),
                 chipPlugin,
                 tokenField,
+                placeholder(props.placeholder),
                 chipTheme,
                 completionTheme,
                 EditorView.lineWrapping,
@@ -389,9 +389,9 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         if (props.value == null || !viewRef.current) return;
         const serializedValue = configuration.serializeValue(props.value);
         const deserializeValue = configuration.deserializeValue(props.value);
-        if (deserializeValue.trim() !== props.value.trim()) {
+        if (normalizeEditorValue(deserializeValue) !== normalizeEditorValue(props.value)) {
             props.onChange(deserializeValue, deserializeValue.length);
-            return
+            return;
         }
         const updateEditorState = async () => {
             const sanitizedValue = props.sanitizedExpression ? props.sanitizedExpression(serializedValue) : serializedValue;
@@ -489,7 +489,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 ...props.sx,
                 ...(props.isInExpandedMode || props.hideFxButton ? { height: '100%' } : props.sx && 'height' in props.sx ? {} : { height: 'auto' })
             }}>
-                {!props.isInExpandedMode && !props.hideFxButton && configuration.getAdornment()({ onClick: () => {}})}
+                {!props.isInExpandedMode && !props.hideFxButton && configuration.getAdornment()({ onClick: () => { } })}
                 <div style={{
                     position: 'relative',
                     width: '100%',

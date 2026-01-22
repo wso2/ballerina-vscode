@@ -17,12 +17,11 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-import { FunctionNode, LineRange, NodeKind, NodeProperties, Property, NodePropertyKey, DIRECTORY_MAP, ProjectStructureArtifactResponse, MACHINE_VIEW, EVENT_TYPE } from "@wso2/ballerina-core";
+import { FunctionNode, LineRange, NodeKind, NodeProperties, NodePropertyKey, DIRECTORY_MAP, EVENT_TYPE, getPrimaryInputType, isTemplateType } from "@wso2/ballerina-core";
 import { Button, Codicon, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { URI, Utils } from "vscode-uri";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -111,12 +110,13 @@ export function FunctionForm(props: FunctionFormProps) {
 
         // update description fields as "TEXTAREA"
         fields.forEach((field) => {
+            const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
                 field.type = "TEXTAREA";
             }
-            if (field.key === "parameters") {
-                if ((field.valueTypeConstraint as any).value.parameterDescription) {
-                    (field.valueTypeConstraint as any).value.parameterDescription.type = "TEXTAREA";
+            if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
+                if ((primaryInputType.template as any).value.parameterDescription) {
+                    (primaryInputType.template as any).value.parameterDescription.type = "TEXTAREA";
                 }
             }
         });
@@ -225,6 +225,7 @@ export function FunctionForm(props: FunctionFormProps) {
             // Handle advance properties
             const enrichFlowNodeForAdvanceProperties = (data: FormValues) => {
                 for (const value of Object.values(data)) {
+                    if (!value) continue;
                     const nestedData = value.advanceProperties;
                     if (nestedData) {
                         for (const [advanceKey, advanceValue] of Object.entries(nestedData)) {
@@ -243,13 +244,14 @@ export function FunctionForm(props: FunctionFormProps) {
             const properties = functionNodeCopy.properties as NodeProperties;
             for (const [key, property] of Object.entries(properties)) {
                 if (dataKey === key) {
-                    if (property.valueType === "REPEATABLE_PROPERTY") {
-                        const baseConstraint = property.valueTypeConstraint;
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                        const template = primaryType?.template;
                         property.value = {};
                         // Go through the parameters array
                         for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
                             // Create a deep copy for each iteration
-                            const valueConstraint = JSON.parse(JSON.stringify(baseConstraint));
+                            const valueConstraint = JSON.parse(JSON.stringify(template));
                             // Fill the values of the parameter constraint
                             for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
                                 param.value = (repeatValue as any).formValues[paramKey] || "";

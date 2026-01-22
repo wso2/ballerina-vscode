@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { DiagnosticMessage, Imports, PropertyTypeMemberInfo } from "./bi";
+import { DiagnosticMessage, Imports, PropertyTypeMemberInfo, InputType } from "./bi";
 import { LineRange } from "./common";
 
 
@@ -107,8 +107,16 @@ export interface StatusCodeResponse extends PropertyModel {
     mediaType: PropertyModel;
 }
 
+export enum Protocol {
+    HTTP = "HTTP",
+    MESSAGE_BROKER = "MESSAGE_BROKER",
+    GRAPHQL = "GRAPHQL",
+    FTP = "FTP",
+    CDC = "CDC"
+}
+
 export interface HttpPayloadContext {
-    protocol: "HTTP";
+    protocol: Protocol.HTTP;
     serviceName: string;
     serviceBasePath: string;
     resourceBasePath?: string;
@@ -118,13 +126,18 @@ export interface HttpPayloadContext {
 }
 
 export interface MessageQueuePayloadContext {
-    protocol: "MESSAGE_BROKER";
+    protocol: Protocol.MESSAGE_BROKER | Protocol.CDC;
     serviceName: string;
     queueOrTopic?: string;
     messageDocumentation?: string;
 }
 
-export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext;
+export interface GeneralPayloadContext {
+    protocol: Protocol | string;
+    filterType?: string;
+}
+
+export type PayloadContext = HttpPayloadContext | MessageQueuePayloadContext | GeneralPayloadContext;
 
 export interface ParamDetails {
     name: string;
@@ -158,8 +171,7 @@ export interface PropertyModel {
     isHttpResponseType?: boolean;
     value?: string;
     values?: string[];
-    valueType?: string;
-    valueTypeConstraint?: string;
+    types?: InputType[];
     isType?: boolean;
     placeholder?: string;
     defaultValue?: string | PropertyModel;
@@ -169,7 +181,6 @@ export interface PropertyModel {
     choices?: PropertyModel[];
     properties?: ConfigProperties;
     addNewButton?: boolean;
-    typeMembers?: PropertyTypeMemberInfo[];
     httpParamType?: "QUERY" | "HEADER" | "PAYLOAD";
     diagnostics?: DiagnosticMessage[];
     imports?: Imports;

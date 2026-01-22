@@ -173,8 +173,10 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
     if (!isDisabled) {
         if (portIn?.attributes.parentModel && (
             Object.values(portIn?.attributes.parentModel.links)
-            .filter((link)=> !(link as DataMapperLinkModel).isDashLink).length > 0 ||
-                portIn?.attributes.parentModel.attributes.ancestorHasValue)
+                .filter((link) =>
+                    !((link as DataMapperLinkModel).isDashLink || (link as DataMapperLinkModel).pendingMappingType)
+                ).length > 0 ||
+            portIn?.attributes.parentModel.attributes.ancestorHasValue)
         ) {
             portIn.attributes.ancestorHasValue = true;
             isDisabled = true;
@@ -219,7 +221,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                         {diagnostics?.length > 0 ? (
                             <DiagnosticTooltip
                                 placement="right"
-                                diagnostic={diagnostics[0] as any}
+                                diagnostic={diagnostics[0].message}
                                 value={expression}
                                 onClick={handleEditValue}
                             >

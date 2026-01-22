@@ -291,4 +291,19 @@ export class VisualizerRpcManager implements VisualizerAPI {
             resolve(currentArtifact);
         });
     }
+
+    reviewAccepted(): void {
+        // When user accepts changes in review mode, navigate back to normal view
+        console.log("Review accepted - changes will be kept");
+        // Navigate to package overview or appropriate view
+        const isWithinBallerinaWorkspace = !!StateMachine.context().workspacePath;
+        openView(
+            EVENT_TYPE.OPEN_VIEW,
+            {
+                view: isWithinBallerinaWorkspace
+                    ? MACHINE_VIEW.WorkspaceOverview
+                    : MACHINE_VIEW.PackageOverview
+            }
+        );
+    }
 }

@@ -17,7 +17,7 @@
  */
 
 import { useState } from "react";
-import { getAllCommands, getTags, getTemplateDefinitionsByCommand } from "../../../commandTemplates/utils/utils";
+import { getAllCommands, getPublicCommands, getTags, getTemplateDefinitionsByCommand } from "../../../commandTemplates/utils/utils";
 import { CommandTemplates } from "../../../commandTemplates/data/commandTemplates.const";
 import { Tag } from "../../../commandTemplates/models/tag.model";
 import { matchCommandTemplate } from "../utils/utils"
@@ -108,7 +108,7 @@ export function useCommands({ commandTemplate }: UseCommandsParams) {
             // Show the command suggestions if the input starts with a slash (/) and no commands are present
             if (text.startsWith("/")) {
                 const query = text.toLowerCase();
-                const commands = getAllCommands(commandTemplate);
+                const commands = getPublicCommands(commandTemplate);
                 filtered = commands.filter((cmd) => cmd.toLowerCase().startsWith(query)).map((cmd) => ({
                     text: cmd,
                     type: SuggestionType.Command,

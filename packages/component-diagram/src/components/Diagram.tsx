@@ -45,6 +45,7 @@ export const SHOW_ALL_THRESHOLD = 3;
 
 export interface DiagramProps {
     project: CDModel;
+    readonly?: boolean;
     onListenerSelect: (listener: CDListener) => void;
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
@@ -64,6 +65,7 @@ export type GQLState = {
 export function Diagram(props: DiagramProps) {
     const {
         project,
+        readonly,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,
@@ -315,6 +317,7 @@ export function Diagram(props: DiagramProps) {
         project,
         expandedNodes,
         graphQLGroupOpen,
+        readonly,
         onListenerSelect,
         onServiceSelect,
         onFunctionSelect,
