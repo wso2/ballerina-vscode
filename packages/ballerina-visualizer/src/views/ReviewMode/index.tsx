@@ -181,7 +181,7 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
     const fileName = diff.uri.split("/").pop() || diff.uri;
     const changeTypeStr = getChangeTypeString(diff.changeType);
     const nodeKindStr = getNodeKindString(diff.nodeKind);
-    
+
     // Include package name in label if provided (for multi-package scenarios)
     const changeLabel = packageName
         ? `${changeTypeStr}: ${nodeKindStr} in ${packageName}/${fileName}`
@@ -209,7 +209,7 @@ async function fetchSemanticDiff(rpcClient: any, projectPath: string): Promise<S
 // Utility function to fetch semantic diffs for multiple packages
 async function fetchSemanticDiffForMultiplePackages(
     rpcClient: any,
-    packagePaths: string[]
+    packagePaths: string[],
 ): Promise<SemanticDiffResponse> {
     console.log(`[ReviewMode] Fetching semantic diffs for ${packagePaths.length} packages:`, packagePaths);
 
@@ -241,12 +241,12 @@ async function fetchSemanticDiffForMultiplePackages(
 function getPackageName(path: string): string {
     const parts = path.split("/");
     const lastPart = parts[parts.length - 1];
-    
+
     // If the last part is a .bal file, the package name is the directory before it
-    if (lastPart && lastPart.endsWith('.bal')) {
+    if (lastPart && lastPart.endsWith(".bal")) {
         return parts[parts.length - 2] || path;
     }
-    
+
     // Otherwise, the last part is the package name
     return lastPart || path;
 }
@@ -276,7 +276,7 @@ export function ReviewMode(): JSX.Element {
     const loadSemanticDiff = useCallback(async () => {
         try {
             setIsLoading(true);
-            
+
             // First fetch the active temp directory path
             const tempDirPath = await rpcClient.getAiPanelRpcClient().getActiveTempDir();
             if (!tempDirPath) {
@@ -308,7 +308,10 @@ export function ReviewMode(): JSX.Element {
             // Use affected packages if available, otherwise fallback to temp directory
             const packagesToReview = isWorkspaceProject ? fetchedPackages : [tempDirPath];
 
-            console.log(`[ReviewMode] Reviewing ${packagesToReview.length} package(s) in ${isWorkspaceProject ? 'workspace' : 'single'} project:`, packagesToReview);
+            console.log(
+                `[ReviewMode] Reviewing ${packagesToReview.length} package(s) in ${isWorkspaceProject ? "workspace" : "single"} project:`,
+                packagesToReview,
+            );
 
             // Fetch semantic diffs for all affected packages
             // For workspace projects, always fetch for each package even if only one is affected
@@ -326,13 +329,10 @@ export function ReviewMode(): JSX.Element {
             if (semanticDiffResponse.loadDesignDiagrams && semanticDiffResponse.semanticDiffs.length > 0) {
                 // For workspace projects, create a component diagram for each affected package
                 // For single package projects, create one component diagram
-                
                 packagesToReview.forEach((packagePath) => {
                     const packageName = getPackageName(packagePath);
-                    const label = isWorkspaceProject 
-                        ? `Design Diagram - ${packageName}`
-                        : "Design Diagram";
-                    
+                    const label = isWorkspaceProject ? `Design Diagram - ${packageName}` : "Design Diagram";
+
                     allViews.push({
                         type: DiagramType.COMPONENT,
                         filePath: packagePath,
@@ -362,9 +362,9 @@ export function ReviewMode(): JSX.Element {
                     // Find the package that contains this file
                     for (const pkgPath of packagesToReview) {
                         // Normalize paths and check if diff.uri starts with package path
-                        const normalizedUri = diff.uri.replace(/\\/g, '/');
-                        const normalizedPkgPath = pkgPath.replace(/\\/g, '/');
-                        if (normalizedUri.startsWith(normalizedPkgPath + '/') || normalizedUri === normalizedPkgPath) {
+                        const normalizedUri = diff.uri.replace(/\\/g, "/");
+                        const normalizedPkgPath = pkgPath.replace(/\\/g, "/");
+                        if (normalizedUri.startsWith(normalizedPkgPath + "/") || normalizedUri === normalizedPkgPath) {
                             belongsToPackage = pkgPath;
                             packageName = getPackageName(pkgPath);
                             break;
@@ -541,7 +541,14 @@ export function ReviewMode(): JSX.Element {
             <ReviewContainer>
                 <TitleBar
                     title="No Changes"
-                    actions={<ReviewModeBadge>Review Mode</ReviewModeBadge>}
+                    actions={
+                        <>
+                            <ReviewModeBadge>Review Mode</ReviewModeBadge>
+                            <CloseButton onClick={handleClose} title="Close Review Mode">
+                                <Icon name="bi-close" />
+                            </CloseButton>
+                        </>
+                    }
                     hideBack={true}
                     hideUndoRedo={true}
                 />
@@ -598,7 +605,7 @@ export function ReviewMode(): JSX.Element {
         <>
             {isWorkspace && currentPackageName && (
                 <CurrentPackageBadge title={`Currently viewing: ${currentPackageName} Integration`}>
-                    <Codicon name="project"/>
+                    <Codicon name="project" />
                     {currentPackageName}
                 </CurrentPackageBadge>
             )}

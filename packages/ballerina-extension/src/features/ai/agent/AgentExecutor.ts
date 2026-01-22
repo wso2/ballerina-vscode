@@ -56,7 +56,7 @@ function determineAffectedPackages(
     console.log(`[determineAffectedPackages] Temp project path: ${tempProjectPath}`);
 
     // For non-workspace scenario (single package)
-    if (!ctx.workspacePath || projects.length === 1) {
+    if (!ctx.workspacePath) {
         console.log(`[determineAffectedPackages] Non-workspace scenario, using temp project path: ${tempProjectPath}`);
         affectedPackages.add(tempProjectPath);
         return Array.from(affectedPackages);
