@@ -14,11 +14,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { SourceFile, FileChanges, CodeContext, ProjectSource, ExecutionContext } from "@wso2/ballerina-core";
+import { SourceFile, FileChanges, CodeContext, ProjectSource, ExecutionContext, PROJECT_KIND } from "@wso2/ballerina-core";
 import { addToIntegration } from "../../../rpc-managers/ai-panel/utils";
 import * as fs from "fs";
 import * as path from "path";
 import type { TextEdit } from "vscode-languageserver-protocol";
+import { StateMachine } from "../../../stateMachine";
 
 /**
  * File extensions to include in codebase structure
@@ -215,34 +216,22 @@ export function formatCodebaseStructure(projects: ProjectSource[]): string {
     text += "You do not need to acknowledge or list these files in your response. ";
     text += "This information is provided for your awareness only.\n\n";
 
-    if (projects.length === 1) {
-        // Single project case: show project name and files with content
-        const project = projects[0];
-        const files = collectFilesFromProject(project);
+    const context = StateMachine.context();
+    const isWorkspace = context.projectInfo?.projectKind === PROJECT_KIND.WORKSPACE_PROJECT;
+    for (const project of projects) {
+        const files = collectFilesFromProject(project, isWorkspace);
+        const activeStatus = project.isActive ? ' active="true"' : "";
 
-        text += `<project name="${project.projectName}">\n`;
+        text += `<project name="${project.projectName}"${activeStatus}>\n`;
         text += "<files>\n";
         text += files.map(formatFileWithContent).join("\n");
         text += "\n</files>\n";
         text += "</project>\n";
-    } else {
-        // Multi-workspace project case: show all projects with active status
-        // Include packagePath prefix in file paths for clarity
-        for (const project of projects) {
-            const files = collectFilesFromProject(project, true);
-            const activeStatus = project.isActive ? ' active="true"' : "";
-
-            text += `<project name="${project.projectName}"${activeStatus}>\n`;
-            text += "<files>\n";
-            text += files.map(formatFileWithContent).join("\n");
-            text += "\n</files>\n";
-            text += "</project>\n";
-        }
     }
 
     text += "</codebase_structure>";
 
-    if (projects.length > 0) {
+    if (isWorkspace) {
         text += `Note: This is a Ballerina workspace with multiple packages. File paths are prefixed with their package paths (e.g., "mainpackage/main.bal").
 Files from external packages (not the active package) are marked with the externalPackageName attribute (e.g., <file filename="otherpackage/main.bal" externalPackageName="otherpackage">).
 You can import these packages by just using the package name (e.g., import otherpackage;).
