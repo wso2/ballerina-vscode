@@ -39,6 +39,7 @@ export const SQLExpressionEditor: React.FC<ChipExpressionEditorComponentProps> =
             onRemove={props.onRemove}
             isInExpandedMode={props.isInExpandedMode}
             configuration={new SQLExpressionEditorConfig()}
+            placeholder={props.placeholder}
         />
     );
 };

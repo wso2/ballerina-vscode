@@ -273,7 +273,7 @@ export class CommonRpcManager implements CommonRPCAPI {
 
 
     async downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
-        const repoUrl = 'https://raw.githubusercontent.com/wso2/integration-samples/refs/heads/main/ballerina-integrator/samples/';
+        const repoUrl = 'https://devant-cdn.wso2.com/bi-samples/v1/';
         const rawFileLink = repoUrl + params.zipFileName + '.zip';
         const defaultDownloadsPath = path.join(os.homedir(), 'Downloads'); // Construct the default downloads path
         const pathFromDialog = await selectSampleDownloadPath();

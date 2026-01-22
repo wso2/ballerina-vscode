@@ -19,57 +19,87 @@
 import { LANGUAGE } from "../../../core";
 import { extension } from "../../../BalExtensionContext";
 import { commands, window } from "vscode";
-import { outputChannel } from "../../../utils";
+import { findBallerinaPackageRoot, outputChannel } from "../../../utils";
 import {
     TM_EVENT_PROJECT_CLOUD, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD, CMP_PROJECT_CLOUD, sendTelemetryEvent,
     sendTelemetryException,
     getMessageObject
 } from "../../telemetry";
-import { getCurrentBallerinaProject } from "../../../utils/project-utils";
-import { MESSAGES, PALETTE_COMMANDS, PROJECT_TYPE } from "./cmd-runner";
+import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../../utils/project-utils";
+import { MESSAGES, PALETTE_COMMANDS } from "./cmd-runner";
 import * as fs from 'fs';
-import { sep } from 'path';
+import { findWorkspaceTypeFromWorkspaceFolders } from "../../../rpc-managers/common/utils";
+import { StateMachine } from "../../../stateMachine";
+import { selectPackageOrPrompt, requiresPackageSelection, needsProjectDiscovery } from "../../../utils/command-utils";
+import { join } from "path";
+import { URI } from "vscode-uri";
+import { VisualizerWebview } from "../../../views/visualizer/webview";
+import { discoverProjectPath } from "./doc";
 
-const CLOUD_CONFIG_FILE_NAME = `${sep}Cloud.toml`;
+// const CLOUD_CONFIG_FILE_NAME = `${sep}Cloud.toml`;
+const CLOUD_CONFIG_FILE_NAME = 'Cloud.toml';
 
-export function activateCloudCommand() {
+function activateCloudCommand() {
     // register create Cloud.toml command handler
     commands.registerCommand(PALETTE_COMMANDS.CLOUD, async () => {
         try {
             sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_PROJECT_CLOUD, CMP_PROJECT_CLOUD);
 
-            if (window.activeTextEditor && window.activeTextEditor.document.languageId != LANGUAGE.BALLERINA) {
+            if (window.activeTextEditor && window.activeTextEditor.document.languageId !== LANGUAGE.BALLERINA) {
                 window.showErrorMessage(MESSAGES.NOT_IN_PROJECT);
                 return;
             }
 
-            const isDiagram: boolean = extension.ballerinaExtInstance.getDocumentContext().isActiveDiagram();
-            const currentProject = isDiagram ? await
-                getCurrentBallerinaProject(extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString())
-                : await getCurrentBallerinaProject();
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            let { workspacePath, view: webviewType, projectPath, projectInfo } = StateMachine.context();
+            const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+            const hasActiveTextEditor = !!window.activeTextEditor;
+            const currentBallerinaFile = tryGetCurrentBallerinaFile();
+            const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
 
-            if (currentProject.kind !== PROJECT_TYPE.SINGLE_FILE) {
-                if (currentProject.path) {
-                    let cloudTomlPath = currentProject.path + CLOUD_CONFIG_FILE_NAME;
-                    if (!fs.existsSync(cloudTomlPath)) {
-                        const commandArgs = {
-                            key: "uri",
-                            value: isDiagram ? extension.ballerinaExtInstance.getDocumentContext().getLatestDocument()?.toString()
-                                : window.activeTextEditor!.document.uri.toString()
-                        };
-                        commands.executeCommand('ballerina.create.cloud.exec', commandArgs);
-                        outputChannel.appendLine(`Cloud.toml created in ${currentProject.path}`);
-                    } else {
-                        const message = `Cloud.toml already exists in the project.`;
-                        sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD,
-                            CMP_PROJECT_CLOUD, getMessageObject(message));
-                        window.showErrorMessage(message);
-                    }
+            let targetPath = projectPath ?? "";
+
+            if (result.type === "MULTIPLE_PROJECTS") {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
                 }
+                projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                targetPath = projectInfo.projectPath ?? packageRoot;
+            } else if (result.type === "BALLERINA_WORKSPACE") {
+                if (requiresPackageSelection(workspacePath, webviewType, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+                    const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
+                    const selectedPackage = await selectPackageOrPrompt(
+                        availablePackages,
+                        "Select the project to create Cloud.toml in"
+                    );
+                    if (!selectedPackage) {
+                        return;
+                    }
+                    targetPath = selectedPackage;
+                    await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+                } else if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+                    targetPath = await discoverProjectPath();
+                } else {
+                    targetPath = await getCurrentProjectRoot();
+                }
+            }
+
+
+            let cloudTomlPath = join(targetPath, CLOUD_CONFIG_FILE_NAME);
+            if (projectInfo.projectPath && !fs.existsSync(cloudTomlPath)) {
+                const commandArgs = {
+                    key: "uri",
+                    value: window.activeTextEditor ? window.activeTextEditor!.document.uri.toString() : URI.file(join(targetPath, 'main.bal')).toString(),
+                };
+                commands.executeCommand('ballerina.create.cloud.exec', commandArgs);
+                outputChannel.appendLine(`Cloud.toml created in ${projectInfo.projectPath}`);
+                window.showInformationMessage(`Cloud.toml created at ${targetPath}`);
             } else {
-                const message = `Cloud.toml is not supported for single file projects.`;
-                sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD, CMP_PROJECT_CLOUD,
-                    getMessageObject(message));
+                const message = `Cloud.toml already exists in the project.`;
+                sendTelemetryEvent(extension.ballerinaExtInstance, TM_EVENT_ERROR_EXECUTE_PROJECT_CLOUD,
+                    CMP_PROJECT_CLOUD, getMessageObject(message));
                 window.showErrorMessage(message);
             }
         } catch (error) {
@@ -77,8 +107,10 @@ export function activateCloudCommand() {
                 sendTelemetryException(extension.ballerinaExtInstance, error, CMP_PROJECT_CLOUD);
                 window.showErrorMessage(error.message);
             } else {
-                window.showErrorMessage("Unkown error occurred.");
+                window.showErrorMessage("Unknown error occurred.");
             }
         }
     });
 }
+
+export { activateCloudCommand };

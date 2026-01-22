@@ -15,13 +15,13 @@
 // under the License.
 
 import { commands } from "vscode";
-import { GenerateCodeRequest } from "@wso2/ballerina-core";
 import { TestUseCase, TestCaseResult } from '../types';
 import { createTestEventHandler } from './test-event-handler';
 import { validateTestResult } from './test-validation';
 import { VSCODE_COMMANDS } from './constants';
-import { getProjectFromResponse, getProjectSource } from "./evaluator-utils";
 import { SourceFile } from "@wso2/ballerina-core";
+import { createIsolatedTestProject, cleanupIsolatedTestProject, extractSourceFiles, IsolatedProjectResult } from './test-project-utils';
+import { GenerateAgentForTestParams, GenerateAgentForTestResult } from "../../../../../src/features/ai/activator";
 
 /**
  * Executes a single test case and returns the result
@@ -29,32 +29,89 @@ import { SourceFile } from "@wso2/ballerina-core";
 export async function executeSingleTestCase(useCase: TestUseCase): Promise<TestCaseResult> {
     console.log(`\n🚀 Starting test case: ${useCase.id} - ${useCase.description}`);
 
-    const { handler: testEventHandler, getResult } = createTestEventHandler(useCase);
-
-    const params: GenerateCodeRequest = {
-        usecase: useCase.usecase,
-        chatHistory: [],
-        operationType: useCase.operationType,
-        fileAttachmentContents: useCase.fileAttachments ? [...useCase.fileAttachments] : [],
-    };
-
-    const initialSources: SourceFile[] = (await getProjectSource(useCase.projectPath)).sourceFiles;
+    // Track projects for cleanup
+    let isolatedProject: IsolatedProjectResult | null = null;
+    let aiTempProjectPath: string | null = null;
 
     try {
-        await commands.executeCommand(VSCODE_COMMANDS.AI_GENERATE_CODE_CORE, params, testEventHandler);
+        isolatedProject = createIsolatedTestProject(useCase.projectPath, useCase.id);
+        console.log(`[${useCase.id}] Created isolated test project at: ${isolatedProject.path}`);
 
+        // Step 2: Capture initial state from isolated project
+        const initialSourceFiles = extractSourceFiles(isolatedProject.path);
+        const initialSources: SourceFile[] = initialSourceFiles.map(sf => ({
+            filePath: sf.filePath,
+            content: sf.content
+        }));
+
+        // Step 3: Set up event handler
+        const { handler: testEventHandler, getResult } = createTestEventHandler(useCase);
+
+        // Step 4: Prepare generation parameters with isolated project path
+        // The command will set StateMachine.context().projectPath internally
+        const params: GenerateAgentForTestParams = {
+            usecase: useCase.usecase,
+            operationType: useCase.operationType,
+            fileAttachmentContents: useCase.fileAttachments ? [...useCase.fileAttachments] : [],
+            isPlanMode: useCase.isPlanMode ?? false,
+            codeContext: useCase.codeContext,
+            projectPath: isolatedProject.path
+        };
+
+        // Step 5: Execute test command
+        // generateAgentForTest will:
+        // 1. Set StateMachine.context().projectPath to params.projectPath
+        // 2. Call generateAgentCore which creates temp copy from StateMachine.context().projectPath
+        const generationResult = await commands.executeCommand<GenerateAgentForTestResult>(
+            VSCODE_COMMANDS.AI_GENERATE_AGENT_FOR_TEST,
+            params,
+            testEventHandler
+        );
+
+        // Verify we got the expected return value
+        if (!generationResult || !generationResult.tempProjectPath) {
+            throw new Error(`Test command did not return expected result. Got: ${JSON.stringify(generationResult)}`);
+        }
+
+        console.log(`[${useCase.id}] Generation completed.`);
+        console.log(`[${useCase.id}] - Isolated project (source): ${generationResult.isolatedProjectPath}`);
+        console.log(`[${useCase.id}] - Temp project (AI generated): ${generationResult.tempProjectPath}`);
+
+        // Store temp project path for cleanup in finally block
+        aiTempProjectPath = generationResult.tempProjectPath;
+
+        // Step 6: Extract final state from temp project path (where AI actually made changes)
         const result = getResult();
-        const finalSources: SourceFile[] = getProjectFromResponse(result.fullContent)
+        const finalSourceFiles = extractSourceFiles(generationResult.tempProjectPath);
+        const finalSources: SourceFile[] = finalSourceFiles.map(sf => ({
+            filePath: sf.filePath,
+            content: sf.content
+        }));
+
+        console.log(`[${useCase.id}] Extracted ${finalSources.length} files from AI temp project for validation`);
+
+        // Step 7: Validate results
         return await validateTestResult(result, useCase, initialSources, finalSources);
 
     } catch (error) {
-        const result = getResult();
         console.error(`❌ Test case ${useCase.id} failed with error:`, error);
+        const result = createTestEventHandler(useCase).getResult();
         return {
             useCase,
             result,
             passed: false,
             failureReason: `Execution error: ${(error as Error).message}`
         };
+    } finally {
+        // Step 8: Always cleanup both isolated project and AI temp project
+        if (aiTempProjectPath) {
+            console.log(`[${useCase.id}] Cleaning up AI temp project: ${aiTempProjectPath}`);
+            // cleanupIsolatedTestProject({ path: aiTempProjectPath, basePath: '', testId: useCase.id });
+        }
+
+        if (isolatedProject) {
+            console.log(`[${useCase.id}] Cleaning up isolated test project: ${isolatedProject.path}`);
+            // cleanupIsolatedTestProject(isolatedProject);
+        }
     }
 }

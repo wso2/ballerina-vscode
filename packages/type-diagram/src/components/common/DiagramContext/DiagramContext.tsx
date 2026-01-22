@@ -23,6 +23,7 @@ interface DiagramContextProps {
     children?: ReactNode;
     hasDiagnostics: boolean;
     focusedNodeId?: string;
+    readonly?: boolean;
     setFocusedNodeId?: (id: string) => void;
     selectedNodeId?: string;
     setSelectedNodeId?: (id: string) => void;
@@ -35,6 +36,7 @@ interface DiagramContextProps {
 interface IDiagramContext {
     hasDiagnostics: boolean;
     focusedNodeId?: string;
+    readonly?: boolean;
     setFocusedNodeId?: (id: string) => void;
     selectedNodeId?: string;
     setSelectedNodeId?: (id: string) => void;
@@ -52,6 +54,7 @@ export function DesignDiagramContext(props: DiagramContextProps) {
         children,
         hasDiagnostics,
         focusedNodeId,
+        readonly,
         setFocusedNodeId,
         selectedNodeId,
         setSelectedNodeId,
@@ -64,6 +67,7 @@ export function DesignDiagramContext(props: DiagramContextProps) {
     let context: IDiagramContext = {
         hasDiagnostics,
         focusedNodeId,
+        readonly,
         setFocusedNodeId,
         selectedNodeId,
         setSelectedNodeId,

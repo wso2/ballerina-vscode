@@ -17,7 +17,7 @@
  */
 
 import { FormExpressionEditor } from "@wso2/ui-toolkit";
-import { ExpressionField } from "../../ExpressionField";
+import { ExpressionField, ExpressionFieldProps } from "../../ExpressionField";
 import React from "react";
 import { getValueForTextModeEditor } from "../../utils";
 import styled from "@emotion/styled";
@@ -38,7 +38,7 @@ const EditorContainer = styled.div`
     }
 `;
 
-type RecordConfigPreviewEditorProps = Pick<ExpressionField, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
+type RecordConfigPreviewEditorProps = Pick<ExpressionFieldProps, 'name' | 'value' | 'autoFocus' | 'ariaLabel' | 'placeholder' | 'onChange' | 'onFocus' | 'onBlur' | 'onSave' | 'onCancel' | 'onRemove' | 'growRange' | 'exprRef' | 'anchorRef' | 'onOpenExpandedMode' | 'isInExpandedMode'>;
 
 export const RecordConfigPreviewEditor: React.FC<RecordConfigPreviewEditorProps> = ({
     name,

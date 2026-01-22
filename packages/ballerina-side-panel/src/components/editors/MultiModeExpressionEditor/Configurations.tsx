@@ -19,11 +19,11 @@
 import { ChipExpressionEditorDefaultConfiguration } from "./ChipExpressionEditor/ChipExpressionDefaultConfig";
 import { TokenType } from "./ChipExpressionEditor/types";
 import { ParsedToken } from "./ChipExpressionEditor/utils";
-import { InputMode } from "./ChipExpressionEditor/types";
 import { ThemeColors } from "@wso2/ui-toolkit/lib/styles/Theme";
 import { tags } from "@lezer/highlight";
 import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
 import { sql } from "@codemirror/lang-sql";
+import { EditorState } from "@codemirror/state";
 
 
 const customSqlHighlightStyle = HighlightStyle.define([
@@ -64,6 +64,7 @@ const customSqlHighlightStyle = HighlightStyle.define([
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
+        if (value === "\"TEXT_HERE\"") return "TEXT_HERE";
         return `\$\{${value}\}`;
     }
     getSerializationPrefix() {
@@ -86,10 +87,19 @@ export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfi
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
         return `${prefix}${value}${suffix}`;
+    }
+
+    getIsValueCompatible(expValue: string) {
+        const suffix = this.getSerializationSuffix();
+        const prefix = this.getSerializationPrefix();
+        return (expValue.trim().startsWith(prefix) && expValue.trim().endsWith(suffix))
     }
 }
 
@@ -118,6 +128,9 @@ export class RawTemplateEditorConfig extends ChipExpressionEditorDefaultConfigur
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -153,6 +166,9 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
     deserializeValue(value: string): string {
         const suffix = this.getSerializationSuffix();
         const prefix = this.getSerializationPrefix();
+        if (value === '') {
+            return value;
+        }
         if (value.trim().startsWith(prefix) && value.trim().endsWith(suffix)) {
             return value;
         }
@@ -170,5 +186,33 @@ export class ChipExpressionEditorConfig extends ChipExpressionEditorDefaultConfi
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
         return `\$\{${value}\}`;
+    }
+}
+
+export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+    DECIMAL_INPUT_REGEX = /^\d*\.?\d*$/;
+
+    showHelperPane() {
+        return false;
+    }
+    getAdornment() {
+        return () => null;
+    }
+    getPlugins() {
+        const numericOnly = EditorState.changeFilter.of(tr => {
+            if (!tr.docChanged) {
+                return true;
+            }
+
+            const nextValue = tr.newDoc.toString();
+            return this.DECIMAL_INPUT_REGEX.test(nextValue);
+        });
+
+        return [numericOnly];
+
+    }
+
+    getIsValueCompatible(value: string): boolean {
+        return this.DECIMAL_INPUT_REGEX.test(value);
     }
 }

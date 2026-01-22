@@ -25,7 +25,7 @@ import { Codicon } from "@wso2/ui-toolkit";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 
 export const createConnectionSelectField = (
-    selectedConnection: FlowNode,
+    value: string,
     config: ConnectionKindConfig,
     handleActionBtnClick: () => void
 ): FormField => {
@@ -44,9 +44,8 @@ export const createConnectionSelectField = (
         "hidden": false,
         "documentation": description,
         "advanceProps": [],
-        "valueType": "EXPRESSION",
         "diagnostics": [],
-        "valueTypeConstraint": config.valueTypeConstraint,
+        "types": config.types,
         "metadata": {
             "label": selectLabel,
             "description": description
@@ -57,7 +56,7 @@ export const createConnectionSelectField = (
         },
         "actionCallback": handleActionBtnClick,
         "actionLabel": <><Codicon name="add" />{createLabel}</>,
-        "value": (selectedConnection.properties.variable?.value as string) || ""
+        "value": value || ""
     };
 };
 
@@ -104,25 +103,15 @@ const getValidPropertyKey = (node: FlowNode, nodePropertyKeys: string | string[]
     return keys.find(key => node.properties[key as keyof typeof node.properties]?.value);
 };
 
-export const fetchConnectionForNode = async (
-    rpcClient: BallerinaRpcClient,
+export const fetchConnectionValueForNode = async (
     connectionKind: ConnectionKind,
     targetNode: FlowNode,
-): Promise<FlowNode> => {
-    const moduleNodes = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-    const connections = moduleNodes.flowModel.connections;
+): Promise<string> => {
     const config = getConnectionKindConfig(connectionKind);
     const propertyKey = getValidPropertyKey(targetNode, config.nodePropertyKey);
-    const targetPropertyValue = propertyKey ? targetNode.properties?.[propertyKey as keyof typeof targetNode.properties]?.value : undefined;
-
-    const connection = connections.find((node: FlowNode) =>
-        node.properties.variable?.value === targetPropertyValue.toString().trim()
-    );
-
-    if (!connection)
-        throw new Error(`Could not find a connection for the target node.`);
-
-    return connection;
+    const targetPropertyValue = propertyKey ? targetNode.properties?.[propertyKey as keyof typeof targetNode.properties]?.value as string : null;
+    if (targetPropertyValue === null) return "";
+    return targetPropertyValue;
 };
 
 export const updateNodeWithConnectionVariable = (connectionKind: ConnectionKind, selectedNode: FlowNode, connectionVariable: string): void => {

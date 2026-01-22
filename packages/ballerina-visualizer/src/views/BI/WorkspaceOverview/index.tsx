@@ -265,14 +265,14 @@ export function WorkspaceOverview() {
 
     const handleGenerate = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
+            planMode: true,
             readme: false,
         });
     };
 
     const handleGenerateWithReadme = () => {
         rpcClient.getBIDiagramRpcClient().openAIChat({
-            scafold: true,
+            planMode: true,
             readme: true,
         });
     };

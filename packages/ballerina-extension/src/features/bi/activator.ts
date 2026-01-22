@@ -36,18 +36,162 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
+import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
-import { needsProjectDiscovery, promptPackageSelection, requiresPackageSelection } from "../../utils/command-utils";
+import { selectPackageOrPrompt, needsProjectDiscovery, requiresPackageSelection } from "../../utils/command-utils";
 import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
 import { MESSAGES } from "../project";
 
 const FOCUS_DEBUG_CONSOLE_COMMAND = 'workbench.debug.action.focusRepl';
 const TRACE_SERVER_OFF = "off";
 const TRACE_SERVER_VERBOSE = "verbose";
+
+export function activate(context: BallerinaExtension) {
+    const isWorkspaceSupported = isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0));
+
+    // Set context for command visibility
+    commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
+
+    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
+        const stateMachineContext = StateMachine.context();
+        const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
+        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+        const hasActiveTextEditor = !!window.activeTextEditor;
+
+        const needsPackageSelection = requiresPackageSelection(
+            workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
+        );
+
+        prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
+    });
+
+    commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
+        commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
+        handleDebugCommandWithContext();
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIComponentView);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_TYPE, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { addType: true });
+    });
+
+    commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { rootDiagramId: `type-diagram-${Date.now()}` });
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIFunctionForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_CONFIGURATION, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.AddConfigVariables);
+    });
+
+    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
+    });
+
+    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
+        try {
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            if (result.type === "BALLERINA_WORKSPACE") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+            } else if (result.type === "SINGLE_PROJECT") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+            } else {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot || !window.activeTextEditor) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unknown error occurred.");
+            }
+        }
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
+        if (!isWorkspaceSupported) {
+            window.showErrorMessage('This command requires Ballerina version 2201.13.0 or higher. ');
+            return;
+        }
+
+        const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
+        if (projectPath) {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
+        } else {
+            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
+        }
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BIDataMapperForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.ADD_NATURAL_FUNCTION, async (item?: TreeItem) => {
+        await handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
+    });
+
+    commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
+
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
+        let path: string;
+        if (params.createAsWorkspace) {
+            path = createBIWorkspace(params);
+        } else {
+            path = createBIProjectPure(params);
+        }
+        return path;
+    });
+
+    commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
+        return createBIProjectFromMigration(params);
+    });
+
+    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
+        // Guard: DELETE requires a tree item context
+        if (!item) {
+            window.showErrorMessage('This command must be invoked from the project explorer.');
+            return;
+        }
+
+        console.log(">>> delete component", item);
+
+        if (item.contextValue === DIRECTORY_MAP.CONNECTION) {
+            await handleConnectionDeletion(item.label as string, item.info);
+        } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
+            await handleLocalModuleDeletion(item.label as string, item.info);
+        } else {
+            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
+        }
+    });
+
+    // Open the ballerina toml file as the first file for LS to trigger the project loading
+    openBallerinaTomlFile(context);
+}
+
 
 /**
  * Helper function to handle command invocation with proper context resolution.
@@ -109,129 +253,66 @@ async function handleCommandWithContext(
     }
 }
 
-export function activate(context: BallerinaExtension) {
-    const isWorkspaceSupported = isSupportedSLVersion(extension.ballerinaExtInstance, createVersionNumber(2201, 13, 0));
+/** Handles the debug command based on current workspace context. */
+async function handleDebugCommandWithContext() {
+    const { workspacePath, view, projectPath, projectInfo } = StateMachine.context();
+    const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
+    const hasActiveTextEditor = !!window.activeTextEditor;
 
-    // Set context for command visibility
-    commands.executeCommand('setContext', 'ballerina.bi.workspaceSupported', isWorkspaceSupported);
+    const currentBallerinaFile = tryGetCurrentBallerinaFile();
+    const projectRoot = await findBallerinaPackageRoot(currentBallerinaFile);
 
-    commands.registerCommand(BI_COMMANDS.BI_RUN_PROJECT, () => {
-        const stateMachineContext = StateMachine.context();
-        const { workspacePath, view, projectPath, projectInfo } = stateMachineContext;
-        const isWebviewOpen = VisualizerWebview.currentPanel !== undefined;
-        const hasActiveTextEditor = !!window.activeTextEditor;
+    if (requiresPackageSelection(workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor)) {
+        await handleDebugCommandWithPackageSelection(projectInfo);
+        return;
+    }
 
-        const needsPackageSelection = requiresPackageSelection(
-            workspacePath, view, projectPath, isWebviewOpen, hasActiveTextEditor
-        );
-        
-        if (needsPackageSelection && projectInfo?.children.length === 0) {
-            window.showErrorMessage("No packages found in the workspace.");
-            return;
+    if (needsProjectDiscovery(projectInfo, projectRoot, projectPath)) {
+        try {
+            await handleDebugCommandWithProjectDiscovery();
+        } catch {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
         }
-        prepareAndGenerateConfig(context, projectPath, false, true, true, needsPackageSelection);
-    });
+        return;
+    }
 
-    commands.registerCommand(BI_COMMANDS.BI_DEBUG_PROJECT, () => {
-        commands.executeCommand(FOCUS_DEBUG_CONSOLE_COMMAND);
-        startDebugging(Uri.file(StateMachine.context().projectPath), false, true);
-    });
+    if (!projectPath) {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        return;
+    }
 
-    commands.registerCommand(BI_COMMANDS.ADD_CONNECTIONS, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.AddCustomConnector);
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.BIComponentView);
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_TYPE, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { addType: true });
-    });
-
-    commands.registerCommand(BI_COMMANDS.VIEW_TYPE_DIAGRAM, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.TypeDiagram, { rootDiagramId: `type-diagram-${Date.now()}` });
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_FUNCTION, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.BIFunctionForm);
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_CONFIGURATION, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.AddConfigVariables);
-    });
-
-    commands.registerCommand(BI_COMMANDS.VIEW_CONFIGURATION, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
-    });
-
-    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        if (isBallerinaWorkspace) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
-        }
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_PROJECT, async () => {
-        if (!isWorkspaceSupported) {
-            window.showErrorMessage('This command requires Ballerina version 2201.13.0 or higher. ');
-            return;
-        }
-
-        const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
-        if (projectPath) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIAddProjectForm });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BIProjectForm });
-        }
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_DATA_MAPPER, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.BIDataMapperForm);
-    });
-
-    commands.registerCommand(BI_COMMANDS.ADD_NATURAL_FUNCTION, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.BINPFunctionForm);
-    });
-
-    commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
-
-    commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
-        return createBIProjectPure(params);
-    });
-
-    commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
-        return createBIProjectFromMigration(params);
-    });
-
-    commands.registerCommand(BI_COMMANDS.DELETE_COMPONENT, async (item?: TreeItem & { info?: string }) => {
-        // Guard: DELETE requires a tree item context
-        if (!item) {
-            window.showErrorMessage('This command must be invoked from the project explorer.');
-            return;
-        }
-
-        console.log(">>> delete component", item);
-
-        if (item.contextValue === DIRECTORY_MAP.CONNECTION) {
-            await handleConnectionDeletion(item.label as string, item.info);
-        } else if (item.contextValue === DIRECTORY_MAP.LOCAL_CONNECTORS) {
-            await handleLocalModuleDeletion(item.label as string, item.info);
-        } else {
-            await handleComponentDeletion(item.contextValue as string, item.label as string, item.info);
-        }
-    });
-
-    // Open the ballerina toml file as the first file for LS to trigger the project loading
-    openBallerinaTomlFile(context);
+    startDebugging(Uri.file(projectPath), false, true);
 }
 
+/**
+ * Prompts user to select a package and starts debugging.
+ * @param projectInfo - The project info
+ * @returns void
+ */
+async function handleDebugCommandWithPackageSelection(projectInfo: ProjectInfo) {
+    const availablePackages = projectInfo?.children.map((child: ProjectInfo) => child.projectPath) ?? [];
+
+    const selectedPackage = await selectPackageOrPrompt(availablePackages, "Select a package to debug");
+    if (!selectedPackage) {
+        return;
+    }
+
+    await StateMachine.updateProjectRootAndInfo(selectedPackage, projectInfo);
+    startDebugging(Uri.file(selectedPackage), false, true);
+}
+
+/** Discovers project root from active file and starts debugging. */
+async function handleDebugCommandWithProjectDiscovery() {
+    const packageRoot = await getCurrentProjectRoot();
+
+    if (packageRoot) {
+        const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+        await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+        startDebugging(Uri.file(packageRoot), false, true);
+    } else {
+        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+    }
+}
 
 function openBallerinaTomlFile(context: BallerinaExtension) {
     const projectPath = StateMachine.context().projectPath || StateMachine.context().workspacePath;
@@ -317,9 +398,13 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const projectPath = StateMachine.context().projectPath;
+    const { projectPath, projectInfo } = StateMachine.context();
+    const projectRoot = await findBallerinaPackageRoot(filePath);
+    if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
+        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+    }
     const projectStructure = await rpcClient.getProjectStructure();
-    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
     const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
@@ -327,7 +412,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
         return;
     }
 
-    componentCategory.forEach((component) => {
+    for (const component of componentCategory) {
         if (component.name === itemLabel) {
             const componentInfo: ComponentInfo = {
                 name: component.name,
@@ -339,9 +424,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
                 resources: component?.resources
             };
 
-            deleteComponent(componentInfo, rpcClient, filePath);
+            await deleteComponent(componentInfo, rpcClient, filePath);
+            return;
         }
-    });
+    }
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {
@@ -473,15 +559,10 @@ async function handleCommandWithPackageSelection(
 ): Promise<boolean> {
     const availablePackages = projectInfo?.children.map((child: any) => child.projectPath) ?? [];
 
-    if (availablePackages.length === 0) {
-        window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
-        return false;
-    }
-
-    const selectedPackage = await promptPackageSelection(availablePackages);
+    const selectedPackage = await selectPackageOrPrompt(availablePackages);
 
     if (!selectedPackage) {
-        return false; // User cancelled
+        return false;
     }
 
     openView(EVENT_TYPE.OPEN_VIEW, {

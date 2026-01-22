@@ -51,10 +51,15 @@ import {
     currentThemeChanged,
     ChatNotify,
     onChatNotify,
+    checkpointCaptured,
+    CheckpointCapturedPayload,
+    promptUpdated,
     AIMachineSendableEvent,
     dependencyPullProgress,
     ProjectMigrationResult,
-    onMigratedProject
+    onMigratedProject,
+    refreshReviewMode,
+    onHideReviewActions
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -198,6 +203,14 @@ export class BallerinaRpcClient {
         this.messenger.sendRequest(sendAIStateEvent, HOST_EXTENSION, event);
     }
 
+    onCheckpointCaptured(callback: (payload: CheckpointCapturedPayload) => void) {
+        this.messenger.onNotification(checkpointCaptured, callback);
+    }
+
+    onPromptUpdated(callback: () => void) {
+        this.messenger.onNotification(promptUpdated, callback);
+    }
+
     onProjectContentUpdated(callback: (state: boolean) => void) {
         this.messenger.onNotification(projectContentUpdated, callback);
     }
@@ -258,5 +271,13 @@ export class BallerinaRpcClient {
 
     onThemeChanged(callback: (kind: ColorThemeKind) => void) {
         this.messenger.onNotification(currentThemeChanged, callback);
+    }
+
+    onRefreshReviewMode(callback: () => void) {
+        this.messenger.onNotification(refreshReviewMode, callback);
+    }
+
+    onHideReviewActions(callback: () => void) {
+        this.messenger.onNotification(onHideReviewActions, callback);
     }
 }

@@ -19,10 +19,11 @@
 
 import path from "path";
 import { StateMachine } from "../../stateMachine";
-import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode } from "@wso2/ballerina-core";
+import { TestsDiscoveryRequest, TestsDiscoveryResponse, FunctionTreeNode, ProjectInfo } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "../../core";
 import { Position, Range, TestController, Uri, TestItem, commands } from "vscode";
 import { getWorkspaceRoot, getCurrentProjectRoot } from "../../utils/project-utils";
+import { URI } from "vscode-uri";
 
 let groups: string[] = [];
 
@@ -44,22 +45,22 @@ export async function discoverTestFunctionsInProject(ballerinaExtInstance: Balle
 }
 
 async function discoverTestsInWorkspace(
-    children: any[],
+    projects: ProjectInfo[],
     ballerinaExtInstance: BallerinaExtension,
     testController: TestController
 ) {
     // Iterate over project children sequentially to allow awaiting each request
-    for (const child of children) {
-        if (!child?.projectPath) {
+    for (const project of projects) {
+        if (!project?.projectPath) {
             continue;
         }
 
         const response: TestsDiscoveryResponse = await ballerinaExtInstance.langClient?.getProjectTestFunctions({
-            projectPath: child.projectPath
+            projectPath: project.projectPath
         });
 
         if (response) {
-            createTests(response, testController, child.projectPath);
+            createTests(response, testController, project.projectPath);
             setGroupsContext();
         }
     }
@@ -109,7 +110,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
 
         projectGroupItem = testController.items.get(projectGroupId);
         if (!projectGroupItem) {
-            projectGroupItem = testController.createTestItem(projectGroupId, projectName);
+            projectGroupItem = testController.createTestItem(projectGroupId, projectName, URI.file(projectPath));
             testController.items.add(projectGroupItem);
             groups.push(projectGroupId);
         }

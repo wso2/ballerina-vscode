@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { ChatNotify } from "@wso2/ballerina-core";
+import { ChatNotify, CodeContext, FileAttatchment, OperationType, SourceFile } from "@wso2/ballerina-core";
 import { LLMEvaluationResult } from "../utils/evaluator-utils";
 
 /**
@@ -25,8 +25,10 @@ export interface TestUseCase {
     readonly description: string;
     readonly usecase: string;
     readonly projectPath: string;
-    readonly operationType: "CODE_GENERATION" | "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIREMENT";
-    readonly fileAttachments?: readonly { fileName: string; content: string; }[];
+    readonly operationType: OperationType;
+    readonly fileAttachments?: readonly FileAttatchment[];
+    readonly isPlanMode?: boolean;
+    readonly codeContext?: CodeContext;
 }
 
 /**
@@ -117,4 +119,5 @@ export interface TestCaseResult {
         readonly noDiagnosticsCheck: boolean;
     };
     readonly evaluationResult?: LLMEvaluationResult;
+    readonly generatedSources?: readonly SourceFile[];
 }

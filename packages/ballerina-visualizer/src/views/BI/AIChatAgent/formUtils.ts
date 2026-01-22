@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ValueTypeConstraint, ToolParameters } from "@wso2/ballerina-core";
+import { ValueTypeConstraint, ToolParameters, getPrimaryInputType } from "@wso2/ballerina-core";
 import { FormField, Parameter } from "@wso2/ballerina-side-panel";
 
 export function createToolInputFields(filteredNodeParameterFields: FormField[]): FormField[] {
@@ -24,7 +24,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         id: idx,
         icon: "",
         key: field.key,
-        value: `${field.valueType} ${field.key}`,
+        value: `${getPrimaryInputType(field.types)?.fieldType} ${field.key}`,
         identifierEditable: true,
         identifierRange: {
             fileName: "functions.bal",
@@ -33,7 +33,7 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
         },
         formValues: {
             variable: field.key,
-            type: field.valueTypeConstraint,
+            type: getPrimaryInputType(field.types)?.ballerinaType,
             parameterDescription: field.documentation || ""
         }
     }));
@@ -51,10 +51,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Type of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "TYPE",
             diagnostics: [],
             metadata: { label: "Type", description: "Type of the parameter" },
-            valueTypeConstraint: ""
+            types: [{ fieldType: "TYPE", selected: false }],
         },
         {
             key: "variable",
@@ -68,10 +67,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Name of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "IDENTIFIER",
             diagnostics: [],
             metadata: { label: "Name", description: "Name of the parameter" },
-            valueTypeConstraint: ""
+            types: [{ fieldType: "IDENTIFIER", selected: false }],
         },
         {
             key: "parameterDescription",
@@ -85,10 +83,9 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "Description of the parameter",
             value: "",
             advanceProps: [],
-            valueType: "STRING",
             diagnostics: [],
             metadata: { label: "Description", description: "Description of the parameter" },
-            valueTypeConstraint: ""
+            types: [{ fieldType: "STRING", selected: false }]
         }
     ];
 
@@ -105,9 +102,8 @@ export function createToolInputFields(filteredNodeParameterFields: FormField[]):
             documentation: "",
             value: paramManagerValues,
             advanceProps: [],
-            valueType: "PARAM_MANAGER",
             diagnostics: [],
-            valueTypeConstraint: "",
+            types: [{ fieldType: "PARAM_MANAGER", selected: false }],
             paramManagerProps: {
                 paramValues: paramManagerValues,
                 formFields: paramManagerFormFields,
@@ -166,56 +162,60 @@ export function createToolParameters(): ToolParameters {
             label: "Tool Inputs",
             description: ""
         },
-        valueType: "REPEATABLE_PROPERTY",
-        valueTypeConstraint: {
-            metadata: {
-                label: "Parameter",
-                description: "Function parameter"
-            },
-            valueType: "FIXED_PROPERTY",
-            value: {
-                type: {
+        types: [
+            {
+                fieldType: "REPEATABLE_PROPERTY",
+                selected: false,
+                template: {
                     metadata: {
-                        label: "Type",
-                        description: "Type of the parameter"
+                        label: "Parameter",
+                        description: "Function parameter"
                     },
-                    valueType: "TYPE",
-                    value: "",
+                    types: [{ fieldType: "FIXED_PROPERTY", selected: false }],
+                    value: {
+                        type: {
+                            metadata: {
+                                label: "Type",
+                                description: "Type of the parameter"
+                            },
+                            types: [{ fieldType: "TYPE", selected: false }],
+                            value: "",
+                            optional: false,
+                            editable: true,
+                            advanced: false,
+                            hidden: false
+                        },
+                        variable: {
+                            metadata: {
+                                label: "Name",
+                                description: "Name of the parameter"
+                            },
+                            types: [{ fieldType: "IDENTIFIER", selected: false }],
+                            value: "",
+                            optional: false,
+                            editable: true,
+                            advanced: false,
+                            hidden: false
+                        },
+                        parameterDescription: {
+                            metadata: {
+                                label: "Description",
+                                description: "Description of the parameter"
+                            },
+                            valueType: "STRING",
+                            value: "",
+                            optional: true,
+                            editable: true,
+                            advanced: false,
+                            hidden: false
+                        }
+                    },
                     optional: false,
-                    editable: true,
-                    advanced: false,
-                    hidden: false
-                },
-                variable: {
-                    metadata: {
-                        label: "Name",
-                        description: "Name of the parameter"
-                    },
-                    valueType: "IDENTIFIER",
-                    value: "",
-                    optional: false,
-                    editable: true,
-                    advanced: false,
-                    hidden: false
-                },
-                parameterDescription: {
-                    metadata: {
-                        label: "Description",
-                        description: "Description of the parameter"
-                    },
-                    valueType: "STRING",
-                    value: "",
-                    optional: true,
-                    editable: true,
+                    editable: false,
                     advanced: false,
                     hidden: false
                 }
-            },
-            optional: false,
-            editable: false,
-            advanced: false,
-            hidden: false
-        },
+            }],
         value: {},
         optional: true,
         editable: false,
@@ -224,6 +224,7 @@ export function createToolParameters(): ToolParameters {
     };
 }
 
-export const cleanServerUrl = (url: string): string => {
+export const cleanServerUrl = (url: string): string | null => {
+    if (url === null || url === undefined) return null;
     return url.replace(/^"|"$/g, '').trim();
 };

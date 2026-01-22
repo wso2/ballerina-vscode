@@ -17,47 +17,20 @@
  */
 
 import { useState } from "react";
-import {
-    Button,
-    Icon,
-    Typography,
-} from "@wso2/ui-toolkit";
-import styled from "@emotion/styled";
+import { Button, Icon, Typography } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
-import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
+import {
+    PageWrapper,
+    FormContainer,
+    TitleContainer,
+    ScrollableContent,
+    ButtonWrapper,
+    IconButton,
+} from "./styles";
+import { ProjectFormFields } from "./ProjectFormFields";
+import { ProjectFormData } from "./types";
 import { isFormValid } from "./utils";
-
-const FormContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    margin: 80px 120px;
-    max-width: 600px;
-`;
-
-const TitleContainer = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 32px;
-`;
-
-const ButtonWrapper = styled.div`
-    margin-top: 20px;
-    display: flex;
-    justify-content: flex-end;
-`;
-
-const IconButton = styled.div`
-    cursor: pointer;
-    border-radius: 4px;
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-    &:hover {
-        background-color: var(--vscode-toolbar-hoverBackground);
-    }
-`;
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -70,6 +43,7 @@ export function ProjectForm() {
         workspaceName: "",
         orgName: "",
         version: "",
+        isLibrary: false,
     });
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
@@ -86,6 +60,7 @@ export function ProjectForm() {
             workspaceName: formData.workspaceName,
             orgName: formData.orgName || undefined,
             version: formData.version || undefined,
+            isLibrary: formData.isLibrary,
         });
     };
 
@@ -110,28 +85,32 @@ export function ProjectForm() {
     };
 
     return (
-        <FormContainer>
-            <TitleContainer>
-                <IconButton onClick={goBack}>
-                    <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
-                </IconButton>
-                <Typography variant="h2">Create Your Integration</Typography>
-            </TitleContainer>
+        <PageWrapper>
+            <FormContainer>
+                <TitleContainer>
+                    <IconButton onClick={goBack}>
+                        <Icon name="bi-arrow-back" iconSx={{ color: "var(--vscode-foreground)" }} />
+                    </IconButton>
+                    <Typography variant="h2">Create Your Integration</Typography>
+                </TitleContainer>
 
-            <ProjectFormFields
-                formData={formData}
-                onFormDataChange={handleFormDataChange}
-            />
+                <ScrollableContent>
+                    <ProjectFormFields
+                        formData={formData}
+                        onFormDataChange={handleFormDataChange}
+                    />
+                </ScrollableContent>
 
-            <ButtonWrapper>
-                <Button
-                    disabled={!isFormValid(formData)}
-                    onClick={handleCreateProject}
-                    appearance="primary"
-                >
-                    {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
-                </Button>
-            </ButtonWrapper>
-        </FormContainer>
+                <ButtonWrapper>
+                    <Button
+                        disabled={!isFormValid(formData)}
+                        onClick={handleCreateProject}
+                        appearance="primary"
+                    >
+                        {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                    </Button>
+                </ButtonWrapper>
+            </FormContainer>
+        </PageWrapper>
     );
 }
