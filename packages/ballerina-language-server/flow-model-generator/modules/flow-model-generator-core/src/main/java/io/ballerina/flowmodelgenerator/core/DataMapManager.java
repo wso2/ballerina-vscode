@@ -673,6 +673,8 @@ public class DataMapManager {
         } else if (targetExpr.kind() == SyntaxKind.LET_EXPRESSION) {
             if (fieldSplits.length == 1) {
                 return new MatchingNode(((LetExpressionNode) targetExpr).expression(), null, (LetExpressionNode) expr);
+            } else {
+                targetExpr = ((LetExpressionNode) targetExpr).expression();
             }
         }
 

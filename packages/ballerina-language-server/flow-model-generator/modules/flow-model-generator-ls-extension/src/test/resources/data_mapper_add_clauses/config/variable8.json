@@ -1,0 +1,46 @@
+{
+  "source": "variable7.bal",
+  "description": "Add group by clause",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "variable7.bal",
+      "startLine": {
+        "line": 19,
+        "offset": 12
+      },
+      "endLine": {
+        "line": 19,
+        "offset": 132
+      }
+    },
+    "sourceCode": "",
+    "isNew": true
+  },
+  "propertyKey": "expression",
+  "index": -1,
+  "clause": {
+    "type": "where",
+    "properties": {
+      "expression": "1 == 2"
+    }
+  },
+  "targetField": "credentials.userInfo",
+  "output": {
+    "variable7.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 19,
+            "character": 97
+          },
+          "end": {
+            "line": 19,
+            "character": 97
+          }
+        },
+        "newText": "\nwhere 1 == 2"
+      }
+    ]
+  }
+}
