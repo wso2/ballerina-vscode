@@ -198,6 +198,8 @@ export function ServiceClassConfig(props: ServiceClassConfigProps) {
                             type: type,
                         }
                     });
+            } else {
+                rpcClient.getVisualizerRpcClient()?.goBack();
             }
         } else {
             // No changes detected, just go back
