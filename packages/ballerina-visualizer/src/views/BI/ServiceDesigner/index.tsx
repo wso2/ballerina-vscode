@@ -248,11 +248,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         const onCreateFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onCreate');
         const onDeleteFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onDelete');
+        const onChangeFunction = serviceModel.functions.filter(fn => fn.metadata?.label === 'EVENT');
 
         const hasAvailableOnCreate = onCreateFunctions.length > 0 && onCreateFunctions.some(fn => !fn.enabled);
         const hasAvailableOnDelete = onDeleteFunctions.length > 0 && onDeleteFunctions.some(fn => !fn.enabled);
+        const hasOnChange = onChangeFunction.length > 0 && onChangeFunction.some(fn => fn.enabled);
 
-        return hasAvailableOnCreate || hasAvailableOnDelete;
+        // Remove the add handler option if deprecated APIs present
+        return (hasAvailableOnCreate || hasAvailableOnDelete) && !hasOnChange;
     };
 
     useEffect(() => {
