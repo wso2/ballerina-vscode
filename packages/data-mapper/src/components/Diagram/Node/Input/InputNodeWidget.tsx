@@ -80,7 +80,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         expanded = false;
     }
 
-    const isNotGroupHeaderPort = !isGroupHeaderPort(portOut);
+    const isNotGroupHeaderPort = !(portOut && isGroupHeaderPort(portOut));
 
     const headerLabel = valueLabel || dmType.displayName || dmType.name || id;
     const label = (
