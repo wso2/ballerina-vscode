@@ -511,6 +511,9 @@ function processInputRoots(model: DMModel): IOType[] {
         : processedInputs;
 }
 
+/** 
+ * Checks if the given input is a module level input
+ */
 function isModuleLevelInput(input: IORoot): boolean {
     return input.category === InputCategory.Constant
         || input.category === InputCategory.Configurable
@@ -518,6 +521,9 @@ function isModuleLevelInput(input: IORoot): boolean {
         || input.category === InputCategory.Variable;
 }
 
+/**
+ * Builds an IOType to group module level inputs
+ */
 function buildModuleLevelInputsGroup(moduleLevelInputs: IORoot[], model: DMModel): IOType {
     
     const id = "MODULE_LEVEL_INPUTS$"; // Suffix $ to avoid conflicts with user defined names and special case port handling
