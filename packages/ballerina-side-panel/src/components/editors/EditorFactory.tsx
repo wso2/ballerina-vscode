@@ -97,7 +97,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "MAPPING_EXPRESSION" ||
             (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
             type.fieldType === "RECORD_MAP_EXPRESSION" ||
-            (field.type === "FLAG" && field.types?.length > 1)
+            (field.type === "FLAG" && field.types?.length > 1) ||
+            type.fieldType === "CLAUSE_EXPRESSION"
         );
     });
 
@@ -224,6 +225,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         );
     } else if (field.type === "DM_JOIN_CLAUSE_RHS_EXPRESSION") {
         // Expression field for Data Mapper join on condition RHS
+        field.type = "CLAUSE_EXPRESSION"; // This mutation is required to support diagnostics
         return (
             <DataMapperJoinClauseRhsEditor
                 field={field}
