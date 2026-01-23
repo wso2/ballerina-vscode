@@ -71,7 +71,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
-        types: [{ fieldType: "IDENTIFIER", selected: false }],
+        types: [{ fieldType: "IDENTIFIER", scope: "Local", selected: false }],
         enabled: true,
     }
 
