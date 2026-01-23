@@ -38,11 +38,6 @@
         },
         "types": [
           {
-            "fieldType": "MAPPING_EXPRESSION",
-            "ballerinaType": "map<map:Type>",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "map<map:Type>",
             "selected": false
