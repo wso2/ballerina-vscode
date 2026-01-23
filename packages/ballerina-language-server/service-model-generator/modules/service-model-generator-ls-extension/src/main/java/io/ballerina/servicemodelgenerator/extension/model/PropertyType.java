@@ -89,8 +89,7 @@ public class PropertyType {
     }
 
     public static void typeWithExpression(Value.ValueBuilder valueBuilder, TypeSymbol typeSymbol,
-                                                        ModuleInfo moduleInfo, Node value,
-                                                        SemanticModel semanticModel) {
+                                          ModuleInfo moduleInfo, Node value, SemanticModel semanticModel) {
         if (typeSymbol == null) {
             valueBuilder.types(List.of());
             return;
@@ -232,6 +231,10 @@ public class PropertyType {
                         .filter(propType -> propType.fieldType() == finalMatchingValueType)
                         .findFirst()
                         .ifPresent(propType -> propType.selected(true));
+                if (finalMatchingValueType.equals(Value.FieldType.TEXT)) {
+                    String valueStr = value.toSourceCode().strip();
+                    valueBuilder.value(CommonUtils.unescapeContent(valueStr));
+                }
             }
         }
         valueBuilder.types(propertyTypes);

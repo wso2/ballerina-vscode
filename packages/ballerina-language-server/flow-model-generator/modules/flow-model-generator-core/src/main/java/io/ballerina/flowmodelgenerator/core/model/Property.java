@@ -548,11 +548,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                             Node value, SemanticModel semanticModel) {
+                                             Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -684,6 +684,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             .filter(propType -> propType.fieldType() == finalMatchingValueType)
                             .findFirst()
                             .ifPresent(propType -> propType.selected(true));
+                    if (finalMatchingValueType.equals(ValueType.TEXT)) {
+                        String valueStr = value.toSourceCode().strip();
+                        if (builder != null) {
+                            builder.value(CommonUtils.unescapeContent(valueStr));
+                        }
+                    }
                 }
             }
             return this;

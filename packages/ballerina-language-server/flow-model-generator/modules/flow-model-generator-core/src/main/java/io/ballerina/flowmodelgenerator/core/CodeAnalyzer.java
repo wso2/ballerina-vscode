@@ -1386,7 +1386,7 @@ public class CodeAnalyzer extends NodeVisitor {
                 builder.type(Property.ValueType.RAW_TEMPLATE);
             }
         } else {
-            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
+            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
         }
     }
 

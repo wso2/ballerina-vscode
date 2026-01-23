@@ -39,7 +39,7 @@
               "offset": 5
             }
           },
-          "sourceCode": "resource function get apples(int count) {\n        if count > 20 {\n            log:printWarn(\"Count is greater than 20\");\n        }\n        log:printInfo(\"Getting apples\", key1=\"Value1\", key2=\"Value2\");\n        json|error res = foodClient->get(\"/western/apples?count=\" + count.toString());\n        if res is error {\n            log:printError(\"Failed to get the response\");\n        } else {\n            log:printInfo(\"Response: \", response = res);\n        }\n    }"
+          "sourceCode": "resource function get apples(int count) {\n        if count > 20 {\n            log:printWarn(\"\\\"Count is greater \\\\a than 20\\\"\");\n        }\n        log:printInfo(\"Getting apples\", key1=\"Value1\", key2=\"Value2\");\n        json|error res = foodClient->get(\"/western/apples?count=\" + count.toString());\n        if res is error {\n            log:printError(\"Failed to get the response\");\n        } else {\n            log:printInfo(\"Response: \", response = res);\n        }\n    }"
         },
         "returning": false,
         "flags": 0
@@ -63,7 +63,7 @@
               "offset": 9
             }
           },
-          "sourceCode": "if count > 20 {\n            log:printWarn(\"Count is greater than 20\");\n        }"
+          "sourceCode": "if count > 20 {\n            log:printWarn(\"\\\"Count is greater \\\\a than 20\\\"\");\n        }"
         },
         "returning": false,
         "branches": [
@@ -83,7 +83,7 @@
                   "offset": 9
                 }
               },
-              "sourceCode": "{\n            log:printWarn(\"Count is greater than 20\");\n        }"
+              "sourceCode": "{\n            log:printWarn(\"\\\"Count is greater \\\\a than 20\\\"\");\n        }"
             },
             "repeatable": "ONE_OR_MORE",
             "properties": {
@@ -109,7 +109,7 @@
             },
             "children": [
               {
-                "id": "42090",
+                "id": "42098",
                 "metadata": {
                   "label": "printWarn",
                   "description": "Prints warn logs.\n```ballerina\nlog:printWarn(\"warn message\", id = 845315)\n```\n",
@@ -130,10 +130,10 @@
                     },
                     "endLine": {
                       "line": 10,
-                      "offset": 54
+                      "offset": 62
                     }
                   },
-                  "sourceCode": "log:printWarn(\"Count is greater than 20\");"
+                  "sourceCode": "log:printWarn(\"\\\"Count is greater \\\\a than 20\\\"\");"
                 },
                 "returning": false,
                 "properties": {
@@ -154,7 +154,7 @@
                         "selected": false
                       }
                     ],
-                    "value": "\"Count is greater than 20\"",
+                    "value": "\"\"Count is greater \\a than 20\"\"",
                     "placeholder": "\"\"",
                     "optional": false,
                     "editable": true,
