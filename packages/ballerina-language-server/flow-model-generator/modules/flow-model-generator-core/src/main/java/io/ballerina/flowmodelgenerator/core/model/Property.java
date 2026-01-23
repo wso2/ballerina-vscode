@@ -26,7 +26,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -633,13 +632,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
                     if (paramType.isPresent()) {
-                        if (paramType.get().typeKind() == TypeDescKind.MAP) {
-                            matchingValueType = ValueType.MAPPING_EXPRESSION;
-                            // convert string to a Map<String, Object>
-                            Map<String, Object> mapValue = CommonUtils.convertMappingExprToMap(
-                                    (MappingConstructorExpressionNode) value);
-                            value(mapValue);
-                        } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        if (paramType.get().typeKind() == TypeDescKind.RECORD) {
                             matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
                         }
                     }
@@ -712,8 +705,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                      INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
-                case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
-                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -747,7 +738,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
-                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;
                 case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
                 default -> ValueType.EXPRESSION;
             };
