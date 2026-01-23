@@ -138,6 +138,7 @@ public class CommonUtils {
 
     private static final String DOUBLE_QUOTE = "\"";
     private static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
+    private static final String LS = System.lineSeparator();
 
     /**
      * Removes the quotes from the given string.
@@ -1331,7 +1332,7 @@ public class CommonUtils {
             return null;
         }
 
-        if (!STRING_TEMPLATE_PATTERN.matcher(value).matches()) {
+        if (!STRING_TEMPLATE_PATTERN.matcher(value).matches() || value.contains(LS)) {
             return value;
         }
 
