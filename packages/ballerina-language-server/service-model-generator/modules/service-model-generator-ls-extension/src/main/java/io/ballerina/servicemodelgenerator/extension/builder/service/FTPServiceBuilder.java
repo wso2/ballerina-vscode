@@ -268,7 +268,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                         sourceFunc.setEnabled(true);
                         sourceFunc.setOptional(true);
                         sourceFunc.setEditable(false);
-                        sourceFunc.setMetadata(new MetaData(EVENT, sourceFunc.getMetadata().description()));
+                        MetaData sourceMetadata = sourceFunc.getMetadata();
+                        String description = sourceMetadata != null ? sourceMetadata.description() : null;
+                        sourceFunc.setMetadata(new MetaData(EVENT, description));
                         serviceModel.addFunction(sourceFunc);
                     }
                 }
