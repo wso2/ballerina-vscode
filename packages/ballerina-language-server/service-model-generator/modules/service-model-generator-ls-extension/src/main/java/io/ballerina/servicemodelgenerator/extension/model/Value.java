@@ -181,7 +181,7 @@ public class Value {
     public String getLiteralValue() {
         String valueStr = getValue();
         if (valueStr != null && (STRING_TEMPLATE_PATTERN.matcher(valueStr).matches()
-                ||valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE))) {
+                || valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE))) {
             return valueStr;
         }
         return DOUBLE_QUOTE + valueStr + DOUBLE_QUOTE;
