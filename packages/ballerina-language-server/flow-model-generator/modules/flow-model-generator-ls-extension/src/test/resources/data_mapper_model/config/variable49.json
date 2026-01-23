@@ -30,7 +30,7 @@
         "displayName": "arr1",
         "typeName": "simpleTypeArr",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1661226903"
       },
       {

@@ -37,7 +37,7 @@
         "displayName": "s",
         "typeName": "Student",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "545732303"
       },
       {
@@ -46,7 +46,7 @@
         "displayName": "userInfo",
         "typeName": "UserInfo",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1889977605"
       },
       {
@@ -54,7 +54,7 @@
         "displayName": "x",
         "typeName": "int",
         "kind": "int",
-        "category": "variable"
+        "category": "local-variable"
       }
     ],
     "output": {
