@@ -225,10 +225,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         );
     } else if (field.type === "DM_JOIN_CLAUSE_RHS_EXPRESSION") {
         // Expression field for Data Mapper join on condition RHS
-        field.type = "CLAUSE_EXPRESSION"; // This mutation is required to support diagnostics
+        const clauseExpressionField: FormField = {
+            ...field,
+            type: "CLAUSE_EXPRESSION",
+            types: [{ fieldType: "CLAUSE_EXPRESSION", selected: false }]
+        }; // Transforming to CLAUSE_EXPRESSION type to support diagnostics
+
         return (
             <DataMapperJoinClauseRhsEditor
-                field={field}
+                field={clauseExpressionField}
                 openSubPanel={openSubPanel}
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}
