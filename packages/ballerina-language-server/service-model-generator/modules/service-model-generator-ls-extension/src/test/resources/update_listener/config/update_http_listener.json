@@ -81,7 +81,7 @@
           "originalName": "host"
         },
         "placeholder": "\"\"",
-        "value": "string `localhost`",
+        "value": "string `\"localhost\"`",
         "types": [
           {
             "fieldType": "TEXT",
@@ -481,7 +481,7 @@
             "character": 53
           }
         },
-        "newText": "listener http:Listener listener1 = new (port = 8080, host = \"localhost\");"
+        "newText": "listener http:Listener listener1 = new (port = 8080, host = \"\\\"localhost\\\"\");"
       }
     ]
   }
