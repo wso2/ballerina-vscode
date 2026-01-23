@@ -686,7 +686,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             .ifPresent(propType -> propType.selected(true));
                     if (finalMatchingValueType.equals(ValueType.TEXT)) {
                         String valueStr = value.toSourceCode().strip();
-                        builder.value(CommonUtils.unescapeContent(valueStr));
+                        if (builder != null) {
+                            builder.value(CommonUtils.unescapeContent(valueStr));
+                        }
                     }
                 }
             }
