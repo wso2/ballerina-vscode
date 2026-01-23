@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 ### Fixed
 
 - **Expression Editor** — Fixed issue where text input with double quotes was not allowed.
+- **Security** — Updated lodash to 4.17.23 to fix CVE-2025-13465 prototype pollution vulnerability.
 
 
 ## [5.7.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.7.1...ballerina-5.7.2) - 2026-01-22
