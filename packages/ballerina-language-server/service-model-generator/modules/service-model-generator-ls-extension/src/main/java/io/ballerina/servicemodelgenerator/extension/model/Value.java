@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.modelgenerator.commons.CommonUtils.STRING_TEMPLATE_PATTERN;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DOUBLE_QUOTE;
 
 /**
@@ -179,7 +180,8 @@ public class Value {
 
     public String getLiteralValue() {
         String valueStr = getValue();
-        if (valueStr != null && valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE)) {
+        if (valueStr != null && (STRING_TEMPLATE_PATTERN.matcher(valueStr).matches()
+                ||valueStr.startsWith(DOUBLE_QUOTE) && valueStr.endsWith(DOUBLE_QUOTE))) {
             return valueStr;
         }
         return DOUBLE_QUOTE + valueStr + DOUBLE_QUOTE;

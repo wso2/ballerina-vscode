@@ -137,7 +137,7 @@ public class CommonUtils {
             AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     private static final String DOUBLE_QUOTE = "\"";
-    private static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
+    public static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
     private static final String LS = System.lineSeparator();
 
     /**
