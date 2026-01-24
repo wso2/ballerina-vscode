@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { TraceData, SpanData } from "../index";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
@@ -259,6 +259,41 @@ const ClearSearchButton = styled.button`
     }
 `;
 
+const Tooltip = styled.div<{ x: number; y: number }>`
+    position: fixed;
+    left: ${(props: { x: number; y: number }) => props.x}px;
+    top: ${(props: { x: number; y: number }) => props.y}px;
+    background-color: var(--vscode-editorHoverWidget-background);
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    border-radius: 4px;
+    padding: 10px;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    max-width: 280px;
+    pointer-events: none;
+`;
+
+const TooltipRow = styled.div`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+
+    span.value {
+        color: var(--vscode-foreground);
+        font-family: var(--vscode-editor-font-family);
+        font-weight: 500;
+    }
+`;
+
+const TooltipDivider = styled.div`
+    height: 1px;
+    background-color: var(--vscode-panel-border);
+    margin: 6px 0;
+`;
+
 // ============================================================================
 // ADVANCED MODE STYLES
 // ============================================================================
@@ -411,6 +446,14 @@ export function SpanTree({
     searchQuery,
     onClearSearch
 }: SpanTreeProps) {
+
+    const [hoveredTokenInfo, setHoveredTokenInfo] = useState<{
+        input: number;
+        output: number;
+        total: number;
+        x: number;
+        y: number;
+    } | null>(null);
 
     /**
      * EXTENDED MATCH LOGIC
@@ -622,7 +665,41 @@ export function SpanTree({
                             )}
                             {!isVeryNarrow && totalTokens > 0 && (
                                 <AISpanMetadataPill>
-                                    <AISpanTokenCount title={`Input: ${inputTokens.toLocaleString()}\nOutput: ${outputTokens.toLocaleString()}\nTotal: ${totalTokens.toLocaleString()}`} style={{ cursor: 'help' }}>
+                                    <AISpanTokenCount
+                                        style={{ cursor: 'help' }}
+                                        onMouseEnter={(e: React.MouseEvent) => {
+                                            const rect = e.currentTarget.getBoundingClientRect();
+                                            const screenWidth = window.innerWidth;
+                                            const screenHeight = window.innerHeight;
+                                            const tooltipWidth = 280;
+                                            const tooltipHeight = 100;
+
+                                            let x = rect.left + rect.width / 2;
+                                            let y = rect.bottom + 8;
+
+                                            // Adjust horizontal position if tooltip would overflow
+                                            if (x + tooltipWidth / 2 > screenWidth - 10) {
+                                                x = screenWidth - tooltipWidth / 2 - 10;
+                                            }
+                                            if (x - tooltipWidth / 2 < 10) {
+                                                x = tooltipWidth / 2 + 10;
+                                            }
+
+                                            // Adjust vertical position if tooltip would overflow
+                                            if (y + tooltipHeight > screenHeight - 10) {
+                                                y = rect.top - tooltipHeight - 8;
+                                            }
+
+                                            setHoveredTokenInfo({
+                                                input: inputTokens,
+                                                output: outputTokens,
+                                                total: totalTokens,
+                                                x,
+                                                y
+                                            });
+                                        }}
+                                        onMouseLeave={() => setHoveredTokenInfo(null)}
+                                    >
                                         {totalTokens.toLocaleString()} Tokens
                                     </AISpanTokenCount>
                                 </AISpanMetadataPill>
@@ -917,6 +994,25 @@ export function SpanTree({
                     </>
                 )}
             </TreeScrollArea>
+
+            {/* Token Breakdown Tooltip */}
+            {hoveredTokenInfo && (
+                <Tooltip x={hoveredTokenInfo.x} y={hoveredTokenInfo.y}>
+                    <TooltipRow>
+                        <span>Input:</span>
+                        <span className="value">{hoveredTokenInfo.input.toLocaleString()}</span>
+                    </TooltipRow>
+                    <TooltipRow>
+                        <span>Output:</span>
+                        <span className="value">{hoveredTokenInfo.output.toLocaleString()}</span>
+                    </TooltipRow>
+                    <TooltipDivider />
+                    <TooltipRow>
+                        <span>Total:</span>
+                        <span className="value">{hoveredTokenInfo.total.toLocaleString()}</span>
+                    </TooltipRow>
+                </Tooltip>
+            )}
         </AISpanTreeContainer>
     );
 }
