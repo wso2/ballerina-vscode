@@ -29,6 +29,7 @@ const Container = styled.div`
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 `;
 
 const SearchIcon = styled.span`
