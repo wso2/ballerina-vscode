@@ -24,6 +24,7 @@ import { SpanInputOutput } from "./components/SpanInputOutput";
 import { WaterfallView } from "./components/WaterfallView";
 import { TraceEmptyState } from "./components/TraceEmptyState";
 import { SpanTree, AISpanTreeContainer } from "./components/SpanTree";
+import { SearchInput } from "./components/SearchInput";
 import {
     timeContainsSpan,
     sortSpansByUmbrellaFirst,
@@ -174,26 +175,6 @@ const SearchInputWrapper = styled.div`
     display: flex;
     gap: 6px;
     align-items: center;
-`;
-
-const SearchInput = styled.input`
-    width: 100%;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    padding: 6px;
-    font-size: 13px;
-    outline: none;
-    border-radius: 4px;
-    box-sizing: border-box;
-
-    &:focus {
-        border-color: var(--vscode-focusBorder);
-    }
-    
-    &::placeholder {
-        color: var(--vscode-input-placeholderForeground);
-    }
 `;
 
 const ActionButton = styled.button`
@@ -801,10 +782,9 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                         <>
                             <SearchInputWrapper>
                                 <SearchInput
-                                    type="text"
-                                    placeholder="Filter spans..."
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={setSearchQuery}
+                                    placeholder="Filter spans..."
                                 />
                                 <ActionButton
                                     onClick={handleToggleAll}
@@ -834,6 +814,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                         getChildSpans={getChildSpans}
                                         containerWidth={containerWidth}
                                         searchQuery={searchQuery}
+                                        onClearSearch={() => setSearchQuery('')}
                                     />
                                 </AISpanTreeContainer>
                             )}
@@ -848,6 +829,8 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                     traceDuration={duration}
                                     collapsedSpanIds={waterfallCollapsedSpanIds}
                                     setCollapsedSpanIds={setWaterfallCollapsedSpanIds}
+                                    searchQuery={searchQuery}
+                                    onClearSearch={() => setSearchQuery('')}
                                 />
                             )}
                         </>

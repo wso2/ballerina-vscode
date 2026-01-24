@@ -20,6 +20,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { SpanData } from '../index';
 import { Codicon, Icon } from '@wso2/ui-toolkit';
+import { doesSpanMatch, getSpanTypeBadge, getSpanLabel, getSpanKindLabel, HighlightText } from '../utils';
 
 // --- Interfaces ---
 
@@ -33,6 +34,8 @@ interface WaterfallViewProps {
     traceDuration: number;
     collapsedSpanIds: Set<string>;
     setCollapsedSpanIds: (ids: Set<string>) => void;
+    searchQuery: string;
+    onClearSearch?: () => void;
 }
 
 interface FlatSpan extends SpanData {
@@ -372,6 +375,43 @@ const TooltipRow = styled.div`
     }
 `;
 
+const NoResultsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 12px;
+`;
+
+const NoResultsTitle = styled.div`
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+`;
+
+const ClearSearchButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+`;
+
 // --- Helper Functions ---
 
 const getSpanKindString = (kind: any): string => {
@@ -476,7 +516,9 @@ export function WaterfallView({
     traceStartTime,
     traceDuration,
     collapsedSpanIds,
-    setCollapsedSpanIds
+    setCollapsedSpanIds,
+    searchQuery,
+    onClearSearch
 }: WaterfallViewProps) {
     const [zoom, setZoom] = useState(1);
     const [hoveredSpan, setHoveredSpan] = useState<{ span: FlatSpan; x: number; y: number } | null>(null);
@@ -486,6 +528,28 @@ export function WaterfallView({
     const containerRef = useRef<HTMLDivElement>(null);
 
     const traceStartMs = useMemo(() => new Date(traceStartTime).getTime(), [traceStartTime]);
+
+    /**
+     * EXTENDED MATCH LOGIC
+     * Checks if span matches the query by Name, Attributes, Label, or Kind.
+     */
+    const extendedDoesSpanMatch = (span: SpanData): boolean => {
+        if (!searchQuery) return true;
+
+        // 1. Check existing match logic (Name, attributes, etc.)
+        if (doesSpanMatch(span, searchQuery)) return true;
+
+        // 2. Check Span Label (e.g. "LLM Call", "Tool", etc.)
+        const badgeType = getSpanTypeBadge(span);
+        const label = getSpanLabel(badgeType);
+        if (label && label.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+
+        // 3. Check Span Kind (e.g. "CLIENT", "SERVER")
+        const kind = getSpanKindLabel(span.kind);
+        if (kind && kind.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+
+        return false;
+    };
 
     // Resize Observer for Compact Mode
     useEffect(() => {
@@ -502,7 +566,38 @@ export function WaterfallView({
         return () => observer.disconnect();
     }, []);
 
-    // Flatten Span Hierarchy
+    // Helper to check if a span or any of its descendants match the search
+    const spanOrDescendantMatches = useMemo(() => {
+        const cache = new Map<string, boolean>();
+
+        const checkMatch = (span: SpanData): boolean => {
+            if (cache.has(span.spanId)) {
+                return cache.get(span.spanId)!;
+            }
+
+            // Check if this span matches
+            if (extendedDoesSpanMatch(span)) {
+                cache.set(span.spanId, true);
+                return true;
+            }
+
+            // Check if any child matches
+            const children = getChildSpans(span.spanId);
+            for (const child of children) {
+                if (checkMatch(child)) {
+                    cache.set(span.spanId, true);
+                    return true;
+                }
+            }
+
+            cache.set(span.spanId, false);
+            return false;
+        };
+
+        return checkMatch;
+    }, [searchQuery, spans, getChildSpans]);
+
+    // Flatten Span Hierarchy with search filtering
     const flatSpans = useMemo(() => {
         const result: FlatSpan[] = [];
         const processed = new Set<string>();
@@ -510,6 +605,11 @@ export function WaterfallView({
         const processSpan = (span: SpanData, level: number) => {
             if (processed.has(span.spanId)) return;
             processed.add(span.spanId);
+
+            // Skip this span if it doesn't match the search (and no descendants match)
+            if (searchQuery && !spanOrDescendantMatches(span)) {
+                return;
+            }
 
             const range = getSpanTimeRange(span);
             const startOffsetMs = range ? Math.max(0, range.start - traceStartMs) : 0;
@@ -522,8 +622,15 @@ export function WaterfallView({
                 const bStart = getSpanTimeRange(b)?.start || 0;
                 return aStart - bStart;
             });
+
+            // Filter children based on search
+            if (searchQuery) {
+                children = children.filter(child => spanOrDescendantMatches(child));
+            }
+
             const hasChildren = children.length > 0;
-            const isCollapsed = collapsedSpanIds.has(span.spanId);
+            // Auto-expand when searching
+            const isCollapsed = searchQuery ? false : collapsedSpanIds.has(span.spanId);
 
             result.push({
                 ...span,
@@ -553,7 +660,7 @@ export function WaterfallView({
 
         roots.forEach(span => processSpan(span, 0));
         return result;
-    }, [spans, getChildSpans, traceStartMs, collapsedSpanIds]);
+    }, [spans, getChildSpans, traceStartMs, collapsedSpanIds, searchQuery, spanOrDescendantMatches]);
 
     // Calculate actual content duration (longest span)
     const contentMaxDurationMs = useMemo(() => {
@@ -644,134 +751,158 @@ export function WaterfallView({
     // Determine icon for the "Toggle All" button
     const isAnyCollapsed = collapsedSpanIds.size > 0;
 
+    // Check if we have no results
+    const noResults = searchQuery && flatSpans.length === 0;
+
     return (
         <WaterfallContainer ref={containerRef}>
+            {/* No Results Message */}
+            {noResults && (
+                <NoResultsContainer>
+                    <NoResultsTitle>No results found</NoResultsTitle>
+                    <ClearSearchButton onClick={() => onClearSearch?.()}>
+                        <Icon
+                            name="bi-close"
+                            sx={{ fontSize: "16px", width: "16px", height: "16px" }}
+                            iconSx={{ display: "flex" }}
+                        />
+                        Clear search
+                    </ClearSearchButton>
+                </NoResultsContainer>
+            )}
+
             {/* Zoom Controls */}
-            <ZoomControlsBar>
-                <ZoomControlsGroup>
-                    <ZoomButton
-                        onClick={() => setZoom(Math.max(1, zoom - 1))}
-                        title="Zoom out"
-                        disabled={zoom <= 1}
-                    >
-                        <Codicon name="zoom-out" />
-                    </ZoomButton>
-                    {!isCompact && (
-                        <>
-                            <ZoomSlider
-                                type="range"
-                                min="1"
-                                max="20"
-                                step="0.5"
-                                value={zoom}
-                                onChange={(e) => setZoom(parseFloat(e.target.value))}
-                            />
-                            <ZoomLabel>{zoom.toFixed(1)}x</ZoomLabel>
-                        </>
-                    )}
-                    <ZoomButton
-                        onClick={() => setZoom(Math.min(20, zoom + 1))}
-                        title="Zoom in"
-                        disabled={zoom >= 20}
-                    >
-                        <Codicon name="zoom-in" />
-                    </ZoomButton>
-                </ZoomControlsGroup>
-            </ZoomControlsBar>
+            {!noResults && (
+                <>
+                    <ZoomControlsBar>
+                        <ZoomControlsGroup>
+                            <ZoomButton
+                                onClick={() => setZoom(Math.max(1, zoom - 1))}
+                                title="Zoom out"
+                                disabled={zoom <= 1}
+                            >
+                                <Codicon name="zoom-out" />
+                            </ZoomButton>
+                            {!isCompact && (
+                                <>
+                                    <ZoomSlider
+                                        type="range"
+                                        min="1"
+                                        max="20"
+                                        step="0.5"
+                                        value={zoom}
+                                        onChange={(e) => setZoom(parseFloat(e.target.value))}
+                                    />
+                                    <ZoomLabel>{zoom.toFixed(1)}x</ZoomLabel>
+                                </>
+                            )}
+                            <ZoomButton
+                                onClick={() => setZoom(Math.min(20, zoom + 1))}
+                                title="Zoom in"
+                                disabled={zoom >= 20}
+                            >
+                                <Codicon name="zoom-in" />
+                            </ZoomButton>
+                        </ZoomControlsGroup>
+                    </ZoomControlsBar>
 
-            {/* Scroll Area */}
-            <TimelineScrollArea ref={scrollContainerRef}>
-                <TimelineContent widthPercent={zoom * 100}>
-                    {/* Time Axis */}
-                    <TimeAxis>
-                        {timelineLayout.markers.map((ms) => (
-                            <TimeMarker key={ms} left={(ms / timelineLayout.viewDuration) * 100}>
-                                <TimeMarkerTick />
-                                <TimeMarkerLabel>{formatTimeMarker(ms)}</TimeMarkerLabel>
-                            </TimeMarker>
-                        ))}
-                    </TimeAxis>
+                    {/* Scroll Area */}
+                    <TimelineScrollArea ref={scrollContainerRef}>
+                        <TimelineContent widthPercent={zoom * 100}>
+                            {/* Time Axis */}
+                            <TimeAxis>
+                                {timelineLayout.markers.map((ms) => (
+                                    <TimeMarker key={ms} left={(ms / timelineLayout.viewDuration) * 100}>
+                                        <TimeMarkerTick />
+                                        <TimeMarkerLabel>{formatTimeMarker(ms)}</TimeMarkerLabel>
+                                    </TimeMarker>
+                                ))}
+                            </TimeAxis>
 
-                    <SpansContainer>
-                        {/* Background Grid */}
-                        <GridLinesContainer>
-                            {timelineLayout.markers.map((ms) => (
-                                <GridLineVertical
-                                    key={ms}
-                                    left={(ms / timelineLayout.viewDuration) * 100}
-                                />
-                            ))}
-                        </GridLinesContainer>
+                            <SpansContainer>
+                                {/* Background Grid */}
+                                <GridLinesContainer>
+                                    {timelineLayout.markers.map((ms) => (
+                                        <GridLineVertical
+                                            key={ms}
+                                            left={(ms / timelineLayout.viewDuration) * 100}
+                                        />
+                                    ))}
+                                </GridLinesContainer>
 
-                        {/* Span Rows */}
-                        {flatSpans.map((span) => {
-                            const spanType = getSpanType(span);
-                            const isSelected = selectedSpanId === span.spanId;
-                            const leftPercent = (span.startOffsetMs / timelineLayout.viewDuration) * 100;
-                            const widthPercent = (span.durationMs / timelineLayout.viewDuration) * 100;
+                                {/* Span Rows */}
+                                {flatSpans.map((span) => {
+                                    const spanType = getSpanType(span);
+                                    const isSelected = selectedSpanId === span.spanId;
+                                    const leftPercent = (span.startOffsetMs / timelineLayout.viewDuration) * 100;
+                                    const widthPercent = (span.durationMs / timelineLayout.viewDuration) * 100;
 
-                            return (
-                                <SpanRow
-                                    key={span.spanId}
-                                    isSelected={isSelected}
-                                    level={span.level}
-                                >
-                                    <HierarchyGuide level={span.level} />
-                                    <SpanBar
-                                        type={spanType}
-                                        left={leftPercent}
-                                        width={widthPercent}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onSpanSelect(span.spanId);
-                                        }}
-                                        onMouseEnter={(e) => handleSpanMouseEnter(span, e)}
-                                        onMouseLeave={() => setHoveredSpan(null)}
-                                        style={{
-                                            backgroundColor: `color-mix(in srgb, ${getSpanColor(spanType)} 15%, transparent)`
-                                        }}
-                                    >
-                                        {/* Expand/Collapse Chevron */}
-                                        {span.hasChildren && (
-                                            <ChevronWrapper
+                                    return (
+                                        <SpanRow
+                                            key={span.spanId}
+                                            isSelected={isSelected}
+                                            level={span.level}
+                                        >
+                                            <HierarchyGuide level={span.level} />
+                                            <SpanBar
+                                                type={spanType}
+                                                left={leftPercent}
+                                                width={widthPercent}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleToggleCollapse(span.spanId);
+                                                    onSpanSelect(span.spanId);
+                                                }}
+                                                onMouseEnter={(e) => handleSpanMouseEnter(span, e)}
+                                                onMouseLeave={() => setHoveredSpan(null)}
+                                                style={{
+                                                    backgroundColor: `color-mix(in srgb, ${getSpanColor(spanType)} 15%, transparent)`
                                                 }}
                                             >
-                                                <Codicon
-                                                    name={span.isCollapsed ? "chevron-right" : "chevron-down"}
-                                                    sx={{ fontSize: '12px' }}
-                                                />
-                                            </ChevronWrapper>
-                                        )}
+                                                {/* Expand/Collapse Chevron */}
+                                                {span.hasChildren && (
+                                                    <ChevronWrapper
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleToggleCollapse(span.spanId);
+                                                        }}
+                                                    >
+                                                        <Codicon
+                                                            name={span.isCollapsed ? "chevron-right" : "chevron-down"}
+                                                            sx={{ fontSize: '12px' }}
+                                                        />
+                                                    </ChevronWrapper>
+                                                )}
 
-                                        <SpanBarIcon type={spanType}>
-                                            <Icon
-                                                name={getTypeIcon(spanType)}
-                                                sx={{
-                                                    fontSize: '14px',
-                                                    width: '14px',
-                                                    height: '14px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center'
-                                                }}
-                                                iconSx={{
-                                                    fontSize: '14px',
-                                                    display: 'flex'
-                                                }}
-                                            />
-                                        </SpanBarIcon>
-                                        <SpanBarLabel>{stripSpanPrefix(span.name)}</SpanBarLabel>
-                                        <SpanBarDuration>{formatDuration(span.durationMs)}</SpanBarDuration>
-                                    </SpanBar>
-                                </SpanRow>
-                            );
-                        })}
-                    </SpansContainer>
-                </TimelineContent>
-            </TimelineScrollArea>
+                                                <SpanBarIcon type={spanType}>
+                                                    <Icon
+                                                        name={getTypeIcon(spanType)}
+                                                        sx={{
+                                                            fontSize: '14px',
+                                                            width: '14px',
+                                                            height: '14px',
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center'
+                                                        }}
+                                                        iconSx={{
+                                                            fontSize: '14px',
+                                                            display: 'flex'
+                                                        }}
+                                                    />
+                                                </SpanBarIcon>
+                                                <SpanBarLabel>
+                                                    <HighlightText text={stripSpanPrefix(span.name)} query={searchQuery} />
+                                                </SpanBarLabel>
+                                                <SpanBarDuration>{formatDuration(span.durationMs)}</SpanBarDuration>
+                                            </SpanBar>
+                                        </SpanRow>
+                                    );
+                                })}
+                            </SpansContainer>
+                        </TimelineContent>
+                    </TimelineScrollArea>
+                </>
+            )}
 
             {/* Hover Tooltip */}
             {hoveredSpan && (

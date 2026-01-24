@@ -1,4 +1,22 @@
-import React from "react";
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import React, { useMemo } from "react";
 import styled from "@emotion/styled";
 import { TraceData, SpanData } from "../index";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
@@ -204,6 +222,43 @@ const AISpanErrorIcon = styled.span`
     flex-shrink: 0;
 `;
 
+const NoResultsContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    gap: 12px;
+`;
+
+const NoResultsTitle = styled.div`
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--vscode-foreground);
+`;
+
+const ClearSearchButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    color: var(--vscode-foreground);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+`;
+
 // ============================================================================
 // ADVANCED MODE STYLES
 // ============================================================================
@@ -337,6 +392,7 @@ interface SpanTreeProps {
     getChildSpans: (spanId: string) => SpanData[];
     containerWidth: number;
     searchQuery: string;
+    onClearSearch?: () => void;
 }
 
 export function SpanTree({
@@ -352,8 +408,31 @@ export function SpanTree({
     setExpandedAdvancedSpanGroups,
     getChildSpans,
     containerWidth,
-    searchQuery
+    searchQuery,
+    onClearSearch
 }: SpanTreeProps) {
+
+    /**
+     * EXTENDED MATCH LOGIC
+     * Checks if span matches the query by Name, Attributes, Label, or Kind.
+     */
+    const extendedDoesSpanMatch = (span: SpanData): boolean => {
+        if (!searchQuery) return true;
+
+        // 1. Check existing match logic (Name, attributes, etc.)
+        if (doesSpanMatch(span, searchQuery)) return true;
+
+        // 2. Check Span Label (e.g. "LLM Call", "Tool", etc.)
+        const badgeType = getSpanTypeBadge(span);
+        const label = getSpanLabel(badgeType);
+        if (label && label.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+
+        // 3. Check Span Kind (e.g. "CLIENT", "SERVER")
+        const kind = getSpanKindLabel(span.kind);
+        if (kind && kind.toLowerCase().includes(searchQuery.toLowerCase())) return true;
+
+        return false;
+    };
 
     // Helper functions moved from TraceDetails
     const getAIChildSpans = (spanId: string): SpanData[] => {
@@ -518,7 +597,10 @@ export function SpanTree({
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', minWidth: 0 }}>
                             <AISpanLabel>
-                                <span style={{ fontWeight: 600 }}>{getSpanLabel(badgeType)}</span>
+                                <span style={{ fontWeight: 600 }}>
+                                    {/* Updated to highlight label */}
+                                    <HighlightText text={getSpanLabel(badgeType)} query={searchQuery} />
+                                </span>
                                 <span title={span.name}>
                                     <HighlightText text={stripSpanPrefix(span.name)} query={searchQuery} />
                                 </span>
@@ -574,7 +656,10 @@ export function SpanTree({
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', minWidth: 0 }}>
                             <NonAISpanLabel>
-                                <span style={{ fontWeight: 500, fontSize: '11px', textTransform: 'uppercase', opacity: 0.7 }}>{spanKind}</span>
+                                <span style={{ fontWeight: 500, fontSize: '11px', textTransform: 'uppercase', opacity: 0.7 }}>
+                                    {/* Updated to highlight span kind */}
+                                    <HighlightText text={spanKind} query={searchQuery} />
+                                </span>
                                 <span title={span.name}>
                                     <HighlightText text={span.name} query={searchQuery} />
                                 </span>
@@ -612,7 +697,8 @@ export function SpanTree({
             element: renderNonAISpanTreeItem(child, spanList, false, false) // We don't care about isFirst/isLast for index yet
         })).filter(item => item.element !== null);
 
-        const isMatch = doesSpanMatch(span, searchQuery);
+        // Uses extended match
+        const isMatch = extendedDoesSpanMatch(span);
 
         // If span doesn't match and has no visible children, don't render it
         if (!isMatch && visibleChildren.length === 0) {
@@ -659,7 +745,8 @@ export function SpanTree({
             element: renderMixedSpanTreeItem(child, false, false, false)
         })).filter(item => item.element !== null);
 
-        const isMatch = doesSpanMatch(span, searchQuery);
+        // Uses extended match
+        const isMatch = extendedDoesSpanMatch(span);
 
         if (!isMatch && visibleChildren.length === 0) {
             return null;
@@ -762,7 +849,8 @@ export function SpanTree({
             });
         }
 
-        const isMatch = doesSpanMatch(span, searchQuery);
+        // Uses extended match
+        const isMatch = extendedDoesSpanMatch(span);
 
         // Visibility Check: Show if span matches, OR has visible AI children, OR has visible Non-AI groups
         if (!isMatch && visibleAIChildren.length === 0 && visibleGroups.length === 0) {
@@ -791,13 +879,43 @@ export function SpanTree({
         );
     };
 
+    // Calculate visible spans for "no results" detection
+    const visibleSpans = useMemo(() => {
+        const spans = isAdvancedMode || rootAISpans.length === 0 ? sortedRootSpans : rootAISpans;
+        return spans.map(span => {
+            if (isAdvancedMode || rootAISpans.length === 0) {
+                return renderMixedSpanTreeItem(span, true, false, true);
+            } else {
+                return renderAISpanTreeItem(span, true, false, true);
+            }
+        }).filter(element => element !== null);
+    }, [isAdvancedMode, rootAISpans, sortedRootSpans, searchQuery]);
+
+    const noResults = searchQuery && visibleSpans.length === 0;
+
     return (
         <AISpanTreeContainer>
             <TreeScrollArea>
-                {isAdvancedMode || rootAISpans.length === 0
-                    ? sortedRootSpans.map((span, index) => renderMixedSpanTreeItem(span, index === 0, index === sortedRootSpans.length - 1, true))
-                    : rootAISpans.map((span, index) => renderAISpanTreeItem(span, index === 0, index === rootAISpans.length - 1, true))
-                }
+                {noResults ? (
+                    <NoResultsContainer>
+                        <NoResultsTitle>No results found</NoResultsTitle>
+                        <ClearSearchButton onClick={() => onClearSearch?.()}>
+                            <Icon
+                                name="bi-close"
+                                sx={{ fontSize: "16px", width: "16px", height: "16px" }}
+                                iconSx={{ display: "flex" }}
+                            />
+                            Clear search
+                        </ClearSearchButton>
+                    </NoResultsContainer>
+                ) : (
+                    <>
+                        {isAdvancedMode || rootAISpans.length === 0
+                            ? sortedRootSpans.map((span, index) => renderMixedSpanTreeItem(span, index === 0, index === sortedRootSpans.length - 1, true))
+                            : rootAISpans.map((span, index) => renderAISpanTreeItem(span, index === 0, index === rootAISpans.length - 1, true))
+                        }
+                    </>
+                )}
             </TreeScrollArea>
         </AISpanTreeContainer>
     );
