@@ -60,6 +60,7 @@ export interface ChatHistoryMessage {
     text: string;
     isUser: boolean;
     traceId?: string;
+    executionSteps?: ExecutionStep[];
 }
 
 export interface ChatHistoryResponse {
