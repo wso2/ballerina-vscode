@@ -20,7 +20,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import styled from "@emotion/styled";
 import { TraceData, SpanData } from "./index";
 import { Codicon, Icon } from "@wso2/ui-toolkit";
-import { SpanInputOutput } from "./components/SpanInputOutput";
+import { SpanDetails } from "./components/SpanDetails";
 import { WaterfallView } from "./components/WaterfallView";
 import { TraceEmptyState } from "./components/TraceEmptyState";
 import { SpanTree, AISpanTreeContainer } from "./components/SpanTree";
@@ -840,7 +840,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                     <>
                         <DetailsPanelContainer>
                             <DetailsPanel>
-                                <SpanInputOutput
+                                <SpanDetails
                                     spanData={selectedSpan}
                                     spanName={selectedSpan.name}
                                     totalInputTokens={totalInputTokens}
