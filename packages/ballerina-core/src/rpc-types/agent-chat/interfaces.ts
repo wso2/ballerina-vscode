@@ -23,14 +23,7 @@ export interface ChatReqMessage {
 export interface ChatRespMessage {
     message: string;
     traceId?: string;
-    toolCalls?: ToolCallSummary[];
     executionSteps?: ExecutionStep[];
-}
-
-export interface ToolCallSummary {
-    spanId: string;
-    toolName: string;
-    output: string;
 }
 
 export interface ExecutionStep {

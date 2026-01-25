@@ -20,7 +20,6 @@ import {
     AgentChatAPI,
     ChatReqMessage,
     ChatRespMessage,
-    ToolCallSummary,
     ExecutionStep,
     TraceInput,
     TraceStatus,
@@ -272,7 +271,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     operationName === 'invoke_agent' &&
                     inputMessages) {
 
-                    if (conversationId != sessionId) continue;
+                    if (conversationId != sessionId) { continue; }
 
                     // Check if the input message matches
                     const inputMatches = inputMessages.includes(userMessage);
@@ -290,67 +289,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
         return undefined;
     }
-
-    /**
-     * Extract tool call summaries from a trace
-     * @param trace The trace to extract tool calls from
-     * @returns Array of tool call summaries
-     */
-    private extractToolCalls(trace: Trace): ToolCallSummary[] {
-        const toolCalls: ToolCallSummary[] = [];
-
-        // Helper function to extract string value from attribute value
-        const extractValue = (value: any): string => {
-            if (typeof value === 'string') {
-                return value;
-            }
-            if (value && typeof value === 'object' && 'stringValue' in value) {
-                return String(value.stringValue);
-            }
-            return '';
-        };
-
-        // Helper to check if a span is a tool execution span
-        const isToolExecutionSpan = (span: any): boolean => {
-            const attributes = span.attributes || [];
-            for (const attr of attributes) {
-                if (attr.key === 'gen_ai.operation.name') {
-                    const value = extractValue(attr.value);
-                    return value.startsWith('execute_tool');
-                }
-            }
-            return false;
-        };
-
-        // Iterate through spans to find tool executions
-        for (const span of trace.spans || []) {
-            if (isToolExecutionSpan(span)) {
-                const attributes = span.attributes || [];
-
-                let toolName = 'Unknown';
-                let output = '';
-
-                // Extract tool name and output
-                for (const attr of attributes) {
-                    const value = extractValue(attr.value);
-                    if (attr.key === 'gen_ai.tool.name') {
-                        toolName = value;
-                    } else if (attr.key === 'gen_ai.tool.output') {
-                        output = value;
-                    }
-                }
-
-                toolCalls.push({
-                    spanId: span.spanId,
-                    toolName,
-                    output
-                });
-            }
-        }
-
-        return toolCalls;
-    }
-
+    
     /**
      * Remove operation prefixes from span names
      * @param name The span name to clean

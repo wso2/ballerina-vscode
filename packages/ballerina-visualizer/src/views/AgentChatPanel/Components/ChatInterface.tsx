@@ -24,13 +24,13 @@ import ChatInput from "./ChatInput";
 import LoadingIndicator from "./LoadingIndicator";
 import { ExecutionTimeline } from "./ExecutionTimeline";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
+import { Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { ToolCallSummary, ExecutionStep } from "@wso2/ballerina-core";
+import { ExecutionStep } from "@wso2/ballerina-core";
 
 enum ChatMessageType {
     MESSAGE = "message",
@@ -378,7 +378,6 @@ const ChatInterface: React.FC = () => {
                     text: chatResponse.message,
                     isUser: false,
                     traceId: chatResponse.traceId,
-                    toolCalls: chatResponse.toolCalls,
                     executionSteps: chatResponse.executionSteps
                 },
             ]);
