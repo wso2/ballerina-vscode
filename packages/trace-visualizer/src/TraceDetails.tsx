@@ -236,10 +236,12 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
     }, [traceData.spans]);
 
     // DERIVED STATE: Determine if we should show advanced mode
-    // If there are NO AI spans, we force Advanced Mode (Show Hidden/Raw Spans)
-    // If there ARE AI spans, we use the user's preference
+    // - If opened from trace tree view (!isAgentChat), always show all spans (advanced mode)
+    // - If opened from agent chat (isAgentChat):
+    //   - If there are NO AI spans, force Advanced Mode (Show Hidden/Raw Spans)
+    //   - If there ARE AI spans, use the user's preference
     const hasAISpans = totalSpanCounts.aiCount > 0;
-    const isAdvancedMode = !hasAISpans || userAdvancedModePreference;
+    const isAdvancedMode = !isAgentChat || !hasAISpans || userAdvancedModePreference;
 
     const handleToggleAll = () => {
         const getParentsForCurrentView = () => {
@@ -762,11 +764,11 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                             sx={{ fontSize: '16px', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                             iconSx={{ fontSize: "16px", display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
                                     </ModeToggleButton>
-                                    {/* Only show the toggle button if the trace actually contains AI spans.
-                                        If it doesn't (hasAISpans is false), the view is automatically 
-                                        forced to Advanced Mode by the derived state logic above.
+                                    {/* Only show the toggle button in agent chat context with AI spans.
+                                        When opened from trace tree view (!isAgentChat), always show all spans
+                                        and hide the toggle button.
                                     */}
-                                    {hasAISpans && (
+                                    {isAgentChat && hasAISpans && (
                                         <ModeToggleButton
                                             onClick={() => setUserAdvancedModePreference(!userAdvancedModePreference)}
                                             title={isAdvancedMode ? "Hide internal spans" : "Show all spans"}
