@@ -85,7 +85,8 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         type: 'message',
                         text: response.message,
                         isUser: false,
-                        traceId: trace?.traceId
+                        traceId: trace?.traceId,
+                        executionSteps
                     });
 
                     resolve({

@@ -332,7 +332,8 @@ const ChatInterface: React.FC = () => {
                         type: msg.type === 'error' ? ChatMessageType.ERROR : ChatMessageType.MESSAGE,
                         text: msg.text,
                         isUser: msg.isUser,
-                        traceId: msg.traceId
+                        traceId: msg.traceId,
+                        executionSteps: msg.executionSteps
                     }));
                     setMessages(chatMessages);
                 }
