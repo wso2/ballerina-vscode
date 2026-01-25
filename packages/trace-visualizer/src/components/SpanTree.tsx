@@ -69,6 +69,7 @@ const TreeNodeContainer = styled.div<{ isLast?: boolean }>`
         background-color: var(--vscode-tree-indentGuidesStroke);
         top: 0;
         height: ${(props: { isLast?: boolean }) => props.isLast ? '16px' : '100%'};
+        z-index: 1;
     }
 `;
 

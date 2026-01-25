@@ -26,10 +26,9 @@ import { CopyButton } from "./CopyButton";
 import { SpanData } from "../index";
 import { extractUserErrorDetails } from "../utils";
 
-interface SpanInputOutputProps {
+interface SpanDetailsProps {
     spanData: SpanData;
     spanName?: string;
-    // Totals across the whole trace (optional)
     totalInputTokens?: number;
     totalOutputTokens?: number;
 }
@@ -553,7 +552,7 @@ function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'other', spanKin
     }
 }
 
-export function SpanInputOutput({ spanData, spanName, totalInputTokens, totalOutputTokens }: SpanInputOutputProps) {
+export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputTokens }: SpanDetailsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isIdPopupOpen, setIsIdPopupOpen] = useState(false);
     const [showRawError, setShowRawError] = useState(false);

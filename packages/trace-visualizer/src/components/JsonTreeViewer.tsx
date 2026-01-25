@@ -142,6 +142,31 @@ const CopyWrapper = styled.span`
     margin-left: 6px;
 `;
 
+const ShowMoreButton = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    margin: 8px 0;
+    background-color: var(--vscode-list-hoverBackground);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 3px;
+    color: var(--vscode-badge-foreground);
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: fit-content;
+
+    &:hover {
+        background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+`;
+
 // Highlight search matches in text
 function highlightText(text: string, searchQuery: string): ReactNode {
     if (!searchQuery) return text;
@@ -296,12 +321,20 @@ export function JsonTreeViewer({
     }, [parsedData, maxAutoExpandDepth, expandLastOnly]);
 
     const [expandedPaths, setExpandedPaths] = useState<Set<string>>(initialExpanded);
+    const [showHiddenItems, setShowHiddenItems] = useState(false);
+
+    // Reset showHiddenItems when data changes
+    useEffect(() => {
+        setShowHiddenItems(false);
+    }, [parsedData]);
 
     // Auto-expand only matching paths when searching, restore initial state when cleared
     useEffect(() => {
         if (searchQuery) {
             const matchingPaths = findMatchingPaths(parsedData, searchQuery);
             setExpandedPaths(matchingPaths);
+            // Show all items when searching
+            setShowHiddenItems(true);
         } else {
             setExpandedPaths(initialExpanded);
         }
@@ -424,8 +457,36 @@ export function JsonTreeViewer({
         );
     };
 
-    // Render based on data type
     if (Array.isArray(parsedData)) {
+        const showCondensedView = expandLastOnly && parsedData.length > 4 && !showHiddenItems && !searchQuery;
+        const numItemsToShowAtStart = 0;
+
+        if (showCondensedView) {
+            const hiddenCount = parsedData.length - numItemsToShowAtStart - 1; // -1 for the last item we'll show
+
+            return (
+                <Container>
+                    {/* First few items (collapsed) */}
+                    {parsedData.slice(0, numItemsToShowAtStart).map((item, index) => (
+                        <div key={`root[${index}]`} style={{ marginBottom: '4px' }}>
+                            {renderValue(item, String(index), `root[${index}]`, true)}
+                        </div>
+                    ))}
+
+                    {/* Show more button */}
+                    <ShowMoreButton onClick={() => setShowHiddenItems(true)}>
+                        <Codicon name="chevron-down" />
+                        View {hiddenCount} hidden {hiddenCount === 1 ? 'item' : 'items'}
+                    </ShowMoreButton>
+
+                    {/* Last item (expanded) */}
+                    <div key={`root[${parsedData.length - 1}]`} style={{ marginBottom: '4px' }}>
+                        {renderValue(parsedData[parsedData.length - 1], String(parsedData.length - 1), `root[${parsedData.length - 1}]`, true)}
+                    </div>
+                </Container>
+            );
+        }
+
         return (
             <Container>
                 {parsedData.map((item, index) => (
