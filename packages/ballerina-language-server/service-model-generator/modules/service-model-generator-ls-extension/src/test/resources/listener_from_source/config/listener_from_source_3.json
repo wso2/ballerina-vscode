@@ -100,7 +100,7 @@
                   "type": "ListenerConfiguration",
                   "packageInfo": "ballerina:http:2.15.4",
                   "kind": "RECORD_TYPE",
-                  "selected": false
+                  "selected": true
                 }
               ],
               "selected": true

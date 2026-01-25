@@ -124,21 +124,21 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
         String listenerVarName = properties.get("listenerVarName").getValue();
-        String host = cleanQuotes(getPropertyValue(properties, "host", "127.0.0.1"));
+        String host = getPropertyValueLiteralValue(properties, "host", "127.0.0.1");
         String port = getPropertyValue(properties, "portNumber", "21");
-        String folderPath = cleanQuotes(getPropertyValue(properties, "folderPath", "/"));
+        String folderPath = getPropertyValueLiteralValue(properties, "folderPath", "/");
 
         applyEnabledChoiceProperty(serviceInitModel, "authentication");
         String username = getPropertyValue(properties, "userName", "");
         String password = getPropertyValue(properties, "password", "");
-        String privateKey = cleanQuotes(getPropertyValue(properties, "privateKey", ""));
-        String secureSocket = cleanQuotes(getPropertyValue(properties, "secureSocket", ""));
+        String privateKey = getPropertyValueLiteralValue(properties, "privateKey", "");
+        String secureSocket = getPropertyValueLiteralValue(properties, "secureSocket", "");
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();
         listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new(");
         listenerDeclaration.append("protocol= ftp:").append(selectedProtocol).append(", ");
-        listenerDeclaration.append("host= \"").append(host).append("\", ");
+        listenerDeclaration.append("host= ").append(host).append(", ");
 
         // Add authentication configuration if any auth details are provided
         if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
@@ -187,7 +187,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
 
         listenerDeclaration.append("port= ").append(port).append(", ");
-        listenerDeclaration.append("path= \"").append(folderPath).append("\" ");
+        listenerDeclaration.append("path= ").append(folderPath).append(" ");
         listenerDeclaration.append(");");
 
         if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
@@ -228,18 +228,14 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     /**
-     * Helper method to clean surrounding quotes from string values.
+     * Helper method to get property literal value with default fallback.
      */
-    private String cleanQuotes(String value) {
-        if (value == null) {
-            return "";
+    private String getPropertyValueLiteralValue(Map<String, Value> properties, String key, String defaultValue) {
+        Value property = properties.get(key);
+        if (property != null && property.getLiteralValue() != null && !property.getLiteralValue().isEmpty()) {
+            return property.getLiteralValue();
         }
-        // Remove surrounding quotes if present
-        String cleaned = value.trim();
-        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() > 1) {
-            cleaned = cleaned.substring(1, cleaned.length() - 1);
-        }
-        return cleaned;
+        return defaultValue;
     }
 
     /**

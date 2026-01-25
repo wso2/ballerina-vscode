@@ -58,11 +58,6 @@
               "selected": true
             },
             {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]",
-              "selected": false
-            },
-            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "string|string[]",
               "selected": false
@@ -117,11 +112,6 @@
               "fieldType": "TEXT",
               "ballerinaType": "string",
               "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]",
-              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
@@ -395,14 +385,9 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION",
-              "ballerinaType": "map<anydata> & readonly",
-              "selected": true
-            },
-            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<anydata> & readonly",
-              "selected": false
+              "selected": true
             }
           ],
           "enabled": true,
@@ -499,14 +484,9 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION",
-              "ballerinaType": "map<string>",
-              "selected": true
-            },
-            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<string>",
-              "selected": false
+              "selected": true
             }
           ],
           "enabled": true,

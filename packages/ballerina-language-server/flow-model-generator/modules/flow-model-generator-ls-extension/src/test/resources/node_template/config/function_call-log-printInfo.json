@@ -88,11 +88,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "error:StackFrame[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "error:StackFrame[]?",
             "selected": false

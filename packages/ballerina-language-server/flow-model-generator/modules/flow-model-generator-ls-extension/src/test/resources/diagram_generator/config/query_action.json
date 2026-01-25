@@ -289,11 +289,6 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]",
-                        "selected": false
-                      },
-                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -380,11 +375,6 @@
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
                 "selected": true
-              },
-              {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "string[]",
-                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
@@ -780,11 +770,6 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<anydata>",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<anydata>",
                 "selected": false
@@ -881,11 +866,6 @@
               "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use\nthis with caution since this can override any of the fields. It is not recomendded to use\nthis field except in an extreme situation"
             },
             "types": [
-              {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string>",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string>",
