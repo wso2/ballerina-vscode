@@ -68,7 +68,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 this.currentAbortController = new AbortController();
 
                 const payload = { sessionId: extension.agentChatContext.chatSessionId, ...params };
-                console.log('[Agent Chat] Sending message with session ID:', payload.sessionId);
 
                 const response = await this.fetchTestData(
                     extension.agentChatContext.chatEp,
@@ -77,7 +76,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 );
                 if (response && response.message) {
                     // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(params.message);
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, response.message);
                     const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     // Store agent response in history
@@ -106,10 +105,15 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
                 const sessionId = extension.agentChatContext?.chatSessionId;
                 if (sessionId) {
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, null, errorMessage);
+                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
+
                     this.addMessageToHistory(sessionId, {
                         type: 'error',
                         text: errorMessage,
-                        isUser: false
+                        isUser: false,
+                        traceId: trace?.traceId,
+                        executionSteps
                     });
                 }
 
@@ -156,6 +160,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
             });
 
             if (!response.ok) {
+                const errorData = await response.json();
                 switch (response.status) {
                     case 400:
                         throw new Error("Bad Request: The server could not understand the request.");
@@ -208,9 +213,11 @@ export class AgentChatRpcManager implements AgentChatAPI {
     /**
      * Find the trace that corresponds to a chat message by matching span attributes
      * @param userMessage The user's input message
+     * @param agentResponse The agent's output message
+     * @param sessionId 
      * @returns The matching trace or undefined if not found
      */
-    findTraceForMessage(userMessage: string): Trace | undefined {
+    findTraceForMessage(sessionId: string, userMessage: string, agentResponse?: string, errorResponse?: string): Trace | undefined {
         // Get all traces from the TraceServer
         const traces = TraceServer.getTraces();
 
@@ -233,6 +240,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 // 1. span.type === "ai"
                 // 2. gen_ai.operation.name === "invoke_agent"
                 // 3. gen_ai.input.messages matches the user message
+                // 4. gen_ai.output.messages matches the agent response (if provided)
 
                 const attributes = span.attributes || [];
 
@@ -240,6 +248,8 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 let spanType: string | undefined;
                 let operationName: string | undefined;
                 let inputMessages: string | undefined;
+                let outputMessages: string | undefined;
+                let conversationId: string | undefined;
 
                 for (const attr of attributes) {
                     const attrValue = extractValue(attr.value);
@@ -250,6 +260,10 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         operationName = attrValue;
                     } else if (attr.key === 'gen_ai.input.messages') {
                         inputMessages = attrValue;
+                    } else if (attr.key === 'gen_ai.output.messages') {
+                        outputMessages = attrValue;
+                    } else if (attr.key === 'gen_ai.conversation.id') {
+                        conversationId = attrValue;
                     }
                 }
 
@@ -257,10 +271,18 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 if (spanType === 'ai' &&
                     operationName === 'invoke_agent' &&
                     inputMessages) {
+
+                    if (conversationId != sessionId) continue;
+
                     // Check if the input message matches
-                    // inputMessages might be JSON or contain the message
-                    if (inputMessages.includes(userMessage)) {
-                        return trace;
+                    const inputMatches = inputMessages.includes(userMessage);
+
+                    // Check if output message also matches
+                    if (agentResponse && outputMessages) {
+                        const outputMatches = outputMessages.includes(agentResponse);
+                        if (inputMatches && outputMatches) {
+                            return trace;
+                        }
                     }
                 }
             }
@@ -434,32 +456,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
         return steps;
     }
 
-    /**
-     * Show trace details webview for a given chat message
-     * Finds the trace matching the message and opens it in the trace details webview
-     * @param userMessage The user's input message
-     * @throws Error if no trace is found for the message
-     */
-    async showTraceDetailsForMessage(userMessage: string): Promise<void> {
-        try {
-            // Find the trace that matches the user message
-            const trace = this.findTraceForMessage(userMessage);
-
-            if (!trace) {
-                const errorMessage = 'No trace found for the given message. Make sure tracing is enabled and the agent has processed this message.';
-                vscode.window.showErrorMessage(errorMessage);
-                throw new Error(errorMessage);
-            }
-
-            // Open the trace details webview with isAgentChat=true
-            TraceDetailsWebview.show(trace, true);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
-            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
-            throw error;
-        }
-    }
-
     async showTraceView(params: TraceInput): Promise<void> {
         try {
             let trace: Trace | undefined;
@@ -468,9 +464,6 @@ export class AgentChatRpcManager implements AgentChatAPI {
             if (params.traceId) {
                 const traces = TraceServer.getTraces();
                 trace = traces.find(t => t.traceId === params.traceId);
-            } else if (params.message) {
-                // Fallback to message-based lookup
-                trace = this.findTraceForMessage(params.message);
             }
 
             if (!trace) {

@@ -401,24 +401,16 @@ const ChatInterface: React.FC = () => {
 
     const handleShowLogs = async (messageIndex: number) => {
         try {
-            // Find the corresponding user message
-            // Look backwards from the current index to find the last user message
-            let userMessage = '';
+            // Get the trace ID from the agent's response message
+            const message = messages[messageIndex];
 
-            for (let i = messageIndex - 1; i >= 0; i--) {
-                if (messages[i].isUser) {
-                    userMessage = messages[i].text;
-                    break;
-                }
-            }
-
-            if (!userMessage) {
-                console.error('Could not find user message for this response');
+            if (!message || message.isUser || !message.traceId) {
+                console.error('No trace ID found for this message');
                 return;
             }
 
-            // Call the RPC method to show the trace view
-            await rpcClient.getAgentChatRpcClient().showTraceView({ message: userMessage });
+            // Call the RPC method to show the trace view using the traceId
+            await rpcClient.getAgentChatRpcClient().showTraceView({ traceId: message.traceId });
         } catch (error) {
             console.error('Failed to show trace view:', error);
         }
