@@ -380,3 +380,8 @@ export function getOrgAndPackageName(projectInfo: ProjectInfo, projectPath: stri
         packageName: projectInfo.title || projectInfo.name
     };
 }
+
+export async function isLibraryProject(projectPath: string): Promise<boolean> {
+    const tomlValues = await getProjectTomlValues(projectPath);
+    return tomlValues?.package?.library === true;
+}
