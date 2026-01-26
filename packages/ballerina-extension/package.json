@@ -2,7 +2,7 @@
     "name": "ballerina",
     "displayName": "Ballerina",
     "description": "Ballerina Language support, debugging, graphical visualization, AI-based data-mapping and many more.",
-    "version": "5.6.4",
+    "version": "5.7.3",
     "publisher": "wso2",
     "icon": "resources/images/ballerina.png",
     "homepage": "https://wso2.com/ballerina/vscode/docs",
@@ -426,7 +426,7 @@
             {
                 "command": "ballerina.showVisualizer",
                 "title": "Show Visualizer",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "category": "Ballerina"
             },
             {
@@ -592,7 +592,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "category": "BI"
             },
             {
@@ -650,7 +650,7 @@
             {
                 "command": "BI.project-explorer.view-type-diagram",
                 "title": "View Type Diagram",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -671,7 +671,7 @@
             {
                 "command": "BI.project-explorer.view-configuration",
                 "title": "View Configurations",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -686,7 +686,7 @@
             {
                 "command": "BI.project-explorer.overview",
                 "title": "Show Overview",
-                "icon": "$(distro-agent-view)",
+                "icon": "$(distro-design-view)",
                 "group": "navigation",
                 "category": "BI"
             },
@@ -1242,7 +1242,7 @@
         "glob": "^11.1.0",
         "handlebars": "~4.7.8",
         "jwt-decode": "^4.0.0",
-        "lodash": "^4.17.21",
+        "lodash": "4.17.23",
         "monaco-languageclient": "0.13.1-next.9",
         "node-fetch": "^3.3.2",
         "node-schedule": "^2.1.1",

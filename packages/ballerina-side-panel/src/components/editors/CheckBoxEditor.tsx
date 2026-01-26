@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { FormField } from "../Form/types";
 import { CheckBoxGroup, FormCheckBox } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
@@ -54,6 +54,14 @@ export function CheckBoxEditor(props: TextEditorProps) {
     const { field } = props;
     const { form } = useFormContext();
     const { register, control, setValue } = form;
+
+    useEffect(() => {
+        if (field.value) {
+            setValue(field.key, true);
+        } else {
+            setValue(field.key, false);
+        }
+    }, [field.value]);
 
     const getBooleanValue = (value: any) => {
         if (field.type === "FLAG") {

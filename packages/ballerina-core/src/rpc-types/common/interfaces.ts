@@ -105,6 +105,7 @@ export interface TomlPackage {
     name: string;
     version: string;
     title: string;
+    library?: boolean;
 }
 
 export interface WorkspaceTomlValues {

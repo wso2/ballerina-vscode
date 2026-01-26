@@ -26,7 +26,6 @@ import { ScrollableContainer } from "../Components/ScrollableContainer"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
-import { wrapInTemplateInterpolation } from "../utils/utils"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -154,9 +153,7 @@ export const Inputs = (props: InputsPageProps) => {
     const handleItemSelect = (value: string) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
-        // Wrap in template interpolation if in template mode
-        const wrappedPath = wrapInTemplateInterpolation(fullPath, inputMode);
-        onChange(wrappedPath, false);
+        onChange(fullPath, false);
     }
 
     const handleInputsMoreIconClick = (value: string) => {

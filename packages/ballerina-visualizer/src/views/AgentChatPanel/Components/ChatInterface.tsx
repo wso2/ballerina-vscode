@@ -23,7 +23,7 @@ import styled from "@emotion/styled";
 import ChatInput from "./ChatInput";
 import LoadingIndicator from "./LoadingIndicator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { Codicon, Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
 
 enum ChatMessageType {
@@ -35,6 +35,7 @@ interface ChatMessage {
     type: ChatMessageType;
     text: string;
     isUser: boolean;
+    traceId?: string;
 }
 
 // ---------- WATER MARK ----------
@@ -127,7 +128,7 @@ const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading
         position: absolute;
         inset: 0;
         background-color: ${({ isUser }: { isUser: boolean }) =>
-            isUser ? "var(--vscode-button-background)" : "var(--vscode-tab-inactiveBackground)"};
+        isUser ? "var(--vscode-button-background)" : "var(--vscode-tab-inactiveBackground)"};
         opacity: ${({ isUser }: { isUser: boolean }) => (isUser ? "0.3" : "1")};
         border-radius: inherit;
         z-index: -1;
@@ -142,24 +143,6 @@ const ChatFooter = styled.div`
     bottom: 20px;
     width: 100%;
     padding: 0 20px;
-`;
-
-const SmallInfoIcon = styled.span`
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
-    display: inline-block;
-    margin-right: 8px;
-`;
-
-const FooterText = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    font-size: 12px;
-    padding: 6px 0;
-    color: var(--vscode-input-placeholderForeground);
-    width: calc(100% - 40px);
 `;
 
 const ShowLogsButton = styled.button`
@@ -181,16 +164,154 @@ const ShowLogsButton = styled.button`
     }
 `;
 
+const ChatHeader = styled.div`
+    position: sticky;
+    top: 0;
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 8px 8px;
+    z-index: 2;
+    border-bottom: 1px solid var(--vscode-panel-border);
+`;
+
+const ClearChatButton = styled.button`
+    background: none;
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-foreground);
+    font-size: 12px;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+`;
+
+// ---------- WARNING POPUP ----------
+const ModalBackdrop = styled.div({
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000
+});
+
+const ModalContent = styled.div<{ maxWidth: string }>(({ maxWidth }: { maxWidth: string }) => ({
+    backgroundColor: ThemeColors.SURFACE,
+    color: ThemeColors.ON_SURFACE,
+    padding: '20px',
+    border: `1px solid ${ThemeColors.OUTLINE_VARIANT}`,
+    borderRadius: '4px',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
+    width: maxWidth,
+    textAlign: 'center'
+}));
+
+const ButtonContainer = styled.div({
+    marginTop: '20px',
+    display: 'flex',
+    justifyContent: 'center',
+    gap: '10px'
+});
+
+// ---------- HELPER COMPONENTS ----------
+interface ModalProps {
+    isOpen: boolean;
+    children: React.ReactNode;
+    onClose?: () => void;
+    maxWidth?: string;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, children, onClose, maxWidth = '400px' }) => {
+    if (!isOpen) return null;
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget && onClose) {
+            onClose();
+        }
+    };
+
+    return (
+        <ModalBackdrop onClick={handleBackdropClick}>
+            <ModalContent maxWidth={maxWidth}>
+                {children}
+            </ModalContent>
+        </ModalBackdrop>
+    );
+};
+
+interface ClearChatWarningPopupProps {
+    isOpen: boolean;
+    onContinue: () => void;
+    onCancel: () => void;
+}
+
+const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, onContinue, onCancel }) => {
+    return (
+        <Modal isOpen={isOpen} onClose={onCancel} maxWidth='60%'>
+            <p>Are you sure you want to clear the chat? This will remove all messages and cannot be undone.</p>
+            <ButtonContainer>
+                <Button
+                    appearance='primary'
+                    onClick={onContinue}>
+                    Clear Chat
+                </Button>
+                <Button
+                    appearance='secondary'
+                    onClick={onCancel}>
+                    Cancel
+                </Button>
+            </ButtonContainer>
+        </Modal>
+    );
+};
+
 const ChatInterface: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
+    const [showClearWarning, setShowClearWarning] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    // Check tracing status once on mount
+    // Load chat history and check tracing status on mount
     useEffect(() => {
+        const loadChatHistory = async () => {
+            try {
+                const history = await rpcClient.getAgentChatRpcClient().getChatHistory();
+
+                // Only restore chat if the agent is still running
+                if (history.isAgentRunning && history.messages.length > 0) {
+                    // Convert ChatHistoryMessage to ChatMessage format
+                    const chatMessages: ChatMessage[] = history.messages.map(msg => ({
+                        type: msg.type === 'error' ? ChatMessageType.ERROR : ChatMessageType.MESSAGE,
+                        text: msg.text,
+                        isUser: msg.isUser,
+                        traceId: msg.traceId
+                    }));
+                    setMessages(chatMessages);
+                }
+                // If agent is not running, chat history is cleared automatically
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+            }
+        };
+
         const checkTracingStatus = async () => {
             try {
                 const status = await rpcClient.getAgentChatRpcClient().getTracingStatus();
@@ -200,6 +321,8 @@ const ChatInterface: React.FC = () => {
                 setIsTracingEnabled(false);
             }
         };
+
+        loadChatHistory();
         checkTracingStatus();
     }, [rpcClient]);
 
@@ -263,8 +386,39 @@ const ChatInterface: React.FC = () => {
         }
     };
 
+    const handleClearChat = () => {
+        // Show the warning popup
+        setShowClearWarning(true);
+    };
+
+    const confirmClearChat = async () => {
+        try {
+            // Clear the chat history on the backend and get a new session ID
+            await rpcClient.getAgentChatRpcClient().clearChatHistory();
+            // Clear the messages in the UI
+            setMessages([]);
+            // Close the warning popup
+            setShowClearWarning(false);
+        } catch (error) {
+            console.error("Failed to clear chat history:", error);
+        }
+    };
+
+    const cancelClearChat = () => {
+        // Close the warning popup
+        setShowClearWarning(false);
+    };
+
     return (
         <ChatWrapper>
+            {messages.length > 0 && (
+                <ChatHeader>
+                    <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
+                        <span className="codicon codicon-clear-all" />
+                        Clear Chat
+                    </ClearChatButton>
+                </ChatHeader>
+            )}
             <ChatContainer>
                 {messages.length === 0 && (
                     <Watermark>
@@ -361,6 +515,11 @@ const ChatInterface: React.FC = () => {
                     </a>
                 </FooterText> */}
             </ChatFooter>
+            <ClearChatWarningPopup
+                isOpen={showClearWarning}
+                onContinue={confirmClearChat}
+                onCancel={cancelClearChat}
+            />
         </ChatWrapper>
     );
 };

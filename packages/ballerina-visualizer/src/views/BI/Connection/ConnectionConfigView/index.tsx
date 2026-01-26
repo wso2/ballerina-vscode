@@ -31,7 +31,6 @@ const Container = styled.div<{ footerActionButton?: boolean }>`
     ${(props: { footerActionButton?: boolean }) => props.footerActionButton ? `
         flex: 1;
         min-height: 0;
-        height: 100%;
         display: flex;
         flex-direction: column;
     ` : `

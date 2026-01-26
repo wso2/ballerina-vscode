@@ -351,7 +351,11 @@ export function activateDebugConfigProvider(ballerinaExtInstance: BallerinaExten
 
     // Listener to support reflect breakpoint changes in diagram when debugger is inactive
     context.subscriptions.push(debug.onDidChangeBreakpoints((session) => {
-        notifyBreakpointChange();
+        // Only notify if there's no active debug session
+        // When debugging, breakpoint changes are handled by the tracker factory
+        if (!debug.activeDebugSession) {
+            notifyBreakpointChange();
+        }
     }));
 }
 

@@ -16,123 +16,114 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { S } from '../styles';
-import { Button, Codicon, ThemeColors } from "@wso2/ui-toolkit";
+import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { ExpressionFieldProps } from "../../ExpressionField";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
 interface MappingConstructorProps {
     label: string;
-    value: string;
-    onChange: (updated: string) => void;
+    value: any[];
+    onChange: (updated: any[]) => void;
     expressionFieldProps: ExpressionFieldProps;
 }
 
-interface KeyValuePair {
-    key: string;
-    value: string;
+const transformExternalValueToInternal = (externalValue: any[]): any[] => {
+    if (!externalValue) return [];
+    return externalValue
+        .filter((item) => item != null)
+        .map((item, index) => {
+            // Each item is like {someKey: "someValue"}, extract key and value
+            const entries = Object.entries(item);
+            const [key, value] = entries.length > 0 ? entries[0] : ["", ""];
+            return { id: index, key: key || "", value: value || "" };
+        });
 }
 
-/**
- * Extracts key-value pairs from a map string representation.
- * @param mapString - The string representation of the map, e.g., '{ key1: "value1", key2: "value2" }'.
- * @returns An array of strings, each representing a key-value pair in the format 'key: "value"'.
- */
-function extractMapEntries(mapString) {
-    if (!mapString) {
-        return [];
-    }
-
-    // Matches text in format =>  key: "value" (key can be empty)
-    const ENTRY_REGEX = /(\w*)\s*:\s*"([^"]*)"/g;
-
-    const entries = [];
-    let match;
-
-    while ((match = ENTRY_REGEX.exec(mapString)) !== null) {
-        entries.push(`${match[1]}: "${match[2]}"`);
-    }
-
-    return entries;
-}
-
-const createFinalValue = (pairs: KeyValuePair[]) => {
-    const mapString = pairs
-        .map(pair => `${pair.key}: ${pair.value}`)
-        .join(', ');
-    return `{ ${mapString} }`;
-}
-
-const getPairsFromValue = (value: string): KeyValuePair[] => {
-    const entries: string[] = extractMapEntries(value);
-    return entries.map(entry => {
-        const [key, val] = entry.split(':').map(part => part.trim());
-        return { key, value: val };
+const toOutputFormat = (pairs: any[]): any[] => {
+    return pairs.map(pair => {
+        if (pair.key) {
+            return { [pair.key]: pair.value };
+        }
+        return {};
     });
 }
 
+const getNextId = (items: any[]): number => {
+    if (items.length === 0) {
+        return 0;
+    }
+    return Math.max(...items.map(item => item.id)) + 1;
+}
+
+
 export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
-    const [isAddMoreValid, setIsAddMoreValid] = useState(false);
-    const valueRef = useRef(value);
-
-    // Keep ref updated with latest value
-    useEffect(() => {
-        valueRef.current = value;
-    }, [value]);
+    //used this to manually trigger rerenders when value prop changes
+    const [_, setManualRerenderTrigger] = useState(true);
+    const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
+    const internalValueRef = useRef<any[]>([]);
 
     useEffect(() => {
-        const pairs = getPairsFromValue(value);
-        const lastPair = pairs[pairs.length - 1];
-        const isValid = pairs.length === 0 || (lastPair && lastPair.key.trim() !== "" && lastPair.value.trim() !== "");
-        setIsAddMoreValid(isValid);
+        if (JSON.stringify(toOutputFormat(internalValueRef.current)) === JSON.stringify(value)) return;
+        internalValueRef.current = transformExternalValueToInternal(value);
+        setManualRerenderTrigger(prev => !prev);
     }, [value]);
 
-    const handleAddPair = useCallback(() => {
-        const updatedPairs = [...getPairsFromValue(valueRef.current), { key: ``, value: '""' }];
-        onChange(createFinalValue(updatedPairs));
-    }, [onChange]);
+    const handleAddPair = () => {
+        const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
+        const updatedValue = [...internalValueRef.current, newPair];
+        setHasUntouchedPairs(true);
+        internalValueRef.current = updatedValue;
+        onChange(toOutputFormat(updatedValue));
+    }
 
-    const handleDeletePair = useCallback((index: number) => {
-        const updatedPairs = getPairsFromValue(valueRef.current).filter((_, i) => i !== index);
-        onChange(createFinalValue(updatedPairs));
-    }, [onChange]);
+    const handleDeletePair = (id: number) => {
+        const updatedValue = internalValueRef.current.filter(pair => pair.id !== id);
+        internalValueRef.current = updatedValue;
+        onChange(toOutputFormat(updatedValue));
+    }
 
-    const handleKeyChange = useCallback((index: number, newKey: string) => {
-        const updatedPairs = getPairsFromValue(valueRef.current);
-        updatedPairs[index].key = newKey;
-        onChange(createFinalValue(updatedPairs));
-    }, [onChange]);
+    const handleKeyChange = (id: number, newKey: string) => {
+        const updatedValue = internalValueRef.current.map(pair =>
+            pair.id === id ? { ...pair, key: newKey } : pair
+        );
+        setHasUntouchedPairs(newKey === "");
+        internalValueRef.current = updatedValue;
+        onChange(toOutputFormat(updatedValue));
+    }
 
-    const handleValueChange = useCallback((index: number, newValue: string) => {
-        const updatedPairs = getPairsFromValue(valueRef.current);
-        updatedPairs[index].value = newValue;
-        onChange(createFinalValue(updatedPairs));
-    }, [onChange]);
-
+    const handleValueChange = (id: number, newValue: string) => {
+        const updatedValue = internalValueRef.current.map(pair =>
+            pair.id === id ? { ...pair, value: newValue } : pair
+        );
+        internalValueRef.current = updatedValue;
+        onChange(toOutputFormat(updatedValue));
+    }
 
     return (
         <S.Container>
-            {getPairsFromValue(value).map((pair, index) => (
+            {internalValueRef.current.map((pair) => (
                 <S.ItemContainer style={{
                     border: "1px solid var(--dropdown-border)",
                     padding: "8px",
                     borderRadius: "8px",
-                }} key={index}>
+                }} key={pair.id}>
                     <S.KeyValueContainer>
                         <S.Input
                             type="text"
                             value={pair.key}
-                            onChange={(e) => handleKeyChange(index, e.target.value)}
+                            onChange={(e) => handleKeyChange(pair.id, e.target.value)}
                             placeholder="Key"
                         />
 
                         <ChipExpressionEditorComponent
+                            disabled={pair.key === "" || pair.key === undefined}
                             getHelperPane={expressionFieldProps.getHelperPane}
                             isExpandedVersion={false}
                             completions={expressionFieldProps.completions}
-                            onChange={(value) => handleValueChange(index, value)}
+                            onChange={(value) => handleValueChange(pair.id, value)}
                             value={pair.value}
                             sanitizedExpression={expressionFieldProps.sanitizedExpression}
                             rawExpression={expressionFieldProps.rawExpression}
@@ -143,26 +134,25 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
                             onRemove={expressionFieldProps.onRemove}
                             isInExpandedMode={expressionFieldProps.isInExpandedMode}
                             configuration={new ChipExpressionEditorDefaultConfiguration()}
+                            placeholder={expressionFieldProps.field.placeholder}
                         />
                     </S.KeyValueContainer>
                     <S.DeleteButton
                         appearance="icon"
-                        onClick={() => handleDeletePair(index)}
+                        onClick={() => handleDeletePair(pair.id)}
                     >
                         <Codicon sx={{ color: ThemeColors.ERROR }} name="trash" />
                     </S.DeleteButton>
                 </S.ItemContainer>
             ))}
-            <Button
+            <S.AddButton
                 onClick={handleAddPair}
-                appearance="icon"
-                disabled={!isAddMoreValid}
+                appearance="secondary"
+                disabled={hasUntouchedPairs}
             >
-                <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', alignItems: 'center' }}>
-                    <Codicon name="add" />
-                    Add Item
-                </div>
-            </Button>
+                <Codicon name="add" sx={{ marginRight: "5px" }} />
+                Add Item
+            </S.AddButton>
         </S.Container>
     );
 };
