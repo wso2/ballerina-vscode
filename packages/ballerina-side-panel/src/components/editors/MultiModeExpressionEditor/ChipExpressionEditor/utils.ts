@@ -50,6 +50,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "EXPRESSION") {
         return InputMode.EXP;
     }
+    if (inputType.fieldType === "NUMBER") {
+        return InputMode.NUMBER;
+    }
     if (inputType.fieldType === "SINGLE_SELECT") {
         return InputMode.SELECT;
     }

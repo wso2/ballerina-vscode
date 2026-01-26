@@ -149,6 +149,7 @@ export type FormFieldInputType = "TEXT" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
     "MAPPING_EXPRESSION_SET" |
+    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
@@ -161,6 +162,7 @@ export type FormFieldInputType = "TEXT" |
     "VIEW" |
     "SERVICE_PATH" |
     "ACTION_PATH" |
+    "NUMBER" |
     "CONDITIONAL_FIELDS"
     ;
 

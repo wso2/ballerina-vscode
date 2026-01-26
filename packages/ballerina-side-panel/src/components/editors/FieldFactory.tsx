@@ -120,7 +120,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         <ModeSwitcherProvider
             inputMode={inputMode}
             onModeChange={handleModeChange}
-            types={props.field.types}
+            types={renderingEditors}
             isRecordTypeField={isRecordTypeField}
             isModeSwitcherEnabled={isModeSwitcherEnabled}
         >
