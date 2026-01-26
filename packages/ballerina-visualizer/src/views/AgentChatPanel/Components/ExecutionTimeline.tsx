@@ -165,11 +165,11 @@ const Duration = styled.span`
 `;
 
 export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTimelineProps) {
+    const [open, setOpen] = useState(false);
+
     if (!steps || steps.length === 0) {
         return null;
     }
-
-    const [open, setOpen] = useState(false);
 
     const getIconName = (operationType: string) => {
         switch (operationType) {

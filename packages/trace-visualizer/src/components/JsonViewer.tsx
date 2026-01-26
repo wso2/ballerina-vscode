@@ -346,10 +346,13 @@ function syntaxHighlightJSON(json: string, searchQuery: string): ReactNode[] {
 
     const highlight = (text: string): ReactNode => {
         if (!searchQuery) return text;
-        const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+        // Use non-global regex to avoid state issues
+        const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
         const parts = text.split(regex);
         return parts.map((part, idx) =>
-            regex.test(part) ? <Highlight key={idx}>{part}</Highlight> : part
+            idx % 2 === 1
+                ? <Highlight key={idx}>{part}</Highlight>
+                : part
         );
     };
 
@@ -471,10 +474,13 @@ function mightContainMarkdown(text: string): boolean {
 // Highlight text for plain text display
 function highlightText(text: string, searchQuery: string): ReactNode {
     if (!searchQuery) return text;
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    // Use non-global regex to avoid state issues
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
     const parts = text.split(regex);
     return parts.map((part, i) =>
-        regex.test(part) ? <Highlight key={i}>{part}</Highlight> : part
+        i % 2 === 1
+            ? <Highlight key={i}>{part}</Highlight>
+            : part
     );
 }
 

@@ -171,12 +171,14 @@ const ShowMoreButton = styled.button`
 function highlightText(text: string, searchQuery: string): ReactNode {
     if (!searchQuery) return text;
 
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
     const parts = text.split(regex);
 
-    return parts.map((part, i) =>
-        regex.test(part) ? <Highlight key={i}>{part}</Highlight> : part
-    );
+    return parts.map((part, i) => {
+        // Create a new RegExp for each test to avoid lastIndex issues
+        const statelessRegex = new RegExp(regex.source, 'i');
+        return statelessRegex.test(part) ? <Highlight key={i}>{part}</Highlight> : part;
+    });
 }
 
 // Generate initial expanded state based on depth
@@ -270,12 +272,13 @@ function findMatchingPaths(data: unknown, searchQuery: string): Set<string> {
     if (!searchQuery) return new Set();
 
     const matchingPaths = new Set<string>();
-    const regex = new RegExp(searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    // Do not use 'g' flag, and re-create RegExp for each test to avoid lastIndex issues
+    const regexSource = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
     const traverse = (obj: unknown, currentPath: string, parentPaths: string[], key: string = '') => {
         // Check if key or value matches
-        const keyMatches = key && regex.test(key);
-        const valueMatches = obj != null && typeof obj !== 'object' && regex.test(String(obj));
+        const keyMatches = key && new RegExp(regexSource, 'i').test(key);
+        const valueMatches = obj != null && typeof obj !== 'object' && new RegExp(regexSource, 'i').test(String(obj));
 
         if (keyMatches || valueMatches) {
             // Add all parent paths and current path

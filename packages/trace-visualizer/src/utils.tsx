@@ -117,9 +117,13 @@ export const spanHasError = (span: SpanData): boolean => {
 };
 
 export const getSpanTokens = (span: SpanData): number => {
-  const inputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0');
-  const outputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0');
-  return inputTokens + outputTokens;
+  const inputRaw = span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0';
+  const outputRaw = span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0';
+  const inputTokens = Number.parseInt(inputRaw);
+  const outputTokens = Number.parseInt(outputRaw);
+  const safeInput = Number.isFinite(inputTokens) && !Number.isNaN(inputTokens) ? inputTokens : 0;
+  const safeOutput = Number.isFinite(outputTokens) && !Number.isNaN(outputTokens) ? outputTokens : 0;
+  return safeInput + safeOutput;
 };
 
 export const isAISpan = (span: SpanData): boolean => {
@@ -215,12 +219,9 @@ export function isJSONString(str: string): boolean {
       tryParseJSON(trimmed);
       return true;
     } catch (e) {
-      console.error('JSON parse failed:', e, 'Input:', trimmed.substring(0, 100));
       return false;
     }
   }
-
-  console.error('Not detected as JSON. Starts with:', trimmed.substring(0, 20));
   return false;
 }
 
@@ -232,7 +233,6 @@ export function parseNestedJSON(value: unknown): unknown {
         const parsed = tryParseJSON(trimmed);
         return parseNestedJSON(parsed);
       } catch (e) {
-        console.error('Failed to parse nested JSON:', e, 'Value:', trimmed.substring(0, 100));
         return value;
       }
     }
@@ -280,7 +280,7 @@ const HighlightMark = styled.mark`
 `;
 
 export const HighlightText = ({ text, query }: { text: string; query: string }) => {
-  if (!query || !text) return <>{text} </>;
+  if (!query || !text) return <>{text}</>;
 
   // Escape regex characters in query
   const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -291,7 +291,7 @@ export const HighlightText = ({ text, query }: { text: string; query: string }) 
       {
         parts.map((part, i) =>
           part.toLowerCase() === query.toLowerCase()
-            ? <HighlightMark key={i} > {part} </HighlightMark>
+            ? <HighlightMark key={i}>{part}</HighlightMark>
             : part
         )}
     </>
