@@ -16,14 +16,18 @@
  * under the License.
  */
 
-import { ConnectionDetailed, ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp } from "@wso2/wso2-platform-core"
+import { ConnectionDetailed, ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
 import { NotificationType, RequestType } from "vscode-messenger-common";
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, SetConnectedToDevantReq } from "./interfaces";
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, DeleteDevantTempConfigReq, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp } from "./interfaces";
 
 const _preFix = "platform-ext";
 // BI ext handlers
 export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/createDevantComponentConnection` };
 export const importDevantComponentConnection: RequestType<ImportDevantConnectionReq,  ImportDevantConnectionResp> = { method: `${_preFix}/importDevantComponentConnection` };
+export const registerAndCreateDevantComponentConnection: RequestType<RegisterAndCreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/registerAndCreateDevantComponentConnection` };
+export const updateDevantTempConfigs: RequestType<UpdateDevantTempConfigsReq,  UpdateDevantTempConfigsResp> = { method: `${_preFix}/updateDevantTempConfigs` };
+export const deleteDevantTempConfigs: RequestType<DeleteDevantTempConfigReq,  void> = { method: `${_preFix}/deleteDevantTempConfigs` };
+
 // Platform ext proxies
 export const getMarketplaceItems: RequestType<GetMarketplaceListReq, MarketplaceListResp> = { method: `${_preFix}/getMarketplaceItems` };
 export const getMarketplaceItem: RequestType<GetMarketplaceItemReq, MarketplaceItem> = { method: `${_preFix}/getMarketplaceItem` };
@@ -37,6 +41,7 @@ export const getPlatformStore: RequestType<void,  PlatformExtState> = { method: 
 export const setConnectedToDevant: RequestType<SetConnectedToDevantReq,  void> = { method: `${_preFix}/setConnectedToDevant` };
 export const setSelectedComponent: RequestType<string,  void> = { method: `${_preFix}/setSelectedComponent` };
 export const deployIntegrationInDevant: RequestType<void,  void> = { method: `${_preFix}/deployIntegrationInDevant` };
+export const registerMarketplaceConnection: RequestType<RegisterMarketplaceConnectionReq, MarketplaceItem> = { method: `${_preFix}/registerMarketplaceConnection` };
 
 // Notifications
 export const onPlatformExtStoreStateChange: NotificationType<PlatformExtState> = { method: `${_preFix}/onPlatformExtStoreStateChange` };

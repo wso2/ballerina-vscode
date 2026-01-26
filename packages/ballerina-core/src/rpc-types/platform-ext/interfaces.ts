@@ -17,7 +17,7 @@
  */
 
 import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceItem } from "@wso2/wso2-platform-core";
-import { AvailableNode } from "../../interfaces/bi";
+import { AvailableNode, NodePosition } from "../../interfaces/bi";
 
 export interface CreateDevantConnectionReq {
     params:{
@@ -32,6 +32,37 @@ export interface CreateDevantConnectionReq {
 
 export interface ImportDevantConnectionReq {
     connectionListItem: ConnectionListItem;
+}
+
+export interface RegisterAndCreateDevantConnectionReq {
+    name: string;
+    configs: {
+        name: string;
+        value: string;
+        isSecret: boolean;
+    }[]
+}
+
+export interface UpdateDevantTempConfigsReq {
+    configs: {
+        name: string;
+        value: string;
+        isSecret: boolean;
+        nodePosition?: NodePosition;
+    }[];
+}
+
+export interface UpdateDevantTempConfigsResp {
+    configs: {
+        name: string;
+        value: string;
+        isSecret: boolean;
+        nodePosition?: NodePosition;
+    }[];
+}
+
+export interface DeleteDevantTempConfigReq {
+    nodePosition: NodePosition;
 }
 
 export interface CreateDevantConnectionResp {

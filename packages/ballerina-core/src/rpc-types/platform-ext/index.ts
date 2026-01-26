@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, ImportDevantConnectionReq, ImportDevantConnectionResp, SetConnectedToDevantReq} from "./interfaces";
+import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
+import { CreateDevantConnectionReq, CreateDevantConnectionResp, DeleteDevantTempConfigReq, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp, } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
 
@@ -26,6 +26,10 @@ export interface PlatformExtAPI {
     // BI ext handlers
     createDevantComponentConnection: (params: CreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
     importDevantComponentConnection: (params: ImportDevantConnectionReq) => Promise<ImportDevantConnectionResp>
+    registerAndCreateDevantComponentConnection: (params: RegisterAndCreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
+    updateDevantTempConfigs: (params: UpdateDevantTempConfigsReq) => Promise<UpdateDevantTempConfigsResp>
+    deleteDevantTempConfigs: (params: DeleteDevantTempConfigReq) => Promise<void>
+
     // Platform ext proxies
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
     getMarketplaceItem: (params: GetMarketplaceItemReq) => Promise<MarketplaceItem>;
@@ -38,4 +42,5 @@ export interface PlatformExtAPI {
     setConnectedToDevant: (params: SetConnectedToDevantReq) => void;
     setSelectedComponent: (componentId: string) => void;
     deployIntegrationInDevant: () => void;
+    registerMarketplaceConnection: (params: RegisterMarketplaceConnectionReq) => Promise<MarketplaceItem>;
 }

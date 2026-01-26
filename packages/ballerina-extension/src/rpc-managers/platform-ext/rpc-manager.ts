@@ -24,7 +24,7 @@ import {
     findDevantScopeByModule,
     VisualizerLocation,
 } from "@wso2/ballerina-core";
-import { extensions, Uri, window } from "vscode";
+import { extensions, Uri, window, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
@@ -52,14 +52,19 @@ import {
     ComponentKind,
     ICmdParamsBase,
     ConnectionConfigurations,
+    RegisterMarketplaceConnectionReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
     CreateDevantConnectionReq,
     CreateDevantConnectionResp,
+    DeleteDevantTempConfigReq,
     ImportDevantConnectionReq,
     ImportDevantConnectionResp,
+    RegisterAndCreateDevantConnectionReq,
     SetConnectedToDevantReq,
+    UpdateDevantTempConfigsReq,
+    UpdateDevantTempConfigsResp,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -69,9 +74,11 @@ import { DeleteBiDevantConnectionReq } from "./types";
 import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { getDomain, hasContextYaml, initializeDevantConnection } from "./platform-utils";
+import { findUniqueConnectionName, getConfigFileUri, getDomain, getInjectedEnvVarNames, hasContextYaml, initializeDevantConnection, Templates } from "./platform-utils";
 import { debounce } from "lodash";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
+import { updateSourceCode } from "../../utils";
+
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     static platformExtAPI: IWso2PlatformExtensionAPI;
@@ -313,6 +320,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             platformExtStore.getState().setConnectionState({ runInDevant: params.value });
         } else if (params.mode === "debugInDevant") {
             platformExtStore.getState().setConnectionState({ debugInDevant: params.value });
+        }
+    }
+
+    async registerMarketplaceConnection(params: RegisterMarketplaceConnectionReq): Promise<MarketplaceItem> {
+         try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.registerMarketplaceConnection(params);
+        } catch (err) {
+            log(`Failed to register create marketplace connection: ${err}`);
         }
     }
 
@@ -763,6 +779,186 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setReadyMode();
             this.refreshConnectionList();
             return resp;
+        } catch (err) {
+            StateMachine.setReadyMode();
+            window.showErrorMessage("Failed to create Devant connection");
+            log(`Failed to invoke createDevantComponentConnection: ${err}`);
+        }
+    }
+
+    async deleteDevantTempConfigs(params: DeleteDevantTempConfigReq): Promise<void> {
+        try {
+            const configBalFileUri = getConfigFileUri();
+
+            const configBalEdits = new WorkspaceEdit();
+            configBalEdits.delete(
+                configBalFileUri,
+                new vscode.Range(
+                    new vscode.Position(params.nodePosition.startLine, params.nodePosition.startColumn),
+                    new vscode.Position(params.nodePosition.endLine, params.nodePosition.endColumn)
+                )
+            );
+
+            await updateSourceCode({
+                textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
+                skipPayloadCheck: true,
+            });
+        } catch (err) {
+            log(`Failed to invoke deleteDevantTempConfigs: ${err}`);
+        }
+    }
+
+    async updateDevantTempConfigs(params: UpdateDevantTempConfigsReq): Promise<UpdateDevantTempConfigsResp> {
+        try {
+            const configBalFileUri = getConfigFileUri();
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: configBalFileUri.toString() },
+            })) as SyntaxTree;
+
+            const configBalEdits = new WorkspaceEdit();
+
+            const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+
+            if(params.configs.some(item=>!item.nodePosition)){
+                configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), Templates.emptyLine());
+            }
+
+            for(const config of params.configs){
+                if(!config.nodePosition) {
+                    const newConfigTemplate = Templates.newDefaultEnvConfigurable({CONFIG_NAME: config.name });
+                    configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), newConfigTemplate);
+                }
+            }
+
+            if(configBalEdits.size > 0){
+                await updateSourceCode({
+                    textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
+                    skipPayloadCheck: true,
+                });
+
+                const updatedSyntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                    documentIdentifier: { uri: configBalFileUri.toString() },
+                })) as SyntaxTree;
+
+                for(const config of params.configs){
+                    const matchingConfig = (updatedSyntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
+                        return (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === config.name;
+                    });
+                    if(STKindChecker.isModuleVarDecl(matchingConfig)){
+                        config.nodePosition = matchingConfig.position;
+                    }
+                }
+            }
+
+            return { configs: params.configs };
+        } catch (err) {
+            log(`Failed to invoke updateConfigFile: ${err}`);
+        }
+    }
+
+    async registerAndCreateDevantComponentConnection(params: RegisterAndCreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            StateMachine.setEditMode();
+
+            const marketplaceItems = await platformExt.getMarketplaceItems({
+                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                request: { 
+                    query: params.name, 
+                    limit: 100,
+                    networkVisibilityFilter:  "all",
+                    sortBy: "createdTime",
+                },
+            })
+
+            const registeredMarketplaceItem = await platformExt?.registerMarketplaceConnection({
+                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                projectId: platformExtStore.getState().state?.selectedContext?.project?.id,
+                idlContent: "",
+                configs: params.configs?.map(item=>({
+                    key: item.name,
+                    value: item.value,
+                    isSecret: item.isSecret,
+                })),
+                schemaEntries: params.configs?.map(item=>({
+                    name: item.name,
+                    type: "string",
+                    isSensitive: item.isSecret,
+                })),
+                name: findUniqueConnectionName(params.name, marketplaceItems.data),
+            });
+
+            const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id;
+
+            const allConnections = platformExtStore.getState().state?.devantConns?.list || [];
+            const existingNames = new Set(allConnections.map((c) => c?.name ?? ""));
+            let baseName = (params.name ?? "").trim() || "connection";
+            let uniqueName = baseName;
+            let counter = 1;
+            while (existingNames.has(uniqueName)) {
+                uniqueName = `${baseName}-${counter}`;
+                counter++;
+            }
+
+            const createdConnection = await platformExt?.createThirdPartyConnection({
+                componentId: isProjectLevel
+                    ? ""
+                    : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                name: uniqueName,
+                orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
+                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                projectId: platformExtStore.getState().state?.selectedContext?.project.id,
+                serviceSchemaId: registeredMarketplaceItem.connectionSchemas[0]?.id,
+                serviceId: registeredMarketplaceItem.serviceId,
+                endpointName: "DefaultEndpoint",
+                sensitiveKeys: registeredMarketplaceItem.connectionSchemas[0].entries?.filter((item) => item.isSensitive).map((item) => item.name),
+            });
+
+            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: getConfigFileUri().toString() },
+            })) as SyntaxTree;
+
+            const envIds = Object.keys(createdConnection.configurations || {});
+            const firstEnvConfig = envIds.length > 0 ? createdConnection.configurations[envIds[0]] : undefined;
+            const connectionKeys = firstEnvConfig?.entries ?? {};
+
+            let hasUpdatedConfig = false;
+            const configBalEdits = new WorkspaceEdit();
+            
+            for(const connectionKey of Object.keys(connectionKeys)){
+                const matchingConfig = (syntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
+                    return (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === connectionKey;
+                });
+                if(STKindChecker.isModuleVarDecl(matchingConfig)){
+                    hasUpdatedConfig = true;
+                    configBalEdits.replace(
+                        getConfigFileUri(), 
+                        new vscode.Range(
+                            new vscode.Position(matchingConfig.initializer.position.startLine, matchingConfig.initializer.position.startColumn),
+                            new vscode.Position(matchingConfig.initializer.position.endLine, matchingConfig.initializer.position.endColumn)
+                        ),
+                        `os:getEnv("${getInjectedEnvVarNames(connectionKeys[connectionKey].envVariableName)}")`
+                    );
+                }
+            }
+            if(hasUpdatedConfig){
+                if (
+                    !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes("import ballerina/os"))
+                ) {
+                    const balOsImportTemplate = Templates.importBalOs();
+                    configBalEdits.insert(getConfigFileUri(), new vscode.Position(0, 0), balOsImportTemplate);
+                }
+
+                await updateSourceCode({
+                    textEdits: { [getConfigFileUri().toString()]: configBalEdits.get(getConfigFileUri()) || [] },
+                    skipPayloadCheck: true,
+                });
+            }
+
+            StateMachine.setReadyMode();
+            this.refreshConnectionList();
+            return {connectionName:"",connectionNode:null};
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");

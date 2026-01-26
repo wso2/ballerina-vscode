@@ -285,6 +285,18 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
     }
 };
 
+export const getInjectedEnvVarNames = (key: string): string => {
+    const parts = key.split("_");
+    if (parts.length > 1) {
+        let lastPart = parts[parts.length - 1];
+        if (lastPart.startsWith("CHOREO")) {
+            lastPart = lastPart.slice("CHOREO".length);
+        }
+        parts[parts.length - 1] = lastPart;
+    }
+    return parts.join("_");
+};
+
 export const initializeDevantConnection = async (params: {
     name: string;
     visibility: string;
@@ -389,18 +401,6 @@ export const initializeDevantConnection = async (params: {
             counter++;
         }
 
-        const getInjectedEnvVarNames = (key: string): string => {
-            const parts = key.split("_");
-            if (parts.length > 1) {
-                let lastPart = parts[parts.length - 1];
-                if (lastPart.startsWith("CHOREO")) {
-                    lastPart = lastPart.slice("CHOREO".length);
-                }
-                parts[parts.length - 1] = lastPart;
-            }
-            return parts.join("_");
-        };
-
         keys[entry] = {
             keyname: candidate,
             envName: getInjectedEnvVarNames(connectionKeys[entry].envVariableName),
@@ -464,7 +464,8 @@ export const getWorkspaceStateStore = (storeName: string): PersistOptions<any, a
         skipHydration: true,
     };
 };
-const Templates = {
+
+export const Templates = {
     emptyLine: () => {
         const template = Handlebars.compile(`\n`);
         return template({});
@@ -472,6 +473,12 @@ const Templates = {
     newEnvConfigurable: (params: { CONFIG_NAME: string; CONFIG_ENV_NAME: string }) => {
         const template = Handlebars.compile(
             `configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`
+        );
+        return template(params);
+    },
+    newDefaultEnvConfigurable: (params: { CONFIG_NAME: string; }) => {
+        const template = Handlebars.compile(
+            `configurable string {{CONFIG_NAME}} = ?;\n`
         );
         return template(params);
     },
@@ -572,3 +579,32 @@ export function getDomain(rawURL: string): string {
         throw new Error("");
     }
 }
+
+/**
+ * Finds a unique connection name by checking against existing marketplace items.
+ * If the base name exists, appends a numeric counter until a unique name is found.
+ * If the initial name is shorter than 3 characters, appends '-connection' to it.
+ */
+export const findUniqueConnectionName = (
+    name: string,
+    existingMarketplaceItems: MarketplaceItem[],
+): string => {
+    // If name is too short, append '-connection'
+    let baseName = name;
+    if (baseName.length < 3) {
+        baseName = `${baseName}-connection`;
+    }
+
+    const existingNames = new Set(existingMarketplaceItems.map((item) => item.name.toLowerCase()));
+
+    // Check if the base name exists
+    let uniqueName = baseName;
+    let counter = 1;
+
+    while (existingNames.has(uniqueName.toLowerCase())) {
+        uniqueName = `${baseName}${counter}`;
+        counter++;
+    }
+
+    return uniqueName;
+};
