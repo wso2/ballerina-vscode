@@ -91,7 +91,7 @@ export const KeyTextWrapper = styled.div`
     height: 100%;
 `;
 
-export const Key= styled.div`
+export const Key = styled.div`
     cursor: pointer;
     margin-left: 10px;
     white-space: nowrap;

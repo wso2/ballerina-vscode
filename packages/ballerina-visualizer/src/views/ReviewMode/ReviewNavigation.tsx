@@ -53,10 +53,23 @@ const ViewCounter = styled.div`
     color: var(--vscode-foreground);
 `;
 
+const PackageLabel = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--vscode-statusBarItem-prominentForeground);
+    background: var(--vscode-statusBarItem-prominentBackground);
+    padding: 2px 8px;
+    border-radius: 2px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
 const ViewLabel = styled.div`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
-    max-width: 200px;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -72,7 +85,7 @@ const ActionButtons = styled.div`
     gap: 8px;
     padding-left: 16px;
     border-left: 1px solid var(--vscode-panel-border);
-    min-width: 180px;
+    min-width: 158px;
 `;
 
 interface ReviewNavigationProps {

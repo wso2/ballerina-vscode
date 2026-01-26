@@ -23,6 +23,7 @@ import { Uri } from 'vscode';
 import { StateMachine } from "../../../../stateMachine";
 import { sendAISchemaDidChange, sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
 import { CopilotEventHandler } from "../../utils/events";
+import { normalizeInvisibleChars } from "../../utils/string-utils";
 
 // ============================================================================
 // Display Helper Functions
@@ -382,8 +383,12 @@ export function createEditExecute(
       return result;
     }
 
-    // Check if old_string and new_string are identical
-    if (old_string === new_string) {
+    // Pre-normalize strings to check if they're identical (handles invisible char differences)
+    const preNormalizedOld = normalizeInvisibleChars(old_string);
+    const preNormalizedNew = normalizeInvisibleChars(new_string);
+
+    // Check if old_string and new_string are identical after normalization
+    if (preNormalizedOld === preNormalizedNew) {
       console.error(`[FileEditTool] old_string and new_string are identical for file: ${file_path}`);
       const result = {
         success: false,
@@ -408,11 +413,30 @@ export function createEditExecute(
       return result;
     }
 
-    // Read file content
+    // Read file content (keep original for exact matching)
     const content = fs.readFileSync(fullPath, 'utf-8');
 
-    // Count occurrences
-    const occurrenceCount = countOccurrences(content, old_string);
+    // Try exact match first (99% case - no normalization needed)
+    const exactOccurrenceCount = countOccurrences(content, old_string);
+
+    // Determine if we need to use normalized matching (fallback for invisible char issues)
+    const useNormalizedMatching = exactOccurrenceCount === 0;
+    let workingContent = content;
+    let workingOldString = old_string;
+    let workingNewString = new_string;
+
+    if (useNormalizedMatching) {
+      // Fallback: normalize both content and strings to handle invisible char mismatches
+      workingContent = normalizeInvisibleChars(content);
+      workingOldString = preNormalizedOld;
+      workingNewString = preNormalizedNew;
+      console.log(`[FileEditTool] Exact match failed, trying normalized matching for: ${file_path}`);
+    }
+
+    // Count occurrences (using exact or normalized based on fallback)
+    const occurrenceCount = useNormalizedMatching
+      ? countOccurrences(workingContent, workingOldString)
+      : exactOccurrenceCount;
 
     if (occurrenceCount === 0) {
       const preview = content.substring(0, PREVIEW_LENGTH);
@@ -440,13 +464,13 @@ export function createEditExecute(
 
     // Perform replacement
     let newContent: string;
-    if (content.trim() === "" && old_string.trim() === "") {
-        newContent = new_string;
+    if (workingContent.trim() === "" && workingOldString.trim() === "") {
+        newContent = workingNewString;
     } else {
       if (replace_all) {
-        newContent = content.replaceAll(old_string, new_string);
+        newContent = workingContent.replaceAll(workingOldString, workingNewString);
       } else {
-        newContent = content.replace(old_string, new_string);
+        newContent = workingContent.replace(workingOldString, workingNewString);
       }
     }
 
@@ -537,8 +561,34 @@ export function createMultiEditExecute(
       return result;
     }
 
-    // Read file content
-    let content = fs.readFileSync(fullPath, 'utf-8');
+    // Read file content (keep original for exact matching)
+    const originalContent = fs.readFileSync(fullPath, 'utf-8');
+
+    // First pass: check if all edits work with exact matching (99% case)
+    let useNormalizedMatching = false;
+    let testContent = originalContent;
+
+    for (const edit of edits) {
+      const exactCount = countOccurrences(testContent, edit.old_string);
+      if (exactCount === 0) {
+        // Exact match failed, we'll need normalized matching
+        useNormalizedMatching = true;
+        break;
+      }
+      // Simulate the edit for subsequent checks
+      if (edit.replace_all) {
+        testContent = testContent.replaceAll(edit.old_string, edit.new_string);
+      } else {
+        testContent = testContent.replace(edit.old_string, edit.new_string);
+      }
+    }
+
+    if (useNormalizedMatching) {
+      console.log(`[FileMultiEditTool] Exact match failed for some edits, using normalized matching for: ${file_path}`);
+    }
+
+    // Use either original or normalized content based on the check above
+    let content = useNormalizedMatching ? normalizeInvisibleChars(originalContent) : originalContent;
 
     // Validate all edits before applying any
     const validationErrors: string[] = [];
@@ -546,14 +596,18 @@ export function createMultiEditExecute(
     for (let i = 0; i < edits.length; i++) {
       const edit = edits[i];
 
+      // Use normalized strings only if we're in normalized mode
+      const workingOldString = useNormalizedMatching ? normalizeInvisibleChars(edit.old_string) : edit.old_string;
+      const workingNewString = useNormalizedMatching ? normalizeInvisibleChars(edit.new_string) : edit.new_string;
+
       // Check if old_string and new_string are identical
-      if (edit.old_string === edit.new_string) {
+      if (workingOldString === workingNewString) {
         validationErrors.push(`Edit ${i + 1}: old_string and new_string are identical`);
         continue;
       }
 
       // Count occurrences in current content state
-      const occurrenceCount = countOccurrences(content, edit.old_string);
+      const occurrenceCount = countOccurrences(content, workingOldString);
 
       if (occurrenceCount === 0) {
         validationErrors.push(`Edit ${i + 1}: old_string not found in file`);
@@ -566,13 +620,13 @@ export function createMultiEditExecute(
       }
 
       // Apply the edit to simulate the sequence
-      if (content.trim() === "" && edit.old_string.trim() === "") {
-        content = edit.new_string;
+      if (content.trim() === "" && workingOldString.trim() === "") {
+        content = workingNewString;
       } else {
         if (edit.replace_all) {
-          content = content.replaceAll(edit.old_string, edit.new_string);
+          content = content.replaceAll(workingOldString, workingNewString);
         } else {
-          content = content.replace(edit.old_string, edit.new_string);
+          content = content.replace(workingOldString, workingNewString);
         }
       }
     }

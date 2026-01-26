@@ -102,10 +102,10 @@ const HeaderControls = styled.div`
     align-items: center;
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.div<{ fullWidth?: boolean }>`
     padding: 16px;
     display: grid;
-    grid-template-columns: 3fr 1fr;
+    grid-template-columns: ${(props: { fullWidth?: boolean }) => props.fullWidth ? '1fr' : '3fr 1fr'};
     min-height: 0; // Prevents grid blowout
     overflow: auto;
     max-height: calc(100vh - 90px); // Adjust based on header and any margins
@@ -641,6 +641,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
+    const [isLibrary, setIsLibrary] = useState<boolean>(false);
 
     const fetchContext = () => {
         rpcClient
@@ -651,6 +652,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 setIsWorkspace(res.workspaceName !== undefined);
                 if (project) {
                     setProjectStructure(project);
+                    setIsLibrary(project.isLibrary ?? false);
                 }
             });
 
@@ -839,20 +841,21 @@ export function PackageOverview(props: PackageOverviewProps) {
                 />
                 Configure
             </Button>
-            <RunDebugButton 
-                icon="play"
-                onClick={handleLocalRun}
-                text="Run"
-                devantMode="runInDevant"
-            />
-            <RunDebugButton 
-                icon="debug"
-                onClick={handleLocalDebug}
-                text="Debug"
-                devantMode="debugInDevant"
-            />
-            {platformExtState.isLoggedIn && (
+
+            {!isLibrary && (
                 <>
+                    <RunDebugButton 
+                        icon="play"
+                        onClick={handleLocalRun}
+                        text="Run"
+                        devantMode="runInDevant"
+                    />
+                    <RunDebugButton 
+                        icon="debug"
+                        onClick={handleLocalDebug}
+                        text="Debug"
+                        devantMode="debugInDevant"
+                    />
                     {platformExtState.components?.length > 1 && (
                         <Dropdown
                             id="selected component"
@@ -877,7 +880,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 {isWorkspace ? (
                     <TitleBar
                         title={projectName}
-                        subtitle="Integration"
+                        subtitle={isLibrary ? "Library" : "Integration"}
                         onBack={handleBack}
                         actions={headerActions}
                     />
@@ -893,7 +896,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </HeaderControls>
                     </HeaderRow>
                 )}
-                <MainContent>
+                <MainContent fullWidth={isLibrary}>
                     <LeftContent>
                         <DiagramPanel noPadding={true}>
                             {showAlert && (
@@ -929,13 +932,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                                 {isEmptyProject() ? (
                                     <EmptyStateContainer>
                                         <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                            Your integration is empty
+                                            {isLibrary ? "Your library is empty" : "Your integration is empty"}
                                         </Typography>
                                         <Typography
                                             variant="body1"
                                             sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                         >
-                                            Start by adding artifacts or use AI to generate your integration structure
+                                            Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
                                         </Typography>
                                         <ButtonContainer>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
@@ -979,35 +982,37 @@ export function PackageOverview(props: PackageOverviewProps) {
                             </ReadmeContent>
                         </FooterPanel>
                     </LeftContent>
-                    <SidePanel>
-                        {/* <DeploymentOptions
-                            handleDockerBuild={handleDockerBuild}
-                            handleJarBuild={handleJarBuild}
-                            handleDeploy={handleDeploy}
-                            goToDevant={goToDevant}
-                        />
-                        <Divider sx={{ margin: "16px 0" }} />
-                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} /> */}
-                        {!isInDevant &&
-                            <>
-                                <DeploymentOptions
-                                    handleDockerBuild={handleDockerBuild}
-                                    handleJarBuild={handleJarBuild}
-                                    handleDeploy={handleDeploy}
-                                    goToDevant={goToDevant}
-                                />
-                                <Divider sx={{ margin: "16px 0" }} />
-                                <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
-                            </>
-                        }
-                        {isInDevant &&
-                            <DevantDashboard
-                                projectStructure={projectStructure}
+                    {!isLibrary && (
+                         <SidePanel>
+                            {/* <DeploymentOptions
+                                handleDockerBuild={handleDockerBuild}
+                                handleJarBuild={handleJarBuild}
                                 handleDeploy={handleDeploy}
                                 goToDevant={goToDevant}
                             />
-                        }
-                    </SidePanel>
+                            <Divider sx={{ margin: "16px 0" }} />
+                            <IntegrationControlPlane enabled={enabled} handleICP={handleICP} /> */}
+                            {!isInDevant &&
+                                <>
+                                    <DeploymentOptions
+                                        handleDockerBuild={handleDockerBuild}
+                                        handleJarBuild={handleJarBuild}
+                                        handleDeploy={handleDeploy}
+                                        goToDevant={goToDevant}
+                                    />
+                                    <Divider sx={{ margin: "16px 0" }} />
+                                    <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                </>
+                            }
+                            {isInDevant &&
+                                <DevantDashboard
+                                    projectStructure={projectStructure}
+                                    handleDeploy={handleDeploy}
+                                    goToDevant={goToDevant}
+                                />
+                            }
+                        </SidePanel>
+                    )}
                 </MainContent>
             </PageLayout>
         </>

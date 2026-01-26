@@ -355,7 +355,7 @@ export function TypeEditor(props: TypeEditorProps) {
                             onBlur={handleBlur}
                             onSave={onSave}
                             onCancel={handleCancel}
-                            placeholder={field.placeholder}
+
                             autoFocus={autoFocus}
                             sx={{ paddingInline: '0' }}
                             helperPaneZIndex={40001}

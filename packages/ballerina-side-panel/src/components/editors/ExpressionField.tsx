@@ -41,13 +41,15 @@ import { getPrimaryInputType, isDropDownType } from '@wso2/ballerina-core';
 import { DynamicArrayBuilder } from './MultiModeExpressionEditor/DynamicArrayBuilder/DynamicArrayBuilder';
 import { ChipExpressionEditorDefaultConfiguration } from './MultiModeExpressionEditor/ChipExpressionEditor/ChipExpressionDefaultConfig';
 import MappingConstructor from './MultiModeExpressionEditor/MappingConstructor/MappingConstructor';
+import MappingObjectConstructor from './MultiModeExpressionEditor/MappingObjectConstructor/MappingObjectConstructor';
+import { isRecord } from './utils';
 
 export interface ExpressionFieldProps {
     field: FormField;
     inputMode: InputMode;
     primaryMode: InputMode;
     name: string;
-    value: string | any[];
+    value: string | any[] | Record<string, unknown>;
     fileName?: string;
     targetLineRange?: LineRange;
     completions: CompletionItem[];
@@ -56,7 +58,7 @@ export interface ExpressionFieldProps {
     rawExpression?: (value: string) => string;
     ariaLabel?: string;
     placeholder?: string;
-    onChange: (updatedValue: string, updatedCursorPosition: number) => void;
+    onChange: (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => void;
     extractArgsFromFunction?: (value: string, cursorPosition: number) => Promise<{
         label: string;
         args: string[];
@@ -151,30 +153,21 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
         isInExpandedMode
     } = props;
 
-    if (Array.isArray(value)) {
-        if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
-            return (
-                <DynamicArrayBuilder
-                    value={value}
-                    label={field.label}
-                    onChange={(val) => onChange(val, val.length)}
-                    expressionFieldProps={props}
-                />
-            );
-        }
-        throw new Error(`Unsupported editor for input mode: ${inputMode}`);
-    }
-    if (inputMode === InputMode.MAP) {
+    if (inputMode === InputMode.MAP_EXP) {
         return (
-            <MappingConstructor
-                value={value}
+            <MappingObjectConstructor
+                value={value as Record<string, unknown>}
                 label={field.label}
-                onChange={(val) => onChange(val, val.length)}
+                onChange={(val) => onChange(val, JSON.stringify(val).length)}
                 expressionFieldProps={props}
             />
         );
     }
-    if (inputMode === InputMode.TEXT_ARRAY) {
+
+    //below editors cannot have input value in record type
+    if (isRecord(value)) return null;
+
+    if (inputMode === InputMode.ARRAY || inputMode === InputMode.TEXT_ARRAY) {
         return (
             <DynamicArrayBuilder
                 value={value}
@@ -184,9 +177,19 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             />
         );
     }
-    if (Array.isArray(value)) {
-        throw new Error(`Invalid value type: expected a string but received an array for input mode ${inputMode}`);
+    if (inputMode === InputMode.MAP) {
+        return (
+            <MappingConstructor
+                value={value as any[]}
+                label={field.label}
+                onChange={(val) => onChange(val, val.length)}
+                expressionFieldProps={props}
+            />
+        );
     }
+
+    //below editors cannot have input value in array type
+    if (Array.isArray(value)) return null;
 
     const primaryInputType = getPrimaryInputType(field.types || []);
     if (inputMode === InputMode.BOOLEAN) {
@@ -229,7 +232,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onCancel={onCancel}
                 onRemove={onRemove}
                 growRange={growRange}
-                placeholder={placeholder}
+                placeholder={field.placeholder}
                 onOpenExpandedMode={onOpenExpandedMode}
                 isInExpandedMode={isInExpandedMode}
             />
@@ -252,6 +255,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={getEditorConfiguration(inputMode)}
+                placeholder={field.placeholder}
             />
 
         );
@@ -273,6 +277,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={new RawTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -294,6 +299,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
                 configuration={getPrimaryInputType(field.types)?.ballerinaType === "ai:Prompt" ? new RawTemplateEditorConfig() : new StringTemplateEditorConfig()}
+                placeholder={field.placeholder}
             />
 
         );
@@ -314,6 +320,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
 
         );
@@ -334,6 +341,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
                 onOpenExpandedMode={onOpenExpandedMode}
                 onRemove={onRemove}
                 isInExpandedMode={isInExpandedMode}
+                placeholder={field.placeholder}
             />
         );
     }
@@ -354,6 +362,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             onRemove={onRemove}
             isInExpandedMode={isInExpandedMode}
             configuration={getEditorConfiguration(inputMode)}
+            placeholder={field.placeholder}
         />
     );
 };

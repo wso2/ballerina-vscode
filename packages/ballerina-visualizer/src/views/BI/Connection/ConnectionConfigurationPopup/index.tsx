@@ -46,9 +46,9 @@ import { PopupOverlay, PopupContainer, PopupHeader as ConfigHeader, BackButton, 
 const ConnectorInfoCard = styled.div`
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 16px;
-    margin: 24px 32px;
+    gap: 12px;
+    padding: 12px;
+    margin: 16px 20px;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
@@ -127,7 +127,7 @@ const ConnectorTag = styled.div`
     top: 12px;
     right: 12px;
     padding: 4px 12px;
-    border-radius: 12px;
+    border-radius: 6px;
     background-color: ${ThemeColors.SURFACE_CONTAINER};
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
@@ -143,36 +143,15 @@ const ConfigContent = styled.div<{ hasFooterButton?: boolean }>`
     display: flex;
     flex-direction: column;
     overflow: ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "hidden" : "auto"};
-    padding: 0 32px ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 32px;
+    padding: 0 16px ${(props: { hasFooterButton?: boolean }) => props.hasFooterButton ? "0" : "24px"} 16px;
     min-height: 0;
 `;
 
 const FormContainer = styled.div<{}>`
     flex: 1;
     min-height: 0;
-    height: 100%;
     display: flex;
     flex-direction: column;
-`;
-
-const ConnectionDetailsSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 16px;
-`;
-
-const ConnectionDetailsTitle = styled(Typography)`
-    font-size: 16px;
-    font-weight: 600;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
-const ConnectionDetailsSubtitle = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin: 0;
 `;
 
 const StatusContainer = styled.div`
@@ -481,12 +460,6 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
                     )}
                     {!pullingStatus && selectedNodeRef.current && (
                         <>
-                            <ConnectionDetailsSection>
-                                <ConnectionDetailsTitle variant="h3">Connection Details</ConnectionDetailsTitle>
-                                <ConnectionDetailsSubtitle variant="body2">
-                                    Configure your connection settings
-                                </ConnectionDetailsSubtitle>
-                            </ConnectionDetailsSection>
                             <FormContainer>
                                 <ConnectionConfigView
                                     fileName={fileName}
