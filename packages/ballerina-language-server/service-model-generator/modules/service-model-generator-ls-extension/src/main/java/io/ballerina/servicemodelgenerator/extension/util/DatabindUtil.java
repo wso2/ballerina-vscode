@@ -58,6 +58,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -894,7 +895,7 @@ public final class DatabindUtil {
      */
     private static Set<String> extractRequiredImports(String baseType, ModulePartNode modulePartNode,
                                                       Map<String, String> importsForTypeDef) {
-        Set<String> imports = new HashSet<>();
+        Set<String> imports = new LinkedHashSet<>();
 
         if (baseType.contains(COLON)) {
             String moduleName = baseType.substring(0, baseType.indexOf(COLON));
