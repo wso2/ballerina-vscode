@@ -75,7 +75,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
                 );
                 if (response && response.message) {
                     // Find trace and extract tool calls and execution steps
-                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, response.message);
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message);
                     const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     // Store agent response in history
@@ -103,20 +103,31 @@ export class AgentChatRpcManager implements AgentChatAPI {
                         : "An unknown error occurred";
 
                 const sessionId = extension.agentChatContext?.chatSessionId;
+                let traceId: string | undefined;
+                let executionSteps: ExecutionStep[] | undefined;
+
                 if (sessionId) {
-                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message, null, errorMessage);
-                    const executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
+                    const trace = this.findTraceForMessage(extension.agentChatContext.chatSessionId, params.message);
+                    traceId = trace?.traceId;
+                    executionSteps = trace ? this.extractExecutionSteps(trace) : undefined;
 
                     this.addMessageToHistory(sessionId, {
                         type: 'error',
                         text: errorMessage,
                         isUser: false,
-                        traceId: trace?.traceId,
+                        traceId,
                         executionSteps
                     });
                 }
 
-                reject(error);
+                // Embed trace information in the error for RPC transmission
+                const traceInfo = { traceId, executionSteps };
+                const errorWithTrace = new Error(JSON.stringify({
+                    message: errorMessage,
+                    traceInfo: traceInfo
+                }));
+
+                reject(errorWithTrace);
             } finally {
                 this.currentAbortController = null;
             }
@@ -216,9 +227,18 @@ export class AgentChatRpcManager implements AgentChatAPI {
      * @param sessionId 
      * @returns The matching trace or undefined if not found
      */
-    findTraceForMessage(sessionId: string, userMessage: string, agentResponse?: string, errorResponse?: string): Trace | undefined {
+    findTraceForMessage(sessionId: string, userMessage: string): Trace | undefined {
         // Get all traces from the TraceServer
         const traces = TraceServer.getTraces();
+
+        // Sort traces from most recent to least recent based on lastSeen timestamp
+        traces.sort((a, b) => {
+            const timeA = a.lastSeen.getTime();
+            const timeB = b.lastSeen.getTime();
+
+            // Sort in descending order (most recent first)
+            return timeB - timeA;
+        });
 
         // Helper function to extract string value from attribute value
         const extractValue = (value: any): string => {
@@ -271,25 +291,19 @@ export class AgentChatRpcManager implements AgentChatAPI {
                     operationName === 'invoke_agent' &&
                     inputMessages) {
 
+                    // If sessionId doesn't match, skip
                     if (conversationId != sessionId) { continue; }
 
                     // Check if the input message matches
                     const inputMatches = inputMessages.includes(userMessage);
-
-                    // Check if output message also matches
-                    if (agentResponse && outputMessages) {
-                        const outputMatches = outputMessages.includes(agentResponse);
-                        if (inputMatches && outputMatches) {
-                            return trace;
-                        }
-                    }
+                    if (inputMatches) return trace;
                 }
             }
         }
 
         return undefined;
     }
-    
+
     /**
      * Remove operation prefixes from span names
      * @param name The span name to clean

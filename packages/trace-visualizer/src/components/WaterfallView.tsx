@@ -20,7 +20,19 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { SpanData } from '../index';
 import { Codicon, Icon } from '@wso2/ui-toolkit';
-import { doesSpanMatch, getSpanTypeBadge, getSpanLabel, getSpanKindLabel, HighlightText } from '../utils';
+import {
+    doesSpanMatch,
+    getSpanTypeBadge,
+    getSpanLabel,
+    getSpanKindLabel,
+    HighlightText,
+    getSpanTimeRange,
+    formatDuration,
+    stripSpanPrefix,
+    getSpanTokens,
+    getSpanColor
+} from '../utils';
+import { NoResultsContainer, NoResultsTitle, ClearSearchButton } from './shared-styles';
 
 // --- Interfaces ---
 
@@ -375,43 +387,6 @@ const TooltipRow = styled.div`
     }
 `;
 
-const NoResultsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    gap: 12px;
-`;
-
-const NoResultsTitle = styled.div`
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-`;
-
-const ClearSearchButton = styled.button`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: transparent;
-    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-    border-radius: 4px;
-    color: var(--vscode-foreground);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
-`;
-
 // --- Helper Functions ---
 
 const getSpanKindString = (kind: any): string => {
@@ -422,33 +397,8 @@ const getSpanKindString = (kind: any): string => {
     return 'internal';
 };
 
-const getSpanColor = (type: string) => {
-    switch (type) {
-        case 'invoke': return 'var(--vscode-terminal-ansiCyan)';
-        case 'chat': return 'var(--vscode-terminalSymbolIcon-optionForeground)';
-        case 'tool': return 'var(--vscode-terminal-ansiBrightMagenta)';
-        case 'error': return 'var(--vscode-terminal-ansiRed)';
-        case 'client': return 'var(--vscode-terminal-ansiBlue)';
-        case 'server': return 'var(--vscode-terminal-ansiGreen)';
-        default: return 'var(--vscode-badge-background)';
-    }
-};
-
 const getSpanBgColor = (type: string) => {
     return 'var(--vscode-editor-background)';
-};
-
-const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null => {
-    if (!span.startTime || !span.endTime) return null;
-    return {
-        start: new Date(span.startTime).getTime(),
-        end: new Date(span.endTime).getTime()
-    };
-};
-
-const formatDuration = (durationMs: number): string => {
-    if (durationMs === 0) return '< 1ms';
-    return durationMs < 1000 ? `${durationMs.toFixed(0)}ms` : `${(durationMs / 1000).toFixed(3)}s`;
 };
 
 const getSpanType = (span: SpanData): 'invoke' | 'chat' | 'tool' | 'error' | 'client' | 'server' | 'other' => {
@@ -490,22 +440,6 @@ const getTypeIcon = (type: string): string => {
     }
 };
 
-const stripSpanPrefix = (spanName: string): string => {
-    const prefixes = ['invoke_agent ', 'execute_tool ', 'chat '];
-    for (const prefix of prefixes) {
-        if (spanName.startsWith(prefix)) {
-            return spanName.substring(prefix.length);
-        }
-    }
-    return spanName;
-};
-
-const getSpanTokens = (span: SpanData): number => {
-    const inputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0');
-    const outputTokens = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0');
-    return inputTokens + outputTokens;
-};
-
 // --- Main Component ---
 
 export function WaterfallView({
@@ -523,6 +457,7 @@ export function WaterfallView({
     const [zoom, setZoom] = useState(1);
     const [hoveredSpan, setHoveredSpan] = useState<{ span: FlatSpan; x: number; y: number } | null>(null);
     const [isCompact, setIsCompact] = useState(false);
+    const [scrollContainerWidth, setScrollContainerWidth] = useState(1000);
 
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -559,6 +494,10 @@ export function WaterfallView({
             for (const entry of entries) {
                 // If width < 300px, switch to compact mode
                 setIsCompact(entry.contentRect.width < 300);
+                // Update scrollContainerWidth to trigger timelineLayout recalc
+                if (scrollContainerRef.current) {
+                    setScrollContainerWidth(scrollContainerRef.current.clientWidth);
+                }
             }
         });
 
@@ -675,7 +614,7 @@ export function WaterfallView({
 
     // Generate Layout Data: Ticks and View Duration
     const timelineLayout = useMemo(() => {
-        const totalPixels = zoom * (scrollContainerRef.current?.clientWidth || 1000);
+        const totalPixels = zoom * scrollContainerWidth;
         const targetTicks = Math.max(5, Math.floor(totalPixels / 150));
 
         const rawInterval = contentMaxDurationMs / targetTicks;
@@ -700,7 +639,7 @@ export function WaterfallView({
             markers,
             viewDuration: finalViewDuration
         };
-    }, [contentMaxDurationMs, zoom]);
+    }, [contentMaxDurationMs, zoom, scrollContainerWidth]);
 
     const formatTimeMarker = (ms: number): string => {
         if (ms === 0) return '0ms';

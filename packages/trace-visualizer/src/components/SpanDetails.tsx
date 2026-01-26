@@ -21,10 +21,27 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { SearchInput } from "./SearchInput";
 import { CollapsibleSection } from "./CollapsibleSection";
-import { JsonViewer, ToggleGroup, ToggleButton } from "./JsonViewer";
+import { JsonViewer } from "./JsonViewer";
 import { CopyButton } from "./CopyButton";
 import { SpanData } from "../index";
-import { extractUserErrorDetails } from "../utils";
+import {
+    extractUserErrorDetails,
+    highlightText,
+    textContainsSearch,
+    getAttributeValue,
+    formatDate,
+    getSpanIconName,
+    stripSpanPrefix
+} from "../utils";
+import {
+    Highlight,
+    CopyWrapper,
+    ToggleGroup,
+    ToggleButton,
+    NoResultsContainer,
+    NoResultsTitle,
+    ClearSearchButton
+} from "./shared-styles";
 
 interface SpanDetailsProps {
     spanData: SpanData;
@@ -263,61 +280,10 @@ const ErrorHeaderRight = styled.div`
     gap: 4px;
 `;
 
-const Highlight = styled.mark`
-    background-color: var(--vscode-editor-findMatchHighlightBackground, #ffcc00);
-    color: inherit;
-    padding: 0 1px;
-    border-radius: 2px;
-`;
-
-const NoMatchMessage = styled.div`
-    text-align: center;
-    padding: 24px;
-    color: var(--vscode-descriptionForeground);
-    font-size: 13px;
-`;
-
-const NoResultsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    gap: 12px;
-`;
-
-const NoResultsTitle = styled.div`
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-`;
-
 const NoResultsSubtitle = styled.div`
     font-size: 13px;
     color: var(--vscode-descriptionForeground);
     margin-bottom: 8px;
-`;
-
-const ClearSearchButton = styled.button`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: transparent;
-    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-    border-radius: 4px;
-    color: var(--vscode-foreground);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
 `;
 
 // Advanced Details styles
@@ -388,45 +354,7 @@ const AttributeValue = styled.span`
     word-break: break-all;
 `;
 
-const CopyWrapper = styled.span`
-    opacity: 0;
-    transition: opacity 0.15s ease;
-    flex-shrink: 0;
-`;
-
 // Helper functions
-function getAttributeValue(attributes: Array<{ key: string; value: string }> | undefined, key: string): string | undefined {
-    return attributes?.find(a => a.key === key)?.value;
-}
-
-function highlightText(text: string, searchQuery: string): ReactNode {
-    if (!searchQuery) return text;
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-        regex.test(part) ? <Highlight key={i}>{part}</Highlight> : part
-    );
-}
-
-function textContainsSearch(text: string | undefined, searchQuery: string): boolean {
-    if (!searchQuery) return true; // No search query = show everything
-    if (!text) return false; // No text to search = no match
-    return text.toLowerCase().includes(searchQuery.toLowerCase());
-}
-
-function formatDate(isoString: string): string {
-    const date = new Date(isoString);
-    return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        fractionalSecondDigits: 3
-    });
-}
-
 function formatErrorText(rawText: string): string {
     if (typeof rawText !== "string") return rawText;
 
@@ -517,41 +445,6 @@ const EXCLUDED_ATTRIBUTE_KEYS = [
     'error.message'
 ];
 
-// Remove common prefixes from span names
-function stripSpanPrefix(spanName: string): string {
-    const prefixes = ['invoke_agent ', 'execute_tool ', 'chat '];
-    for (const prefix of prefixes) {
-        if (spanName.startsWith(prefix)) {
-            return spanName.substring(prefix.length);
-        }
-    }
-    return spanName;
-}
-
-// Get icon name based on span type and kind
-function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'other', spanKind?: string): string {
-    switch (spanType) {
-        case 'invoke':
-            return 'bi-ai-agent';
-        case 'chat':
-            return 'bi-chat';
-        case 'tool':
-            return 'bi-wrench';
-        case 'other':
-            // For non-AI spans, use icons based on span kind (server/client)
-            switch (spanKind?.toLowerCase()) {
-                case 'client':
-                    return 'bi-arrow-outward';
-                case 'server':
-                    return 'bi-server';
-                default:
-                    return 'bi-action';
-            }
-        default:
-            return 'bi-action';
-    }
-}
-
 export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputTokens }: SpanDetailsProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [isIdPopupOpen, setIsIdPopupOpen] = useState(false);
@@ -622,7 +515,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
         return {
             systemInstructions,
             messages: inputMessages || toolArguments,
-            messagesLabel: toolArguments ? 'Tool Arguments' : (operationName === 'invoke_agent' ? 'User' : 'Messages'),
+            messagesLabel: toolArguments ? 'Tool Arguments' : (operationName?.includes('invoke_agent') ? 'User' : 'Messages'),
             tools: inputTools
         };
     }, [spanData.attributes, operationName]);
@@ -716,6 +609,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
 
     const hasInput = inputData.systemInstructions || inputData.messages || inputData.tools;
     const hasOutput = outputData.messages || outputData.error;
+    const hasError = !!outputData.error;
     const noMatches = searchQuery && !inputMatches && !outputMatches && !metricsMatch && !advancedMatches;
 
     // Close popup when clicking outside
@@ -920,7 +814,7 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
                         <CollapsibleSection
                             title="Input"
                             icon="bi-input"
-                            defaultOpen={true}
+                            defaultOpen={!hasError}
                             key={searchQuery ? `input-${searchQuery}` : 'input'}
                         >
                             <SectionContent>

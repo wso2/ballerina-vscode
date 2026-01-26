@@ -33,6 +33,7 @@ import {
     doesSpanMatch,
     HighlightText
 } from "../utils";
+import { NoResultsContainer, NoResultsTitle, ClearSearchButton } from "./shared-styles";
 
 // ============================================================================
 // STYLES
@@ -221,43 +222,6 @@ const AISpanErrorIcon = styled.span`
     justify-content: center;
     color: var(--vscode-errorForeground);
     flex-shrink: 0;
-`;
-
-const NoResultsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 24px;
-    gap: 12px;
-`;
-
-const NoResultsTitle = styled.div`
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--vscode-foreground);
-`;
-
-const ClearSearchButton = styled.button`
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: transparent;
-    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-    border-radius: 4px;
-    color: var(--vscode-foreground);
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
 `;
 
 const Tooltip = styled.div<{ x: number; y: number }>`
@@ -971,7 +935,7 @@ export function SpanTree({
                 return renderAISpanTreeItem(span, true, false, true);
             }
         }).filter(element => element !== null);
-    }, [isAdvancedMode, rootAISpans, sortedRootSpans, searchQuery]);
+    }, [isAdvancedMode, rootAISpans, sortedRootSpans, searchQuery, traceData]);
 
     const noResults = searchQuery && visibleSpans.length === 0;
 

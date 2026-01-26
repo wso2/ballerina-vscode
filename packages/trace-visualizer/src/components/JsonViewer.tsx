@@ -21,7 +21,8 @@ import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { JsonTreeViewer, DEFAULT_AUTO_EXPAND_DEPTH } from "./JsonTreeViewer";
 import { CopyButton } from "./CopyButton";
-import { tryParseJSON, isJSONString, parseNestedJSON } from "../utils";
+import { tryParseJSON, isJSONString, parseNestedJSON, highlightText } from "../utils";
+import { Highlight, ToggleGroup, ToggleButton, ToggleButtonProps } from "./shared-styles";
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -68,11 +69,6 @@ const Title = styled.h4`
     letter-spacing: 0.5px;
 `;
 
-export const ToggleGroup = styled.div`
-    display: flex;
-    gap: 2px;
-`;
-
 const IconButton = styled.button`
     display: inline-flex;
     align-items: center;
@@ -88,41 +84,6 @@ const IconButton = styled.button`
     &:hover {
         background-color: var(--vscode-toolbar-hoverBackground);
         color: var(--vscode-foreground);
-    }
-`;
-
-export interface ToggleButtonProps {
-    active: boolean;
-}
-
-export const ToggleButton = styled.button<ToggleButtonProps>`
-    padding: 4px 10px;
-    font-size: 11px;
-    font-family: var(--vscode-font-family);
-    border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
-    cursor: pointer;
-    transition: all 0.15s ease;
-
-
-    background-color: ${(props: ToggleButtonProps) =>
-        props.active
-            ? 'var(--vscode-badge-background)'
-            : 'var(--vscode-input-background)'};
-    color: ${(props: ToggleButtonProps) =>
-        props.active
-            ? 'var(--vscode-badge-foreground)'
-            : 'var(--vscode-foreground)'};
-
-    &:first-of-type {
-        border-radius: 3px 0 0 3px;
-    }
-
-    &:last-of-type {
-        border-radius: 0 3px 3px 0;
-    }
-
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
     }
 `;
 
@@ -291,13 +252,6 @@ const MarkdownContent = styled.div`
     .katex .base {
         color: var(--vscode-editor-foreground);
     }
-`;
-
-const Highlight = styled.mark`
-    background-color: var(--vscode-editor-findMatchHighlightBackground, #ffcc00);
-    color: inherit;
-    padding: 0 1px;
-    border-radius: 2px;
 `;
 
 // Syntax highlighting for JSON
@@ -469,19 +423,6 @@ function mightContainMarkdown(text: string): boolean {
     ];
 
     return markdownPatterns.some(pattern => pattern.test(text));
-}
-
-// Highlight text for plain text display
-function highlightText(text: string, searchQuery: string): ReactNode {
-    if (!searchQuery) return text;
-    // Use non-global regex to avoid state issues
-    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
-    const parts = text.split(regex);
-    return parts.map((part, i) =>
-        i % 2 === 1
-            ? <Highlight key={i}>{part}</Highlight>
-            : part
-    );
 }
 
 export function JsonViewer({
