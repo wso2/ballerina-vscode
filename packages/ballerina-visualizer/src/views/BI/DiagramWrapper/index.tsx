@@ -90,7 +90,7 @@ export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
 }
 

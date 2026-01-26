@@ -221,7 +221,7 @@ export function ObjectOutputFieldWidget(props: ObjectOutputFieldWidgetProps) {
                         {diagnostics?.length > 0 ? (
                             <DiagnosticTooltip
                                 placement="right"
-                                diagnostic={diagnostics[0] as any}
+                                diagnostic={diagnostics[0].message}
                                 value={expression}
                                 onClick={handleEditValue}
                             >
