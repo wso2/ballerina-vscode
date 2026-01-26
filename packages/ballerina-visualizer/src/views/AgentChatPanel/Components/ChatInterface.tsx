@@ -382,12 +382,37 @@ const ChatInterface: React.FC = () => {
                 },
             ]);
         } catch (error) {
-            const errorMessage =
-                error && typeof error === "object" && "message" in error
-                    ? String(error.message)
-                    : "An unknown error occurred";
+            let errorMessage = "An unknown error occurred";
+            let traceId: string | undefined;
+            let executionSteps: ExecutionStep[] | undefined;
 
-            setMessages((prev) => [...prev, { type: ChatMessageType.ERROR, text: errorMessage, isUser: false }]);
+            // Try to parse structured error with trace information
+            if (error && typeof error === "object" && "message" in error) {
+                try {
+                    const parsedError = JSON.parse(String(error.message));
+                    if (parsedError.message && parsedError.traceInfo) {
+                        errorMessage = parsedError.message;
+                        traceId = parsedError.traceInfo.traceId;
+                        executionSteps = parsedError.traceInfo.executionSteps;
+                    } else {
+                        // Fallback to regular error message
+                        errorMessage = String(error.message);
+                    }
+                } catch (parseError) {
+                    // If JSON parsing fails, use the original error message
+                    errorMessage = String(error.message);
+                }
+            }
+
+            console.error("Chat message error:", error);
+
+            setMessages((prev) => [...prev, {
+                type: ChatMessageType.ERROR,
+                text: errorMessage,
+                isUser: false,
+                traceId,
+                executionSteps
+            }]);
         } finally {
             setIsLoading(false);
         }

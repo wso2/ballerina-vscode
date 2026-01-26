@@ -16,8 +16,9 @@
  * under the License.
  */
 
-import styled from "@emotion/styled";
+import { ReactNode } from "react";
 import { SpanData } from './index';
+import { Highlight } from './components/shared-styles';
 
 export const getSpanTimeRange = (span: SpanData): { start: number; end: number } | null => {
   if (!span.startTime || !span.endTime) return null;
@@ -272,13 +273,6 @@ export const doesSpanMatch = (span: SpanData, query: string): boolean => {
   return false;
 };
 
-const HighlightMark = styled.mark`
-    background-color: var(--vscode-editor-findMatchHighlightBackground);
-    color: inherit;
-    padding: 0;
-    border-radius: 2px;
-`;
-
 export const HighlightText = ({ text, query }: { text: string; query: string }) => {
   if (!query || !text) return <>{text}</>;
 
@@ -291,9 +285,104 @@ export const HighlightText = ({ text, query }: { text: string; query: string }) 
       {
         parts.map((part, i) =>
           part.toLowerCase() === query.toLowerCase()
-            ? <HighlightMark key={i}>{part}</HighlightMark>
+            ? <Highlight key={i}>{part}</Highlight>
             : part
         )}
     </>
   );
 };
+
+/**
+ * Highlights text that matches a search query.
+ * Returns a ReactNode with highlighted portions.
+ */
+export function highlightText(text: string, searchQuery: string): ReactNode {
+  if (!searchQuery) return text;
+  const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'i');
+  const parts = text.split(regex);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <Highlight key={i}>{part}</Highlight> : part
+  );
+}
+
+/**
+ * Checks if text contains a search query (case-insensitive)
+ */
+export function textContainsSearch(text: string | undefined, searchQuery: string): boolean {
+  if (!searchQuery) return true; // No search query = show everything
+  if (!text) return false; // No text to search = no match
+  return text.toLowerCase().includes(searchQuery.toLowerCase());
+}
+
+/**
+ * Gets an attribute value from a span's attributes array
+ */
+export function getAttributeValue(attributes: Array<{ key: string; value: string }> | undefined, key: string): string | undefined {
+  return attributes?.find(a => a.key === key)?.value;
+}
+
+/**
+ * Formats a date string to a readable format
+ */
+export function formatDate(isoString: string): string {
+  const date = new Date(isoString);
+  return date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    fractionalSecondDigits: 3
+  });
+}
+
+/**
+ * Gets the appropriate icon name for a span type
+ */
+export function getSpanIconName(spanType: 'invoke' | 'chat' | 'tool' | 'other', spanKind?: string): string {
+  switch (spanType) {
+    case 'invoke':
+      return 'bi-ai-agent';
+    case 'chat':
+      return 'bi-chat';
+    case 'tool':
+      return 'bi-wrench';
+    case 'other':
+      // For non-AI spans, use icons based on span kind (server/client)
+      switch (spanKind?.toLowerCase()) {
+        case 'client':
+          return 'bi-arrow-outward';
+        case 'server':
+          return 'bi-server';
+        default:
+          return 'bi-action';
+      }
+    default:
+      return 'bi-action';
+  }
+}
+
+/**
+ * Gets the color for a span type
+ */
+export function getSpanColor(type: string): string {
+  switch (type) {
+    case 'invoke':
+      return 'var(--vscode-terminal-ansiCyan)';
+    case 'chat':
+      return 'var(--vscode-terminalSymbolIcon-optionForeground)';
+    case 'tool':
+      return 'var(--vscode-terminal-ansiBrightMagenta)';
+    case 'error':
+      return 'var(--vscode-terminal-ansiRed)';
+    case 'client':
+      return 'var(--vscode-terminal-ansiBlue)';
+    case 'server':
+      return 'var(--vscode-terminal-ansiGreen)';
+    case 'other':
+      return 'var(--vscode-foreground)';
+    default:
+      return 'var(--vscode-badge-background)';
+  }
+}

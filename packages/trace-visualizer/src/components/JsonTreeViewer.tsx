@@ -21,6 +21,7 @@ import styled from "@emotion/styled";
 import { Codicon } from "@wso2/ui-toolkit";
 import { CopyButton } from "./CopyButton";
 import { parseNestedJSON } from "../utils";
+import { Highlight, CopyWrapper } from "./shared-styles";
 
 // Configurable auto-expand depth
 export const DEFAULT_AUTO_EXPAND_DEPTH = 3;
@@ -129,16 +130,7 @@ const TypeIndicator = styled.span`
     align-self: center;
 `;
 
-const Highlight = styled.mark`
-    background-color: var(--vscode-editor-findMatchHighlightBackground, #ffcc00);
-    color: inherit;
-    padding: 0 1px;
-    border-radius: 2px;
-`;
-
-const CopyWrapper = styled.span`
-    opacity: 0;
-    transition: opacity 0.15s ease;
+const StyledCopyWrapper = styled(CopyWrapper)`
     margin-left: 6px;
 `;
 
@@ -398,9 +390,9 @@ export function JsonTreeViewer({
                             {highlightText(key, searchQuery)}
                         </KeyBadge>
                         <TypeIndicator>[{value.length} {value.length === 1 ? 'item' : 'items'}]</TypeIndicator>
-                        <CopyWrapper>
+                        <StyledCopyWrapper>
                             <CopyButton text={JSON.stringify(value, null, 2)} size="small" inline />
-                        </CopyWrapper>
+                        </StyledCopyWrapper>
                     </ExpandableRow>
                     {isExpanded && (
                         <TreeNode>
@@ -428,9 +420,9 @@ export function JsonTreeViewer({
                             {highlightText(key, searchQuery)}
                         </KeyBadge>
                         <TypeIndicator>{`{${keys.length} ${keys.length === 1 ? 'property' : 'properties'}}`}</TypeIndicator>
-                        <CopyWrapper>
+                        <StyledCopyWrapper>
                             <CopyButton text={JSON.stringify(value, null, 2)} size="small" inline />
-                        </CopyWrapper>
+                        </StyledCopyWrapper>
                     </ExpandableRow>
                     {isExpanded && (
                         <TreeNode>
@@ -453,9 +445,9 @@ export function JsonTreeViewer({
                     {highlightText(key, searchQuery)}
                 </KeyBadge>
                 <ValueText>{highlightText(String(value), searchQuery)}</ValueText>
-                <CopyWrapper>
+                <StyledCopyWrapper>
                     <CopyButton text={String(value)} size="small" inline />
-                </CopyWrapper>
+                </StyledCopyWrapper>
             </NodeRow>
         );
     };
