@@ -664,6 +664,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             {modeSwitcherContext?.isModeSwitcherEnabled && (
                                 <S.FieldInfoSection>
                                     <ModeSwitcher
+                                        fieldKey={field.key}
                                         value={modeSwitcherContext.inputMode}
                                         isRecordTypeField={modeSwitcherContext.isRecordTypeField}
                                         onChange={modeSwitcherContext.onModeChange}
