@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useRef } from "react";
 import { useEffect, useState, useMemo } from "react";
 import styled from '@emotion/styled';
 import { EditorFactory, FormField, InputMode, S } from "../..";
@@ -53,6 +53,7 @@ type FieldFactoryProps = {
 export const FieldFactory = (props: FieldFactoryProps) => {
     const [renderingEditors, setRenderingEditors] = useState<InputType[]>(null);
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
+    const isModeSelectionDirty = useRef<boolean>(false)
 
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
@@ -66,7 +67,9 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                 { fieldType: "RECORD_MAP_EXPRESSION", selected: true } as InputType,
                 { fieldType: "EXPRESSION", selected: false } as InputType
             ]);
-            setInputMode(InputMode.RECORD);
+            if (!isModeSelectionDirty.current) {
+                setInputMode(InputMode.RECORD);
+            }
             return;
         }
 
@@ -75,13 +78,15 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             : [props.field.types[0], props.field.types[props.field.types.length - 1]];
         setRenderingEditors(newRenderingTypes);
 
-        const selectedInputType = props.field.types.find(type => type.selected) || (
-            typeof props.field.value === 'string' && props.field.value.trim() !== ''
-                ? props.field.types[props.field.types.length - 1]
-                : props.field.types[0]
-        );
-        const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
-        setInputMode(initialInputMode);
+        if (!isModeSelectionDirty.current) {
+            const selectedInputType = props.field.types.find(type => type.selected) || (
+                typeof props.field.value === 'string' && props.field.value.trim() !== ''
+                    ? props.field.types[props.field.types.length - 1]
+                    : props.field.types[0]
+            );
+            const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
+            setInputMode(initialInputMode);
+        }
     }, [props.field, props.recordTypeFields]);
 
     const isModeSwitcherEnabled = useMemo(() => {
@@ -111,7 +116,10 @@ export const FieldFactory = (props: FieldFactoryProps) => {
                         //TODO: Should be removed once fields with type field is fixed to
                         // update the types property correctly when changing the type.
                         isRecordTypeField={!!props.recordTypeFields?.find(recordField => recordField.key === props.field.key)}
-                        onChange={(mode) => setInputMode(mode)}
+                        onChange={(mode) => {
+                            setInputMode(mode);
+                            isModeSelectionDirty.current = true;
+                        }}
                         types={props.field.types}
                     />
                 </S.FieldInfoSection>
