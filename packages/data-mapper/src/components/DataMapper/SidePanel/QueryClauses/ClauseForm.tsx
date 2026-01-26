@@ -54,7 +54,7 @@ export function ClauseForm(props: ClauseFormProps) {
         }
     };
 
-    const setClauses = async (clause: IntermediateClause, index: number = -1) => {
+    const setClauses = async (clause: IntermediateClause, index: number = clauses.length - 1) => {
         setIsSaving(true);
         await fillDefaults(clause);
         await addClauses(clause, targetField, true, index);

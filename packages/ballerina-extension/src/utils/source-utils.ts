@@ -107,6 +107,10 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
                     modificationRequests[fileUriString] = { filePath: fileUri.fsPath, modifications: modificationList };
                 }
             }
+            if (edits.length === 0) {
+                StateMachine.setReadyMode();
+                return [];
+            }
         }
 
         // Iterate through modificationRequests and apply modifications
@@ -222,7 +226,7 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
 // Notify webview unless a new TYPE artifact is created outside the type diagram view
 // */
 function checkAndNotifyWebview(
-    response: ProjectStructureArtifactResponse[], 
+    response: ProjectStructureArtifactResponse[],
     request: UpdateSourceCodeRequest,
     isChangeFromHelperPane?: boolean
 ) {

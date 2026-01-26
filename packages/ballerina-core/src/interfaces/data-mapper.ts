@@ -54,11 +54,11 @@ export enum InputCategory {
 }
 
 export enum IntermediateClauseType {
-    LET = "let",
     WHERE = "where",
-    FROM = "from",
+    LET = "let",
     ORDER_BY = "order-by",
     LIMIT = "limit",
+    FROM = "from",
     JOIN = "join",
     GROUP_BY = "group-by"
 }

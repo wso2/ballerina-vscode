@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -16,9 +16,21 @@
  * under the License.
  */
 
-import { InputMode } from "@wso2/ballerina-side-panel";
+import styled from "@emotion/styled";
 
-// Wraps a value in template interpolation syntax ${} if in template mode
-export const wrapInTemplateInterpolation = (value: string, inputMode: InputMode): string => {
-    return (inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? `\${${value}}` : value;
-};
+export const ExpressionContainer = styled.div`
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+`;
+
+export const FlexExpressionContainer = styled.div`
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+`;

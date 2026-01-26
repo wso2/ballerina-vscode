@@ -394,7 +394,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const effectiveTargetLineRange = targetLineRange ?? contextTargetLineRange;
     const effectiveFileName = fileName ?? contextFileName;
 
-    const initialFieldValue = useRef(field.value);
+    if (field.placeholder === 'object {}' || field.placeholder === '""') {
+        field.placeholder = '';
+    }
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
@@ -638,6 +640,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         >
             <S.Container
                 id={id}
+                data-testid={`ex-editor-${field.key}`}
                 onMouseEnter={() => setIsExpressionEditorHovered(true)}
                 onMouseLeave={() => setIsExpressionEditorHovered(false)}
             >
@@ -717,15 +720,28 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 }
                             };
                         } else if (patternType?.pattern) {
-                            // For non-array fields, use validate function instead of pattern rule
-                            // This ensures validation runs even on empty strings
+                            // For non-array fields, validate pattern only in TEXT mode with literal values
                             rules.validate = {
                                 pattern: (value: any) => {
                                     try {
+                                        const currentMode = inputMode;
+
+                                        // Only validate in TEXT mode
+                                        if (currentMode !== InputMode.TEXT) {
+                                            return true;
+                                        }
+
+                                        // Skip pattern validation if value contains interpolations (e.g., ${variable})
+                                        if (value && typeof value === 'string' && /\$\{[^}]*\}/.test(value)) {
+                                            return true;
+                                        }
+
+                                        // Validate pattern for TEXT mode with literal values
                                         const regex = new RegExp(patternType.pattern);
                                         if (!regex.test(value || '')) {
                                             return patternType.patternErrorMessage || "Invalid format";
                                         }
+
                                         return true;
                                     } catch (error) {
                                         console.error(`[${key}] Invalid regex pattern:`, patternType.pattern, error);
@@ -754,18 +770,20 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
                                     ariaLabel={field.label}
                                     placeholder={placeholder}
-                                    onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+                                    onChange={async (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => {
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
                                         // Use ref to get current mode (not stale closure value)
-                                        const rawValue = (inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                        const currentMode = inputMode;
+                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && 
+                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
-                                        if (getExpressionEditorDiagnostics && (inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE)) {
+                                        if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
                                             getExpressionEditorDiagnostics(
                                                 (required ?? !field.optional) || updatedValue !== '',
-                                                updatedValue,
+                                                typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue),
                                                 key,
                                                 getPropertyFromFormField(field)
                                             );
@@ -778,14 +796,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                                 : undefined;
                                         if (triggerCharacter) {
                                             await retrieveCompletions(
-                                                updatedValue,
+                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
                                                 getPropertyFromFormField(field),
                                                 updatedCursorPosition,
                                                 triggerCharacter
                                             );
                                         } else {
                                             await retrieveCompletions(
-                                                updatedValue,
+                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
                                                 getPropertyFromFormField(field),
                                                 updatedCursorPosition
                                             );
@@ -828,7 +846,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                             // clear field diagnostics
                                             setFormDiagnostics([]);
                                             // Use ref to get current mode (not stale closure value)
-                                            const rawValue = (inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                            const currentMode = inputMode;
+                                            const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
 
                                             onChange(rawValue);
                                             if (getExpressionEditorDiagnostics && (inputMode === InputMode.EXP || inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE)) {
