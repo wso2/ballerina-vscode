@@ -68,6 +68,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "FLAG") {
         return InputMode.BOOLEAN;
     }
+    if (inputType.fieldType === "RECORD_MAP_EXPRESSION") {
+        return InputMode.RECORD;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);

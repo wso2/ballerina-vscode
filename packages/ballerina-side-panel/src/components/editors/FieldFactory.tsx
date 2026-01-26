@@ -17,7 +17,7 @@
  */
 
 import React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styled from '@emotion/styled';
 import { EditorFactory, FormField, InputMode, S } from "../..";
 import { InputType } from "@wso2/ballerina-core";
@@ -55,38 +55,68 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
 
     useEffect(() => {
-        if (!props.field.types || props.field.types.length === 0) throw new Error("Field types are not defined");
-        const newRenderingTypes: InputType[] = [];
-        if (props.field.types.length === 1) newRenderingTypes.push(props.field.types[0]);
-        else {
-            newRenderingTypes.push(props.field.types[0]);
-            newRenderingTypes.push(props.field.types[props.field.types.length - 1]);
+        if (!props.field.types || props.field.types.length === 0) {
+            throw new Error("Field types are not defined");
         }
+
+        //TODO: Should be removed once fields with type field is fixed to
+        // update the types property correctly when changing the type.
+        if (props.recordTypeFields?.find(recordField => recordField.key === props.field.key)) {
+            setRenderingEditors([
+                { fieldType: "RECORD_MAP_EXPRESSION", selected: true } as InputType,
+                { fieldType: "EXPRESSION", selected: false } as InputType
+            ]);
+            setInputMode(InputMode.RECORD);
+            return;
+        }
+
+        const newRenderingTypes = props.field.types.length === 1
+            ? [props.field.types[0]]
+            : [props.field.types[0], props.field.types[props.field.types.length - 1]];
         setRenderingEditors(newRenderingTypes);
-    }, [props.field]);
+
+        const selectedInputType = props.field.types.find(type => type.selected) || (
+            typeof props.field.value === 'string' && props.field.value.trim() !== ''
+                ? props.field.types[props.field.types.length - 1]
+                : props.field.types[0]
+        );
+        const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
+        setInputMode(initialInputMode);
+    }, [props.field, props.recordTypeFields]);
+
+    const isModeSwitcherEnabled = useMemo(() => {
+        return renderingEditors && renderingEditors.length > 1;
+    }, [renderingEditors]);
+
+    const editorElements = useMemo(() => {
+        if (!renderingEditors) return null;
+
+        if (!isModeSwitcherEnabled) {
+            return <EditorFactory {...props} fieldInputType={renderingEditors[0]} />;
+
+        }
+        return renderingEditors.map((type, index) => {
+            if (inputMode !== getInputModeFromTypes(type)) return null;
+            return (<EditorFactory key={index} {...props} fieldInputType={type} />)
+        });
+    }, [renderingEditors, isModeSwitcherEnabled, inputMode, props]);
 
 
     return (
         <Container>
-            <S.FieldInfoSection>
-                <ModeSwitcher
-                    value={inputMode}
-                    isRecordTypeField={false}
-                    onChange={(mode) => setInputMode(mode)}
-                    types={props.field.types}
-                />
-            </S.FieldInfoSection>
-            {renderingEditors && renderingEditors.map((type) => {
-                if (inputMode === getInputModeFromTypes(type)) {
-                    return (
-                        <EditorFactory
-                            {...props}
-                            fieldInputType={type}
-                        />
-                    );
-                }
-                return null;
-            })}
+            {isModeSwitcherEnabled && (
+                <S.FieldInfoSection>
+                    <ModeSwitcher
+                        value={inputMode}
+                        //TODO: Should be removed once fields with type field is fixed to
+                        // update the types property correctly when changing the type.
+                        isRecordTypeField={!!props.recordTypeFields?.find(recordField => recordField.key === props.field.key)}
+                        onChange={(mode) => setInputMode(mode)}
+                        types={props.field.types}
+                    />
+                </S.FieldInfoSection>
+            )}
+            {editorElements}
         </Container>
     );
 };

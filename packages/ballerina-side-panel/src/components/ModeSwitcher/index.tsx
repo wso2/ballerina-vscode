@@ -24,6 +24,8 @@ import { InputType } from '@wso2/ballerina-core';
 
 interface ModeSwitcherProps {
     value: InputMode;
+    //TODO: Should be removed once fields with type field is fixed to
+    // update the types property correctly when changing the type.
     isRecordTypeField: boolean;
     onChange: (value: InputMode) => void;
     types: InputType[];
@@ -31,11 +33,15 @@ interface ModeSwitcherProps {
 
 const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, onChange, types }) => {
     const defaultMode = useMemo(
+        //TODO: Should only return the getDefaultExpressionMode(types) once fields with type field is fixed to
+        // update the types property correctly when changing the type.
         () => isRecordTypeField ? InputMode.RECORD : getDefaultExpressionMode(types),
         [types, isRecordTypeField]
     );
 
-     const secondaryMode = useMemo(
+    const secondaryMode = useMemo(
+        //TODO: Should only return the getSecondaryMode(types) once fields with type field is fixed to
+        // update the types property correctly when changing the type.
         () => isRecordTypeField ? InputMode.EXP : getSecondaryMode(types),
         [types, isRecordTypeField]
     );
@@ -46,11 +52,11 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
 
     return (
         <SwitchWrapper>
-                <Slider checked={isChecked}>
-                    <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
-                    <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
-                </Slider>
-            </SwitchWrapper>
+            <Slider checked={isChecked}>
+                <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
+                <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
+            </Slider>
+        </SwitchWrapper>
     );
 };
 
