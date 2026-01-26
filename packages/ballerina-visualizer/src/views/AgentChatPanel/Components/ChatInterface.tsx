@@ -518,8 +518,7 @@ const ChatInterface: React.FC = () => {
                                     </ProfilePic>
                                 )}
                             </MessageContainer>
-                            {/* Show "View All Logs" link below message if tracing is enabled */}
-                            {!msg.isUser && isTracingEnabled && (
+                            {!msg.isUser && isTracingEnabled && msg.traceId && (
                                 <MessageActionsContainer>
                                     <ShowLogsButton onClick={() => handleShowLogs(idx)}>
                                         View All Logs

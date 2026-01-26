@@ -938,10 +938,14 @@ export function SpanTree({
         const hasAnyChildren = visibleAIChildren.length > 0 || visibleGroups.length > 0;
         const isExpanded = searchQuery ? true : expandedSpans.has(span.spanId);
 
+        const handleToggle = (e: React.MouseEvent) => {
+            e.stopPropagation();
+            if (hasAnyChildren) onToggleSpanExpansion(span.spanId);
+        };
         return (
             <TreeNodeContainer key={span.spanId} isLast={isLastChild}>
-                {renderAISpanContent(span, isSelected, visibleAIChildren.length > 0, isExpanded, () => { }, !isRoot)}
-                {hasAnyChildren && (
+                {renderAISpanContent(span, isSelected, visibleAIChildren.length > 0, isExpanded, handleToggle, !isRoot)}
+                {hasAnyChildren && isExpanded && (
                     <TreeNodeChildren>
                         {visibleGroups.length > 0 && (
                             <AdvancedSpanGroup>

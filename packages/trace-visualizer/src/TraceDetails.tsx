@@ -243,6 +243,80 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
     const hasAISpans = totalSpanCounts.aiCount > 0;
     const isAdvancedMode = !isAgentChat || !hasAISpans || userAdvancedModePreference;
 
+    // Helper to get immediate AI children of a span (defined early for reuse)
+    const getAIChildSpans = (spanId: string): SpanData[] => {
+        const parentSpan = traceData.spans.find(s => s.spanId === spanId);
+        if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) return [];
+
+        const parentStart = new Date(parentSpan.startTime).getTime();
+        const parentEnd = new Date(parentSpan.endTime).getTime();
+        const aiSpans = traceData.spans.filter(span =>
+            span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
+        );
+
+        const children: SpanData[] = [];
+
+        aiSpans.forEach(potentialChild => {
+            if (potentialChild.spanId === spanId) return;
+            if (!potentialChild.startTime || !potentialChild.endTime) return;
+            const childStart = new Date(potentialChild.startTime).getTime();
+            const childEnd = new Date(potentialChild.endTime).getTime();
+            const parentContainsChild = parentStart <= childStart && parentEnd >= childEnd &&
+                (parentStart < childStart || parentEnd > childEnd);
+
+            if (!parentContainsChild) return;
+
+            let hasIntermediateParent = false;
+            aiSpans.forEach(intermediateSpan => {
+                if (intermediateSpan.spanId === spanId || intermediateSpan.spanId === potentialChild.spanId) return;
+                if (!intermediateSpan.startTime || !intermediateSpan.endTime) return;
+                const intStart = new Date(intermediateSpan.startTime).getTime();
+                const intEnd = new Date(intermediateSpan.endTime).getTime();
+                const intermediateContainsChild = intStart <= childStart && intEnd >= childEnd &&
+                    (intStart < childStart || intEnd > childEnd);
+                const parentContainsIntermediate = parentStart <= intStart && parentEnd >= intEnd &&
+                    (parentStart < intStart || parentEnd > intEnd);
+
+                if (intermediateContainsChild && parentContainsIntermediate) {
+                    hasIntermediateParent = true;
+                }
+            });
+
+            if (!hasIntermediateParent) children.push(potentialChild);
+        });
+
+        return children.sort((a, b) => {
+            const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
+            const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
+            return aTime - bTime;
+        });
+    };
+
+    // Auto-expand invoke agent spans and their immediate children (1 level) by default
+    const hasAutoExpandedAIRef = useRef<boolean>(false);
+    useEffect(() => {
+        if (!isAdvancedMode && !hasAutoExpandedAIRef.current && expandedSpans.size === 0) {
+            const spansToExpand = new Set<string>();
+
+            // Find all invoke agent spans
+            const invokeSpans = traceData.spans.filter(span => {
+                const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
+                return operationName.startsWith('invoke_agent');
+            });
+
+            // Expand each invoke span and its immediate children
+            invokeSpans.forEach(span => {
+                spansToExpand.add(span.spanId);
+                // Reuse existing getAIChildSpans logic to find immediate children
+                const children = getAIChildSpans(span.spanId);
+                children.forEach(child => spansToExpand.add(child.spanId));
+            });
+
+            setExpandedSpans(spansToExpand);
+            hasAutoExpandedAIRef.current = true;
+        }
+    }, [isAdvancedMode, traceData.spans, expandedSpans.size]);
+
     const handleToggleAll = () => {
         const getParentsForCurrentView = () => {
             const parentIds = new Set<string>();
@@ -470,36 +544,27 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
     // Auto-focus on specific span if focusSpanId is provided
     useEffect(() => {
-        if (focusSpanId && traceData.spans.length > 0) {
-            if (hasFocusedRef.current) {
-                return;
-            }
-            hasFocusedRef.current = true;
-
-            // Expand all parent spans to make the focused span visible FIRST
-            const span = traceData.spans.find(s => s.spanId === focusSpanId);
-            if (!span) {
-                return;
-            }
-
-            const newExpanded = new Set(expandedSpans);
-            let currentParentId = span.parentSpanId;
-
-            while (currentParentId && currentParentId !== '0000000000000000') {
-                const parentSpan = traceData.spans.find(s => s.spanId === currentParentId);
-                if (parentSpan) {
-                    newExpanded.add(currentParentId);
-                    currentParentId = parentSpan.parentSpanId;
-                } else {
-                    break;
+        if (focusSpanId && traceData.spans.length > 0 && !hasFocusedRef.current) {
+            setExpandedSpans(prev => {
+                // Expand all parent spans to make the focused span visible FIRST
+                const span = traceData.spans.find(s => s.spanId === focusSpanId);
+                if (!span) {
+                    return prev;
                 }
-            }
-
-            // Set expanded state and select span
-            setExpandedSpans(newExpanded);
+                const newExpanded = new Set(prev);
+                let currentParentId = span.parentSpanId;
+                while (currentParentId && currentParentId !== '0000000000000000') {
+                    const parentSpan = traceData.spans.find(s => s.spanId === currentParentId);
+                    if (parentSpan) {
+                        newExpanded.add(currentParentId);
+                        currentParentId = parentSpan.parentSpanId;
+                    } else {
+                        break;
+                    }
+                }
+                return newExpanded;
+            });
             setSelectedSpanId(focusSpanId);
-
-            // Scroll to the focused span after rendering
             setTimeout(() => {
                 const spanElement = document.querySelector(`[data-span-id="${focusSpanId}"]`);
                 if (spanElement) {
@@ -508,8 +573,9 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                     console.error('[TraceDetails] Could not find span element to scroll to');
                 }
             }, 500);
+            hasFocusedRef.current = true;
         }
-    }, [focusSpanId]);
+    }, [focusSpanId, traceData.spans.length]);
 
     const selectedSpan = selectedSpanId ? spanMap.get(selectedSpanId) : null;
 
@@ -659,57 +725,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
         });
         return { totalInputTokens: inTotal, totalOutputTokens: outTotal };
     }, [traceData.spans]);
-
-    const getAIChildSpans = (spanId: string): SpanData[] => {
-        // Simple duplication of the logic or move to utils.
-        // For now, keeping it consistent with original file structure where logic resided here.
-        const parentSpan = traceData.spans.find(s => s.spanId === spanId);
-        if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) return [];
-
-        const parentStart = new Date(parentSpan.startTime).getTime();
-        const parentEnd = new Date(parentSpan.endTime).getTime();
-        const aiSpans = traceData.spans.filter(span =>
-            span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
-        );
-
-        const children: SpanData[] = [];
-
-        aiSpans.forEach(potentialChild => {
-            if (potentialChild.spanId === spanId) return;
-            if (!potentialChild.startTime || !potentialChild.endTime) return;
-            const childStart = new Date(potentialChild.startTime).getTime();
-            const childEnd = new Date(potentialChild.endTime).getTime();
-            const parentContainsChild = parentStart <= childStart && parentEnd >= childEnd &&
-                (parentStart < childStart || parentEnd > childEnd);
-
-            if (!parentContainsChild) return;
-
-            let hasIntermediateParent = false;
-            aiSpans.forEach(intermediateSpan => {
-                if (intermediateSpan.spanId === spanId || intermediateSpan.spanId === potentialChild.spanId) return;
-                if (!intermediateSpan.startTime || !intermediateSpan.endTime) return;
-                const intStart = new Date(intermediateSpan.startTime).getTime();
-                const intEnd = new Date(intermediateSpan.endTime).getTime();
-                const intermediateContainsChild = intStart <= childStart && intEnd >= childEnd &&
-                    (intStart < childStart || intEnd > childEnd);
-                const parentContainsIntermediate = parentStart <= intStart && parentEnd >= intEnd &&
-                    (parentStart < intStart || parentEnd > intEnd);
-
-                if (intermediateContainsChild && parentContainsIntermediate) {
-                    hasIntermediateParent = true;
-                }
-            });
-
-            if (!hasIntermediateParent) children.push(potentialChild);
-        });
-
-        return children.sort((a, b) => {
-            const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
-            const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
-            return aTime - bTime;
-        });
-    };
-
 
     // Render Trace Logs view
     const handleExportTrace = () => {
