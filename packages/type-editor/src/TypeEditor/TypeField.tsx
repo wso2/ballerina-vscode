@@ -222,6 +222,11 @@ export const TypeField = forwardRef<HTMLInputElement, TypeFieldProps>((props, re
         };
     }, [typeFieldRef.current]);
 
+    /* Validate on initial mount to catch empty fields and existing errors */
+    useEffect(() => {
+        validateType(memberName);
+    }, []);
+
     return (
         <>
             <TextField
