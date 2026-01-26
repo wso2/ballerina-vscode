@@ -43,6 +43,7 @@ import {
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
+import { useModeSwitcherContext } from "./ModeSwitcherContext";
 import ModeSwitcher from '../ModeSwitcher';
 import { ExpressionField, getEditorConfiguration } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
@@ -401,7 +402,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const exprRef = useRef<FormExpressionEditorRef>(null);
     const anchorRef = useRef<HTMLDivElement>(null);
 
-    const { nodeInfo } = useFormContext();
+    const modeSwitcherContext = useModeSwitcherContext();
 
     const inputMode = getInputModeFromTypes(fieldInputType);
 
@@ -660,16 +661,16 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     {defaultValueText}
                                 </S.EditorMdContainer>
                             </div>
-                            {/* <S.FieldInfoSection>
-                                {isModeSwitcherAvailable() && (
+                            {modeSwitcherContext?.isModeSwitcherEnabled && (
+                                <S.FieldInfoSection>
                                     <ModeSwitcher
-                                        value={inputMode}
-                                        isRecordTypeField={!!recordTypeField}
-                                        onChange={handleModeChange}
-                                        types={field.types}
+                                        value={modeSwitcherContext.inputMode}
+                                        isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                                        onChange={modeSwitcherContext.onModeChange}
+                                        types={modeSwitcherContext.types}
                                     />
-                                )}
-                            </S.FieldInfoSection> */}
+                                </S.FieldInfoSection>
+                            )}
                         </div>
                     </S.Header>
                 )}
