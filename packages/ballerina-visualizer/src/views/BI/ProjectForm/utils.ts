@@ -45,6 +45,10 @@ export const validatePackageName = (name: string, integrationName: string): stri
         return "Package name cannot have consecutive dots";
     }
 
+    if (name.startsWith("_")) {
+        return "Package name cannot start with an underscore";
+    }
+
     if (name.endsWith("_")) {
         return "Package name cannot end with an underscore";
     }
