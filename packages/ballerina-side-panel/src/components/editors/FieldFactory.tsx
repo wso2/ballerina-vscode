@@ -17,14 +17,14 @@
  */
 
 import React, { useRef } from "react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
-import { EditorFactory, FormField, InputMode, S } from "../..";
+import { EditorFactory, FormField, InputMode } from "../..";
 import { InputType } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
-import ModeSwitcher from "../ModeSwitcher";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
+import { ModeSwitcherProvider } from "./ModeSwitcherContext";
 
 const Container = styled.div`
     width: 100%;
@@ -93,6 +93,15 @@ export const FieldFactory = (props: FieldFactoryProps) => {
         return renderingEditors && renderingEditors.length > 1;
     }, [renderingEditors]);
 
+    const isRecordTypeField = useMemo(() => {
+        return !!props.recordTypeFields?.find(recordField => recordField.key === props.field.key);
+    }, [props.recordTypeFields, props.field.key]);
+
+    const handleModeChange = useCallback((mode: InputMode) => {
+        setInputMode(mode);
+        isModeSelectionDirty.current = true;
+    }, []);
+
     const editorElements = useMemo(() => {
         if (!renderingEditors) return null;
 
@@ -108,23 +117,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
 
     return (
-        <Container>
-            {isModeSwitcherEnabled && (
-                <S.FieldInfoSection>
-                    <ModeSwitcher
-                        value={inputMode}
-                        //TODO: Should be removed once fields with type field is fixed to
-                        // update the types property correctly when changing the type.
-                        isRecordTypeField={!!props.recordTypeFields?.find(recordField => recordField.key === props.field.key)}
-                        onChange={(mode) => {
-                            setInputMode(mode);
-                            isModeSelectionDirty.current = true;
-                        }}
-                        types={props.field.types}
-                    />
-                </S.FieldInfoSection>
-            )}
-            {editorElements}
-        </Container>
+        <ModeSwitcherProvider
+            inputMode={inputMode}
+            onModeChange={handleModeChange}
+            types={props.field.types}
+            isRecordTypeField={isRecordTypeField}
+            isModeSwitcherEnabled={isModeSwitcherEnabled}
+        >
+            <Container>
+                {editorElements}
+            </Container>
+        </ModeSwitcherProvider>
     );
 };
