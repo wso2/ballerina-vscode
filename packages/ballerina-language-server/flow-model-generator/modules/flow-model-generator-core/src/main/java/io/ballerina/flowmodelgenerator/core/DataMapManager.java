@@ -265,7 +265,8 @@ public class DataMapManager {
             symbols = symbols.stream()
                     .filter(symbol -> !symbol.getName().orElse("").equals(getVariableName(node)))
                     .collect(Collectors.toList());
-            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols);
+            List<Symbol> moduleSymbols = semanticModel.moduleSymbols();
+            inputPorts = getQueryInputPorts(symbols, enumPorts, references, typeDefSymbols, moduleSymbols);
             inputPorts.sort(Comparator.comparing(mt -> mt.name));
 
             List<String> inputs = new ArrayList<>();
@@ -1041,7 +1042,8 @@ public class DataMapManager {
     }
 
     private List<MappingPort> getQueryInputPorts(List<Symbol> visibleSymbols, List<MappingPort> enumPorts,
-                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols) {
+                                                 Map<String, MappingPort> references, List<Symbol> typeDefSymbols,
+                                                    List<Symbol> moduleSymbols) {
         List<MappingPort> mappingPorts = new ArrayList<>();
         for (Symbol symbol : visibleSymbols) {
             SymbolKind kind = symbol.kind();
@@ -1066,7 +1068,7 @@ public class DataMapManager {
                 if (varSymbol.qualifiers().contains(Qualifier.CONFIGURABLE)) {
                     refMappingPort.category = "configurable";
                 } else {
-                    refMappingPort.category = "variable";
+                    refMappingPort.category = moduleSymbols.contains(varSymbol) ? "module-variable" : "local-variable";
                 }
                 mappingPorts.add(refMappingPort);
             } else if (kind == SymbolKind.PARAMETER) {

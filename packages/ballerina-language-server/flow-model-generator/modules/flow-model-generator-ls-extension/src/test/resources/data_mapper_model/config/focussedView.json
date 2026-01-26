@@ -38,7 +38,7 @@
         "displayName": "subMapping",
         "typeName": "Outer",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-387454449"
       },
       {
