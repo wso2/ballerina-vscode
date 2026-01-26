@@ -19,7 +19,7 @@
 import { useEffect, useState } from 'react';
 import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
 
@@ -211,7 +211,7 @@ export function FTPForm(props: FTPFormProps) {
         return baseType;
     }
 
-    const handleTypeCreated = (type: Type | string) => {
+    const handleTypeCreated = (type: Type | string, imports?: Imports) => {
         // When a type is created, set it as the payload type for the DATA_BINDING parameter
         const payloadParam = functionModel.parameters?.find(param => param.kind === "DATA_BINDING");
         if (payloadParam) {
@@ -221,13 +221,17 @@ export function FTPForm(props: FTPFormProps) {
             const updatedParameters = functionModel.parameters.map(param => {
                 // Enable DATA_BINDING parameter with new type
                 if (param.kind === "DATA_BINDING") {
+                    const updatedType = {
+                        ...param.type,
+                        value: selectType(typeValue, functionModel.properties.stream?.enabled)
+                    };
+                    if (imports) {
+                        updatedType.imports = imports;
+                    }
                     return {
                         ...param,
                         name: { ...param.name, value: "content" },
-                        type: {
-                            ...param.type,
-                            value: selectType(typeValue, functionModel.properties.stream?.enabled)
-                        },
+                        type: updatedType,
                         enabled: true
                     };
                 }
