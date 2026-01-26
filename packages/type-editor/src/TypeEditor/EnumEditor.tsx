@@ -235,7 +235,7 @@ export function EnumEditor({ type, onChange, onValidationError }: EnumEditorProp
                                 onChange={(value) => updateMember(index, value)}
                                 placeholder="Enum member name"
                                 rootType={type}
-                                autoFocus={index === 0}
+                                autoFocus={true}
                                 onValidationError={(hasError) => onFieldValidation(index, hasError)}
                             />
                         </div>
