@@ -429,13 +429,13 @@ public final class HttpUtil {
         TypeSymbol xmlType = typeBuilder.XML_TYPE.build();
 
         anydataResponses.forEach(type -> {
-            HttpResponse.Builder builder = new HttpResponse.Builder()
+            HttpResponse response = new HttpResponse.Builder()
                     .statusCode(String.valueOf(defaultStatusCode), true)
                     .body(getTypeName(type, currentModuleName), true)
-                    .mediaType(deriveMediaType(type, stringType, byteArrayType, xmlType), true);
-            HttpResponse response = builder.build();
-            response.setEnabled(true);
-            response.setEditable(true);
+                    .mediaType(deriveMediaType(type, stringType, byteArrayType, xmlType), true)
+                    .editable(true)
+                    .enabled(true)
+                    .build();
             responses.add(response);
         });
 
@@ -608,33 +608,34 @@ public final class HttpUtil {
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         String signature = statusCodeResponseType.signature().trim();
         if (signature.startsWith("record {") && signature.endsWith("}")) {
-            HttpResponse httpResponse = buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName,
-                    statusCode, null);
-            httpResponse.setEditable(true);
-            return httpResponse;
+            return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode,
+                    null, true);
         }
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         if (typeName.startsWith("http:")) {
             String type = HTTP_CODES_DES.get(statusCode);
             if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
-                HttpResponse.Builder builder = new HttpResponse.Builder()
+                return new HttpResponse.Builder()
                         .statusCode(statusCode, true)
                         .type(typeName, true)
                         .body("", true)
                         .name("", true)
                         .headers("", true)
-                        .mediaType("", true);
-                return builder.build();
+                        .mediaType("", true)
+                        .enabled(true)
+                        .editable(true)
+                        .build();
             }
         }
 
-        return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, typeName);
+        return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, typeName, false);
     }
 
     private static HttpResponse buildHttpResponseFromTypeSymbol(TypeSymbol statusCodeResponseType,
                                                                 String currentModuleName,
                                                                 String statusCode,
-                                                                String typeName) {
+                                                                String typeName,
+                                                                boolean editable) {
         List<Object> headers = new ArrayList<>();
         String body = "anydata";
         String mediaType = "";
@@ -659,14 +660,15 @@ public final class HttpUtil {
                 }
             }
         }
-        HttpResponse.Builder builder = new HttpResponse.Builder()
-                .statusCode(statusCode, false)
-                .type(typeName, false)
-                .body(body, false)
-                .headers(headers, false)
-                .name("", false)
-                .mediaType(mediaType, false);
-        return builder.build();
+        return new HttpResponse.Builder()
+                .statusCode(statusCode, editable)
+                .type(typeName, editable)
+                .body(body, editable)
+                .headers(headers, editable)
+                .name("", editable)
+                .mediaType(mediaType, editable)
+                .editable(editable)
+                .build();
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {

@@ -477,7 +477,7 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         },
         {
@@ -566,7 +566,7 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       ],

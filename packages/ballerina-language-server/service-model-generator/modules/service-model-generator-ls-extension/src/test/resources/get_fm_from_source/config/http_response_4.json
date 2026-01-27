@@ -476,7 +476,7 @@
             "optional": true,
             "advanced": false
           },
-          "enabled": true,
+          "enabled": false,
           "editable": false,
           "advanced": false
         },
@@ -565,7 +565,7 @@
             "optional": true,
             "advanced": false
           },
-          "enabled": true,
+          "enabled": false,
           "editable": false,
           "advanced": false
         },
@@ -645,8 +645,8 @@
             "value": [
               {
                 "type": "string",
-                "optional": false,
-                "name": "x\\-path"
+                "name": "x\\-path",
+                "optional": false
               }
             ],
             "types": [
@@ -660,7 +660,7 @@
             "optional": true,
             "advanced": false
           },
-          "enabled": true,
+          "enabled": false,
           "editable": false,
           "advanced": false
         }
