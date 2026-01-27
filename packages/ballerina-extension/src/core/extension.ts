@@ -2379,7 +2379,6 @@ export class BallerinaExtension {
         } catch (error) {
             // No need to throw. This is a non-critical check.
             debug(`[MULTI_BAL_CHECK] Error checking for multiple installations: ${error}`);
-
         }
     }
 
