@@ -34,6 +34,17 @@ import { RPCLayer } from '../../../RPCLayer';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import * as path from 'path';
 import { approvalViewManager } from '../state/ApprovalViewManager';
+import {
+    sendTelemetryEvent,
+    sendTelemetryException,
+    TM_EVENT_BALLERINA_AI_GENERATION_COMPLETED,
+    TM_EVENT_BALLERINA_AI_GENERATION_ABORTED,
+    TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
+    CMP_BALLERINA_AI_GENERATION
+} from "../../telemetry";
+import { extension } from "../../../BalExtensionContext";
+import { getProjectMetrics } from "../../telemetry/common/project-metrics";
+import { workspace } from 'vscode';
 
 /**
  * Determines which packages have been affected by analyzing modified files
@@ -136,6 +147,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const tempProjectPath = this.config.executionContext.tempProjectPath!;
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
+        const generationStartTime = Date.now();
 
         try {
             // 1. Get project sources from temp directory
@@ -194,7 +206,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             });
 
             // Stream LLM response
-            const { fullStream, response } = streamText({
+            const { fullStream, response, usage } = streamText({
                 model: await getAnthropicClient(ANTHROPIC_SONNET_4),
                 maxOutputTokens: 8192,
                 temperature: 0,
@@ -216,7 +228,9 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 messageId: this.config.generationId,
                 userMessageContent,
                 response,
+                usage,
                 ctx: this.config.executionContext,
+                generationStartTime,
             };
 
             // Process stream events - NATIVE V6 PATTERN
@@ -271,6 +285,22 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         console.log("[AgentExecutor] Clearing review state due to abort");
                         chatStateStorage.declineAllReviews(workspaceId, threadId);
                     }
+
+                    // Send telemetry for generation abort
+                    const abortTime = Date.now();
+                    sendTelemetryEvent(
+                        extension.ballerinaExtInstance,
+                        TM_EVENT_BALLERINA_AI_GENERATION_ABORTED,
+                        CMP_BALLERINA_AI_GENERATION,
+                        {
+                            projectId: this.config.executionContext.projectPath || 'unknown',
+                            messageId: this.config.generationId,
+                            generationStartTime: generationStartTime.toString(),
+                            abortTime: abortTime.toString(),
+                            durationMs: (abortTime - generationStartTime).toString(),
+                            modifiedFilesCount: modifiedFiles.length.toString(),
+                        }
+                    );
 
                     // Note: Abort event is sent by base class handleExecutionError()
                 }
@@ -366,6 +396,25 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             });
         }
 
+        // Send telemetry for generation failed
+        const errorTime = Date.now();
+        sendTelemetryException(
+            extension.ballerinaExtInstance,
+            error,
+            CMP_BALLERINA_AI_GENERATION,
+            {
+                event: TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
+                projectId: context.ctx.projectPath || 'unknown',
+                messageId: context.messageId,
+                errorMessage: getErrorMessage(error),
+                errorType: error.name || 'Unknown',
+                errorCode: (error as any)?.code || 'N/A',
+                generationStartTime: context.generationStartTime.toString(),
+                errorTime: errorTime.toString(),
+                durationMs: (errorTime - context.generationStartTime).toString(),
+            }
+        );
+
         context.eventHandler({
             type: "error",
             content: getErrorMessage(error)
@@ -386,6 +435,41 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             type: "diagnostics",
             diagnostics: finalDiagnostics.diagnostics
         });
+
+        // Send telemetry for generation completion
+        const generationEndTime = Date.now();
+        const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
+        const finalProjectMetrics = await getProjectMetrics(tempProjectPath);
+
+        // Extract final error codes for telemetry
+        const finalErrorCodes = finalDiagnostics.diagnostics?.map(d => d.code || 'unknown') || [];
+
+        // Get token usage from streamText result
+        const tokenUsage = await context.usage;
+        const inputTokens = tokenUsage.inputTokens || 0;
+        const outputTokens = tokenUsage.outputTokens || 0;
+        const totalTokens = tokenUsage.outputTokens || 0;
+
+        sendTelemetryEvent(
+            extension.ballerinaExtInstance,
+            TM_EVENT_BALLERINA_AI_GENERATION_COMPLETED,
+            CMP_BALLERINA_AI_GENERATION,
+            {
+                projectId: context.ctx.projectPath || 'unknown',
+                messageId: context.messageId,
+                modifiedFilesCount: context.modifiedFiles.length.toString(),
+                generationStartTime: context.generationStartTime.toString(),
+                generationEndTime: generationEndTime.toString(),
+                durationMs: (generationEndTime - context.generationStartTime).toString(),
+                isPlanMode: isPlanModeEnabled.toString(),
+                finalCompilationErrorCodes: finalErrorCodes.join(','),
+                outputFileCount: finalProjectMetrics.fileCount.toString(),
+                outputLineCount: finalProjectMetrics.lineCount.toString(),
+                inputTokens: inputTokens.toString(),
+                outputTokens: outputTokens.toString(),
+                totalTokens: totalTokens.toString(),
+            }
+        );
 
         // Update chat state storage
         await this.updateChatState(context, assistantMessages, tempProjectPath);
