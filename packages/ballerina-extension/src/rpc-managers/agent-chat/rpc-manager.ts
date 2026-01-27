@@ -296,7 +296,7 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
                     // Check if the input message matches
                     const inputMatches = inputMessages.includes(userMessage);
-                    if (inputMatches) return trace;
+                    if (inputMatches) { return trace; }
                 }
             }
         }
