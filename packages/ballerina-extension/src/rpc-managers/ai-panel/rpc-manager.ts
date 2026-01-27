@@ -164,7 +164,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
 
         // Don't show alert in Devant environment
-        const isInDevant = !!process.env.CLOUD_STS_TOKEN; 
+        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
         if (isInDevant) {
             return false;
         }
