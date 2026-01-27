@@ -144,7 +144,7 @@ public class Function {
                 "Resource Configuration",
                 "Configuration related to the resource function.",
                 "ResourceConfig",
-                null, null, null
+                null, null, null, null
         );
 
         Value annotationValue = createAnnotation(annotation);

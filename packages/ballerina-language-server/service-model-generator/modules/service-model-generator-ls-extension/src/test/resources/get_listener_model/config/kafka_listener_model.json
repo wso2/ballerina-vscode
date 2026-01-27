@@ -1325,6 +1325,7 @@
                 {
                   "type": "SecureSocket",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -1361,6 +1362,7 @@
                 {
                   "type": "AuthenticationConfiguration",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
