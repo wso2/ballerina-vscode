@@ -40,6 +40,7 @@ import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
+import { extension } from "../BalExtensionContext";
 
 export const README_FILE = "readme.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -197,6 +198,27 @@ function resolveWorkspacePath(basePath: string, workspaceName: string): string {
 }
 
 /**
+ * Extracts the Ballerina version number from the ballerinaVersion string
+ * @returns The version number (e.g., "2201.13.0") or undefined if not available
+ */
+function getBallerinaDistribution(): string | undefined {
+    try {
+        const ballerinaVersion = extension.ballerinaExtInstance?.ballerinaVersion;
+        if (!ballerinaVersion) {
+            return undefined;
+        }
+        
+        // Extract version number from strings like "Ballerina 2201.13.0" or "2201.13.0"
+        // Match pattern: <numbers>.<numbers>.<numbers>
+        const versionMatch = ballerinaVersion.match(/(\d+\.\d+\.\d+)/);
+        return versionMatch ? versionMatch[1] : undefined;
+    } catch (error) {
+        debug(`Failed to extract Ballerina distribution version: ${error}`);
+        return undefined;
+    }
+}
+
+/**
  * Orchestrates the setup of project information
  * @param projectRequest - The project request containing all necessary information
  * @returns Processed project information ready for use
@@ -251,12 +273,18 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
 
     const EMPTY = "\n";
 
+    // Get the Ballerina distribution version
+    const distribution = getBallerinaDistribution();
+    
+    // Build the distribution line if version is available
+    const distributionLine = distribution ? `distribution = "${distribution}"\n` : '';
+
     const ballerinaTomlContent = `
 [package]
 org = "${finalOrgName}"
 name = "${finalPackageName}"
 version = "${finalVersion}"
-title = "${integrationName}"
+${distributionLine}title = "${integrationName}"
 
 [build-options]
 sticky = true
@@ -484,7 +512,12 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
-            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
+            
+            // Get the Ballerina distribution version
+            const distribution = getBallerinaDistribution();
+            const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
+            
+            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
         }
 
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
