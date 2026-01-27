@@ -907,14 +907,16 @@ public final class DatabindUtil {
             }
         }
 
-        importsForTypeDef.values().forEach(moduleId -> {
-            String[] importParts = moduleId.split("/");
-            String orgName = importParts[0];
-            String moduleName = importParts[1].split(":")[0];
-            if (!importExists(modulePartNode, orgName, moduleName)) {
-                imports.add(getImportStmt(orgName, moduleName));
-            }
-        });
+        if (importsForTypeDef != null) {
+            importsForTypeDef.values().forEach(moduleId -> {
+                String[] importParts = moduleId.split("/");
+                String orgName = importParts[0];
+                String moduleName = importParts[1].split(":")[0];
+                if (!importExists(modulePartNode, orgName, moduleName)) {
+                    imports.add(getImportStmt(orgName, moduleName));
+                }
+            });
+        }
 
         return imports;
     }
