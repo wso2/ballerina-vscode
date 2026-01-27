@@ -55,6 +55,10 @@ export const validatePackageName = (name: string, integrationName: string): stri
         return "Package name cannot end with a dot";
     }
 
+    if (name.length > 256) {
+        return "Package name cannot exceed 256 characters";
+    }
+
     return null; // No error
 };
 
