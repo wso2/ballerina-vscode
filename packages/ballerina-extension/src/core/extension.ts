@@ -2345,7 +2345,7 @@ export class BallerinaExtension {
                 }
 
                 if (installationDirs.size >= 2) {
-                    const warningMessage = `[WARNING] Multiple Ballerina installations detected in PATH. This may cause unpredictable behavior.`;
+                    const warningMessage = `[WARNING] Multiple Ballerina installations detected. This may cause unpredictable behavior.`;
                     log(warningMessage);
                     log(`[WARNING] Detected Ballerina paths:`);
                     let index = 1;
