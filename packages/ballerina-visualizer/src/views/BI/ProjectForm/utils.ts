@@ -79,7 +79,7 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspac
 };
 
 export const sanitizePackageName = (name: string): string => {
-    // Allow dots but sanitize other characters, then convert consecutive dots/underscores to single ones
+    // Allow dots/underscores but sanitize other characters, then convert consecutive dots/underscores to single ones
     return name
         .replace(/[^a-z0-9._]/gi, "_")
         .toLowerCase()
