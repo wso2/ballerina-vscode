@@ -29,7 +29,7 @@
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-rpc-client": "workspace:*",
         "@wso2/ui-toolkit": "workspace:*",
-        "lodash": "~4.17.21",
+        "lodash": "4.17.23",
         "markdown-it": "~14.1.0",
         "prosemirror-commands": "~1.7.1",
         "prosemirror-gapcursor": "~1.4.0",
