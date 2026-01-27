@@ -2349,11 +2349,25 @@ export class BallerinaExtension {
                     log(warningMessage);
                     log(`[WARNING] Detected Ballerina paths:`);
                     let index = 1;
+                    const pathsList: string[] = [];
                     installationDirs.forEach((p) => {
                         log(`[WARNING] ${index}. ${p}`);
+                        pathsList.push(`${index}. ${p}`);
                         index++;
                     });
                     log(`[WARNING] Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.`);
+
+                    // Show popup notification to user
+                    const viewDetails = 'View Details';
+                    window.showWarningMessage(
+                        'Multiple Ballerina installations detected in PATH. This may cause unpredictable behavior.',
+                        viewDetails
+                    ).then((selection) => {
+                        if (selection === viewDetails) {
+                            const detailMessage = `Detected Ballerina installations:\n${pathsList.join('\n')}\n\nConsider removing duplicate installations or adjusting your PATH to avoid version conflicts.`;
+                            window.showWarningMessage(detailMessage, { modal: true });
+                        }
+                    });
                 } else {
                     debug(`[MULTI_BAL_CHECK] Multiple paths found but they point to the same installation directory`);
                 }
