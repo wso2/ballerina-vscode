@@ -79,6 +79,7 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { RPCLayer } from '../../RPCLayer';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
+import { WI_EXTENSION_ID } from "../../features/ai/constants";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -157,7 +158,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async showSignInAlert(): Promise<boolean> {
         // Don't show alert in WI environment (WSO2 Integrator extension is installed)
-        const isInWI = !!extensions.getExtension('wso2.wso2-integrator');
+        const isInWI = !!extensions.getExtension(WI_EXTENSION_ID);
         if (isInWI) {
             return false;
         }
