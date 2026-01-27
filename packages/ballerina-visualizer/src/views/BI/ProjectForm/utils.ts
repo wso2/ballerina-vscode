@@ -35,16 +35,16 @@ export const validatePackageName = (name: string, integrationName: string): stri
         return "Package name can only contain lowercase letters, numbers, underscores, and dots";
     }
 
+    if (name.startsWith("_")) {
+        return "Package name cannot start with an underscore";
+    }
+
     if (/__/.test(name)) {
         return "Package name cannot have consecutive underscores";
     }
 
     if (/\.{2,}/.test(name)) {
         return "Package name cannot have consecutive dots";
-    }
-
-    if (name.startsWith("_")) {
-        return "Package name cannot start with an underscore";
     }
 
     if (name.endsWith("_")) {
