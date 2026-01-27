@@ -37,6 +37,10 @@ export const validatePackageName = (name: string, integrationName: string): stri
         return "Package name can only contain lowercase letters, numbers, underscores, and dots";
     }
 
+    if (name.startsWith("_")) {
+        return "Package name cannot start with an underscore";
+    }
+
     if (/__/.test(name)) {
         return "Package name cannot have consecutive underscores";
     }
@@ -51,6 +55,10 @@ export const validatePackageName = (name: string, integrationName: string): stri
 
     if (name.endsWith(".")) {
         return "Package name cannot end with a dot";
+    }
+
+    if (name.length > 256) {
+        return "Package name cannot exceed 256 characters";
     }
 
     return null; // No error
@@ -75,9 +83,10 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspac
 };
 
 export const sanitizePackageName = (name: string): string => {
-    // Allow dots but sanitize other characters, then convert consecutive dots to single dot
+    // Allow dots/underscores but sanitize other characters, then convert consecutive dots/underscores to single ones
     return name
         .replace(/[^a-z0-9._]/gi, "_")
         .toLowerCase()
-        .replace(/\.{2,}/g, "."); // Convert multiple consecutive dots to single dot
+        .replace(/\.{2,}/g, ".") // Convert multiple consecutive dots to single dot
+        .replace(/_{2,}/g, "_"); // Convert multiple consecutive underscores to single underscore
 };
