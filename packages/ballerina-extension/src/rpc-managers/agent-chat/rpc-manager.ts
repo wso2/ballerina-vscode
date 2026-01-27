@@ -222,9 +222,8 @@ export class AgentChatRpcManager implements AgentChatAPI {
 
     /**
      * Find the trace that corresponds to a chat message by matching span attributes
+     * @param sessionId The chat session ID
      * @param userMessage The user's input message
-     * @param agentResponse The agent's output message
-     * @param sessionId 
      * @returns The matching trace or undefined if not found
      */
     findTraceForMessage(sessionId: string, userMessage: string): Trace | undefined {
