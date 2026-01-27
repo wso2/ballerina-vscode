@@ -111,9 +111,14 @@ public class LvExpressionDiagnosticRequest extends DiagnosticsRequest {
                 context.workspaceManager().semanticModel(context.filePath());
         return semanticModel.map(model -> model.diagnostics(lineRange).stream()
                 .filter(diagnostic -> diagnostic.diagnosticInfo().severity() == DiagnosticSeverity.ERROR
-                        && !UNDERSCORE_NOT_ALLOWED_CODE.diagnosticId().equals(diagnostic.diagnosticInfo().code())
-                        && !VARIABLE_NOT_INITIALIZED_CODE.diagnosticId().equals(diagnostic.diagnosticInfo().code()))
+                        && isRelevantDiagnostic(diagnostic))
                 .map(CommonUtils::transformBallerinaDiagnostic)
                 .collect(Collectors.toSet())).orElseGet(Set::of);
+    }
+
+    private boolean isRelevantDiagnostic(io.ballerina.tools.diagnostics.Diagnostic diagnostic) {
+        String code = diagnostic.diagnosticInfo().code();
+        return !UNDERSCORE_NOT_ALLOWED_CODE.diagnosticId().equals(code)
+                && !VARIABLE_NOT_INITIALIZED_CODE.diagnosticId().equals(code);
     }
 }
