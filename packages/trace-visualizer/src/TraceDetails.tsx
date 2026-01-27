@@ -418,7 +418,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
             setSpanViewWidth(targetWidth);
         }
-    }, [containerRef.current]);
+    }, []);
 
     // Track container width for responsive behavior
     useEffect(() => {
@@ -504,13 +504,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
     // Sort root spans: umbrella spans (those that contain others) come first, then by start time
     const sortedRootSpans = sortSpansByUmbrellaFirst(rootSpans);
-
-    useEffect(() => {
-        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
-        if (!selectedSpanId && sortedRootSpans.length > 0 && !focusSpanId && !hasFocusedRef.current) {
-            setSelectedSpanId(sortedRootSpans[0].spanId);
-        }
-    }, [sortedRootSpans.length, focusSpanId, selectedSpanId]);
 
     const getChildSpans = (spanId: string): SpanData[] => {
         const children = traceData.spans.filter(s => s.parentSpanId === spanId);
@@ -696,22 +689,24 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
     const rootAISpans = buildAISpanHierarchy();
 
-    // Select first AI span when in agent chat view, or fallback to first generic span
+    // Consolidated auto-selection: prefer AI spans in agent mode, otherwise select first root span
     useEffect(() => {
-        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
+        // Early return if focus is already set - let the focus effect handle it
         if (focusSpanId || hasFocusedRef.current) {
             return;
         }
 
-        // 1. Try to select the first AI span if available
+        // 1. Prefer the first AI span when in agent chat view (not showing full trace)
         if (isAgentChat && !showFullTrace && rootAISpans.length > 0) {
             setSelectedSpanId(rootAISpans[0].spanId);
+            return;
         }
-        // 2. If no AI spans (or in advanced mode), select the first generic span
-        else if ((!isAgentChat || rootAISpans.length === 0) && !selectedSpanId && sortedRootSpans.length > 0) {
+
+        // 2. Otherwise, select the first generic root span if nothing is selected
+        if (!selectedSpanId && sortedRootSpans.length > 0) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
+    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId, selectedSpanId]);
 
     // Totals across the trace (input/output separately)
     const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {

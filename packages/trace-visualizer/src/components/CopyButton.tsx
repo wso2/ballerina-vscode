@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 
@@ -59,17 +59,37 @@ const COPY_FEEDBACK_DURATION = 2000;
 
 export function CopyButton({ text, title = "Copy", inline = false, size = "medium" }: CopyButtonProps) {
     const [copied, setCopied] = useState(false);
+    const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const handleCopy = useCallback(async (e: React.MouseEvent) => {
         e.stopPropagation();
         try {
             await navigator.clipboard.writeText(text);
             setCopied(true);
-            setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION);
+
+            // Clear any existing timeout before setting a new one
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
+            }
+
+            // Store the new timeout ID
+            copyTimeoutRef.current = setTimeout(() => {
+                setCopied(false);
+                copyTimeoutRef.current = null;
+            }, COPY_FEEDBACK_DURATION);
         } catch (err) {
             console.error("Failed to copy text:", err);
         }
     }, [text]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (copyTimeoutRef.current) {
+                clearTimeout(copyTimeoutRef.current);
+            }
+        };
+    }, []);
 
     return (
         <Button
