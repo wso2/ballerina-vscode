@@ -318,6 +318,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
+            //preserve fieldIndex if exists
+            if (newStack[newStack.length - 1].fieldIndex) {
+                item.fieldIndex = newStack[newStack.length - 1].fieldIndex;
+            }
             newStack[newStack.length - 1] = item;
             return newStack;
         });
@@ -1079,8 +1083,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
     const onSaveType = (type: Type | string) => {
         handleValueTypeConstChange(typeof type === 'string' ? type : (type as Type).name);
         if (stack.length > 0) {
+            if (stack.length > 1) {
+                const newStack = [...stack]
+                const currentTop = newStack[newStack.length - 1];
+                const newTop = newStack[newStack.length - 2];
+                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                newStack[newStack.length - 2] = newTop;
+                newStack.pop();
+                setStack(newStack);
+            }
             setRefetchForCurrentModal(true);
-            popTypeStack();
         }
         handleSelectedTypeChange(typeof type === 'string' ? type : (type as Type).name);
         setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
@@ -1288,7 +1300,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         })
     }
 
-    const getNewTypeCreateForm = (typeName?: string) => {
+    const getNewTypeCreateForm = (fieldIndex?: number, typeName?: string) => {
+        const currentTopItem = peekTypeStack();
+        if (currentTopItem) {
+            currentTopItem.fieldIndex = fieldIndex;
+            replaceTop(currentTopItem);
+        }
         pushTypeStack(getDefaultValue(typeName));
     }
 
