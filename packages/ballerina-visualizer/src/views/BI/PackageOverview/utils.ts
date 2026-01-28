@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { SCOPE, DIRECTORY_MAP, ProjectStructure } from "@wso2/ballerina-core";
+import { SCOPE, DIRECTORY_MAP, ProjectStructure, ProjectStructureResponse } from "@wso2/ballerina-core";
 
 const INTEGRATION_API_MODULES = ["http", "graphql", "tcp"];
 const EVENT_INTEGRATION_MODULES = ["kafka", "rabbitmq", "salesforce", "trigger.github", "mqtt", "asb"];
@@ -65,4 +65,50 @@ export function getIntegrationTypes(projectStructure: ProjectStructure | undefin
     }
 
     return scopes;
+}
+
+export interface ProjectScopeMapping {
+    projectPath: string;
+    projectTitle: string;
+    integrationTypes: SCOPE[];
+}
+
+/**
+ * Builds a list of deployable integration scopes per project for a workspace.
+ *
+ * This function:
+ * - skips library projects (`project.isLibrary === true`)
+ * - derives integration scopes via {@link getIntegrationTypes}
+ * - returns only projects with at least one integration scope
+ *
+ * @param workspaceStructure - Workspace structure containing the projects list.
+ * @returns A list of project-to-scope mappings used for workspace-level deployment.
+ */
+export function getWorkspaceProjectScopes(workspaceStructure: ProjectStructureResponse | undefined): ProjectScopeMapping[] {
+    if (!workspaceStructure || !workspaceStructure.projects) {
+        return [];
+    }
+
+    const projectIntegrationTypes: ProjectScopeMapping[] = [];
+    
+    // Iterate through all non-library projects and collect their integration types
+    workspaceStructure.projects.forEach((project) => {
+        // Skip library projects
+        if (project?.isLibrary) {
+            return;
+        }
+        
+        const integrationTypes = getIntegrationTypes(project);
+        
+        // Only include projects that have integration types
+        if (integrationTypes.length > 0) {
+            projectIntegrationTypes.push({
+                projectPath: project.projectPath,
+                projectTitle: project.projectTitle,
+                integrationTypes
+            });
+        }
+    });
+
+    return projectIntegrationTypes;
 }
