@@ -689,24 +689,22 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
     const rootAISpans = buildAISpanHierarchy();
 
-    // Consolidated auto-selection: prefer AI spans in agent mode, otherwise select first root span
+    // Select first AI span when in agent chat view, or fallback to first generic span
     useEffect(() => {
-        // Early return if focus is already set - let the focus effect handle it
+        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
         if (focusSpanId || hasFocusedRef.current) {
             return;
         }
 
-        // 1. Prefer the first AI span when in agent chat view (not showing full trace)
+        // 1. Try to select the first AI span if available
         if (isAgentChat && !showFullTrace && rootAISpans.length > 0) {
             setSelectedSpanId(rootAISpans[0].spanId);
-            return;
         }
-
-        // 2. Otherwise, select the first generic root span if nothing is selected
-        if (!selectedSpanId && sortedRootSpans.length > 0) {
+        // 2. If no AI spans (or in advanced mode), select the first generic span
+        else if ((!isAgentChat || rootAISpans.length === 0) && !selectedSpanId && sortedRootSpans.length > 0) {
             setSelectedSpanId(sortedRootSpans[0].spanId);
         }
-    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId, selectedSpanId]);
+    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
 
     // Totals across the trace (input/output separately)
     const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {
