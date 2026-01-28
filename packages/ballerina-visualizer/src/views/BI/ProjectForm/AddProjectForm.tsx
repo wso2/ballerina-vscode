@@ -90,14 +90,14 @@ export function AddProjectForm() {
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [pathError, setPathError] = useState<string | null>(null);
+    const [pathValidationError, setPathValidationError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
         // Clear validation errors when form data changes
-        if (pathError) {
-            setPathError(null);
+        if (pathValidationError) {
+            setPathValidationError(null);
         }
         if (packageNameValidationError) {
             setPackageNameValidationError(null);
@@ -116,7 +116,7 @@ export function AddProjectForm() {
 
     const handleAddProject = async () => {
         setIsLoading(true);
-        setPathError(null);
+        setPathValidationError(null);
         setPackageNameValidationError(null);
 
         try {
@@ -130,7 +130,7 @@ export function AddProjectForm() {
             if (!validationResult.isValid) {
                 // Show error on the appropriate field
                 if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
-                    setPathError(validationResult.errorMessage || "Invalid project path");
+                    setPathValidationError(validationResult.errorMessage || "Invalid project path");
                 } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
                     setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
                 }
@@ -149,7 +149,7 @@ export function AddProjectForm() {
                 version: formData.version || undefined,
             });
         } catch (error) {
-            setPathError("An error occurred during validation");
+            setPathValidationError("An error occurred during validation");
             setIsLoading(false);
         }
     };
@@ -182,7 +182,7 @@ export function AddProjectForm() {
                 </ScrollableContent>
 
                 <ButtonWrapper>
-                    {pathError && (
+                    {pathValidationError && (
                         <Typography 
                             variant="body2" 
                             sx={{ 
@@ -191,7 +191,7 @@ export function AddProjectForm() {
                                 flex: 1
                             }}
                         >
-                            {pathError}
+                            {pathValidationError}
                         </Typography>
                     )}
                     <Button
@@ -202,8 +202,8 @@ export function AddProjectForm() {
                         {isLoading ? (
                             <Typography variant="progress">
                                 {!isInWorkspace 
-                                    ? "Validating..."
-                                    : "Validating..."}
+                                    ? "Converting & Adding..."
+                                    : "Adding..."}
                             </Typography>
                         ) : (
                             !isInWorkspace 
