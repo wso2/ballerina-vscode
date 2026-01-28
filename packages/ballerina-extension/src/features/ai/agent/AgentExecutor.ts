@@ -441,15 +441,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const isPlanModeEnabled = workspace.getConfiguration('ballerina.ai').get<boolean>('planMode', false);
         const finalProjectMetrics = await getProjectMetrics(tempProjectPath);
 
-        // Extract final error codes for telemetry
-        const finalErrorCodes = finalDiagnostics.diagnostics?.map(d => d.code || 'unknown') || [];
-
         // Get token usage from streamText result
         const tokenUsage = await context.usage;
         const inputTokens = tokenUsage.inputTokens || 0;
         const outputTokens = tokenUsage.outputTokens || 0;
         const totalTokens = tokenUsage.outputTokens || 0;
 
+        // Send telemetry for generation complete
         sendTelemetryEvent(
             extension.ballerinaExtInstance,
             TM_EVENT_BALLERINA_AI_GENERATION_COMPLETED,
@@ -460,9 +458,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                 modifiedFilesCount: context.modifiedFiles.length.toString(),
                 generationStartTime: context.generationStartTime.toString(),
                 generationEndTime: generationEndTime.toString(),
-                durationMs: (generationEndTime - context.generationStartTime).toString(),
                 isPlanMode: isPlanModeEnabled.toString(),
-                finalCompilationErrorCodes: finalErrorCodes.join(','),
                 outputFileCount: finalProjectMetrics.fileCount.toString(),
                 outputLineCount: finalProjectMetrics.lineCount.toString(),
                 inputTokens: inputTokens.toString(),
