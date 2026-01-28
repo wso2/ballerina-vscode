@@ -312,8 +312,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         return {
             functionName: {
                 metadata: {
-                    label: "Test Function",
-                    description: "Test function"
+                    label: "Name",
+                    description: "Name of the test function"
                 },
                 value: "",
                 optional: false,
@@ -324,7 +324,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             returnType: {
                 metadata: {
                     label: "Return Type",
-                    description: "Return type of the function"
+                    description: "Type of the return value"
                 },
                 optional: true,
                 editable: true,
