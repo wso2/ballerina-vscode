@@ -262,11 +262,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 </abort_notification>`,
                     });
 
-                    // Update generation with partial messages
+                    // Update generation with user message + partial messages
                     const workspaceId = this.config.executionContext.projectPath;
                     const threadId = 'default';
                     chatStateStorage.updateGeneration(workspaceId, threadId, this.config.generationId, {
-                        modelMessages: messagesToSave,
+                        modelMessages: [
+                            { role: "user", content: streamContext.userMessageContent },
+                            ...messagesToSave,
+                        ],
                     });
 
                     // Clear review state
@@ -295,7 +298,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
 
             this.config.eventHandler({
                 type: "error",
-                content: "An error occurred during agent execution. Plese check the logs for details."
+                content: "An error occurred during agent execution. Please check the logs for details."
             });
 
             // For other errors, return result with error
@@ -422,9 +425,12 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             console.log(`[AgentExecutor] Accumulated modified files: ${accumulatedModifiedFiles.length} total (${existingReview.reviewState.modifiedFiles?.length || 0} existing + ${context.modifiedFiles.length} new)`);
         }
 
-        // Update chat state storage
+        // Update chat state storage with user message + assistant messages
         chatStateStorage.updateGeneration(workspaceId, threadId, context.messageId, {
-            modelMessages: assistantMessages,
+            modelMessages: [
+                { role: "user", content: context.userMessageContent },
+                ...assistantMessages,
+            ],
         });
 
         // Skip review mode if no files were modified

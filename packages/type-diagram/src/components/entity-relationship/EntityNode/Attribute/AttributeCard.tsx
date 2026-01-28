@@ -58,6 +58,8 @@ export function AttributeWidget(props: AttributeProps) {
         }
     }
 
+    const hasLinkedNode = !!attribute?.refs?.[0];
+
     return (
         <CtrlClickGo2Source node={node.entityObject}>
             <AttributeContainer
@@ -76,7 +78,8 @@ export function AttributeWidget(props: AttributeProps) {
                     <AttributeType
                         isAnonymous={false}
                         isSelected={isSelected || isHovered}
-                        onClick={onClickOnType}
+                        isClickable={hasLinkedNode}
+                        onClick={hasLinkedNode ? onClickOnType : undefined}
                     >
                         {attributeType}
                     </AttributeType>
