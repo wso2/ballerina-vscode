@@ -865,18 +865,24 @@ export function FormGeneratorNew(props: FormProps) {
         }
         pushTypeStack({
             type: defaultType(typeName),
-            isDirty: false,
-            fieldIndex: fieldIndex
-        });
+            isDirty: false
+        })
     }
 
-    const onSaveType = () => {
+
+    const onSaveType = (type: Type | string) => {
+        handleValueTypeConstChange(typeof type === 'string' ? type : (type as Type).name);
         if (stack.length > 0) {
             if (stack.length > 1) {
                 const newStack = [...stack]
                 const currentTop = newStack[newStack.length - 1];
                 const newTop = newStack[newStack.length - 2];
-                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                if (newTop.type.codedata.node === "CLASS") {
+                    newTop.type.functions[newTop.fieldIndex!].returnType = currentTop!.type.name;
+                }
+                else {
+                    newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                }
                 newStack[newStack.length - 2] = newTop;
                 newStack.pop();
                 setStack(newStack);

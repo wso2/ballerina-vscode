@@ -448,7 +448,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         const recordTypeFields = Object.entries(formProperties)
             .filter(([_, property]) => {
                 const primaryInputType = getPrimaryInputType(property?.types);
-            
+
                 return primaryInputType?.typeMembers &&
                     primaryInputType?.typeMembers.some(member => member.kind === "RECORD_TYPE");
             })
@@ -1087,7 +1087,12 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 const newStack = [...stack]
                 const currentTop = newStack[newStack.length - 1];
                 const newTop = newStack[newStack.length - 2];
-                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                if (newTop.type.codedata.node === "CLASS") {
+                    newTop.type.functions[newTop.fieldIndex!].returnType = currentTop!.type.name;
+                }
+                else {
+                    newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                }
                 newStack[newStack.length - 2] = newTop;
                 newStack.pop();
                 setStack(newStack);
