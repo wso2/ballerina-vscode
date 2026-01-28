@@ -45,7 +45,7 @@ import {
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
-import { workspace } from 'vscode';
+import { extensions, workspace } from 'vscode';
 import { URI } from "vscode-uri";
 
 import { isNumber } from "lodash";
@@ -79,6 +79,7 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { RPCLayer } from '../../RPCLayer';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
+import { WI_EXTENSION_ID } from "../../features/ai/constants";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -156,15 +157,29 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showSignInAlert(): Promise<boolean> {
+        // Don't show alert in WI environment (WSO2 Integrator extension is installed)
+        const isInWI = !!extensions.getExtension(WI_EXTENSION_ID);
+        if (isInWI) {
+            return false;
+        }
+
+        // Don't show alert in Devant environment
+        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
+        if (isInDevant) {
+            return false;
+        }
+
+        // Check if alert was already dismissed
         const resp = await extension.context.secrets.get('LOGIN_ALERT_SHOWN');
         if (resp === 'true') {
             return false;
         }
-        const isWso2Signed = await this.isCopilotSignedIn();
 
+        const isWso2Signed = await this.isCopilotSignedIn();
         if (isWso2Signed) {
             return false;
         }
+
         return true;
     }
 
