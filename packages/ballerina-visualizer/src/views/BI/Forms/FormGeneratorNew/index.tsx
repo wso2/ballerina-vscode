@@ -285,6 +285,10 @@ export function FormGeneratorNew(props: FormProps) {
         if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
+            //preserve fieldIndex if exists
+            if (newStack[newStack.length - 1].fieldIndex) {
+                item.fieldIndex = newStack[newStack.length - 1].fieldIndex;
+            }
             newStack[newStack.length - 1] = item;
             return newStack;
         });
@@ -853,17 +857,31 @@ export function FormGeneratorNew(props: FormProps) {
         setTypeEditorState({ ...typeEditorState, isOpen: state });
     }
 
-    const getNewTypeCreateForm = (typeName?: string) => {
+    const getNewTypeCreateForm = (fieldIndex?: number, typeName?: string) => {
+        const currentTopItem = peekTypeStack();
+        if (currentTopItem) {
+            currentTopItem.fieldIndex = fieldIndex;
+            replaceTop(currentTopItem);
+        }
         pushTypeStack({
             type: defaultType(typeName),
-            isDirty: false
-        })
+            isDirty: false,
+            fieldIndex: fieldIndex
+        });
     }
 
     const onSaveType = () => {
         if (stack.length > 0) {
+            if (stack.length > 1) {
+                const newStack = [...stack]
+                const currentTop = newStack[newStack.length - 1];
+                const newTop = newStack[newStack.length - 2];
+                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                newStack[newStack.length - 2] = newTop;
+                newStack.pop();
+                setStack(newStack);
+            }
             setRefetchForCurrentModal(true);
-            popTypeStack();
         }
         setTypeEditorState({ ...typeEditorState, isOpen: stack.length !== 1 });
     }
