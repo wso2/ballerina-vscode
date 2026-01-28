@@ -152,7 +152,7 @@ import {
     verifyTypeDelete,
     VerifyTypeDeleteRequest,
     VisibleTypesRequest,
-    ValidateProjectPathRequest,
+    ValidateProjectFormRequest,
     validateProjectPath
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
@@ -175,7 +175,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getNodeTemplate, (args: BINodeTemplateRequest) => rpcManger.getNodeTemplate(args));
     messenger.onRequest(getAiSuggestions, (args: BIAiSuggestionsRequest) => rpcManger.getAiSuggestions(args));
     messenger.onNotification(createProject, (args: ProjectRequest) => rpcManger.createProject(args));
-    messenger.onRequest(validateProjectPath, (args: ValidateProjectPathRequest) => rpcManger.validateProjectPath(args));
+    messenger.onRequest(validateProjectPath, (args: ValidateProjectFormRequest) => rpcManger.validateProjectPath(args));
     messenger.onNotification(deleteProject, (args: DeleteProjectRequest) => rpcManger.deleteProject(args));
     messenger.onNotification(addProjectToWorkspace, (args: AddProjectToWorkspaceRequest) => rpcManger.addProjectToWorkspace(args));
     messenger.onRequest(getWorkspaces, () => rpcManger.getWorkspaces());

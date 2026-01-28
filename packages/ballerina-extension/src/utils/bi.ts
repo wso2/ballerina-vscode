@@ -31,7 +31,8 @@ import {
     ProjectRequest,
     STModification,
     SyntaxTreeResponse,
-    WorkspaceTomlValues
+    WorkspaceTomlValues,
+    ValidateProjectFormErrorField
 } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
@@ -130,13 +131,13 @@ export function getUsername(): string {
  * @param projectPath - The directory path where the project will be created
  * @param projectName - The name of the project (used if createDirectory is true)
  * @param createDirectory - Whether a new directory will be created
- * @returns Validation result with error message if invalid
+ * @returns Validation result with error message and field information if invalid
  */
-export function validateProjectPath(projectPath: string, projectName: string, createDirectory: boolean): { isValid: boolean; errorMessage?: string } {
+export function validateProjectPath(projectPath: string, projectName: string, createDirectory: boolean): { isValid: boolean; errorMessage?: string; errorField?: ValidateProjectFormErrorField } {
     try {
         // Check if projectPath is provided and not empty
         if (!projectPath || projectPath.trim() === '') {
-            return { isValid: false, errorMessage: 'Project path is required' };
+            return { isValid: false, errorMessage: 'Project path is required', errorField: ValidateProjectFormErrorField.PATH };
         }
 
         // Check if the base directory exists
@@ -144,7 +145,7 @@ export function validateProjectPath(projectPath: string, projectName: string, cr
             // Check if parent directory exists and we can create the path
             const parentDir = path.dirname(projectPath);
             if (!fs.existsSync(parentDir)) {
-                return { isValid: false, errorMessage: `Directory path does not exist: ${projectPath}` };
+                return { isValid: false, errorMessage: 'Directory path does not exist', errorField: ValidateProjectFormErrorField.PATH };
             }
         }
 
@@ -155,12 +156,12 @@ export function validateProjectPath(projectPath: string, projectName: string, cr
         if (!createDirectory) {
             const ballerinaTomlPath = path.join(finalPath, 'Ballerina.toml');
             if (fs.existsSync(ballerinaTomlPath)) {
-                return { isValid: false, errorMessage: 'Existing Ballerina project detected in the selected directory' };
+                return { isValid: false, errorMessage: 'Existing Ballerina project detected in the selected directory', errorField: ValidateProjectFormErrorField.PATH };
             }
         } else {
             // If creating a new directory, check if it already exists
             if (fs.existsSync(finalPath)) {
-                return { isValid: false, errorMessage: `A directory with name '${sanitizeName(projectName)}' already exists at the selected location` };
+                return { isValid: false, errorMessage: `A directory with this name already exists at the selected location`, errorField: ValidateProjectFormErrorField.NAME};
             }
         }
 
@@ -169,12 +170,12 @@ export function validateProjectPath(projectPath: string, projectName: string, cr
             // Try to access the directory with write permissions
             fs.accessSync(projectPath, fs.constants.W_OK);
         } catch (error) {
-            return { isValid: false, errorMessage: 'No write permission for the selected directory' };
+            return { isValid: false, errorMessage: 'No write permission for the selected directory', errorField: ValidateProjectFormErrorField.PATH };
         }
 
         return { isValid: true };
     } catch (error) {
-        return { isValid: false, errorMessage: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}` };
+        return { isValid: false, errorMessage: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`, errorField: ValidateProjectFormErrorField.PATH };
     }
 }
 

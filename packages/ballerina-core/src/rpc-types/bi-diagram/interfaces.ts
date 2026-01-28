@@ -198,13 +198,19 @@ export interface DeleteProjectRequest {
     projectPath: string;
 }
 
-export interface ValidateProjectPathRequest {
+export interface ValidateProjectFormRequest {
     projectPath: string;
     projectName: string;
     createDirectory: boolean;
 }
 
-export interface ValidateProjectPathResponse {
+export interface ValidateProjectFormResponse {
     isValid: boolean;
     errorMessage?: string;
+    errorField?: ValidateProjectFormErrorField;
+}
+
+export enum ValidateProjectFormErrorField {
+    PATH = 'path',
+    NAME = 'name'
 }

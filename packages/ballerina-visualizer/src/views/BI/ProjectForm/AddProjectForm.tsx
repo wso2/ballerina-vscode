@@ -26,6 +26,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { AddProjectFormFields, AddProjectFormData } from "./AddProjectFormFields";
 import { isFormValidAddProject } from "./utils";
+import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 
 const PageWrapper = styled.div`
     display: flex;
@@ -89,13 +90,17 @@ export function AddProjectForm() {
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
+    const [pathError, setPathError] = useState<string | null>(null);
+    const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
-        // Clear validation error when form data changes
-        if (validationError) {
-            setValidationError(null);
+        // Clear validation errors when form data changes
+        if (pathError) {
+            setPathError(null);
+        }
+        if (packageNameValidationError) {
+            setPackageNameValidationError(null);
         }
     };
 
@@ -111,7 +116,8 @@ export function AddProjectForm() {
 
     const handleAddProject = async () => {
         setIsLoading(true);
-        setValidationError(null);
+        setPathError(null);
+        setPackageNameValidationError(null);
 
         try {
             // Validate the project path
@@ -122,7 +128,12 @@ export function AddProjectForm() {
             });
 
             if (!validationResult.isValid) {
-                setValidationError(validationResult.errorMessage || "Invalid project path");
+                // Show error on the appropriate field
+                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
+                    setPathError(validationResult.errorMessage || "Invalid project path");
+                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                }
                 setIsLoading(false);
                 return;
             }
@@ -138,7 +149,7 @@ export function AddProjectForm() {
                 version: formData.version || undefined,
             });
         } catch (error) {
-            setValidationError("An error occurred during validation");
+            setPathError("An error occurred during validation");
             setIsLoading(false);
         }
     };
@@ -166,11 +177,12 @@ export function AddProjectForm() {
                         formData={formData}
                         onFormDataChange={handleFormDataChange}
                         isInWorkspace={isInWorkspace}
+                        packageNameValidationError={packageNameValidationError || undefined}
                     />
                 </ScrollableContent>
 
                 <ButtonWrapper>
-                    {validationError && (
+                    {pathError && (
                         <Typography 
                             variant="body2" 
                             sx={{ 
@@ -179,7 +191,7 @@ export function AddProjectForm() {
                                 flex: 1
                             }}
                         >
-                            {validationError}
+                            {pathError}
                         </Typography>
                     )}
                     <Button
@@ -189,7 +201,9 @@ export function AddProjectForm() {
                     >
                         {isLoading ? (
                             <Typography variant="progress">
-                                {"Validating..."}
+                                {!isInWorkspace 
+                                    ? "Validating..."
+                                    : "Validating..."}
                             </Typography>
                         ) : (
                             !isInWorkspace 

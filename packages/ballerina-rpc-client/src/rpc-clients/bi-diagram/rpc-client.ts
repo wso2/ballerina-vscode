@@ -119,8 +119,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
-    ValidateProjectPathRequest,
-    ValidateProjectPathResponse,
+    ValidateProjectFormRequest,
+    ValidateProjectFormResponse,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     VisibleTypesRequest,
@@ -275,7 +275,7 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
     }
 
-    validateProjectPath(params: ValidateProjectPathRequest): Promise<ValidateProjectPathResponse> {
+    validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
         return this._messenger.sendRequest(validateProjectPath, HOST_EXTENSION, params);
     }
 

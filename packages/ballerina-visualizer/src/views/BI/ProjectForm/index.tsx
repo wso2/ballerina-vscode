@@ -24,7 +24,7 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { EVENT_TYPE, MACHINE_VIEW, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
 import { isFormValid } from "./utils";
 
@@ -91,19 +91,24 @@ export function ProjectForm() {
         version: "",
     });
     const [isValidating, setIsValidating] = useState(false);
-    const [validationError, setValidationError] = useState<string | null>(null);
+    const [pathError, setPathError] = useState<string | null>(null);
+    const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
-        // Clear validation error when form data changes
-        if (validationError) {
-            setValidationError(null);
+        // Clear validation errors when form data changes
+        if (pathError) {
+            setPathError(null);
+        }
+        if (packageNameValidationError) {
+            setPackageNameValidationError(null);
         }
     };
 
     const handleCreateProject = async () => {
         setIsValidating(true);
-        setValidationError(null);
+        setPathError(null);
+        setPackageNameValidationError(null);
 
         try {
             // Validate the project path
@@ -114,7 +119,12 @@ export function ProjectForm() {
             });
 
             if (!validationResult.isValid) {
-                setValidationError(validationResult.errorMessage || "Invalid project path");
+                // Show error on the appropriate field
+                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
+                    setPathError(validationResult.errorMessage || "Invalid project path");
+                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                }
                 setIsValidating(false);
                 return;
             }
@@ -131,7 +141,7 @@ export function ProjectForm() {
                 version: formData.version || undefined,
             });
         } catch (error) {
-            setValidationError("An error occurred during validation");
+            setPathError("An error occurred during validation");
             setIsValidating(false);
         }
     };
@@ -170,22 +180,12 @@ export function ProjectForm() {
                     <ProjectFormFields
                         formData={formData}
                         onFormDataChange={handleFormDataChange}
+                        pathError={pathError || undefined}
+                        packageNameValidationError={packageNameValidationError || undefined}
                     />
                 </ScrollableContent>
 
                 <ButtonWrapper>
-                    {validationError && (
-                        <Typography 
-                            variant="body2" 
-                            sx={{ 
-                                color: "var(--vscode-errorForeground)", 
-                                marginRight: "16px",
-                                flex: 1
-                            }}
-                        >
-                            {validationError}
-                        </Typography>
-                    )}
                     <Button
                         disabled={!isFormValid(formData) || isValidating}
                         onClick={handleCreateProject}
