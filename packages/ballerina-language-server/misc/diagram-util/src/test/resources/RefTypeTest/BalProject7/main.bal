@@ -11,3 +11,15 @@ public type RecordWithStream record {|
     string id;
     SimpleStream data;
 |};
+
+enum Color {
+    RED,
+    GREEN,
+    BLUE
+}
+
+public type Person2 record {
+    string name;
+    int age;
+    Color favoriteColor;
+};

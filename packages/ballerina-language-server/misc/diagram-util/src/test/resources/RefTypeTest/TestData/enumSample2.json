@@ -1,7 +1,7 @@
 {
   "description": "A simple example of a reference-based type",
-  "source": "RefTypeTest/BalProject4",
-  "typeSymbolName": "Department",
+  "source": "RefTypeTest/BalProject7",
+  "typeSymbolName": "Person2",
   "refType": {
     "fields": [
       {
@@ -15,33 +15,43 @@
         "defaultValue": ""
       },
       {
-        "fieldName": "code",
+        "fieldName": "age",
+        "type": {
+          "dependentTypeKeys": [],
+          "name": "int",
+          "typeName": "int"
+        },
+        "optional": false,
+        "defaultValue": ""
+      },
+      {
+        "fieldName": "favoriteColor",
         "type": {
           "members": [
             {
               "dependentTypeKeys": [],
-              "name": "FINANCE"
+              "name": "BLUE"
             },
             {
               "dependentTypeKeys": [],
-              "name": "IT"
+              "name": "GREEN"
             },
             {
               "dependentTypeKeys": [],
-              "name": "HR"
+              "name": "RED"
             }
           ],
           "dependentTypeKeys": [],
-          "hashCode": "-959561237",
-          "key": "-1253237511",
-          "name": "DepartmentCode",
+          "hashCode": "1321203991",
+          "key": "-955095486",
+          "name": "Color",
           "typeName": "enum",
           "moduleInfo": {
             "orgName": "ballerinax",
-            "moduleName": "health.ccda.r1",
-            "packageName": "health.ccda.r1",
+            "moduleName": "test.streams",
+            "packageName": "test.streams",
             "version": "0.1.0",
-            "modulePrefix": "r1"
+            "modulePrefix": "streams"
           }
         },
         "optional": false,
@@ -49,48 +59,48 @@
       }
     ],
     "dependentTypeKeys": [
-      "-1253237511"
+      "-955095486"
     ],
-    "hashCode": "1123774631",
-    "key": "1146573036",
-    "name": "Department",
+    "hashCode": "1975722613",
+    "key": "-351745380",
+    "name": "Person2",
     "typeName": "record",
     "dependentTypes": {
-      "-1253237511": {
+      "-955095486": {
         "members": [
           {
             "dependentTypeKeys": [],
-            "name": "FINANCE"
+            "name": "BLUE"
           },
           {
             "dependentTypeKeys": [],
-            "name": "IT"
+            "name": "GREEN"
           },
           {
             "dependentTypeKeys": [],
-            "name": "HR"
+            "name": "RED"
           }
         ],
         "dependentTypeKeys": [],
-        "hashCode": "-959561237",
-        "key": "-1253237511",
-        "name": "DepartmentCode",
+        "hashCode": "1321203991",
+        "key": "-955095486",
+        "name": "Color",
         "typeName": "enum",
         "moduleInfo": {
           "orgName": "ballerinax",
-          "moduleName": "health.ccda.r1",
-          "packageName": "health.ccda.r1",
+          "moduleName": "test.streams",
+          "packageName": "test.streams",
           "version": "0.1.0",
-          "modulePrefix": "r1"
+          "modulePrefix": "streams"
         }
       }
     },
     "moduleInfo": {
       "orgName": "ballerinax",
-      "moduleName": "health.ccda.r1",
-      "packageName": "health.ccda.r1",
+      "moduleName": "test.streams",
+      "packageName": "test.streams",
       "version": "0.1.0",
-      "modulePrefix": "r1"
+      "modulePrefix": "streams"
     }
   }
 }
