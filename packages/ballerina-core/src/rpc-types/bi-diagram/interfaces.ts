@@ -197,3 +197,14 @@ export interface GeneratedClientSaveResponse {
 export interface DeleteProjectRequest {
     projectPath: string;
 }
+
+export interface ValidateProjectPathRequest {
+    projectPath: string;
+    projectName: string;
+    createDirectory: boolean;
+}
+
+export interface ValidateProjectPathResponse {
+    isValid: boolean;
+    errorMessage?: string;
+}

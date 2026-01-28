@@ -89,9 +89,14 @@ export function AddProjectForm() {
     const [isInWorkspace, setIsInWorkspace] = useState<boolean>(false);
     const [path, setPath] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<AddProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+        // Clear validation error when form data changes
+        if (validationError) {
+            setValidationError(null);
+        }
     };
 
     useEffect(() => {
@@ -104,17 +109,38 @@ export function AddProjectForm() {
         });
     }, []);
 
-    const handleAddProject = () => {
+    const handleAddProject = async () => {
         setIsLoading(true);
-        rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            convertToWorkspace: !isInWorkspace,
-            path: path,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
-        });
+        setValidationError(null);
+
+        try {
+            // Validate the project path
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: path,
+                projectName: formData.packageName,
+                createDirectory: true,
+            });
+
+            if (!validationResult.isValid) {
+                setValidationError(validationResult.errorMessage || "Invalid project path");
+                setIsLoading(false);
+                return;
+            }
+
+            // If validation passes, add the project
+            rpcClient.getBIDiagramRpcClient().addProjectToWorkspace({
+                projectName: formData.integrationName,
+                packageName: formData.packageName,
+                convertToWorkspace: !isInWorkspace,
+                path: path,
+                workspaceName: formData.workspaceName,
+                orgName: formData.orgName || undefined,
+                version: formData.version || undefined,
+            });
+        } catch (error) {
+            setValidationError("An error occurred during validation");
+            setIsLoading(false);
+        }
     };
 
     const goBack = () => {
@@ -144,6 +170,18 @@ export function AddProjectForm() {
                 </ScrollableContent>
 
                 <ButtonWrapper>
+                    {validationError && (
+                        <Typography 
+                            variant="body2" 
+                            sx={{ 
+                                color: "var(--vscode-errorForeground)", 
+                                marginRight: "16px",
+                                flex: 1
+                            }}
+                        >
+                            {validationError}
+                        </Typography>
+                    )}
                     <Button
                         disabled={!isFormValidAddProject(formData, isInWorkspace) || isLoading}
                         onClick={handleAddProject}
@@ -151,9 +189,7 @@ export function AddProjectForm() {
                     >
                         {isLoading ? (
                             <Typography variant="progress">
-                                {!isInWorkspace 
-                                    ? "Converting & Adding..."
-                                    : "Adding..."}
+                                {"Validating..."}
                             </Typography>
                         ) : (
                             !isInWorkspace 
