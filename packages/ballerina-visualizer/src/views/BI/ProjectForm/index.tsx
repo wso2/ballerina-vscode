@@ -90,22 +90,50 @@ export function ProjectForm() {
         orgName: "",
         version: "",
     });
+    const [isValidating, setIsValidating] = useState(false);
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+        // Clear validation error when form data changes
+        if (validationError) {
+            setValidationError(null);
+        }
     };
 
-    const handleCreateProject = () => {
-        rpcClient.getBIDiagramRpcClient().createProject({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            projectPath: formData.path,
-            createDirectory: formData.createDirectory,
-            createAsWorkspace: formData.createAsWorkspace,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
-        });
+    const handleCreateProject = async () => {
+        setIsValidating(true);
+        setValidationError(null);
+
+        try {
+            // Validate the project path
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: formData.path,
+                projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
+                createDirectory: formData.createDirectory,
+            });
+
+            if (!validationResult.isValid) {
+                setValidationError(validationResult.errorMessage || "Invalid project path");
+                setIsValidating(false);
+                return;
+            }
+
+            // If validation passes, create the project
+            rpcClient.getBIDiagramRpcClient().createProject({
+                projectName: formData.integrationName,
+                packageName: formData.packageName,
+                projectPath: formData.path,
+                createDirectory: formData.createDirectory,
+                createAsWorkspace: formData.createAsWorkspace,
+                workspaceName: formData.workspaceName,
+                orgName: formData.orgName || undefined,
+                version: formData.version || undefined,
+            });
+        } catch (error) {
+            setValidationError("An error occurred during validation");
+            setIsValidating(false);
+        }
     };
 
     const gotToWelcome = () => {
@@ -146,12 +174,28 @@ export function ProjectForm() {
                 </ScrollableContent>
 
                 <ButtonWrapper>
+                    {validationError && (
+                        <Typography 
+                            variant="body2" 
+                            sx={{ 
+                                color: "var(--vscode-errorForeground)", 
+                                marginRight: "16px",
+                                flex: 1
+                            }}
+                        >
+                            {validationError}
+                        </Typography>
+                    )}
                     <Button
-                        disabled={!isFormValid(formData)}
+                        disabled={!isFormValid(formData) || isValidating}
                         onClick={handleCreateProject}
                         appearance="primary"
                     >
-                        {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                        {isValidating 
+                            ? "Validating..." 
+                            : formData.createAsWorkspace 
+                                ? "Create Workspace" 
+                                : "Create Integration"}
                     </Button>
                 </ButtonWrapper>
             </FormContainer>
