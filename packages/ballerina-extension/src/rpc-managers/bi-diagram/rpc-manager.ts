@@ -67,8 +67,8 @@ import {
     DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
-    ValidateProjectPathRequest,
-    ValidateProjectPathResponse,
+    ValidateProjectFormRequest,
+    ValidateProjectFormResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
@@ -616,7 +616,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
-    async validateProjectPath(params: ValidateProjectPathRequest): Promise<ValidateProjectPathResponse> {
+    async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
         return validateProjectPath(params.projectPath, params.projectName, params.createDirectory);
     }
 
