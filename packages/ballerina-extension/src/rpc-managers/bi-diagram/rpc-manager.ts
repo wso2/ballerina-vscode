@@ -68,6 +68,7 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
     Diagnostics,
@@ -1123,6 +1124,43 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         };
         commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
 
+        return { isCompleted: true };
+    }
+
+    async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        const projectScopes = params.projectScopes;
+
+        for (const projectScope of projectScopes) {
+            const { projectPath, projectTitle, integrationTypes } = projectScope;
+            let isProjectDeploymentCompleted = false;
+
+            let integrationType: SCOPE;
+    
+            if (integrationTypes.length === 1) {
+                integrationType = integrationTypes[0];
+            } else {
+                // Show a quick pick to select deployment option
+                const selectedScope = await window.showQuickPick(integrationTypes, {
+                    placeHolder: `You have different types of artifacts within ${projectTitle}. Select the artifact type to be deployed`
+                });
+                integrationType = selectedScope as SCOPE;
+            }
+    
+            if (!integrationType) {
+                isProjectDeploymentCompleted = true;
+                continue;
+            }
+    
+            const deployementParams: ICreateComponentCmdParams = {
+                integrationType: integrationType as any,
+                buildPackLang: "ballerina", // Example language
+                name: path.basename(projectPath),
+                componentDir: projectPath,
+                extName: "Devant"
+            };
+            commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
+            isProjectDeploymentCompleted = true;
+        }
         return { isCompleted: true };
     }
 

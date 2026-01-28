@@ -56,7 +56,9 @@ import {
     deleteType,
     DeleteTypeRequest,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     deployProject,
+    deployWorkspace,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
     ExpressionDiagnosticsRequest,
@@ -193,6 +195,7 @@ export function registerBiDiagramRpcHandlers(messenger: Messenger) {
     messenger.onNotification(openReadme, (args: OpenReadmeRequest) => rpcManger.openReadme(args));
     messenger.onRequest(renameIdentifier, (args: RenameIdentifierRequest) => rpcManger.renameIdentifier(args));
     messenger.onRequest(deployProject, (args: DeploymentRequest) => rpcManger.deployProject(args));
+    messenger.onRequest(deployWorkspace, (args: WorkspaceDeploymentRequest) => rpcManger.deployWorkspace(args));
     messenger.onNotification(openAIChat, (args: AIChatRequest) => rpcManger.openAIChat(args));
     messenger.onRequest(getSignatureHelp, (args: SignatureHelpRequest) => rpcManger.getSignatureHelp(args));
     messenger.onNotification(buildProject, (args: BuildMode) => rpcManger.buildProject(args));

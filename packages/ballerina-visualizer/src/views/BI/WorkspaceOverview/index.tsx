@@ -16,14 +16,15 @@
  * under the License.
  */
 
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
-    BI_COMMANDS
+    BI_COMMANDS,
+    BuildMode
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Typography, Codicon, ProgressRing, Button, Icon } from "@wso2/ui-toolkit";
+import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
@@ -31,6 +32,7 @@ import ReactMarkdown from "react-markdown";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { PackageListView } from "./PackageListView";
+import { getWorkspaceProjectScopes } from "../PackageOverview/utils";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -83,14 +85,20 @@ const HeaderControls = styled.div`
     align-items: center;
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.div<{ hasDeployment?: boolean }>`
     flex: 1;
     overflow-y: auto;
     overflow-x: hidden;
     padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+    display: ${(props: { hasDeployment?: boolean }) => props.hasDeployment ? 'grid' : 'flex'};
+    ${(props: { hasDeployment?: boolean }) => props.hasDeployment && `
+        grid-template-columns: 3fr 1fr;
+        gap: 24px;
+    `}
+    ${(props: { hasDeployment?: boolean }) => !props.hasDeployment && `
+        flex-direction: column;
+        gap: 24px;
+    `}
 `;
 
 const Section = styled.section`
@@ -208,10 +216,237 @@ const ProjectSubtitle = styled.h2`
     }
 `;
 
+const LeftContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 0;
+`;
+
+const SidePanel = styled.div`
+    padding: 0px 10px 10px 10px;
+`;
+
+const Title = styled(Typography)`
+    margin: 8px 0;
+`;
+
+interface DeploymentOptionContainerProps {
+    isExpanded: boolean;
+}
+
+const DeploymentOptionContainer = styled.div<DeploymentOptionContainerProps>`
+    cursor: pointer;
+    border: ${(props: DeploymentOptionContainerProps) => props.isExpanded ? '1px solid var(--vscode-welcomePage-tileBorder)' : 'none'};
+    background: ${(props: DeploymentOptionContainerProps) => props.isExpanded ? 'var(--vscode-welcomePage-tileBackground)' : 'transparent'};
+    border-radius: 6px;
+    display: flex;
+    overflow: hidden;
+    width: 100%;
+    padding: 10px;
+    flex-direction: column;
+    margin-bottom: 8px;
+
+    &:hover {
+        background: var(--vscode-welcomePage-tileHoverBackground);
+    }
+`;
+
+const DeploymentHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    h3 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0;
+    }
+`;
+
+interface DeploymentBodyProps {
+    isExpanded: boolean;
+}
+
+const DeploymentBody = styled.div<DeploymentBodyProps>`
+    max-height: ${(props: DeploymentBodyProps) => props.isExpanded ? '200px' : '0'};
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+    margin-top: ${(props: DeploymentBodyProps) => props.isExpanded ? '8px' : '0'};
+`;
+
+interface DeploymentOptionProps {
+    title: string;
+    description: string;
+    buttonText: string;
+    isExpanded: boolean;
+    onToggle: () => void;
+    onDeploy: () => void;
+    learnMoreLink?: string;
+    hasDeployableIntegration?: boolean;
+}
+
+function DeploymentOption({
+    title,
+    description,
+    buttonText,
+    isExpanded,
+    onToggle,
+    onDeploy,
+    learnMoreLink,
+    hasDeployableIntegration
+}: DeploymentOptionProps) {
+    const { rpcClient } = useRpcContext();
+
+    const openLearnMoreURL = () => {
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: learnMoreLink
+        })
+    };
+
+    return (
+        <DeploymentOptionContainer
+            isExpanded={isExpanded}
+            onClick={onToggle}
+        >
+            <DeploymentHeader>
+                {isExpanded ? (
+                    <Codicon
+                        name={'triangle-down'}
+                        sx={{ color: 'var(--vscode-textLink-foreground)' }}
+                    />
+                ) : (
+                    <Codicon
+                        name={'triangle-right'}
+                        sx={{ color: 'inherit' }}
+                    />
+                )}
+                <h3>{title}</h3>
+            </DeploymentHeader>
+            <DeploymentBody isExpanded={isExpanded}>
+                <p style={{ marginTop: 8 }}>
+                    {description}
+                    {learnMoreLink && (
+                        <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}>Learn more</VSCodeLink>
+                    )}
+                </p>
+                <Button
+                    appearance="secondary"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDeploy();
+                    }}
+                    disabled={!hasDeployableIntegration}
+                    tooltip={hasDeployableIntegration ? "" : "No deployable integration found"}
+                >
+                    {buttonText}
+                </Button>
+            </DeploymentBody>
+        </DeploymentOptionContainer>
+    );
+}
+
+interface DeploymentOptionsProps {
+    handleDockerBuild: () => void;
+    handleJarBuild: () => void;
+    handleDeploy: () => Promise<void>;
+    hasDeployableIntegration: boolean;
+}
+
+function DeploymentOptions({
+    handleDockerBuild,
+    handleJarBuild,
+    handleDeploy,
+    hasDeployableIntegration
+}: DeploymentOptionsProps) {
+    const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
+
+    const toggleOption = (option: string) => {
+        setExpandedOptions(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(option)) {
+                newSet.delete(option);
+            } else {
+                newSet.add(option);
+            }
+            return newSet;
+        });
+    };
+
+    return (
+        <>
+            <div>
+                <Title variant="h3">Deployment Options</Title>
+
+                <DeploymentOption
+                    title="Deploy to Devant"
+                    description="Deploy your workspace integrations to the cloud using Devant by WSO2."
+                    buttonText="Deploy"
+                    isExpanded={expandedOptions.has("cloud")}
+                    onToggle={() => toggleOption("cloud")}
+                    onDeploy={handleDeploy}
+                    learnMoreLink={"https://wso2.com/devant/docs"}
+                    hasDeployableIntegration={hasDeployableIntegration}
+                />
+
+                <DeploymentOption
+                    title="Deploy with Docker"
+                    description="Create a Docker image of your integrations and deploy it to any Docker-enabled system."
+                    buttonText="Create Docker Image"
+                    isExpanded={expandedOptions.has('docker')}
+                    onToggle={() => toggleOption('docker')}
+                    onDeploy={handleDockerBuild}
+                    hasDeployableIntegration={hasDeployableIntegration}
+                />
+
+                <DeploymentOption
+                    title="Deploy on a VM"
+                    description="Create a self-contained Ballerina executable and run it on any system with Java installed."
+                    buttonText="Create Executable"
+                    isExpanded={expandedOptions.has('vm')}
+                    onToggle={() => toggleOption('vm')}
+                    onDeploy={handleJarBuild}
+                    hasDeployableIntegration={hasDeployableIntegration}
+                />
+            </div>
+        </>
+    );
+}
+
+interface IntegrationControlPlaneProps {
+    enabled: boolean;
+    handleICP: (checked: boolean) => void;
+}
+
+function IntegrationControlPlane({ enabled, handleICP }: IntegrationControlPlaneProps) {
+    const { rpcClient } = useRpcContext();
+
+    const openLearnMoreURL = () => {
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: "https://wso2.com/integrator/integration-control-plane/"
+        })
+    };
+
+    return (
+        <div>
+            <Title variant="h3">Integration Control Plane</Title>
+            <p>
+                {"Monitor the deployment runtime using WSO2 Integration Control Plane."}
+                <VSCodeLink onClick={openLearnMoreURL} style={{ marginLeft: '4px' }}> Learn More </VSCodeLink>
+            </p>
+            <CheckBox
+                checked={enabled}
+                onChange={handleICP}
+                label="Enable WSO2 Integrator: ICP"
+            />
+        </div>
+    );
+}
+
 export function WorkspaceOverview() {
     const { rpcClient } = useRpcContext();
     const [readmeContent, setReadmeContent] = React.useState<string>("");
     const [workspaceStructure, setWorkspaceStructure] = React.useState<ProjectStructureResponse>();
+    const [enabled, setEnableICP] = React.useState(false);
 
     const [showAlert, setShowAlert] = React.useState(false);
 
@@ -235,6 +470,13 @@ export function WorkspaceOverview() {
                     .then((res) => {
                         setReadmeContent(res.content);
                     });
+
+                rpcClient
+                    .getICPRpcClient()
+                    .isIcpEnabled({ projectPath: '' })
+                    .then((res) => {
+                        setEnableICP(res.enabled);
+                    });
             });
     };
 
@@ -253,6 +495,14 @@ export function WorkspaceOverview() {
 
     const isEmptyWorkspace = useMemo(() => {
         return workspaceStructure?.projects.length === 0;
+    }, [workspaceStructure]);
+
+    const hasStandardIntegrations = useMemo(() => {
+        return (workspaceStructure?.projects ?? []).some((project) => !(project?.isLibrary ?? false));
+    }, [workspaceStructure?.projects]);
+
+    const projectScopes = useMemo(() => {
+        return getWorkspaceProjectScopes(workspaceStructure);
     }, [workspaceStructure]);
 
     if (!workspaceStructure) {
@@ -303,6 +553,36 @@ export function WorkspaceOverview() {
         return resp;
     }
 
+    const handleDeploy = async () => {
+        await rpcClient.getBIDiagramRpcClient().deployWorkspace({
+            projectScopes: projectScopes
+        });
+    };
+
+    const handleDockerBuild = () => {
+        rpcClient.getBIDiagramRpcClient().buildProject(BuildMode.DOCKER);
+    };
+
+    const handleJarBuild = () => {
+        rpcClient.getBIDiagramRpcClient().buildProject(BuildMode.JAR);
+    };
+
+    const handleICP = (icpEnabled: boolean) => {
+        if (icpEnabled) {
+            rpcClient.getICPRpcClient().addICP({ projectPath: '' })
+                .then((res) => {
+                    setEnableICP(true);
+                }
+                );
+        } else {
+            rpcClient.getICPRpcClient().disableICP({ projectPath: '' })
+                .then((res) => {
+                    setEnableICP(false);
+                }
+                );
+        }
+    };
+
     return (
         <PageLayout>
             <HeaderRow>
@@ -319,96 +599,110 @@ export function WorkspaceOverview() {
                 </HeaderControls>
             </HeaderRow>
 
-            <MainContent>
-                {showAlert && (
-                    <AlertBoxWithClose
-                        subTitle={
-                            "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
-                        }
-                        title={"Login to WSO2 AI Platform"}
+            <MainContent hasDeployment={hasStandardIntegrations}>
+                <LeftContent>
+                    {showAlert && (
+                        <AlertBoxWithClose
+                            subTitle={
+                                "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
+                            }
+                            title={"Login to WSO2 AI Platform"}
 
-                        btn1Title="Manage Accounts"
-                        btn1IconName="settings-gear"
-                        btn1OnClick={() => handleSettings()}
-                        btn1Id="settings"
+                            btn1Title="Manage Accounts"
+                            btn1IconName="settings-gear"
+                            btn1OnClick={() => handleSettings()}
+                            btn1Id="settings"
 
-                        btn2Title="Close"
-                        btn2IconName="close"
-                        btn2OnClick={() => handleClose()}
-                        btn2Id="Close"
-                    />
-                )}
+                            btn2Title="Close"
+                            btn2IconName="close"
+                            btn2OnClick={() => handleClose()}
+                            btn2Id="Close"
+                        />
+                    )}
 
-                <Section>
-                    <ContentPanel isEmpty={isEmptyWorkspace}>
-                        <SectionHeader>
-                            <SectionTitle>Integrations</SectionTitle>
-                            {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                            {/* {!isEmptyWorkspace && (
+                    <Section>
+                        <ContentPanel isEmpty={isEmptyWorkspace}>
+                            <SectionHeader>
+                                <SectionTitle>Integrations</SectionTitle>
+                                {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                                {/* {!isEmptyWorkspace && (
+                                    <SectionActions>
+                                        <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
+                                            <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                        </Button>
+                                    </SectionActions>
+                                )} */}
+                            </SectionHeader>
+                            {isEmptyWorkspace ? (
+                                <EmptyStateContainer>
+                                    <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                        Your workspace is empty
+                                    </Typography>
+                                    <Typography
+                                        variant="body1"
+                                        sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
+                                    >
+                                        Start by adding integrations to your workspace
+                                    </Typography>
+                                    <ButtonContainer>
+                                        <Button appearance="secondary" onClick={handleAddIntegration}>
+                                            <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration
+                                        </Button>
+                                        {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                                        {/* <Button appearance="primary" onClick={handleGenerate}>
+                                            <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                        </Button> */}
+                                    </ButtonContainer>
+                                </EmptyStateContainer>
+                            ) : (
+                                <PackageListView workspaceStructure={workspaceStructure} />
+                            )}
+                        </ContentPanel>
+                    </Section>
+
+                    <Section>
+                        <ContentPanel isEmpty={!readmeContent}>
+                            <SectionHeader>
+                                <SectionTitle>README</SectionTitle>
                                 <SectionActions>
-                                    <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "6px 12px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                    {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
+                                    {/* {readmeContent && isEmptyWorkspace && (
+                                        <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
+                                            <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                        </Button>
+                                    )} */}
+                                    <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                                        <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
                                     </Button>
                                 </SectionActions>
-                            )} */}
-                        </SectionHeader>
-                        {isEmptyWorkspace ? (
-                            <EmptyStateContainer>
-                                <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                    Your workspace is empty
-                                </Typography>
-                                <Typography
-                                    variant="body1"
-                                    sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
-                                >
-                                    Start by adding integrations to your workspace
-                                </Typography>
-                                <ButtonContainer>
-                                    <Button appearance="secondary" onClick={handleAddIntegration}>
-                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Integration
-                                    </Button>
-                                    {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                    {/* <Button appearance="primary" onClick={handleGenerate}>
-                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
-                                    </Button> */}
-                                </ButtonContainer>
-                            </EmptyStateContainer>
-                        ) : (
-                            <PackageListView workspaceStructure={workspaceStructure} />
-                        )}
-                    </ContentPanel>
-                </Section>
-
-                <Section>
-                    <ContentPanel isEmpty={!readmeContent}>
-                        <SectionHeader>
-                            <SectionTitle>README</SectionTitle>
-                            <SectionActions>
-                                {/* TODO: Add generate with AI button once AI is implemented (https://github.com/wso2/product-ballerina-integrator/issues/1899) */}
-                                {/* {readmeContent && isEmptyWorkspace && (
-                                    <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
-                                    </Button>
-                                )} */}
-                                <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
-                                    <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
-                                </Button>
-                            </SectionActions>
-                        </SectionHeader>
-                        {readmeContent ? (
-                            <ReadmeContent>
-                                <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                            </ReadmeContent>
-                        ) : (
-                            <EmptyReadmeContainer>
-                                <Description variant="body2">
-                                    Document your workspace and integrations
-                                </Description>
-                                <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
-                            </EmptyReadmeContainer>
-                        )}
-                    </ContentPanel>
-                </Section>
+                            </SectionHeader>
+                            {readmeContent ? (
+                                <ReadmeContent>
+                                    <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                </ReadmeContent>
+                            ) : (
+                                <EmptyReadmeContainer>
+                                    <Description variant="body2">
+                                        Document your workspace and integrations
+                                    </Description>
+                                    <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                                </EmptyReadmeContainer>
+                            )}
+                        </ContentPanel>
+                    </Section>
+                </LeftContent>
+                {hasStandardIntegrations && (
+                    <SidePanel>
+                        <DeploymentOptions
+                            handleDockerBuild={handleDockerBuild}
+                            handleJarBuild={handleJarBuild}
+                            handleDeploy={handleDeploy}
+                            hasDeployableIntegration={projectScopes.length > 0}
+                        />
+                        <Divider sx={{ margin: "16px 0" }} />
+                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                    </SidePanel>
+                )}
             </MainContent>
         </PageLayout>
     );

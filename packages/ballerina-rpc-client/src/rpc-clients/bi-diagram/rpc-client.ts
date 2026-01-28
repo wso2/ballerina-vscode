@@ -60,6 +60,7 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
     EndOfFileRequest,
@@ -139,6 +140,7 @@ import {
     deleteProject,
     deleteType,
     deployProject,
+    deployWorkspace,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
@@ -350,6 +352,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         return this._messenger.sendRequest(deployProject, HOST_EXTENSION, params);
+    }
+
+    deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        return this._messenger.sendRequest(deployWorkspace, HOST_EXTENSION, params);
     }
 
     openAIChat(params: AIChatRequest): void {

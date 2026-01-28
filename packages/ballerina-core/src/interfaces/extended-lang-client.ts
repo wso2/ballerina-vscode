@@ -1860,6 +1860,12 @@ export type OpenAPIClientDeleteResponse = {
 
 // <-------- Deployment Related ------->
 
+export interface ProjectScopeMapping {
+    projectPath: string;
+    projectTitle: string;
+    integrationTypes: SCOPE[];
+}
+
 export interface DeploymentRequest {
     integrationTypes: SCOPE[];
 }
@@ -1868,6 +1874,9 @@ export interface DeploymentResponse {
     isCompleted: boolean;
 }
 
+export interface WorkspaceDeploymentRequest {
+    projectScopes: ProjectScopeMapping[];
+}
 
 // 2201.12.3 -> New Project Component Artifacts Tree
 

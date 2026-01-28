@@ -74,6 +74,7 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     OpenAPIClientGenerationRequest,
     OpenAPIGeneratedModulesRequest,
@@ -162,6 +163,7 @@ export const getReadmeContent: RequestType<ReadmeContentRequest, ReadmeContentRe
 export const openReadme: NotificationType<OpenReadmeRequest> = { method: `${_preFix}/openReadme` };
 export const renameIdentifier: NotificationType<RenameIdentifierRequest> = { method: `${_preFix}/renameIdentifier` };
 export const deployProject: RequestType<DeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployProject` };
+export const deployWorkspace: RequestType<WorkspaceDeploymentRequest, DeploymentResponse> = { method: `${_preFix}/deployWorkspace` };
 export const openAIChat: NotificationType<AIChatRequest> = { method: `${_preFix}/openAIChat` };
 export const getSignatureHelp: RequestType<SignatureHelpRequest, SignatureHelpResponse> = { method: `${_preFix}/getSignatureHelp` };
 export const buildProject: NotificationType<BuildMode> = { method: `${_preFix}/buildProject` };
