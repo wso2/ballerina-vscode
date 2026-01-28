@@ -70,10 +70,10 @@ export function activateEditBiTest() {
     });
 
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
-        const projectPath = await findProjectPath(entry.uri?.fsPath);
+        const fileUri = entry.uri?.fsPath;
 
-        if (!projectPath) {
-            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        if (!fileUri) {
+            window.showErrorMessage(MESSAGES.NO_FILE_FOUND);
             return;
         }
 
@@ -81,12 +81,8 @@ export function activateEditBiTest() {
             return;
         }
 
-        const fileName = entry.id.split(":")[1];
-        const fileUri = path.resolve(projectPath, `tests`, fileName);
-        if (fileUri) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
+        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
                 documentUri: fileUri, identifier: entry.label, serviceType: 'UPDATE_TEST' });
-        }
     });
 }
 
