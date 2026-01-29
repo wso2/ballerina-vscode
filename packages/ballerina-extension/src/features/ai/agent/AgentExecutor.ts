@@ -293,7 +293,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         TM_EVENT_BALLERINA_AI_GENERATION_ABORTED,
                         CMP_BALLERINA_AI_GENERATION,
                         {
-                            projectId: this.config.executionContext.projectPath || 'unknown',
                             messageId: this.config.generationId,
                             generationStartTime: generationStartTime.toString(),
                             abortTime: abortTime.toString(),
@@ -404,7 +403,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             CMP_BALLERINA_AI_GENERATION,
             {
                 event: TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
-                projectId: context.ctx.projectPath || 'unknown',
                 messageId: context.messageId,
                 errorMessage: getErrorMessage(error),
                 errorType: error.name || 'Unknown',
@@ -445,7 +443,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
         const tokenUsage = await context.usage;
         const inputTokens = tokenUsage.inputTokens || 0;
         const outputTokens = tokenUsage.outputTokens || 0;
-        const totalTokens = tokenUsage.outputTokens || 0;
+        const totalTokens = tokenUsage.totalTokens || 0;
 
         // Send telemetry for generation complete
         sendTelemetryEvent(
@@ -453,14 +451,13 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             TM_EVENT_BALLERINA_AI_GENERATION_COMPLETED,
             CMP_BALLERINA_AI_GENERATION,
             {
-                projectId: context.ctx.projectPath || 'unknown',
                 messageId: context.messageId,
                 modifiedFilesCount: context.modifiedFiles.length.toString(),
                 generationStartTime: context.generationStartTime.toString(),
                 generationEndTime: generationEndTime.toString(),
                 isPlanMode: isPlanModeEnabled.toString(),
-                outputFileCount: finalProjectMetrics.fileCount.toString(),
-                outputLineCount: finalProjectMetrics.lineCount.toString(),
+                totalFilesAfterGeneration: finalProjectMetrics.fileCount.toString(),
+                totalLinesAfterGeneration: finalProjectMetrics.lineCount.toString(),
                 inputTokens: inputTokens.toString(),
                 outputTokens: outputTokens.toString(),
                 totalTokens: totalTokens.toString(),
