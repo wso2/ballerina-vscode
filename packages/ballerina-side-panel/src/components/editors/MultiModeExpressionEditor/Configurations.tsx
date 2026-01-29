@@ -216,3 +216,9 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
         return this.DECIMAL_INPUT_REGEX.test(value);
     }
 }
+
+export class RecordConfigExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+   getIsToggleHelperAvailable(): boolean {
+        return false;
+   }
+}
