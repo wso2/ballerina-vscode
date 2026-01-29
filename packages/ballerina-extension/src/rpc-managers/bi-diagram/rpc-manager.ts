@@ -1158,7 +1158,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 componentDir: projectPath,
                 extName: "Devant"
             };
-            commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams);
+            commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams, params.rootDirectory);
             isProjectDeploymentCompleted = true;
         }
         return { isCompleted: true };

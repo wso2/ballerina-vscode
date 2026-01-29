@@ -555,7 +555,8 @@ export function WorkspaceOverview() {
 
     const handleDeploy = async () => {
         await rpcClient.getBIDiagramRpcClient().deployWorkspace({
-            projectScopes: projectScopes
+            projectScopes: projectScopes,
+            rootDirectory: workspaceStructure?.workspacePath || ''
         });
     };
 
