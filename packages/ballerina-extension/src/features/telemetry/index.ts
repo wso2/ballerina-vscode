@@ -21,8 +21,7 @@ import { BallerinaExtension } from "../../core";
 import { getLoginMethod, getBiIntelId } from "../../utils/ai/auth";
 
 //Ballerina-VSCode-Extention repo key as default
-// const DEFAULT_KEY = "3a82b093-5b7b-440c-9aa2-3b8e8e5704e7";
-const DEFAULT_KEY = "612e5d1b-923a-413c-a009-1f1214c16e2d";
+const DEFAULT_KEY = "3a82b093-5b7b-440c-9aa2-3b8e8e5704e7";
 const INSTRUMENTATION_KEY = process.env.CODE_SERVER_ENV && process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY ? process.env.VSCODE_CHOREO_INSTRUMENTATION_KEY : DEFAULT_KEY;
 const isWSO2User = process.env.VSCODE_CHOREO_USER_EMAIL ? process.env.VSCODE_CHOREO_USER_EMAIL.endsWith('@wso2.com') : false;
 const isAnonymous = process.env.VSCODE_CHOREO_USER_EMAIL ? process.env.VSCODE_CHOREO_USER_EMAIL.endsWith('@choreo.dev') : false;

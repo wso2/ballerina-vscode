@@ -100,15 +100,12 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             TM_EVENT_BALLERINA_AI_GENERATION_SUBMITTED,
             CMP_BALLERINA_AI_GENERATION,
             {
-                projectId: workspaceId || 'unknown',
                 messageId: config.generationId,
                 command: Command.Agent,
                 isPlanMode: (params.isPlanMode ?? false).toString(),
-                inputFileCount: projectMetrics.fileCount.toString(),
-                inputLineCount: projectMetrics.lineCount.toString(),
+                totalFilesBeforeGeneration: projectMetrics.fileCount.toString(),
+                totalLinesBeforeGeneration: projectMetrics.lineCount.toString(),
                 hasFileAttachments: (params.fileAttachmentContents?.length > 0).toString(),
-                fileAttachmentCount: (params.fileAttachmentContents?.length || 0).toString(),
-                hasCodeContext: (!!params.codeContext).toString(),
                 hasChatHistory: (chatHistory.length > 0).toString(),
                 chatHistoryLength: chatHistory.length.toString(),
             }

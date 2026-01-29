@@ -464,7 +464,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
             // Send telemetry for generation kept
-            sendGenerationKeptTelemetry(workspaceId, latestReview.id);
+            sendGenerationKeptTelemetry(latestReview.id);
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
@@ -520,7 +520,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
             // Send telemetry for generation discard
             const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
-            sendGenerationDiscardTelemetry(workspaceId, latestReview.id);
+            sendGenerationDiscardTelemetry(latestReview.id);
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
