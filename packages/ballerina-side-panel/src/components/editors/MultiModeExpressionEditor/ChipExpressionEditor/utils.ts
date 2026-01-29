@@ -311,7 +311,7 @@ export const detectTokenPatterns = (
     return compounds;
 };
 
-// Calculates helper pane position with viewport overflow correction
+// Calculates helper pane position with editor right boundary overflow correction
 export const calculateHelperPanePosition = (
     targetCoords: { bottom: number; left: number },
     editorRect: DOMRect,
@@ -322,10 +322,10 @@ export const calculateHelperPanePosition = (
     let top = targetCoords.bottom - editorRect.top + scrollTop;
     let left = targetCoords.left - editorRect.left;
 
-    // Add overflow correction for window boundaries
-    const viewportWidth = window.innerWidth;
-    const absoluteLeft = targetCoords.left;
-    const overflow = absoluteLeft + helperPaneWidth - viewportWidth;
+    // Add overflow correction for editor right boundary
+    const editorRight = editorRect.left + editorRect.width;
+    const paneRight = targetCoords.left + helperPaneWidth;
+    const overflow = paneRight - editorRight;
 
     if (overflow > 0) {
         left -= overflow;
