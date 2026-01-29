@@ -1,0 +1,162 @@
+{
+  "description": "Add config with its type being from an imported module",
+  "project": "config_update_test_project",
+  "request": {
+    "packageName": "config_tests/config_update_test_project",
+    "moduleName": "",
+    "configFilePath": "config.bal",
+    "configVariable": {
+      "id": "32790",
+      "metadata": {
+        "label": "Config",
+        "description": "Create a configurable variable"
+      },
+      "codedata": {
+        "node": "CONFIG_VARIABLE",
+        "lineRange": {
+          "fileName": "config.bal",
+          "startLine": {
+            "line": 1,
+            "offset": 0
+          },
+          "endLine": {
+            "line": 1,
+            "offset": 54
+          }
+        }
+      },
+      "returning": false,
+      "properties": {
+        "variable": {
+          "metadata": {
+            "label": "Variable Name",
+            "description": "Name of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "scope": "Global",
+              "selected": true
+            }
+          ],
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": false,
+          "value": "token"
+        },
+        "type": {
+          "metadata": {
+            "label": "Variable Type",
+            "description": "Type of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "value": "http:BearerTokenConfig",
+          "placeholder": "var",
+          "optional": false,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": true,
+          "codedata": {},
+          "imports": {
+            "http": "ballerina/http:2.14.7"
+          }
+        },
+        "configValue": {
+          "metadata": {
+            "label": "Config Value",
+            "description": "Config value of the variable, to be used in Config.toml"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": true,
+          "modified": false
+        },
+        "defaultValue": {
+          "metadata": {
+            "label": "Default Value",
+            "description": "Default value of the variable"
+          },
+          "types": [
+            {
+              "fieldType": "EXPRESSION",
+              "selected": true
+            }
+          ],
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": true
+        },
+        "documentation": {
+          "metadata": {
+            "label": "Documentation",
+            "description": "Variable documentation in Markdown format"
+          },
+          "types": [
+            {
+              "fieldType": "TEXT",
+              "selected": true
+            }
+          ],
+          "value": "",
+          "optional": true,
+          "editable": true,
+          "advanced": false,
+          "hidden": false,
+          "modified": false
+        }
+      },
+      "flags": 0
+    }
+  },
+  "response": {
+    "textEdits": {
+      "config.bal": [
+        {
+          "range": {
+            "start": {
+              "line": 0,
+              "character": 0
+            },
+            "end": {
+              "line": 5,
+              "character": 39
+            }
+          },
+          "newText": "\nimport ballerina/http;\n"
+        },
+        {
+          "range": {
+            "start": {
+              "line": 1,
+              "character": 0
+            },
+            "end": {
+              "line": 1,
+              "character": 54
+            }
+          },
+          "newText": "configurable http:BearerTokenConfig token = ?;"
+        }
+      ]
+    }
+  }
+}
