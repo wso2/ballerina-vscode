@@ -15,12 +15,15 @@
 // under the License.
 
 import { SubmitFeedbackRequest } from "@wso2/ballerina-core";
-import { fetchWithAuth } from "./ai-client";
-import { OLD_BACKEND_URL } from "../utils";
 import { extension } from "../../../BalExtensionContext";
 import { sendTelemetryEvent, TM_EVENT_BALLERINA_AI_GENERATION_FEEDBACK, CMP_BALLERINA_AI_GENERATION } from "../../telemetry";
-import { cleanDiagnosticMessages } from "../../../rpc-managers/ai-panel/utils";
 
+/**
+ * Submits user feedback for AI-generated content to the backend.
+ *
+ * @param content - The feedback request payload
+ * @returns True if feedback was submitted successfully, false otherwise
+ */
 export async function submitFeedback(content: SubmitFeedbackRequest): Promise<boolean> {
     try {
         sendTelemetryEvent(
@@ -36,28 +39,6 @@ export async function submitFeedback(content: SubmitFeedbackRequest): Promise<bo
                 chatThread: JSON.stringify(content.messages),
             }
         );
-
-        const payload = {
-            feedback: content.feedbackText,
-            positive: content.positive,
-            messages: content.messages,
-            diagnostics: cleanDiagnosticMessages(content.diagnostics)
-        };
-
-        const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (response.ok) {
-            return true;
-        } else {
-            console.error("Failed to submit feedback");
-            return false;
-        }
     } catch (error) {
         console.error("Error submitting feedback:", error);
         return false;

@@ -58,7 +58,7 @@ import { generateDocumentationForService } from "../../features/ai/documentation
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
-import { sendGenerationKeptTelemetry } from "../../features/ai/utils/generation-response";
+import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
@@ -239,35 +239,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async submitFeedback(content: SubmitFeedbackRequest): Promise<boolean> {
         return await submitFeedbackUtil(content);
-        // return new Promise(async (resolve) => {
-        //     try {
-        //
-        //         const payload = {
-        //             feedback: content.feedbackText,
-        //             positive: content.positive,
-        //             messages: content.messages,
-        //             diagnostics: cleanDiagnosticMessages(content.diagnostics)
-        //         };
-
-        //         const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
-        //             method: 'POST',
-        //             headers: {
-        //                 'Content-Type': 'application/json'
-        //             },
-        //             body: JSON.stringify(payload)
-        //         });
-
-        //         if (response.ok) {
-        //             resolve(true);
-        //         } else {
-        //             console.error("Failed to submit feedback");
-        //             resolve(false);
-        //         }
-        //     } catch (error) {
-        //         console.error("Error submitting feedback:", error);
-        //         resolve(false);
-        //     }
-        // });
     }
 
     async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
@@ -546,6 +517,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
+
+            // Send telemetry for generation discard
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            sendGenerationDiscardTelemetry(workspaceId, latestReview.id);
 
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {

@@ -18,13 +18,32 @@ import { extension } from "../../../BalExtensionContext";
 import {
     sendTelemetryEvent,
     TM_EVENT_BALLERINA_AI_GENERATION_KEPT,
+    TM_EVENT_BALLERINA_AI_GENERATION_DISCARD,
     CMP_BALLERINA_AI_GENERATION
 } from "../../telemetry";
 
+/**
+ * Sends a telemetry event when the user keeps an AI-generated response.
+ *
+ * @param projectId - The project identifier
+ * @param messageId - The message identifier for the kept generation
+ */
 export function sendGenerationKeptTelemetry(projectId: string, messageId: string): void {
     sendTelemetryEvent(
         extension.ballerinaExtInstance,
         TM_EVENT_BALLERINA_AI_GENERATION_KEPT,
+        CMP_BALLERINA_AI_GENERATION,
+        {
+            projectId,
+            messageId,
+        }
+    );
+}
+
+export function sendGenerationDiscardTelemetry(projectId: string, messageId: string){
+    sendTelemetryEvent(
+        extension.ballerinaExtInstance,
+        TM_EVENT_BALLERINA_AI_GENERATION_DISCARD,
         CMP_BALLERINA_AI_GENERATION,
         {
             projectId,
