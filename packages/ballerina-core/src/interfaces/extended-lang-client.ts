@@ -1876,6 +1876,7 @@ export interface DeploymentResponse {
 
 export interface WorkspaceDeploymentRequest {
     projectScopes: ProjectScopeMapping[];
+    rootDirectory: string;
 }
 
 // 2201.12.3 -> New Project Component Artifacts Tree
