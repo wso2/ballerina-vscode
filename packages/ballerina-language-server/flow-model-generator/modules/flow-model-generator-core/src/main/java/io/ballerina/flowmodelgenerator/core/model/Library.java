@@ -28,6 +28,7 @@ import java.util.List;
 public class Library {
     private String name;
     private String description;
+    private String instructions;
     private List<Client> clients;
     private List<LibraryFunction> functions;
     private List<TypeDef> typeDefs;
@@ -52,6 +53,14 @@ public class Library {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
     }
 
     public List<Client> getClients() {

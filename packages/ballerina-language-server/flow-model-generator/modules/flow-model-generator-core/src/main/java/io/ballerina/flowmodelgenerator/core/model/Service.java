@@ -34,6 +34,7 @@ public class Service {
     private Listener listener;
     @SerializedName("methods")
     private List<ServiceRemoteFunction> methods;
+    private String testGenerationInstruction;
 
     public Service() {
     }
@@ -68,5 +69,13 @@ public class Service {
 
     public void setMethods(List<ServiceRemoteFunction> methods) {
         this.methods = methods;
+    }
+
+    public String getTestGenerationInstruction() {
+        return testGenerationInstruction;
+    }
+
+    public void setTestGenerationInstruction(String testGenerationInstruction) {
+        this.testGenerationInstruction = testGenerationInstruction;
     }
 }

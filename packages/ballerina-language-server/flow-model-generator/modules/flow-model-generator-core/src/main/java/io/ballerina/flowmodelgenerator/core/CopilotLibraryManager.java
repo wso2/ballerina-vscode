@@ -21,18 +21,27 @@ package io.ballerina.flowmodelgenerator.core;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.flowmodelgenerator.core.model.Client;
 import io.ballerina.flowmodelgenerator.core.model.Library;
 import io.ballerina.flowmodelgenerator.core.model.Service;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Core orchestrator for Copilot library operations.
@@ -43,6 +52,8 @@ import java.util.Optional;
 public class CopilotLibraryManager {
 
     private static final Gson GSON = new Gson();
+    private static final String EXCLUSION_JSON_PATH = "/copilot/exclusion.json";
+    private static final String TYPE_GENERIC = "generic";
 
     /**
      * Loads all libraries from the database.
@@ -70,6 +81,7 @@ public class CopilotLibraryManager {
     /**
      * Loads filtered libraries using the semantic model.
      * Returns libraries with full details including clients, functions, typedefs, and services.
+     * Applies exclusions and augments with instructions before returning.
      *
      * @param libraryNames Array of library names in "org/package_name" format to filter
      * @return List of Library objects with complete information
@@ -117,7 +129,6 @@ public class CopilotLibraryManager {
             library.setTypeDefs(symbolResult.getTypeDefs());
 
             // Load services from both inbuilt triggers and generic services
-            // For now, keep using JSON and convert to Service POJOs
             JsonArray servicesJson = ServiceLoader.loadAllServices(libraryName);
             List<Service> services = new ArrayList<>();
             for (JsonElement serviceElement : servicesJson) {
@@ -129,6 +140,142 @@ public class CopilotLibraryManager {
             libraries.add(library);
         }
 
+        applyLibraryExclusions(libraries);
+        augmentLibrariesWithInstructions(libraries);
+
         return libraries;
+    }
+
+    /**
+     * Applies library exclusions by removing excluded functions from libraries and clients.
+     * Exclusions are loaded from the exclusion.json resource file.
+     *
+     * @param libraries the list of libraries to apply exclusions to
+     */
+    public void applyLibraryExclusions(List<Library> libraries) {
+        List<ExclusionEntry> exclusions = loadExclusions();
+        if (exclusions == null || exclusions.isEmpty()) {
+            return;
+        }
+
+        Map<String, ExclusionEntry> exclusionMap = new LinkedHashMap<>();
+        for (ExclusionEntry entry : exclusions) {
+            if (entry.name != null) {
+                exclusionMap.put(entry.name, entry);
+            }
+        }
+
+        for (Library library : libraries) {
+            String libraryName = library.getName();
+            if (libraryName == null || !exclusionMap.containsKey(libraryName)) {
+                continue;
+            }
+
+            ExclusionEntry exclusion = exclusionMap.get(libraryName);
+
+            // Exclude module-level functions
+            if (exclusion.functions != null && library.getFunctions() != null) {
+                Set<String> excludedNames = exclusion.functions.stream()
+                        .map(f -> f.name)
+                        .collect(Collectors.toSet());
+                library.getFunctions().removeIf(f -> excludedNames.contains(f.getName()));
+            }
+
+            // Exclude client functions
+            if (exclusion.clients != null && library.getClients() != null) {
+                applyClientExclusions(library.getClients(), exclusion.clients);
+            }
+        }
+    }
+
+    private void applyClientExclusions(List<Client> clients, List<ExcludedClient> exclusionClients) {
+        Map<String, Set<String>> clientExclusionMap = new LinkedHashMap<>();
+        for (ExcludedClient clientExclusion : exclusionClients) {
+            if (clientExclusion.name != null && clientExclusion.functions != null) {
+                Set<String> funcNames = clientExclusion.functions.stream()
+                        .map(f -> f.name)
+                        .collect(Collectors.toSet());
+                clientExclusionMap.put(clientExclusion.name, funcNames);
+            }
+        }
+
+        for (Client client : clients) {
+            String clientName = client.getName();
+            if (clientName != null && clientExclusionMap.containsKey(clientName)
+                    && client.getFunctions() != null) {
+                Set<String> excludedFuncs = clientExclusionMap.get(clientName);
+                client.getFunctions().removeIf(f -> excludedFuncs.contains(f.getName()));
+            }
+        }
+    }
+
+    private List<ExclusionEntry> loadExclusions() {
+        try (InputStream inputStream = CopilotLibraryManager.class.getResourceAsStream(EXCLUSION_JSON_PATH)) {
+            if (inputStream == null) {
+                return null;
+            }
+            try (InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {
+                Type listType = new TypeToken<List<ExclusionEntry>>() { }.getType();
+                return GSON.fromJson(reader, listType);
+            }
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    /**
+     * Augments libraries with custom instructions loaded from resource files.
+     * Adds library-level instructions, service instructions for generic services,
+     * and test generation instructions for all services.
+     *
+     * @param libraries the libraries to augment
+     */
+    public void augmentLibrariesWithInstructions(List<Library> libraries) {
+        for (Library library : libraries) {
+            String libraryName = library.getName();
+            if (libraryName == null || libraryName.isEmpty()) {
+                continue;
+            }
+
+            // Add library-level instructions
+            InstructionLoader.loadLibraryInstruction(libraryName)
+                    .ifPresent(library::setInstructions);
+
+            // Process services for service and test instructions
+            if (library.getServices() != null) {
+                augmentServicesWithInstructions(library.getServices(), libraryName);
+            }
+        }
+    }
+
+    private void augmentServicesWithInstructions(List<Service> services, String libraryName) {
+        for (Service service : services) {
+            // Add test generation instruction to all services
+            InstructionLoader.loadTestInstruction(libraryName)
+                    .ifPresent(service::setTestGenerationInstruction);
+
+            // Add service instruction only to generic services
+            if (TYPE_GENERIC.equals(service.getType())) {
+                InstructionLoader.loadServiceInstruction(libraryName)
+                        .ifPresent(service::setInstructions);
+            }
+        }
+    }
+
+    // Exclusion model classes for deserializing exclusion.json
+
+    private static class ExclusionEntry {
+        String name;
+        List<ExcludedFunction> functions;
+        List<ExcludedClient> clients;
+    }
+
+    private static class ExcludedClient {
+        String name;
+        List<ExcludedFunction> functions;
+    }
+
+    private static class ExcludedFunction {
+        String name;
     }
 }
