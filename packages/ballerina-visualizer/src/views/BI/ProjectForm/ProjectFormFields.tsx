@@ -71,9 +71,11 @@ export interface ProjectFormFieldsProps {
     formData: ProjectFormData;
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
     onValidationChange?: (isValid: boolean) => void;
+    pathError?: string;
+    packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, onValidationChange }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ formData, onFormDataChange, onValidationChange, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
@@ -152,7 +154,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameError || ""}
+                    errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
@@ -162,6 +164,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     selectedFile={formData.path}
                     btnText="Select Path"
                     onSelect={handleProjectDirSelection}
+                    errorMsg={pathError || undefined}
                 />
 
                 <CheckboxContainer>
