@@ -349,7 +349,12 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
      * @param textEdits The list of text edits to which import statements will be added.
      */
     private static void addImportEdits(FlowNode node, Document document, List<TextEdit> textEdits) {
-        Map<String, String> propImports = node.properties().get(Property.TYPE_KEY).imports();
+        Property typeProperty = node.properties().get(Property.TYPE_KEY);
+        if (typeProperty == null) {
+            return;
+        }
+
+        Map<String, String> propImports = typeProperty.imports();
         if (propImports == null || propImports.isEmpty()) {
             return;
         }
@@ -362,8 +367,6 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         if (!importNodes.isEmpty()) {
             ImportDeclarationNode lastImportNode = importNodes.get(importNodes.size() - 1);
             startLineRange = lastImportNode.lineRange();
-            LinePosition linePosition = LinePosition.from(startLineRange.endLine().line() + 1, 0);
-            startLineRange = LineRange.from(startLineRange.fileName(), linePosition, linePosition);
         }
 
         propImports.values().forEach(moduleId -> {
@@ -376,8 +379,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
         });
 
         if (!imports.isEmpty()) {
-            String importsStmts = String.join(LS, imports);
-            textEdits.addFirst(new TextEdit(CommonUtils.toRange(startLineRange), importsStmts));
+            String importsStmts = String.join("", imports);
+            textEdits.addFirst(new TextEdit(CommonUtils.toRange(startLineRange.startLine()), importsStmts));
         }
     }
 
