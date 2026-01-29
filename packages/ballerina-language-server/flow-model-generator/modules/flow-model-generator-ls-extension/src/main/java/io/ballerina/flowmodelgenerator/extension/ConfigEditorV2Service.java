@@ -38,6 +38,7 @@ import io.ballerina.compiler.api.symbols.TupleTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ImportDeclarationNode;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
@@ -45,6 +46,7 @@ import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.ModuleVariableDeclarationNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
@@ -102,17 +104,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.CONFIG_VAR_DOC_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.DEFAULT_VALUE_KEY;
 import static io.ballerina.flowmodelgenerator.core.model.Property.VARIABLE_KEY;
+import static io.ballerina.modelgenerator.commons.CommonUtils.importExists;
 
 /**
  * Provides extended services for viewing and editing Ballerina configuration variables.
@@ -140,6 +145,8 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     private static final String COLON_SPACE = ": ";
     private static final String DOUBLE_QUOTE = "\"";
     private static final String EQUALS_SIGN_SPACED = " = ";
+    private static final String LS = System.lineSeparator();
+    private static final String IMPORT_STMT_TEMPLATE = "%nimport %s/%s;%n";
 
     // TOML and Config Statement Format Constants
     private static final String CONFIG_STATEMENT_FORMAT = "configurable %s %s = %s;";
@@ -318,11 +325,13 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                 SyntaxTree syntaxTree = document.get().syntaxTree();
                 ModulePartNode modulePartNode = syntaxTree.rootNode();
                 LinePosition startPos = LinePosition.from(modulePartNode.lineRange().endLine().line() + 1, 0);
-                textEdits.add(new TextEdit(CommonUtils.toRange(startPos), configStatement + System.lineSeparator()));
+                textEdits.add(new TextEdit(CommonUtils.toRange(startPos), configStatement + LS));
+                addImportEdits(variable, document.get(), textEdits);
             } else if (isDelete) {
                 textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), EMPTY_STRING));
             } else {
                 textEdits.add(new TextEdit(CommonUtils.toRange(lineRange), configStatement));
+                addImportEdits(variable, document.get(), textEdits);
             }
 
             textEditsMap.put(variableFilePath, textEdits);
@@ -333,12 +342,52 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
     }
 
     /**
+     * Adds necessary import statements to the text edits for a configuration variable.
+     *
+     * @param node The configuration variable flow node.
+     * @param document The document containing the configuration variable.
+     * @param textEdits The list of text edits to which import statements will be added.
+     */
+    private static void addImportEdits(FlowNode node, Document document, List<TextEdit> textEdits) {
+        Map<String, String> propImports = node.properties().get(Property.TYPE_KEY).imports();
+        if (propImports == null || propImports.isEmpty()) {
+            return;
+        }
+
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        LineRange startLineRange = rootNode.lineRange();
+
+        Set<String> imports = new HashSet<>();
+        NodeList<ImportDeclarationNode> importNodes = rootNode.imports();
+        if (!importNodes.isEmpty()) {
+            ImportDeclarationNode lastImportNode = importNodes.get(importNodes.size() - 1);
+            startLineRange = lastImportNode.lineRange();
+            LinePosition linePosition = LinePosition.from(startLineRange.endLine().line() + 1, 0);
+            startLineRange = LineRange.from(startLineRange.fileName(), linePosition, linePosition);
+        }
+
+        propImports.values().forEach(moduleId -> {
+            String[] importParts = moduleId.split("/");
+            String orgName = importParts[0];
+            String moduleName = importParts[1].split(":")[0];
+            if (!importExists(rootNode, orgName, moduleName)) {
+                imports.add(String.format(IMPORT_STMT_TEMPLATE, orgName, moduleName));
+            }
+        });
+
+        if (!imports.isEmpty()) {
+            String importsStmts = String.join(LS, imports);
+            textEdits.addFirst(new TextEdit(CommonUtils.toRange(startLineRange), importsStmts));
+        }
+    }
+
+    /**
      * Constructs the Ballerina source code statement for a configuration variable.
      */
     private static String constructConfigStatement(FlowNode node) {
         String defaultValue = node.properties().get(DEFAULT_VALUE_KEY).toSourceCode();
         String variableDoc = node.properties().get(CONFIG_VAR_DOC_KEY).toSourceCode();
-        List<String> docLines = Arrays.stream(variableDoc.split(System.lineSeparator())).toList();
+        List<String> docLines = Arrays.stream(variableDoc.split(LS)).toList();
 
         StringBuilder configStatementBuilder = new StringBuilder();
         docLines.forEach(docLine -> {
@@ -346,7 +395,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         configStatementBuilder
                                 .append(HASH_COMMENT_PREFIX)
                                 .append(docLine)
-                                .append(System.lineSeparator());
+                                .append(LS);
                     }
                 }
         );
@@ -933,7 +982,7 @@ public class ConfigEditorV2Service implements ExtendedLanguageServerService {
                         }
                     }
                     LinePosition startPos = LinePosition.from(0, 0);
-                    textEdits.add(new TextEdit(CommonUtils.toRange(startPos), newContent + System.lineSeparator()));
+                    textEdits.add(new TextEdit(CommonUtils.toRange(startPos), newContent + LS));
                 }
             }
 
