@@ -23,3 +23,7 @@ public type Person2 record {
     int age;
     Color favoriteColor;
 };
+
+// Union of singleton string values (not a named enum)
+type Status "active"|"inactive"|"pending";
+

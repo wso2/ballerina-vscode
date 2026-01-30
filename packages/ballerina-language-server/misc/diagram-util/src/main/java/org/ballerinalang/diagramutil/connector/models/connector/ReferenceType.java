@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class ReferenceType {
     private static final Map<String, RefType> visitedTypeMap = new ConcurrentHashMap<>();
@@ -230,14 +231,13 @@ public class ReferenceType {
             boolean allSingletons = !typeSymbols.isEmpty() && typeSymbols.stream()
                     .allMatch(member -> member.typeKind() == TypeDescKind.SINGLETON);
             if (allSingletons) {
-                List<RefType> enumMembers = new ArrayList<>();
-                for (TypeSymbol memberTypeSymbol : typeSymbols) {
-                    String memberTypeName = memberTypeSymbol.getName().orElse("");
-                    ModuleID memberModuleId = getModuleID(memberTypeSymbol, moduleID);
-                    RefType memberType = fromSemanticSymbol(memberTypeSymbol, memberTypeName,
-                            memberModuleId, typeDefSymbols);
-                    enumMembers.add(memberType);
-                }
+                List<RefType> enumMembers = typeSymbols.stream()
+                        .map(memberSymbol -> {
+                            String memberTypeName = memberSymbol.getName().orElse("");
+                            ModuleID memberModuleId = getModuleID(memberSymbol, moduleID);
+                            return fromSemanticSymbol(memberSymbol, memberTypeName, memberModuleId, typeDefSymbols);
+                        })
+                        .collect(Collectors.toList());
                 RefEnumType enumType = createEnumType(name, enumMembers, typeHash, typeKey, moduleID);
                 visitedTypeMap.put(typeKey, enumType);
                 return enumType;
