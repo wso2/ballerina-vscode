@@ -26,14 +26,13 @@ import { Codicon, ErrorBanner, LinkButton, RequiredFormInput, ThemeColors } from
 import { FormField, FormValues } from '../Form/types';
 import { Controller } from 'react-hook-form';
 import { useFormContext } from '../../context';
-import { Imports, NodeKind } from '@wso2/ballerina-core';
+import { Imports, NodeKind, TriggerKind } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EditorFactory } from '../editors/EditorFactory';
-import { getFieldKeyForAdvanceProp } from '../editors/utils';
+import { getFieldKeyForAdvanceProp, getPropertyFromFormField } from '../editors/utils';
 
 export interface ArgManagerProps {
-    propertyKey: string;
-    paramConfigs: ParamConfig;
+    field: FormField;
     onChange?: (parameters: ParamConfig) => void,
     openRecordEditor?: (open: boolean) => void;
     readonly?: boolean;
@@ -135,8 +134,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                 render={({ field: { onChange }, fieldState: { error } }) => (
                     <>
                         <ArgManager
-                            propertyKey={field.key}
-                            paramConfigs={field.paramManagerProps}
+                            field={field}
                             openRecordEditor={openRecordEditor}
                             onChange={async (config: ParamConfig) => {
                                 onChange(config.paramValues);
@@ -190,14 +188,51 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
 }
 
 export function ArgManager(props: ArgManagerProps) {
-    const { propertyKey, paramConfigs, readonly, onChange, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+    const { field, readonly, onChange, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+    const propertyKey = field.key;
+    const paramConfigs = field.paramManagerProps;
+
+
     const { rpcClient } = useRpcContext();
+    const { fileName, targetLineRange } = useFormContext();
 
     const [editingSegmentId, setEditingSegmentId] = useState<number>(-1);
     const [isNew, setIsNew] = useState(false);
     const [parameters, setParameters] = useState<Parameter[]>(paramConfigs.paramValues);
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
     const [isGraphql, setIsGraphql] = useState<boolean>(false);
+
+    const getTypeFromFQN = async (
+        fqn: string
+    ) => {
+        try {
+            const variableField = paramConfigs.formFields.find(f => f.key === "variable");
+            const property = getPropertyFromFormField(variableField);
+
+            const completionsResponse = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                filePath: fileName,
+                context: {
+                    expression: fqn,
+                    startLine: targetLineRange.startLine,
+                    lineOffset: 0,
+                    offset: fqn.length,
+                    codedata: undefined,
+                    property: property
+                },
+                completionContext: {
+                    triggerKind: TriggerKind.INVOKED,
+                    triggerCharacter: undefined
+                }
+            });
+
+            const name = fqn.split('.').pop();
+            const completionItem = completionsResponse.find(completion => completion.insertText === name);
+            return completionItem?.detail;
+        } catch (error) {
+            console.error(">>> Error getting type from FQN in ArgManager", error);
+            return undefined;
+        }
+    };
 
     const onEdit = (param: Parameter) => {
         setEditingSegmentId(param.id);
@@ -254,12 +289,14 @@ export function ArgManager(props: ArgManagerProps) {
         onChange({ ...paramConfigs, paramValues: updatedParameters });
     };
 
-    const onSaveParam = async (paramConfig: Parameter) => {
-        paramConfig.formValues['type'] = "string";
-        onChangeParam(paramConfig);
-        setEditingSegmentId(-1);
-        setIsNew(false);
-        setSubComponentEnabled?.(false);
+    const onSaveParam = (paramConfig: Parameter) => {
+        getTypeFromFQN(paramConfig.formValues['variable']).then((type) => {
+            paramConfig.formValues['type'] = type;
+            onChangeParam(paramConfig);
+            setEditingSegmentId(-1);
+            setIsNew(false);
+            setSubComponentEnabled?.(false);
+        });
     };
 
     const onParamEditCancel = (param: Parameter) => {
