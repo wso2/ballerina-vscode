@@ -293,11 +293,11 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         TM_EVENT_BALLERINA_AI_GENERATION_ABORTED,
                         CMP_BALLERINA_AI_GENERATION,
                         {
-                            messageId: this.config.generationId,
-                            generationStartTime: generationStartTime.toString(),
-                            abortTime: abortTime.toString(),
-                            durationMs: (abortTime - generationStartTime).toString(),
-                            modifiedFilesCount: modifiedFiles.length.toString(),
+                            'message.id': this.config.generationId,
+                            'generation.start_time': generationStartTime.toString(),
+                            'generation.abort_time': abortTime.toString(),
+                            'generation.duration_ms': (abortTime - generationStartTime).toString(),
+                            'generation.modified_files_count': modifiedFiles.length.toString(),
                         }
                     );
 
@@ -402,14 +402,14 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             error,
             CMP_BALLERINA_AI_GENERATION,
             {
-                event: TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
-                messageId: context.messageId,
-                errorMessage: getErrorMessage(error),
-                errorType: error.name || 'Unknown',
-                errorCode: (error as any)?.code || 'N/A',
-                generationStartTime: context.generationStartTime.toString(),
-                errorTime: errorTime.toString(),
-                durationMs: (errorTime - context.generationStartTime).toString(),
+                'event.name': TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
+                'message.id': context.messageId,
+                'error.message': getErrorMessage(error),
+                'error.type': error.name || 'Unknown',
+                'error.code': (error as any)?.code || 'N/A',
+                'generation.start_time': context.generationStartTime.toString(),
+                'generation.error_time': errorTime.toString(),
+                'generation.duration_ms': (errorTime - context.generationStartTime).toString(),
             }
         );
 
@@ -451,16 +451,16 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             TM_EVENT_BALLERINA_AI_GENERATION_COMPLETED,
             CMP_BALLERINA_AI_GENERATION,
             {
-                messageId: context.messageId,
-                modifiedFilesCount: context.modifiedFiles.length.toString(),
-                generationStartTime: context.generationStartTime.toString(),
-                generationEndTime: generationEndTime.toString(),
-                isPlanMode: isPlanModeEnabled.toString(),
-                totalFilesAfterGeneration: finalProjectMetrics.fileCount.toString(),
-                totalLinesAfterGeneration: finalProjectMetrics.lineCount.toString(),
-                inputTokens: inputTokens.toString(),
-                outputTokens: outputTokens.toString(),
-                totalTokens: totalTokens.toString(),
+                'message.id': context.messageId,
+                'generation.modified_files_count': context.modifiedFiles.length.toString(),
+                'generation.start_time': context.generationStartTime.toString(),
+                'generation.end_time': generationEndTime.toString(),
+                'plan_mode': isPlanModeEnabled.toString(),
+                'project.files_after': finalProjectMetrics.fileCount.toString(),
+                'project.lines_after': finalProjectMetrics.lineCount.toString(),
+                'tokens.input': inputTokens.toString(),
+                'tokens.output': outputTokens.toString(),
+                'tokens.total': totalTokens.toString(),
             }
         );
 

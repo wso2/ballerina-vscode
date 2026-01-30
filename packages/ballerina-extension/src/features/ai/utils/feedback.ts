@@ -31,12 +31,12 @@ export async function submitFeedback(content: SubmitFeedbackRequest): Promise<bo
             TM_EVENT_BALLERINA_AI_GENERATION_FEEDBACK,
             CMP_BALLERINA_AI_GENERATION,
             {
-                feedbackType: content.positive ? 'positive' : 'negative',
-                feedbackMessage: content.feedbackText || '',
-                hasFeedbackText: content.feedbackText ? 'true' : 'false',
-                feedbackTextLength: content.feedbackText?.length.toString() || '0',
-                hasChatThread: content.messages.length > 0 ? 'true' : 'false',
-                chatThread: JSON.stringify(content.messages),
+                'feedback.type': content.positive ? 'positive' : 'negative',
+                'feedback.message': content.feedbackText || '',
+                'feedback.has_text': content.feedbackText ? 'true' : 'false',
+                'feedback.text_length': content.feedbackText?.length.toString() || '0',
+                'chat.has_thread': content.messages.length > 0 ? 'true' : 'false',
+                'chat.thread': JSON.stringify(content.messages),
             }
         );
     } catch (error) {

@@ -100,14 +100,14 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             TM_EVENT_BALLERINA_AI_GENERATION_SUBMITTED,
             CMP_BALLERINA_AI_GENERATION,
             {
-                messageId: config.generationId,
-                command: Command.Agent,
-                isPlanMode: (params.isPlanMode ?? false).toString(),
-                totalFilesBeforeGeneration: projectMetrics.fileCount.toString(),
-                totalLinesBeforeGeneration: projectMetrics.lineCount.toString(),
-                hasFileAttachments: (params.fileAttachmentContents?.length > 0).toString(),
-                hasChatHistory: (chatHistory.length > 0).toString(),
-                chatHistoryLength: chatHistory.length.toString(),
+                'message.id': config.generationId,
+                'command': Command.Agent,
+                'plan_mode': (params.isPlanMode ?? false).toString(),
+                'project.files_before': projectMetrics.fileCount.toString(),
+                'project.lines_before': projectMetrics.lineCount.toString(),
+                'file_attachments': (params.fileAttachmentContents?.length > 0).toString(),
+                'chat.has_history': (chatHistory.length > 0).toString(),
+                'chat.history_length': chatHistory.length.toString(),
             }
         );
 
