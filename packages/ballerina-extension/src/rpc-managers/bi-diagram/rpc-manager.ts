@@ -1129,6 +1129,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
         const projectScopes = params.projectScopes;
+        const deployementParams: ICreateComponentCmdParams[] = [];
 
         for (const projectScope of projectScopes) {
             const { projectPath, projectTitle, integrationTypes } = projectScope;
@@ -1151,16 +1152,16 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 continue;
             }
     
-            const deployementParams: ICreateComponentCmdParams = {
+            const deployementParam: ICreateComponentCmdParams = {
                 integrationType: integrationType as any,
                 buildPackLang: "ballerina", // Example language
                 name: path.basename(projectPath),
                 componentDir: projectPath,
                 extName: "Devant"
             };
-            commands.executeCommand(PlatformExtCommandIds.CreateNewComponent, deployementParams, params.rootDirectory);
-            isProjectDeploymentCompleted = true;
+            deployementParams.push(deployementParam);
         }
+        commands.executeCommand(PlatformExtCommandIds.CreateMultipleNewComponents, deployementParams, params.rootDirectory);
         return { isCompleted: true };
     }
 
