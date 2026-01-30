@@ -33,7 +33,7 @@ export function sendGenerationKeptTelemetry(messageId: string): void {
         TM_EVENT_BALLERINA_AI_GENERATION_KEPT,
         CMP_BALLERINA_AI_GENERATION,
         {
-            messageId,
+            'message.id': messageId,
         }
     );
 }
@@ -49,7 +49,7 @@ export function sendGenerationDiscardTelemetry(messageId: string): void {
         TM_EVENT_BALLERINA_AI_GENERATION_DISCARD,
         CMP_BALLERINA_AI_GENERATION,
         {
-            messageId,
+            'message.id': messageId,
         }
     );
 }
