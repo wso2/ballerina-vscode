@@ -2292,41 +2292,28 @@ export class BallerinaExtension {
     private checkMultipleBallerinaInstallations(): void {
         debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
 
+        const MULTIPLE_INSTALLATIONS_WARNING = 'Multiple Ballerina installations detected. This may cause unpredictable behavior.';
+        const RESOLUTION_ADVICE = 'Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.';
+
         try {
             let ballerinaPathsOutput = '';
             const execOptions = {
                 encoding: 'utf8' as const,
                 timeout: 10000,
-                env: { ...process.env }
+                env: { ...process.env },
+                shell: isWindows() ? undefined : '/bin/sh'
             };
 
-            if (isWindows()) {
-                // On Windows, use 'where bal' to find all occurrences
-                try {
-                    ballerinaPathsOutput = execSync('where bal', execOptions).toString();
-                    debug(`[MULTI_BAL_CHECK] Windows 'where bal' output: ${ballerinaPathsOutput}`);
-                } catch (error) {
-                    debug(`[MULTI_BAL_CHECK] 'where bal' command failed: ${error}`);
-                    return;
-                }
-            } else {
-                // On Unix-like systems (including WSL and macOS), find all bal executables in PATH
-                // Use portable commands available in standard POSIX shells instead of shell-specific built-ins
-                try {
-                    ballerinaPathsOutput = execSync(
-                        'which -a bal 2>/dev/null || command -v bal 2>/dev/null || type -ap bal 2>/dev/null',
-                        {
-                            encoding: 'utf8',
-                            timeout: 10000,
-                            env: { ...process.env },
-                            shell: '/bin/sh'
-                        }
-                    ).toString();
-                    debug(`[MULTI_BAL_CHECK] Unix 'which/command/type bal' output: ${ballerinaPathsOutput}`);
-                } catch (error) {
-                    debug(`[MULTI_BAL_CHECK] Command to find bal executables failed: ${error}`);
-                    return;
-                }
+            const command = isWindows()
+                ? 'where bal'
+                : 'which -a bal 2>/dev/null || command -v bal 2>/dev/null || type -ap bal 2>/dev/null';
+
+            try {
+                ballerinaPathsOutput = execSync(command, execOptions).toString();
+                debug(`[MULTI_BAL_CHECK] '${command}' output: ${ballerinaPathsOutput}`);
+            } catch (error) {
+                debug(`[MULTI_BAL_CHECK] Command to find bal executables failed: ${error}`);
+                return;
             }
 
             // Parse the output to get unique paths
@@ -2345,26 +2332,19 @@ export class BallerinaExtension {
                 }
 
                 if (installationDirs.size >= 2) {
-                    const warningMessage = `[WARNING] Multiple Ballerina installations detected. This may cause unpredictable behavior.`;
-                    log(warningMessage);
+                    const pathsList = Array.from(installationDirs).map((p, i) => `${i + 1}. ${p}`);
+
+                    // Log warnings
+                    log(`[WARNING] ${MULTIPLE_INSTALLATIONS_WARNING}`);
                     log(`[WARNING] Detected Ballerina paths:`);
-                    let index = 1;
-                    const pathsList: string[] = [];
-                    installationDirs.forEach((p) => {
-                        log(`[WARNING] ${index}. ${p}`);
-                        pathsList.push(`${index}. ${p}`);
-                        index++;
-                    });
-                    log(`[WARNING] Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.`);
+                    pathsList.forEach(p => log(`[WARNING] ${p}`));
+                    log(`[WARNING] ${RESOLUTION_ADVICE}`);
 
                     // Show popup notification to user
                     const viewDetails = 'View Details';
-                    window.showWarningMessage(
-                        'Multiple Ballerina installations detected in PATH. This may cause unpredictable behavior.',
-                        viewDetails
-                    ).then((selection) => {
+                    window.showWarningMessage(MULTIPLE_INSTALLATIONS_WARNING, viewDetails).then((selection) => {
                         if (selection === viewDetails) {
-                            const detailMessage = `Detected Ballerina installations:\n${pathsList.join('\n')}\n\nConsider removing duplicate installations or adjusting your PATH to avoid version conflicts.`;
+                            const detailMessage = `Detected Ballerina installations:\n${pathsList.join('\n')}\n\n${RESOLUTION_ADVICE}`;
                             window.showWarningMessage(detailMessage, { modal: true });
                         }
                     });
