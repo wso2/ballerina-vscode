@@ -109,6 +109,8 @@ under the License.
 
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryListTest"/>
             <class name="io.ballerina.flowmodelgenerator.extension.CopilotLibraryFilterTest"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetFilteredLibrariesFromSemanticModel"/>
+            <class name="io.ballerina.flowmodelgenerator.extension.GetLibrariesListFromSearchIndex"/>
         </classes>
 
         <packages>

@@ -15,6 +15,7 @@ CREATE TABLE Package (
     name TEXT NOT NULL,
     package_name TEXT NOT NULL,
     version TEXT,
+    description TEXT,
     pull_count INTEGER,
     keywords TEXT
 );
