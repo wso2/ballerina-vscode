@@ -1274,7 +1274,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.PARAMETER_VARIABLE_DOC)
                 .stepOut()
                 .type(Property.ValueType.IDENTIFIER)
-                .editable()
                 .value(name);
 
         if (token == null) {

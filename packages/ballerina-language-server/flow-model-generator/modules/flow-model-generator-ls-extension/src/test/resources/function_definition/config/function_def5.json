@@ -230,7 +230,7 @@
                 ],
                 "value": "required",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -312,7 +312,7 @@
                 ],
                 "value": "name",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -394,7 +394,7 @@
                 ],
                 "value": "flag",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -476,7 +476,7 @@
                 ],
                 "value": "rest",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
