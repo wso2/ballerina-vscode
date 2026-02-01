@@ -23,6 +23,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -266,6 +267,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         FIXED_PROPERTY,
         REPEATABLE_PROPERTY,
         RAW_TEMPLATE,
+        REPEATABLE_LIST,
+        REPEATABLE_MAP,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
         MAPPING_EXPRESSION,
@@ -547,7 +550,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, this);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
@@ -558,7 +561,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
 
             // Handle the primitive input types
-            boolean success = handlePrimitiveType(typeSymbol, ballerinaType);
+            boolean success = handlePrimitiveType(typeSymbol, ballerinaType, semanticModel, moduleInfo, builder);
 
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             // Handle union of singleton types as single-select options
@@ -579,14 +582,15 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                 // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
-                    type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
+                    builder.type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
                     for (TypeSymbol ts : typeSymbols) {
-                        handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo));
+                        handlePrimitiveType(ts, CommonUtils.getTypeSignature(ts, moduleInfo), semanticModel,
+                                moduleInfo, builder);
                     }
                     // group by the fieldType
-                    List<PropertyType> propTypes = this.types;
+                    List<PropertyType> propTypes = builder.types;
                     propTypes.stream()
                             .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
                             .forEach((fieldType, groupedTypes) -> {
@@ -598,7 +602,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                             .reduce((a, b) -> a + "|" + b)
                                             .orElse("");
                                     // remove the existing types
-                                    this.types.removeIf(t -> t.fieldType() == fieldType);
+                                    builder.types.removeIf(t -> t.fieldType() == fieldType);
 
                                     List<PropertyTypeMemberInfo> distinctMembers = null;
                                     if (fieldType == ValueType.RECORD_MAP_EXPRESSION) {
@@ -610,7 +614,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                                     }
 
                                     // add the merged type
-                                    this.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
+                                    builder.types.add(new PropertyType(fieldType, mergedBallerinaType, null,
                                             null, null, distinctMembers, false));
                                 }
                             });
@@ -618,7 +622,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
 
             // All the ballerina types will have a default to expression type
-            type().fieldType(ValueType.EXPRESSION)
+            builder.type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
                     .stepOut();
 
@@ -637,13 +641,13 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         }
                     }
                     ValueType finalMatchingValueType = matchingValueType;
-                    this.types.stream()
+                    builder.types.stream()
                             .filter(propType -> propType.fieldType() == finalMatchingValueType)
                             .findFirst()
                             .ifPresent(propType -> {
                                 propType.selected(true);
                                 if (propType.fieldType() == ValueType.RECORD_MAP_EXPRESSION) {
-                                    String selectedType = getSelectedType(value, semanticModel);
+                                    String selectedType = getSelectedType(value, semanticModel, builder);
                                     if (selectedType != null) {
                                         propType.typeMembers().stream().filter(typeMember ->
                                                 typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
@@ -653,7 +657,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 } else if (matchingValueType == ValueType.EXPRESSION) {
                     boolean foundMatch = false;
                     PropertyType expressionPropType = null;
-                    for (PropertyType propType : this.types) {
+                    for (PropertyType propType : builder.types) {
                         if (propType.fieldType() == ValueType.SINGLE_SELECT) {
                             String valueStr = value.toSourceCode().trim();
                             for (Option option : propType.options()) {
@@ -673,7 +677,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     }
                 } else {
                     ValueType finalMatchingValueType = matchingValueType;
-                    this.types.stream()
+                    builder.types.stream()
                             .filter(propType -> propType.fieldType() == finalMatchingValueType)
                             .findFirst()
                             .ifPresent(propType -> propType.selected(true));
@@ -688,9 +692,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return this;
         }
 
-        private String getSelectedType(Node value, SemanticModel semanticModel) {
+        private String getSelectedType(Node value, SemanticModel semanticModel,  Property.Builder<?> builder) {
             if (value != null) {
-                this.value = value.toSourceCode().strip();
+                builder.value = value.toSourceCode().strip();
                 Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
                 if (paramType.isPresent()) {
                     if (paramType.get().getModule().isPresent()) {
@@ -704,13 +708,19 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return null;
         }
 
-        private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
+        private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType, SemanticModel semanticModel,
+                                            ModuleInfo moduleInfo, Property.Builder<?> builder) {
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             switch (rawType.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
-                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
-                case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
-                case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
+                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> builder.type(ValueType.NUMBER, ballerinaType);
+                case STRING, STRING_CHAR -> builder.type(ValueType.TEXT, ballerinaType);
+                case BOOLEAN -> builder.type(ValueType.FLAG, ballerinaType);
+                case ARRAY -> builder.type()
+                        .fieldType(ValueType.REPEATABLE_LIST)
+                        .ballerinaType(ballerinaType)
+                        .template(buildRepeatableTemplates(typeSymbol, semanticModel, moduleInfo))
+                        .stepOut();
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -721,7 +731,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         }
                         ModuleID id = typeSymbol.getModule().get().id();
                         String packageIdentifier = "%s:%s:%s".formatted(id.orgName(), id.moduleName(), id.version());
-                        type()
+                        builder.type()
                                 .fieldType(ValueType.RECORD_MAP_EXPRESSION)
                                 .ballerinaType(ballerinaType)
                                 .typeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
@@ -736,6 +746,20 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 }
             }
             return true;
+        }
+
+        private Property buildRepeatableTemplates(TypeSymbol tSymbol, SemanticModel semanticModel,
+                                                  ModuleInfo moduleInfo) {
+            Builder<Object> builder = new Builder<>(null);
+
+            TypeSymbol rawType = CommonUtil.getRawType(tSymbol);
+            if (rawType.typeKind() == TypeDescKind.ARRAY) {
+                ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) rawType;
+                TypeSymbol memberTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
+                typeWithExpression(memberTypeSymbol, moduleInfo, null, semanticModel, builder);
+            }
+
+            return builder.build();
         }
 
         // need to handle the enums separately
