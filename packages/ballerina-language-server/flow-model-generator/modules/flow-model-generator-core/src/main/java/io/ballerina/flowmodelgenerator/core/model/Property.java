@@ -754,7 +754,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             return true;
         }
 
-        private Property buildRepeatableTemplates(TypeSymbol tSymbol, SemanticModel semanticModel,
+        public Property buildRepeatableTemplates(TypeSymbol tSymbol, SemanticModel semanticModel,
                                                   ModuleInfo moduleInfo) {
             Builder<Object> builder = new Builder<>(null);
 
@@ -763,11 +763,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) rawType;
                 TypeSymbol memberTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
                 typeWithExpression(memberTypeSymbol, moduleInfo, null, semanticModel, builder);
-            }
-            if (rawType.typeKind() == TypeDescKind.MAP) {
+            } else if (rawType.typeKind() == TypeDescKind.MAP) {
                 MapTypeSymbol mapTypeSymbol = (MapTypeSymbol) rawType;
                 TypeSymbol constrainedTypeSymbol = mapTypeSymbol.typeParam();
                 typeWithExpression(constrainedTypeSymbol, moduleInfo, null, semanticModel, builder);
+            } else {
+                typeWithExpression(tSymbol, moduleInfo, null, semanticModel, builder);
             }
 
             return builder.build();

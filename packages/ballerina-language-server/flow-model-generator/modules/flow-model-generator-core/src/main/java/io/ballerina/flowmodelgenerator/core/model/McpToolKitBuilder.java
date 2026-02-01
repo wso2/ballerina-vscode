@@ -178,11 +178,25 @@ public class McpToolKitBuilder extends NodeBuilder {
                 case INCLUDED_RECORD_REST -> {
                     applyRestDefaultability(builder, onlyRestParams);
                     unescapedName = "additionalValues";
-                    builder.type(ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = builder.buildRepeatableTemplates(param.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    builder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(param.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 case REST_PARAMETER -> {
                     applyRestDefaultability(builder, onlyRestParams);
-                    builder.type(ValueType.EXPRESSION_SET);
+                    Property template = builder.buildRepeatableTemplates(param.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    builder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(param.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 }
                 default -> builder.typeWithExpression(param.typeSymbol(), moduleInfo);
             }

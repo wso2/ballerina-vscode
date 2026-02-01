@@ -945,12 +945,26 @@ public class CodeAnalyzer extends NodeVisitor {
                     customPropBuilder.defaultable(false);
                 }
                 unescapedParamName = "additionalValues";
-                customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_MAP)
+                        .ballerinaType(paramResult.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
             } else if (paramResult.kind() == ParameterData.Kind.REST_PARAMETER) {
                 if (hasOnlyRestParams) {
                     customPropBuilder.defaultable(false);
                 }
-                customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                        semanticModel, moduleInfo);
+                customPropBuilder.type()
+                        .fieldType(Property.ValueType.REPEATABLE_LIST)
+                        .ballerinaType(paramResult.type())
+                        .template(template)
+                        .selected(true)
+                        .stepOut();
             } else {
                 customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
             }
@@ -1018,12 +1032,26 @@ public class CodeAnalyzer extends NodeVisitor {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_MAP)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 } else if (paramKind == ParameterData.Kind.REST_PARAMETER) {
                     if (hasOnlyRestParams) {
                         customPropBuilder.defaultable(false);
                     }
-                    customPropBuilder.type(Property.ValueType.EXPRESSION_SET);
+                    Property template = customPropBuilder.buildRepeatableTemplates(paramResult.typeSymbol(),
+                            semanticModel, moduleInfo);
+                    customPropBuilder.type()
+                            .fieldType(Property.ValueType.REPEATABLE_LIST)
+                            .ballerinaType(paramResult.type())
+                            .template(template)
+                            .selected(true)
+                            .stepOut();
                 } else {
                     customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
                 }
@@ -1365,9 +1393,23 @@ public class CodeAnalyzer extends NodeVisitor {
     private void buildPropertyType(Property.Builder<?> builder, ParameterData paramData, Node value) {
         ParameterData.Kind kind = paramData.kind();
         if (kind == ParameterData.Kind.REST_PARAMETER) {
-            builder.type(Property.ValueType.EXPRESSION_SET);
+            Property template = builder.buildRepeatableTemplates(paramData.typeSymbol(),
+                    semanticModel, moduleInfo);
+            builder.type()
+                    .fieldType(Property.ValueType.REPEATABLE_LIST)
+                    .ballerinaType(paramData.type())
+                    .template(template)
+                    .selected(true)
+                    .stepOut();
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
-            builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
+            Property template = builder.buildRepeatableTemplates(paramData.typeSymbol(),
+                    semanticModel, moduleInfo);
+            builder.type()
+                    .fieldType(Property.ValueType.REPEATABLE_MAP)
+                    .ballerinaType(paramData.type())
+                    .template(template)
+                    .selected(true)
+                    .stepOut();
         } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
             String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
             if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
