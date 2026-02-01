@@ -24,6 +24,7 @@ import com.google.gson.reflect.TypeToken;
 import io.ballerina.compiler.api.ModuleID;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
@@ -721,6 +722,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         .ballerinaType(ballerinaType)
                         .template(buildRepeatableTemplates(typeSymbol, semanticModel, moduleInfo))
                         .stepOut();
+                case MAP -> builder.type()
+                        .fieldType(ValueType.REPEATABLE_MAP)
+                        .ballerinaType(ballerinaType)
+                        .template(buildRepeatableTemplates(typeSymbol, semanticModel, moduleInfo))
+                        .stepOut();
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -757,6 +763,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 ArrayTypeSymbol arrayTypeSymbol = (ArrayTypeSymbol) rawType;
                 TypeSymbol memberTypeSymbol = arrayTypeSymbol.memberTypeDescriptor();
                 typeWithExpression(memberTypeSymbol, moduleInfo, null, semanticModel, builder);
+            }
+            if (rawType.typeKind() == TypeDescKind.MAP) {
+                MapTypeSymbol mapTypeSymbol = (MapTypeSymbol) rawType;
+                TypeSymbol constrainedTypeSymbol = mapTypeSymbol.typeParam();
+                typeWithExpression(constrainedTypeSymbol, moduleInfo, null, semanticModel, builder);
             }
 
             return builder.build();
