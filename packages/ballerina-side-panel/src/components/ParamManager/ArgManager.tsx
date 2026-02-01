@@ -202,8 +202,8 @@ export function ArgManager(props: ArgManagerProps) {
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
     const [isGraphql, setIsGraphql] = useState<boolean>(false);
 
-    const getTypeFromFQN = async (
-        fqn: string
+    const getTypeFromArg = async (
+        arg: string
     ) => {
         try {
             const variableField = paramConfigs.formFields.find(f => f.key === "variable");
@@ -212,10 +212,10 @@ export function ArgManager(props: ArgManagerProps) {
             const completionsResponse = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
                 filePath: fileName,
                 context: {
-                    expression: fqn,
+                    expression: arg,
                     startLine: targetLineRange.startLine,
                     lineOffset: 0,
-                    offset: fqn.length,
+                    offset: arg.length,
                     codedata: undefined,
                     property: property
                 },
@@ -225,7 +225,7 @@ export function ArgManager(props: ArgManagerProps) {
                 }
             });
 
-            const name = fqn.split('.').pop();
+            const name = arg.split('.').pop();
             const completionItem = completionsResponse.find(completion => completion.insertText === name);
             return completionItem?.detail;
         } catch (error) {
@@ -279,18 +279,18 @@ export function ArgManager(props: ArgManagerProps) {
         onChange({ ...paramConfigs, paramValues: reArrangedParameters });
     };
 
-    const onChangeParam = (updatedParams: Parameter) => {
+    const onChangeParam = (updatedParam: Parameter) => {
         const updatedParameters = [...parameters];
-        const index = updatedParameters.findIndex(param => param.id === updatedParams.id);
+        const index = updatedParameters.findIndex(param => param.id === updatedParam.id);
         if (index !== -1) {
-            updatedParameters[index] = paramConfigs.handleParameter(updatedParams);
+            updatedParameters[index] = handleArgChange(updatedParam, parameters);
         }
         setParameters(updatedParameters);
         onChange({ ...paramConfigs, paramValues: updatedParameters });
     };
 
     const onSaveParam = (paramConfig: Parameter) => {
-        getTypeFromFQN(paramConfig.formValues['variable']).then((type) => {
+        getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
             paramConfig.formValues['type'] = type;
             onChangeParam(paramConfig);
             setEditingSegmentId(-1);
@@ -377,4 +377,30 @@ export function ArgManager(props: ArgManagerProps) {
             )}
         </div>
     );
+}
+
+function handleArgChange(param: Parameter, allParams: Parameter[]) {
+    const arg = param.formValues["variable"];
+    const name = arg.split('.').pop();
+
+    let key = name;
+    let i = 2;
+    while (allParams.some(p => p.key === key && p.id !== param.id)) {
+        key = name + (i++);
+    }
+
+    const type = param.formValues["type"];
+
+    const defaultValue =
+        Object.keys(param.formValues).indexOf("defaultable") > -1 && `${param.formValues["defaultable"]} `;
+    let value = `${type} ${key} `;
+    if (defaultValue) {
+        value += ` = ${defaultValue} `;
+    }
+
+    return {
+        ...param,
+        key: key,
+        value: value,
+    };
 }
