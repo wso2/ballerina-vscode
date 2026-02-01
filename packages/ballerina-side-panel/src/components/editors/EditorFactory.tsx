@@ -196,7 +196,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "VIEW") {
         // Skip this property
         return <></>;
-    } else if(field.type === "REPEATABLE_PROPERTY" && selectedNode === "DATA_MAPPER_DEFINITION"){
+    } else if(field.type === "REPEATABLE_PROPERTY" && selectedNode === "DATA_MAPPER_CREATION") {
         return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     }else if (
         (field.type === "PARAM_MANAGER") ||

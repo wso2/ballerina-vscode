@@ -480,6 +480,7 @@ export type NodeKind =
     | "CONTINUE"
     | "DATA_MAPPER_CALL"
     | "DATA_MAPPER_DEFINITION"
+    | "DATA_MAPPER_CREATION"
     | "DRAFT"
     | "ELSE"
     | "EMPTY"
