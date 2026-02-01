@@ -128,7 +128,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                 rules={{
                     required: {
                         value: !field.optional && !field.placeholder,
-                        message: `${selectedNode === "DATA_MAPPER_DEFINITION" ? 'Input type' : field.label} is required`
+                        message: "Arguments are required"
                     }
                 }}
                 render={({ field: { onChange }, fieldState: { error } }) => (
