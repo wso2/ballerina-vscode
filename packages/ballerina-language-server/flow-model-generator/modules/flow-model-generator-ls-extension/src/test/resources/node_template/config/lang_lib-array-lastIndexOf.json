@@ -38,6 +38,24 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "array:AnydataType[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "array:AnydataType",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "array:AnydataType[]",
             "selected": false

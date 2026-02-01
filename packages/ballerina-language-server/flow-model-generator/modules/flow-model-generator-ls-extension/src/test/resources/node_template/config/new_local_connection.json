@@ -69,6 +69,29 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
             "selected": false
@@ -91,6 +114,29 @@
           "description": "The array of allowed methods by the service"
         },
         "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
@@ -115,6 +161,29 @@
         },
         "types": [
           {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
             "selected": false
@@ -137,6 +206,29 @@
           "description": "The allowlisted headers, which clients are allowed to access"
         },
         "types": [
+          {
+            "fieldType": "REPEATABLE_LIST",
+            "ballerinaType": "string[]",
+            "template": {
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "ballerinaType": "string",
+                  "selected": false
+                },
+                {
+                  "fieldType": "EXPRESSION",
+                  "ballerinaType": "string",
+                  "selected": false
+                }
+              ],
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
