@@ -1371,6 +1371,20 @@ public class CommonUtils {
         return content.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
+    private static String escapeContent(String content) {
+        return content.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    /**
+     * Unescapes backslashes and double quotes in the given content string.
+     *
+     * @param content the content string to unescape
+     * @return the unescaped content string
+     */
+    public static String unescapeContent(String content) {
+        return content.replace("\\\"", "\"").replace("\\\\", "\\");
+    }
+
     /**
      * Removes the leading single quote from the specified string if present.
      *
