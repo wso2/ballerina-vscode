@@ -258,10 +258,47 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         if (value == null || value.toString().isEmpty()) {
             return placeholder == null ? "" : placeholder;
         }
+
         if (value instanceof Map<?, ?> valueMap) {
-            return CommonUtils.convertMapToString(valueMap);
+            return buildMapSourceCode(valueMap);
+        } else if (value instanceof List<?> valueList) {
+            return buildListSourceCode(valueList);
         }
+
         return CommonUtils.extractLiteralFromStringTemplate(value.toString());
+    }
+
+    private String buildMapSourceCode(Map<?, ?> valueMap) {
+        if (valueMap.isEmpty()) {
+            return "";
+        }
+
+        List<String> keyValuePairs = new ArrayList<>();
+        valueMap.forEach((keyObj, valueObj) -> {
+            if (keyObj instanceof String key && valueObj instanceof Property property) {
+                String propertyValue = property.toSourceCode();
+                if (!propertyValue.isEmpty()) {
+                    keyValuePairs.add(key + ": " + propertyValue);
+                }
+            }
+        });
+
+        return keyValuePairs.isEmpty() ? "" : "{%s}".formatted(String.join(", ", keyValuePairs));
+    }
+
+    private String buildListSourceCode(List<?> valueList) {
+        if (valueList.isEmpty()) {
+            return "";
+        }
+
+        List<String> stringValues = valueList.stream()
+                .filter(Property.class::isInstance)
+                .map(Property.class::cast)
+                .map(Property::toSourceCode)
+                .filter(str -> !str.isEmpty())
+                .toList();
+
+        return stringValues.isEmpty() ? "" : "[%s]".formatted(String.join(", ", stringValues));
     }
 
     // Enum for backward compatibility
