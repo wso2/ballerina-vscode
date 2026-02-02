@@ -29,7 +29,7 @@ interface ExecutionTimelineProps {
 
 const TimelineContainer = styled.div`
     max-width: 600px;
-    margin: 12px 0 0 24px;
+    margin: 12px 0 0 36px;
 `;
 
 const TimelineTitle = styled.div`

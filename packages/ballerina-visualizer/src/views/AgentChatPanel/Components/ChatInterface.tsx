@@ -113,6 +113,8 @@ const MessageContainer = styled.div<{ isUser: boolean }>`
 `;
 
 const ProfilePic = styled.div`
+    padding: 4px;
+    border: 1px solid var(--vscode-panel-border);
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -150,7 +152,7 @@ const MessageActionsContainer = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: -4px 0 0 24px;
+    margin: -4px 0 0 36px;
     flex-wrap: wrap;
 `;
 
@@ -515,7 +517,7 @@ const ChatInterface: React.FC = () => {
                                             sx={{ width: 18, height: 18 }}
                                             iconSx={{
                                                 fontSize: "18px",
-                                                color: "var(--vscode-foreground)",
+                                                color: "var(--vscode-terminal-ansiBrightCyan)",
                                                 cursor: "default",
                                             }}
                                         />
@@ -546,7 +548,7 @@ const ChatInterface: React.FC = () => {
                             {!msg.isUser && isTracingEnabled && msg.traceId && (
                                 <MessageActionsContainer>
                                     <ShowLogsButton onClick={() => handleShowLogs(idx)}>
-                                        View All Logs
+                                        View Logs
                                     </ShowLogsButton>
                                 </MessageActionsContainer>
                             )}
