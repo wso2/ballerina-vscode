@@ -45,6 +45,7 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
+import { FormMapEditorNew } from "./FormMapEditorNew";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -87,7 +88,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
     const showWithExpressionEditor = field.types?.some(type => {
         return type && (
-            type.fieldType === "EXPRESSION" ||
+            // type.fieldType === "EXPRESSION" ||
             type.fieldType === "LV_EXPRESSION" ||
             type.fieldType === "ACTION_OR_EXPRESSION" ||
             type.fieldType === "TEXT" ||
@@ -201,7 +202,94 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     ) {
         return <ParamManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     } else if (field.type === "REPEATABLE_PROPERTY") {
-        return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
+        const testField: FormField = {
+            "key": "futures",
+            "label": "Futures",
+            "type": "REPEATABLE_PROPERTY",
+            "optional": false,
+            "advanced": false,
+            "editable": false,
+            "enabled": true,
+            "hidden": false,
+            "documentation": "The futures to wait for",
+            "metadata": {
+                "label": "Futures",
+                "description": "The futures to wait for"
+            },
+            "types": [
+                {
+                    "fieldType": "REPEATABLE_PROPERTY",
+                    "template": {
+                        "metadata": {
+                            "label": "Future",
+                            "description": "The worker/async function to wait for"
+                        },
+                        "types": [
+                            {
+                                "fieldType": "FIXED_PROPERTY",
+                                "selected": false
+                            }
+                        ],
+                        "value": {
+                            "variable": {
+                                "metadata": {
+                                    "label": "Variable Name",
+                                    "description": "Name of the variable"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "IDENTIFIER",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": false,
+                                "editable": true,
+                                "advanced": false,
+                                "hidden": false,
+                                "codedata": {
+                                    "dependentProperty": ["waitAll"]
+                                }
+                            },
+                            "expression": {
+                                "metadata": {
+                                    "label": "Expression",
+                                    "description": "Expression"
+                                },
+                                "types": [
+                                    {
+                                        "fieldType": "EXPRESSION",
+                                        "selected": true
+                                    }
+                                ],
+                                "value": "",
+                                "optional": false,
+                                "editable": true,
+                                "advanced": false,
+                                "hidden": false
+                            }
+                        },
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                    },
+                    "selected": false
+                }
+            ],
+            "value": "{}",
+            "advanceProps": [],
+            "diagnostics": []
+        }
+        if (isTemplateType(testField.types[0])) {
+            return <FormMapEditorNew {...props} field={testField} />;
+        }
+        else {
+            return <FormMapEditorNew {...props} field={testField} />;
+        }
+    }
+    else if (field.type === "REPEATABLE_MAP") {
+        return <FormMapEditorNew {...props} />;
     } else if (field.type === "IDENTIFIER" && !field.editable && field?.lineRange) {
         return <IdentifierEditor
             field={field}

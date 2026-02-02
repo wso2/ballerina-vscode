@@ -115,6 +115,13 @@ export namespace S {
         gap: 8px;
     `;
 
+    export const ItemContainer = styled.div`
+        border: 1px solid var(--vscode-dropdown-border);
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 12px;
+    `;
+
     export const LabelContainer = styled.div({
         display: 'flex',
         alignItems: 'center'
@@ -776,8 +783,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         setFormDiagnostics([]);
                                         // Use ref to get current mode (not stale closure value)
                                         const currentMode = inputModeRef.current;
-                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && 
-                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
+                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
+                                            rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
                                         if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
