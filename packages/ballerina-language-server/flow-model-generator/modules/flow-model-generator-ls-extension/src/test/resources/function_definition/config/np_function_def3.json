@@ -198,7 +198,7 @@
                 ],
                 "value": "blog",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {

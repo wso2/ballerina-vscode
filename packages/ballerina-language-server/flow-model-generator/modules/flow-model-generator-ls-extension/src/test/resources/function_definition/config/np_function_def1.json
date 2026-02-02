@@ -198,7 +198,7 @@
                 ],
                 "value": "genre",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -280,7 +280,7 @@
                 ],
                 "value": "n",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {

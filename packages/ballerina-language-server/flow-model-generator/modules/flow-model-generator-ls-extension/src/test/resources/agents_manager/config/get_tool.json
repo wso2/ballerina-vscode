@@ -228,7 +228,7 @@
                 ],
                 "value": "key",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -310,7 +310,7 @@
                 ],
                 "value": "value",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
