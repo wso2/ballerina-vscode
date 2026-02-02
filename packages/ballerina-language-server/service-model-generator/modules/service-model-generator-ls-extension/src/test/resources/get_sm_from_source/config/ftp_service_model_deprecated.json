@@ -1,13 +1,13 @@
 {
-  "filePath": "sample14/main.bal",
+  "filePath": "sample16/main.bal",
   "description": "Test the generation of service model for an FTP service",
   "start": {
     "line": 15,
     "offset": 0
   },
   "end": {
-    "line": 31,
-    "offset": 0
+    "line": 19,
+    "offset": 1
   },
   "response": {
     "id": "0",
@@ -96,7 +96,7 @@
           "offset": 0
         },
         "endLine": {
-          "line": 31,
+          "line": 19,
           "offset": 1
         }
       },
@@ -349,7 +349,7 @@
               "optional": false,
               "advanced": false
             },
-            "enabled": false,
+            "enabled": true,
             "editable": true,
             "optional": true,
             "advanced": true,
@@ -371,22 +371,11 @@
           "optional": true,
           "advanced": false
         },
-        "enabled": true,
+        "enabled": false,
         "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
-          "lineRange": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 16,
-              "offset": 4
-            },
-            "endLine": {
-              "line": 22,
-              "offset": 5
-            }
-          },
           "moduleName": "ftp"
         },
         "properties": {
@@ -520,22 +509,11 @@
           "optional": true,
           "advanced": false
         },
-        "enabled": true,
+        "enabled": false,
         "optional": true,
         "editable": true,
         "canAddParameters": false,
         "codedata": {
-          "lineRange": {
-            "fileName": "main.bal",
-            "startLine": {
-              "line": 24,
-              "offset": 4
-            },
-            "endLine": {
-              "line": 30,
-              "offset": 5
-            }
-          },
           "moduleName": "ftp"
         },
         "properties": {
@@ -914,6 +892,237 @@
         "codedata": {
           "moduleName": "ftp"
         }
+      },
+      {
+        "metadata": {
+          "label": "EVENT",
+          "description": ""
+        },
+        "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "value": "onFileChange",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "fileEvent",
+              "description": "fileEvent"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "value": "ftp:WatchEvent",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "value": "fileEvent",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": true,
+        "editable": false,
+        "canAddParameters": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 18,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {}
       }
     ]
   }
