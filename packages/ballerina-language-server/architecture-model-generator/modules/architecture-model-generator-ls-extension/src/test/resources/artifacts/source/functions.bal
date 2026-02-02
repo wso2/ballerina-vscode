@@ -1,4 +1,5 @@
 import ballerina/io;
+import ballerina/jballerina.java;
 
 // Basic function with no parameters and no return value
 public function sayHello() {
@@ -70,3 +71,9 @@ public function main() {
         io:println("Error: " + divResult.message());
     }
 }
+
+function execCommand(handle runtime, handle command) returns handle|error = @java:Method {
+    'class: "java.lang.Runtime",
+    name: "exec",
+    paramTypes: ["java.lang.String"]
+} external;
