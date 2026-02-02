@@ -28,7 +28,12 @@ import io.ballerina.compiler.api.symbols.MapTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
+import io.ballerina.compiler.syntax.tree.BindingPatternNode;
+import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
+import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
+import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -37,6 +42,7 @@ import org.ballerinalang.langserver.common.utils.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -484,15 +490,14 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return this;
             }
 
-            public TypeBuilder typeMembers(List<ParameterMemberTypeData> memberTypeData) {
-                this.typeMembers = memberTypeData.stream().map(m -> new PropertyTypeMemberInfo(m.type(),
-                        m.packageInfo(), m.packageName(), m.kind(), false)).toList();
+            public TypeBuilder typeMembers(List<PropertyTypeMemberInfo> typeMembers) {
+                this.typeMembers = typeMembers;
                 return this;
             }
 
-            public TypeBuilder typeMembers(List<ParameterMemberTypeData> memberTypeData, String selectedType) {
+            public TypeBuilder setTypeMembers(List<ParameterMemberTypeData> memberTypeData) {
                 this.typeMembers = memberTypeData.stream().map(m -> new PropertyTypeMemberInfo(m.type(),
-                        m.packageInfo(), m.packageName(), m.kind(), m.type().equals(selectedType))).toList();
+                        m.packageInfo(), m.packageName(), m.kind(), false)).toList();
                 return this;
             }
 
@@ -634,27 +639,14 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 ValueType matchingValueType = findMatchingValueType(value);
                 // if matching type is mapping_expression_set
                 // need to check if it's a map or a record if its a map then need to set the matching type
-                if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
+                if (matchingValueType == ValueType.REPEATABLE_MAP) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
-                    if (paramType.isPresent()) {
-                        if (paramType.get().typeKind() == TypeDescKind.RECORD) {
-                            matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
-                        }
+                    boolean hasRecordValue = handleRecordValue(value, semanticModel, builder, paramType);
+                    if (!hasRecordValue && value instanceof MappingBindingPatternNode bindingPatternNode) {
+                        handleMapValue(typeSymbol, moduleInfo, builder, bindingPatternNode, paramType);
                     }
-                    ValueType finalMatchingValueType = matchingValueType;
-                    builder.types.stream()
-                            .filter(propType -> propType.fieldType() == finalMatchingValueType)
-                            .findFirst()
-                            .ifPresent(propType -> {
-                                propType.selected(true);
-                                if (propType.fieldType() == ValueType.RECORD_MAP_EXPRESSION) {
-                                    String selectedType = getSelectedType(value, semanticModel, builder);
-                                    if (selectedType != null) {
-                                        propType.typeMembers().stream().filter(typeMember ->
-                                                typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
-                                    }
-                                }
-                            });
+                } else if (matchingValueType == ValueType.REPEATABLE_LIST) {
+                    handleListValue(typeSymbol, moduleInfo, builder, value, semanticModel);
                 } else if (matchingValueType == ValueType.EXPRESSION) {
                     boolean foundMatch = false;
                     PropertyType expressionPropType = null;
@@ -691,6 +683,185 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 }
             }
             return this;
+        }
+
+        private void handleListValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
+                                    Node value, SemanticModel semanticModel) {
+            Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
+            if (paramType.isEmpty() || !(value instanceof ListBindingPatternNode bindingPatternNode)) {
+                return;
+            }
+
+            TypeSymbol actualParamType = paramType.get();
+
+            // Collect candidate array type symbols
+            List<TypeSymbol> candidateArrayTypes = new ArrayList<>();
+            if (typeSymbol instanceof UnionTypeSymbol unionType) {
+                unionType.memberTypeDescriptors().stream()
+                        .filter(ArrayTypeSymbol.class::isInstance)
+                        .forEach(candidateArrayTypes::add);
+            } else if (typeSymbol instanceof ArrayTypeSymbol) {
+                candidateArrayTypes.add(typeSymbol);
+            }
+
+            // Find the matching type symbol that is a subtype of the parameter type
+            TypeSymbol matchingType = candidateArrayTypes.stream()
+                    .filter(candidate -> candidate.subtypeOf(actualParamType))
+                    .findFirst()
+                    .orElse(null);
+
+            if (matchingType == null) {
+                return;
+            }
+
+            String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+
+            // Find and update the matching property type
+            builder.types.stream()
+                    .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_LIST)
+                                     && propType.ballerinaType().equals(ballerinaType))
+                    .findFirst()
+                    .ifPresent(matchingPropType -> {
+                        matchingPropType.selected(true);
+
+                        Property template = matchingPropType.template();
+                        if (template == null) {
+                            return;
+                        }
+
+                        // Build value list from binding pattern nodes
+                        List<Property> valueList = new ArrayList<>();
+                        SeparatedNodeList<BindingPatternNode> bindingPatterns = bindingPatternNode.bindingPatterns();
+
+                        for (BindingPatternNode bindingNode : bindingPatterns) {
+                            String bindingValue = bindingNode.toSourceCode().trim();
+
+                            Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                            templateBuilder.types.stream()
+                                    .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                    .findFirst()
+                                    .ifPresent(pt -> pt.selected(true));
+                            templateBuilder.value(bindingValue);
+
+                            valueList.add(templateBuilder.build());
+                        }
+
+                        builder.value(valueList);
+                    });
+        }
+
+        private void handleMapValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
+                                    MappingBindingPatternNode bindingPatternNode,
+                                    Optional<TypeSymbol> paramType) {
+            if (paramType.isEmpty()) {
+                return;
+            }
+
+            TypeSymbol actualParamType = paramType.get();
+
+            List<TypeSymbol> candidateMapTypes = new ArrayList<>();
+            if (typeSymbol instanceof UnionTypeSymbol unionType) {
+                unionType.memberTypeDescriptors().stream()
+                        .filter(MapTypeSymbol.class::isInstance)
+                        .forEach(candidateMapTypes::add);
+            } else if (typeSymbol instanceof MapTypeSymbol) {
+                candidateMapTypes.add(typeSymbol);
+            }
+
+            // Find the matching type symbol that is a subtype of the parameter type
+            TypeSymbol matchingType = candidateMapTypes.stream()
+                    .filter(candidate -> candidate.subtypeOf(actualParamType))
+                    .findFirst()
+                    .orElse(null);
+
+            if (matchingType == null) {
+                return;
+            }
+
+            String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
+
+            // Find and update the matching property type
+            builder.types.stream()
+                    .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_MAP)
+                                     && propType.ballerinaType().equals(ballerinaType))
+                    .findFirst()
+                    .ifPresent(matchingPropType -> {
+                        matchingPropType.selected(true);
+
+                        Property template = matchingPropType.template();
+                        if (template == null) {
+                            return;
+                        }
+
+                        // Build value map from binding pattern nodes
+                        Map<String, Property> valueMap = new LinkedHashMap<>();
+                        SeparatedNodeList<BindingPatternNode> fieldBindings = bindingPatternNode.fieldBindingPatterns();
+
+                        for (BindingPatternNode bindingNode : fieldBindings) {
+                            if (bindingNode instanceof FieldBindingPatternFullNode fieldBinding) {
+                                String fieldKey = fieldBinding.variableName().name().text().trim();
+                                String fieldValue = fieldBinding.bindingPattern().toSourceCode().trim();
+
+                                Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                                templateBuilder.types.stream()
+                                        .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                        .findFirst()
+                                        .ifPresent(pt -> pt.selected(true));
+                                templateBuilder.value(fieldValue);
+
+                                valueMap.put(fieldKey, templateBuilder.build());
+                            }
+                        }
+
+                        builder.value(valueMap);
+                    });
+        }
+
+        /**
+         * Creates a new property builder based on an existing property template.
+         * This method copies all type information from the template property to create
+         * a new builder instance that can be further customized.
+         *
+         * @param template the property to use as a template
+         * @return a new Builder instance with copied type information
+         */
+        public Builder<Object> createPropertyBuilderFrom(Property template) {
+            Builder<Object> builder = new Builder<>(null);
+
+            if (template.types != null) {
+                for (PropertyType type : template.types) {
+                    builder.type()
+                            .fieldType(type.fieldType())
+                            .ballerinaType(type.ballerinaType())
+                            .template(type.template())
+                            .options(type.options())
+                            .typeMembers(type.typeMembers())
+                            .stepOut();
+                }
+            }
+
+            return builder;
+        }
+
+        private boolean handleRecordValue(Node value, SemanticModel semanticModel, Builder<?> builder,
+                                          Optional<TypeSymbol> paramType) {
+            if (!(paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD)) {
+               return false;
+            }
+            builder.types.stream()
+                    .filter(propType -> propType.fieldType() == ValueType.RECORD_MAP_EXPRESSION)
+                    .findFirst()
+                    .ifPresent(propType -> {
+                        propType.selected(true);
+                        if (propType.fieldType() == ValueType.RECORD_MAP_EXPRESSION) {
+                            String selectedType = getSelectedType(value, semanticModel, builder);
+                            if (selectedType != null) {
+                                propType.typeMembers().stream().filter(typeMember ->
+                                        typeMember.type().equals(selectedType)).forEach(t -> t.selected(true));
+                            }
+                        }
+                    });
+            return true;
         }
 
         private String getSelectedType(Node value, SemanticModel semanticModel,  Property.Builder<?> builder) {
@@ -740,7 +911,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         builder.type()
                                 .fieldType(ValueType.RECORD_MAP_EXPRESSION)
                                 .ballerinaType(ballerinaType)
-                                .typeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
+                                .setTypeMembers(List.of(new ParameterMemberTypeData(type, "RECORD_TYPE",
                                         packageIdentifier, id.packageName())))
                                 .stepOut();
                         return true;
@@ -780,7 +951,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
-                case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
+                case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.REPEATABLE_MAP;
+                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.REPEATABLE_LIST;
                 default -> ValueType.EXPRESSION;
             };
         }
