@@ -750,6 +750,70 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     });
         }
 
+        public void handleRestArguments(Builder<?> builder, List<Node> values) {
+            // Find and update the matching property type
+            builder.types.stream()
+                    .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_LIST))
+                    .findFirst()
+                    .ifPresent(matchingPropType -> {
+                        matchingPropType.selected(true);
+
+                        Property template = matchingPropType.template();
+                        if (template == null) {
+                            return;
+                        }
+
+                        // Build value list from binding pattern nodes
+                        List<Property> valueList = new ArrayList<>();
+                        for (Node value : values) {
+                            String expr = value.toSourceCode().trim();
+
+                            Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                            templateBuilder.types.stream()
+                                    .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                    .findFirst()
+                                    .ifPresent(pt -> pt.selected(true));
+                            templateBuilder.value(expr);
+
+                            valueList.add(templateBuilder.build());
+                        }
+                        builder.value(valueList);
+                    });
+        }
+
+        public void handleIncludedRecordRestArgs(Builder<?> builder, List<LinkedHashMap<String, Node>> values) {
+            // Find and update the matching property type
+            builder.types.stream()
+                    .filter(propType -> propType.fieldType().equals(ValueType.REPEATABLE_MAP))
+                    .findFirst()
+                    .ifPresent(matchingPropType -> {
+                        matchingPropType.selected(true);
+
+                        Property template = matchingPropType.template();
+                        if (template == null) {
+                            return;
+                        }
+
+                        // Build value list from binding pattern nodes
+                        Map<String, Property> valueMap = new LinkedHashMap<>();
+                        for (LinkedHashMap<String, Node> arg : values) {
+                            String fieldKey = arg.keySet().iterator().next();
+                            Node fieldValueNode = arg.get(fieldKey);
+
+                            Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                            templateBuilder.types.stream()
+                                    .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                    .findFirst()
+                                    .ifPresent(pt -> pt.selected(true));
+                            templateBuilder.value(fieldValueNode.toSourceCode().trim());
+
+                            valueMap.put(fieldKey, templateBuilder.build());
+                        }
+
+                        builder.value(valueMap);
+                    });
+        }
+
         private void handleMapValue(TypeSymbol typeSymbol, ModuleInfo moduleInfo, Builder<?> builder,
                                     MappingBindingPatternNode bindingPatternNode,
                                     Optional<TypeSymbol> paramType) {
