@@ -1132,32 +1132,17 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const deployementParams: ICreateComponentCmdParams[] = [];
 
         for (const projectScope of projectScopes) {
-            const { projectPath, projectTitle, integrationTypes } = projectScope;
-            let isProjectDeploymentCompleted = false;
+            const { projectPath, integrationTypes } = projectScope;
 
-            let integrationType: SCOPE;
-    
-            if (integrationTypes.length === 1) {
-                integrationType = integrationTypes[0];
-            } else {
-                // Show a quick pick to select deployment option
-                const selectedScope = await window.showQuickPick(integrationTypes, {
-                    placeHolder: `You have different types of artifacts within ${projectTitle}. Select the artifact type to be deployed`
-                });
-                integrationType = selectedScope as SCOPE;
-            }
-    
-            if (!integrationType) {
-                isProjectDeploymentCompleted = true;
-                continue;
-            }
-    
             const deployementParam: ICreateComponentCmdParams = {
-                integrationType: integrationType as any,
-                buildPackLang: "ballerina", // Example language
+                // Use the first type as default, user can change in the UI
+                integrationType: integrationTypes[0] as any,
+                buildPackLang: "ballerina",
                 name: path.basename(projectPath),
                 componentDir: projectPath,
-                extName: "Devant"
+                extName: "Devant",
+                // Pass all available types so user can select in the component form
+                supportedIntegrationTypes: integrationTypes as any[]
             };
             deployementParams.push(deployementParam);
         }
