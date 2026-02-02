@@ -50,6 +50,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "EXPRESSION") {
         return InputMode.EXP;
     }
+    if (inputType.fieldType === "NUMBER") {
+        return InputMode.NUMBER;
+    }
     if (inputType.fieldType === "SINGLE_SELECT") {
         return InputMode.SELECT;
     }
@@ -70,6 +73,9 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     }
     if (inputType.fieldType === "FLAG") {
         return InputMode.BOOLEAN;
+    }
+    if (inputType.fieldType === "RECORD_MAP_EXPRESSION") {
+        return InputMode.RECORD;
     }
 
     //default behaviour

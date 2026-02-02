@@ -153,7 +153,18 @@ export type FormFieldInputType = "TEXT" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
-    "PROMPT";
+    "PROMPT" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "NUMBER" |
+    "CONDITIONAL_FIELDS"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
