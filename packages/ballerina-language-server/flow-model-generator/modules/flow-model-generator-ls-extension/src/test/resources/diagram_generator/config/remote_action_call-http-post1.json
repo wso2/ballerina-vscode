@@ -124,6 +124,24 @@
             },
             "types": [
               {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "mime:Entity[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "mime:Entity",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
                 "selected": false
@@ -146,6 +164,52 @@
               "description": "The entity headers"
             },
             "types": [
+              {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<string|string[]>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "REPEATABLE_LIST",
+                      "ballerinaType": "string[]",
+                      "template": {
+                        "types": [
+                          {
+                            "fieldType": "TEXT",
+                            "ballerinaType": "string",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "string",
+                            "selected": false
+                          }
+                        ],
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string|string[]",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",
@@ -373,6 +437,24 @@
             },
             "types": [
               {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "mime:Entity[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "mime:Entity",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "http:RequestMessage",
                 "selected": false
@@ -395,6 +477,52 @@
               "description": "The entity headers"
             },
             "types": [
+              {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<string|string[]>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "REPEATABLE_LIST",
+                      "ballerinaType": "string[]",
+                      "template": {
+                        "types": [
+                          {
+                            "fieldType": "TEXT",
+                            "ballerinaType": "string",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "string",
+                            "selected": false
+                          }
+                        ],
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string|string[]",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",
@@ -447,11 +575,73 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION_SET",
-                "selected": false
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "http:QueryParamType",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "REPEATABLE_LIST",
+                      "ballerinaType": "http:SimpleQueryParamType[]",
+                      "template": {
+                        "types": [
+                          {
+                            "fieldType": "FLAG",
+                            "ballerinaType": "boolean",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "TEXT",
+                            "ballerinaType": "string",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "NUMBER",
+                            "ballerinaType": "int|float|decimal",
+                            "selected": false
+                          },
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "http:SimpleQueryParamType",
+                            "selected": false
+                          }
+                        ],
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
+                      },
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "FLAG",
+                      "ballerinaType": "boolean",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "NUMBER",
+                      "ballerinaType": "int|float|decimal",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "http:QueryParamType",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": true
               }
             ],
-            "value": [],
+            "value": {},
             "placeholder": "[]",
             "optional": true,
             "editable": true,

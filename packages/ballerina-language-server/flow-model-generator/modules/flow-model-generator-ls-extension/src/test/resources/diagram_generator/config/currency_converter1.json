@@ -931,6 +931,52 @@
                             },
                             "types": [
                               {
+                                "fieldType": "REPEATABLE_MAP",
+                                "ballerinaType": "map<string|string[]>",
+                                "template": {
+                                  "types": [
+                                    {
+                                      "fieldType": "TEXT",
+                                      "ballerinaType": "string",
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "REPEATABLE_LIST",
+                                      "ballerinaType": "string[]",
+                                      "template": {
+                                        "types": [
+                                          {
+                                            "fieldType": "TEXT",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          },
+                                          {
+                                            "fieldType": "EXPRESSION",
+                                            "ballerinaType": "string",
+                                            "selected": false
+                                          }
+                                        ],
+                                        "optional": false,
+                                        "editable": false,
+                                        "advanced": false,
+                                        "hidden": false
+                                      },
+                                      "selected": false
+                                    },
+                                    {
+                                      "fieldType": "EXPRESSION",
+                                      "ballerinaType": "string|string[]",
+                                      "selected": false
+                                    }
+                                  ],
+                                  "optional": false,
+                                  "editable": false,
+                                  "advanced": false,
+                                  "hidden": false
+                                },
+                                "selected": false
+                              },
+                              {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "map<string|string[]>?",
                                 "selected": false
@@ -1856,7 +1902,7 @@
                     "selected": true
                   }
                 ],
-                "value": "redis:error|error|http:error|error",
+                "value": "redis:Error|error|http:error|error",
                 "placeholder": "error",
                 "optional": false,
                 "editable": true,
@@ -1996,6 +2042,24 @@
                     },
                     "types": [
                       {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -2019,11 +2083,25 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [],
+                    "value": {},
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,

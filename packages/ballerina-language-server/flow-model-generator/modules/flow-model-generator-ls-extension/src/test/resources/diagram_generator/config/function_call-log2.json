@@ -219,6 +219,24 @@
                     },
                     "types": [
                       {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -242,18 +260,54 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [
-                      {
-                        "key1": "\"dadfa\""
+                    "value": {
+                      "key1": {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "log:Value",
+                            "selected": true
+                          }
+                        ],
+                        "value": "\"dadfa\"",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
                       },
-                      {
-                        "key2": "123"
+                      "key2": {
+                        "types": [
+                          {
+                            "fieldType": "EXPRESSION",
+                            "ballerinaType": "log:Value",
+                            "selected": true
+                          }
+                        ],
+                        "value": "123",
+                        "optional": false,
+                        "editable": false,
+                        "advanced": false,
+                        "hidden": false
                       }
-                    ],
+                    },
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,
@@ -355,6 +409,24 @@
                     },
                     "types": [
                       {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": true
@@ -379,11 +451,25 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [],
+                    "value": {},
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,

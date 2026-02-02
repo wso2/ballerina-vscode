@@ -289,6 +289,24 @@
                     },
                     "types": [
                       {
+                        "fieldType": "REPEATABLE_LIST",
+                        "ballerinaType": "error:StackFrame[]",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "error:StackFrame",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": false
+                      },
+                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -312,11 +330,25 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION_SET",
-                        "selected": false
+                        "fieldType": "REPEATABLE_MAP",
+                        "ballerinaType": "log:Value",
+                        "template": {
+                          "types": [
+                            {
+                              "fieldType": "EXPRESSION",
+                              "ballerinaType": "log:Value",
+                              "selected": false
+                            }
+                          ],
+                          "optional": false,
+                          "editable": false,
+                          "advanced": false,
+                          "hidden": false
+                        },
+                        "selected": true
                       }
                     ],
-                    "value": [],
+                    "value": {},
                     "placeholder": "{}",
                     "optional": true,
                     "editable": true,
@@ -342,7 +374,7 @@
         "metadata": {
           "label": "Kafka Producer",
           "description": "Represents a Kafka producer endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -375,6 +407,29 @@
                 "fieldType": "TEXT",
                 "ballerinaType": "string",
                 "selected": true
+              },
+              {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "string[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
               },
               {
                 "fieldType": "EXPRESSION",
@@ -770,6 +825,24 @@
             },
             "types": [
               {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<anydata>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<anydata>",
                 "selected": false
@@ -866,6 +939,29 @@
               "description": "Additional properties for the property fields not provided by the Ballerina `kafka` module. Use\nthis with caution since this can override any of the fields. It is not recomendded to use\nthis field except in an extreme situation"
             },
             "types": [
+              {
+                "fieldType": "REPEATABLE_MAP",
+                "ballerinaType": "map<string>",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "TEXT",
+                      "ballerinaType": "string",
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "string",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string>",
@@ -1427,7 +1523,7 @@
                 "typeMembers": [
                   {
                     "type": "SecureSocket",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1464,7 +1560,7 @@
                 "typeMembers": [
                   {
                     "type": "AuthenticationConfiguration",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
