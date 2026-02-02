@@ -20,10 +20,15 @@
           },
           "attachedServices": [],
           "kind": "NAMED",
-          "type": "",
-          "args": [],
-          "icon": "",
-          "uuid": "4c5106b0-cf66-8fd0-6b50-9af851cd2896",
+          "type": "http:Listener",
+          "args": [
+            {
+              "key": "port",
+              "value": "8080"
+            }
+          ],
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.1.png",
+          "uuid": "PLACEHOLDER",
           "enableFlowModel": true,
           "sortText": "main.bal2"
         }
