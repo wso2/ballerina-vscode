@@ -352,14 +352,17 @@ public class CodeAnalyzer extends NodeVisitor {
         Node initializer = listenerDeclarationNode.initializer();
 
         if (listenerDeclarationNode.typeDescriptor().isPresent()) {
+            // If explicit type descriptor is present, use it to get the type symbol and name
             Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
             typeSymbol = symbol.filter(s -> s instanceof TypeSymbol).map(s -> (TypeSymbol) s);
             typeName = listenerDeclarationNode.typeDescriptor().get().toSourceCode().strip();
-        } else if (initializer instanceof ExplicitNewExpressionNode explicitNewExpr) {
-            Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpr.typeDescriptor());
+        } else if (initializer instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+            // If inferred type from explicit new expression
+            Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
             typeSymbol = symbol.filter(s -> s instanceof TypeSymbol).map(s -> (TypeSymbol) s);
-            typeName = explicitNewExpr.typeDescriptor().toSourceCode().strip();
+            typeName = explicitNewExpressionNode.typeDescriptor().toSourceCode().strip();
         } else {
+            // Fallback to getting the type from the initializer expression
             typeSymbol = semanticModel.typeOf(initializer);
             typeName = typeSymbol.map(TypeSymbol::signature).orElse("");
         }
