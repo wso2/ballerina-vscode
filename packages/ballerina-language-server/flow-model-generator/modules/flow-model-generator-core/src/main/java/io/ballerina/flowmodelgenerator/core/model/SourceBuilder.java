@@ -582,22 +582,30 @@ public class SourceBuilder {
     private void addRestParamValues(Property prop) {
         if (prop.value() instanceof List<?> values) {
             if (!values.isEmpty()) {
-                List<String> strValues = ((List<?>) prop.value()).stream().map(Object::toString).toList();
+                List<String> strValues = new ArrayList<>();
+                for (Object value : values) {
+                    if (value instanceof Property property) {
+                        strValues.add(property.toSourceCode());
+                    }
+                }
                 tokenBuilder.expression(String.join(", ", strValues));
             }
         }
     }
 
     private void addIncludedRecordRestParamValues(Property prop) {
-        if (prop.value() instanceof List<?>) {
-            List<Map> values = (List<Map>) prop.value();
+        if (prop.value() instanceof Map<?,?> values) {
             if (!values.isEmpty()) {
                 List<String> result = new ArrayList<>();
-                values.forEach(keyValuePair -> {
-                    String key = (String) keyValuePair.keySet().iterator().next();
-                    String value = keyValuePair.values().iterator().next().toString();
-                    result.add(key + " = " + value);
-                });
+                for (Object keyObj : values.keySet()) {
+                    String key = (String) keyObj;
+                    Object valueObj = values.get(keyObj);
+                    if (valueObj instanceof Property property) {
+                        String value = property.toSourceCode();
+                        result.add(key + " = " + value);
+                    }
+                }
+
                 tokenBuilder.expression(String.join(", ", result));
             }
         }
