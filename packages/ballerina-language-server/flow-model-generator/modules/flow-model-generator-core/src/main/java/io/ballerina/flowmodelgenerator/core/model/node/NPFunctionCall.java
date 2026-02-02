@@ -16,6 +16,8 @@ import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
+import java.util.Optional;
+
 public class NPFunctionCall extends FunctionCall {
 
     public static final String LABEL = "Call Natural Function";
@@ -88,11 +90,25 @@ public class NPFunctionCall extends FunctionCall {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
+        // Create and set the resolved package for the function
+        // Skip package resolution for generated packages as they don't exist in Central
+        Optional<io.ballerina.projects.Package> resolvedPackage;
+        try {
+            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
+                    codedata.org(), codedata.packageName());
+        } catch (Exception e) {
+            // If package resolution fails (e.g., package doesn't exist in Central),
+            // treat it as a generated/test package and continue with empty resolved package
+            resolvedPackage = Optional.empty();
+        }
+
+
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
                 .functionResultKind(getFunctionResultKind())
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null));
 
         // Set the semantic model if the function is local
         boolean isLocalFunction = isLocalFunction(context.workspaceManager(), context.filePath(), codedata);

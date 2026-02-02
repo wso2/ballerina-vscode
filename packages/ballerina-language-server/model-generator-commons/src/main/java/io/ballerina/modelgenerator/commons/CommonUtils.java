@@ -1418,4 +1418,13 @@ public class CommonUtils {
         }
         return resultMap;
     }
+
+    public static String extractDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
+                                             io.ballerina.projects.Package resolvedPackage,
+                                             SemanticModel semanticModel) {
+        return new FunctionDataBuilder()
+                .resolvedPackage(resolvedPackage)
+                .semanticModel(semanticModel)
+                .getDefaultValue(paramSymbol, typeSymbol);
+    }
 }

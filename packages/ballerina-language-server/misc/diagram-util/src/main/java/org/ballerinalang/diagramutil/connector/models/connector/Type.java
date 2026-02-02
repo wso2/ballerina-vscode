@@ -54,6 +54,8 @@ import io.ballerina.compiler.syntax.tree.StreamTypeParamsNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TableTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
+import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
@@ -288,14 +290,19 @@ public class Type {
     }
 
     public static Type fromSemanticSymbol(Symbol symbol, SemanticModel semanticModel) {
-        return fromSemanticSymbol(symbol, new HashMap<>(), semanticModel);
+        return fromSemanticSymbol(symbol, new HashMap<>(), semanticModel, null);
     }
 
+    public static Type fromSemanticSymbol(Symbol symbol, SemanticModel semanticModel, String packageName) {
+        return fromSemanticSymbol(symbol, new HashMap<>(), semanticModel, packageName);
+    }
+
+
     private static Type fromSemanticSymbol(Symbol symbol, Map<String, String> documentationMap,
-                                           SemanticModel semanticModel) {
+                                           SemanticModel semanticModel, String packageName) {
         Type type = null;
         if (symbol instanceof TypeReferenceTypeSymbol typeReferenceTypeSymbol) {
-            type = getEnumType(typeReferenceTypeSymbol, symbol, documentationMap, semanticModel);
+            type = getEnumType(typeReferenceTypeSymbol, symbol, documentationMap, semanticModel, packageName);
         } else if (symbol instanceof RecordTypeSymbol recordTypeSymbol) {
             String typeName = String.valueOf(recordTypeSymbol.hashCode());
             VisitedType visitedType = getVisitedType(typeName);
@@ -303,27 +310,28 @@ public class Type {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 if (typeName.contains("record {")) {
-                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel);
+                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, packageName);
                 } else {
                     visitedTypeMap.put(typeName, new VisitedType());
-                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel);
+                    type = getRecordType(recordTypeSymbol, documentationMap, semanticModel, packageName);
                     completeVisitedTypeEntry(typeName, type);
                 }
             }
         } else if (symbol instanceof ArrayTypeSymbol arrayTypeSymbol) {
             type = new ArrayType(fromSemanticSymbol(arrayTypeSymbol.memberTypeDescriptor(), documentationMap,
-                    semanticModel));
+                    semanticModel, packageName));
         } else if (symbol instanceof MapTypeSymbol mapTypeSymbol) {
-            type = new MapType(fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel));
+            type = new MapType(fromSemanticSymbol(mapTypeSymbol.typeParam(), documentationMap, semanticModel,
+                    packageName));
         } else if (symbol instanceof TableTypeSymbol tableTypeSymbol) {
             TypeSymbol keyConstraint = null;
             if (tableTypeSymbol.keyConstraintTypeParameter().isPresent()) {
                 keyConstraint = tableTypeSymbol.keyConstraintTypeParameter().get();
             }
             type = new TableType(fromSemanticSymbol(tableTypeSymbol.rowTypeParameter(), documentationMap,
-                    semanticModel),
+                    semanticModel, packageName),
                     tableTypeSymbol.keySpecifiers(), fromSemanticSymbol(keyConstraint, documentationMap,
-                    semanticModel));
+                    semanticModel, packageName));
         } else if (symbol instanceof UnionTypeSymbol unionSymbol) {
             String typeName = String.valueOf(unionSymbol.hashCode());
             VisitedType visitedType = getVisitedType(typeName);
@@ -331,14 +339,14 @@ public class Type {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, true);
             } else {
                 visitedTypeMap.put(typeName, new VisitedType());
-                type = getUnionType(unionSymbol, documentationMap, semanticModel);
+                type = getUnionType(unionSymbol, documentationMap, semanticModel, packageName);
                 completeVisitedTypeEntry(typeName, type);
             }
         } else if (symbol instanceof ErrorTypeSymbol errSymbol) {
             ErrorType errType = new ErrorType();
             if (errSymbol.detailTypeDescriptor() instanceof TypeReferenceTypeSymbol) {
                 errType.detailType = fromSemanticSymbol(errSymbol.detailTypeDescriptor(), documentationMap,
-                        semanticModel);
+                        semanticModel, packageName);
             }
             type = errType;
         } else if (symbol instanceof IntersectionTypeSymbol intersectionTypeSymbol) {
@@ -348,30 +356,30 @@ public class Type {
                 return getAlreadyVisitedType(symbol, typeName, visitedType, false);
             } else {
                 visitedTypeMap.put(typeName, new VisitedType());
-                type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel);
+                type = getIntersectionType(intersectionTypeSymbol, documentationMap, semanticModel, packageName);
                 completeVisitedTypeEntry(typeName, type);
             }
         } else if (symbol instanceof StreamTypeSymbol streamTypeSymbol) {
-            type = getStreamType(streamTypeSymbol, documentationMap, semanticModel);
+            type = getStreamType(streamTypeSymbol, documentationMap, semanticModel, packageName);
         } else if (symbol instanceof ObjectTypeSymbol objectTypeSymbol) {
             ObjectType objectType = new ObjectType();
             objectTypeSymbol.fieldDescriptors().forEach((typeName, typeSymbol) -> {
-                Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+                Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, packageName);
                 if (semanticSymbol != null) {
                     objectType.fields.add(semanticSymbol);
                 }
             });
             objectTypeSymbol.typeInclusions().forEach(typeSymbol -> {
-                Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+                Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, packageName);
                 if (semanticSymbol != null) {
                     objectType.fields.add(new InclusionType(semanticSymbol));
                 }
             });
             type = objectType;
         } else if (symbol instanceof RecordFieldSymbol recordFieldSymbol) {
-            type = fromSemanticSymbol(recordFieldSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbol(recordFieldSymbol.typeDescriptor(), documentationMap, semanticModel, packageName);
         } else if (symbol instanceof ParameterSymbol parameterSymbol) {
-            type = fromSemanticSymbol(parameterSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbol(parameterSymbol.typeDescriptor(), documentationMap, semanticModel, packageName);
             if (type != null) {
                 type.defaultable = parameterSymbol.paramKind() == ParameterKind.DEFAULTABLE;
             }
@@ -381,7 +389,7 @@ public class Type {
                 type = new ConstType(name, ((ConstantSymbol) (variableSymbol)).broaderTypeDescriptor().signature());
                 return type;
             }
-            type = fromSemanticSymbol(variableSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbol(variableSymbol.typeDescriptor(), documentationMap, semanticModel, packageName);
         } else if (symbol instanceof TypeSymbol typeSymbol) {
             String typeName = typeSymbol.signature();
             if (typeName.startsWith("\"") && typeName.endsWith("\"")) {
@@ -389,14 +397,15 @@ public class Type {
             }
             type = new PrimitiveType(typeName);
         } else if (symbol instanceof EnumSymbol enumSymbol) {
-            type = getEnumType(enumSymbol, documentationMap, semanticModel);
+            type = getEnumType(enumSymbol, documentationMap, semanticModel, packageName);
         } else if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
             AtomicReference<String> typeDocumentation = new AtomicReference<>();
             typeDefinitionSymbol.documentation().ifPresent(doc -> {
                 documentationMap.putAll(doc.parameterMap());
                 typeDocumentation.set(doc.description().orElse(null));
             });
-            type = fromSemanticSymbol(typeDefinitionSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbol(typeDefinitionSymbol.typeDescriptor(), documentationMap, semanticModel,
+                    packageName);
             type.documentation = typeDocumentation.get();
         }
         return type;
@@ -426,11 +435,12 @@ public class Type {
     }
 
     private static Type getIntersectionType(IntersectionTypeSymbol intersectionTypeSymbol,
-                                            Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                            Map<String, String> documentationMap, SemanticModel semanticModel,
+                                            String packageName) {
         Type type;
         IntersectionType intersectionType = new IntersectionType();
         intersectionTypeSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
-            Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+            Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, packageName);
             if (semanticSymbol != null) {
                 intersectionType.members.add(semanticSymbol);
             }
@@ -441,11 +451,12 @@ public class Type {
     }
 
     private static Type getUnionType(UnionTypeSymbol unionSymbol,
-                                     Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                     Map<String, String> documentationMap, SemanticModel semanticModel,
+                                     String packageName) {
         Type type;
         UnionType unionType = new UnionType();
         unionSymbol.memberTypeDescriptors().forEach(typeSymbol -> {
-            Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+            Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel, packageName);
             if (semanticSymbol != null) {
                 unionType.members.add(semanticSymbol);
             }
@@ -462,11 +473,12 @@ public class Type {
     }
 
     private static Type getEnumType(EnumSymbol enumSymbol, Map<String, String> documentationMap,
-                                    SemanticModel semanticModel) {
+                                    SemanticModel semanticModel, String packageName) {
         Type type;
         List<Type> fields = new ArrayList<>();
         enumSymbol.members().forEach(member -> {
-            Type semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), documentationMap, semanticModel);
+            Type semanticSymbol = fromSemanticSymbol(member.typeDescriptor(), documentationMap, semanticModel,
+                    packageName);
             if (semanticSymbol != null) {
                 fields.add(semanticSymbol);
             }
@@ -477,23 +489,38 @@ public class Type {
     }
 
     private static Type getRecordType(RecordTypeSymbol recordTypeSymbol, Map<String, String> documentationMap,
-                                      SemanticModel semanticModel) {
+                                      SemanticModel semanticModel, String packageName) {
         Type type;
         List<Type> fields = new ArrayList<>();
         collectRecordDocumentation(recordTypeSymbol, semanticModel, documentationMap);
         recordTypeSymbol.fieldDescriptors().forEach((name, field) -> {
-            Type subType = fromSemanticSymbol(field.typeDescriptor(), documentationMap, semanticModel);
+            Type subType = fromSemanticSymbol(field.typeDescriptor(), documentationMap, semanticModel, packageName);
             if (subType != null) {
                 String nameUsed = field.getName().orElse(name);
                 subType.setName(nameUsed);
                 subType.setOptional(field.isOptional());
                 subType.setDefaultable(field.hasDefaultValue());
+                if (subType instanceof EnumType enumType && field.hasDefaultValue()) {
+                    String defaultValue = getDefaultValue(field, semanticModel, packageName);
+                    if (defaultValue != null) {
+                        // Clean the default value: remove quotes and normalize for comparison
+                        String cleanedDefaultValue = defaultValue;
+                        if (cleanedDefaultValue.startsWith("\"") && cleanedDefaultValue.endsWith("\"")
+                                && cleanedDefaultValue.length() > 1) {
+                            cleanedDefaultValue = cleanedDefaultValue.substring(1, cleanedDefaultValue.length() - 1);
+                        }
+
+                        // Reorder enum members so the default value appears first
+                        reorderEnumMembersByDefaultValue(enumType, cleanedDefaultValue);
+                    }
+                }
                 subType.setDocumentation(documentationMap.get(name));
                 fields.add(subType);
             }
         });
         Type restType = recordTypeSymbol.restTypeDescriptor().isPresent() ?
-                fromSemanticSymbol(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel) : null;
+                fromSemanticSymbol(recordTypeSymbol.restTypeDescriptor().get(), documentationMap, semanticModel,
+                        packageName) : null;
         type = new RecordType(fields, restType);
         return type;
     }
@@ -523,20 +550,23 @@ public class Type {
     }
 
     private static Type getEnumType(TypeReferenceTypeSymbol typeReferenceTypeSymbol, Symbol symbol,
-                                    Map<String, String> documentationMap, SemanticModel semanticModel) {
+                                    Map<String, String> documentationMap, SemanticModel semanticModel,
+                                    String packageName) {
         Type type;
         if (typeReferenceTypeSymbol.definition().kind().equals(SymbolKind.ENUM)) {
             List<Type> fields = new ArrayList<>();
             ((UnionTypeSymbol) typeReferenceTypeSymbol.typeDescriptor()).memberTypeDescriptors()
                     .forEach(typeSymbol -> {
-                        Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel);
+                        Type semanticSymbol = fromSemanticSymbol(typeSymbol, documentationMap, semanticModel,
+                                packageName);
                         if (semanticSymbol != null) {
                             fields.add(semanticSymbol);
                         }
                     });
             type = new EnumType(fields);
         } else {
-            type = fromSemanticSymbol(typeReferenceTypeSymbol.typeDescriptor(), documentationMap, semanticModel);
+            type = fromSemanticSymbol(typeReferenceTypeSymbol.typeDescriptor(), documentationMap, semanticModel,
+                    packageName);
         }
         setTypeInfo(typeReferenceTypeSymbol.getName().isPresent() ? typeReferenceTypeSymbol.getName().get()
                 : null, symbol, type);
@@ -544,10 +574,10 @@ public class Type {
     }
 
     private static Type getStreamType(StreamTypeSymbol streamSymbol, Map<String, String> documentationMap,
-                                      SemanticModel semanticModel) {
-        Type leftType = fromSemanticSymbol(streamSymbol.typeParameter(), documentationMap, semanticModel);
+                                      SemanticModel semanticModel, String packageName) {
+        Type leftType = fromSemanticSymbol(streamSymbol.typeParameter(), documentationMap, semanticModel, packageName);
         Type rightType = fromSemanticSymbol(streamSymbol.completionValueTypeParameter(), documentationMap,
-                semanticModel);
+                semanticModel, packageName);
         return new StreamType(leftType, rightType);
     }
 
@@ -562,6 +592,36 @@ public class Type {
                     null, moduleID.version());
             type.name = typeName;
         }
+    }
+
+    private static String getDefaultValue(RecordFieldSymbol fieldSymbol, SemanticModel semanticModel,
+                                          String packageName) {
+        TypeSymbol typeDescriptor = fieldSymbol.typeDescriptor();
+
+        io.ballerina.projects.Package resolvedPackage = null;
+        try {
+            // Try to resolve the package using the field symbol's module information and provided packageName
+            if (fieldSymbol.getModule().isPresent()) {
+                ModuleID moduleID = fieldSymbol.getModule().get().id();
+                String org = moduleID.orgName();
+                String pkgName = packageName != null ? packageName : moduleID.packageName();
+                String version = moduleID.version();
+
+                Optional<io.ballerina.projects.Package> packageOpt =
+                        PackageUtil.getModulePackage(PackageUtil.getSampleProject(), org, pkgName, version);
+                resolvedPackage = packageOpt.orElse(null);
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+
+        // Use CommonUtils API to extract default values from syntax tree
+        String extractedDefaultValue = CommonUtils.extractDefaultValue(fieldSymbol, typeDescriptor, resolvedPackage,
+                semanticModel);
+        if (extractedDefaultValue != null && !extractedDefaultValue.isEmpty()) {
+            return extractedDefaultValue;
+        }
+        return null;
     }
 
     public String getName() {
@@ -618,5 +678,46 @@ public class Type {
 
     public void setRestType(boolean restType) {
         isRestType = restType;
+    }
+
+    /**
+     * Reorders enum members so that the member matching the defaultValue appears first in the list.
+     * This improves user experience by showing the default option at the top of dropdown lists.
+     *
+     * @param enumType     The EnumType whose members need to be reordered
+     * @param defaultValue The default value to prioritize (should already be cleaned of quotes)
+     */
+    private static void reorderEnumMembersByDefaultValue(EnumType enumType, String defaultValue) {
+        if (enumType == null || defaultValue == null || defaultValue.isEmpty()) {
+            return;
+        }
+
+        List<Type> members = enumType.getMembers();
+        if (members == null || members.size() <= 1) {
+            return;
+        }
+
+        // Find the member that matches the default value
+        Type defaultMember = null;
+        int defaultMemberIndex = -1;
+
+        for (int i = 0; i < members.size(); i++) {
+            Type member = members.get(i);
+            String memberTypeName = member.getTypeName();
+
+            // Try exact match first, then case-insensitive match
+            if (defaultValue.equals(memberTypeName) ||
+                defaultValue.equalsIgnoreCase(memberTypeName)) {
+                defaultMember = member;
+                defaultMemberIndex = i;
+                break;
+            }
+        }
+
+        // If we found a matching member and it's not already first, move it to the front
+        if (defaultMember != null && defaultMemberIndex > 0) {
+            members.remove(defaultMemberIndex);
+            members.add(0, defaultMember);
+        }
     }
 }

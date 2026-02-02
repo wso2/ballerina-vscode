@@ -19,7 +19,7 @@
     "metadata": {
       "label": "Agent",
       "description": "Initialize an Agent.\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png",
       "data": {
         "paramsToHide": [
           "model",
@@ -52,7 +52,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerina:ai:1.0.0",
+                "packageInfo": "ballerina:ai:1.9.0",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -149,7 +149,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "maxIter"
         },
-        "defaultValue": "\"INFER_TOOL_COUNT\""
+        "defaultValue": "INFER_TOOL_COUNT"
       },
       "verbose": {
         "metadata": {
@@ -182,7 +182,7 @@
       "memory": {
         "metadata": {
           "label": "Memory",
-          "description": "The memory used by the agent to store and manage conversation history"
+          "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
         },
         "types": [
           {
@@ -201,6 +201,43 @@
           "originalName": "memory"
         },
         "defaultValue": "()"
+      },
+      "toolLoadingStrategy": {
+        "metadata": {
+          "label": "Tool Loading Strategy",
+          "description": "Defines the strategies for loading tool schemas into an Agent. \nBy default, all tools are loaded without any filtering."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "NO_FILTER",
+                "value": "\"NO_FILTER\""
+              },
+              {
+                "label": "LLM_FILTER",
+                "value": "\"LLM_FILTER\""
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ToolLoadingStrategy",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"LLM_FILTER\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD",
+          "originalName": "toolLoadingStrategy"
+        },
+        "defaultValue": "NO_FILTER"
       },
       "type": {
         "metadata": {

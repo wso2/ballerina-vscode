@@ -18,8 +18,8 @@
     "id": "31",
     "metadata": {
       "label": "MS SQL",
-      "description": "Represents an MSSQL database client.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.15.0.png"
+      "description": "MSSQL (Microsoft SQL) client that enables interaction with MSSQL servers and supports standard SQL operations.",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -28,7 +28,7 @@
       "packageName": "mssql",
       "object": "Client",
       "symbol": "init",
-      "version": "1.15.0",
+      "version": "1.16.1",
       "isNew": true
     },
     "returning": false,
@@ -36,7 +36,7 @@
       "host": {
         "metadata": {
           "label": "Host",
-          "description": "Hostname of the MSSQL server"
+          "description": "MSSQL server hostname"
         },
         "types": [
           {
@@ -59,12 +59,12 @@
           "kind": "DEFAULTABLE",
           "originalName": "host"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "\"localhost\""
       },
       "user": {
         "metadata": {
           "label": "User",
-          "description": "If the MSSQL server is secured, the username"
+          "description": "Database username (if secured)"
         },
         "types": [
           {
@@ -87,12 +87,12 @@
           "kind": "DEFAULTABLE",
           "originalName": "user"
         },
-        "defaultValue": "()"
+        "defaultValue": "\"sa\""
       },
       "password": {
         "metadata": {
           "label": "Password",
-          "description": "The password of the MSSQL server for the provided username"
+          "description": "Database password (if secured)"
         },
         "types": [
           {
@@ -120,7 +120,7 @@
       "database": {
         "metadata": {
           "label": "Database",
-          "description": "The name of the database"
+          "description": "Database name to connect to (optional)"
         },
         "types": [
           {
@@ -148,7 +148,7 @@
       "port": {
         "metadata": {
           "label": "Port",
-          "description": "Port number of the MSSQL server"
+          "description": "MSSQL server port"
         },
         "types": [
           {
@@ -171,12 +171,12 @@
           "kind": "DEFAULTABLE",
           "originalName": "port"
         },
-        "defaultValue": "0"
+        "defaultValue": "1433"
       },
       "instance": {
         "metadata": {
           "label": "Instance",
-          "description": "Instance name of the MSSQL server"
+          "description": "MSSQL server instance name (optional)"
         },
         "types": [
           {
@@ -204,7 +204,7 @@
       "options": {
         "metadata": {
           "label": "Options",
-          "description": "MSSQL database connection options"
+          "description": "Advanced connection options (optional)"
         },
         "types": [
           {
@@ -213,7 +213,7 @@
             "typeMembers": [
               {
                 "type": "Options",
-                "packageInfo": "ballerinax:mssql:1.15.0",
+                "packageInfo": "ballerinax:mssql:1.16.1",
                 "packageName": "mssql",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -241,7 +241,7 @@
       "connectionPool": {
         "metadata": {
           "label": "Connection Pool",
-          "description": "The `sql:ConnectionPool` to be used for the connection. If there is no\n`connectionPool` provided, the global connection pool (shared by all clients) will be used"
+          "description": "Connection pool for connection reuse. If not provided, the global connection pool (shared by all clients) will be used"
         },
         "types": [
           {

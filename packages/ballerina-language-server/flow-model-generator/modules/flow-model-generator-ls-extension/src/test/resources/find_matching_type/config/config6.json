@@ -113,14 +113,14 @@
             {
               "members": [
                 {
-                  "typeName": "OPTIONAL",
+                  "typeName": "REQUIRE",
                   "optional": false,
                   "defaultable": false,
                   "isRestType": false,
                   "selected": false
                 },
                 {
-                  "typeName": "REQUIRE",
+                  "typeName": "OPTIONAL",
                   "optional": false,
                   "defaultable": false,
                   "isRestType": false,

@@ -552,11 +552,21 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo, String defaultValue) {
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, defaultValue, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                             Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
+                                             Node value, SemanticModel semanticModel) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null,null);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel, String defaultValue,
+                                             Property.Builder<?> builder) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -584,6 +594,10 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
                 // If all the member types are singletons, treat it as a single-select option
                 if (allSingletons) {
+                    // Reorder options so that the default value appears first
+                    if (defaultValue != null && !defaultValue.isEmpty()) {
+                        reorderOptionsByDefaultValue(options, defaultValue);
+                    }
                     type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
                     // Handle union of primitive types by defining an input type for each primitive type
@@ -722,6 +736,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                      INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
+                case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
+                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -755,9 +771,67 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
+                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;
                 case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
                 default -> ValueType.EXPRESSION;
             };
+        }
+
+        /**
+         * Reorders enum options so that the option matching the defaultValue appears first in the list.
+         * This improves user experience by showing the default option at the top of dropdown lists.
+         *
+         * @param options      The list of Option objects to reorder
+         * @param defaultValue The default value to prioritize (may contain quotes)
+         */
+        private static void reorderOptionsByDefaultValue(List<Option> options, String defaultValue) {
+            if (options == null || options.isEmpty() || defaultValue == null || defaultValue.isEmpty()) {
+                return;
+            }
+
+            // Clean the default value by removing quotes if present
+            String cleanedDefaultValue = defaultValue;
+            if (cleanedDefaultValue.startsWith("\"") && cleanedDefaultValue.endsWith("\"")
+                    && cleanedDefaultValue.length() > 1) {
+                cleanedDefaultValue = cleanedDefaultValue.substring(1, cleanedDefaultValue.length() - 1);
+            }
+
+            // Find the option that matches the default value
+            Option defaultOption = null;
+            int defaultOptionIndex = -1;
+
+            for (int i = 0; i < options.size(); i++) {
+                Option option = options.get(i);
+
+                // Match against both label and value (try exact match first, then case-insensitive)
+                if (cleanedDefaultValue.equals(option.label()) ||
+                    cleanedDefaultValue.equals(option.value()) ||
+                    cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
+                    cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                    defaultOption = option;
+                    defaultOptionIndex = i;
+                    break;
+                }
+
+                // Also try matching against value with quotes removed
+                String cleanedOptionValue = option.value();
+                if (cleanedOptionValue != null && cleanedOptionValue.startsWith("\"")
+                        && cleanedOptionValue.endsWith("\"") && cleanedOptionValue.length() > 1) {
+                    cleanedOptionValue = cleanedOptionValue.substring(1, cleanedOptionValue.length() - 1);
+                    if (cleanedDefaultValue.equals(cleanedOptionValue) ||
+                        cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue)) {
+                        defaultOption = option;
+                        defaultOptionIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // If we found a matching option and it's not already first, move it to the front
+            if (defaultOption != null && defaultOptionIndex > 0) {
+                options.remove(defaultOptionIndex);
+                options.add(0, defaultOption);
+            }
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {

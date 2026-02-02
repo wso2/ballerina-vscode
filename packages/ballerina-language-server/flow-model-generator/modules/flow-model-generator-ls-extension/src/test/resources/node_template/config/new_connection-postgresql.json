@@ -20,7 +20,7 @@
     "metadata": {
       "label": "PostgreSQL",
       "description": "Represents a PostgreSQL database client.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.15.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_postgresql_1.16.1.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -29,7 +29,7 @@
       "packageName": "postgresql",
       "object": "Client",
       "symbol": "init",
-      "version": "1.15.0",
+      "version": "1.16.1",
       "isNew": true
     },
     "returning": false,
@@ -60,7 +60,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "host"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "\"localhost\""
       },
       "username": {
         "metadata": {
@@ -87,7 +87,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "username"
         },
-        "defaultValue": "()"
+        "defaultValue": "\"postgres\""
       },
       "password": {
         "metadata": {
@@ -171,7 +171,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "port"
         },
-        "defaultValue": "0"
+        "defaultValue": "5432"
       },
       "options": {
         "metadata": {
@@ -185,7 +185,7 @@
             "typeMembers": [
               {
                 "type": "Options",
-                "packageInfo": "ballerinax:postgresql:1.15.0",
+                "packageInfo": "ballerinax:postgresql:1.16.1",
                 "packageName": "postgresql",
                 "kind": "RECORD_TYPE",
                 "selected": false

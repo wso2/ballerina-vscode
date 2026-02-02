@@ -31,12 +31,14 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -84,10 +86,15 @@ public class VectorStoreBuilder extends CallBuilder {
         ModuleInfo codedataModuleInfo = new ModuleInfo(codedata.org(), codedata.packageName(),
                 codedata.module(), codedata.version());
 
+        // Create and set the resolved package for the function
+        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.getModulePackage(
+                PackageUtil.getSampleProject(), codedata.org(), codedata.packageName());
+
         FunctionData functionData = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
                 .moduleInfo(codedataModuleInfo)
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.VECTOR_STORE)
+                .resolvedPackage(resolvedPackage.orElse(null))
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

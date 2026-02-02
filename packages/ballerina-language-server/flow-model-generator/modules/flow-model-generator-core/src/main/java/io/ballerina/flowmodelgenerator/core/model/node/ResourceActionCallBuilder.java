@@ -64,6 +64,15 @@ public class ResourceActionCallBuilder extends CallBuilder {
             return;
         }
 
+        Optional<io.ballerina.projects.Package> resolvedPackage;
+        try {
+            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
+                    codedata.org(), codedata.packageName());
+        } catch (Exception e) {
+            resolvedPackage = Optional.empty();
+        }
+
+
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
@@ -72,7 +81,8 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .parentSymbolType(codedata.object())
                 .resourcePath(codedata.resourcePath())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                .functionResultKind(FunctionData.Kind.RESOURCE);
+                .functionResultKind(FunctionData.Kind.RESOURCE)
+                .resolvedPackage(resolvedPackage.orElse(null));
 
         FunctionData functionData = functionDataBuilder.build();
 

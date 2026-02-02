@@ -225,7 +225,7 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "\"FUNCTION_CALL_AGENT\""
+            "defaultValue": "FUNCTION_CALL_AGENT"
           },
           "maxIter": {
             "metadata": {
@@ -252,7 +252,7 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "0"
+            "defaultValue": "5"
           },
           "verbose": {
             "metadata": {
@@ -301,7 +301,7 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "()"
+            "defaultValue": "new MessageWindowChatMemory()"
           },
           "type": {
             "metadata": {

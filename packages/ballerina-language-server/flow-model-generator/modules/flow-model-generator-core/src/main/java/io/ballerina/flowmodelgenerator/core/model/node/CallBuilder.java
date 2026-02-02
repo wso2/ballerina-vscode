@@ -54,9 +54,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -78,6 +78,17 @@ public abstract class CallBuilder extends NodeBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
+        Optional<io.ballerina.projects.Package> resolvedPackage;
+        try {
+            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
+                    codedata.org(), codedata.packageName());
+        } catch (Exception e) {
+            // If package resolution fails (e.g., package doesn't exist in Central),
+            // treat it as a generated/test package and continue with empty resolved package
+            resolvedPackage = Optional.empty();
+        }
+
+
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
@@ -85,7 +96,8 @@ public abstract class CallBuilder extends NodeBuilder {
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                .userModuleInfo(moduleInfo);
+                .userModuleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null));
 
         NodeKind functionNodeKind = getFunctionNodeKind();
         if (functionNodeKind != NodeKind.FUNCTION_CALL) {
@@ -234,7 +246,8 @@ public abstract class CallBuilder extends NodeBuilder {
                                 .selected(true)
                                 .stepOut();
                     }
-                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo);
+                    customPropBuilder.typeWithExpression(paramResult.typeSymbol(), moduleInfo,
+                            paramResult.defaultValue());
                 }
             }
 

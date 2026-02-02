@@ -20,7 +20,7 @@
     "metadata": {
       "label": "run",
       "description": "Executes the agent for a given user query.",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.0.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ai_1.9.0.png"
     },
     "codedata": {
       "node": "AGENT_CALL",
@@ -30,7 +30,8 @@
       "object": "Agent",
       "symbol": "run",
       "version": "1.0.0",
-      "isNew": true
+      "isNew": true,
+      "inferredReturnType": "td"
     },
     "returning": false,
     "properties": {
@@ -46,7 +47,7 @@
             "typeMembers": [
               {
                 "type": "SystemPrompt",
-                "packageInfo": "ballerina:ai:1.0.0",
+                "packageInfo": "ballerina:ai:1.9.0",
                 "packageName": "ai",
                 "kind": "RECORD_TYPE",
                 "selected": false
@@ -139,7 +140,7 @@
         "codedata": {
           "kind": "INCLUDED_FIELD"
         },
-        "defaultValue": "\"INFER_TOOL_COUNT\""
+        "defaultValue": "INFER_TOOL_COUNT"
       },
       "verbose": {
         "metadata": {
@@ -171,7 +172,7 @@
       "memory": {
         "metadata": {
           "label": "Memory",
-          "description": "The memory used by the agent to store and manage conversation history"
+          "description": "The memory used by the agent to store and manage conversation history.\nDefaults to use an in-memory message store that trims on overflow, if unspecified."
         },
         "types": [
           {
@@ -190,6 +191,42 @@
         },
         "defaultValue": "()"
       },
+      "toolLoadingStrategy": {
+        "metadata": {
+          "label": "Tool Loading Strategy",
+          "description": "Defines the strategies for loading tool schemas into an Agent. \nBy default, all tools are loaded without any filtering."
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "options": [
+              {
+                "label": "NO_FILTER",
+                "value": "\"NO_FILTER\""
+              },
+              {
+                "label": "LLM_FILTER",
+                "value": "\"LLM_FILTER\""
+              }
+            ],
+            "selected": false
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:ToolLoadingStrategy",
+            "selected": false
+          }
+        ],
+        "placeholder": "\"LLM_FILTER\"",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "INCLUDED_FIELD"
+        },
+        "defaultValue": "NO_FILTER"
+      },
       "type": {
         "metadata": {
           "label": "Result Type",
@@ -201,7 +238,7 @@
             "selected": true
           }
         ],
-        "value": "string",
+        "value": "td",
         "placeholder": "var",
         "optional": false,
         "editable": false,
@@ -390,7 +427,53 @@
           "kind": "DEFAULTABLE",
           "originalName": "sessionId"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "sessionId"
+      },
+      "context": {
+        "metadata": {
+          "label": "Context",
+          "description": "The additional context that can be used during agent tool execution"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "ai:Context",
+            "selected": false
+          }
+        ],
+        "placeholder": "new ()",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "context"
+        },
+        "defaultValue": "new"
+      },
+      "td": {
+        "metadata": {
+          "label": "Td",
+          "description": "Type descriptor specifying the expected return type format"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "ai:Trace|string",
+            "selected": false
+          }
+        ],
+        "placeholder": "ai:Trace|string",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "td"
+        },
+        "defaultValue": "ai:Trace|string"
       }
     },
     "flags": 0

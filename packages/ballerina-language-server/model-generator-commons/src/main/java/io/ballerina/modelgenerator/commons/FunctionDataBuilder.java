@@ -30,6 +30,7 @@ import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
@@ -67,6 +68,7 @@ import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -170,6 +172,9 @@ public class FunctionDataBuilder {
     }
 
     public FunctionDataBuilder resolvedPackage(Package resolvedPackage) {
+        if (resolvedPackage == null) {
+            return this;
+        }
         if (semanticModel == null) {
             semanticModel(PackageUtil.getCompilation(resolvedPackage).getSemanticModel(
                     resolvedPackage.getDefaultModule().moduleId()));
@@ -274,6 +279,7 @@ public class FunctionDataBuilder {
             this.functionName = this.functionSymbol.getName()
                     .orElseThrow(() -> new IllegalStateException("Function name not found"));
         }
+
 
         // The module information is required to build the FunctionResult
         if (moduleInfo == null) {
@@ -380,7 +386,7 @@ public class FunctionDataBuilder {
                         String clientName = getFunctionName();
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
                                 getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
-                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                moduleInfo.org(), getEffectiveVersion(), "", functionKind,
                                 false, false, null);
                         functionData.setParameters(Map.of());
                         return functionData;
@@ -400,7 +406,7 @@ public class FunctionDataBuilder {
                         String clientName = getFunctionName();
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
                                 getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
-                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
+                                moduleInfo.org(), getEffectiveVersion(), "", functionKind,
                                 false, false, null);
                         functionData.setParameters(Map.of());
                         return functionData;
@@ -463,7 +469,7 @@ public class FunctionDataBuilder {
         }
 
         FunctionData functionData = new FunctionData(0, getFunctionName(), description, returnData.returnType(),
-                moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), moduleInfo.version(),
+                moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), getEffectiveVersion(),
                 resourcePath, functionKind, returnData.returnError(),
                 paramForTypeInfer != null, returnData.importStatements());
 
@@ -669,7 +675,7 @@ public class FunctionDataBuilder {
                     moduleInfo.packageName(),
                     moduleInfo.moduleName(),
                     moduleInfo.org(),
-                    moduleInfo.version(),
+                    getEffectiveVersion(),
                     methodResourcePath,
                     methodKind,
                     returnData.returnError(),
@@ -773,6 +779,7 @@ public class FunctionDataBuilder {
                 }
             }
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
+
             defaultValue = getDefaultValue(paramSymbol, typeSymbol);
             paramType = getTypeSignature(typeSymbol);
         }
@@ -920,7 +927,73 @@ public class FunctionDataBuilder {
         return parameters;
     }
 
-    private String getDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol) {
+    /**
+     * Extracts the actual default value from expressions, including enum member values.
+     * Handles both SimpleNameReferenceNode and QualifiedNameReferenceNode by resolving
+     * through semantic model and extracting enum values from source code.
+     *
+     * @return the extracted value, or null if extraction fails
+     */
+    private String extractEnumMemberValue(ExpressionNode expression) {
+        if (semanticModel == null) {
+            return null;
+        }
+
+        // Get the symbol from the expression
+        Optional<Symbol> symbolOpt = semanticModel.symbol(expression);
+        if (symbolOpt.isEmpty() || (symbolOpt.get().kind() != SymbolKind.CONSTANT
+                && symbolOpt.get().kind() != SymbolKind.ENUM_MEMBER)) {
+            return null;
+        }
+
+        Symbol symbol = symbolOpt.get();
+        if (symbol.kind() == SymbolKind.CONSTANT) {
+            // Handle constants by extracting their value
+            if (symbol instanceof ConstantSymbol constantSymbol) {
+                Object constantValue = constantSymbol.constValue();
+                if (constantValue != null) {
+                    return constantValue.toString();
+                }
+            }
+            return null;
+        }
+        if (symbol.kind() != SymbolKind.ENUM_MEMBER) {
+            return null;
+        }
+
+        Optional<Location> symbolLocation = symbol.getLocation();
+        if (resolvedPackage == null || symbolLocation.isEmpty()) {
+            return null;
+        }
+
+        Document document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
+        if (document == null) {
+            return null;
+        }
+
+        ModulePartNode rootNode = document.syntaxTree().rootNode();
+        TextRange textRange = symbolLocation.get().textRange();
+        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
+
+        // Look for enum member node that has an expression (the value assignment)
+        if (node == null || node.kind() != SyntaxKind.ENUM_MEMBER) {
+            return null;
+        }
+
+        // Get the enum member node and extract the expression
+        io.ballerina.compiler.syntax.tree.EnumMemberNode enumMemberNode =
+            (io.ballerina.compiler.syntax.tree.EnumMemberNode) node;
+
+        // Check if the enum member has an expression (assignment)
+        if (enumMemberNode.equalToken().isEmpty() || enumMemberNode.constExprNode().isEmpty()) {
+            return null;
+        }
+
+        ExpressionNode valueExpression = enumMemberNode.constExprNode().get();
+        return valueExpression.toSourceCode().trim();
+    }
+
+    protected String getDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol) {
         String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
 
         Optional<Location> symbolLocation = paramSymbol.getLocation();
@@ -947,9 +1020,12 @@ public class FunctionDataBuilder {
         }
 
         if (expression instanceof SimpleNameReferenceNode simpleNameReferenceNode) {
-            return resolvedPackage.packageName().value() + ":" + simpleNameReferenceNode.name().text();
+            String enumValue = extractEnumMemberValue(simpleNameReferenceNode);
+            return enumValue != null ? enumValue : simpleNameReferenceNode.name().text();
         } else if (expression instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
-            return qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
+            String enumValue = extractEnumMemberValue(qualifiedNameReferenceNode);
+            return enumValue != null ? enumValue :
+                    qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
                     .text();
         } else {
             return expression.toSourceCode();
@@ -1039,16 +1115,13 @@ public class FunctionDataBuilder {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }
                 }
-                ((PathSegmentList) resourcePath).pathRestParameter().ifPresent(pathRestParameter -> {
+                ((PathSegmentList) resourcePath).pathRestParameter().ifPresent(pathRestParameter ->
                     pathParams.add(
                             ParameterData.from(REST_RESOURCE_PATH_LABEL, "string",
                                     ParameterData.Kind.PATH_REST_PARAM, REST_PARAM_PATH, REST_RESOURCE_PATH_LABEL,
-                                    false));
-                });
+                                    false)));
             }
-            case PATH_REST_PARAM -> {
-                pathBuilder.append(REST_RESOURCE_PATH);
-            }
+            case PATH_REST_PARAM -> pathBuilder.append(REST_RESOURCE_PATH);
             case DOT_RESOURCE_PATH -> pathBuilder.append("/");
         }
         return new ResourcePathTemplate(pathBuilder.toString(), pathParams);
@@ -1202,6 +1275,17 @@ public class FunctionDataBuilder {
 
 
     private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
+    }
+
+    /**
+     * Gets the effective version to use - preferring the resolved package version over moduleInfo version.
+     * @return the version string to use for the FunctionData
+     */
+    private String getEffectiveVersion() {
+        if (resolvedPackage != null) {
+            return resolvedPackage.descriptor().version().value().toString();
+        }
+        return moduleInfo.version();
     }
 
     private record ReturnData(String returnType, ParamForTypeInfer paramForTypeInfer, boolean returnError,

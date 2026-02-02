@@ -213,7 +213,7 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "\"INFER_TOOL_COUNT\""
+            "defaultValue": "INFER_TOOL_COUNT"
           },
           "verbose": {
             "metadata": {
@@ -274,12 +274,12 @@
                 "fieldType": "SINGLE_SELECT",
                 "options": [
                   {
-                    "label": "LLM_FILTER",
-                    "value": "\"LLM_FILTER\""
-                  },
-                  {
                     "label": "NO_FILTER",
                     "value": "\"NO_FILTER\""
+                  },
+                  {
+                    "label": "LLM_FILTER",
+                    "value": "\"LLM_FILTER\""
                   }
                 ],
                 "selected": false
@@ -298,7 +298,7 @@
             "codedata": {
               "kind": "INCLUDED_FIELD"
             },
-            "defaultValue": "\"LLM_FILTER\""
+            "defaultValue": "NO_FILTER"
           },
           "type": {
             "metadata": {

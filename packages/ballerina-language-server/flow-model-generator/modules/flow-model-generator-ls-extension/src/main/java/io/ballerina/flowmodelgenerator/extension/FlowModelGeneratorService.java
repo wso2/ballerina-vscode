@@ -111,6 +111,18 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     private WorkspaceManagerProxy workspaceManagerProxy;
     private LSClientLogger lsClientLogger;
 
+    private static String getRelativePath(Path projectPath, Path filePath) {
+        if (projectPath == null || filePath == null) {
+            return "";
+        }
+        if (projectPath.equals(filePath)) {
+            Path fileName = filePath.getFileName();
+            return fileName != null ? fileName.toString() : "";
+        }
+        Path relativePath = projectPath.relativize(filePath);
+        return relativePath.toString();
+    }
+
     @Override
     public void init(LanguageServer langServer, WorkspaceManagerProxy workspaceManagerProxy,
                      LanguageServerContext serverContext) {
@@ -668,18 +680,6 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
             }
             return response;
         });
-    }
-
-    private static String getRelativePath(Path projectPath, Path filePath) {
-        if (projectPath == null || filePath == null) {
-            return "";
-        }
-        if (projectPath.equals(filePath)) {
-            Path fileName = filePath.getFileName();
-            return fileName != null ? fileName.toString() : "";
-        }
-        Path relativePath = projectPath.relativize(filePath);
-        return relativePath.toString();
     }
 
     private Optional<Document> getDocumentFromFile(Path projectPath, String fileName) {

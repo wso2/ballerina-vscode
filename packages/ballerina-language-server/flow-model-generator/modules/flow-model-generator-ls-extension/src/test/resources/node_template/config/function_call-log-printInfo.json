@@ -18,7 +18,7 @@
     "metadata": {
       "label": "printInfo",
       "description": "Prints info logs.\n```ballerina\nlog:printInfo(\"info message\", id = 845315)\n```\n",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.12.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_log_2.16.1.png"
     },
     "codedata": {
       "node": "FUNCTION_CALL",
