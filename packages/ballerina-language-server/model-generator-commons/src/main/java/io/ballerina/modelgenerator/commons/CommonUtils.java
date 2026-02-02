@@ -1351,26 +1351,6 @@ public class CommonUtils {
         return DOUBLE_QUOTE + escapeContent(content) + DOUBLE_QUOTE;
     }
 
-    /**
-     * Escapes backslashes and double quotes in the given content string.
-     *
-     * @param content the content string to escape
-     * @return the escaped content string
-     */
-    private static String escapeContent(String content) {
-        return content.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    /**
-     * Unescapes backslashes and double quotes in the given content string.
-     *
-     * @param content the content string to unescape
-     * @return the unescaped content string
-     */
-    public static String unescapeContent(String content) {
-        return content.replace("\\\"", "\"").replace("\\\\", "\\");
-    }
-
     private static String escapeContent(String content) {
         return content.replace("\\", "\\\\").replace("\"", "\\\"");
     }
@@ -1433,6 +1413,29 @@ public class CommonUtils {
         return resultMap;
     }
 
+    /**
+     * Extracts the actual default value from a parameter or record field symbol by analyzing its syntax tree.
+     * This method resolves default values from various expression types, including literal values, enum references,
+     * qualified references, and constant expressions.
+     *
+     * @param paramSymbol the parameter or record field symbol containing the default value definition.
+     *                    Must be a {@link io.ballerina.compiler.api.symbols.ParameterSymbol} or
+     *                    {@link io.ballerina.compiler.api.symbols.RecordFieldSymbol}
+     * @param typeSymbol the type descriptor of the parameter, used for fallback default value generation
+     *                   when extraction fails
+     * @param resolvedPackage the resolved Ballerina package containing the symbol's source code.
+     *                        Required for document lookup and syntax tree access. May be {@code null},
+     *                        in which case a fallback default value will be returned
+     * @param semanticModel the semantic model for symbol resolution and type checking.
+     *                      Required for resolving enum members and constants. May be {@code null},
+     *                      in which case enum resolution will be skipped
+     * @return the extracted default value as a string, or a fallback default value if extraction fails.
+     *         Returns {@code null} only if the type-based fallback generation also fails
+     *
+     * @throws IllegalStateException if the symbol location is found but the corresponding syntax node
+     *                              cannot be parsed or is of an unexpected type
+     * @since 1.0.0
+     */
     public static String extractDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
                                              io.ballerina.projects.Package resolvedPackage,
                                              SemanticModel semanticModel) {
