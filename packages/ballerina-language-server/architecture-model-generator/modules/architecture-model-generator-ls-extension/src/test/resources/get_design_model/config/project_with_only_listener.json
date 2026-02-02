@@ -1,0 +1,34 @@
+{
+  "description": "Project with only listener",
+  "projectPath": "project_8",
+  "output": {
+    "designModel": {
+      "connections": [],
+      "listeners": [
+        {
+          "symbol": "list",
+          "location": {
+            "filePath": "/Users/pasindufernando/Desktop/BI/Ballerina-Language-Server/ballerina-language-server/architecture-model-generator/modules/architecture-model-generator-ls-extension/src/test/resources/get_design_model/source/project_8/main.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 0
+            },
+            "endLine": {
+              "line": 2,
+              "offset": 40
+            }
+          },
+          "attachedServices": [],
+          "kind": "NAMED",
+          "type": "",
+          "args": [],
+          "icon": "",
+          "uuid": "4c5106b0-cf66-8fd0-6b50-9af851cd2896",
+          "enableFlowModel": true,
+          "sortText": "main.bal2"
+        }
+      ],
+      "services": []
+    }
+  }
+}
