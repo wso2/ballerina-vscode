@@ -91,7 +91,6 @@ public class Value {
         SINGLE_SELECT,
         MULTI_SELECT,
         MULTIPLE_SELECT,
-        MAPPING_EXPRESSION,
         MAPPING_EXPRESSION_SET,
         EXPRESSION_SET,
         TEXT_SET,
@@ -110,7 +109,9 @@ public class Value {
         MULTIPLE_SELECT_LISTENER,
         FILE_SELECT,
         OPTIONAL_IDENTIFIER,
-        ACTION_TYPE
+        ACTION_TYPE,
+        REPEATABLE_LIST,
+        REPEATABLE_MAP,
     }
 
     public MetaData getMetadata() {
