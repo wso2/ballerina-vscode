@@ -1058,7 +1058,7 @@ export const Form = forwardRef((props: FormProps) => {
                                             name={"chevron-up"}
                                             iconSx={{ fontSize: 12 }}
                                             sx={{ height: 12 }}
-                                        />Collapsed
+                                        />Collapse
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
