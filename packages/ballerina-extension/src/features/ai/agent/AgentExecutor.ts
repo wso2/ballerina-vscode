@@ -296,7 +296,6 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                             'message.id': this.config.generationId,
                             'generation.start_time': generationStartTime.toString(),
                             'generation.abort_time': abortTime.toString(),
-                            'generation.duration_ms': (abortTime - generationStartTime).toString(),
                             'generation.modified_files_count': modifiedFiles.length.toString(),
                         }
                     );
