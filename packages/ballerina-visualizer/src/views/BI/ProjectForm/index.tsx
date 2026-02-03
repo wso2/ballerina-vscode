@@ -61,6 +61,7 @@ const ScrollableContent = styled.div`
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
+    margin-right: 8px;
     padding-top: 16px;
     display: flex;
     justify-content: flex-end;

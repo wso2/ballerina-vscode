@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon, FormCheckBox } from "@wso2/ui-toolkit";
+import { DirectorySelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon, FormCheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { sanitizePackageName, validatePackageName } from "./utils";
@@ -27,7 +27,7 @@ const FieldGroup = styled.div`
 `;
 
 const CheckboxContainer = styled.div`
-    margin: 16px 0;
+    margin-top: 8px;
 `;
 
 const OptionalConfigRow = styled.div`
@@ -159,17 +159,18 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
             </FieldGroup>
 
             <FieldGroup>
-                <LocationSelector
+                <DirectorySelector
                     label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
+                    placeholder="Choose a folder for your project..."
+                    selectedPath={formData.path}
+                    required={true}
                     onSelect={handleProjectDirSelection}
                     errorMsg={pathError || undefined}
                 />
 
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new directory using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
+                        label={`Create a new folder using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />
