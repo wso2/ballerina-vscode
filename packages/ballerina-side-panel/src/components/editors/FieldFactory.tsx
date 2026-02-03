@@ -80,9 +80,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
         if (!isModeSelectionDirty.current) {
             const selectedInputType = props.field.types.find(type => type.selected) || (
-                typeof props.field.value === 'string' && props.field.value.trim() !== ''
-                    ? props.field.types[props.field.types.length - 1]
-                    : props.field.types[0]
+               props.field.types[props.field.types.length - 1]
             );
             const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
             setInputMode(initialInputMode);

@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FormMapEditorProps } from "./FormMapEditorNew";
 import { InputType } from "@wso2/ballerina-core";
-import { Form, FormField, FormValues, S, useModeSwitcherContext } from "../..";
+import { Form, FormField, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
-import { ScrollableList } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
+import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
 import { getFormFieldFromTypes, extractTopLevelElements, buildStringArray } from "./utils";
 
@@ -30,13 +30,19 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
     value: any;
 }) => {
     const [repeatableFields, setRepeatableFields] = useState<FormField[]>([]);
+    const { expressionEditor } = useFormContext();
+    const scrollableListRef = useRef<ScrollableListRef>(null);
 
     const modeSwitcherContext = useModeSwitcherContext();
 
-    const handleAddAnotherFututre = () => {
+    const handleAddNewItem = () => {
         const key = crypto.randomUUID();
         const newField = getFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[])
         setRepeatableFields(prev => [...prev, newField]);
+        // Wait for the dom update
+        setTimeout(() => {
+            scrollableListRef.current?.scrollToBottom();
+        }, 100);
     }
 
     const handleFormOnChange = (_fieldKey: string, value: any, _allValues: FormValues, parentKey: string) => {
@@ -59,7 +65,7 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
         const newRepeatableFields = repeatableFields.filter((formField) => formField.key !== keyToDelete);
         setRepeatableFields(newRepeatableFields);
         props.onChange(newRepeatableFields);
-    }; 
+    };
 
     useEffect(() => {
         if (!props.value) return;
@@ -107,48 +113,49 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
                 </div>
             </S.Header>
             <ScrollableList
+                ref={scrollableListRef}
                 itemCount={repeatableFields.length}
                 maxVisibleItems={3}
             >
                 {
-                        repeatableFields.map((formField) => (
-                            <S.ItemContainer style={{ padding: '1px', position: 'relative' }} key={formField.key}>
-                                <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
-                                    <Codicon
-                                        name="close"
-                                        sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
-                                        onClick={() => handleDeleteItem(formField.key)}
-                                    />
-                                </div>
-                                <Form
-                                    key={formField.key}
-                                    formFields={[formField]}
-                                    openRecordEditor={props.openRecordEditor}
-                                    onSubmit={props.onSubmit}
-                                    onChange={(fieldKey: string, value: any, allValues: FormValues) => {
-                                        handleFormOnChange(fieldKey, value, allValues, formField.key);
-                                    }}
-                                    onCancelForm={props.onCancelForm}
-                                    expressionEditor={{
-                                        ...props.expressionEditor,
-                                        onCompletionItemSelect: props.expressionEditor?.onCompletionItemSelect,
-                                        getHelperPane: props.expressionEditor?.getHelperPane,
-                                        types: props.expressionEditor?.types,
-                                        referenceTypes: props.expressionEditor?.referenceTypes,
-                                        retrieveVisibleTypes: props.expressionEditor?.retrieveVisibleTypes,
-                                        getTypeHelper: props.expressionEditor?.getTypeHelper,
-                                        helperPaneHeight: props.expressionEditor?.helperPaneHeight
-                                    }}
-                                    submitText={'Save'}
-                                    nestedForm={true}
-                                    preserveOrder={true}
+                    repeatableFields.map((formField) => (
+                        <S.ItemContainer style={{ padding: '1px', position: 'relative' }} key={formField.key}>
+                            <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
+                                <Codicon
+                                    name="close"
+                                    sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
+                                    onClick={() => handleDeleteItem(formField.key)}
                                 />
-                            </S.ItemContainer>
+                            </div>
+                            <Form
+                                key={formField.key}
+                                formFields={[formField]}
+                                openRecordEditor={props.openRecordEditor}
+                                onSubmit={props.onSubmit}
+                                onChange={(fieldKey: string, value: any, allValues: FormValues) => {
+                                    handleFormOnChange(fieldKey, value, allValues, formField.key);
+                                }}
+                                onCancelForm={props.onCancelForm}
+                                expressionEditor={{
+                                    ...expressionEditor,
+                                    onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
+                                    getHelperPane: expressionEditor?.getHelperPane,
+                                    types: expressionEditor?.types,
+                                    referenceTypes: expressionEditor?.referenceTypes,
+                                    retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
+                                    getTypeHelper: expressionEditor?.getTypeHelper,
+                                    helperPaneHeight: expressionEditor?.helperPaneHeight
+                                }}
+                                submitText={'Save'}
+                                nestedForm={true}
+                                preserveOrder={true}
+                            />
+                        </S.ItemContainer>
 
-                        ))}
+                    ))}
             </ScrollableList>
             <S.AddNewButton
-                onClick={handleAddAnotherFututre}
+                onClick={handleAddNewItem}
                 appearance="icon"
             >
                 <Codicon name="add" sx={{ marginRight: "5px" }} />
