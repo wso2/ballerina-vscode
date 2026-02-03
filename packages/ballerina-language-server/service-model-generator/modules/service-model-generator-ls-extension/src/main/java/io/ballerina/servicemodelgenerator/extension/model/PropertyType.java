@@ -361,7 +361,7 @@ public class PropertyType {
 
         public Builder setTypeMembers(List<ParameterMemberTypeData> typeMembers) {
             this.typeMembers = typeMembers.stream().map(memberType -> new PropertyTypeMemberInfo(memberType.type(),
-                    memberType.packageInfo(), memberType.kind(), false)).toList();
+                    memberType.packageInfo(), memberType.packageName(), memberType.kind(), false)).toList();
             return this;
         }
 

@@ -1,0 +1,297 @@
+{
+  "filePath": "proj",
+  "typeMembers": [
+    {
+      "type": "ServiceConfiguration",
+      "packageInfo": "ballerinax:ibm.ibmmq:1.4.0",
+      "packageName": "ibm.ibmmq",
+      "kind": "RECORD_TYPE",
+      "selected": true
+    }
+  ],
+  "expr": "{\n    queueName: \"\",\n    sessionAckMode: \"DUPS_OK_ACKNOWLEDGE\"\n}",
+  "output": {
+    "recordConfig": {
+      "members": [
+        {
+          "fields": [
+            {
+              "name": "queueName",
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "value": "\"\"",
+              "selected": true
+            },
+            {
+              "members": [
+                {
+                  "typeName": "DUPS_OK_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "CLIENT_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "AUTO_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "SESSION_TRANSACTED",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "name": "sessionAckMode",
+              "typeName": "enum",
+              "optional": false,
+              "typeInfo": {
+                "name": "AcknowledgementMode",
+                "orgName": "ballerinax",
+                "moduleName": "ibm.ibmmq",
+                "version": "1.4.0"
+              },
+              "defaultable": true,
+              "documentation": "Configuration indicating how messages received by the session will be acknowledged",
+              "isRestType": false,
+              "value": "\"DUPS_OK_ACKNOWLEDGE\"\n",
+              "selected": true
+            },
+            {
+              "name": "messageSelector",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "Only messages with properties matching the message selector expression are delivered. \nIf this value is not set that indicates that there is no message selector for the message consumer\nFor example, to only receive messages with a property `priority` set to `'high'`, use:\n`\"priority = 'high'\"`. If this value is not set, all messages in the queue will be delivered.",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "pollingInterval",
+              "typeName": "decimal",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "The polling interval in seconds",
+              "isRestType": false,
+              "selected": false
+            },
+            {
+              "name": "receiveTimeout",
+              "typeName": "decimal",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "The timeout to wait till a `receive` action finishes when there are no messages",
+              "isRestType": false,
+              "selected": false
+            }
+          ],
+          "hasRestType": false,
+          "name": "QueueConfig",
+          "typeName": "record",
+          "optional": false,
+          "typeInfo": {
+            "name": "QueueConfig",
+            "orgName": "ballerinax",
+            "moduleName": "ibm.ibmmq",
+            "version": "1.4.0"
+          },
+          "defaultable": false,
+          "isRestType": false,
+          "selected": true
+        },
+        {
+          "fields": [
+            {
+              "name": "topicName",
+              "typeName": "string",
+              "optional": false,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "name": "noLocal",
+              "typeName": "boolean",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "members": [
+                {
+                  "typeName": "DEFAULT",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "SHARED_DURABLE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "SHARED",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "DURABLE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "name": "consumerType",
+              "typeName": "enum",
+              "optional": false,
+              "typeInfo": {
+                "name": "ConsumerType",
+                "orgName": "ballerinax",
+                "moduleName": "ibm.ibmmq",
+                "version": "1.4.0"
+              },
+              "defaultable": true,
+              "documentation": "",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "name": "subscriberName",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "members": [
+                {
+                  "typeName": "DUPS_OK_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "CLIENT_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "AUTO_ACKNOWLEDGE",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                },
+                {
+                  "typeName": "SESSION_TRANSACTED",
+                  "optional": false,
+                  "defaultable": false,
+                  "isRestType": false,
+                  "selected": false
+                }
+              ],
+              "name": "sessionAckMode",
+              "typeName": "enum",
+              "optional": false,
+              "typeInfo": {
+                "name": "AcknowledgementMode",
+                "orgName": "ballerinax",
+                "moduleName": "ibm.ibmmq",
+                "version": "1.4.0"
+              },
+              "defaultable": true,
+              "documentation": "Configuration indicating how messages received by the session will be acknowledged",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "name": "messageSelector",
+              "typeName": "string",
+              "optional": true,
+              "defaultable": false,
+              "documentation": "Only messages with properties matching the message selector expression are delivered. \nIf this value is not set that indicates that there is no message selector for the message consumer\nFor example, to only receive messages with a property `priority` set to `'high'`, use:\n`\"priority = 'high'\"`. If this value is not set, all messages in the queue will be delivered.",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "name": "pollingInterval",
+              "typeName": "decimal",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "The polling interval in seconds",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            },
+            {
+              "name": "receiveTimeout",
+              "typeName": "decimal",
+              "optional": false,
+              "defaultable": true,
+              "documentation": "The timeout to wait till a `receive` action finishes when there are no messages",
+              "isRestType": false,
+              "value": "",
+              "selected": false
+            }
+          ],
+          "hasRestType": false,
+          "name": "TopicConfig",
+          "typeName": "record",
+          "optional": false,
+          "typeInfo": {
+            "name": "TopicConfig",
+            "orgName": "ballerinax",
+            "moduleName": "ibm.ibmmq",
+            "version": "1.4.0"
+          },
+          "defaultable": false,
+          "isRestType": false,
+          "value": "",
+          "selected": false
+        }
+      ],
+      "name": "ServiceConfiguration",
+      "typeName": "union",
+      "optional": false,
+      "defaultable": false,
+      "documentation": "The service configuration type for the `ibmmq:Service`.",
+      "isRestType": false,
+      "selected": true
+    },
+    "typeName": "ServiceConfiguration"
+  }
+}

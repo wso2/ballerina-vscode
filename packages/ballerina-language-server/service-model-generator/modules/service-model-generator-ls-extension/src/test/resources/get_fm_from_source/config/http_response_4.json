@@ -644,9 +644,9 @@
             "imports": {},
             "value": [
               {
-                "type": "string",
                 "name": "x\\-path",
-                "optional": false
+                "optional": false,
+                "type": "string"
               }
             ],
             "types": [
@@ -836,6 +836,7 @@
               {
                 "type": "HttpResourceConfig",
                 "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }

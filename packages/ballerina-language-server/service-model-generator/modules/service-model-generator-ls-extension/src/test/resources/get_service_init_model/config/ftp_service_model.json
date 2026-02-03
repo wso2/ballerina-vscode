@@ -348,6 +348,7 @@
                                 {
                                   "type": "PrivateKey",
                                   "packageInfo": "ballerina:ftp:2.16.0",
+                                  "packageName": "ftp",
                                   "kind": "RECORD_TYPE",
                                   "selected": true
                                 }
@@ -621,6 +622,7 @@
                         {
                           "type": "SecureSocket",
                           "packageInfo": "ballerina:ftp:2.16.0",
+                          "packageName": "ftp",
                           "kind": "RECORD_TYPE",
                           "selected": true
                         }
