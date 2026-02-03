@@ -65,7 +65,7 @@ export function TitleBar(props: TitleBarProps) {
     };
 
     const workspaceFiles = [{ value: SELECT_ALL_FILES, content: SELECT_ALL_FILES }];
-    workspacesFileResponse?.files.map((file) => {
+    workspacesFileResponse?.files.map(file => {
         workspaceFiles.push({ value: file.path, content: file.relativePath });
     });
 

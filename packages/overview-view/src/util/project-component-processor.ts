@@ -21,6 +21,45 @@ import { BallerinaProjectComponents, ComponentInfo, ComponentViewInfo, FileListE
 import { ComponentCollection } from "../ComponentListView";
 import { URI } from "vscode-uri"
 
+export function extractFilePath(uri: string): string | null {
+    let filePath = uri;
+    if (uri.startsWith('file://')) {
+        const url = new URL(uri);
+        filePath = url.pathname;
+    }
+
+    if (filePath && filePath.match(/^\/[a-zA-Z]:/g)) {
+        filePath = filePath.replace('/', '');
+    }
+
+    if (filePath && filePath.match(/^[A-Z]:\//g)) {
+        const firstCharacter = filePath.charAt(0).toLowerCase();
+        const remaining = filePath.slice(1);
+        filePath = `${firstCharacter}${remaining}`;
+    }
+
+    return filePath;
+}
+
+export function genFilePath(packageInfo: PackageSummary, module: ModuleSummary, element: ComponentInfo) {
+    let filePath: string;
+    if (packageInfo.filePath.endsWith('.bal')) {
+        filePath = packageInfo.filePath.replace('file://', '');
+    } else {
+        filePath = `${packageInfo.filePath}${module.name ? `modules/${module.name}/` : ''}${element.filePath}`
+            .replace('file://', '');
+    }
+
+    filePath = extractFilePath(filePath);
+
+    return filePath;
+}
+
+export function isPathEqual(uri1: string, uri2: string): boolean {
+    const filePath1 = extractFilePath(uri1);
+    const filePath2 = extractFilePath(uri2);
+    return filePath1 === filePath2;
+}
 
 export class ProjectComponentProcessor {
     private projectComponents: BallerinaProjectComponents;
@@ -131,46 +170,4 @@ export class ProjectComponentProcessor {
     public getFileMap() {
         return this.fileMap;
     }
-}
-
-export function genFilePath(packageInfo: PackageSummary, module: ModuleSummary, element: ComponentInfo) {
-    let filePath: string;
-    if (packageInfo.filePath.endsWith('.bal')) {
-        filePath = packageInfo.filePath.replace('file://', '');
-    } else {
-        filePath = `${packageInfo.filePath}${module.name ? `modules/${module.name}/` : ''}${element.filePath}`
-            .replace('file://', '');
-    }
-
-    filePath = extractFilePath(filePath);
-
-    return filePath;
-}
-
-
-export function extractFilePath(uri: string): string | null {
-    let filePath = uri;
-    if (uri.startsWith('file://')) {
-        const url = new URL(uri);
-        filePath = url.pathname;
-    }
-
-    if (filePath && filePath.match(/^\/[a-zA-Z]:/g)) {
-        filePath = filePath.replace('/', '');
-    }
-
-    if (filePath && filePath.match(/^[A-Z]:\//g)) {
-        const firstCharacter = filePath.charAt(0).toLowerCase();
-        const remaining = filePath.slice(1);
-        filePath = `${firstCharacter}${remaining}`;
-    }
-
-    return filePath;
-}
-
-
-export function isPathEqual(uri1: string, uri2: string): boolean {
-    const filePath1 = extractFilePath(uri1);
-    const filePath2 = extractFilePath(uri2);
-    return filePath1 === filePath2;
 }
