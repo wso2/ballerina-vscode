@@ -476,7 +476,7 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                         onTypeChange={onTypeChange}
                         newType={false}
                         isPopupTypeForm={false}
-                        payloadContext={{protocol: Protocol.GRAPHQL}}
+                        isGraphql={true}
                         onTypeCreate={() => { }}
                         onSaveType={onSaveType}
                         getNewTypeCreateForm={getNewTypeCreateForm}
@@ -510,8 +510,8 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
                                     type={peekTypeStack()?.type}
                                     newType={peekTypeStack() ? peekTypeStack().isDirty : false}
                                     newTypeValue={peekTypeStack()?.type?.name ?? ''}
-                                    payloadContext={{protocol: Protocol.GRAPHQL}}
                                     isPopupTypeForm={true}
+                                    isGraphql={true}
                                     onTypeChange={onTypeChange}
                                     onTypeCreate={() => { }}
                                     onSaveType={onSaveType}

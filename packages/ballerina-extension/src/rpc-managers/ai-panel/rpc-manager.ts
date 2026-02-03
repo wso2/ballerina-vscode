@@ -45,7 +45,7 @@ import {
 } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 import path from "path";
-import { workspace } from 'vscode';
+import { extensions, workspace } from 'vscode';
 import { URI } from "vscode-uri";
 
 import { isNumber } from "lodash";
@@ -79,6 +79,7 @@ import { cleanupTempProject } from "../../features/ai/utils/project/temp-project
 import { RPCLayer } from '../../RPCLayer';
 import { chatStateStorage } from '../../views/ai-panel/chatStateStorage';
 import { restoreWorkspaceSnapshot } from '../../views/ai-panel/checkpoint/checkpointUtils';
+import { WI_EXTENSION_ID } from "../../features/ai/constants";
 
 export class AiPanelRpcManager implements AIPanelAPI {
 
@@ -156,15 +157,29 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async showSignInAlert(): Promise<boolean> {
+        // Don't show alert in WI environment (WSO2 Integrator extension is installed)
+        const isInWI = !!extensions.getExtension(WI_EXTENSION_ID);
+        if (isInWI) {
+            return false;
+        }
+
+        // Don't show alert in Devant environment
+        const isInDevant = !!process.env.CLOUD_STS_TOKEN;
+        if (isInDevant) {
+            return false;
+        }
+
+        // Check if alert was already dismissed
         const resp = await extension.context.secrets.get('LOGIN_ALERT_SHOWN');
         if (resp === 'true') {
             return false;
         }
-        const isWso2Signed = await this.isCopilotSignedIn();
 
+        const isWso2Signed = await this.isCopilotSignedIn();
         if (isWso2Signed) {
             return false;
         }
+
         return true;
     }
 
@@ -396,6 +411,37 @@ export class AiPanelRpcManager implements AIPanelAPI {
         }
     }
 
+    async getAffectedPackages(): Promise<string[]> {
+        // Get workspace ID and thread ID
+        const ctx = createExecutionContextFromStateMachine();
+        const workspaceId = ctx.projectPath;
+        const threadId = 'default';
+
+        // Get the LATEST under_review generation (not the first one)
+        const thread = chatStateStorage.getOrCreateThread(workspaceId, threadId);
+        const underReviewGenerations = thread.generations.filter(
+            g => g.reviewState.status === 'under_review'
+        );
+
+        if (underReviewGenerations.length === 0) {
+            console.log(">>> No pending review generation, returning empty affected packages");
+            return [];
+        }
+
+        // Return packages from the LATEST under_review generation
+        const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+        const affectedPackages = latestReview.reviewState.affectedPackagePaths || [];
+        console.log(`>>> Returning ${affectedPackages.length} affected packages from generation ${latestReview.id}:`, affectedPackages);
+        return affectedPackages;
+    }
+
+    async isWorkspaceProject(): Promise<boolean> {
+        const context = StateMachine.context();
+        const isWorkspace = context.projectInfo?.projectKind === 'WORKSPACE_PROJECT';
+        console.log(`>>> isWorkspaceProject: ${isWorkspace}`);
+        return isWorkspace;
+    }
+
     async acceptChanges(): Promise<void> {
         try {
             // Get workspace ID and thread ID
@@ -442,6 +488,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
+            // Clear affectedPackagePaths from all completed reviews to prevent stale data
+            for (const generation of underReviewGenerations) {
+                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                    affectedPackagePaths: []
+                });
+            }
+            console.log("[Review Actions] Cleared affected packages from accepted generations");
+
             // Notify AI panel webview to hide review actions
             RPCLayer._messenger.sendNotification(onHideReviewActions, {
                 type: 'webview',
@@ -485,6 +539,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
             // Mark ALL under_review generations as error/declined
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
+
+            // Clear affectedPackagePaths from all completed reviews to prevent stale data
+            for (const generation of underReviewGenerations) {
+                chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
+                    affectedPackagePaths: []
+                });
+            }
+            console.log("[Review Actions] Cleared affected packages from declined generations");
 
             // Notify AI panel webview to hide review actions
             RPCLayer._messenger.sendNotification(onHideReviewActions, {

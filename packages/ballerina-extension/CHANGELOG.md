@@ -4,7 +4,29 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [5.7.3](https://github.com/wso2/vscode-extensions/compare/ballerina-5.7.2...ballerina-5.7.3) - 2026-01-23
+
+### Fixed
+
+- **Expression Editor** — Fixed issue where text input with double quotes was not allowed.
+- **Security** — Updated lodash to 4.17.23 to fix CVE-2025-13465 prototype pollution vulnerability.
+
+
+## [5.7.2](https://github.com/wso2/vscode-extensions/compare/ballerina-5.7.1...ballerina-5.7.2) - 2026-01-22
+
+### Fixed
+
+- **BI Copilot** — Enhanced workspace support and improved review mode functionality in Ballerina Workspace environments.
+
+
+## [5.7.1](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.6.0...ballerina-5.7.1) - 2026-01-21
+
+### Fixed
+
+- **Environment** — Fix comprehensive fallback JDK detection logic that checks JAVA_HOME environment variable.
+
+
+## [5.7.0](https://github.com/wso2/vscode-extensions/compare/ballerina-integrator-1.5.4...ballerina-integrator-1.6.0) - 2026-01-20
 
 ### Added
 

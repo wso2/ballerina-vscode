@@ -16,40 +16,53 @@
  * under the License.
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { S } from '../styles';
 import { Codicon, ThemeColors } from "@wso2/ui-toolkit";
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { ExpressionFieldProps } from "../../ExpressionField";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
+import { isRecord } from "../../utils";
 
-interface MappingConstructorProps {
+interface MappingObjectConstructorProps {
     label: string;
-    value: any[];
-    onChange: (updated: any[]) => void;
+    value: Record<string, unknown>;
+    onChange: (updated: any) => void;
     expressionFieldProps: ExpressionFieldProps;
 }
 
-const transformExternalValueToInternal = (externalValue: any[]): any[] => {
-    if (!externalValue) return [];
-    return externalValue
-        .filter((item) => item != null)
-        .map((item, index) => {
-            // Each item is like {someKey: "someValue"}, extract key and value
-            const entries = Object.entries(item);
-            const [key, value] = entries.length > 0 ? entries[0] : ["", ""];
-            return { id: index, key: key || "", value: value || "" };
-        });
+
+const transformExternalValueToInternal = (externalValue: any): any[] => {
+    if (!externalValue || !isRecord(externalValue)) return [];
+    return Object.entries(externalValue).map(([key, value], index) => ({
+        id: index,
+        key: key || "",
+        value: value || ""
+    }));
 }
 
-const toOutputFormat = (pairs: any[]): any[] => {
-    return pairs.map(pair => {
-        if (pair.key) {
-            return { [pair.key]: pair.value };
+const toOutputFormat = (pairs: any[]): any => {
+    const result: any = {};
+    const keyCount: Record<string, number> = {};
+
+    pairs.forEach(pair => {
+        if (!pair.key) return;
+
+        const baseKey = pair.key;
+
+        if (keyCount[baseKey] === undefined) {
+            keyCount[baseKey] = 0;
+            result[baseKey] = pair.value;
+        } else {
+            keyCount[baseKey] += 1;
+            const newKey = `${baseKey}_${keyCount[baseKey]}`;
+            result[newKey] = pair.value;
         }
-        return {};
     });
-}
+
+    return result;
+};
+
 
 const getNextId = (items: any[]): number => {
     if (items.length === 0) {
@@ -59,10 +72,9 @@ const getNextId = (items: any[]): number => {
 }
 
 
-export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
+export const MappingObjectConstructor: React.FC<MappingObjectConstructorProps> = ({ label, value, onChange, expressionFieldProps }) => {
     //used this to manually trigger rerenders when value prop changes
     const [_, setManualRerenderTrigger] = useState(true);
-    const [hasUntouchedPairs, setHasUntouchedPairs] = useState(false);
     const internalValueRef = useRef<any[]>([]);
 
     useEffect(() => {
@@ -71,10 +83,14 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         setManualRerenderTrigger(prev => !prev);
     }, [value]);
 
+    const hasUntouchedPairs = useMemo(() => {
+        return internalValueRef.current.some(pair => pair.key === "");
+    }, [internalValueRef.current]);
+
+
     const handleAddPair = () => {
         const newPair = { id: getNextId(internalValueRef.current), key: "", value: "" };
         const updatedValue = [...internalValueRef.current, newPair];
-        setHasUntouchedPairs(true);
         internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
@@ -89,7 +105,6 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
         const updatedValue = internalValueRef.current.map(pair =>
             pair.id === id ? { ...pair, key: newKey } : pair
         );
-        setHasUntouchedPairs(newKey === "");
         internalValueRef.current = updatedValue;
         onChange(toOutputFormat(updatedValue));
     }
@@ -157,4 +172,4 @@ export const MappingConstructor: React.FC<MappingConstructorProps> = ({ label, v
     );
 };
 
-export default MappingConstructor;
+export default MappingObjectConstructor;

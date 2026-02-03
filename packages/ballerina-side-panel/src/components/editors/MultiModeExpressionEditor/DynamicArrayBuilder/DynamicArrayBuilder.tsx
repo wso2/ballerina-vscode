@@ -18,10 +18,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExpressionFieldProps } from "../../ExpressionField";
-import { Codicon, ErrorBanner } from '@wso2/ui-toolkit';
-import { InputMode } from "../ChipExpressionEditor/types";
-import { getPrimaryInputType } from "@wso2/ballerina-core";
-import { getInputModeFromBallerinaType } from "../ChipExpressionEditor/utils";
+import { Codicon } from '@wso2/ui-toolkit';
 import { ChipExpressionEditorComponent } from "../ChipExpressionEditor/components/ChipExpressionEditor";
 import { useFormContext } from "../../../../context";
 import { S } from "../styles";
@@ -165,13 +162,6 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
         updateArrayValue(updatedArray, { shouldValidate: true, shouldDirty: true });
     };
 
-    const primaryInputMode = useMemo(() => {
-        if (!expressionFieldProps.field.types || expressionFieldProps.field.types.length === 0) {
-            return InputMode.EXP;
-        }
-        return getInputModeFromBallerinaType(getPrimaryInputType(expressionFieldProps.field.types).ballerinaType);
-    }, [expressionFieldProps.field.types]);
-
     return (
         <S.Container>
             {arrayValues.map((itemValue, index) => (
@@ -195,6 +185,7 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
                         //have a switch to show the array editor mode and the expression mode.
                         //Exception: TEXT_SET uses StringTemplateEditorConfig for TEXT mode
                         configuration={expressionSetType?.fieldType === "TEXT_SET" ? new StringTemplateEditorConfig() : new ChipExpressionEditorDefaultConfiguration()}
+                        placeholder={expressionFieldProps.field.placeholder}
                     />
                     <S.DeleteButton
                         appearance="icon"
@@ -207,9 +198,9 @@ export const DynamicArrayBuilder = (props: DynamicArrayBuilderProps) => {
             ))}
             <S.AddButton
                 onClick={handleAdd}
-                appearance="icon"
+                appearance="secondary"
             >
-                <Codicon name="add" />
+                <Codicon name="add" sx={{marginRight: "5px"}}/>
                 Add Item
             </S.AddButton>
         </S.Container>
