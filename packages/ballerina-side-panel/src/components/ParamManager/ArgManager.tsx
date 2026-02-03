@@ -100,18 +100,7 @@ export interface ArgManagerEditorProps {
 export function ArgManagerEditor(props: ArgManagerEditorProps) {
     const { field, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
     const { form } = useFormContext();
-    const { control, setValue, getValues } = form;
-
-    const hasAdvancedFields = field.advanceProps?.length > 0;
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-
-    const handleOnShowAdvancedOptions = () => {
-        setShowAdvancedOptions(true);
-    }
-
-    const handleOnHideAdvancedOptions = () => {
-        setShowAdvancedOptions(false);
-    }
+    const { control } = form;
 
     return (
         <ArgContainer>
@@ -146,42 +135,6 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                     </>
                 )}
             />
-            {hasAdvancedFields && (
-                <Row>
-                    Optional Configurations
-                    <ButtonContainer>
-                        {!showAdvancedOptions && (
-                            <LinkButton
-                                onClick={handleOnShowAdvancedOptions}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Expand
-                            </LinkButton>
-                        )}
-                        {showAdvancedOptions && (
-                            <LinkButton
-                                onClick={handleOnHideAdvancedOptions}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapse
-                            </LinkButton>
-                        )}
-                    </ButtonContainer>
-                </Row>
-            )}
-            {hasAdvancedFields && showAdvancedOptions && (
-                <EditorContainer>
-                    {field.advanceProps.map((advanceProp) => {
-                        advanceProp.key = getFieldKeyForAdvanceProp(field.key, advanceProp.key);
-                        if (getValues(advanceProp.key) === undefined) {
-                            setValue(advanceProp.key, advanceProp.value);
-                        }
-                        return <EditorFactory field={advanceProp} />
-                    })}
-                </EditorContainer>
-            )}
         </ArgContainer>
     );
 
