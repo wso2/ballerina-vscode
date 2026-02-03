@@ -142,13 +142,14 @@ export type FormFieldInputType = "TEXT" |
     "EXPRESSION_SET" |
     "TEXT_SET" |
     "FLAG" |
-    "CHOICE"|
+    "CHOICE" |
     "LV_EXPRESSION" |
     "RAW_TEMPLATE" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
     "MAPPING_EXPRESSION_SET" |
+    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |

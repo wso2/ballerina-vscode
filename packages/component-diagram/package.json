@@ -38,7 +38,7 @@
         "@wso2/ui-toolkit": "workspace:*",
         "@wso2/bi-diagram": "workspace:*",
         "dagre": "0.8.5",
-        "lodash": "4.17.21"
+        "lodash": "4.17.23"
     },
     "devDependencies": {
         "@storybook/react": "6.5.16",

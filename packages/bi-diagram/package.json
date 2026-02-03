@@ -40,7 +40,7 @@
         "@emotion/react": "11.9.3",
         "@emotion/styled": "11.10.5",
         "dagre": "0.8.5",
-        "lodash": "4.17.21"
+        "lodash": "4.17.23"
     },
     "devDependencies": {
         "@storybook/react": "6.3.7",

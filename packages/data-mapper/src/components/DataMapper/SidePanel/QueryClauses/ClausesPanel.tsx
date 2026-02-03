@@ -56,6 +56,8 @@ export function ClausesPanel(props: ClausesPanelProps) {
             clause.properties.name = await genUniqueName(clause.properties.expression.split('.').pop(), targetField);
         } else if (clauseType === IntermediateClauseType.FROM) {
             clause.properties.type = "var";
+        } else if (clauseType === IntermediateClauseType.LET && !clause.properties.type) {
+            clause.properties.type = "var";
         }
     };
 

@@ -335,10 +335,10 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     activateOnTyping: true,
                     closeOnBlur: true
                 }),
-                ...(props.placeholder ? [placeholder(props.placeholder)] : []),
                 tooltips({ position: "absolute" }),
                 chipPlugin,
                 tokenField,
+                placeholder(props.placeholder),
                 chipTheme,
                 completionTheme,
                 EditorView.lineWrapping,
