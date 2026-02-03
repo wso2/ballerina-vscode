@@ -28,7 +28,7 @@ import {
     RequiredFormInput,
     ThemeColors
 } from '@wso2/ui-toolkit';
-import { getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
+import { buildRequiredRule, getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
@@ -687,7 +687,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
                         // Only use 'required' if there's no pattern validation (pattern will handle empty values)
                         if (!patternType?.pattern && !expressionSetType?.pattern) {
-                            rules.required = required ?? (!field.optional && !field.placeholder);
+                            const effectiveRequired = required ?? !field.optional;
+                            rules.required = buildRequiredRule({
+                                isRequired: !!effectiveRequired,
+                                label: field.label
+                            });
                         }
 
                         if (expressionSetType?.pattern) {
