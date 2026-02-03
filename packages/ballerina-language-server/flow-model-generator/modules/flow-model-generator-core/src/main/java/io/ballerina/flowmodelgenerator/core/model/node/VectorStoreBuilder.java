@@ -31,6 +31,7 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.projects.Package;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import org.eclipse.lsp4j.TextEdit;
@@ -87,8 +88,8 @@ public class VectorStoreBuilder extends CallBuilder {
                 codedata.module(), codedata.version());
 
         // Create and set the resolved package for the function
-        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.getModulePackage(
-                PackageUtil.getSampleProject(), codedata.org(), codedata.packageName());
+        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+                codedata.org(), codedata.packageName());
 
         FunctionData functionData = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object()).name(codedata.symbol())

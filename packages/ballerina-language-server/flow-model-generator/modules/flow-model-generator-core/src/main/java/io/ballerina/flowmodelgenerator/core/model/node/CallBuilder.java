@@ -44,6 +44,7 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
@@ -78,15 +79,8 @@ public abstract class CallBuilder extends NodeBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
-        Optional<io.ballerina.projects.Package> resolvedPackage;
-        try {
-            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
-                    codedata.org(), codedata.packageName());
-        } catch (Exception e) {
-            // If package resolution fails (e.g., package doesn't exist in Central),
-            // treat it as a generated/test package and continue with empty resolved package
-            resolvedPackage = Optional.empty();
-        }
+        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+                codedata.org(), codedata.packageName());
 
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

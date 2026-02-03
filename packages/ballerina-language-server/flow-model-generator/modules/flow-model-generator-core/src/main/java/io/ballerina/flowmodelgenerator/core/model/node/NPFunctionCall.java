@@ -92,15 +92,8 @@ public class NPFunctionCall extends FunctionCall {
 
         // Create and set the resolved package for the function
         // Skip package resolution for generated packages as they don't exist in Central
-        Optional<io.ballerina.projects.Package> resolvedPackage;
-        try {
-            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
-                    codedata.org(), codedata.packageName());
-        } catch (Exception e) {
-            // If package resolution fails (e.g., package doesn't exist in Central),
-            // treat it as a generated/test package and continue with empty resolved package
-            resolvedPackage = Optional.empty();
-        }
+        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+                codedata.org(), codedata.packageName());
 
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

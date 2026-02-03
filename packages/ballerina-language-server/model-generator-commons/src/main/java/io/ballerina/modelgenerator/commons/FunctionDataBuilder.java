@@ -941,8 +941,7 @@ public class FunctionDataBuilder {
 
         // Get the symbol from the expression
         Optional<Symbol> symbolOpt = semanticModel.symbol(expression);
-        if (symbolOpt.isEmpty() || (symbolOpt.get().kind() != SymbolKind.CONSTANT
-                && symbolOpt.get().kind() != SymbolKind.ENUM_MEMBER)) {
+        if (symbolOpt.isEmpty()) {
             return null;
         }
 

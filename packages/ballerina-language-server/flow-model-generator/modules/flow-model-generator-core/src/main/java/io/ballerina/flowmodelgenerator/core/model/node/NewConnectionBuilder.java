@@ -128,13 +128,8 @@ public class NewConnectionBuilder extends CallBuilder {
         FunctionData functionData;
 
         // Create and set the resolved package for the function
-        Optional<io.ballerina.projects.Package> resolvedPackage;
-        try {
-            resolvedPackage = PackageUtil.getModulePackage(PackageUtil.getSampleProject(),
-                    codedata.org(), codedata.packageName());
-        } catch (Exception e) {
-            resolvedPackage = Optional.empty();
-        }
+        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+                codedata.org(), codedata.packageName());
 
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

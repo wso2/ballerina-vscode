@@ -339,4 +339,23 @@ public class PackageUtil {
     public static PackageCompilation getCompilation(Project project) {
         return getCompilation(project.currentPackage());
     }
+
+    /**
+     * Safely resolves a module package with error handling for cases where packages don't exist in Central.
+     * This utility method encapsulates the common pattern of trying to resolve a package and falling back
+     * to an empty Optional if resolution fails.
+     *
+     * @param org         The organization name of the package
+     * @param packageName The name of the package
+     * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
+     */
+    public static Optional<Package> safeResolveModulePackage(String org, String packageName) {
+        try {
+            return getModulePackage(getSampleProject(), org, packageName);
+        } catch (Exception e) {
+            // If package resolution fails (e.g., package doesn't exist in Central),
+            // treat it as a generated/test package and continue with empty resolved package
+            return Optional.empty();
+        }
+    }
 }

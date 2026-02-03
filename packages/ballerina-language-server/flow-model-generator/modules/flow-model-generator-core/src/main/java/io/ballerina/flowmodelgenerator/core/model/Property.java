@@ -597,7 +597,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 if (allSingletons) {
                     // Reorder options so that the default value appears first
                     if (defaultValue != null && !defaultValue.isEmpty()) {
-                        reorderOptionsByDefaultValue(options, defaultValue);
+                        options = reorderOptionsByDefaultValue(options, defaultValue);
                     }
                     type().fieldType(ValueType.SINGLE_SELECT).options(options).stepOut();
                 } else {
@@ -785,46 +785,55 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         /**
+         * Strips surrounding quotes from a string value if present.
+         *
+         * @param value The string to strip quotes from
+         * @return The string with quotes removed, or the original string if no quotes
+         */
+        private static String stripQuotes(String value) {
+            if (value != null && value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
+                return value.substring(1, value.length() - 1);
+            }
+            return value;
+        }
+
+        /**
          * Reorders enum options so that the option matching the defaultValue appears first in the list.
          * This improves user experience by showing the default option at the top of dropdown lists.
+         * Returns a new list without modifying the input list.
          *
          * @param options      The list of Option objects to reorder
          * @param defaultValue The default value to prioritize (may contain quotes)
+         * @return A new list with the default option first, or the original list if no match found
          */
-        private static void reorderOptionsByDefaultValue(List<Option> options, String defaultValue) {
+        private static List<Option> reorderOptionsByDefaultValue(List<Option> options, String defaultValue) {
             if (options == null || options.isEmpty() || defaultValue == null || defaultValue.isEmpty()) {
-                return;
+                return new ArrayList<>(options != null ? options : List.of());
             }
 
-            // Clean the default value by removing quotes if present
-            String cleanedDefaultValue = defaultValue;
-            if (cleanedDefaultValue.startsWith("\"") && cleanedDefaultValue.endsWith("\"")
-                    && cleanedDefaultValue.length() > 1) {
-                cleanedDefaultValue = cleanedDefaultValue.substring(1, cleanedDefaultValue.length() - 1);
-            }
+            try {
+                // Clean the default value by removing quotes if present
+                String cleanedDefaultValue = stripQuotes(defaultValue);
 
-            // Find the option that matches the default value
-            Option defaultOption = null;
-            int defaultOptionIndex = -1;
+                // Find the option that matches the default value
+                Option defaultOption = null;
+                int defaultOptionIndex = -1;
 
-            for (int i = 0; i < options.size(); i++) {
-                Option option = options.get(i);
+                for (int i = 0; i < options.size(); i++) {
+                    Option option = options.get(i);
 
-                // Match against both label and value (try exact match first, then case-insensitive)
-                if (cleanedDefaultValue.equals(option.label()) ||
-                    cleanedDefaultValue.equals(option.value()) ||
-                    cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
-                    cleanedDefaultValue.equalsIgnoreCase(option.value())) {
-                    defaultOption = option;
-                    defaultOptionIndex = i;
-                    break;
-                }
+                    // Match against both label and value (try exact match first, then case-insensitive)
+                    if (cleanedDefaultValue.equals(option.label()) ||
+                        cleanedDefaultValue.equals(option.value()) ||
+                        cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
+                        cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                        defaultOption = option;
+                        defaultOptionIndex = i;
+                        break;
+                    }
 
-                // Also try matching against value with quotes removed
-                String cleanedOptionValue = option.value();
-                if (cleanedOptionValue != null && cleanedOptionValue.startsWith("\"")
-                        && cleanedOptionValue.endsWith("\"") && cleanedOptionValue.length() > 1) {
-                    cleanedOptionValue = cleanedOptionValue.substring(1, cleanedOptionValue.length() - 1);
+                    // Also try matching against value with quotes removed
+                    String cleanedOptionValue = stripQuotes(option.value());
                     if (cleanedDefaultValue.equals(cleanedOptionValue) ||
                         cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue)) {
                         defaultOption = option;
@@ -832,12 +841,17 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         break;
                     }
                 }
-            }
 
-            // If we found a matching option and it's not already first, move it to the front
-            if (defaultOption != null && defaultOptionIndex > 0) {
-                options.remove(defaultOptionIndex);
-                options.add(0, defaultOption);
+                // Create a new list and move the matching option to the front if found
+                List<Option> reorderedOptions = new ArrayList<>(options);
+                if (defaultOption != null && defaultOptionIndex > 0) {
+                    reorderedOptions.remove(defaultOptionIndex);
+                    reorderedOptions.addFirst(defaultOption);
+                }
+                return reorderedOptions;
+            } catch (Exception e) {
+                // In case of any exceptions, return a copy of the original list
+                return new ArrayList<>(options);
             }
         }
 
