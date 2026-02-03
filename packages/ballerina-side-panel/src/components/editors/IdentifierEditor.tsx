@@ -23,7 +23,7 @@ import { useFormContext } from "../../context";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { debounce } from "lodash";
-import { getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, getPropertyFromFormField } from "./utils";
 
 const EditRow = styled.div`
     display: flex;
@@ -243,7 +243,10 @@ export function IdentifierEditor(props: IdentifierEditorProps) {
                         <TextField
                             id={field.key}
                             name={field.key}
-                            {...register(field.key, { required: !field.optional && !field.placeholder, value: field.value })}
+                            {...register(field.key, {
+                                required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                                value: field.value
+                            })}
                             label={field.label}
                             required={!field.optional}
                             description={field.documentation}
