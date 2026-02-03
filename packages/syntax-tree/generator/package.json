@@ -28,7 +28,7 @@
     "@typescript-eslint/eslint-plugin": "^5.46.1",
     "@typescript-eslint/parser": "^5.46.1",
     "copyfiles": "^2.1.0",
-    "eslint": "^8.30.0",
+    "eslint": "^9.27.0",
     "eslint-plugin-react": "^7.31.11",
     "rimraf": "^3.0.2",
     "tslint": "^6.1.3",
