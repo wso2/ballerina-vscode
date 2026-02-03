@@ -623,7 +623,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             boolean isSqlQuery = "sql:ParameterizedQuery".equals(ballerinaType);
             type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
-                    .selected(!isSqlQuery && !success)
                     .stepOut();
 
             // get value node kind
