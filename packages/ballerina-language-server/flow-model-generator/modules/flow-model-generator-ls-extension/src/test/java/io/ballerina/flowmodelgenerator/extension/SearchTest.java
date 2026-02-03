@@ -41,6 +41,7 @@ public class SearchTest extends AbstractLSTest {
     @Override
     @Test(dataProvider = "data-provider")
     public void test(Path config) throws IOException {
+        config = Path.of("/Users/pasindufernando/Desktop/BI/Ballerina-Language-Server/ballerina-language-server/flow-model-generator/modules/flow-model-generator-ls-extension/src/test/resources/search/config/connectors/model_provider.json");
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 

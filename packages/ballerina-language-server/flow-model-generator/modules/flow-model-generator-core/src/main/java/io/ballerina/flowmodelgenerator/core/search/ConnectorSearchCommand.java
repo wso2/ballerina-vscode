@@ -72,7 +72,11 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static final Set<String> AGENT_SUPPORT_CONNECTORS = LocalIndexCentral.getInstance()
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
-    private static final Set<String> BLACKLISTED_CONNECTOR_NAMES = Set.of("ModelProvider");
+    private static final Set<String> BLACKLISTED_CONNECTOR_NAME_PATTERNS = Set.of("ModelProvider");
+
+    private static boolean isBlacklisted(String connectorName) {
+        return BLACKLISTED_CONNECTOR_NAME_PATTERNS.stream().anyMatch(connectorName::contains);
+    }
 
     public ConnectorSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -80,7 +84,9 @@ public class ConnectorSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
-        List<SearchResult> localConnectors = getLocalConnectors();
+        List<SearchResult> localConnectors = getLocalConnectors().stream()
+                .filter(result -> !isBlacklisted(result.name()))
+                .toList();
         Category.Builder localCategoryBuilder = rootBuilder.stepIn("Local", null, null);
         localConnectors.forEach(connection -> localCategoryBuilder.node(generateAvailableNode(connection, true)));
 
@@ -98,7 +104,9 @@ public class ConnectorSearchCommand extends SearchCommand {
         // Search local connectors and rank them by relevance
         // TODO: The current search does not combine local and standard connectors when calculating the relevance
         //  score. Consequently, results are currently returned in sets, and pagination does not work uniformly.
-        List<SearchResult> localConnectors = getLocalConnectors();
+        List<SearchResult> localConnectors = getLocalConnectors().stream()
+                .filter(result -> !isBlacklisted(result.name()))
+                .toList();
         List<ScoredConnector> scoredConnectors = new ArrayList<>();
         for (SearchResult connector : localConnectors) {
             int score = RelevanceCalculator.calculateFuzzyRelevanceScore(
@@ -114,7 +122,7 @@ public class ConnectorSearchCommand extends SearchCommand {
         // Search standard connectors from the database
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
         searchResults.stream()
-                .filter(result -> !BLACKLISTED_CONNECTOR_NAMES.contains(result.name()))
+                .filter(result -> !isBlacklisted(result.name()))
                 .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return rootBuilder.build().items();
     }
@@ -153,7 +161,9 @@ public class ConnectorSearchCommand extends SearchCommand {
                     organizationConnectors.add(searchResult);
                 }
             }
-            organizationConnectors.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+            organizationConnectors.stream()
+                    .filter(result -> !isBlacklisted(result.name()))
+                    .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         }
         return rootBuilder.build().items();
     }
@@ -168,7 +178,10 @@ public class ConnectorSearchCommand extends SearchCommand {
             List<String> packageList = category.getValue();
             List<SearchResult> searchResults = dbManager.searchConnectorsByPackage(packageList, limit, offset);
             SearchResult.sortByPackageListOrder(searchResults, packageList);
-            defaultView.put(category.getKey(), searchResults);
+            List<SearchResult> filteredResults = searchResults.stream()
+                    .filter(result -> !isBlacklisted(result.name()))
+                    .toList();
+            defaultView.put(category.getKey(), filteredResults);
         }
         return defaultView;
     }
