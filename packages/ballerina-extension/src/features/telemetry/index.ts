@@ -94,8 +94,8 @@ export async function getTelemetryProperties(extension: BallerinaExtension, comp
         'component': CHOREO_COMPONENT_ID,
         'project': CHOREO_PROJECT_ID,
         'org': CHOREO_ORG_ID,
-        'user.login_method': userType,
-        'user.bi_intel_id': biIntelId,
+        'user.login_method': userType ?? '',
+        'user.bi_intel_id': biIntelId ?? '',
     };
 }
 
