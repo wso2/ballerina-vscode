@@ -101,6 +101,8 @@ public class ModuleNodeTransformer extends NodeTransformer<Optional<Artifact>> {
                         .name(functionName)
                         .type(Artifact.Type.DATA_MAPPER);
             }
+        } else if (functionDefinitionNode.functionBody().kind() == SyntaxKind.EXTERNAL_FUNCTION_BODY) {
+            return Optional.empty();
         } else if (functionDefinitionNode.kind() == SyntaxKind.RESOURCE_ACCESSOR_DEFINITION) {
             functionBuilder
                     .accessor(functionName)

@@ -347,25 +347,44 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(ListenerDeclarationNode listenerDeclarationNode) {
         List<Listener.KeyValue> arguments = new ArrayList<>();
-        Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
+        Optional<TypeSymbol> typeSymbol;
+        String typeName;
         Node initializer = listenerDeclarationNode.initializer();
+
+        if (listenerDeclarationNode.typeDescriptor().isPresent()) {
+            // If explicit type descriptor is present, use it to get the type symbol and name
+            Optional<Symbol> symbol = semanticModel.symbol(listenerDeclarationNode.typeDescriptor().get());
+            typeSymbol = symbol.filter(s -> s instanceof TypeSymbol).map(s -> (TypeSymbol) s);
+            typeName = listenerDeclarationNode.typeDescriptor().get().toSourceCode().strip();
+        } else if (initializer instanceof ExplicitNewExpressionNode explicitNewExpressionNode) {
+            // If inferred type from explicit new expression
+            Optional<Symbol> symbol = semanticModel.symbol(explicitNewExpressionNode.typeDescriptor());
+            typeSymbol = symbol.filter(s -> s instanceof TypeSymbol).map(s -> (TypeSymbol) s);
+            typeName = explicitNewExpressionNode.typeDescriptor().toSourceCode().strip();
+        } else {
+            // Fallback to getting the type from the initializer expression
+            typeSymbol = semanticModel.typeOf(initializer);
+            typeName = typeSymbol.map(TypeSymbol::signature).orElse("");
+        }
+
         if (initializer instanceof NewExpressionNode newExpressionNode) {
-            if (symbol.isPresent() && symbol.get() instanceof TypeSymbol typeSymbol) {
-                TypeSymbol rawType = CommonUtils.getRawType(typeSymbol);
+            if (typeSymbol.isPresent()) {
+                TypeSymbol rawType = CommonUtils.getRawType(typeSymbol.get());
                 if (rawType instanceof ClassSymbol classSymbol) {
                     arguments = getInitMethodParamNames(classSymbol, connectionFinder.getArgList(newExpressionNode));
                 }
             }
         }
 
-        String icon = symbol.flatMap(Symbol::getModule)
+        String icon = typeSymbol.flatMap(Symbol::getModule)
                 .map(module -> CommonUtils.generateIcon(module.id())).orElse("");
         LineRange lineRange = listenerDeclarationNode.lineRange();
         String sortText = lineRange.fileName() + lineRange.startLine().line();
+
         this.intermediateModel.listeners.put(listenerDeclarationNode.variableName().text(),
                 new Listener(listenerDeclarationNode.variableName().text(), sortText,
                         getLocation(listenerDeclarationNode.lineRange()),
-                        listenerDeclarationNode.typeDescriptor().get().toSourceCode().strip(),
+                        typeName,
                         icon, Listener.Kind.NAMED, arguments, true));
     }
 

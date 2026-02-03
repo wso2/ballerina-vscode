@@ -230,7 +230,7 @@
                 ],
                 "value": "foo",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -312,7 +312,7 @@
                 ],
                 "value": "bar",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
