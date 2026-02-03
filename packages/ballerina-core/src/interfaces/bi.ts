@@ -153,6 +153,7 @@ export type FormFieldInputType = "TEXT" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
+    "REPEATABLE_MAP" |
     "PROMPT" |
     "HEADER_SET" |
     "DROPDOWN_CHOICE" |
@@ -163,6 +164,7 @@ export type FormFieldInputType = "TEXT" |
     "SERVICE_PATH" |
     "ACTION_PATH" |
     "NUMBER" |
+    "REPEATABLE_LIST" |
     "CONDITIONAL_FIELDS"
     ;
 

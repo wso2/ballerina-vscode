@@ -18,7 +18,7 @@
 
 import { startCase } from "lodash";
 import { FormField } from "../Form/types";
-import { ExpressionProperty } from "@wso2/ballerina-core";
+import { ExpressionProperty, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 import { InputMode } from "../..";
 import { EditorMode } from "./ExpandedEditor";
 import { EXPANDABLE_MODES } from "./ExpandedEditor/modes/types";
@@ -125,4 +125,90 @@ export function isExpandableMode(mode: InputMode): mode is EditorMode {
 
 export function toEditorMode(mode: InputMode): EditorMode | undefined {
     return isExpandableMode(mode) ? mode : undefined;
+}
+
+export const getFormFieldFromTypes = (formId: string, types: InputType[]): FormField => {
+    return {
+        key: `ar-elm-${formId}`,
+        label: "",
+        type: getPrimaryInputType(types)?.fieldType || "",
+        optional: false,
+        editable: true,
+        documentation: "",
+        value: "",
+        types: types,
+        enabled: true
+    }
+}
+
+export function extractTopLevelElements(input: string): string[] {
+    // remove outer [ ]
+    const s = input.trim().slice(1, -1);
+
+    const result: string[] = [];
+    let current = "";
+    let depth = 0;
+    let inString = false;
+
+    for (let i = 0; i < s.length; i++) {
+        const char = s[i];
+        const prev = s[i - 1];
+
+        // handle string boundaries
+        if (char === '"' && prev !== "\\") {
+            inString = !inString;
+            current += char;
+            continue;
+        }
+
+        if (!inString) {
+            if (char === "[" || char === "{") depth++;
+            if (char === "]" || char === "}") depth--;
+
+            if (char === "," && depth === 0) {
+                result.push(cleanArrayElement(current));
+                current = "";
+                continue;
+            }
+        }
+
+        current += char;
+    }
+
+    if (current.trim()) {
+        result.push(cleanArrayElement(current));
+    }
+
+    return result;
+}
+
+export function cleanArrayElement(value: string): string {
+    value = value.trim();
+
+    // remove quotes if it's a string
+    if (value.startsWith('"') && value.endsWith('"')) {
+        return value.slice(1, -1);
+    }
+
+    return value;
+}
+
+export function buildStringArray(elements: FormField[]): string {
+    if (typeof elements === "string") return elements;
+    const parts = elements.map(el => {
+
+        const trimmed = (el.value as string).trim();
+
+        if (
+            (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+            (trimmed.startsWith("[") && trimmed.endsWith("]"))
+        ) {
+            return trimmed;
+        }
+
+        const escaped = trimmed.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        return `"${escaped}"`;
+    });
+
+    return `[${parts.join(", ")}]`;
 }
