@@ -476,7 +476,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     return (
         <>
-            {showToggle && (
+            {showToggle && configuration.getIsToggleHelperAvailable() && (
                 <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
                     isOpen={helperPaneState.isOpen}
@@ -512,7 +512,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     }
                     {!props.disabled && (
                         <FloatingButtonContainer>
-                            {!props.isExpandedVersion &&
+                            {!props.isExpandedVersion && configuration.getIsToggleHelperAvailable() &&
                                 <FloatingToggleButton
                                     ref={helperPaneToggleButtonRef}
                                     onClick={handleManualToggle}
