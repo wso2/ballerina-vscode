@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { getMarketplaceItems, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, updateDevantTempConfigs } from "@wso2/ballerina-core";
+import { getMarketplaceItems, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, updateDevantTempConfigs, createDevantComponentConnectionV2, generateCustomConnectorFromOAS } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { PlatformExtRpcManager } from "./rpc-manager";
 import { DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, RegisterMarketplaceConnectionReq, } from "@wso2/wso2-platform-core";
-import { CreateDevantConnectionReq, DeleteDevantTempConfigReq, ImportDevantConnectionReq, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, ImportDevantConnectionReq, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { platformExtStore } from "./platform-store";
 import { debug } from "../../utils";
 
@@ -34,7 +34,8 @@ export function registerPlatformExtRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getMarketplaceItems, (params: GetMarketplaceListReq) => rpcManger.getMarketplaceItems(params));
     messenger.onRequest(getMarketplaceItem, (params: GetMarketplaceItemReq) => rpcManger.getMarketplaceItem(params));
     messenger.onRequest(getMarketplaceIdl, (params: GetMarketplaceIdlReq) => rpcManger.getMarketplaceIdl(params));
-    messenger.onRequest(createDevantComponentConnection, (params: CreateDevantConnectionReq) => rpcManger.createDevantComponentConnection(params));
+    messenger.onRequest(createDevantComponentConnectionV2, (params: CreateDevantConnectionV2Req) => rpcManger.createDevantComponentConnectionV2(params));
+    messenger.onRequest(generateCustomConnectorFromOAS, (params: GenerateCustomConnectorFromOASReq) => rpcManger.generateCustomConnectorFromOAS(params));
     messenger.onRequest(importDevantComponentConnection, (params: ImportDevantConnectionReq) => rpcManger.importDevantComponentConnection(params));
     messenger.onRequest(registerAndCreateDevantComponentConnection, (params: RegisterAndCreateDevantConnectionReq) => rpcManger.registerAndCreateDevantComponentConnection(params));
     messenger.onRequest(updateDevantTempConfigs, (params: UpdateDevantTempConfigsReq) => rpcManger.updateDevantTempConfigs(params));

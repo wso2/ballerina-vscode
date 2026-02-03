@@ -54,11 +54,14 @@ type ConfigurablesPageProps = {
     targetLineRange: LineRange;
     onClose?: () => void;
     inputMode?: InputMode;
+    devantConfigs?: string[];
+    devantConfigsOnly?: boolean;
+    showAddNewConfigurable?: boolean;
 }
 
 
 export const Configurables = (props: ConfigurablesPageProps) => {
-    const { onChange, onClose, fileName, targetLineRange, inputMode } = props;
+    const { onChange, onClose, fileName, targetLineRange, inputMode, devantConfigs, devantConfigsOnly, showAddNewConfigurable = true } = props;
 
     const { rpcClient } = useRpcContext();
     const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Configurables");
@@ -172,6 +175,23 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         });
     }
 
+    /** Decide whether to show only Devant configs */
+    const showOnlyDevantConfigs = (filteredCategories: ListItem[]) => {
+        if(devantConfigs?.length > 0){
+            return filteredCategories.map(category => ({
+                ...category,
+                items: category.items.map(subCategory => ({
+                    ...subCategory,
+                    items: subCategory.items.filter((item: ConfigVariable) => {
+                        const value = item?.properties?.variable?.value as string;
+                        return devantConfigsOnly ? devantConfigs.includes(value) : !devantConfigs.includes(value);
+                    })
+                })).filter(subCategory => subCategory.items.length > 0)
+            })).filter(category => category.items.length > 0);
+        }
+        return filteredCategories;
+    }
+
     const handleItemClicked = (name: string) => {
         onChange(name, false)
         onClose && onClose();
@@ -246,6 +266,8 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                                     Array.isArray(category.items) &&
                                     category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
                                 );
+
+                            filteredCategories = showOnlyDevantConfigs(filteredCategories);
 
                             // Apply search filter if search value exists
                             if (searchValue && searchValue.trim()) {
@@ -324,10 +346,14 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 )}
             </ScrollableContainer>
 
-            <Divider sx={{ margin: "0px" }} />
-            <div style={{ margin: '4px 0' }}>
-                <FooterButtons onClick={handleAddNewConfigurable} title="New Configurable" />
-            </div>
+            {showAddNewConfigurable && (
+                <>
+                    <Divider sx={{ margin: "0px" }} />
+                    <div style={{ margin: '4px 0' }}>
+                        <FooterButtons onClick={handleAddNewConfigurable} title="New Configurable" />
+                    </div>
+                </>
+            )}
         </div>
     )
 }

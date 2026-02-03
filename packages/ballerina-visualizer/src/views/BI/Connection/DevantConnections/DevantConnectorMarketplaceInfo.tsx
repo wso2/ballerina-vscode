@@ -19,7 +19,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
 import type { MarketplaceItem, Organization } from "@wso2/wso2-platform-core";
-import { type FC, type ReactNode } from "react";
+import { useEffect, type FC, type ReactNode } from "react";
 import styled from "@emotion/styled";
 import { Button, Badge, ProgressRing, Icon, Codicon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
@@ -28,12 +28,24 @@ import "@wso2/ui-toolkit/src/styles/swagger/styles.css";
 import type SwaggerUIProps from "swagger-ui-react/swagger-ui-react";
 import { Banner } from "../../../../components/Banner";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
-
-const StyledContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-`;
+import {
+    ConnectorDetailCard,
+    ConnectorOptionButtons,
+    ConnectorOptionCard,
+    ConnectorOptionContent,
+    ConnectorOptionDescription,
+    ConnectorOptionIcon,
+    ConnectorOptionTitle,
+    ConnectorTypeLabel,
+} from "../AddConnectionPopup/styles";
+import {
+    ActionButton,
+    ConnectorContentContainer,
+    ConnectorInfoContainer,
+    ConnectorProgressContainer,
+    FooterContainer,
+} from "../styles";
+import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 const StyledSummary = styled.p`
     margin-top: 1rem;
@@ -76,77 +88,15 @@ const StyledNoPreviewText = styled.p`
     opacity: 0.5;
 `;
 
-const ProgressContainer = styled.p`
-    display: flex;
-    padding: 50px;
-    justify-content: center;
-    align-items: center;
-`;
-
-const ConnectorOptionCard = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_DIM};
-`;
-
-const ConnectorOptionIcon = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    flex-shrink: 0;
-`;
-
-const ConnectorOptionContent = styled.div`
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-`;
-
-const ConnectorOptionTitle = styled(Typography)`
-    font-size: 14px;
-    font-weight: 600;
-    color: ${ThemeColors.ON_SURFACE};
-    margin: 0;
-`;
-
-const ConnectorOptionDescription = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    margin: 0;
-`;
-
-const ConnectorOptionButtons = styled.div`
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-`;
-
-const ConnectorTypeLabel = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    padding: 6px;
-    border-radius: 4px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    margin: 0;
-    display: inline-block;
-`;
-
 export const SwaggerUI: FC<SwaggerUIProps> = (props) => {
     return <SwaggerUIReact {...props} />;
 };
 
 type Props = {
     item?: MarketplaceItem;
-    onCloseClick: () => void;
+    onFlowChange: (flow: DevantConnectionFlow | null) => void;
+    onNextClick: () => void;
+    loading: boolean;
 };
 
 const disableAuthorizeAndInfoPlugin = () => ({
@@ -166,7 +116,7 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onCloseClick }) => {
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, onFlowChange, loading }) => {
     const { platformRpcClient, platformExtState } = usePlatformExtContext();
 
     const {
@@ -185,11 +135,21 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onCloseClick }
         ],
         queryFn: () =>
             platformRpcClient?.getMarketplaceIdl({
-                serviceId: item.isThirdParty ? item.resourceId : item?.serviceId,
+                serviceId: item?.isThirdParty ? item.resourceId : item?.serviceId,
                 orgId: platformExtState?.selectedContext?.org?.id?.toString(),
             }),
         enabled: !!item,
     });
+
+    useEffect(() => {
+        if (serviceIdlError || (serviceIdl && serviceIdl?.idlType !== "OpenAPI")) {
+            onFlowChange(
+                item.isThirdParty
+                    ? DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER
+                    : DevantConnectionFlow.CREATE_INTERNAL_OTHER,
+            );
+        }
+    }, [serviceIdl, serviceIdlError]);
 
     const panelTabs: { key: string; title: string; view: ReactNode }[] = [
         {
@@ -220,9 +180,9 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onCloseClick }
                     ) : (
                         <>
                             {isLoadingIdl && (
-                                <ProgressContainer>
+                                <ConnectorProgressContainer>
                                     <ProgressRing />
-                                </ProgressContainer>
+                                </ConnectorProgressContainer>
                             )}
                             {serviceIdlError && (
                                 <Banner message="Failed to load API definition" variant="error"></Banner>
@@ -243,45 +203,62 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onCloseClick }
     }
 
     return (
-        <StyledContainer>
-            <ConnectorOptionCard>
-                <ConnectorOptionIcon>
-                    <Icon name="APIResource" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                </ConnectorOptionIcon>
-                <ConnectorOptionContent>
-                    <ConnectorOptionTitle>{item.name}</ConnectorOptionTitle>
-                    <ConnectorOptionDescription>{item.description}</ConnectorOptionDescription>
-                    <ConnectorOptionButtons>
-                        {item?.serviceType && <ConnectorTypeLabel>{item?.serviceType}</ConnectorTypeLabel>}
-                        {item?.version && <ConnectorTypeLabel>{item?.version}</ConnectorTypeLabel>}
-                        {item?.status && <ConnectorTypeLabel>{item?.status}</ConnectorTypeLabel>}
-                    </ConnectorOptionButtons>
-                </ConnectorOptionContent>
-            </ConnectorOptionCard>
+        <ConnectorInfoContainer>
+            <ConnectorContentContainer hasFooterButton>
+                <ConnectorDetailCardItem item={item!} />
+                {item?.summary?.trim() && <StyledSummary>{item?.summary?.trim()}</StyledSummary>}
+                {(item?.tags?.length ?? 0) > 0 && (
+                    <StyledTagsContainer>
+                        {item?.tags?.map((tagItem) => (
+                            <Badge key={tagItem}>{tagItem}</Badge>
+                        ))}
+                    </StyledTagsContainer>
+                )}
+                <StyledPanelsContainer>
+                    <VSCodePanels>
+                        {panelTabs.map((item) => (
+                            <VSCodePanelTab id={`tab-${item?.key}`} key={`tab-${item?.key}`}>
+                                {item?.title}
+                            </VSCodePanelTab>
+                        ))}
+                        {panelTabs.map((item) => (
+                            <VSCodePanelView id={`view-${item?.key}`} key={`view-${item?.key}`}>
+                                {item?.view}
+                            </VSCodePanelView>
+                        ))}
+                    </VSCodePanels>
+                </StyledPanelsContainer>
+            </ConnectorContentContainer>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    onClick={onNextClick}
+                    disabled={loading || isLoadingIdl}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    {loading ? "Loading..." : "Continue"}
+                </ActionButton>
+            </FooterContainer>
+        </ConnectorInfoContainer>
+    );
+};
 
-            {item?.summary?.trim() && <StyledSummary>{item?.summary?.trim()}</StyledSummary>}
-            {(item?.tags?.length ?? 0) > 0 && (
-                <StyledTagsContainer>
-                    {item?.tags?.map((tagItem) => (
-                        <Badge key={tagItem}>{tagItem}</Badge>
-                    ))}
-                </StyledTagsContainer>
-            )}
-            <StyledPanelsContainer>
-                <VSCodePanels>
-                    {panelTabs.map((item) => (
-                        <VSCodePanelTab id={`tab-${item?.key}`} key={`tab-${item?.key}`}>
-                            {item?.title}
-                        </VSCodePanelTab>
-                    ))}
-                    {panelTabs.map((item) => (
-                        <VSCodePanelView id={`view-${item?.key}`} key={`view-${item?.key}`}>
-                            {item?.view}
-                        </VSCodePanelView>
-                    ))}
-                </VSCodePanels>
-            </StyledPanelsContainer>
-        </StyledContainer>
+export const ConnectorDetailCardItem = ({ item }: { item: MarketplaceItem }) => {
+    return (
+        <ConnectorDetailCard>
+            <ConnectorOptionIcon>
+                <Icon name="APIResource" sx={{ fontSize: 24, width: 24, height: 24 }} />
+            </ConnectorOptionIcon>
+            <ConnectorOptionContent>
+                <ConnectorOptionTitle>{item?.name}</ConnectorOptionTitle>
+                <ConnectorOptionDescription>{item?.description}</ConnectorOptionDescription>
+                <ConnectorOptionButtons>
+                    {item?.serviceType && <ConnectorTypeLabel>{item?.serviceType}</ConnectorTypeLabel>}
+                    {item?.version && <ConnectorTypeLabel>{item?.version}</ConnectorTypeLabel>}
+                    {item?.status && <ConnectorTypeLabel>{item?.status}</ConnectorTypeLabel>}
+                </ConnectorOptionButtons>
+            </ConnectorOptionContent>
+        </ConnectorDetailCard>
     );
 };
 

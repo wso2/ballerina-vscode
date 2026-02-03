@@ -30,11 +30,13 @@ import { Dropdown, TextField, Codicon, LinkButton, ThemeColors, CheckBox, CheckB
 import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
+import { ActionButton, ConnectorContentContainer, ConnectorInfoContainer, FooterContainer } from "../styles";
+import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 interface Props {
     item: MarketplaceItem;
     visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
-    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>
+    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>;
 }
 
 const Row = styled.div<{}>`
@@ -63,6 +65,21 @@ const RowTitle = styled.div`
     gap: 2px;
     align-items: center;
 `;
+
+export const getConnectionInitialName = (baseName: string, existingNames: string[] = []) => {
+    if(!baseName){
+        return ""
+    }
+    let uniqueName = baseName;
+    let counter = 1;
+    const existingNamesSet = new Set(existingNames.map((name) => name.toLowerCase()));
+
+    while (existingNamesSet.has(uniqueName.toLowerCase())) {
+        uniqueName = `${baseName}${counter}`;
+        counter++;
+    }
+    return uniqueName;
+};
 
 const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
     const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem ?? {};
@@ -95,7 +112,7 @@ const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Proj
 };
 
 const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []) => {
-    if(item?.isThirdParty){
+    if (item?.isThirdParty) {
         return ServiceInfoVisibilityEnum.Public;
     }
     if (visibilities.includes(ServiceInfoVisibilityEnum.Project)) {
@@ -107,13 +124,17 @@ const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []
     return ServiceInfoVisibilityEnum.Public;
 };
 
-const getPossibleSchemas = (item: MarketplaceItem, selectedVisibility: string, connectionSchemas: MarketplaceItemSchema[] = []) => {
-    if(!item){
+const getPossibleSchemas = (
+    item: MarketplaceItem,
+    selectedVisibility: string,
+    connectionSchemas: MarketplaceItemSchema[] = [],
+) => {
+    if (!item) {
         return [];
     }
     // If third party, return schemas without filtering
-    if(item.isThirdParty){
-        return item.connectionSchemas
+    if (item.isThirdParty) {
+        return item.connectionSchemas;
     }
     // Set the filtered schemas based on the selected visibility
     // organization and public visibilities can have
@@ -147,16 +168,17 @@ export interface CreateConnectionForm {
  */
 export const useDevantConnectorForm = (
     selectedDevantConnector: MarketplaceItem | undefined,
-    onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void
+    devantFlow: DevantConnectionFlow,
+    onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void,
 ) => {
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
     const visibilities = getPossibleVisibilities(selectedDevantConnector, platformExtState?.selectedContext?.project);
-    
+
     const form = useForm<CreateConnectionForm>({
         mode: "all",
         defaultValues: {
-            name: selectedDevantConnector?.name,
+            name: getConnectionInitialName(selectedDevantConnector?.name || "", platformExtState?.devantConns?.list?.map((conn) => conn.name) || []),
             visibility: getInitialVisibility(selectedDevantConnector, visibilities),
             schemaId: "",
             isProjectLevel: false,
@@ -175,14 +197,14 @@ export const useDevantConnectorForm = (
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
-            platformRpcClient?.createDevantComponentConnection({
+            platformRpcClient?.createDevantComponentConnectionV2({
+                flow: devantFlow,
                 marketplaceItem: selectedDevantConnector,
-                params: {
+                createInternalConnectionParams: {
                     name: data.name,
                     schemaId: data.schemaId,
                     visibility: data.visibility,
                     isProjectLevel: data.isProjectLevel,
-                    envKeys: data.envKeys,
                 },
             }),
         onSuccess: (data) => {
@@ -205,10 +227,12 @@ export const useDevantConnectorForm = (
 interface Props {
     item: MarketplaceItem;
     visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
-    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>
+    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>;
+    onCreateClick: () => void;
+    isCreatingConnection: boolean;
 }
 
-export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities }) => {
+export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities, onCreateClick, isCreatingConnection }) => {
     const { platformExtState } = usePlatformExtContext();
     const [showAdvancedSection, setShowAdvancedSection] = useState(false);
 
@@ -226,7 +250,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
     const selectedSchemaId = form.watch("schemaId");
     const selectedKeys = form.watch("envKeys");
     const selectedSchema = schemas?.find((schema) => schema.id === selectedSchemaId);
-    
+
     useEffect(() => {
         form.setValue("envKeys", selectedSchema?.entries?.map((entry) => entry.name) || []);
     }, [selectedSchema]);
@@ -272,7 +296,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
                     disabled={schemas?.length === 0}
                     errorMsg={form.formState.errors.schemaId?.message}
                 />
-            </FormStyles.Row>
+            </FormStyles.Row>,
         );
     }
 
@@ -286,90 +310,116 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities 
                         form.setValue("isProjectLevel", checked);
                     }}
                 />
-            </FormStyles.Row>
+            </FormStyles.Row>,
         );
     }
 
     return (
-        <>
-            <FormStyles.Container>
-                <FormStyles.Row>
-                    <TextField
-                        label="Name"
-                        required
-                        name="name"
-                        placeholder="connection-name"
-                        sx={{ width: "100%" }}
-                        {...form.register("name", {
-                            validate: (value) => {
-                                if (!value || value.trim().length === 0) {
-                                    return "Required";
-                                } else if (platformExtState?.devantConns?.list?.some((item) => item.name === value)) {
-                                    return "Name already exists";
-                                } else if (
-                                    !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
-                                        value
-                                    )
-                                ) {
-                                    return "Cannot contain special characters";
-                                } else if (value.length < 3) {
-                                    return "Name is too short";
-                                } else if (value.length > 50) {
-                                    return "Name is too long";
-                                }
-                            },
-                        })}
-                        errorMsg={form.formState.errors.name?.message}
-                    />
-                </FormStyles.Row>
+        <ConnectorInfoContainer>
+            <ConnectorContentContainer hasFooterButton>
+                <FormStyles.Container style={{ padding: 0}}>
+                    <FormStyles.Row>
+                        <TextField
+                            label="Name"
+                            required
+                            name="name"
+                            placeholder="connection-name"
+                            sx={{ width: "100%" }}
+                            {...form.register("name", {
+                                validate: (value) => {
+                                    if (!value || value.trim().length === 0) {
+                                        return "Required";
+                                    } else if (
+                                        platformExtState?.devantConns?.list?.some((item) => item.name === value)
+                                    ) {
+                                        return "Name already exists";
+                                    } else if (
+                                        !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
+                                            value,
+                                        )
+                                    ) {
+                                        return "Cannot contain special characters";
+                                    } else if (value.length < 3) {
+                                        return "Name is too short";
+                                    } else if (value.length > 50) {
+                                        return "Name is too long";
+                                    }
+                                },
+                            })}
+                            errorMsg={form.formState.errors.name?.message}
+                        />
+                    </FormStyles.Row>
 
-                {advancedConfigItems.length > 0 && (
-                    <Row>
-                        Advanced Configurations
-                        <ButtonContainer>
-                            {!showAdvancedSection && (
-                                <LinkButton
-                                    onClick={() => setShowAdvancedSection(true)}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                    Expand
-                                </LinkButton>
-                            )}
-                            {showAdvancedSection && (
-                                <LinkButton
-                                    onClick={() => setShowAdvancedSection(false)}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                    Collapsed
-                                </LinkButton>
-                            )}
-                        </ButtonContainer>
-                    </Row>
-                )}
+                    {advancedConfigItems.length > 0 && (
+                        <Row>
+                            Advanced Configurations
+                            <ButtonContainer>
+                                {!showAdvancedSection && (
+                                    <LinkButton
+                                        onClick={() => setShowAdvancedSection(true)}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedSection && (
+                                    <LinkButton
+                                        onClick={() => setShowAdvancedSection(false)}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
+                                        Collapsed
+                                    </LinkButton>
+                                )}
+                            </ButtonContainer>
+                        </Row>
+                    )}
 
-                {showAdvancedSection && advancedConfigItems}
+                    {showAdvancedSection && advancedConfigItems}
 
-                {(item?.isThirdParty && selectedSchema) && <FormStyles.Row>
-                    <CheckBoxGroup>
-                        <RowTitle>Environment Variables <Codicon name="info" tooltip="Following variables will need to be used when initializing the connector."/></RowTitle>
-                        <BoxGroup>
-                            {selectedSchema?.entries?.map((entry) => (
-                                <CheckBox 
-                                    key={entry.name}
-                                    label={entry.name}
-                                    checked={selectedKeys?.includes(entry.name)}
-                                    onChange={(checked: boolean) => {
-                                        form.setValue("envKeys", checked ? [...selectedKeys, entry.name] : selectedKeys.filter((key) => key !== entry.name));
-                                    }}
-                                />
-                            ))}
-                        </BoxGroup>
-                    </CheckBoxGroup>
-                </FormStyles.Row>}
-
-            </FormStyles.Container>
-        </>
+                    {item?.isThirdParty && selectedSchema && (
+                        <FormStyles.Row>
+                            <CheckBoxGroup>
+                                <RowTitle>
+                                    Environment Variables{" "}
+                                    <Codicon
+                                        name="info"
+                                        tooltip="Following variables will need to be used when initializing the connector."
+                                    />
+                                </RowTitle>
+                                <BoxGroup>
+                                    {selectedSchema?.entries?.map((entry) => (
+                                        <CheckBox
+                                            key={entry.name}
+                                            label={entry.name}
+                                            checked={selectedKeys?.includes(entry.name)}
+                                            onChange={(checked: boolean) => {
+                                                form.setValue(
+                                                    "envKeys",
+                                                    checked
+                                                        ? [...selectedKeys, entry.name]
+                                                        : selectedKeys.filter((key) => key !== entry.name),
+                                                );
+                                            }}
+                                        />
+                                    ))}
+                                </BoxGroup>
+                            </CheckBoxGroup>
+                        </FormStyles.Row>
+                    )}
+                </FormStyles.Container>
+            </ConnectorContentContainer>
+            <FooterContainer>
+                <ActionButton
+                    appearance="primary"
+                    onClick={onCreateClick}
+                    disabled={isCreatingConnection}
+                    buttonSx={{ width: "100%", height: "35px" }}
+                >
+                    {isCreatingConnection ? "Creating..." : "Create Connection"}
+                </ActionButton>
+            </FooterContainer>
+        </ConnectorInfoContainer>
     );
 };

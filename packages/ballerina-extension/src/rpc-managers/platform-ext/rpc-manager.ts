@@ -23,6 +23,7 @@ import {
     DIRECTORY_MAP,
     findDevantScopeByModule,
     VisualizerLocation,
+    AvailableNode,
 } from "@wso2/ballerina-core";
 import { extensions, Uri, window, WorkspaceEdit } from "vscode";
 import * as vscode from "vscode";
@@ -53,12 +54,17 @@ import {
     ICmdParamsBase,
     ConnectionConfigurations,
     RegisterMarketplaceConnectionReq,
+    RegisterMarketplaceConfigMap,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
-    CreateDevantConnectionReq,
     CreateDevantConnectionResp,
+    CreateDevantConnectionV2Req,
     DeleteDevantTempConfigReq,
+    DevantConnectionFlow,
+    DevantTempConfig,
+    GenerateCustomConnectorFromOASReq,
+    GenerateCustomConnectorFromOASResp,
     ImportDevantConnectionReq,
     ImportDevantConnectionResp,
     RegisterAndCreateDevantConnectionReq,
@@ -70,15 +76,24 @@ import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
 import { CommonRpcManager } from "../common/rpc-manager";
 import { CaptureBindingPattern, ModulePart, ModuleVarDecl, STKindChecker } from "@wso2/syntax-tree";
-import { DeleteBiDevantConnectionReq } from "./types";
+import { DeleteBiDevantConnectionReq, OpenAPIDefinition } from "./types";
 import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { findUniqueConnectionName, getConfigFileUri, getDomain, getInjectedEnvVarNames, hasContextYaml, initializeDevantConnection, Templates } from "./platform-utils";
+import {
+    findUniqueConnectionName,
+    getConfigFileUri,
+    getDomain,
+    getInjectedEnvVarNames,
+    getYamlString,
+    hasContextYaml,
+    initializeDevantConnection,
+    Templates,
+} from "./platform-utils";
 import { debounce } from "lodash";
 import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
 import { updateSourceCode } from "../../utils";
-
+import * as yaml from "js-yaml";
 
 export class PlatformExtRpcManager implements PlatformExtAPI {
     static platformExtAPI: IWso2PlatformExtensionAPI;
@@ -124,7 +139,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
         if (vscode.workspace.workspaceFolders?.length > 0) {
             const fileWatcher = vscode.workspace.createFileSystemWatcher(
-                new vscode.RelativePattern(vscode.workspace.workspaceFolders[0], "**/*")
+                new vscode.RelativePattern(vscode.workspace.workspaceFolders[0], "**/*"),
             );
             fileWatcher.onDidCreate(debouncedOnFilChange);
             fileWatcher.onDidChange(debouncedOnFilChange);
@@ -141,7 +156,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         if (projectPath) {
             components = platformExt.getDirectoryComponents(projectPath);
             matchingComponent = components.find(
-                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
+                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id,
             );
             hasLocalChanges = await platformExt.localRepoHasChanges(projectPath);
             hasProjectYaml = hasContextYaml(projectPath);
@@ -158,7 +173,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const unsubscribeDirCompWatcher = platformExt.subscribeDirComponents(projectPath, (components) => {
             const hasProjectYaml = hasContextYaml(projectPath);
             const matchingComponent = components.find(
-                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id
+                (item) => platformExtStore.getState().state?.selectedComponent?.metadata?.id === item.metadata?.id,
             );
             platformExtStore.getState().setState({
                 components,
@@ -174,7 +189,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             messenger.sendNotification(
                 onPlatformExtStoreStateChange,
                 { type: "webview", webviewType: VisualizerWebview.viewType },
-                state.state
+                state.state,
             );
 
             let refetchConnections = false;
@@ -217,7 +232,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         await this.initFileWatcher();
         const debouncedInitProjectPathWatcher = debounce(
             async (projectPath: string) => await this.initProjectPathWatcher(projectPath),
-            250
+            250,
         );
         StateMachine.service().subscribe(async (state) => {
             if (state.context?.projectPath && state.context?.projectPath !== projectPath) {
@@ -324,7 +339,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     async registerMarketplaceConnection(params: RegisterMarketplaceConnectionReq): Promise<MarketplaceItem> {
-         try {
+        try {
             const platformExt = await this.getPlatformExt();
             return platformExt?.registerMarketplaceConnection(params);
         } catch (err) {
@@ -339,7 +354,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
 
         const project = projectStructure.projects.find(
-            (project) => project.projectPath === StateMachine.context()?.projectPath
+            (project) => project.projectPath === StateMachine.context()?.projectPath,
         );
         if (!project) {
             return;
@@ -443,7 +458,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     }
 
     async startProxyServer(
-        debugConfig: vscode.DebugConfiguration
+        debugConfig: vscode.DebugConfiguration,
     ): Promise<StartProxyServerResp & { requiresProxy: boolean }> {
         // todo: need to take in params from config
         try {
@@ -459,7 +474,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     (member) =>
                         STKindChecker.isModuleVarDecl(member) &&
                         (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                            "devantProxyConfig"
+                            "devantProxyConfig",
                 )
             ) {
                 requiresProxy = true;
@@ -470,7 +485,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     window
                         .showErrorMessage(
                             "You must log in before connecting to devant environment. Retry after logging in.",
-                            "Login"
+                            "Login",
                         )
                         .then((res) => {
                             if (res === "Login") {
@@ -486,7 +501,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     window
                         .showErrorMessage(
                             "Pease associate your directory with Devant project in order to connect to Devant while running or debugging",
-                            "Manage Project"
+                            "Manage Project",
                         )
                         .then((res) => {
                             if (res === "Manage Project") {
@@ -526,7 +541,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                 "",
                             env: debugConfig?.choreoConnect?.env || "",
                             skipConnection: debugConfig?.choreoConnect?.skipConnection || [],
-                        })
+                        }),
                 );
                 return { ...resp, requiresProxy };
             }
@@ -558,7 +573,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 const moduleName: string = (matchingConnection as ModuleVarDecl)?.initializer?.typeData?.typeSymbol
                     ?.moduleID?.moduleName;
                 const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
-                    (item) => item.projectPath === StateMachine.context().projectPath
+                    (item) => item.projectPath === StateMachine.context().projectPath,
                 );
                 if (!matchingBalProj) {
                     throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);
@@ -566,7 +581,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 const balPackage = matchingBalProj?.projectName;
                 const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
                 const matchingTomlEntry = tomlValues?.tool?.openapi?.find(
-                    (item) => `${balPackage}.${item.targetModule}` === moduleName
+                    (item) => `${balPackage}.${item.targetModule}` === moduleName,
                 );
                 if (matchingTomlEntry && matchingTomlEntry?.remoteId) {
                     const updatedToml: Partial<PackageTomlValues> = {
@@ -574,7 +589,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         tool: {
                             ...tomlValues?.tool,
                             openapi: tomlValues.tool?.openapi?.filter(
-                                (item) => `${balPackage}.${item.targetModule}` !== moduleName
+                                (item) => `${balPackage}.${item.targetModule}` !== moduleName,
                             ),
                         },
                     };
@@ -589,7 +604,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         window
                             .showErrorMessage(
                                 "Unable to delete Devant connection as you are not logged into Devant. please head over to Devant console to delete the Devant connection",
-                                "Open Devant"
+                                "Open Devant",
                             )
                             .then((resp) => {
                                 if (resp === "Open Devant") {
@@ -619,14 +634,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                             window
                                 .showInformationMessage(
                                     "In-order to delete your project level Devant connection, please head over to Devant console",
-                                    "Open Devant"
+                                    "Open Devant",
                                 )
                                 .then((resp) => {
                                     if (resp === "Open Devant") {
                                         vscode.env.openExternal(
                                             Uri.parse(
-                                                `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.id}/admin/connections`
-                                            )
+                                                `${devantUrl}/organizations/${selected.org.handle}/projects/${selected.project.id}/admin/connections`,
+                                            ),
                                         );
                                     }
                                 });
@@ -695,20 +710,83 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
+    async createDevantComponentConnectionV2(params: CreateDevantConnectionV2Req): Promise<CreateDevantConnectionResp> {
         try {
             const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
             const projectPath = StateMachine.context().projectPath;
-            const isProjectLevel =
-                !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id || params?.params?.isProjectLevel;
 
-            let createdConnection: ConnectionDetailed;
-            let securityType: "" | "oauth" | "apikey";
-            let configurations: ConnectionConfigurations = {};
-            if (params?.marketplaceItem?.isThirdParty) {
+            if (
+                [
+                    DevantConnectionFlow.CREATE_INTERNAL_OAS,
+                    DevantConnectionFlow.CREATE_INTERNAL_OTHER,
+                    DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
+                ].includes(params.flow)
+            ) {
+                const isProjectLevel =
+                    !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
+                    params?.createInternalConnectionParams?.isProjectLevel;
+                const createdConnection = await platformExt?.createComponentConnection({
+                    componentId: isProjectLevel
+                        ? ""
+                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                    name: params.createInternalConnectionParams.name,
+                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
+                    serviceSchemaId: params.createInternalConnectionParams.schemaId,
+                    serviceId: params.marketplaceItem.serviceId,
+                    serviceVisibility: params.createInternalConnectionParams.visibility!,
+                    componentType: isProjectLevel
+                        ? "non-component"
+                        : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
+                    componentPath: projectPath,
+                    generateCreds: true,
+                });
+
+                await platformExt?.createConnectionConfig({
+                    componentDir: projectPath,
+                    marketplaceItem: params.marketplaceItem,
+                    name: params.createInternalConnectionParams.name,
+                    visibility: params.createInternalConnectionParams.visibility,
+                });
+
+                if (params.flow === DevantConnectionFlow.CREATE_INTERNAL_OAS) {
+                    const securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth")
+                        ? "oauth"
+                        : "apikey";
+                    const configurations = createdConnection.configurations;
+
+                    const resp = await initializeDevantConnection({
+                        platformExt,
+                        name: params.createInternalConnectionParams.name,
+                        marketplaceItem: params.marketplaceItem,
+                        visibility: params.createInternalConnectionParams.visibility!,
+                        configurations,
+                        securityType,
+                    });
+
+                    return resp;
+                } else {
+                    await this.replaceTempConfigValues(
+                        createdConnection,
+                        params.createInternalConnectionParams?.devantTempConfigs,
+                    );
+                    return {};
+                }
+            }
+            if (
+                [
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OAS,
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER,
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR,
+                ].includes(params.flow)
+            ) {
+                const isProjectLevel =
+                    !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
+                    params?.importThirdPartyConnectionParams?.isProjectLevel;
                 const matchingSchema = params.marketplaceItem.connectionSchemas?.find(
-                    (item) => item.id === params.params?.schemaId
+                    (item) => item.id === params.importThirdPartyConnectionParams?.schemaId,
                 );
                 if (!matchingSchema) {
                     throw new Error(`No matching schemes found in marketplace item`);
@@ -720,69 +798,117 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     throw new Error(`No endpoints found in the third party API item`);
                 }
 
-                createdConnection = await platformExt?.createThirdPartyConnection({
+                const createdConnection = await platformExt?.createThirdPartyConnection({
                     componentId: isProjectLevel
                         ? ""
                         : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                    name: params.params.name,
+                    name: params.importThirdPartyConnectionParams?.name,
                     orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
                     orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
                     projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                    serviceSchemaId: params.params.schemaId,
+                    serviceSchemaId: matchingSchema.id,
                     serviceId: params.marketplaceItem.serviceId,
-                    endpointName: Object.keys(params?.marketplaceItem?.endpointRefs)[0],
+                    endpointRefs: params?.marketplaceItem?.endpointRefs,
                     sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
                 });
-                securityType = "";
-                Object.keys(createdConnection.configurations).forEach(envId => {
-                    configurations[envId] = {
-                        ...createdConnection.configurations[envId],
-                        entries: {}
-                    };
-                    Object.keys(createdConnection.configurations[envId].entries).forEach(entryName => {
-                        if(params.params.envKeys.includes(entryName)){
-                            configurations[envId].entries[entryName] = createdConnection.configurations[envId].entries[entryName];
-                        }
-                    });
-                });
-            } else {
-                createdConnection = await platformExt?.createComponentConnection({
-                    componentId: isProjectLevel
-                        ? ""
-                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                    name: params.params.name,
-                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
-                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                    serviceSchemaId: params.params.schemaId,
-                    serviceId: params.marketplaceItem.serviceId,
-                    serviceVisibility: params.params.visibility!,
-                    componentType: isProjectLevel
-                        ? "non-component"
-                        : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
-                    componentPath: projectPath,
-                    generateCreds: true,
-                });
-                securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth") ? "oauth" : "apikey";
-                configurations = createdConnection.configurations;
-            }
+                await this.replaceTempConfigValues(
+                    createdConnection,
+                    params.importThirdPartyConnectionParams?.devantTempConfigs,
+                );
 
-            const resp = await initializeDevantConnection({
-                platformExt,
-                name: params.params.name,
-                marketplaceItem: params.marketplaceItem,
-                visibility: params.params.visibility!,
-                configurations,
-                securityType,
-            });
+                await platformExt?.createConnectionConfig({
+                    componentDir: projectPath,
+                    marketplaceItem: params.marketplaceItem,
+                    name: params.createInternalConnectionParams.name,
+                    visibility: params.createInternalConnectionParams.visibility,
+                });
+            }
 
             StateMachine.setReadyMode();
             this.refreshConnectionList();
-            return resp;
+            return { connectionName: "", connectionNode: null };
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");
-            log(`Failed to invoke createDevantComponentConnection: ${err}`);
+            log(`Failed to invoke createDevantComponentConnectionV2: ${err}`);
+        }
+    }
+
+    async generateCustomConnectorFromOAS(
+        params: GenerateCustomConnectorFromOASReq,
+    ): Promise<GenerateCustomConnectorFromOASResp> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            const projectPath = StateMachine.context().projectPath;
+
+            const serviceIdl = await platformExt?.getMarketplaceIdl({
+                orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
+                serviceId: params.marketplaceItem.serviceId,
+            });
+
+            const choreoDir = path.join(projectPath, ".choreo");
+            if (!fs.existsSync(choreoDir)) {
+                fs.mkdirSync(choreoDir, { recursive: true });
+            }
+
+            const moduleName = params.connectionName.replace(/[_\-\s]/g, "")?.toLowerCase();
+            const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
+
+            if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
+                fs.writeFileSync(filePath, yaml.dump(yaml.load(getYamlString(serviceIdl.content))), "utf8");
+            }
+
+            const diagram = new BiDiagramRpcManager();
+            await diagram.generateOpenApiClient({
+                module: moduleName,
+                openApiContractPath: filePath,
+                projectPath,
+            });
+
+            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+
+            const updatedToml: Partial<PackageTomlValues> = {
+                ...tomlValues,
+                tool: {
+                    ...tomlValues?.tool,
+                    openapi: tomlValues.tool?.openapi?.map((item) => {
+                        if (item.id === moduleName) {
+                            return {
+                                ...item,
+                                remoteId: params?.connectionName,
+                                filePath: `.choreo/${moduleName}-spec.yaml`,
+                            };
+                        }
+                        return item;
+                    }),
+                },
+            };
+
+            const balTomlPath = path.join(projectPath, "Ballerina.toml");
+            const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+            fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+
+            const connectors = await diagram.search({
+                filePath: StateMachine.context().documentUri,
+                queryMap: { limit: 60 },
+                searchKind: "CONNECTOR",
+            });
+
+            const localCategory = connectors?.categories?.find((item) => item.metadata?.label === "Local");
+            if (localCategory) {
+                const matchingLocalConnector = localCategory?.items?.find(
+                    (item) => (item as AvailableNode)?.codedata?.module === moduleName,
+                );
+                if (matchingLocalConnector) {
+                    return { connectionNode: matchingLocalConnector as AvailableNode };
+                }
+            }
+
+            return { connectionNode: null };
+        } catch (err) {
+            StateMachine.setReadyMode();
+            window.showErrorMessage("Failed to invoke generateCustomConnectorFromOAS");
+            log(`Failed to invoke generateCustomConnectorFromOAS: ${err}`);
         }
     }
 
@@ -795,8 +921,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 configBalFileUri,
                 new vscode.Range(
                     new vscode.Position(params.nodePosition.startLine, params.nodePosition.startColumn),
-                    new vscode.Position(params.nodePosition.endLine, params.nodePosition.endColumn)
-                )
+                    new vscode.Position(params.nodePosition.endLine, params.nodePosition.endColumn),
+                ),
             );
 
             await updateSourceCode({
@@ -819,18 +945,26 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
 
-            if(params.configs.some(item=>!item.nodePosition)){
-                configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), Templates.emptyLine());
+            if (params.configs.some((item) => !item.nodePosition)) {
+                configBalEdits.insert(
+                    configBalFileUri,
+                    new vscode.Position(newConfigEditLine, 0),
+                    Templates.emptyLine(),
+                );
             }
 
-            for(const config of params.configs){
-                if(!config.nodePosition) {
-                    const newConfigTemplate = Templates.newDefaultEnvConfigurable({CONFIG_NAME: config.name });
-                    configBalEdits.insert(configBalFileUri, new vscode.Position(newConfigEditLine, 0), newConfigTemplate);
+            for (const config of params.configs) {
+                if (!config.nodePosition) {
+                    const newConfigTemplate = Templates.newDefaultEnvConfigurable({ CONFIG_NAME: config.name });
+                    configBalEdits.insert(
+                        configBalFileUri,
+                        new vscode.Position(newConfigEditLine, 0),
+                        newConfigTemplate,
+                    );
                 }
             }
 
-            if(configBalEdits.size > 0){
+            if (configBalEdits.size > 0) {
                 await updateSourceCode({
                     textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
                     skipPayloadCheck: true,
@@ -840,11 +974,14 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     documentIdentifier: { uri: configBalFileUri.toString() },
                 })) as SyntaxTree;
 
-                for(const config of params.configs){
+                for (const config of params.configs) {
                     const matchingConfig = (updatedSyntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
-                        return (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === config.name;
+                        return (
+                            (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName
+                                ?.value === config.name
+                        );
                     });
-                    if(STKindChecker.isModuleVarDecl(matchingConfig)){
+                    if (STKindChecker.isModuleVarDecl(matchingConfig)) {
                         config.nodePosition = matchingConfig.position;
                     }
                 }
@@ -856,37 +993,74 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async registerAndCreateDevantComponentConnection(params: RegisterAndCreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
+    async registerAndCreateDevantComponentConnection(
+        params: RegisterAndCreateDevantConnectionReq,
+    ): Promise<CreateDevantConnectionResp> {
         try {
             const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
+            const projectPath = StateMachine.context().projectPath;
 
             const marketplaceItems = await platformExt.getMarketplaceItems({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                request: { 
-                    query: params.name, 
+                request: {
+                    query: params.name,
                     limit: 100,
-                    networkVisibilityFilter:  "all",
+                    networkVisibilityFilter: "all",
                     sortBy: "createdTime",
                 },
-            })
+            });
+
+            let idlContent = "";
+            if(params.idlFilePath){
+                // read contents of idlFilePath and convert it to base64
+                const idlFileContent = await fs.promises.readFile(params.idlFilePath, { encoding: "utf-8" });
+                idlContent = Buffer.from(idlFileContent).toString("base64");
+            }
+
+            const envs = await platformExt.getProjectEnvs({
+                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
+                projectId: platformExtStore.getState().state?.selectedContext?.project?.id,
+            });
+
+            const configs: RegisterMarketplaceConfigMap = {};
+            for (const env of envs){
+                const endpointName = `${env.name}Endpoint`;
+                if(env.critical){
+                    configs[endpointName] = {
+                        name: endpointName,
+                        environmentTemplateIds:[ env.templateId ],
+                        values: params.configs?.map(item=>({key: item.name, value: ""})),
+                    };
+                }else{
+                    configs[endpointName] = {
+                        name: endpointName,
+                        environmentTemplateIds:[ env.templateId ],
+                        values: params.configs?.map(item=>({key: item.name, value: item.value || ""}) ),
+                    };
+                }
+            }
 
             const registeredMarketplaceItem = await platformExt?.registerMarketplaceConnection({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
                 orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
                 projectId: platformExtStore.getState().state?.selectedContext?.project?.id,
-                idlContent: "",
-                configs: params.configs?.map(item=>({
-                    key: item.name,
-                    value: item.value,
-                    isSecret: item.isSecret,
-                })),
-                schemaEntries: params.configs?.map(item=>({
+                serviceType: params.serviceType,
+                idlType: params.idlType,
+                idlContent,
+                configs,
+                schemaEntries: params.configs?.map((item) => ({
                     name: item.name,
                     type: "string",
                     isSensitive: item.isSecret,
                 })),
                 name: findUniqueConnectionName(params.name, marketplaceItems.data),
+            });
+
+            const marketplaceService = await platformExt.getMarketplaceItem({
+                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
+                serviceId: registeredMarketplaceItem.serviceId,
             });
 
             const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id;
@@ -902,67 +1076,96 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             }
 
             const createdConnection = await platformExt?.createThirdPartyConnection({
-                componentId: isProjectLevel
-                    ? ""
-                    : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
+                componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
                 name: uniqueName,
                 orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
                 orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
                 projectId: platformExtStore.getState().state?.selectedContext?.project.id,
                 serviceSchemaId: registeredMarketplaceItem.connectionSchemas[0]?.id,
                 serviceId: registeredMarketplaceItem.serviceId,
-                endpointName: "DefaultEndpoint",
-                sensitiveKeys: registeredMarketplaceItem.connectionSchemas[0].entries?.filter((item) => item.isSensitive).map((item) => item.name),
+                endpointRefs: marketplaceService.endpointRefs,
+                sensitiveKeys: registeredMarketplaceItem.connectionSchemas[0].entries
+                    ?.filter((item) => item.isSensitive)
+                    .map((item) => item.name),
             });
 
-            const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
-                documentIdentifier: { uri: getConfigFileUri().toString() },
-            })) as SyntaxTree;
+            await this.replaceTempConfigValues(createdConnection, params.configs);
 
-            const envIds = Object.keys(createdConnection.configurations || {});
-            const firstEnvConfig = envIds.length > 0 ? createdConnection.configurations[envIds[0]] : undefined;
-            const connectionKeys = firstEnvConfig?.entries ?? {};
-
-            let hasUpdatedConfig = false;
-            const configBalEdits = new WorkspaceEdit();
-            
-            for(const connectionKey of Object.keys(connectionKeys)){
-                const matchingConfig = (syntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
-                    return (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === connectionKey;
-                });
-                if(STKindChecker.isModuleVarDecl(matchingConfig)){
-                    hasUpdatedConfig = true;
-                    configBalEdits.replace(
-                        getConfigFileUri(), 
-                        new vscode.Range(
-                            new vscode.Position(matchingConfig.initializer.position.startLine, matchingConfig.initializer.position.startColumn),
-                            new vscode.Position(matchingConfig.initializer.position.endLine, matchingConfig.initializer.position.endColumn)
-                        ),
-                        `os:getEnv("${getInjectedEnvVarNames(connectionKeys[connectionKey].envVariableName)}")`
-                    );
-                }
-            }
-            if(hasUpdatedConfig){
-                if (
-                    !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) => item.source?.includes("import ballerina/os"))
-                ) {
-                    const balOsImportTemplate = Templates.importBalOs();
-                    configBalEdits.insert(getConfigFileUri(), new vscode.Position(0, 0), balOsImportTemplate);
-                }
-
-                await updateSourceCode({
-                    textEdits: { [getConfigFileUri().toString()]: configBalEdits.get(getConfigFileUri()) || [] },
-                    skipPayloadCheck: true,
-                });
-            }
+            await platformExt?.createConnectionConfig({
+                componentDir: projectPath,
+                marketplaceItem: registeredMarketplaceItem,
+                name: params.name,
+                visibility: "PUBLIC",
+            });
 
             StateMachine.setReadyMode();
             this.refreshConnectionList();
-            return {connectionName:"",connectionNode:null};
+            return { connectionName: "", connectionNode: null };
         } catch (err) {
             StateMachine.setReadyMode();
             window.showErrorMessage("Failed to create Devant connection");
-            log(`Failed to invoke createDevantComponentConnection: ${err}`);
+            log(`Failed to invoke registerAndCreateDevantComponentConnection: ${err}`);
+        }
+    }
+
+    async replaceTempConfigValues(createdConnection: ConnectionDetailed, configs: DevantTempConfig[]): Promise<void> {
+        const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+            documentIdentifier: { uri: getConfigFileUri().toString() },
+        })) as SyntaxTree;
+
+        const envIds = Object.keys(createdConnection.configurations || {});
+        const firstEnvConfig = envIds.length > 0 ? createdConnection.configurations[envIds[0]] : undefined;
+        const connectionKeys = firstEnvConfig?.entries ?? {};
+
+        let hasUpdatedConfig = false;
+        const configBalEdits = new WorkspaceEdit();
+
+        for (const config of configs) {
+            const matchingConfigNode = (syntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
+                return (
+                    (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
+                    config.name
+                );
+            });
+            const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
+            if (
+                matchingConfigNode &&
+                STKindChecker.isModuleVarDecl(matchingConfigNode) &&
+                matchingConfigEntry &&
+                config.nodePosition
+            ) {
+                hasUpdatedConfig = true;
+                configBalEdits.replace(
+                    getConfigFileUri(),
+                    new vscode.Range(
+                        new vscode.Position(
+                            matchingConfigNode.initializer.position.startLine,
+                            matchingConfigNode.initializer.position.startColumn,
+                        ),
+                        new vscode.Position(
+                            matchingConfigNode.initializer.position.endLine,
+                            matchingConfigNode.initializer.position.endColumn,
+                        ),
+                    ),
+                    `os:getEnv("${getInjectedEnvVarNames(matchingConfigEntry.envVariableName)}")`,
+                );
+            }
+        }
+
+        if (hasUpdatedConfig) {
+            if (
+                !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) =>
+                    item.source?.includes("import ballerina/os"),
+                )
+            ) {
+                const balOsImportTemplate = Templates.importBalOs();
+                configBalEdits.insert(getConfigFileUri(), new vscode.Position(0, 0), balOsImportTemplate);
+            }
+
+            await updateSourceCode({
+                textEdits: { [getConfigFileUri().toString()]: configBalEdits.get(getConfigFileUri()) || [] },
+                skipPayloadCheck: true,
+            });
         }
     }
 

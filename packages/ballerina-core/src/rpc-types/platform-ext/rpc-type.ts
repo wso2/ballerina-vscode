@@ -18,11 +18,12 @@
 
 import { ConnectionDetailed, ConnectionListItem, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq,MarketplaceIdlResp,MarketplaceItem,MarketplaceListResp, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
 import { NotificationType, RequestType } from "vscode-messenger-common";
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, DeleteDevantTempConfigReq, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp } from "./interfaces";
+import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp } from "./interfaces";
 
 const _preFix = "platform-ext";
 // BI ext handlers
-export const createDevantComponentConnection: RequestType<CreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/createDevantComponentConnection` };
+export const generateCustomConnectorFromOAS: RequestType<GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp> = { method: `${_preFix}/generateCustomConnectorFromOAS` };
+export const createDevantComponentConnectionV2: RequestType<CreateDevantConnectionV2Req,  CreateDevantConnectionResp> = { method: `${_preFix}/createDevantComponentConnectionV2` };
 export const importDevantComponentConnection: RequestType<ImportDevantConnectionReq,  ImportDevantConnectionResp> = { method: `${_preFix}/importDevantComponentConnection` };
 export const registerAndCreateDevantComponentConnection: RequestType<RegisterAndCreateDevantConnectionReq,  CreateDevantConnectionResp> = { method: `${_preFix}/registerAndCreateDevantComponentConnection` };
 export const updateDevantTempConfigs: RequestType<UpdateDevantTempConfigsReq,  UpdateDevantTempConfigsResp> = { method: `${_preFix}/updateDevantTempConfigs` };

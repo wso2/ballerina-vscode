@@ -140,7 +140,8 @@ import {
     AvailableNode,
     Item,
     Category,
-    NodePosition
+    NodePosition,
+    PackageTomlValues
 } from "@wso2/ballerina-core";
 import * as fs from "fs";
 import * as path from 'path';
@@ -174,6 +175,8 @@ import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
 import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { CommonRpcManager } from "../common/rpc-manager";
+import * as toml from "@iarna/toml";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -1917,6 +1920,28 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         skipPayloadCheck: true
                     });
                     console.log(">>> Applied text edits for openapi client");
+
+                    // check if params.openApiContractPath is within the project path
+                    if (params.openApiContractPath.startsWith(params.projectPath)) {
+                        const updatedSpecPath = params.openApiContractPath.replace(params.projectPath, '.');
+                        // Replace the file path of the openapi spec to be relative path in the toml
+                        const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
+                        const updatedToml: Partial<PackageTomlValues> = {
+                            ...tomlValues,
+                            tool: {
+                                ...tomlValues?.tool,
+                                openapi: tomlValues.tool?.openapi?.map((item) => {
+                                    if (item.id === params.module) {
+                                        return { ...item, filePath: updatedSpecPath };
+                                    }
+                                    return item;
+                                }),
+                            },
+                        };
+                        const balTomlPath = path.join(params.projectPath, "Ballerina.toml");
+                        const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
+                        fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
+                    }
                 }
 
                 resolve({});
