@@ -158,6 +158,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -504,6 +505,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getDevantMetadata(): Promise<DevantMetadata | undefined> {
         return this._messenger.sendRequest(getDevantMetadata, HOST_EXTENSION);
+    }
+
+    getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        return this._messenger.sendRequest(getWorkspaceDevantMetadata, HOST_EXTENSION);
     }
 
     generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {

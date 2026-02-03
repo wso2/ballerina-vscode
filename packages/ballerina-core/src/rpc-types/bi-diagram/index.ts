@@ -119,6 +119,7 @@ import {
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
+    WorkspaceDevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
     DeleteProjectRequest,
@@ -199,6 +200,7 @@ export interface BIDiagramAPI {
     getRecordNames: () => Promise<RecordsInWorkspaceMentions>;
     getFunctionNames: () => Promise<RecordsInWorkspaceMentions>;
     getDevantMetadata: () => Promise<DevantMetadata | undefined>;
+    getWorkspaceDevantMetadata: () => Promise<WorkspaceDevantMetadata | undefined>;
     generateOpenApiClient: (params: OpenAPIClientGenerationRequest) => Promise<GeneratedClientSaveResponse>;
     getOpenApiGeneratedModules: (params: OpenAPIGeneratedModulesRequest) => Promise<OpenAPIGeneratedModulesResponse>;
     deleteOpenApiGeneratedModules: (params: OpenAPIClientDeleteRequest) => Promise<OpenAPIClientDeleteResponse>;

@@ -71,6 +71,8 @@ import {
     WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
+    WorkspaceDevantMetadata,
+    ProjectDevantMetadata,
     Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
@@ -1881,6 +1883,86 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } catch (err) {
             console.error("failed to call getDevantMetadata: ", err);
             return { hasComponent: hasComponent || hasContextYaml, isLoggedIn, hasLocalChanges };
+        }
+    }
+
+    async getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        let isLoggedIn = false;
+        let hasAnyComponent = false;
+        let hasLocalChanges = false;
+        const projectsMetadata: ProjectDevantMetadata[] = [];
+
+        try {
+            // Get workspace structure
+            const workspaceStructure = await this.getProjectStructure();
+            if (!workspaceStructure || !workspaceStructure.workspacePath) {
+                return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
+            }
+
+            const repoRoot = getRepoRoot(workspaceStructure.workspacePath);
+            if (!repoRoot) {
+                return { isLoggedIn: false, hasAnyComponent: false, hasLocalChanges: false };
+            }
+
+            const platformExt = extensions.getExtension("wso2.wso2-platform");
+            if (!platformExt) {
+                // Check for context.yaml as fallback
+                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                const hasContextYaml = fs.existsSync(contextYamlPath);
+                return { 
+                    isLoggedIn: false, 
+                    hasAnyComponent: hasContextYaml, 
+                    hasLocalChanges: false 
+                };
+            }
+
+            const platformExtAPI: IWso2PlatformExtensionAPI = await platformExt.activate();
+            isLoggedIn = platformExtAPI.isLoggedIn();
+            hasLocalChanges = await platformExtAPI.localRepoHasChanges(repoRoot);
+
+            // Check each project in the workspace
+            for (const project of workspaceStructure.projects) {
+                const projectPath = project.projectPath;
+                const projectName = project.projectTitle || project.projectName;
+                
+                let projectHasComponent = false;
+                let projectHasLocalChanges = false;
+                
+                if (isLoggedIn) {
+                    const components = platformExtAPI.getDirectoryComponents(projectPath);
+                    projectHasComponent = components.length > 0;
+                    if (projectHasComponent) {
+                        hasAnyComponent = true;
+                        // Only check local changes for deployed projects
+                        projectHasLocalChanges = await platformExtAPI.localRepoHasChanges(projectPath);
+                    }
+                }
+
+                projectsMetadata.push({
+                    projectPath,
+                    projectName,
+                    hasComponent: projectHasComponent,
+                    hasLocalChanges: projectHasLocalChanges
+                });
+            }
+
+            // If not logged in, check for context.yaml as fallback
+            if (!isLoggedIn) {
+                const contextYamlPath = path.join(repoRoot, ".choreo", "context.yaml");
+                if (fs.existsSync(contextYamlPath)) {
+                    hasAnyComponent = true;
+                }
+            }
+
+            return { 
+                isLoggedIn, 
+                hasAnyComponent, 
+                hasLocalChanges,
+                projectsMetadata 
+            };
+        } catch (err) {
+            console.error("failed to call getWorkspaceDevantMetadata: ", err);
+            return { isLoggedIn, hasAnyComponent, hasLocalChanges };
         }
     }
 

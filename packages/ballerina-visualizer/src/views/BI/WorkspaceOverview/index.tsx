@@ -21,9 +21,12 @@ import {
     ProjectStructureResponse,
     SHARED_COMMANDS,
     BI_COMMANDS,
-    BuildMode
+    BuildMode,
+    WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { useQuery } from "@tanstack/react-query";
+import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { Typography, Codicon, ProgressRing, Button, Icon, Divider, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { ThemeColors } from "@wso2/ui-toolkit";
@@ -283,6 +286,11 @@ interface DeploymentOptionProps {
     onDeploy: () => void;
     learnMoreLink?: string;
     hasDeployableIntegration?: boolean;
+    secondaryAction?: {
+        description: string;
+        buttonText: string;
+        onClick: () => void;
+    };
 }
 
 function DeploymentOption({
@@ -293,7 +301,8 @@ function DeploymentOption({
     onToggle,
     onDeploy,
     learnMoreLink,
-    hasDeployableIntegration
+    hasDeployableIntegration,
+    secondaryAction
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
 
@@ -340,6 +349,21 @@ function DeploymentOption({
                 >
                     {buttonText}
                 </Button>
+                {secondaryAction && (
+                    <>
+                        <p>{secondaryAction.description}</p>
+                        <Button
+                            appearance="primary"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                secondaryAction.onClick();
+                            }}
+                            sx={{ marginTop: 8 }}
+                        >
+                            {secondaryAction.buttonText}
+                        </Button>
+                    </>
+                )}
             </DeploymentBody>
         </DeploymentOptionContainer>
     );
@@ -349,16 +373,23 @@ interface DeploymentOptionsProps {
     handleDockerBuild: () => void;
     handleJarBuild: () => void;
     handleDeploy: () => Promise<void>;
+    goToDevant: () => void;
+    devantMetadata: WorkspaceDevantMetadata | undefined;
     hasDeployableIntegration: boolean;
+    hasUndeployedIntegrations: boolean;
 }
 
 function DeploymentOptions({
     handleDockerBuild,
     handleJarBuild,
     handleDeploy,
-    hasDeployableIntegration
+    goToDevant,
+    devantMetadata,
+    hasDeployableIntegration,
+    hasUndeployedIntegrations
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
+    const { rpcClient } = useRpcContext();
 
     const toggleOption = (option: string) => {
         setExpandedOptions(prev => {
@@ -372,20 +403,77 @@ function DeploymentOptions({
         });
     };
 
+    // Calculate deployment states
+    const deployedProjects = devantMetadata?.projectsMetadata?.filter((p: any) => p.hasComponent) || [];
+    const undeployedProjects = devantMetadata?.projectsMetadata?.filter((p: any) => !p.hasComponent) || [];
+    const deployedWithChanges = deployedProjects.filter((p: any) => p.hasLocalChanges);
+    
+    const hasDeployedProjects = deployedProjects.length > 0;
+    const hasUndeployedProjects = undeployedProjects.length > 0;
+    const hasDeployedWithChanges = deployedWithChanges.length > 0;
+
+    // Determine title, description, button text, and whether deployment is allowed
+    let title = "Deploy to Devant";
+    let description = "Deploy your workspace integrations to the cloud using Devant by WSO2.";
+    let buttonText = "Deploy";
+    let primaryAction: () => void | Promise<void> = handleDeploy;
+    let secondaryAction = undefined;
+    let isDeploymentDisabled = false;
+    let disabledTooltip = "";
+
+    if (hasDeployedProjects && !hasUndeployedProjects) {
+        // All projects are deployed - disable deployment button
+        title = "Deployed in Devant";
+        description = "All workspace integrations are deployed in Devant.";
+        buttonText = "View in Devant";
+        primaryAction = goToDevant;
+        isDeploymentDisabled = false; // View action is always enabled
+        
+        if (hasDeployedWithChanges) {
+            secondaryAction = {
+                description: "To redeploy in Devant, please commit and push your changes.",
+                buttonText: "Open Source Control",
+                onClick: () => rpcClient.getCommonRpcClient().executeCommand({ commands: ["workbench.scm.focus"] })
+            };
+        }
+    } else if (hasDeployedProjects && hasUndeployedProjects) {
+        // Mixed state: some deployed, some not - show clear message about remaining
+        title = "Partially Deployed in Devant";
+        const undeployedNames = undeployedProjects.map((p: any) => p.projectName).filter(Boolean).join(", ");
+        description = `You have undeployed integrations: ${undeployedNames || undeployedProjects.length + " integration(s)"}.`;
+        buttonText = "Deploy Remaining";
+        primaryAction = handleDeploy;
+        isDeploymentDisabled = !hasUndeployedIntegrations;
+        disabledTooltip = hasUndeployedIntegrations ? "" : "No deployable integrations found";
+        
+        if (hasDeployedWithChanges) {
+            secondaryAction = {
+                description: "Some deployed integrations have uncommitted changes. Commit and push to redeploy.",
+                buttonText: "Open Source Control",
+                onClick: () => rpcClient.getCommonRpcClient().executeCommand({ commands: ["workbench.scm.focus"] })
+            };
+        }
+    } else {
+        // No deployments yet
+        isDeploymentDisabled = !hasDeployableIntegration;
+        disabledTooltip = hasDeployableIntegration ? "" : "No deployable integrations found";
+    }
+
     return (
         <>
             <div>
                 <Title variant="h3">Deployment Options</Title>
 
                 <DeploymentOption
-                    title="Deploy to Devant"
-                    description="Deploy your workspace integrations to the cloud using Devant by WSO2."
-                    buttonText="Deploy"
+                    title={title}
+                    description={description}
+                    buttonText={buttonText}
                     isExpanded={expandedOptions.has("cloud")}
                     onToggle={() => toggleOption("cloud")}
-                    onDeploy={handleDeploy}
+                    onDeploy={primaryAction}
                     learnMoreLink={"https://wso2.com/devant/docs"}
-                    hasDeployableIntegration={hasDeployableIntegration}
+                    hasDeployableIntegration={!isDeploymentDisabled}
+                    secondaryAction={secondaryAction}
                 />
 
                 <DeploymentOption
@@ -450,6 +538,12 @@ export function WorkspaceOverview() {
 
     const [showAlert, setShowAlert] = React.useState(false);
 
+    const { data: devantMetadata } = useQuery({
+        queryKey: ["workspace-devant-metadata"],
+        queryFn: () => rpcClient.getBIDiagramRpcClient().getWorkspaceDevantMetadata(),
+        refetchInterval: 5000
+    });
+
     const fetchContext = () => {
         rpcClient
             .getBIDiagramRpcClient()
@@ -505,6 +599,21 @@ export function WorkspaceOverview() {
         return getWorkspaceProjectScopes(workspaceStructure);
     }, [workspaceStructure]);
 
+    // Calculate which projects need deployment
+    const undeployedProjectScopes = useMemo(() => {
+        if (!devantMetadata?.projectsMetadata || !workspaceStructure) {
+            return projectScopes;
+        }
+
+        const deployedPaths = new Set(
+            devantMetadata.projectsMetadata
+                .filter((p: any) => p.hasComponent)
+                .map((p: any) => p.projectPath)
+        );
+
+        return projectScopes.filter(scope => !deployedPaths.has(scope.projectPath));
+    }, [projectScopes, devantMetadata, workspaceStructure]);
+
     if (!workspaceStructure) {
         return (
             <SpinnerContainer>
@@ -554,8 +663,9 @@ export function WorkspaceOverview() {
     }
 
     const handleDeploy = async () => {
+        // Only deploy undeployed projects
         await rpcClient.getBIDiagramRpcClient().deployWorkspace({
-            projectScopes: projectScopes,
+            projectScopes: undeployedProjectScopes,
             rootDirectory: workspaceStructure?.workspacePath || ''
         });
     };
@@ -582,6 +692,34 @@ export function WorkspaceOverview() {
                 }
                 );
         }
+    };
+
+    const goToDevant = () => {
+        // For workspace, open the Devant console at the project level
+        // If there are deployed projects, open the first one
+        if (devantMetadata?.projectsMetadata && devantMetadata.projectsMetadata.length > 0) {
+            const firstDeployedProject = devantMetadata.projectsMetadata.find((p: any) => p.hasComponent);
+            if (firstDeployedProject) {
+                rpcClient.getCommonRpcClient().executeCommand({
+                    commands: [
+                        PlatformExtCommandIds.OpenInConsole,
+                        {
+                            extName: "Devant",
+                            componentFsPath: firstDeployedProject.projectPath,
+                            newComponentParams: { buildPackLang: "ballerina" }
+                        } as IOpenInConsoleCmdParams
+                    ]
+                });
+                return;
+            }
+        }
+        // Fallback: open console without specific component
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [PlatformExtCommandIds.OpenInConsole, {
+                extName: "Devant",
+                newComponentParams: { buildPackLang: "ballerina" }
+            } as IOpenInConsoleCmdParams]
+        });
     };
 
     return (
@@ -698,7 +836,10 @@ export function WorkspaceOverview() {
                             handleDockerBuild={handleDockerBuild}
                             handleJarBuild={handleJarBuild}
                             handleDeploy={handleDeploy}
+                            goToDevant={goToDevant}
+                            devantMetadata={devantMetadata}
                             hasDeployableIntegration={projectScopes.length > 0}
+                            hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
                         <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
