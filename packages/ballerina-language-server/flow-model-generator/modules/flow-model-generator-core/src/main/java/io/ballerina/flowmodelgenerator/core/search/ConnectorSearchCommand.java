@@ -72,6 +72,7 @@ public class ConnectorSearchCommand extends SearchCommand {
     private static final Set<String> AGENT_SUPPORT_CONNECTORS = LocalIndexCentral.getInstance()
             .readJsonResource(AGENT_SUPPORT_CONNECTORS_JSON, AGENT_SUPPORT_CONNECTORS_LIST_TYPE);
     public static final String IS_AGENT_SUPPORT = "isAgentSupport";
+    private static final Set<String> BLACKLISTED_CONNECTOR_NAMES = Set.of("ModelProvider");
 
     public ConnectorSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
@@ -112,7 +113,9 @@ public class ConnectorSearchCommand extends SearchCommand {
 
         // Search standard connectors from the database
         List<SearchResult> searchResults = dbManager.searchConnectors(query, limit, offset);
-        searchResults.forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
+        searchResults.stream()
+                .filter(result -> !BLACKLISTED_CONNECTOR_NAMES.contains(result.name()))
+                .forEach(searchResult -> rootBuilder.node(generateAvailableNode(searchResult)));
         return rootBuilder.build().items();
     }
 
