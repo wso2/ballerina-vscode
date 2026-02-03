@@ -33,6 +33,7 @@ import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -64,7 +65,7 @@ public class ResourceActionCallBuilder extends CallBuilder {
             return;
         }
 
-        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
                 codedata.org(), codedata.packageName());
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

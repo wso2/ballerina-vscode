@@ -14,6 +14,7 @@ import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Package;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.util.Optional;
@@ -92,7 +93,7 @@ public class NPFunctionCall extends FunctionCall {
 
         // Create and set the resolved package for the function
         // Skip package resolution for generated packages as they don't exist in Central
-        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
                 codedata.org(), codedata.packageName());
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

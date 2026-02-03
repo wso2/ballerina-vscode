@@ -32,6 +32,7 @@ import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -84,7 +85,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         Codedata codedata = context.codedata();
 
         // Create and set the resolved package for the function
-        Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
                 NaturalFunctions.BALLERINA_ORG, NaturalFunctions.AI_PACKAGE);
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
