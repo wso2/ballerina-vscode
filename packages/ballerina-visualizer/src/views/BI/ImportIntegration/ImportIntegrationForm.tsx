@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { MigrationTool } from "@wso2/ballerina-core";
+import { MigrationTool, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ActionButtons, Icon, DirectorySelector, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
@@ -48,12 +48,15 @@ export function ImportIntegrationForm({
 
     const [importSourcePath, setImportSourcePath] = useState("");
     const [integrationParams, setIntegrationParams] = useState<Record<string, any>>({});
+    const [sourcePathError, setSourcePathError] = useState<string | null>(null);
+    const [isValidating, setIsValidating] = useState(false);
 
     const isImportDisabled = importSourcePath.length < 2 || !selectedIntegration;
 
     const handleIntegrationSelection = (integration: MigrationTool) => {
         // Reset state when a new integration is selected
         setImportSourcePath("");
+        setSourcePathError(null);
         onSelectIntegration(integration);
         const defaultParams = integration.parameters.reduce((acc, param) => {
             acc[param.key] = param.defaultValue;
@@ -66,23 +69,45 @@ export function ImportIntegrationForm({
         const result = await rpcClient.getCommonRpcClient().selectFileOrFolderPath();
         if (result?.path) {
             setImportSourcePath(result.path);
+            setSourcePathError(null);
         }
     };
 
-    const handleImportIntegration = () => {
+    const handleImportIntegration = async () => {
         if (!selectedIntegration || !importSourcePath) return;
 
-        const finalParams: FinalIntegrationParams = {
-            importSourcePath,
-            type: selectedIntegration.title,
-            parameters: integrationParams,
-        };
+        setIsValidating(true);
+        setSourcePathError(null);
 
-        setImportParams(finalParams);
-        if (selectedIntegration.needToPull) {
-            pullIntegrationTool(selectedIntegration.commandName, selectedIntegration.requiredVersion);
-        } else {
-            handleStartImport(finalParams, selectedIntegration, toolPullProgress);
+        try {
+            // Simple validation: check if the source path exists
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: importSourcePath,
+                projectName: "",
+                createDirectory: false,
+            });
+
+            if (!validationResult.isValid) {
+                setSourcePathError(validationResult.errorMessage || "Invalid source path");
+                setIsValidating(false);
+                return;
+            }
+
+            const finalParams: FinalIntegrationParams = {
+                importSourcePath,
+                type: selectedIntegration.title,
+                parameters: integrationParams,
+            };
+
+            setImportParams(finalParams);
+            if (selectedIntegration.needToPull) {
+                pullIntegrationTool(selectedIntegration.commandName, selectedIntegration.requiredVersion);
+            } else {
+                handleStartImport(finalParams, selectedIntegration, toolPullProgress);
+            }
+        } catch (error) {
+            setSourcePathError("An error occurred during validation");
+            setIsValidating(false);
         }
     };
 
@@ -99,7 +124,7 @@ export function ImportIntegrationForm({
                 This wizard converts an external integration project from MuleSoft or TIBCO into a ready-to-use BI
                 project.
             </BodyText>
-            <Typography variant="h3" sx={{ marginTop: 20 }}>
+            <Typography variant="h3" sx={{ marginTop: 20, marginBottom: 8 }}>
                 Choose the source platform
             </Typography>
             <BodyText>Select the integration platform that your current project uses:</BodyText>
@@ -121,13 +146,13 @@ export function ImportIntegrationForm({
 
             {selectedIntegration && (
                 <StepContainer>
-                    <Typography variant="h3">Select Your Project Folder</Typography>
+                    <Typography variant="h3" sx={{ marginBottom: 8 }}>Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
                     <DirectorySelector
-                        label="Select Project"
                         placeholder="Choose your project folder..."
                         selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
+                        errorMsg={sourcePathError || undefined}
                     />
                 </StepContainer>
             )}
@@ -149,9 +174,9 @@ export function ImportIntegrationForm({
             <ButtonWrapper>
                 <ActionButtons
                     primaryButton={{
-                        text: "Start Migration",
+                        text: isValidating ? "Validating..." : "Start Migration",
                         onClick: handleImportIntegration,
-                        disabled: isImportDisabled,
+                        disabled: isImportDisabled || isValidating,
                         tooltip: getImportTooltip(selectedIntegration, importSourcePath)
                     }}
                     secondaryButton={{

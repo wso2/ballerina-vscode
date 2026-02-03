@@ -44,9 +44,11 @@ export interface MultiProjectFormData {
 export interface MultiProjectFormFieldsProps {
     formData: MultiProjectFormData;
     onFormDataChange: (data: Partial<MultiProjectFormData>) => void;
+    pathError?: string;
+    folderNameError?: string;
 }
 
-export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProjectFormFieldsProps) {
+export function MultiProjectFormFields({ formData, onFormDataChange, pathError, folderNameError }: MultiProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
 
     const handleIntegrationName = (value: string) => {
@@ -75,6 +77,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
                     placeholder="Choose a folder for your packages..."
                     selectedPath={formData.path}
                     onSelect={handleProjectDirSelection}
+                    errorMsg={pathError}
                 />
             </FieldGroup>
 
@@ -97,6 +100,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
                         placeholder="Enter folder name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={folderNameError || ""}
                     />
                     <Description>
                         This folder will contain all migrated packages from this integration.
