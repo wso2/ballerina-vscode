@@ -37,7 +37,7 @@
         "@wso2/ballerina-core": "workspace:*",
         "@wso2/ballerina-rpc-client": "workspace:*",
         "dagre": "~0.8.5",
-        "lodash": "~4.17.21"
+        "lodash": "4.17.23"
     },
     "devDependencies": {
         "@storybook/react": "^6.3.7",
@@ -48,8 +48,8 @@
         "@types/lodash": "~4.17.16",
         "copyfiles": "^2.4.1",
         "prettier": "~3.5.3",
-        "eslint": "~9.26.0",
-        "@typescript-eslint/eslint-plugin": "~8.32.1",
+        "eslint": "9.27.0",
+        "@typescript-eslint/eslint-plugin": "8.32.1",
         "eslint-plugin-react-hooks": "~5.2.0",
         "eslint-plugin-unused-imports": "~4.1.4"
     }
