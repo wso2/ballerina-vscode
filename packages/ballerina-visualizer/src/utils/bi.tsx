@@ -247,6 +247,11 @@ export function convertNodePropertiesToFormFields(
             const expression = nodeProperties[key as NodePropertyKey];
             if (expression) {
                 const formField: FormField = convertNodePropertyToFormField(key, expression, connections, clientName);
+
+                if (getPrimaryInputType(expression.types)?.fieldType === "REPEATABLE_PROPERTY") {
+                    handleRepeatableProperty(expression, formField);
+                }
+
                 formFields.push(formField);
             }
         }
