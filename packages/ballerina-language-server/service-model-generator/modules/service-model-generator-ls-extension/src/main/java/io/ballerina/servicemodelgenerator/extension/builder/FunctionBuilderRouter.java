@@ -32,6 +32,7 @@ import io.ballerina.servicemodelgenerator.extension.builder.function.HttpFunctio
 import io.ballerina.servicemodelgenerator.extension.builder.function.KafkaFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.McpFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.MssqlCdcFunctionBuilder;
+import io.ballerina.servicemodelgenerator.extension.builder.function.PostgresqlCdcFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.RabbitMQFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.builder.function.SolaceFunctionBuilder;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
@@ -57,6 +58,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.KAFKA;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MCP;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MSSQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.OBJECT_METHOD;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.POSTGRESQL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.SOLACE;
 import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtils.deriveServiceType;
@@ -75,6 +77,7 @@ public class FunctionBuilderRouter {
         put(KAFKA, KafkaFunctionBuilder::new);
         put(SOLACE, SolaceFunctionBuilder::new);
         put(MSSQL, MssqlCdcFunctionBuilder::new);
+        put(POSTGRESQL, PostgresqlCdcFunctionBuilder::new);
     }};
 
     private static NodeBuilder<Function> getFunctionBuilder(String protocol) {
