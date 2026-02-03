@@ -1087,11 +1087,18 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 const newStack = [...stack]
                 const currentTop = newStack[newStack.length - 1];
                 const newTop = newStack[newStack.length - 2];
-                if (newTop.type.codedata.node === "CLASS") {
-                    newTop.type.functions[newTop.fieldIndex!].returnType = currentTop!.type.name;
+                const fieldIndex = newTop.fieldIndex;
+                if (fieldIndex === undefined) {
+                    return;
                 }
-                else {
-                    newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                if (newTop.type.codedata.node === "CLASS") {
+                    const fn = newTop.type.functions?.[fieldIndex];
+                    if (!fn) { return; }
+                    fn.returnType = currentTop!.type.name;
+                } else {
+                    const member = newTop.type.members?.[fieldIndex];
+                    if (!member) { return; }
+                    member.type = currentTop!.type.name;
                 }
                 newStack[newStack.length - 2] = newTop;
                 newStack.pop();
