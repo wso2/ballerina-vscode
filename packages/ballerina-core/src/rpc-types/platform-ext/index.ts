@@ -16,15 +16,16 @@
  * under the License.
  */
 
-import { ComponentKind, ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, DeleteDevantTempConfigReq, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp, } from "./interfaces";
+import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
+import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp, } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
 
 // TODO: check if we can directly use the wso2-extension api interface
 export interface PlatformExtAPI {
     // BI ext handlers
-    createDevantComponentConnection: (params: CreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
+    generateCustomConnectorFromOAS: (params: GenerateCustomConnectorFromOASReq) => Promise<GenerateCustomConnectorFromOASResp>
+    createDevantComponentConnectionV2: (params: CreateDevantConnectionV2Req) => Promise<CreateDevantConnectionResp>
     importDevantComponentConnection: (params: ImportDevantConnectionReq) => Promise<ImportDevantConnectionResp>
     registerAndCreateDevantComponentConnection: (params: RegisterAndCreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
     updateDevantTempConfigs: (params: UpdateDevantTempConfigsReq) => Promise<UpdateDevantTempConfigsResp>

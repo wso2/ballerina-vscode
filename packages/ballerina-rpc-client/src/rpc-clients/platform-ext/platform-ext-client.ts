@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, createDevantComponentConnection, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, updateDevantTempConfigs } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, updateDevantTempConfigs, createDevantComponentConnectionV2, generateCustomConnectorFromOAS } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionReq, CreateDevantConnectionResp, DeleteDevantTempConfigReq, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
     private _messenger: Messenger;
@@ -45,8 +45,12 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(getMarketplaceIdl, HOST_EXTENSION, params);
     }
 
-    createDevantComponentConnection(params: CreateDevantConnectionReq): Promise<CreateDevantConnectionResp> {
-        return this._messenger.sendRequest(createDevantComponentConnection, HOST_EXTENSION, params);
+    generateCustomConnectorFromOAS(params: GenerateCustomConnectorFromOASReq): Promise<GenerateCustomConnectorFromOASResp> {
+        return this._messenger.sendRequest(generateCustomConnectorFromOAS, HOST_EXTENSION, params);
+    }
+
+    createDevantComponentConnectionV2(params: CreateDevantConnectionV2Req): Promise<CreateDevantConnectionResp> {
+        return this._messenger.sendRequest(createDevantComponentConnectionV2, HOST_EXTENSION, params);
     }
 
     importDevantComponentConnection(params: ImportDevantConnectionReq): Promise<ImportDevantConnectionResp> {

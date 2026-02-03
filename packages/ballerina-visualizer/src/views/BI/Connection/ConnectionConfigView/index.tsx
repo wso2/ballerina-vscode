@@ -66,6 +66,7 @@ interface ConnectionConfigViewProps {
     isPullingConnector?: boolean;
     navigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     footerActionButton?: boolean; // Render save button as footer action button
+    devantConfigs?: string[]; // Devant configurations for expression editor
 }
 
 export function ConnectionConfigView(props: ConnectionConfigViewProps) {
@@ -81,6 +82,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
         isSaving,
         navigateToPanel,
         footerActionButton,
+        devantConfigs
     } = props;
     const { rpcClient } = useRpcContext();
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -126,6 +128,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     footerActionButton={footerActionButton}
                     navigateToPanel={navigateToPanel}
                     handleOnFormSubmit={onSubmit}
+                    devantConfigs={devantConfigs}
                 />
             )}
         </Container>

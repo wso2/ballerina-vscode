@@ -68,6 +68,7 @@ export type HelperPaneNewProps = {
     handleRetrieveCompletions: (value: string, property: ExpressionProperty, offset: number, triggerCharacter?: string) => Promise<void>;
     handleValueTypeConstChange: (valueTypeConstraint: string) => void;
     inputMode?: InputMode;
+    devantConfigs?: string[];
 };
 
 const TitleContainer = styled.div`
@@ -94,7 +95,8 @@ const HelperPaneNewEl = ({
     handleRetrieveCompletions,
     forcedValueTypeConstraint,
     handleValueTypeConstChange,
-    inputMode
+    inputMode,
+    devantConfigs
 }: HelperPaneNewProps) => {
     const [selectedItem, setSelectedItem] = useState<number>();
     const currentMenuItemCount = types ?
@@ -342,6 +344,19 @@ const HelperPaneNewEl = ({
                                         </ExpandableList.Item>
                                     </SlidingPaneNavContainer>
                                 )}
+                                {devantConfigs?.length > 0 && (
+                                    <SlidingPaneNavContainer
+                                        ref={el => menuItemRefs.current[5] = el}
+                                        to="DEVANT_CONFIGS"
+                                    >
+                                        <ExpandableList.Item>
+                                            {getHelperPaneIcon(HelperPaneIconType.CONFIGURABLE)}
+                                            <Typography variant="body3" sx={{ fontWeight: 600 }}>
+                                                Devant Configs
+                                            </Typography>
+                                        </ExpandableList.Item>
+                                    </SlidingPaneNavContainer>
+                                )}
                             </ExpandableList>
 
                         </div>
@@ -386,6 +401,24 @@ const HelperPaneNewEl = ({
                         />
                     </SlidingPane>
 
+                    {devantConfigs?.length > 0 && (
+                        <SlidingPane name="DEVANT_CONFIGS" paneWidth={300}>
+                            <SlidingPaneHeader> Devant Configs</SlidingPaneHeader>
+                            <Configurables
+                                anchorRef={anchorRef}
+                                fileName={fileName}
+                                onChange={handleChange}
+                                targetLineRange={targetLineRange}
+                                isInModal={isInModal}
+                                onClose={onClose}
+                                inputMode={inputMode}
+                                devantConfigs={devantConfigs}
+                                devantConfigsOnly={true}
+                                showAddNewConfigurable={false}
+                            />
+                        </SlidingPane>
+                    )}
+
                     <SlidingPane name="CREATE_VALUE" paneWidth={300}>
                         <SlidingPaneHeader> Create Value</SlidingPaneHeader>
                         <CreateValue
@@ -426,6 +459,8 @@ const HelperPaneNewEl = ({
                             isInModal={isInModal}
                             onClose={onClose}
                             inputMode={inputMode}
+                            devantConfigs={devantConfigs}
+                            devantConfigsOnly={false}
                         />
                     </SlidingPane>
 
@@ -528,6 +563,7 @@ export const getHelperPaneNew = (props: HelperPaneNewProps) => {
             forcedValueTypeConstraint={forcedValueTypeConstraint}
             handleValueTypeConstChange={handleValueTypeConstChange}
             inputMode={props.inputMode}
+            devantConfigs={props.devantConfigs}
         />
     );
 };

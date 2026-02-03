@@ -16,16 +16,33 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceItem } from "@wso2/wso2-platform-core";
+import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes } from "@wso2/wso2-platform-core";
 import { AvailableNode, NodePosition } from "../../interfaces/bi";
 
-export interface CreateDevantConnectionReq {
-    params:{
+
+export interface GenerateCustomConnectorFromOASReq {
+    connectionName: string;
+    marketplaceItem: MarketplaceItem;
+}
+
+export interface GenerateCustomConnectorFromOASResp {
+    connectionNode?: AvailableNode;
+}
+
+export interface CreateDevantConnectionV2Req {
+    flow: DevantConnectionFlow;
+    createInternalConnectionParams?: {
         name: string;
 	    visibility: string;
         schemaId: string;
         isProjectLevel?: boolean;
-        envKeys?: string[]; // applicable only for 3rd party connectors
+        devantTempConfigs?: DevantTempConfig[];
+    }
+    importThirdPartyConnectionParams?: {
+        name: string;
+        schemaId: string;
+        isProjectLevel?: boolean;
+        devantTempConfigs?: DevantTempConfig[];
     }
     marketplaceItem: MarketplaceItem;
 }
@@ -36,11 +53,10 @@ export interface ImportDevantConnectionReq {
 
 export interface RegisterAndCreateDevantConnectionReq {
     name: string;
-    configs: {
-        name: string;
-        value: string;
-        isSecret: boolean;
-    }[]
+    idlType: MarketplaceIdlTypes;
+    serviceType: MarketplaceServiceTypes;
+    idlFilePath?: string;
+    configs: DevantTempConfig[];
 }
 
 export interface UpdateDevantTempConfigsReq {
@@ -99,4 +115,26 @@ export interface PlatformExtState {
 export interface SetConnectedToDevantReq {
     mode: "runInDevant" | "debugInDevant";
     value: boolean;
+}
+
+export enum DevantConnectionFlow {
+    CREATE_INTERNAL_OAS = 'CREATE_INTERNAL_OAS',
+    CREATE_INTERNAL_OTHER = 'CREATE_INTERNAL_OTHER',
+    CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR = 'CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR',
+    CREATE_THIRD_PARTY_OAS = 'CREATE_THIRD_PARTY_OAS',
+    CREATE_THIRD_PARTY_OTHER = 'CREATE_THIRD_PARTY_OTHER',
+    CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = 'CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR',
+    REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR = 'REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR',
+    REGISTER_CREATE_THIRD_PARTY_FROM_OAS = 'REGISTER_CREATE_THIRD_PARTY_FROM_OAS',
+}
+
+export interface DevantTempConfig {
+    id: string;
+    name: string;
+    value: string;
+    isSecret: boolean;
+    nodePosition?: NodePosition;
+    description?: string;
+    type?: string;
+    selected?: boolean;
 }

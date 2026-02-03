@@ -148,6 +148,7 @@ interface FormProps {
     fieldOverrides?: Record<string, Partial<FormField>>;
     footerActionButton?: boolean; // Render save button as footer action button
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    devantConfigs?: string[]; // Devant configurations for expression editor
 }
 
 // Styled component for the action button description
@@ -942,6 +943,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             forcedValueTypeConstraint: valueTypeConstraints,
             handleValueTypeConstChange: handleValueTypeConstChange,
             inputMode: inputMode,
+            devantConfigs: props.devantConfigs,
         });
     };
 

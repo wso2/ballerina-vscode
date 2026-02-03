@@ -187,7 +187,7 @@ export const addConnection = async (
     return { connName: candidate, connFileUri: connectionBalFileUri };
 };
 
-const getYamlString = (yamlString: string) => {
+export const getYamlString = (yamlString: string) => {
     try {
         if (/%[0-9A-Fa-f]{2}/.test(yamlString)) {
             const decoded = decodeURIComponent(yamlString);
@@ -307,12 +307,6 @@ export const initializeDevantConnection = async (params: {
 }): Promise<{ connectionName?: string; connectionNode?: AvailableNode }> => {
     const projectPath = StateMachine.context().projectPath;
 
-    await params.platformExt?.createConnectionConfig({
-        componentDir: projectPath,
-        marketplaceItem: params.marketplaceItem,
-        name: params.name,
-        visibility: params.visibility,
-    });
 
     const serviceIdl = await params.platformExt?.getMarketplaceIdl({
         orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
