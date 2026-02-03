@@ -165,7 +165,7 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
                                 sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
                             >
                                 <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapsed
+                                Collapse
                             </LinkButton>
                         )}
                     </ButtonContainer>
