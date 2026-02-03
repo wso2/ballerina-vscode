@@ -377,6 +377,7 @@ interface DeploymentOptionsProps {
     devantMetadata: WorkspaceDevantMetadata | undefined;
     hasDeployableIntegration: boolean;
     hasUndeployedIntegrations: boolean;
+    deployableProjectPaths: Set<string>;
 }
 
 function DeploymentOptions({
@@ -386,7 +387,8 @@ function DeploymentOptions({
     goToDevant,
     devantMetadata,
     hasDeployableIntegration,
-    hasUndeployedIntegrations
+    hasUndeployedIntegrations,
+    deployableProjectPaths
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud']));
     const { rpcClient } = useRpcContext();
@@ -439,12 +441,27 @@ function DeploymentOptions({
     } else if (hasDeployedProjects && hasUndeployedProjects) {
         // Mixed state: some deployed, some not - show clear message about remaining
         title = "Partially Deployed in Devant";
-        const undeployedNames = undeployedProjects.map((p: any) => p.projectName).filter(Boolean).join(", ");
-        description = `You have undeployed integrations: ${undeployedNames || undeployedProjects.length + " integration(s)"}.`;
-        buttonText = "Deploy Remaining";
+        
+        // Separate deployable and non-deployable undeployed projects
+        const deployableUndeployed = undeployedProjects.filter((p: any) => deployableProjectPaths.has(p.projectPath));
+        const nonDeployableUndeployed = undeployedProjects.filter((p: any) => !deployableProjectPaths.has(p.projectPath));
+        
+        const deployableNames = deployableUndeployed.map((p: any) => p.projectName).filter(Boolean).join(", ");
+        const nonDeployableNames = nonDeployableUndeployed.map((p: any) => p.projectName).filter(Boolean).join(", ");
+        
+        if (hasUndeployedIntegrations) {
+            // There are undeployed projects that CAN be deployed
+            description = `You have undeployed integrations: ${deployableNames || deployableUndeployed.length + " integration(s)"}.`;
+            buttonText = "Deploy Remaining";
+        } else {
+            // There are undeployed projects but they CANNOT be deployed (no entry point found)
+            description = `Some integrations (${nonDeployableNames || nonDeployableUndeployed.length + " integration(s)"}) cannot be deployed. No entry point found within these integrations.`;
+            buttonText = "Deploy Remaining";
+        }
+        
         primaryAction = handleDeploy;
         isDeploymentDisabled = !hasUndeployedIntegrations;
-        disabledTooltip = hasUndeployedIntegrations ? "" : "No deployable integrations found";
+        disabledTooltip = hasUndeployedIntegrations ? "" : "No entry point found in the remaining integrations";
         
         if (hasDeployedWithChanges) {
             secondaryAction = {
@@ -840,6 +857,7 @@ export function WorkspaceOverview() {
                             devantMetadata={devantMetadata}
                             hasDeployableIntegration={projectScopes.length > 0}
                             hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
+                            deployableProjectPaths={new Set(projectScopes.map(scope => scope.projectPath))}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
                         <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
