@@ -41,7 +41,7 @@ export function sendGenerationKeptTelemetry(messageId: string): void {
 /**
  * Sends a telemetry event when the user discard an AI-generated response.
  *
- * @param messageId - The message identifier for the kept generation
+ * @param messageId - The message identifier for the discarded generation
  */
 export function sendGenerationDiscardTelemetry(messageId: string): void {
     sendTelemetryEvent(
