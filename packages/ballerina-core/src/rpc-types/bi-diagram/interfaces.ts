@@ -192,6 +192,20 @@ export interface DevantMetadata {
     hasLocalChanges?: boolean;
 }
 
+export interface WorkspaceDevantMetadata {
+    isLoggedIn?: boolean;
+    hasAnyComponent?: boolean;
+    hasLocalChanges?: boolean;
+    projectsMetadata?: ProjectDevantMetadata[];
+}
+
+export interface ProjectDevantMetadata {
+    projectPath: string;
+    projectName?: string;
+    hasComponent?: boolean;
+    hasLocalChanges?: boolean;
+}
+
 export interface GeneratedClientSaveResponse {
     errorMessage?: string;
 }

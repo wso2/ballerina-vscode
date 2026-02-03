@@ -121,6 +121,7 @@ import {
     RecordsInWorkspaceMentions,
     BuildMode,
     DevantMetadata,
+    WorkspaceDevantMetadata,
     GeneratedClientSaveResponse,
     AddProjectToWorkspaceRequest,
     DeleteProjectRequest,
@@ -202,6 +203,7 @@ export const searchNodes: RequestType<BISearchNodesRequest, BISearchNodesRespons
 export const getRecordNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getRecordNames` };
 export const getFunctionNames: RequestType<void, RecordsInWorkspaceMentions> = { method: `${_preFix}/getFunctionNames` };
 export const getDevantMetadata: RequestType<void, DevantMetadata> = { method: `${_preFix}/getDevantMetadata` };
+export const getWorkspaceDevantMetadata: RequestType<void, WorkspaceDevantMetadata> = { method: `${_preFix}/getWorkspaceDevantMetadata` };
 export const generateOpenApiClient: RequestType<OpenAPIClientGenerationRequest, GeneratedClientSaveResponse> = { method: `${_preFix}/generateOpenApiClient` };
 export const getOpenApiGeneratedModules: RequestType<OpenAPIGeneratedModulesRequest, OpenAPIGeneratedModulesResponse> = { method: `${_preFix}/getOpenApiGeneratedModules` };
 export const deleteOpenApiGeneratedModules: RequestType<OpenAPIClientDeleteRequest, OpenAPIClientDeleteResponse> = { method: `${_preFix}/deleteOpenApiGeneratedModules` };
