@@ -117,6 +117,13 @@ export namespace S {
         gap: 8px;
     `;
 
+    export const ItemContainer = styled.div`
+        border: 1px solid var(--vscode-dropdown-border);
+        border-radius: 4px;
+        padding: 8px;
+        margin-top: 12px;
+    `;
+
     export const LabelContainer = styled.div({
         display: 'flex',
         alignItems: 'center'
@@ -438,40 +445,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     }, [fieldValue, targetLineRange]);
 
-    const getFallBackSelectedType = (): InputType => {
-        if (
-            typeof field.value === 'string' &&
-            field.value.trim() !== ''
-        ) {
-            return field?.types[field.types.length - 1];
-        }
-        else {
-            return field?.types[0];
-        }
-    }
-
-    // useEffect(() => {
-    //     // If recordTypeField is present, always use GUIDED mode
-    //     if (recordTypeField) {
-    //         setInputMode(InputMode.RECORD);
-    //         return;
-    //     }
-    //     if (field?.types.length === 0) {
-    //         setInputMode(InputMode.EXP);
-    //         return;
-    //     };
-    //     let selectedInputType = field?.types.find(type => type.selected);
-    //     if (!selectedInputType) {
-    //         selectedInputType = getFallBackSelectedType();
-    //     }
-    //     const inputMode = getInputModeFromTypes(selectedInputType);
-    //     if (!inputMode) {
-    //         setInputMode(InputMode.EXP);
-    //         return;
-    //     };
-    //     setInputMode(inputMode);
-    // }, [field?.types, recordTypeField]);
-
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
 
@@ -549,54 +522,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
-    const isSwitchToPrimaryModeSafe = (expValue: string) => {
-        if (!expValue) return true;
-        const primaryInputType = getPrimaryInputType(field.types);
-        const primaryInputMode = getInputModeFromTypes(primaryInputType);
-        const valueConfigObject = getEditorConfiguration(primaryInputMode);
-        return valueConfigObject.getIsValueCompatible(expValue);
-    }
-
-    // const handleModeChange = (value: InputMode) => {
-    //     const raw = watch(key);
-    //     const currentValue = raw && typeof raw === "string" ? raw.trim() : "";
-    //     if (inputMode !== InputMode.EXP) {
-    //         setInputMode(value);
-    //         return;
-    //     }
-    //     if (!isSwitchToPrimaryModeSafe(currentValue)) {
-    //         targetInputModeRef.current = value;
-    //         setShowModeSwitchWarning(true)
-    //         return;
-    //     }
-    //     setInputMode(value);
-    // };
-
-    // const handleModeSwitchWarningContinue = () => {
-    //     if (targetInputModeRef.current !== null) {
-    //         setInputMode(targetInputModeRef.current);
-    //         const targetMode = targetInputModeRef.current;
-    //         const shouldClearValue = [
-    //             InputMode.PROMPT,
-    //             InputMode.TEMPLATE,
-    //             InputMode.TEXT,
-    //             InputMode.NUMBER,
-    //             InputMode.BOOLEAN,
-    //         ]
-    //             .includes(targetMode) && inputMode === InputMode.EXP;
-    //         if (shouldClearValue) {
-    //             setValue(key, "");
-    //         }
-    //         targetInputModeRef.current = null;
-    //     }
-    //     setShowModeSwitchWarning(false);
-    // };
-
-    const handleModeSwitchWarningCancel = () => {
-        targetInputModeRef.current = null;
-        setShowModeSwitchWarning(false);
-    };
-
     const handleOpenExpandedMode = () => {
         setIsExpandedModalOpen(true);
     };
@@ -650,8 +575,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                             <div>
                                 <S.HeaderContainer>
                                     <S.LabelContainer>
-                                        <S.Label>{field.label}</S.Label>
-                                        {(required ?? !field.optional) && <RequiredFormInput />}
+                                        {field.label && (
+                                            <>
+                                                <S.Label>{field.label}</S.Label>
+                                                {(required ?? !field.optional) && <RequiredFormInput />}
+                                            </>
+                                        )}
                                         {getPrimaryInputType(field.types)?.ballerinaType && (
                                             <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
                                                 {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
@@ -776,8 +705,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         setFormDiagnostics([]);
                                         // Use ref to get current mode (not stale closure value)
                                         const currentMode = inputMode;
-                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && 
-                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
+                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) &&
+                                            rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
                                         if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {

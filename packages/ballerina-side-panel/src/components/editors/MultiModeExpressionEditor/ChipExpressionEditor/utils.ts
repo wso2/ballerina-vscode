@@ -77,6 +77,12 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "RECORD_MAP_EXPRESSION") {
         return InputMode.RECORD;
     }
+    if (inputType.fieldType === "REPEATABLE_MAP") {
+        return InputMode.MAP;
+    }
+    if (inputType.fieldType === "REPEATABLE_LIST") {
+        return InputMode.MAP;
+    }
 
     //default behaviour
     return getInputModeFromBallerinaType(inputType.ballerinaType);
