@@ -1368,25 +1368,40 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.EXPRESSION_SET);
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
-        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
-            String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
-                boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+        } else {
+            String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+            if (ballerinaType != null && ballerinaType.contains("ParameterizedQuery")) {
+                // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
-                        .fieldType(Property.ValueType.PROMPT)
-                        .ballerinaType(AiUtils.AI_PROMPT_TYPE)
-                        .selected(isPromptSelected)
+                        .fieldType(Property.ValueType.SQL_QUERY)
+                        .ballerinaType(ballerinaType)
+                        .selected(true)
                         .stepOut();
                 builder.type()
                         .fieldType(Property.ValueType.EXPRESSION)
-                        .ballerinaType(typeSignature)
-                        .selected(!isPromptSelected)
+                        .ballerinaType(ballerinaType)
+                        .selected(false)
                         .stepOut();
+            } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
+                String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+                if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                    boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+                    builder.type()
+                            .fieldType(Property.ValueType.PROMPT)
+                            .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                            .selected(isPromptSelected)
+                            .stepOut();
+                    builder.type()
+                            .fieldType(Property.ValueType.EXPRESSION)
+                            .ballerinaType(typeSignature)
+                            .selected(!isPromptSelected)
+                            .stepOut();
+                } else {
+                    builder.type(Property.ValueType.RAW_TEMPLATE);
+                }
             } else {
-                builder.type(Property.ValueType.RAW_TEMPLATE);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
             }
-        } else {
-            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
         }
     }
 
