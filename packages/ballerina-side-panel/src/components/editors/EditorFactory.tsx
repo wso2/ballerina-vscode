@@ -45,7 +45,9 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
-import { FormMapEditorWrapper } from "./FormMapEditorWrapper";
+import { FormArrayEditorWrapper } from "./FormMapEditorWrapper";
+import { NewFormMapEditor } from "./NewFormMapEditor";
+import { FormMapEditorWrapper } from "./NewFormMapEditorWrapper";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -208,8 +210,11 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (fieldInputType.fieldType === "REPEATABLE_PROPERTY") {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
     }
-    else if (field.type === "REPEATABLE_MAP" || field.type === "REPEATABLE_LIST") {
-        return <FormMapEditorWrapper {...props}/>;
+
+    else if (field.type === "REPEATABLE_LIST") {
+        return <FormArrayEditorWrapper {...props} />;
+    } else if (field.type === "REPEATABLE_MAP") {
+        return <FormMapEditorWrapper {...props} />;
     } else if (fieldInputType.fieldType === "IDENTIFIER" && !field.editable && field?.lineRange) {
         return <IdentifierEditor
             field={field}
