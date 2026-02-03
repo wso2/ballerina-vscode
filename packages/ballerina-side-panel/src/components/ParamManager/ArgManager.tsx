@@ -389,18 +389,8 @@ function handleArgChange(param: Parameter, allParams: Parameter[]) {
         key = name + (i++);
     }
 
-    const type = param.formValues["type"];
-
-    const defaultValue =
-        Object.keys(param.formValues).indexOf("defaultable") > -1 && `${param.formValues["defaultable"]} `;
-    let value = `${type} ${key} `;
-    if (defaultValue) {
-        value += ` = ${defaultValue} `;
-    }
-
     return {
         ...param,
-        key: key,
-        value: value,
+        key: key
     };
 }
