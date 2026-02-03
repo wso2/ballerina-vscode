@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -202,6 +202,15 @@ export function ArgManager(props: ArgManagerProps) {
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
     const [isGraphql, setIsGraphql] = useState<boolean>(false);
 
+    useEffect(() => {
+        rpcClient.getVisualizerLocation().then(context => {
+            if (context.view === "GraphQL Diagram") {
+                setIsGraphql(true);
+            }
+        });
+        renderParams();
+    }, [parameters, editingSegmentId, paramConfigs]);
+
     const getTypeFromArg = async (
         arg: string
     ) => {
@@ -307,15 +316,6 @@ export function ArgManager(props: ArgManagerProps) {
         }
         setIsNew(false);
     };
-
-    useEffect(() => {
-        rpcClient.getVisualizerLocation().then(context => {
-            if (context.view === "GraphQL Diagram") {
-                setIsGraphql(true);
-            }
-        });
-        renderParams();
-    }, [parameters, editingSegmentId, paramConfigs]);
 
     const renderParams = () => {
         const render: React.ReactElement[] = [];
