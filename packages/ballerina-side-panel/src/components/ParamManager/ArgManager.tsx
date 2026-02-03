@@ -188,10 +188,9 @@ export function ArgManagerEditor(props: ArgManagerEditorProps) {
 }
 
 export function ArgManager(props: ArgManagerProps) {
-    const { field, readonly, onChange, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled } = props;
     const propertyKey = field.key;
     const paramConfigs = field.paramManagerProps;
-
 
     const { rpcClient } = useRpcContext();
     const { fileName, targetLineRange } = useFormContext();
@@ -200,14 +199,8 @@ export function ArgManager(props: ArgManagerProps) {
     const [isNew, setIsNew] = useState(false);
     const [parameters, setParameters] = useState<Parameter[]>(paramConfigs.paramValues);
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
-    const [isGraphql, setIsGraphql] = useState<boolean>(false);
 
     useEffect(() => {
-        rpcClient.getVisualizerLocation().then(context => {
-            if (context.view === "GraphQL Diagram") {
-                setIsGraphql(true);
-            }
-        });
         renderParams();
     }, [parameters, editingSegmentId, paramConfigs]);
 
@@ -332,9 +325,6 @@ export function ArgManager(props: ArgManagerProps) {
                             if (field.key === "variable") {
                                 field.editable = param.identifierEditable;
                                 field.lineRange = param.identifierRange;
-                            }
-                            if (field.key === "type" && field.type === "ACTION_TYPE" && param.formValues['isGraphqlId'] !== undefined) {
-                                field.isGraphqlId = param.formValues['isGraphqlId'];
                             }
                         }
                     })
