@@ -327,7 +327,7 @@ function handleArgChange(param: Parameter, allParams: Parameter[]) {
     const name = arg.split('.').pop();
 
     let key = name;
-    let i = 2;
+    let i = 1;
     while (allParams.some(p => p.key === key && p.id !== param.id)) {
         key = name + (i++);
     }
