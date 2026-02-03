@@ -20,9 +20,9 @@ import React from "react";
 import { FormMapEditorProps } from "./FormMapEditorNew";
 import { Controller } from "react-hook-form";
 import { useFormContext } from "../../context";
-import { FormArrayEditor } from "./FormArrayEditor";
+import { NewFormMapEditor } from "./NewFormMapEditor";
 
-export const FormArrayEditorWrapper = (props: FormMapEditorProps) => {
+export const FormMapEditorWrapper = (props: FormMapEditorProps) => {
        const { form } = useFormContext();
        const { control, formState: { errors } } = form;
 
@@ -34,7 +34,7 @@ export const FormArrayEditorWrapper = (props: FormMapEditorProps) => {
             name={props.field.key}
             control={control}
             render={({ field }) => (
-                <FormArrayEditor
+                <NewFormMapEditor
                     {...props}
                     value={field.value}
                     onChange={(value)=>{
