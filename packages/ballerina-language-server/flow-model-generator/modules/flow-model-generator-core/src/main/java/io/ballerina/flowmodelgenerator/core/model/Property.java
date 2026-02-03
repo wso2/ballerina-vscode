@@ -561,7 +561,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel) {
-            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null,null);
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
