@@ -1863,7 +1863,7 @@ export type OpenAPIClientDeleteResponse = {
 export interface ProjectScopeMapping {
     projectPath: string;
     projectTitle: string;
-    integrationTypes: SCOPE[];
+    integrationTypes?: SCOPE[];
 }
 
 export interface DeploymentRequest {
