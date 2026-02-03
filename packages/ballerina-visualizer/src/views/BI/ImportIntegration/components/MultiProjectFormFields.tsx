@@ -17,7 +17,7 @@
  */
 
 import { useEffect } from "react";
-import { LocationSelector, TextField, CheckBox } from "@wso2/ui-toolkit";
+import { DirectorySelector, TextField, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
@@ -70,10 +70,10 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
     return (
         <>
             <FieldGroup>
-                <LocationSelector
+                <DirectorySelector
                     label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
+                    placeholder="Choose a folder for your packages..."
+                    selectedPath={formData.path}
                     onSelect={handleProjectDirSelection}
                 />
             </FieldGroup>

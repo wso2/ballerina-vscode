@@ -18,7 +18,7 @@
 
 import { MigrationTool } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { ActionButtons, Icon, LocationSelector, Typography } from "@wso2/ui-toolkit";
+import { ActionButtons, Icon, DirectorySelector, Typography } from "@wso2/ui-toolkit";
 import { useState } from "react";
 import ButtonCard from "../../../components/ButtonCard";
 import { DownloadProgress } from "../../../components/DownloadProgress";
@@ -123,11 +123,10 @@ export function ImportIntegrationForm({
                 <StepContainer>
                     <Typography variant="h3">Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
-                    <LocationSelector
-                        label=""
-                        selectedFile={importSourcePath}
+                    <DirectorySelector
+                        placeholder={importSourcePath ? importSourcePath : "Choose your project folder..."}
+                        selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
-                        btnText={importSourcePath ? "Change" : "Select Project"}
                     />
                 </StepContainer>
             )}
