@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -80,22 +77,22 @@ export function Overview(props: { visualizerLocation: VisualizerLocation }) {
         setComponents(componentResponse as Data);
     };
 
-    const fetchData = async () => {
-        try {
-            const workspaceResponse = await rpcClient.getCommonRpcClient().getWorkspaceFiles({});
-            setWorkspaceInfo(workspaceResponse);
-            const componentResponse = await rpcClient.getLangClientRpcClient().getBallerinaProjectComponents(undefined);
-            setComponents(componentResponse as Data);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const workspaceResponse = await rpcClient.getCommonRpcClient().getWorkspaceFiles({});
+                setWorkspaceInfo(workspaceResponse);
+                const componentResponse = await rpcClient.getLangClientRpcClient().getBallerinaProjectComponents(undefined);
+                setComponents(componentResponse as Data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchData();
-    }, [syntaxTree]);
+    }, [syntaxTree, rpcClient]);
 
     if (loading) {
         // Render a loading indicator
@@ -103,54 +100,54 @@ export function Overview(props: { visualizerLocation: VisualizerLocation }) {
     }
 
     // Filter the components based on the search query
-    const filteredComponents = components?.packages.map((pkg) => {
-        const modules = pkg.modules.map((module) => {
-            const services = module.services.filter((service) => {
+    const filteredComponents = components?.packages.map(pkg => {
+        const modules = pkg.modules.map(module => {
+            const services = module.services.filter(service => {
                 if (selectedFile === SELECT_ALL_FILES || service.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return service.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const types = module.types.filter((type) => {
+            const types = module.types.filter(type => {
                 if (selectedFile === SELECT_ALL_FILES || type.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return type.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const functions = module.functions.filter((func) => {
+            const functions = module.functions.filter(func => {
                 if (selectedFile === SELECT_ALL_FILES || func.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return func.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const records = module.records.filter((record) => {
+            const records = module.records.filter(record => {
                 if (selectedFile === SELECT_ALL_FILES || record.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return record.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const objects = module.objects.filter((object) => {
+            const objects = module.objects.filter(object => {
                 if (selectedFile === SELECT_ALL_FILES || object.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return object.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const classes = module.classes.filter((cls) => {
+            const classes = module.classes.filter(cls => {
                 if (selectedFile === SELECT_ALL_FILES || cls.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return cls.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const constants = module.constants.filter((constant) => {
+            const constants = module.constants.filter(constant => {
                 if (selectedFile === SELECT_ALL_FILES || constant.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return constant.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const enums = module.enums.filter((enumType) => {
+            const enums = module.enums.filter(enumType => {
                 if (selectedFile === SELECT_ALL_FILES || enumType.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return enumType.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const listeners = module.listeners.filter((listener) => {
+            const listeners = module.listeners.filter(listener => {
                 if (selectedFile === SELECT_ALL_FILES || listener.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return listener.name.toLowerCase().includes(query.toLowerCase());
                 }
             });
-            const moduleVariables = module.moduleVariables.filter((variable) => {
+            const moduleVariables = module.moduleVariables.filter(variable => {
                 if (selectedFile === SELECT_ALL_FILES || variable.filePath === selectedFile.replace(workspaceInfo?.workspaceRoot, '').substring(1)) {
                     return variable.name.toLowerCase().includes(query.toLowerCase());
                 }
