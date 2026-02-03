@@ -17,7 +17,7 @@
  */
 
 import React from "react";
-import { Form, FormField, FormValues, S } from "../..";
+import { Form, FormField, FormValues, S, useFormContext } from "../..";
 import { getPrimaryInputType, PropertyModel, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView, InputType } from "@wso2/ballerina-core";
 import { Codicon, CompletionItem } from "@wso2/ui-toolkit";
 
@@ -110,7 +110,6 @@ export interface FormMapEditorProps {
     openFormTypeEditor?: (open: boolean, newType?: string) => void;
     onSubmit?: (data: any) => void;
     onCancelForm?: () => void;
-    expressionEditor?: any;
     onCompletionItemSelect?: any;
     getHelperPane?: any;
     getTypeHelper?: any;
@@ -122,22 +121,22 @@ export const FormMapEditorNew = (props: FormMapEditorProps & {
     onChange: (value: any) => void;
     value: any;
 }) => {
-    const { 
-        field, 
-        openRecordEditor, 
-        onSubmit, 
-        onCancelForm, 
-        expressionEditor, 
-        onCompletionItemSelect, 
-        getHelperPane, 
-        getTypeHelper, 
-        onCancelEdit, 
+    const {
+        field,
+        openRecordEditor,
+        onSubmit,
+        onCancelForm,
+        onCompletionItemSelect,
+        getHelperPane,
+        getTypeHelper,
+        onCancelEdit,
         parameter,
         onChange,
         value
     } = props;
 
     const [repeatableFields, setRepeatableFields] = React.useState<FormField[][]>([]);
+    const {  expressionEditor } = useFormContext();
 
     const handleFormOnChange = (fieldKey: string, value: any, allValues: FormValues, formId: string) => {
         const newRepeatableFields = repeatableFields.map((formFieldArray) => {

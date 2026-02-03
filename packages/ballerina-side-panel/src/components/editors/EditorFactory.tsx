@@ -45,7 +45,6 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
-import { FormMapEditorNew } from "./FormMapEditorNew";
 import { FormMapEditorWrapper } from "./FormMapEditorWrapper";
 
 interface FormFieldEditorProps {
