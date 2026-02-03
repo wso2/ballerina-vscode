@@ -95,7 +95,6 @@ public class NPFunctionCall extends FunctionCall {
         Optional<io.ballerina.projects.Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
                 codedata.org(), codedata.packageName());
 
-
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
