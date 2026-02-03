@@ -1192,7 +1192,6 @@ async function getProjectPathAndServices(
             projectPath = getProjectWorkingDirectory(root);
             const services = await getServiceInfo(projectPath, serviceMetadata, filePath);
             if (!services || services.length === 0) {
-                vscode.window.showInformationMessage('No services found in the integration');
                 return;
             }
             serviceInfos[projectPath] = services;

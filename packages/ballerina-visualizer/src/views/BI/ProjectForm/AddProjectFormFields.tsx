@@ -73,12 +73,14 @@ export interface AddProjectFormFieldsProps {
     formData: AddProjectFormData;
     onFormDataChange: (data: Partial<AddProjectFormData>) => void;
     isInWorkspace: boolean; // true if already in a workspace, false if in a package
+    packageNameValidationError?: string;
 }
 
 export function AddProjectFormFields({ 
     formData, 
     onFormDataChange,
-    isInWorkspace 
+    isInWorkspace,
+    packageNameValidationError
 }: AddProjectFormFieldsProps) {
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
@@ -148,7 +150,7 @@ export function AddProjectFormFields({
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameError || ""}
+                    errorMsg={packageNameValidationError || packageNameError || ""}
                 />
             </FieldGroup>
 
