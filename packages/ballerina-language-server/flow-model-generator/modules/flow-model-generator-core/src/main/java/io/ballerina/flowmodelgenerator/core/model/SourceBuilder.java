@@ -69,6 +69,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static io.ballerina.flowmodelgenerator.core.model.Property.convertToProperty;
+
 public class SourceBuilder {
 
     private TokenBuilder tokenBuilder;
@@ -485,7 +487,7 @@ public class SourceBuilder {
                     if (isPropValueEmpty(prop)) {
                         continue;
                     }
-                    if (hasRestParamValues(prop)) {
+                    if (hasRestArgs(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addRestParamValues(prop);
                     }
@@ -494,7 +496,7 @@ public class SourceBuilder {
                     if (isPropValueEmpty(prop)) {
                         continue;
                     }
-                    if (hasRestParamValues(prop)) {
+                    if (hasIncludedRecordRestArgs(prop)) {
                         tokenBuilder.keyword(SyntaxKind.COMMA_TOKEN);
                         addIncludedRecordRestParamValues(prop);
                     }
@@ -572,8 +574,15 @@ public class SourceBuilder {
         return property.value() == null || (property.optional() && property.value().toString().isEmpty());
     }
 
-    private boolean hasRestParamValues(Property prop) {
+    private boolean hasRestArgs(Property prop) {
         if (prop.value() instanceof List<?> values) {
+            return !values.isEmpty();
+        }
+        return false;
+    }
+
+    private boolean hasIncludedRecordRestArgs(Property prop) {
+        if (prop.value() instanceof Map<?, ?> values) {
             return !values.isEmpty();
         }
         return false;
@@ -582,12 +591,12 @@ public class SourceBuilder {
     private void addRestParamValues(Property prop) {
         if (prop.value() instanceof List<?> values) {
             if (!values.isEmpty()) {
-                List<String> strValues = new ArrayList<>();
-                for (Object value : values) {
-                    if (value instanceof Property property) {
-                        strValues.add(property.toSourceCode());
-                    }
-                }
+                List<String> strValues = values.stream()
+                        .filter(Map.class::isInstance)
+                        .map(Map.class::cast)
+                        .map(val -> new Property.Builder<>(null)
+                                .value(val.get("value")).build().toSourceCode())
+                        .toList();
                 tokenBuilder.expression(String.join(", ", strValues));
             }
         }
@@ -596,17 +605,16 @@ public class SourceBuilder {
     private void addIncludedRecordRestParamValues(Property prop) {
         if (prop.value() instanceof Map<?,?> values) {
             if (!values.isEmpty()) {
-                List<String> result = new ArrayList<>();
-                for (Object keyObj : values.keySet()) {
+                List<String> keyValuePairs = new ArrayList<>();
+                values.forEach((keyObj, valueObj) -> {
                     String key = (String) keyObj;
-                    Object valueObj = values.get(keyObj);
-                    if (valueObj instanceof Property property) {
-                        String value = property.toSourceCode();
-                        result.add(key + " = " + value);
+                    String propertyValue = convertToProperty(valueObj).toSourceCode();
+                    if (!propertyValue.isEmpty()) {
+                        keyValuePairs.add(key + " = " + propertyValue);
                     }
-                }
+                });
 
-                tokenBuilder.expression(String.join(", ", result));
+                tokenBuilder.expression(String.join(", ", keyValuePairs));
             }
         }
     }

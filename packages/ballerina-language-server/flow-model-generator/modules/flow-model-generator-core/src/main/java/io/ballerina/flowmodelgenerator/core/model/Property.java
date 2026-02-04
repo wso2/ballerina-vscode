@@ -268,7 +268,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         return CommonUtils.extractLiteralFromStringTemplate(value.toString());
     }
 
-    private String buildMapSourceCode(Map<?, ?> valueMap) {
+    private static String buildMapSourceCode(Map<?, ?> valueMap) {
         if (valueMap.isEmpty()) {
             return "";
         }
@@ -285,7 +285,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         return keyValuePairs.isEmpty() ? "" : "{%s}".formatted(String.join(", ", keyValuePairs));
     }
 
-    private Property convertToProperty(Object propObj) {
+    public static Property convertToProperty(Object propObj) {
         Property.Builder<Object> builder = new Property.Builder<>(null);
         if (propObj instanceof Map<?,?> propMap) {
             builder.value(propMap.get("value"));
@@ -293,7 +293,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         return builder.build();
     }
 
-    private String buildListSourceCode(List<?> valueList) {
+    private static String buildListSourceCode(List<?> valueList) {
         if (valueList.isEmpty()) {
             return "";
         }
