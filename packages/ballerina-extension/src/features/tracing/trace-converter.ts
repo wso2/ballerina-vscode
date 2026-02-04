@@ -120,7 +120,7 @@ interface AttributeData {
  * Helper to extract a value from the span's attribute list by key.
  */
 function getAttribute(span: SpanData, key: string): string | null {
-    if (!span.attributes) return null;
+    if (!span.attributes) { return null; }
     const attr = span.attributes.find((a: AttributeData) => a.key === key);
     return attr ? attr.value : null;
 }
@@ -129,7 +129,7 @@ function getAttribute(span: SpanData, key: string): string | null {
  * Parses a JSON string safely, returning null or a default if parsing fails.
  */
 function safeJsonParse(jsonString: string | null): any {
-    if (!jsonString) return null;
+    if (!jsonString) { return null; }
     try {
         return JSON.parse(jsonString);
     } catch (e) {
@@ -198,9 +198,9 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
             content: msg.content
         };
 
-        if (msg.name) base.name = msg.name;
-        if (msg.toolCalls) base.toolCalls = msg.toolCalls;
-        if (msg.id) base.id = msg.id;
+        if (msg.name) { base.name = msg.name; }
+        if (msg.toolCalls) { base.toolCalls = msg.toolCalls; }
+        if (msg.id) { base.id = msg.id; }
 
         return base as ChatMessage;
     });
