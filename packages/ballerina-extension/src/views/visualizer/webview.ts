@@ -28,6 +28,8 @@ import { LANGUAGE } from "../../core";
 import { CodeData, MACHINE_VIEW } from "@wso2/ballerina-core";
 import { refreshDataMapper } from "../../rpc-managers/data-mapper/utils";
 import { AiPanelWebview } from "../ai-panel/webview";
+import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
+import { StateMachinePopup } from "../../stateMachinePopup";
 
 export class VisualizerWebview {
     public static currentPanel: VisualizerWebview | undefined;
@@ -106,8 +108,10 @@ export class VisualizerWebview {
             vscode.commands.executeCommand('setContext', 'isBalVisualizerActive', this._panel?.active);
             // Refresh the webview when becomes active
             const state = StateMachine.state();
+            const popupState = StateMachinePopup.state();
             const machineReady = typeof state === 'object' && 'viewActive' in state && state.viewActive === "viewReady";
-            if (this._panel?.active && machineReady) {
+            const popupActive = typeof popupState === 'object' && 'open' in popupState && popupState.open === "active";
+            if (this._panel?.active && machineReady && !popupActive) {
                 sendUpdateNotificationToWebview(true);
             }
         });
@@ -281,6 +285,8 @@ export class VisualizerWebview {
     }
 
     public dispose() {
+        approvalViewManager.onVisualizerClosed();
+
         VisualizerWebview.currentPanel = undefined;
         this._panel?.dispose();
 
