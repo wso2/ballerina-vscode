@@ -180,7 +180,7 @@ public class Value {
 
     public static Value convertToValue(Object propObj) {
         Value.ValueBuilder builder = new Value.ValueBuilder();
-        if (propObj instanceof Map<?,?> propMap) {
+        if (propObj instanceof Map<?, ?> propMap) {
             builder.value(propMap.get("value"));
         }
         return builder.build();

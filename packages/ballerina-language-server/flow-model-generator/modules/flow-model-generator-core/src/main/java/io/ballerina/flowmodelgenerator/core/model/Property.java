@@ -953,7 +953,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         private boolean handleRecordValue(Node value, SemanticModel semanticModel, Builder<?> builder,
                                           Optional<TypeSymbol> paramType) {
-            if (!(paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD)) {
+            if (!(paramType.isPresent() && CommonUtil.getRawType(paramType.get()).typeKind() == TypeDescKind.RECORD)) {
                return false;
             }
             builder.types.stream()

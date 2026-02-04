@@ -167,7 +167,7 @@ public class PropertyType {
 
                                 // add the merged type
                                 propertyTypes.add(new PropertyType(fieldType, mergedBallerinaType, null,
-                                        distinctMembers, null,false, null, null,
+                                        distinctMembers, null, false, null, null,
                                         null, null));
                             }
                         });
@@ -392,7 +392,8 @@ public class PropertyType {
                 });
     }
 
-    public static void handleRestArguments(Value.ValueBuilder builder, List<Node> values, List<PropertyType> propertyTypes) {
+    public static void handleRestArguments(Value.ValueBuilder builder, List<Node> values,
+                                           List<PropertyType> propertyTypes) {
         // Find and update the matching property type
         propertyTypes.stream()
                 .filter(propType -> propType.fieldType().equals(Value.FieldType.REPEATABLE_LIST))
@@ -555,7 +556,7 @@ public class PropertyType {
 
     private static boolean handleRecordValue(Node value, SemanticModel semanticModel, Value.ValueBuilder valueBuilder,
                                              Optional<TypeSymbol> paramType, List<PropertyType> propertyTypes) {
-        if (!(paramType.isPresent() && paramType.get().typeKind() == TypeDescKind.RECORD)) {
+        if (!(paramType.isPresent() && CommonUtil.getRawType(paramType.get()).typeKind() == TypeDescKind.RECORD)) {
             return false;
         }
         propertyTypes.stream()
