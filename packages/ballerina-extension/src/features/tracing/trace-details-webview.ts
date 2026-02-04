@@ -19,6 +19,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as os from 'os';
+import * as crypto from 'crypto';
 import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { Trace, TraceServer } from './trace-server';
@@ -60,6 +61,21 @@ interface ScopeData {
 interface AttributeData {
     key: string;
     value: string;
+}
+
+// New Interface for the Case Object
+interface EvalCase {
+    id: string;
+    name: string;
+    traces: any[]; // Array of trace objects
+}
+
+interface EvalSet {
+    id: string;
+    name?: string;
+    description?: string;
+    cases: EvalCase[]; // Updated to use the EvalCase object
+    created_on: number;
 }
 
 export class TraceDetailsWebview {
@@ -399,7 +415,23 @@ export class TraceDetailsWebview {
 
             if (fileUri) {
                 const evalsetTrace = convertTraceToEvalset(traceData);
-                const jsonContent = JSON.stringify(evalsetTrace, null, 2);
+
+                // Construct the Case Object
+                const evalCase: EvalCase = {
+                    id: crypto.randomUUID(),
+                    name: `Case - ${traceData.traceId.substring(0, 8)}`,
+                    traces: [evalsetTrace]
+                };
+
+                const evalSet: EvalSet = {
+                    id: crypto.randomUUID(),
+                    name: `Trace ${traceData.traceId}`,
+                    description: "Single trace export",
+                    cases: [evalCase], // Add the Case object to the array
+                    created_on: Date.now() / 1000.0
+                };
+
+                const jsonContent = JSON.stringify(evalSet, null, 2);
                 await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
                 vscode.window.showInformationMessage(`Trace exported as evalset to ${fileUri.fsPath}`);
             }
@@ -439,7 +471,23 @@ export class TraceDetailsWebview {
 
             if (fileUri) {
                 const evalsetTraces = convertTracesToEvalset(sessionTraces);
-                const jsonContent = JSON.stringify(evalsetTraces, null, 2);
+
+                // Construct the Case Object
+                const evalCase: EvalCase = {
+                    id: crypto.randomUUID(),
+                    name: `Case - ${sessionId.substring(0, 8)}`,
+                    traces: evalsetTraces
+                };
+
+                const evalSet: EvalSet = {
+                    id: crypto.randomUUID(),
+                    name: `Session ${sessionId}`,
+                    description: "Session export",
+                    cases: [evalCase], // Add the Case object to the array
+                    created_on: Date.now() / 1000.0
+                };
+
+                const jsonContent = JSON.stringify(evalSet, null, 2);
                 await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
                 vscode.window.showInformationMessage(`Session exported as evalset to ${fileUri.fsPath}`);
             }
@@ -618,4 +666,3 @@ export class TraceDetailsWebview {
         }
     }
 }
-
