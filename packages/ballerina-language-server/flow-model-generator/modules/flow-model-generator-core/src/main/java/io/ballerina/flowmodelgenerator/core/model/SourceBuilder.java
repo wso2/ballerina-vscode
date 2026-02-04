@@ -552,7 +552,7 @@ public class SourceBuilder {
                 }
                 addRestParamValues(prop);
             } else if (kind.equals(ParameterData.Kind.INCLUDED_RECORD_REST.name())) {
-                if (isPropValueEmpty(prop) || ((List<?>) prop.value()).isEmpty()) {
+                if (isPropValueEmpty(prop) || ((Map<?, ?>) prop.value()).isEmpty()) {
                     continue;
                 }
                 if (firstParamAdded) {
@@ -603,7 +603,7 @@ public class SourceBuilder {
     }
 
     private void addIncludedRecordRestParamValues(Property prop) {
-        if (prop.value() instanceof Map<?,?> values) {
+        if (prop.value() instanceof Map<?, ?> values) {
             if (!values.isEmpty()) {
                 List<String> keyValuePairs = new ArrayList<>();
                 values.forEach((keyObj, valueObj) -> {

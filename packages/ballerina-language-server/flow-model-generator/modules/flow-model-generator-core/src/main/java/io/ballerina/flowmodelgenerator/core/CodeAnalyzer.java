@@ -1306,70 +1306,80 @@ public class CodeAnalyzer extends NodeVisitor {
                 nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
             }
 
-            for (Map.Entry<String, Node> entry : namedArgValueMap.entrySet()) { // handle remaining named args
-                String escapedParamName = CommonUtil.escapeReservedKeyword(entry.getKey());
-                if (!funcParamMap.containsKey(escapedParamName)) {
-                    LinkedHashMap<String, Node> map = new LinkedHashMap<>();
-                    map.put(entry.getKey(), entry.getValue());
-                    includedRecordRestArgs.add(map);
-                    continue;
-                }
-                Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
-                        nodeBuilder.properties().custom();
-                ParameterData paramResult = funcParamMap.remove(escapedParamName);
-                String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
-                Node paramValue = entry.getValue();
-                String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
-
-                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
-                        .metadata()
-                            .label(paramResult.label())
-                            .description(paramResult.description())
-                            .stepOut()
-                        .imports(paramResult.importStatements())
-                        .value(value)
-                        .placeholder(paramResult.placeholder())
-                        .defaultValue(paramResult.defaultValue())
-                        .editable()
-                        .defaultable(paramResult.optional())
-                        .codedata()
-                            .kind(paramResult.kind().name())
-                            .originalName(paramResult.name())
-                            .stepOut()
-                        .stepOut();
-
-                buildPropertyTypeForRestParam(customPropBuilder, paramResult, paramValue);
-                nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
-            }
-            ParameterData includedRecordRest = funcParamMap.get("Additional Values");
-            if (includedRecordRest != null) {
-                funcParamMap.remove("Additional Values");
-                Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
-                        nodeBuilder.properties().custom();
-                FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
-                        .metadata()
-                        .label(includedRecordRest.label())
-                        .description(includedRecordRest.description())
-                        .stepOut()
-                        .imports(includedRecordRest.importStatements())
-                        .value(includedRecordRestArgs)
-                        .placeholder(includedRecordRest.placeholder())
-                        .defaultValue(includedRecordRest.defaultValue())
-                        .editable()
-                        .defaultable(includedRecordRest.optional())
-                        .codedata()
-                        .kind(includedRecordRest.kind().name())
-                        .originalName(includedRecordRest.name())
-                        .stepOut()
-                        .stepOut();
-
-                buildPropertyTypeForIncludedRecordRest(customPropBuilder, includedRecordRest, includedRecordRestArgs);
-                nodeBuilderFormBuilder.addProperty("additionalValues");
-            }
+            handleRemaningNamedArgs(funcParamMap, namedArgValueMap, includedRecordRestArgs);
+            handleIncludedRecordRestArgs(funcParamMap, includedRecordRestArgs);
             if (hasIncludedParamAsNamedArg) {
                 return;
             }
             addRemainingParamsToPropertyMap(funcParamMap, hasOnlyRestParams);
+        }
+    }
+
+    private void handleRemaningNamedArgs(Map<String, ParameterData> funcParamMap, Map<String, Node> namedArgValueMap,
+                                         List<LinkedHashMap<String, Node>> includedRecordRestArgs) {
+        for (Map.Entry<String, Node> entry : namedArgValueMap.entrySet()) {
+            String escapedParamName = CommonUtil.escapeReservedKeyword(entry.getKey());
+            if (!funcParamMap.containsKey(escapedParamName)) {
+                LinkedHashMap<String, Node> map = new LinkedHashMap<>();
+                map.put(entry.getKey(), entry.getValue());
+                includedRecordRestArgs.add(map);
+                continue;
+            }
+            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
+                    nodeBuilder.properties().custom();
+            ParameterData paramResult = funcParamMap.remove(escapedParamName);
+            String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
+            Node paramValue = entry.getValue();
+            String value = paramValue != null ? paramValue.toSourceCode().strip() : null;
+
+            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                    .metadata()
+                        .label(paramResult.label())
+                        .description(paramResult.description())
+                        .stepOut()
+                    .imports(paramResult.importStatements())
+                    .value(value)
+                    .placeholder(paramResult.placeholder())
+                    .defaultValue(paramResult.defaultValue())
+                    .editable()
+                    .defaultable(paramResult.optional())
+                    .codedata()
+                        .kind(paramResult.kind().name())
+                        .originalName(paramResult.name())
+                        .stepOut()
+                    .stepOut();
+
+            buildPropertyTypeForRestParam(customPropBuilder, paramResult, paramValue);
+            nodeBuilderFormBuilder.addProperty(FlowNodeUtil.getPropertyKey(unescapedParamName), paramValue);
+        }
+    }
+
+    private void handleIncludedRecordRestArgs(Map<String, ParameterData> funcParamMap,
+                                              List<LinkedHashMap<String, Node>> includedRecordRestArgs) {
+        ParameterData includedRecordRest = funcParamMap.get("Additional Values");
+        if (includedRecordRest != null) {
+            funcParamMap.remove("Additional Values");
+            Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
+                    nodeBuilder.properties().custom();
+            FormBuilder<NodeBuilder> nodeBuilderFormBuilder = customPropBuilder
+                    .metadata()
+                    .label(includedRecordRest.label())
+                    .description(includedRecordRest.description())
+                    .stepOut()
+                    .imports(includedRecordRest.importStatements())
+                    .value(includedRecordRestArgs)
+                    .placeholder(includedRecordRest.placeholder())
+                    .defaultValue(includedRecordRest.defaultValue())
+                    .editable()
+                    .defaultable(includedRecordRest.optional())
+                    .codedata()
+                    .kind(includedRecordRest.kind().name())
+                    .originalName(includedRecordRest.name())
+                    .stepOut()
+                    .stepOut();
+
+            buildPropertyTypeForIncludedRecordRest(customPropBuilder, includedRecordRest, includedRecordRestArgs);
+            nodeBuilderFormBuilder.addProperty("additionalValues");
         }
     }
 
@@ -1388,7 +1398,8 @@ public class CodeAnalyzer extends NodeVisitor {
         }
     }
 
-    private void buildPropertyTypeForRestParam(Property.Builder<?> builder, ParameterData paramData, List<Node> values) {
+    private void buildPropertyTypeForRestParam(Property.Builder<?> builder, ParameterData paramData,
+                                               List<Node> values) {
         Property template = builder.buildRepeatableTemplates(paramData.typeSymbol(), semanticModel, moduleInfo);
         builder.type()
                 .fieldType(Property.ValueType.REPEATABLE_LIST)

@@ -30,10 +30,10 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.BindingPatternNode;
 import io.ballerina.compiler.syntax.tree.FieldBindingPatternFullNode;
+import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.MappingBindingPatternNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
-import io.ballerina.compiler.syntax.tree.ListBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -287,7 +287,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static Property convertToProperty(Object propObj) {
         Property.Builder<Object> builder = new Property.Builder<>(null);
-        if (propObj instanceof Map<?,?> propMap) {
+        if (propObj instanceof Map<?, ?> propMap) {
             builder.value(propMap.get("value"));
         }
         return builder.build();
@@ -604,7 +604,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
-            if (typeSymbol == null) {
+            if (typeSymbol == null || moduleInfo == null || builder == null) {
                 return this;
             }
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
@@ -719,9 +719,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             .ifPresent(propType -> propType.selected(true));
                     if (finalMatchingValueType.equals(ValueType.TEXT)) {
                         String valueStr = value.toSourceCode().strip();
-                        if (builder != null) {
-                            builder.value(CommonUtils.unescapeContent(valueStr));
-                        }
+                        builder.value(CommonUtils.unescapeContent(valueStr));
                     }
                 }
             }
@@ -840,17 +838,20 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                         // Build value list from binding pattern nodes
                         Map<String, Property> valueMap = new LinkedHashMap<>();
                         for (LinkedHashMap<String, Node> arg : values) {
-                            String fieldKey = arg.keySet().iterator().next();
-                            Node fieldValueNode = arg.get(fieldKey);
+                            for (Map.Entry<String, Node> entry : arg.entrySet()) {
+                                String fieldKey = entry.getKey();
+                                Node fieldValueNode = entry.getValue();
 
-                            Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
-                            templateBuilder.types.stream()
-                                    .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
-                                    .findFirst()
-                                    .ifPresent(pt -> pt.selected(true));
-                            templateBuilder.value(fieldValueNode.toSourceCode().trim());
+                                Builder<Object> templateBuilder = createPropertyBuilderFrom(template);
+                                templateBuilder.types.stream()
+                                        .filter(pt -> pt.fieldType() == ValueType.EXPRESSION)
+                                        .findFirst()
+                                        .ifPresent(pt -> pt.selected(true));
+                                templateBuilder.value(fieldValueNode.toSourceCode().trim());
 
-                            valueMap.put(fieldKey, templateBuilder.build());
+                                valueMap.put(fieldKey, templateBuilder.build());
+                                break; // Only process the first entry since we expect one entry per map
+                            }
                         }
 
                         builder.value(valueMap);
@@ -992,7 +993,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             switch (rawType.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
-                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> builder.type(ValueType.NUMBER, ballerinaType);
+                     INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL ->
+                        builder.type(ValueType.NUMBER, ballerinaType);
                 case STRING, STRING_CHAR -> builder.type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> builder.type(ValueType.FLAG, ballerinaType);
                 case ARRAY -> builder.type()
