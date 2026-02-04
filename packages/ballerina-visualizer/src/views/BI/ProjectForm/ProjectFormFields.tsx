@@ -70,16 +70,15 @@ export interface ProjectFormData {
 export interface ProjectFormFieldsProps {
     formData: ProjectFormData;
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
-    onValidationChange?: (isValid: boolean) => void;
+    integrationNameError?: string;
     pathError?: string;
     packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, onValidationChange, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [showOptionalConfigurations, setShowOptionalConfigurations] = useState(false);
-    const [packageNameError, setPackageNameError] = useState<string | null>(null);
     const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
 
     const handleIntegrationName = (value: string) => {
@@ -95,10 +94,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
-        }
     };
 
     const handleProjectDirSelection = async () => {
@@ -128,13 +123,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         })();
     }, []);
 
-    // Effect to trigger validation when requested by parent
-    useEffect(() => {
-        const error = validatePackageName(formData.packageName, formData.integrationName);
-        setPackageNameError(error);
-        onValidationChange?.(error === null);
-    }, [formData.packageName, onValidationChange]);
-
     return (
         <>
             <FieldGroup>
@@ -145,6 +133,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     placeholder="Enter an integration name"
                     autoFocus={true}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
@@ -154,7 +143,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameValidationError || packageNameError || ""}
+                    errorMsg={packageNameValidationError || ""}
                 />
             </FieldGroup>
 
