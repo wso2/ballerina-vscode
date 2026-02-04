@@ -85,6 +85,7 @@ import { SamplesView } from "./views/BI/SamplesView";
 import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
+import { EvalsetViewer } from "./views/EvalsetViewer";
 
 const globalStyles = css`
     *,
@@ -629,6 +630,15 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ReviewMode:
                         setViewComponent(
                             <ReviewMode />
+                        );
+                        break;
+                    case MACHINE_VIEW.EvalsetViewer:
+                        setViewComponent(
+                            <EvalsetViewer
+                                filePath={value?.evalsetData.filePath}
+                                content={value?.evalsetData.content}
+                                caseId={value?.evalsetData?.caseId}
+                            />
                         );
                         break;
                     default:

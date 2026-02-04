@@ -101,7 +101,8 @@ export enum MACHINE_VIEW {
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
     BISamplesView = "BI Samples View",
-    ReviewMode = "Review Mode SKIP"
+    ReviewMode = "Review Mode SKIP",
+    EvalsetViewer = "Evalset Viewer"
 }
 
 export interface MachineEvent {
@@ -151,6 +152,7 @@ export interface VisualizerLocation {
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
     reviewData?: ReviewModeData;
+    evalsetData?: EvalsetData;
 }
 
 export interface ArtifactInfo {
@@ -199,6 +201,27 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+}
+
+export interface EvalCase {
+    id: string;
+    name: string;
+    traces: any[];
+    created_on: string;
+}
+
+export interface EvalSet {
+    id: string;
+    name?: string;
+    description?: string;
+    cases: EvalCase[];
+    created_on: string;
+}
+
+export interface EvalsetData {
+    filePath: string;
+    content: EvalSet;
+    caseId?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
