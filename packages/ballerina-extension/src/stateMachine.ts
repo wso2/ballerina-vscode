@@ -316,6 +316,7 @@ const stateMachine = createMachine<MachineContext>(
                                 artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
                                 rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                                 reviewData: (context, event) => event.viewLocation?.reviewData,
+                                evalsetData: (context, event) => event.viewLocation?.evalsetData,
                                 isViewUpdateTransition: false
                             }),
                             (context, event) => notifyTreeView(
@@ -379,6 +380,7 @@ const stateMachine = createMachine<MachineContext>(
                                     agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
                                     reviewData: (context, event) => event.data.reviewData,
+                                    evalsetData: (context, event) => event.data.evalsetData,
                                     isViewUpdateTransition: false
                                 })
                             }
@@ -407,6 +409,7 @@ const stateMachine = createMachine<MachineContext>(
                                         artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
                                         rootDiagramId: (context, event) => event.viewLocation?.rootDiagramId,
                                         reviewData: (context, event) => event.viewLocation?.reviewData,
+                                        evalsetData: (context, event) => event.viewLocation?.evalsetData,
                                         isViewUpdateTransition: false
                                     }),
                                     (context, event) => notifyTreeView(
@@ -432,6 +435,7 @@ const stateMachine = createMachine<MachineContext>(
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         reviewData: (context, event) => event.viewLocation?.reviewData,
+                                        evalsetData: (context, event) => event.viewLocation?.evalsetData,
                                         isViewUpdateTransition: true
                                     }),
                                     (context, event) => notifyTreeView(
@@ -658,7 +662,8 @@ const stateMachine = createMachine<MachineContext>(
                             addType: context?.addType,
                             agentMetadata: context?.agentMetadata,
                             dataMapperMetadata: context?.dataMapperMetadata,
-                            reviewData: context?.reviewData
+                            reviewData: context?.reviewData,
+                            evalsetData: context?.evalsetData
                         }
                     });
                     return resolve();

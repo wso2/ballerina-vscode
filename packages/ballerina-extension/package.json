@@ -744,6 +744,13 @@
             }
         ],
         "views": {
+            "test": [
+                {
+                    "id": "ballerina-evalsets",
+                    "name": "Eval Sets",
+                    "when": "isBIProject || isBallerinaProject"
+                }
+            ],
             "ballerina-traceView": [
                 {
                     "id": "ballerina-traceView",

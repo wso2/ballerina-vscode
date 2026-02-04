@@ -25,6 +25,7 @@ import { extension } from '../../BalExtensionContext';
 import { Trace, TraceServer } from './trace-server';
 import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } from '../../utils/webview-utils';
 import { convertTraceToEvalset, convertTracesToEvalset } from './trace-converter';
+import { EvalCase, EvalSet } from '@wso2/ballerina-core';
 
 // TraceData interface matching the trace-visualizer component
 interface TraceData {
@@ -61,21 +62,6 @@ interface ScopeData {
 interface AttributeData {
     key: string;
     value: string;
-}
-
-// New Interface for the Case Object
-interface EvalCase {
-    id: string;
-    name: string;
-    traces: any[]; // Array of trace objects
-}
-
-interface EvalSet {
-    id: string;
-    name?: string;
-    description?: string;
-    cases: EvalCase[]; // Updated to use the EvalCase object
-    created_on: number;
 }
 
 export class TraceDetailsWebview {
@@ -416,19 +402,19 @@ export class TraceDetailsWebview {
             if (fileUri) {
                 const evalsetTrace = convertTraceToEvalset(traceData);
 
-                // Construct the Case Object
                 const evalCase: EvalCase = {
                     id: crypto.randomUUID(),
                     name: `Case - ${traceData.traceId.substring(0, 8)}`,
-                    traces: [evalsetTrace]
+                    traces: [evalsetTrace],
+                    created_on: new Date().toISOString()
                 };
 
                 const evalSet: EvalSet = {
                     id: crypto.randomUUID(),
                     name: `Trace ${traceData.traceId}`,
                     description: "Single trace export",
-                    cases: [evalCase], // Add the Case object to the array
-                    created_on: Date.now() / 1000.0
+                    cases: [evalCase],
+                    created_on: new Date().toISOString()
                 };
 
                 const jsonContent = JSON.stringify(evalSet, null, 2);
@@ -472,19 +458,19 @@ export class TraceDetailsWebview {
             if (fileUri) {
                 const evalsetTraces = convertTracesToEvalset(sessionTraces);
 
-                // Construct the Case Object
                 const evalCase: EvalCase = {
                     id: crypto.randomUUID(),
                     name: `Case - ${sessionId.substring(0, 8)}`,
-                    traces: evalsetTraces
+                    traces: evalsetTraces,
+                    created_on: new Date().toISOString()
                 };
 
                 const evalSet: EvalSet = {
                     id: crypto.randomUUID(),
                     name: `Session ${sessionId}`,
                     description: "Session export",
-                    cases: [evalCase], // Add the Case object to the array
-                    created_on: Date.now() / 1000.0
+                    cases: [evalCase],
+                    created_on: new Date().toISOString()
                 };
 
                 const jsonContent = JSON.stringify(evalSet, null, 2);

@@ -152,6 +152,7 @@ async function getContext(): Promise<VisualizerLocation> {
             artifactInfo: context.artifactInfo,
             reviewData: context.reviewData,
             agentMetadata: context.agentMetadata
+            evalsetData: context.evalsetData
         });
     });
 }

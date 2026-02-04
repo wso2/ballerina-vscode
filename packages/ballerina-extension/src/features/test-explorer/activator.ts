@@ -17,7 +17,7 @@
  * under the License.
  */
 
-import { tests, workspace, TestRunProfileKind, TestController, Uri } from "vscode";
+import { tests, workspace, TestRunProfileKind, TestController, Uri, window, commands } from "vscode";
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
@@ -25,10 +25,34 @@ import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdat
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
 import { PROJECT_TYPE } from "../project";
+import { EvalsetTreeDataProvider } from "./evalset-tree-view";
+import { openView } from "../../stateMachine";
+import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import * as fs from 'fs';
 
 export let testController: TestController;
 
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
+    // Register command to open evalset viewer
+    const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, caseId?: string) => {
+        try {
+            const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
+            const evalsetData = JSON.parse(content) as EvalSet;
+
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.EvalsetViewer,
+                evalsetData: {
+                    filePath: uri.fsPath,
+                    content: evalsetData,
+                    caseId: caseId
+                }
+            });
+        } catch (error) {
+            console.error('Error opening evalset:', error);
+            window.showErrorMessage(`Failed to open evalset: ${error}`);
+        }
+    });
+
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
 
     const workspaceRoot = getWorkspaceRoot();
@@ -46,6 +70,13 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
         return;
     }
 
+    // Create and register Evalset TreeView
+    const evalsetTreeDataProvider = new EvalsetTreeDataProvider();
+    const evalsetTreeView = window.createTreeView('ballerina-evalsets', {
+        treeDataProvider: evalsetTreeDataProvider,
+        showCollapseAll: true
+    });
+
     // Create test profiles to display.
     testController.createRunProfile('Run Tests', TestRunProfileKind.Run, runHandler, true);
     testController.createRunProfile('Debug Tests', TestRunProfileKind.Debug, runHandler, true);
@@ -62,7 +93,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand);
 
     activateEditBiTest();
 }
