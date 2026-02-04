@@ -272,6 +272,38 @@
             },
             "types": [
               {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "RECORD_MAP_EXPRESSION",
+                      "ballerinaType": "ai:ToolConfig",
+                      "typeMembers": [
+                        {
+                          "type": "ToolConfig",
+                          "packageInfo": "ballerina:ai:1.9.0",
+                          "packageName": "ai",
+                          "kind": "RECORD_TYPE",
+                          "selected": false
+                        }
+                      ],
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
+              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
                 "selected": false
@@ -860,6 +892,38 @@
               "description": "The tools available for the agent"
             },
             "types": [
+              {
+                "fieldType": "REPEATABLE_LIST",
+                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
+                "template": {
+                  "types": [
+                    {
+                      "fieldType": "RECORD_MAP_EXPRESSION",
+                      "ballerinaType": "ai:ToolConfig",
+                      "typeMembers": [
+                        {
+                          "type": "ToolConfig",
+                          "packageInfo": "ballerina:ai:1.9.0",
+                          "packageName": "ai",
+                          "kind": "RECORD_TYPE",
+                          "selected": false
+                        }
+                      ],
+                      "selected": false
+                    },
+                    {
+                      "fieldType": "EXPRESSION",
+                      "ballerinaType": "ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool",
+                      "selected": false
+                    }
+                  ],
+                  "optional": false,
+                  "editable": false,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "selected": false
+              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",

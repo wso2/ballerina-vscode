@@ -604,7 +604,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
-            if (typeSymbol == null || moduleInfo == null || builder == null) {
+            if (typeSymbol == null || builder == null) {
                 return this;
             }
             String ballerinaType = CommonUtils.getTypeSignature(typeSymbol, moduleInfo);
