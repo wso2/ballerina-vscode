@@ -24,7 +24,12 @@ export enum InputMode {
   NUMBER = "Number",
   BOOLEAN = "Boolean",
   SQL = "SQL",
-  PROMPT = "Prompt"
+  SELECT = "Select",
+  ARRAY = "Array",
+  TEXT_ARRAY = "Text Array",
+  PROMPT = "Prompt",
+  MAP = "Map",
+  MAP_EXP = "Mapping"
 };
 
 export const INPUT_MODE_MAP = {
@@ -32,6 +37,7 @@ export const INPUT_MODE_MAP = {
   int: InputMode.NUMBER,
   boolean: InputMode.BOOLEAN,
   "sql:ParameterizedQuery": InputMode.SQL,
+  "io:Printable": InputMode.TEXT,
   "ai:Prompt": InputMode.PROMPT
 };
 

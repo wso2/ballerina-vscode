@@ -20,9 +20,10 @@ import React from "react";
 import { Button, Icon } from "@wso2/ui-toolkit";
 
 import { DiagnosticTooltip } from "./DiagnosticTooltip";
+import { DMDiagnostic } from "@wso2/ballerina-core";
 
 export interface DiagnosticWidgetProps {
-    diagnostic: any,
+    diagnostic: DMDiagnostic,
     value?: string,
     onClick?: () => void,
     isLabelElement? : boolean,
@@ -33,7 +34,7 @@ export function DiagnosticWidget(props: DiagnosticWidgetProps) {
     const {diagnostic, value, onClick, btnSx} =  props;
 
     return (
-        <DiagnosticTooltip diagnostic={diagnostic} value={value} onClick={onClick}>
+        <DiagnosticTooltip diagnostic={diagnostic.message} value={value} onClick={onClick}>
             <Button
                 appearance="icon"
                 data-testid={`expression-label-diagnostic`}

@@ -16,12 +16,12 @@
  * under the License.
  */
 import * as vscode from "vscode";
-import * as path from 'path';
 import { URI, Utils } from "vscode-uri";
 import { ARTIFACT_TYPE, Artifacts, ArtifactsNotification, BaseArtifact, DIRECTORY_MAP, PROJECT_KIND, ProjectInfo, ProjectStructure, ProjectStructureArtifactResponse, ProjectStructureResponse } from "@wso2/ballerina-core";
 import { StateMachine } from "../stateMachine";
 import { ExtendedLangClient } from "../core/extended-language-client";
 import { ArtifactsUpdated, ArtifactNotificationHandler } from "./project-artifacts-handler";
+import { isLibraryProject } from "./config";
 
 export async function buildProjectsStructure(
     projectInfo: ProjectInfo,
@@ -68,6 +68,9 @@ async function buildProjectArtifactsStructure(
         projectName: packageName,
         projectPath: projectPath,
         projectTitle: packageTitle,
+        // Workaround to check if the project is a library project.
+        // This will be removed once the projectInfo is updated to include the library flag.
+        isLibrary: await isLibraryProject(projectPath),
         directoryMap: {
             [DIRECTORY_MAP.AUTOMATION]: [],
             [DIRECTORY_MAP.SERVICE]: [],
@@ -95,11 +98,21 @@ async function buildProjectArtifactsStructure(
 export async function updateProjectArtifacts(publishedArtifacts: ArtifactsNotification): Promise<void> {
     // Current project structure
     const currentProjectStructure: ProjectStructureResponse = StateMachine.context().projectStructure;
+    if (!StateMachine.context().projectPath && !StateMachine.context().workspacePath) {
+        console.warn("No project or workspace path found in the StateMachine context.");
+        return;
+    }
     const projectUri = URI.file(StateMachine.context().projectPath) || URI.file(StateMachine.context().workspacePath);
     const isWithinProject = URI
         .parse(publishedArtifacts.uri).fsPath.toLowerCase()
         .includes(projectUri.fsPath.toLowerCase());
-    if (currentProjectStructure && isWithinProject) {
+
+    const isSubmodule = publishedArtifacts?.moduleName;
+
+    const persistDir = Utils.joinPath(projectUri, 'persist').fsPath.toLowerCase();
+    const isInPersistDir = URI.parse(publishedArtifacts.uri).fsPath.toLowerCase().includes(persistDir);
+    
+    if (currentProjectStructure && isWithinProject && !isSubmodule && !isInPersistDir) {
         const entryLocations = await traverseUpdatedComponents(publishedArtifacts.artifacts, currentProjectStructure);
         const notificationHandler = ArtifactNotificationHandler.getInstance();
         // Publish a notification to the artifact handler
@@ -211,7 +224,11 @@ async function getEntryValue(artifact: BaseArtifact, projectPath: string, icon: 
             entryValue.icon = getCustomEntryNodeIcon(getTypePrefix(artifact.module));
             break;
         case DIRECTORY_MAP.CONNECTION:
-            entryValue.icon = icon;
+            if ((artifact as any).metadata?.connectorType === "persist") {
+                entryValue.icon = "bi-db";
+            } else {
+                entryValue.icon = icon;
+            }
             break;
         case DIRECTORY_MAP.RESOURCE:
             // Do things related to resource
@@ -478,6 +495,10 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-mcp";
         case "solace":
             return "bi-solace";
+        case "mssql":
+            return "bi-mssql";
+        case "postgresql":
+            return "bi-postgresql";
         default:
             return "bi-globe";
     }

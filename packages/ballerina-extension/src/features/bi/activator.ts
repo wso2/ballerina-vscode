@@ -36,7 +36,7 @@ import { readFileSync, readdirSync, statSync } from "fs";
 import path from "path";
 import { isPositionEqual, isPositionWithinDeletedComponent } from "../../utils/history/util";
 import { startDebugging } from "../editor-support/activator";
-import { createBIProjectFromMigration, createBIProjectPure } from "../../utils/bi";
+import { createBIProjectFromMigration, createBIProjectPure, createBIWorkspace, openInVSCode } from "../../utils/bi";
 import { createVersionNumber, findBallerinaPackageRoot, isSupportedSLVersion } from ".././../utils";
 import { extension } from "../../BalExtensionContext";
 import { VisualizerWebview } from "../../views/visualizer/webview";
@@ -78,7 +78,7 @@ export function activate(context: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_CUSTOM_CONNECTOR, async (item?: TreeItem) => {
-        await handleCommandWithContext(item, MACHINE_VIEW.AddCustomConnector);
+        await handleCommandWithContext(item, MACHINE_VIEW.AddConnectionWizard);
     });
 
     commands.registerCommand(BI_COMMANDS.ADD_ENTRY_POINT, async (item?: TreeItem) => {
@@ -105,12 +105,30 @@ export function activate(context: BallerinaExtension) {
         await handleCommandWithContext(item, MACHINE_VIEW.ViewConfigVariables);
     });
 
-    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, () => {
-        const isBallerinaWorkspace = !!StateMachine.context().workspacePath;
-        if (isBallerinaWorkspace) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
-        } else {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+    commands.registerCommand(BI_COMMANDS.SHOW_OVERVIEW, async () => {
+        try {
+            const result = await findWorkspaceTypeFromWorkspaceFolders();
+            if (result.type === "BALLERINA_WORKSPACE") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.WorkspaceOverview });
+            } else if (result.type === "SINGLE_PROJECT") {
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+            } else {
+                const packageRoot = await getCurrentProjectRoot();
+                if (!packageRoot || !window.activeTextEditor) {
+                    window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+                    return;
+                }
+                const projectInfo = await StateMachine.langClient().getProjectInfo({ projectPath: packageRoot });
+                await StateMachine.updateProjectRootAndInfo(packageRoot, projectInfo);
+                openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.PackageOverview });
+
+            }
+        } catch (error) {
+            if (error instanceof Error && error.message === 'No valid Ballerina project found') {
+                window.showErrorMessage(error.message);
+            } else {
+                window.showErrorMessage("Unknown error occurred.");
+            }
         }
     });
 
@@ -139,7 +157,13 @@ export function activate(context: BallerinaExtension) {
     commands.registerCommand(BI_COMMANDS.TOGGLE_TRACE_LOGS, toggleTraceLogs);
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_PROJECT, (params) => {
-        return createBIProjectPure(params);
+        let path: string;
+        if (params.createAsWorkspace) {
+            path = createBIWorkspace(params);
+        } else {
+            path = createBIProjectPure(params);
+        }
+        return path;
     });
 
     commands.registerCommand(BI_COMMANDS.CREATE_BI_MIGRATION_PROJECT, (params) => {
@@ -374,9 +398,13 @@ const findBallerinaFiles = (dir: string, fileList: string[] = []): string[] => {
 
 const handleComponentDeletion = async (componentType: string, itemLabel: string, filePath: string) => {
     const rpcClient = new BiDiagramRpcManager();
-    const projectPath = StateMachine.context().projectPath;
+    const { projectPath, projectInfo } = StateMachine.context();
+    const projectRoot = await findBallerinaPackageRoot(filePath);
+    if (projectRoot && (!projectPath || projectRoot !== projectPath)) {
+        await StateMachine.updateProjectRootAndInfo(projectRoot, projectInfo);
+    }
     const projectStructure = await rpcClient.getProjectStructure();
-    const project = projectStructure.projects.find(project => project.projectPath === projectPath);
+    const project = projectStructure.projects.find(project => project.projectPath === projectRoot);
     const componentCategory = project?.directoryMap[componentType];
 
     if (!componentCategory) {
@@ -384,7 +412,7 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
         return;
     }
 
-    componentCategory.forEach((component) => {
+    for (const component of componentCategory) {
         if (component.name === itemLabel) {
             const componentInfo: ComponentInfo = {
                 name: component.name,
@@ -396,9 +424,10 @@ const handleComponentDeletion = async (componentType: string, itemLabel: string,
                 resources: component?.resources
             };
 
-            deleteComponent(componentInfo, rpcClient, filePath);
+            await deleteComponent(componentInfo, rpcClient, filePath);
+            return;
         }
-    });
+    }
 };
 
 const handleLocalModuleDeletion = async (moduleName: string, filePath: string) => {

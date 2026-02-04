@@ -111,12 +111,11 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             key: `name`,
             label: "Tool Name",
             type: "IDENTIFIER",
-            valueType: "IDENTIFIER",
             optional: false,
             editable: true,
             documentation: "Enter the name of the tool.",
             value: "",
-            valueTypeConstraint: "Global",
+            types: [{fieldType: "IDENTIFIER", scope: "Global", selected: false }],
             enabled: true,
         },
         {
@@ -127,8 +126,7 @@ export function AIAgentSidePanel(props: BIFlowDiagramProps) {
             editable: true,
             documentation: "Enter the description of the tool.",
             value: "",
-            valueType: "STRING",
-            valueTypeConstraint: "",
+            types: [{fieldType: "STRING", selected: false }],
             enabled: true,
         },
     ];

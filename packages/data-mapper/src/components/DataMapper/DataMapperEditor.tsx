@@ -32,7 +32,7 @@ import { View } from "./Views/DataMapperView";
 import {
     useDMCollapsedFieldsStore,
     useDMExpandedFieldsStore,
-    useDMQueryClausesPanelStore,
+    useDMQueryClausesStore,
     useDMSearchStore,
     useDMSubMappingConfigPanelStore,
     useDMExpressionBarStore
@@ -49,6 +49,7 @@ import {
 import { SubMappingNodeInitVisitor } from "../../visitors/SubMappingNodeInitVisitor";
 import { SubMappingConfigForm } from "./SidePanel/SubMappingConfig/SubMappingConfigForm";
 import { ClausesPanel } from "./SidePanel/QueryClauses/ClausesPanel";
+import { ClauseForm } from "./SidePanel/QueryClauses/ClauseForm";
 
 const fadeIn = keyframes`
     from { opacity: 0.5; }
@@ -142,6 +143,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         goToFunction,
         enrichChildFields,
         genUniqueName,
+        getConvertedExpression,
         undoRedoGroup
     } = props;
     const {
@@ -163,8 +165,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
             resetSubMappingConfig: state.resetSubMappingConfig
         }))
     );
-    const { isQueryClausesPanelOpen} = useDMQueryClausesPanelStore();
-
+    const { isQueryClausesPanelOpen, isQueryClauseFormOpen } = useDMQueryClausesStore();
     const { resetSearchStore } = useDMSearchStore();
     const { rpcClient } = useRpcContext();
 
@@ -250,7 +251,8 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                 mapWithTransformFn,
                 goToFunction,
                 enrichChildFields,
-                genUniqueName
+                genUniqueName,
+                getConvertedExpression
             );
 
             const ioNodeInitVisitor = new IONodeInitVisitor(context);
@@ -295,7 +297,7 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
         useDMCollapsedFieldsStore.getState().resetFields();
         useDMExpandedFieldsStore.getState().resetFields();
         useDMExpressionBarStore.getState().resetExpressionBarStore();
-        useDMQueryClausesPanelStore.getState().resetQueryClausesPanelStore();
+        useDMQueryClausesStore.getState().resetQueryClausesPanelStore();
     }
 
     const handleOnClose = () => {
@@ -373,6 +375,15 @@ export function DataMapperEditor(props: DataMapperEditorProps) {
                             getClausePosition={getClausePosition}
                             generateForm={generateForm}
                             genUniqueName={genUniqueName}
+                        />
+                    )}
+                    {isQueryClauseFormOpen && (
+                        <ClauseForm
+                            query={model.query}
+                            targetField={views[views.length - 1].targetField}
+                            addClauses={addClauses}
+                            getClausePosition={getClausePosition}
+                            generateForm={generateForm}
                         />
                     )}
                 </>

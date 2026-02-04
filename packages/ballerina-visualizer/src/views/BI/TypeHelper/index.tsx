@@ -22,7 +22,7 @@ import { RefObject, useRef } from 'react';
 
 import { debounce } from 'lodash';
 import { useCallback, useState } from 'react';
-import { CodeData, LineRange } from '@wso2/ballerina-core';
+import { CodeData, InputType, LineRange, getPrimaryInputType } from '@wso2/ballerina-core';
 import {
     TypeHelperCategory,
     TypeHelperComponent,
@@ -49,7 +49,7 @@ const LoadingContainer = styled.div`
 
 type TypeHelperProps = {
     fieldKey: string;
-    valueTypeConstraint: string;
+    types: InputType[]
     typeBrowserRef: RefObject<HTMLDivElement>;
     filePath: string;
     exprRef: RefObject<FormExpressionEditorRef>;
@@ -69,7 +69,7 @@ type TypeHelperProps = {
 const TypeHelperEl = (props: TypeHelperProps) => {
     const {
         fieldKey,
-        valueTypeConstraint,
+        types,
         typeHelperState,
         filePath,
         targetLineRange,
@@ -99,14 +99,15 @@ const TypeHelperEl = (props: TypeHelperProps) => {
 
     const fetchedInitialTypes = useRef<boolean>(false);
 
+    const primaryBallerinaType = getPrimaryInputType(types)?.ballerinaType;
+
     const debouncedSearchTypeHelper = useCallback(
         debounce(async (searchText: string, isType: boolean) => {
             if (!rpcClient) return;
 
             if (isType && !fetchedInitialTypes.current) {
                 try {
-                    const isFetchingTypesForDM = valueTypeConstraint === "json";
-
+                    const isFetchingTypesForDM = primaryBallerinaType === "json";
                     const types = (typeHelperContext === TypeHelperContext.GRAPHQL_FIELD_TYPE || typeHelperContext === TypeHelperContext.GRAPHQL_INPUT_TYPE)
                         ? await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: filePath,
@@ -118,7 +119,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                                 line: targetLineRange.startLine.line,
                                 offset: targetLineRange.startLine.offset
                             },
-                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                            ...(primaryBallerinaType && { typeConstraint: primaryBallerinaType })
                         });
 
                     const basicTypes = getTypes(types, isFetchingTypesForDM);
@@ -174,7 +175,7 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                 setLoading(false);
             }
         }, 150),
-        [basicTypes, filePath, targetLineRange, valueTypeConstraint, typeHelperContext, rpcClient]
+        [basicTypes, filePath, targetLineRange, primaryBallerinaType, typeHelperContext, rpcClient]
     );
 
     const handleSearchTypeHelper = useCallback(

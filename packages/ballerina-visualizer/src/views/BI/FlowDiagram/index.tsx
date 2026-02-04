@@ -47,6 +47,9 @@ import {
     DataMapperDisplayMode,
     CodeData,
     JoinProjectPathRequest,
+    CodeContext,
+    AIPanelPrompt,
+    LinePosition,
 } from "@wso2/ballerina-core";
 
 import {
@@ -86,7 +89,7 @@ const Container = styled.div`
 
 export interface BIFlowDiagramProps {
     projectPath: string;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
     onUpdate: () => void;
     onReady: (fileName: string, parentMetadata?: ParentMetadata, position?: NodePosition) => void;
@@ -165,7 +168,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewChunker = useRef<boolean>(false);
 
     useEffect(() => {
-        debouncedGetFlowModel();
+        debouncedGetFlowModelForBreakpoints();
     }, [breakpointState]);
 
     useEffect(() => {
@@ -246,6 +249,14 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             getFlowModel();
         }, 1000),
         [hasDraft]
+    );
+
+    // Shorter debounce specifically for breakpoint changes (faster feedback)
+    const debouncedGetFlowModelForBreakpoints = useCallback(
+        debounce(() => {
+            getFlowModel();
+        }, 200),
+        []
     );
 
     // Navigation stack helpers
@@ -489,7 +500,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setBreakpointInfo(response);
                 rpcClient
                     .getBIDiagramRpcClient()
-                    .getFlowModel()
+                    .getFlowModel({})
                     .then((model) => {
                         console.log(">>> BIFlowDiagram getFlowModel", model);
                         if (model?.flowModel) {
@@ -498,7 +509,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                 currentSelectedNode &&
                                 typeof currentSelectedNode?.properties?.variable?.value === "string"
                             ) {
-                                const updatedSelectedNode = searchNodesByName(model.flowModel.nodes, currentSelectedNode?.properties?.variable?.value);
+                                const updatedSelectedNode = searchNodesByStartLine(model.flowModel.nodes, currentSelectedNode?.codedata.lineRange.startLine);
                                 if (updatedSelectedNode) {
                                     selectedNodeRef.current = updatedSelectedNode;
                                     setSelectedNodeId(updatedSelectedNode.id);
@@ -638,6 +649,13 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         return node?.properties?.variable?.value === name;
     }
 
+    const findNodeWithStartLine = (node: FlowNode, startLine: LinePosition) => {
+        return (
+            node?.codedata?.lineRange?.startLine.line === startLine.line &&
+            node?.codedata?.lineRange?.startLine.offset === startLine.offset
+        );
+    }
+
     const searchNodesByName = (nodes: FlowNode[], name: string): FlowNode | undefined => {
         for (const node of nodes) {
             if (findNodeWithName(node, name)) {
@@ -647,6 +665,25 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 for (const branch of node.branches) {
                     if (branch.children && branch.children.length > 0) {
                         const foundNode = searchNodesByName(branch.children, name);
+                        if (foundNode) {
+                            return foundNode;
+                        }
+                    }
+                }
+            }
+        }
+        return undefined;
+    };
+
+    const searchNodesByStartLine = (nodes: FlowNode[], startLine: LinePosition): FlowNode | undefined => {
+        for (const node of nodes) {
+            if (findNodeWithStartLine(node, startLine)) {
+                return node;
+            }
+            if (node.branches && node.branches.length > 0) {
+                for (const branch of node.branches) {
+                    if (branch.children && branch.children.length > 0) {
+                        const foundNode = searchNodesByStartLine(branch.children, startLine);
                         if (foundNode) {
                             return foundNode;
                         }
@@ -680,6 +717,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         const index = flattened.findIndex(node => node.id === targetNode.id);
         if (index > 0) {
             return flattened[index - 1];
+        }
+        return undefined;
+    };
+
+    const getNodeAfter = (targetNode: FlowNode, nodes: FlowNode[]): FlowNode | undefined => {
+        const flattened = flattenNodes(nodes);
+        const index = flattened.findIndex(node => node.id === targetNode.id);
+        if (index >= 0 && index < flattened.length - 1) {
+            return flattened[index + 1];
         }
         return undefined;
     };
@@ -813,27 +859,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddNodePrompt = (parent: FlowNode | Branch, target: LineRange, prompt: string) => {
-        if (topNodeRef.current || targetRef.current) {
-            closeSidePanelAndFetchUpdatedFlowModel();
-            return;
-        }
-        topNodeRef.current = parent;
-        changeTargetRange(target)
-        // Use hook to save original model for AI suggestions
-        addDraftNode(parent, target);
-        setFetchingAiSuggestions(true);
-        rpcClient
-            .getBIDiagramRpcClient()
-            .getAiSuggestions({ position: target, filePath: model.fileName, prompt })
-            .then((model) => {
-                if (model?.flowModel?.nodes?.length > 0) {
-                    setSuggestedModel(model.flowModel);
-                    suggestedText.current = model.suggestion;
-                }
-            })
-            .finally(() => {
-                setFetchingAiSuggestions(false);
-            });
+        // Create CodeContext from the target position
+        // TODO: Offset seem to be wrong. Investigate further
+        const codeContext: CodeContext = {
+            type: 'addition',
+            position: {
+                line: target.startLine.line,
+                offset: target.startLine.offset
+            },
+            filePath: model.fileName
+        };
+
+        // Create AIPanelPrompt with CodeContext - agent mode is the default
+        const aiPrompt: AIPanelPrompt = {
+            type: 'text',
+            text: prompt || '',
+            planMode: true,
+            codeContext
+        };
+
+        // Use the standard pattern - import from utils/commands
+        rpcClient.getAiPanelRpcClient().openAIPanel(aiPrompt);
     };
 
     const handleSearch = async (searchText: string, functionType: FUNCTION_TYPE, searchKind: SearchKind) => {
@@ -1245,7 +1291,8 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             return;
         }
         setShowProgressIndicator(true);
-        savingDraft();
+        // TODO: Uncomment this when the draft added with AI agent is implemented
+        // savingDraft(); 
         const noFormSubmitOptions = !options ||
             (
                 options?.closeSidePanel === undefined
@@ -1341,7 +1388,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     }
                     shouldUpdateLineRangeRef.current = options?.isChangeFromHelperPane;
                     if (options?.isChangeFromHelperPane) {
-                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel();
+                        const updatedModel = await rpcClient.getBIDiagramRpcClient().getFlowModel({});
                         if (!updatedModel?.flowModel) {
                             console.error(">>> Flow model missing after helper-pane update");
                             return;
@@ -1349,10 +1396,15 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
                         let newTargetLineRange = targetLineRange;
                         if (!selectedNodeRef.current?.codedata?.isNew) {
-                            const updatedSelectedNode = searchNodesByName(
+                            const insertedVariableNode = searchNodesByStartLine(
                                 updatedModel.flowModel.nodes,
-                                selectedNodeRef.current.properties?.variable?.value as string
+                                selectedNodeRef.current.codedata.lineRange.startLine
                             );
+                            if (!insertedVariableNode) {
+                                console.error(">>> Inserted node not found in updated flow model");
+                                return;
+                            }
+                            const updatedSelectedNode = getNodeAfter(insertedVariableNode, updatedModel.flowModel.nodes);
                             if (!updatedSelectedNode) {
                                 console.error(">>> Selected node not found in updated flow model");
                                 return;
@@ -1439,7 +1491,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                         label: "Comment",
                         description: "Comment to describe the flow",
                     },
-                    valueType: "STRING",
                     value: `\n${comment}\n\n`,
                     optional: false,
                     advanced: false,

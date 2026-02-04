@@ -27,6 +27,7 @@
         "react": "18.2.0",
         "react-dom": "18.2.0",
         "react-hook-form": "7.56.4",
+        "react-markdown": "~10.1.0",
         "@projectstorm/geometry": "^6.7.4",
         "@projectstorm/react-canvas-core": "^6.7.4",
         "@projectstorm/react-diagrams": "^7.0.4",
@@ -39,7 +40,7 @@
         "@emotion/react": "^11.9.3",
         "@emotion/styled": "^11.10.5",
         "dagre": "~0.8.5",
-        "lodash": "~4.17.21"
+        "lodash": "4.17.23"
     },
     "devDependencies": {
         "@storybook/react": "^6.3.7",

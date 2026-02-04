@@ -291,4 +291,16 @@ export class VisualizerRpcManager implements VisualizerAPI {
             resolve(currentArtifact);
         });
     }
+
+    reviewAccepted(): void {
+        // When user accepts changes in review mode, navigate back to normal view
+        console.log("Review accepted - changes will be kept");
+        // Navigate to package overview
+        openView(
+            EVENT_TYPE.OPEN_VIEW,
+            {
+                view: MACHINE_VIEW.PackageOverview
+            }
+        );
+    }
 }

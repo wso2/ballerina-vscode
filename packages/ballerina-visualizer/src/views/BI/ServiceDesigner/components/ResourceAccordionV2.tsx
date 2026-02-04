@@ -229,7 +229,7 @@ export function ResourceAccordionV2(params: ResourceAccordionPropsV2) {
     }
 
     return (
-        <AccordionContainer data-testid="service-design-view-resource">
+        <AccordionContainer data-testid="service-agent-view-resource">
             <AccordionHeader onClick={handleResourceImplement}>
                 <MethodSection>
                     <MethodBox color={getColorByMethod(resource.icon)}>

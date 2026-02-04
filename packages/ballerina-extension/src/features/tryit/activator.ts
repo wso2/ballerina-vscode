@@ -33,6 +33,7 @@ import { openView, StateMachine } from "../../stateMachine";
 import { getCurrentProjectRoot } from "../../utils/project-utils";
 import { requiresPackageSelection, selectPackageOrPrompt } from "../../utils/command-utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
+import { TracerMachine } from "../tracing";
 
 // File constants
 const FILE_NAMES = {
@@ -42,6 +43,14 @@ const FILE_NAMES = {
 };
 
 let errorLogWatcher: FileSystemWatcher | undefined;
+
+// Store session IDs by chat endpoint to maintain sessions across reopenings
+const chatSessionMap: Map<string, string> = new Map();
+
+// Export a function to update the session ID for an endpoint (used when clearing chat)
+export function updateChatSessionId(endpoint: string, newSessionId: string): void {
+    chatSessionMap.set(endpoint, newSessionId);
+}
 
 export function activateTryItCommand(ballerinaExtInstance: BallerinaExtension) {
     try {
@@ -71,12 +80,16 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
         }
 
         const projectAndServices = await getProjectPathAndServices(serviceMetadata, filePath);
-        
+
         if (!projectAndServices) {
             return;
         }
 
         const { projectPath, services } = projectAndServices;
+
+        // Check if service is already running BEFORE we potentially start it
+        // This will be used to determine if we should reuse the session ID for AI Agent service
+        const wasServiceAlreadyRunning = await isServiceAlreadyRunning(projectPath);
 
         if (withNotice) {
             const selection = await vscode.window.showInformationMessage(
@@ -167,10 +180,13 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 
             await openMcpInspector(serviceUrl);
         } else {
+            // AI Agent service - start the tracing server if enabled
+            TracerMachine.startServer();
+
             const selectedPort: number = await getServicePort(projectPath, selectedService);
             selectedService.port = selectedPort;
 
-            await openChatView(selectedService.basePath, selectedPort.toString());
+            await openChatView(selectedService.basePath, selectedPort.toString(), wasServiceAlreadyRunning);
         }
 
         // Setup the error log watcher
@@ -203,7 +219,7 @@ async function openInSplitView(fileUri: vscode.Uri, editorType: string = 'defaul
     }
 }
 
-async function openChatView(basePath: string, port: string) {
+async function openChatView(basePath: string, port: string, wasServiceAlreadyRunning: boolean) {
     try {
         const baseUrl = `http://localhost:${port}`;
         const chatPath = "chat";
@@ -212,11 +228,32 @@ async function openChatView(basePath: string, port: string) {
         const cleanedServiceEp = serviceEp.pathname.replace(/\/$/, '') + "/" + chatPath.replace(/^\//, '');
         const chatEp = new URL(cleanedServiceEp, serviceEp.origin);
 
-        const sessionId = uuidv4();
+        const chatEndpoint = chatEp.href;
 
-        commands.executeCommand("ballerina.open.agent.chat", { chatEp: chatEp.href, chatSessionId: sessionId });
+        let sessionId: string;
+
+        if (!wasServiceAlreadyRunning) {
+            // Service was just started - generate a new session ID for a fresh start
+            sessionId = uuidv4();
+            chatSessionMap.set(chatEndpoint, sessionId);
+        } else {
+            // Service was already running - reuse existing session ID if available, or create new
+            sessionId = chatSessionMap.get(chatEndpoint) || uuidv4();
+            chatSessionMap.set(chatEndpoint, sessionId);
+        }
+
+        commands.executeCommand("ballerina.open.agent.chat", { chatEp: chatEndpoint, chatSessionId: sessionId });
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to call Chat-Agent: ${error}`);
+    }
+}
+
+async function isServiceAlreadyRunning(projectDir: string): Promise<boolean> {
+    try {
+        const balProcesses = await findRunningBallerinaProcesses(projectDir);
+        return balProcesses && balProcesses.length > 0;
+    } catch (error) {
+        return false;
     }
 }
 

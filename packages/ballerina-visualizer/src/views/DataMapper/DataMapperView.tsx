@@ -45,7 +45,8 @@ import {
     DeleteClauseRequest,
     IORoot,
     IntermediateClauseType,
-    TriggerKind
+    TriggerKind,
+    TypeKind
 } from "@wso2/ballerina-core";
 import { CompletionItem, ProgressIndicator } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -114,7 +115,7 @@ export function DataMapperView(props: DataMapperViewProps) {
             prevPositionRef.current?.line !== position?.line ||
             prevPositionRef.current?.offset !== position?.offset;
         
-        if (viewStateRef.current.subMappingName && !positionChanged) {
+        if (viewStateRef.current.subMappingName && positionChanged) {
             const viewId = viewStateRef.current.viewId;
             rpcClient.getDataMapperRpcClient()
                 .getSubMappingCodedata({
@@ -125,6 +126,12 @@ export function DataMapperView(props: DataMapperViewProps) {
                     console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
                     setViewState({ viewId: viewId, codedata: resp.codedata, subMappingName: viewId });
                 });
+        } else if (viewStateRef.current.subMappingName && !positionChanged) {
+            setViewState(prevState => ({
+                viewId: prevState.viewId || viewStateRef.current.subMappingName,
+                codedata: codedata,
+                subMappingName: prevState.subMappingName
+            }));
         } else {
             setViewState(prevState => ({
                 viewId: positionChanged ? name : prevState.viewId || name,
@@ -275,22 +282,14 @@ export function DataMapperView(props: DataMapperViewProps) {
             console.log(">>> [Data Mapper] getSubMappingCodedata response:", resp);
             setViewState({ viewId, codedata: resp.codedata, subMappingName: viewId });
         } else {
-            if (viewState.subMappingName) {
-                // If the view is a sub mapping, we need to get the codedata of the parent mapping
-                const res = await rpcClient
-                    .getDataMapperRpcClient()
-                    .getDataMapperCodedata({
-                        filePath,
-                        codedata: viewState.codedata,
-                        name: viewId
-                    });
-                setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
-            } else {
-                setViewState(prev => ({
-                    ...prev,
-                    viewId
-                }));
-            }
+            const res = await rpcClient
+                .getDataMapperRpcClient()
+                .getDataMapperCodedata({
+                    filePath,
+                    codedata: viewState.codedata,
+                    name: viewId.split(".")[0] // Get the root name
+                });
+            setViewState({ viewId, codedata: res.codedata, subMappingName: undefined });
         }
         rpcClient.getVisualizerRpcClient().resetUndoRedoStack();
     };
@@ -330,6 +329,11 @@ export function DataMapperView(props: DataMapperViewProps) {
     }
 
     const addClauses = async (clause: IntermediateClause, targetField: string, isNew: boolean, index: number) => {
+        /*
+        isNew -> index = -1 -> add to top
+        isNew -> index >=0 -> add to the end of index
+        not isNew -> edit the clause available at the index
+         */
         try {
             const addClausesRequest: AddClausesRequest = {
                 filePath,
@@ -597,6 +601,20 @@ export function DataMapperView(props: DataMapperViewProps) {
 
         return uniqueName;
     };
+    
+    const getConvertedExpression = async (expression: string, expressionType: TypeKind, outputType: TypeKind): Promise<string> => {
+        try {
+            const { convertedExpression } = await rpcClient.getDataMapperRpcClient().getConvertedExpression({
+                expression,
+                expressionType,
+                outputType
+            });
+            return convertedExpression ?? expression;
+        } catch (error) {
+            console.error(error);
+            return expression;
+        }
+    };
 
     const onDMClose = () => {
         onClose ? onClose() : rpcClient.getVisualizerRpcClient()?.goBack();
@@ -749,6 +767,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                             addClauses={addClauses}
                             deleteClause={deleteClause}
                             getClausePosition={getClausePosition}
+                            getConvertedExpression={getConvertedExpression}
                             addSubMapping={addSubMapping}
                             deleteMapping={deleteMapping}
                             deleteSubMapping={deleteSubMapping}

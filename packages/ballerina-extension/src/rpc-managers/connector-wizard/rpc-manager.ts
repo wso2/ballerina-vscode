@@ -121,7 +121,9 @@ export class ConnectorWizardRpcManager implements ConnectorWizardAPI {
                 if (wsdlResponse?.source?.textEditsMap) {
                     await updateSourceCode({
                         textEdits: wsdlResponse.source.textEditsMap,
-                        description: `WSDL API Client Generation`
+                        description: `WSDL API Client Generation`,
+                        skipUpdateViewOnTomlUpdate: true,
+                        skipPayloadCheck: true
                     });
                     console.log(">>> Applied text edits for wsdl api client");
                 }

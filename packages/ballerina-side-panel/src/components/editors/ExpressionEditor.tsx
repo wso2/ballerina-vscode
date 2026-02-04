@@ -33,24 +33,28 @@ import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from 
 import { useFormContext } from '../../context';
 import {
     ExpressionProperty,
+    getPrimaryInputType,
+    InputType,
     LineRange,
     RecordTypeField,
     SubPanel,
-    SubPanelView
+    SubPanelView,
+    Type
 } from '@wso2/ballerina-core';
 import ReactMarkdown from 'react-markdown';
 import { FieldProvider } from "./FieldContext";
 import ModeSwitcher from '../ModeSwitcher';
-import { ExpressionField } from './ExpressionField';
+import { ExpressionField, getEditorConfiguration } from './ExpressionField';
 import WarningPopup from '../WarningPopup';
 import { InputMode } from './MultiModeExpressionEditor/ChipExpressionEditor/types';
 import { getInputModeFromTypes } from './MultiModeExpressionEditor/ChipExpressionEditor/utils';
 import { ExpandedEditor } from './ExpandedEditor';
+import { NumberExpressionEditorConfig } from './MultiModeExpressionEditor/Configurations';
 
 export type ContextAwareExpressionEditorProps = {
     id?: string;
     fieldKey?: string;
-    valueTypeConstraint?: string;
+    inputTypes?: InputType[];
     placeholder?: string;
     required?: boolean;
     showHeader?: boolean;
@@ -393,7 +397,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
     const effectiveTargetLineRange = targetLineRange ?? contextTargetLineRange;
     const effectiveFileName = fileName ?? contextFileName;
 
-    const initialFieldValue = useRef(field.value);
+    if (field.placeholder === 'object {}' || field.placeholder === '""') {
+        field.placeholder = '';
+    }
 
     const [isHelperPaneOpen, setIsHelperPaneOpen] = useState<boolean>(false);
     /* Define state to retrieve helper pane data */
@@ -433,45 +439,39 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         }
     }, [fieldValue, targetLineRange]);
 
+    const getFallBackSelectedType = (): InputType => {
+        if (
+            typeof field.value === 'string' &&
+            field.value.trim() !== ''
+        ) {
+            return field?.types[field.types.length - 1];
+        }
+        else {
+            return field?.types[0];
+        }
+    }
+
     useEffect(() => {
         // If recordTypeField is present, always use GUIDED mode
         if (recordTypeField) {
             setInputMode(InputMode.RECORD);
             return;
         }
-
-        let newInputMode = getInputModeFromTypes(field.valueTypeConstraint, field.key);
-        if (!newInputMode) {
+        if (field?.types.length === 0) {
             setInputMode(InputMode.EXP);
             return;
+        };
+        let selectedInputType = field?.types.find(type => type.selected);
+        if (!selectedInputType) {
+            selectedInputType = getFallBackSelectedType();
         }
-        if (isModeSwitcherRestricted()) {
+        const inputMode = getInputModeFromTypes(selectedInputType);
+        if (!inputMode) {
             setInputMode(InputMode.EXP);
             return;
-        }
-        switch (newInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (!isExpToTemplateSafe(field?.value as string)) {
-                    setInputMode(InputMode.EXP);
-                    return;
-                }
-                break;
-        }
-        setInputMode(newInputMode)
-    }, [field?.valueTypeConstraint, recordTypeField]);
+        };
+        setInputMode(inputMode);
+    }, [field?.types, recordTypeField]);
 
     const handleFocus = async (controllerOnChange?: (value: string) => void) => {
         setFocused(true);
@@ -541,7 +541,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             helperPaneHeight,
             recordTypeField,
             field.type === "LV_EXPRESSION",
-            field.valueTypeConstraint,
+            field.types,
             inputModeRef.current,
         );
     };
@@ -550,28 +550,12 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         return await extractArgsFromFunction(value, getPropertyFromFormField(field), cursorPosition);
     };
 
-    const isExpToBooleanSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        return ["true", "false"].includes(expValue.trim().toLowerCase())
-    }
-
-    const isExpToTemplateSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('`') && trimmed.endsWith('`')) return true;
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
-    }
-
-    const isExpToTextSafe = (expValue: string) => {
-        if (expValue === null || expValue === undefined) return true;
-        const trimmed = expValue.trim();
-        if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-            const content = trimmed.slice(1, -1);
-            return !/(?<!\\)"/.test(content);
-        }
-        const stringTaggedTemplateRegex = /^string\s*`.*`$/s;
-        return stringTaggedTemplateRegex.test(trimmed);
+    const isSwitchToPrimaryModeSafe = (expValue: string) => {
+        if (!expValue) return true;
+        const primaryInputType = getPrimaryInputType(field.types);
+        const primaryInputMode = getInputModeFromTypes(primaryInputType);
+        const valueConfigObject = getEditorConfiguration(primaryInputMode);
+        return valueConfigObject.getIsValueCompatible(expValue);
     }
 
     const handleModeChange = (value: InputMode) => {
@@ -581,35 +565,10 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             setInputMode(value);
             return;
         }
-        const primaryInputMode = getInputModeFromTypes(field.valueTypeConstraint, field.key);
-        switch (primaryInputMode) {
-            case (InputMode.BOOLEAN):
-                if (!isExpToBooleanSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.TEXT):
-                if (!isExpToTextSafe(currentValue)) {
-                    targetInputModeRef.current = value;
-                    setShowModeSwitchWarning(true)
-                    return;
-                }
-                break;
-            case (InputMode.PROMPT):
-            case (InputMode.TEMPLATE):
-                if (currentValue && currentValue.trim() !== '') {
-                    if (!isExpToTemplateSafe(currentValue)) {
-                        targetInputModeRef.current = value;
-                        setShowModeSwitchWarning(true)
-                        return;
-                    } else {
-                        setInputMode(primaryInputMode);
-                        return;
-                    }
-                }
-                break;
+        if (!isSwitchToPrimaryModeSafe(currentValue)) {
+            targetInputModeRef.current = value;
+            setShowModeSwitchWarning(true)
+            return;
         }
         setInputMode(value);
     };
@@ -618,7 +577,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         if (targetInputModeRef.current !== null) {
             setInputMode(targetInputModeRef.current);
             const targetMode = targetInputModeRef.current;
-            const shouldClearValue = [InputMode.PROMPT, InputMode.TEMPLATE, InputMode.TEXT].includes(targetMode) && inputMode === InputMode.EXP;
+            const shouldClearValue = [
+                InputMode.PROMPT,
+                InputMode.TEMPLATE,
+                InputMode.TEXT,
+                InputMode.NUMBER,
+                InputMode.BOOLEAN,
+            ]
+                .includes(targetMode) && inputMode === InputMode.EXP;
             if (shouldClearValue) {
                 setValue(key, "");
             }
@@ -657,15 +623,14 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         : '';
 
     const isModeSwitcherRestricted = () => {
-        if (nodeInfo?.kind === "FOREACH") return true;
-        return false;
+        return !field.types || !(field.types.length > 1);
     };
 
     const isModeSwitcherAvailable = () => {
         if (recordTypeField) return true;
         if (isModeSwitcherRestricted()) return false;
         if (!(focused || isExpressionEditorHovered)) return false;
-        if (!getInputModeFromTypes(field.valueTypeConstraint, field.key)) return false;
+        if (!getInputModeFromTypes(getPrimaryInputType(field.types))) return false;
         return true;
     }
 
@@ -676,6 +641,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         >
             <S.Container
                 id={id}
+                data-testid={`ex-editor-${field.key}`}
                 onMouseEnter={() => setIsExpressionEditorHovered(true)}
                 onMouseLeave={() => setIsExpressionEditorHovered(false)}
             >
@@ -687,9 +653,9 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.LabelContainer>
                                         <S.Label>{field.label}</S.Label>
                                         {(required ?? !field.optional) && <RequiredFormInput />}
-                                        {field.valueTypeConstraint && (
-                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={field.valueTypeConstraint as string}>
-                                                {sanitizeType(field.valueTypeConstraint as string)}
+                                        {getPrimaryInputType(field.types)?.ballerinaType && (
+                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
                                             </S.Type>
                                         )}
                                     </S.LabelContainer>
@@ -705,8 +671,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         value={inputMode}
                                         isRecordTypeField={!!recordTypeField}
                                         onChange={handleModeChange}
-                                        valueTypeConstraint={field.valueTypeConstraint}
-                                        fieldKey={field.key}
+                                        types={field.types}
                                     />
                                 )}
                             </S.FieldInfoSection>
@@ -716,106 +681,109 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                 <Controller
                     control={control}
                     name={key}
-                    rules={{ required: required ?? (!field.optional && !field.placeholder) }}
-                    render={({ field: { name, value, onChange }, fieldState: { error } }) => (
-                        <div>
-                            <ExpressionField
-                                field={field}
-                                inputMode={inputMode}
-                                primaryMode={getInputModeFromTypes(field.valueTypeConstraint, field.key)}
-                                name={name}
-                                value={value}
-                                completions={completions}
-                                fileName={effectiveFileName}
-                                targetLineRange={effectiveTargetLineRange}
-                                autoFocus={recordTypeField ? false : autoFocus}
-                                sanitizedExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? sanitizedExpression : undefined}
-                                rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
-                                ariaLabel={field.label}
-                                placeholder={placeholder}
-                                onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+                    rules={(() => {
+                        const expressionSetType = field.types?.find(t => t.fieldType === "EXPRESSION_SET" || t.fieldType === "TEXT_SET");
+                        const patternType = field.types?.find(t => t.pattern);
+                        const rules: any = {};
 
-                                    // clear field diagnostics
-                                    setFormDiagnostics([]);
-                                    // Use ref to get current mode (not stale closure value)
-                                    const currentMode = inputModeRef.current;
-                                    const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
+                        // Only use 'required' if there's no pattern validation (pattern will handle empty values)
+                        if (!patternType?.pattern && !expressionSetType?.pattern) {
+                            rules.required = required ?? (!field.optional && !field.placeholder);
+                        }
 
-                                    onChange(rawValue);
-                                    if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
-                                        getExpressionEditorDiagnostics(
-                                            (required ?? !field.optional) || updatedValue !== '',
-                                            updatedValue,
-                                            key,
-                                            getPropertyFromFormField(field)
-                                        );
+                        if (expressionSetType?.pattern) {
+                            // For EXPRESSION_SET or TEXT_SET (arrays), validate each item
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    try {
+                                        if (!Array.isArray(value)) return true;
+
+                                        const regex = new RegExp(expressionSetType.pattern);
+                                        for (const item of value) {
+                                            if (!regex.test(item)) {
+                                                return expressionSetType.patternErrorMessage || "Invalid format";
+                                            }
+                                        }
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, expressionSetType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
                                     }
-
-                                    // Check if the current character is a trigger character
-                                    const triggerCharacter =
-                                        updatedCursorPosition > 0
-                                            ? triggerCharacters.find((char) => updatedValue[updatedCursorPosition - 1] === char)
-                                            : undefined;
-                                    if (triggerCharacter) {
-                                        await retrieveCompletions(
-                                            updatedValue,
-                                            getPropertyFromFormField(field),
-                                            updatedCursorPosition,
-                                            triggerCharacter
-                                        );
-                                    } else {
-                                        await retrieveCompletions(
-                                            updatedValue,
-                                            getPropertyFromFormField(field),
-                                            updatedCursorPosition
-                                        );
+                                },
+                                minItems: (value: any) => {
+                                    if (!Array.isArray(value)) return true;
+                                    const minItems = expressionSetType.minItems ?? 0;
+                                    if (minItems > 0 && value.length < minItems) {
+                                        return `At least ${minItems} ${minItems > 1 ? 'items are' : 'item is'} required`;
                                     }
-                                }}
-                                extractArgsFromFunction={handleExtractArgsFromFunction}
-                                onCompletionSelect={handleCompletionSelect}
-                                onFocus={async () => {
-                                    handleFocus(onChange);
-                                }}
-                                onBlur={handleBlur}
-                                onSave={handleSave}
-                                onCancel={onCancel}
-                                onRemove={onRemove}
-                                isHelperPaneOpen={isHelperPaneOpen}
-                                changeHelperPaneState={handleChangeHelperPaneState}
-                                getHelperPane={handleGetHelperPane}
-                                helperPaneHeight={helperPaneHeight}
-                                helperPaneWidth={recordTypeField ? 400 : undefined}
-                                growRange={growRange}
-                                helperPaneZIndex={helperPaneZIndex}
-                                exprRef={exprRef}
-                                anchorRef={anchorRef}
-                                onToggleHelperPane={toggleHelperPaneState}
-                                onOpenExpandedMode={onOpenExpandedMode}
-                                isInExpandedMode={isExpandedModalOpen}
-                            />
-                            {error ?
-                                <ErrorBanner errorMsg={error.message.toString()} /> :
-                                formDiagnostics && formDiagnostics.length > 0 &&
-                                <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
-                            }
-                            {onOpenExpandedMode && toEditorMode(inputModeRef.current) && (
-                                <ExpandedEditor
-                                    isOpen={isExpandedModalOpen}
+                                    return true;
+                                }
+                            };
+                        } else if (patternType?.pattern) {
+                            // For non-array fields, validate pattern only in TEXT mode with literal values
+                            rules.validate = {
+                                pattern: (value: any) => {
+                                    try {
+                                        const currentMode = inputModeRef.current;
+
+                                        // Only validate in TEXT mode
+                                        if (currentMode !== InputMode.TEXT) {
+                                            return true;
+                                        }
+
+                                        // Skip pattern validation if value contains interpolations (e.g., ${variable})
+                                        if (value && typeof value === 'string' && /\$\{[^}]*\}/.test(value)) {
+                                            return true;
+                                        }
+
+                                        // Validate pattern for TEXT mode with literal values
+                                        const regex = new RegExp(patternType.pattern);
+                                        if (!regex.test(value || '')) {
+                                            return patternType.patternErrorMessage || "Invalid format";
+                                        }
+
+                                        return true;
+                                    } catch (error) {
+                                        console.error(`[${key}] Invalid regex pattern:`, patternType.pattern, error);
+                                        return true; // Skip validation if regex is invalid
+                                    }
+                                }
+                            };
+                        }
+
+                        return rules;
+                    })()}
+                    render={({ field: { name, value, onChange }, fieldState: { error } }) => {
+                        return (
+                            <div>
+                                <ExpressionField
                                     field={field}
-                                    value={watch(key)}
-                                    onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+                                    inputMode={inputMode}
+                                    primaryMode={getInputModeFromTypes(getPrimaryInputType(field.types))}
+                                    name={name}
+                                    value={value}
+                                    completions={completions}
+                                    fileName={effectiveFileName}
+                                    targetLineRange={effectiveTargetLineRange}
+                                    autoFocus={recordTypeField ? false : autoFocus}
+                                    sanitizedExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? sanitizedExpression : undefined}
+                                    rawExpression={(inputMode === InputMode.PROMPT || inputMode === InputMode.TEMPLATE) ? rawExpression : undefined}
+                                    ariaLabel={field.label}
+                                    placeholder={placeholder}
+                                    onChange={async (updatedValue: string | any[] | Record<string, unknown>, updatedCursorPosition: number) => {
 
                                         // clear field diagnostics
                                         setFormDiagnostics([]);
                                         // Use ref to get current mode (not stale closure value)
                                         const currentMode = inputModeRef.current;
-                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
+                                        const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && 
+                                        rawExpression ? rawExpression(typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue)) : updatedValue;
 
                                         onChange(rawValue);
                                         if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
                                             getExpressionEditorDiagnostics(
-                                                (required ?? !field.optional) || rawValue !== '',
-                                                rawValue,
+                                                (required ?? !field.optional) || updatedValue !== '',
+                                                typeof rawValue === 'string' ? rawValue : JSON.stringify(rawValue),
                                                 key,
                                                 getPropertyFromFormField(field)
                                             );
@@ -824,42 +792,113 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                         // Check if the current character is a trigger character
                                         const triggerCharacter =
                                             updatedCursorPosition > 0
-                                                ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
+                                                ? triggerCharacters.find((char) => updatedValue[updatedCursorPosition - 1] === char)
                                                 : undefined;
                                         if (triggerCharacter) {
                                             await retrieveCompletions(
-                                                rawValue,
+                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
                                                 getPropertyFromFormField(field),
                                                 updatedCursorPosition,
                                                 triggerCharacter
                                             );
                                         } else {
                                             await retrieveCompletions(
-                                                rawValue,
+                                                typeof updatedValue === 'string' ? updatedValue : JSON.stringify(updatedValue),
                                                 getPropertyFromFormField(field),
                                                 updatedCursorPosition
                                             );
                                         }
                                     }}
-                                    onClose={() => {
-                                        setIsExpandedModalOpen(false)
-                                    }}
-                                    onSave={handleSaveExpandedMode}
-                                    mode={toEditorMode(inputModeRef.current)!}
-                                    completions={completions}
-                                    fileName={effectiveFileName}
-                                    targetLineRange={effectiveTargetLineRange}
-                                    sanitizedExpression={sanitizedExpression}
-                                    rawExpression={rawExpression}
                                     extractArgsFromFunction={handleExtractArgsFromFunction}
+                                    onCompletionSelect={handleCompletionSelect}
+                                    onFocus={async () => {
+                                        handleFocus(onChange);
+                                    }}
+                                    onBlur={handleBlur}
+                                    onSave={handleSave}
+                                    onCancel={onCancel}
+                                    onRemove={onRemove}
+                                    isHelperPaneOpen={isHelperPaneOpen}
+                                    changeHelperPaneState={handleChangeHelperPaneState}
                                     getHelperPane={handleGetHelperPane}
-                                    error={error}
-                                    formDiagnostics={formDiagnostics}
-                                    inputMode={inputModeRef.current}
+                                    helperPaneHeight={helperPaneHeight}
+                                    helperPaneWidth={recordTypeField ? 400 : undefined}
+                                    growRange={growRange}
+                                    helperPaneZIndex={helperPaneZIndex}
+                                    exprRef={exprRef}
+                                    anchorRef={anchorRef}
+                                    onToggleHelperPane={toggleHelperPaneState}
+                                    onOpenExpandedMode={onOpenExpandedMode}
+                                    isInExpandedMode={isExpandedModalOpen}
                                 />
-                            )}
-                        </div>
-                    )}
+                                {error ?
+                                    <ErrorBanner errorMsg={error.message.toString()} /> :
+                                    formDiagnostics && formDiagnostics.length > 0 &&
+                                    <ErrorBanner errorMsg={formDiagnostics.map(d => d.message).join(', ')} />
+                                }
+                                {onOpenExpandedMode && toEditorMode(inputModeRef.current) && (
+                                    <ExpandedEditor
+                                        isOpen={isExpandedModalOpen}
+                                        field={field}
+                                        value={watch(key)}
+                                        onChange={async (updatedValue: string, updatedCursorPosition: number) => {
+
+                                            // clear field diagnostics
+                                            setFormDiagnostics([]);
+                                            // Use ref to get current mode (not stale closure value)
+                                            const currentMode = inputModeRef.current;
+                                            const rawValue = (currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE) && rawExpression ? rawExpression(updatedValue) : updatedValue;
+
+                                            onChange(rawValue);
+                                            if (getExpressionEditorDiagnostics && (currentMode === InputMode.EXP || currentMode === InputMode.PROMPT || currentMode === InputMode.TEMPLATE)) {
+                                                getExpressionEditorDiagnostics(
+                                                    (required ?? !field.optional) || rawValue !== '',
+                                                    rawValue,
+                                                    key,
+                                                    getPropertyFromFormField(field)
+                                                );
+                                            }
+
+                                            // Check if the current character is a trigger character
+                                            const triggerCharacter =
+                                                updatedCursorPosition > 0
+                                                    ? triggerCharacters.find((char) => rawValue[updatedCursorPosition - 1] === char)
+                                                    : undefined;
+                                            if (triggerCharacter) {
+                                                await retrieveCompletions(
+                                                    rawValue,
+                                                    getPropertyFromFormField(field),
+                                                    updatedCursorPosition,
+                                                    triggerCharacter
+                                                );
+                                            } else {
+                                                await retrieveCompletions(
+                                                    rawValue,
+                                                    getPropertyFromFormField(field),
+                                                    updatedCursorPosition
+                                                );
+                                            }
+                                        }}
+                                        onClose={() => {
+                                            setIsExpandedModalOpen(false)
+                                        }}
+                                        onSave={handleSaveExpandedMode}
+                                        mode={toEditorMode(inputModeRef.current)!}
+                                        completions={completions}
+                                        fileName={effectiveFileName}
+                                        targetLineRange={effectiveTargetLineRange}
+                                        sanitizedExpression={sanitizedExpression}
+                                        rawExpression={rawExpression}
+                                        extractArgsFromFunction={handleExtractArgsFromFunction}
+                                        getHelperPane={handleGetHelperPane}
+                                        error={error}
+                                        formDiagnostics={formDiagnostics}
+                                        inputMode={inputModeRef.current}
+                                    />
+                                )}
+                            </div>
+                        );
+                    }}
                 />
             </S.Container>
             {showModeSwitchWarning && (
