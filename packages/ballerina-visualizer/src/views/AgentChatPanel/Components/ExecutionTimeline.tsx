@@ -171,6 +171,9 @@ export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTi
         return null;
     }
 
+    // Filter out steps with invoke operation type
+    const filteredSteps = steps.filter(step => step.operationType !== 'invoke');
+
     const getIconName = (operationType: string) => {
         switch (operationType) {
             case 'invoke': return 'bi-ai-agent';
@@ -199,14 +202,14 @@ export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTi
     return (
         <TimelineContainer>
             <TimelineHeader onClick={() => setOpen(!open)} aria-expanded={open}>
-                <TimelineTitle>Execution Steps ({steps.length})</TimelineTitle>
+                <TimelineTitle>Execution Steps ({filteredSteps.length})</TimelineTitle>
                 <ToggleIcon isOpen={open}>
                     <Codicon name="chevron-right" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                 </ToggleIcon>
             </TimelineHeader>
             {open && (
                 <TimelineList>
-                    {steps.map((step, index) => (
+                    {filteredSteps.map((step, index) => (
                         <TimelineItem key={step.spanId}>
                             <ConnectorColumn isLast={index === steps.length - 1}>
                                 <Dot operationType={step.operationType} />

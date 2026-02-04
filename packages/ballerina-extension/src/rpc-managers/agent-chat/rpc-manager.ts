@@ -26,7 +26,8 @@ import {
     ChatHistoryMessage,
     ChatHistoryResponse,
     AgentStatusResponse,
-    ClearChatResponse
+    ClearChatResponse,
+    SessionInput
 } from "@wso2/ballerina-core";
 import * as vscode from 'vscode';
 import { extension } from '../../BalExtensionContext';
@@ -425,9 +426,28 @@ export class AgentChatRpcManager implements AgentChatAPI {
             }
 
             // Open the trace details webview with isAgentChat=true and optional focusSpanId
-            TraceDetailsWebview.show(trace, true, params.focusSpanId, params.openWithSidebarCollapsed);
+            TraceDetailsWebview.show(trace, true, params.focusSpanId, extension.agentChatContext?.chatSessionId);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Failed to show trace details';
+            vscode.window.showErrorMessage(`Error: ${errorMessage}`);
+            throw error;
+        }
+    }
+
+    async showSessionOverview(params: SessionInput): Promise<void> {
+        try {
+            // Use provided sessionId or fall back to current session
+            const sessionId = params.sessionId || extension.agentChatContext?.chatSessionId;
+
+            if (!sessionId) {
+                const errorMessage = 'No active session found';
+                vscode.window.showErrorMessage(errorMessage);
+                throw new Error(errorMessage);
+            }
+
+            await TraceDetailsWebview.showSessionOverview(sessionId);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to show session overview';
             vscode.window.showErrorMessage(`Error: ${errorMessage}`);
             throw error;
         }

@@ -45,7 +45,7 @@ export interface TraceInput {
     message?: string;
     traceId?: string;
     focusSpanId?: string;
-    openWithSidebarCollapsed?: boolean;
+    sessionId?: string;
 }
 
 export interface ChatHistoryMessage {
@@ -67,4 +67,8 @@ export interface AgentStatusResponse {
 
 export interface ClearChatResponse {
     newSessionId: string;
+}
+
+export interface SessionInput {
+    sessionId?: string;
 }
