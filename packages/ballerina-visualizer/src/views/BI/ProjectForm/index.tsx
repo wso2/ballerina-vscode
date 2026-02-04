@@ -26,7 +26,7 @@ import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EVENT_TYPE, MACHINE_VIEW, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
-import { isFormValid } from "./utils";
+import { validatePackageName } from "./utils";
 
 const PageWrapper = styled.div`
     display: flex;
@@ -92,12 +92,16 @@ export function ProjectForm() {
         version: "",
     });
     const [isValidating, setIsValidating] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
     const [pathError, setPathError] = useState<string | null>(null);
     const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
         // Clear validation errors when form data changes
+        if (integrationNameError) {
+            setIntegrationNameError(null);
+        }
         if (pathError) {
             setPathError(null);
         }
@@ -108,8 +112,38 @@ export function ProjectForm() {
 
     const handleCreateProject = async () => {
         setIsValidating(true);
+        setIntegrationNameError(null);
         setPathError(null);
         setPackageNameValidationError(null);
+
+        // Validate required fields first
+        let hasError = false;
+
+        if (formData.integrationName.length < 2) {
+            setIntegrationNameError("Integration name must be at least 2 characters");
+            hasError = true;
+        }
+
+        if (formData.packageName.length < 2) {
+            setPackageNameValidationError("Package name must be at least 2 characters");
+            hasError = true;
+        } else {
+            const packageNameError = validatePackageName(formData.packageName, formData.integrationName);
+            if (packageNameError) {
+                setPackageNameValidationError(packageNameError);
+                hasError = true;
+            }
+        }
+
+        if (formData.path.length < 2) {
+            setPathError("Please select a path for your project");
+            hasError = true;
+        }
+
+        if (hasError) {
+            setIsValidating(false);
+            return;
+        }
 
         try {
             // Validate the project path
@@ -181,6 +215,7 @@ export function ProjectForm() {
                     <ProjectFormFields
                         formData={formData}
                         onFormDataChange={handleFormDataChange}
+                        integrationNameError={integrationNameError || undefined}
                         pathError={pathError || undefined}
                         packageNameValidationError={packageNameValidationError || undefined}
                     />
@@ -188,7 +223,7 @@ export function ProjectForm() {
 
                 <ButtonWrapper>
                     <Button
-                        disabled={!isFormValid(formData) || isValidating}
+                        disabled={isValidating}
                         onClick={handleCreateProject}
                         appearance="primary"
                     >
