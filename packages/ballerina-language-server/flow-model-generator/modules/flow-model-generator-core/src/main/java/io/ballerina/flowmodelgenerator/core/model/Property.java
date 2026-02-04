@@ -566,6 +566,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
+                                             Node value, SemanticModel semanticModel,
+                                             Property.Builder<?> builder) {
+            return typeWithExpression(typeSymbol, moduleInfo, value, semanticModel, null, builder);
+        }
+
+        public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
                                              Node value, SemanticModel semanticModel, String defaultValue,
                                              Property.Builder<?> builder) {
             if (typeSymbol == null) {
