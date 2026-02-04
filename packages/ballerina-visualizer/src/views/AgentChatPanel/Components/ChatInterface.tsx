@@ -187,9 +187,11 @@ const ChatHeader = styled.div`
     top: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     padding: 12px 8px 8px;
     z-index: 2;
     border-bottom: 1px solid var(--vscode-panel-border);
+    gap: 8px;
 `;
 
 const ClearChatButton = styled.button`
@@ -320,6 +322,9 @@ const ChatInterface: React.FC = () => {
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // Check if we have any traces (to enable/disable Session Logs button)
+    const hasTraces = messages.some(msg => !msg.isUser && msg.traceId);
+
     // Load chat history and check tracing status on mount
     useEffect(() => {
         const loadChatHistory = async () => {
@@ -434,8 +439,9 @@ const ChatInterface: React.FC = () => {
                 return;
             }
 
-            // Call the RPC method to show the trace view using the traceId
-            await rpcClient.getAgentChatRpcClient().showTraceView({ traceId: message.traceId });
+            await rpcClient.getAgentChatRpcClient().showTraceView({
+                traceId: message.traceId
+            });
         } catch (error) {
             console.error('Failed to show trace view:', error);
         }
@@ -468,11 +474,18 @@ const ChatInterface: React.FC = () => {
         try {
             await rpcClient.getAgentChatRpcClient().showTraceView({
                 traceId,
-                focusSpanId: spanId,
-                openWithSidebarCollapsed: true
+                focusSpanId: spanId
             });
         } catch (error) {
             console.error('Failed to show trace view:', error);
+        }
+    };
+
+    const handleShowSessionLogs = async () => {
+        try {
+            await rpcClient.getAgentChatRpcClient().showSessionOverview({});
+        } catch (error) {
+            console.error('Failed to show session overview:', error);
         }
     };
 
@@ -480,8 +493,16 @@ const ChatInterface: React.FC = () => {
         <ChatWrapper>
             {messages.length > 0 && (
                 <ChatHeader>
+                    <div>
+                        {isTracingEnabled && hasTraces && (
+                            <ClearChatButton onClick={handleShowSessionLogs} disabled={isLoading} title="View traces for the entire conversation">
+                                <span className="codicon codicon-list-tree" />
+                                Session Logs
+                            </ClearChatButton>
+                        )}
+                    </div>
                     <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
-                        <span className="codicon codicon-clear-all" />
+                        <Icon name="bi-delete" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
                         Clear Chat
                     </ClearChatButton>
                 </ChatHeader>
@@ -546,7 +567,7 @@ const ChatInterface: React.FC = () => {
                             </MessageContainer>
                             {!msg.isUser && isTracingEnabled && msg.traceId && (
                                 <MessageActionsContainer>
-                                    <ShowLogsButton onClick={() => handleShowLogs(idx)}>
+                                    <ShowLogsButton onClick={() => handleShowLogs(idx)} title="View trace logs for this message">
                                         View Logs
                                     </ShowLogsButton>
                                 </MessageActionsContainer>

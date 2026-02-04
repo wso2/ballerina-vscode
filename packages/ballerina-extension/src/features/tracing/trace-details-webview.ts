@@ -21,7 +21,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
-import { Trace } from './trace-server';
+import { Trace, TraceServer } from './trace-server';
 import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } from '../../utils/webview-utils';
 
 // TraceData interface matching the trace-visualizer component
@@ -68,12 +68,14 @@ export class TraceDetailsWebview {
     private _trace: Trace | undefined;
     private _isAgentChat: boolean = false;
     private _focusSpanId: string | undefined;
-    private _openWithSidebarCollapsed: boolean = false;
+    private _sessionId: string | undefined;
+    private _traceUpdateUnsubscribe: (() => void) | undefined;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
         this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
         this.setupMessageHandler();
+        this.subscribeToTraceUpdates();
     }
 
     private setupMessageHandler(): void {
@@ -92,7 +94,7 @@ export class TraceDetailsWebview {
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
                                 focusSpanId: this._focusSpanId,
-                                openWithSidebarCollapsed: this._openWithSidebarCollapsed,
+                                sessionId: this._sessionId,
                             });
                         }
                         break;
@@ -101,11 +103,51 @@ export class TraceDetailsWebview {
                             await this.exportTrace(message.data);
                         }
                         break;
+                    case 'requestSessionTraces':
+                        if (message.sessionId) {
+                            await this.handleSessionTracesRequest(message.sessionId);
+                        }
+                        break;
+                    case 'exportSession':
+                        if (message.data) {
+                            await this.exportSession(message.data.sessionTraces, message.data.sessionId);
+                        }
+                        break;
                 }
             },
             null,
             this._disposables
         );
+    }
+
+    private subscribeToTraceUpdates(): void {
+        this._traceUpdateUnsubscribe = TraceServer.onTracesUpdated(() => {
+            if (!this._trace && this._sessionId && this._panel) {
+                this.refreshSessionTraces();
+            }
+        });
+    }
+
+    private async refreshSessionTraces(): Promise<void> {
+        if (!this._sessionId || !this._panel) {
+            return;
+        }
+
+        try {
+            const sessionTraces = TraceServer.getTracesBySessionId(this._sessionId);
+            const traces = sessionTraces.map(trace => this.convertTraceToTraceData(trace));
+
+            // Send updated traces to the webview with isUpdate flag
+            // This prevents forcing the view mode change on updates
+            this._panel.webview.postMessage({
+                command: 'sessionTraces',
+                traces,
+                sessionId: this._sessionId,
+                isUpdate: true
+            });
+        } catch (error) {
+            console.error('Failed to refresh session traces:', error);
+        }
     }
 
     private static createWebview(): vscode.WebviewPanel {
@@ -129,7 +171,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, openWithSidebarCollapsed?: boolean): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, sessionId?: string): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -140,7 +182,7 @@ export class TraceDetailsWebview {
         instance._trace = trace;
         instance._isAgentChat = isAgentChat;
         instance._focusSpanId = focusSpanId;
-        instance._openWithSidebarCollapsed = openWithSidebarCollapsed;
+        instance._sessionId = sessionId;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
@@ -153,8 +195,25 @@ export class TraceDetailsWebview {
         instance.updateWebview();
     }
 
+    public static async showSessionOverview(sessionId: string): Promise<void> {
+        // Create or reuse webview instance
+        if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
+            TraceDetailsWebview.instance = new TraceDetailsWebview();
+        }
+
+        const instance = TraceDetailsWebview.instance;
+        instance._trace = null;
+        instance._isAgentChat = true;
+        instance._sessionId = sessionId;
+
+        vscode.commands.executeCommand('workbench.action.closeSidebar');
+
+        instance._panel!.reveal(ViewColumn.One);
+        instance.updateWebview();
+    }
+
     private updateWebview(): void {
-        if (!this._panel || !this._trace) {
+        if (!this._panel) {
             return;
         }
 
@@ -162,13 +221,13 @@ export class TraceDetailsWebview {
 
         // Send trace data immediately after updating HTML (in case webview is already loaded)
         // The webview will also request it if needed
-        const traceData = this.convertTraceToTraceData(this._trace);
+        const traceData = this._trace ? this.convertTraceToTraceData(this._trace) : null;
         this._panel.webview.postMessage({
             command: 'traceData',
             data: traceData,
             isAgentChat: this._isAgentChat,
             focusSpanId: this._focusSpanId,
-            openWithSidebarCollapsed: this._openWithSidebarCollapsed,
+            sessionId: this._sessionId
         });
     }
 
@@ -239,7 +298,66 @@ export class TraceDetailsWebview {
         }
     }
 
-    private getWebviewContent(trace: Trace, webView: Webview): string {
+    private async handleSessionTracesRequest(sessionId: string): Promise<void> {
+        try {
+            const sessionTraces = TraceServer.getTracesBySessionId(sessionId);
+
+            // Convert to TraceData format
+            const traces = sessionTraces.map(trace => this.convertTraceToTraceData(trace));
+
+            // Send to webview
+            this._panel?.webview.postMessage({
+                command: 'sessionTraces',
+                traces,
+                sessionId
+            });
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to fetch session traces: ${error}`);
+        }
+    }
+
+    private async exportSession(sessionTraces: TraceData[], sessionId: string): Promise<void> {
+        try {
+            const fileName = `session-${sessionId}.json`;
+            const wf = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+            let defaultUri: vscode.Uri;
+
+            if (wf) {
+                const tracesDirPath = path.join(wf.uri.fsPath, 'traces');
+                const tracesDirUri = vscode.Uri.file(tracesDirPath);
+                try {
+                    await vscode.workspace.fs.createDirectory(tracesDirUri);
+                } catch (e) {
+                    // Ignore errors
+                }
+
+                defaultUri = vscode.Uri.file(path.join(tracesDirPath, fileName));
+            } else {
+                defaultUri = vscode.Uri.file(path.join(os.homedir(), fileName));
+            }
+
+            const fileUri = await vscode.window.showSaveDialog({
+                defaultUri,
+                filters: {
+                    'JSON Files': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (fileUri) {
+                const jsonContent = JSON.stringify({
+                    sessionId,
+                    traces: sessionTraces
+                }, null, 2);
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                vscode.window.showInformationMessage(`Session exported to ${fileUri.fsPath}`);
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to export session: ${error}`);
+        }
+    }
+
+    private getWebviewContent(trace: Trace | null, webView: Webview): string {
         const body = `<div class="container" id="webview-container"></div>`;
         const bodyCss = ``;
         const styles = `
@@ -255,16 +373,38 @@ export class TraceDetailsWebview {
             let traceData = null;
             let isAgentChat = false;
             let focusSpanId = undefined;
-            let openWithSidebarCollapsed = false;
+            let sessionId = false;
+
+            // Expose API for React components to communicate with extension
+            window.traceVisualizerAPI = {
+                requestSessionTraces: (sessionId) => {
+                    vscode.postMessage({
+                        command: 'requestSessionTraces',
+                        sessionId: sessionId
+                    });
+                },
+                exportSession: (sessionTraces, sessionId) => {
+                    vscode.postMessage({
+                        command: 'exportSession',
+                        data: { sessionTraces, sessionId }
+                    });
+                },
+                exportTrace: (traceData) => {
+                    vscode.postMessage({
+                        command: 'exportTrace',
+                        data: traceData
+                    });
+                }
+            };
 
             function renderTraceDetails() {
-                if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
+                if (window.traceVisualizer && window.traceVisualizer.renderWebview) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, openWithSidebarCollapsed);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, sessionId);
                     }
-                } else if (!traceData) {
-                    // Request trace data from extension
+                } else if (!traceData && !sessionId) {
+                    // Request trace data from extension only if we don't have sessionId
                     vscode.postMessage({ command: 'requestTraceData' });
                 } else {
                     console.error("TraceVisualizer not loaded");
@@ -280,7 +420,7 @@ export class TraceDetailsWebview {
                         traceData = message.data;
                         isAgentChat = message.isAgentChat || false;
                         focusSpanId = message.focusSpanId;
-                        openWithSidebarCollapsed = message.openWithSidebarCollapsed || false;
+                        sessionId = message.sessionId || false;
                         renderTraceDetails();
                         break;
                 }
@@ -292,6 +432,19 @@ export class TraceDetailsWebview {
                     vscode.postMessage({
                         command: 'exportTrace',
                         data: event.detail.traceData
+                    });
+                }
+            });
+
+            // Listen for session export requests from React component
+            window.addEventListener('exportSession', (event) => {
+                if (event.detail && event.detail.sessionTraces && event.detail.currentSessionId) {
+                    vscode.postMessage({
+                        command: 'exportSession',
+                        data: {
+                            sessionTraces: event.detail.sessionTraces,
+                            sessionId: event.detail.currentSessionId
+                        }
                     });
                 }
             });
@@ -315,6 +468,12 @@ export class TraceDetailsWebview {
 
 
     public dispose(): void {
+        // Unsubscribe from trace updates
+        if (this._traceUpdateUnsubscribe) {
+            this._traceUpdateUnsubscribe();
+            this._traceUpdateUnsubscribe = undefined;
+        }
+
         this._panel?.dispose();
 
         while (this._disposables.length) {
