@@ -59,7 +59,9 @@ import {
     ProjectMigrationResult,
     onMigratedProject,
     refreshReviewMode,
-    onHideReviewActions
+    onHideReviewActions,
+    approvalOverlayState,
+    ApprovalOverlayState
 } from "@wso2/ballerina-core";
 import { LangClientRpcClient } from "./rpc-clients/lang-client/rpc-client";
 import { LibraryBrowserRpcClient } from "./rpc-clients/library-browser/rpc-client";
@@ -279,5 +281,9 @@ export class BallerinaRpcClient {
 
     onHideReviewActions(callback: () => void) {
         this.messenger.onNotification(onHideReviewActions, callback);
+    }
+
+    onApprovalOverlayState(callback: (data: ApprovalOverlayState) => void) {
+        this.messenger.onNotification(approvalOverlayState, callback);
     }
 }

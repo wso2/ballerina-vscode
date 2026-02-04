@@ -668,6 +668,15 @@ const MainPanel = () => {
         rpcClient.getVisualizerRpcClient().goHome();
     };
 
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[MainPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
+    };
+
     const handlePopupClose = (id: string) => {
         closeModal(id);
     }
