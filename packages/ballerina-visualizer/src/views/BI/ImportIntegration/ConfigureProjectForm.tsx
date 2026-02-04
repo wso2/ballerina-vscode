@@ -22,7 +22,7 @@ import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import { BodyText } from "../../styles";
 import { ProjectFormData, ProjectFormFields } from "../ProjectForm/ProjectFormFields";
-import { isFormValid } from "../ProjectForm/utils";
+import { validatePackageName } from "../ProjectForm/utils";
 import { MultiProjectFormData, MultiProjectFormFields } from "./components/MultiProjectFormFields";
 import { ButtonWrapper } from "./styles";
 import { ConfigureProjectFormProps } from "./types";
@@ -49,12 +49,16 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
     const [isValidating, setIsValidating] = useState(false);
     const [pathError, setPathError] = useState<string | null>(null);
     const [folderNameError, setFolderNameError] = useState<string | null>(null);
+    const [singleProjectIntegrationNameError, setSingleProjectIntegrationNameError] = useState<string | null>(null);
     const [singleProjectPathError, setSingleProjectPathError] = useState<string | null>(null);
     const [singleProjectPackageNameError, setSingleProjectPackageNameError] = useState<string | null>(null);
 
     const handleSingleProjectFormChange = (data: Partial<ProjectFormData>) => {
         setSingleProjectData(prev => ({ ...prev, ...data }));
         // Clear validation errors when form data changes
+        if (singleProjectIntegrationNameError) {
+            setSingleProjectIntegrationNameError(null);
+        }
         if (singleProjectPathError) {
             setSingleProjectPathError(null);
         }
@@ -76,8 +80,38 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
 
     const handleCreateSingleProject = async () => {
         setIsValidating(true);
+        setSingleProjectIntegrationNameError(null);
         setSingleProjectPathError(null);
         setSingleProjectPackageNameError(null);
+
+        // Validate required fields first
+        let hasError = false;
+
+        if (singleProjectData.integrationName.length < 2) {
+            setSingleProjectIntegrationNameError("Integration name must be at least 2 characters");
+            hasError = true;
+        }
+
+        if (singleProjectData.packageName.length < 2) {
+            setSingleProjectPackageNameError("Package name must be at least 2 characters");
+            hasError = true;
+        } else {
+            const packageNameError = validatePackageName(singleProjectData.packageName, singleProjectData.integrationName);
+            if (packageNameError) {
+                setSingleProjectPackageNameError(packageNameError);
+                hasError = true;
+            }
+        }
+
+        if (singleProjectData.path.length < 2) {
+            setSingleProjectPathError("Please select a path for your project");
+            hasError = true;
+        }
+
+        if (hasError) {
+            setIsValidating(false);
+            return;
+        }
 
         try {
             // Validate the project path
@@ -120,6 +154,24 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         setPathError(null);
         setFolderNameError(null);
 
+        // Validate required fields first
+        let hasError = false;
+
+        if (!multiProjectData.path.trim() || multiProjectData.path.length < 2) {
+            setPathError("Please select a path for your project");
+            hasError = true;
+        }
+
+        if (multiProjectData.createDirectory && (!multiProjectData.rootFolderName.trim() || multiProjectData.rootFolderName.length < 1)) {
+            setFolderNameError("Folder name is required when creating a new directory");
+            hasError = true;
+        }
+
+        if (hasError) {
+            setIsValidating(false);
+            return;
+        }
+
         try {
             // Validate the project path
             const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
@@ -153,18 +205,6 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
         }
     };
 
-    const isMultiProjectFormValid = () => {
-        // Path is always required
-        if (!multiProjectData.path.trim()) {
-            return false;
-        }
-        // Folder name is only required if creating a new directory
-        if (multiProjectData.createDirectory && !multiProjectData.rootFolderName.trim()) {
-            return false;
-        }
-        return true;
-    };
-
     return (
         <>
             {isMultiProject ? (
@@ -184,7 +224,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                             primaryButton={{
                                 text: isValidating ? "Validating..." : "Create and Open Project",
                                 onClick: handleCreateMultiProject,
-                                disabled: !isMultiProjectFormValid() || isValidating
+                                disabled: isValidating
                             }}
                             secondaryButton={{
                                 text: "Back",
@@ -202,6 +242,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                     <ProjectFormFields
                         formData={singleProjectData}
                         onFormDataChange={handleSingleProjectFormChange}
+                        integrationNameError={singleProjectIntegrationNameError || undefined}
                         pathError={singleProjectPathError || undefined}
                         packageNameValidationError={singleProjectPackageNameError || undefined}
                     />
@@ -211,7 +252,7 @@ export function ConfigureProjectForm({ isMultiProject, onNext, onBack }: Configu
                             primaryButton={{
                                 text: isValidating ? "Validating..." : "Create and Open Project",
                                 onClick: handleCreateSingleProject,
-                                disabled: !isFormValid(singleProjectData) || isValidating
+                                disabled: isValidating
                             }}
                             secondaryButton={{
                                 text: "Back",
