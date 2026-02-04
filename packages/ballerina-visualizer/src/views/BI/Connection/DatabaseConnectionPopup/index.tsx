@@ -151,6 +151,9 @@ const TableName = styled(Typography)`
 
 const SelectAllButton = styled(Button)`
     align-self: flex-end;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: fit-content;
 `;
 
 const SelectionInfo = styled.div`
@@ -163,7 +166,6 @@ const SearchRow = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    justify-content: space-between;
 `;
 
 const ConfigurablesPanel = styled.div`
@@ -215,6 +217,49 @@ const SeparatorLine = styled.div`
     opacity: 0.5;
 `;
 
+const ErrorDetailsSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+const ErrorDetailsHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    
+    &:hover {
+        opacity: 0.8;
+    }
+`;
+
+const ChevronIcon = styled(Codicon)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+`;
+
+const ErrorDetailsContent = styled.div<{ expanded: boolean }>`
+    max-height: ${(props: { expanded: boolean }) => (props.expanded ? "500px" : "0")};
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    padding-left: 20px;
+`;
+
+const ErrorDetailsText = styled(Typography)`
+    font-size: 12px;
+    color: ${ThemeColors.ON_SURFACE_VARIANT};
+    font-family: monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    padding: 8px;
+    background-color: ${ThemeColors.SURFACE_CONTAINER};
+    border-radius: 4px;
+    border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;
+
 const BrowseMoreButton = styled(Button)`
     margin-top: 0;
     width: 100% !important;
@@ -258,6 +303,11 @@ interface DatabaseTable {
     selected: boolean;
 }
 
+interface LSErrorDetails {
+    errorMessage: string | null;
+    isExpanded: boolean;
+}
+
 const DATABASE_TYPES: OptionProps[] = [
     { id: "postgresql", value: "PostgreSQL", content: "PostgreSQL" },
     { id: "mysql", value: "MySQL", content: "MySQL" },
@@ -288,6 +338,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
     const [connectionName, setConnectionName] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const [connectionError, setConnectionError] = useState<string | null>(null);
+    const [lsErrorDetails, setLsErrorDetails] = useState<LSErrorDetails>({
+        errorMessage: null,
+        isExpanded: false,
+    });
     const [tableSearch, setTableSearch] = useState("");
 
     const steps = ["Introspect Database", "Select Tables", "Create Connection"];
@@ -309,6 +363,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
         // Clear error when user modifies credentials
         if (connectionError) {
             setConnectionError(null);
+            setLsErrorDetails({ errorMessage: null, isExpanded: false });
         }
     };
 
@@ -338,7 +393,15 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error introspecting database", response.errorMsg);
-                setConnectionError(response.errorMsg);
+                const errorMsg = response.errorMsg.toLowerCase();
+                if (errorMsg.includes("no tables found")) {
+                    setConnectionError("No tables were found in the database. Currently, connection creation requires at least one table.");
+                } else {
+                    setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
+                }
+                setLsErrorDetails({ errorMessage: response.errorMsg, isExpanded: false });
+                // Clear password field on error
+                setCredentials(prev => ({ ...prev, password: "" }));
                 return;
             }
 
@@ -350,14 +413,20 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                 setTables(databaseTables);
                 setCurrentStep(1);
                 setConnectionError(null);
+                setLsErrorDetails({ errorMessage: null, isExpanded: false });
             } else {
                 console.warn(">>> No tables found in database");
-                setConnectionError("No tables found in the database.");
+                setConnectionError("No tables found in the database. We cannot continue with connection creation. Please use a pre-built connector.");
+                setLsErrorDetails({ errorMessage: null, isExpanded: false });
+                // Clear password field on error
+                setCredentials(prev => ({ ...prev, password: "" }));
             }
         } catch (error) {
             console.error(">>> Error introspecting database", error);
-            const errorMessage = error instanceof Error ? error.message : "Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.";
-            setConnectionError(errorMessage);
+            setConnectionError("Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.");
+            setLsErrorDetails({ errorMessage: null, isExpanded: false });
+            // Clear password field on error
+            setCredentials(prev => ({ ...prev, password: "" }));
         } finally {
             setIsIntrospecting(false);
         }
@@ -413,10 +482,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
 
             if (response.errorMsg) {
                 console.error(">>> Error saving connection", response.errorMsg);
-                if (response.stackTrace) {
-                    console.error(">>> Stack trace", response.stackTrace);
-                }
-                // TODO: Show error message to user
+                setConnectionError("Failed to save the connection. Please try again.");
                 return;
             }
 
@@ -432,7 +498,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
             onClose?.({ recentIdentifier: connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
         } catch (error) {
             console.error(">>> Error saving connection", error);
-            // TODO: Show error message to user
+            setConnectionError("Failed to save the connection. Please try again.");
         } finally {
             setIsSaving(false);
         }
@@ -467,13 +533,28 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                     <ErrorTitle variant="h4">Connection Failed</ErrorTitle>
                 </ErrorHeader>
                 <Typography variant="body2">
-                    Unable to connect to the database. Please verify your credentials and ensure the database server is accessible.
+                    {connectionError}
                 </Typography>
+                {lsErrorDetails.errorMessage && (
+                    <ErrorDetailsSection>
+                        <ErrorDetailsHeader onClick={() => setLsErrorDetails(prev => ({ ...prev, isExpanded: !prev.isExpanded }))}>
+                            <ChevronIcon name={lsErrorDetails.isExpanded ? "chevron-down" : "chevron-right"} />
+                            <Typography variant="body2" sx={{ color: ThemeColors.ON_SURFACE_VARIANT, fontSize: '12px', margin: 0 }}>
+                                Error Details
+                            </Typography>
+                        </ErrorDetailsHeader>
+                        <ErrorDetailsContent expanded={lsErrorDetails.isExpanded}>
+                            <ErrorDetailsText>
+                                {lsErrorDetails.errorMessage}
+                            </ErrorDetailsText>
+                        </ErrorDetailsContent>
+                    </ErrorDetailsSection>
+                )}
                 <SeparatorLine />
                 <Typography variant="body2">
                     Or try using a pre-built connector:
                 </Typography>
-                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors}>
+                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
                     Browse Pre-built Connectors
                 </BrowseMoreButton>
             </ErrorContainer>
@@ -571,10 +652,10 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                                 value={tableSearch}
                                 placeholder="Search tables..."
                                 onChange={setTableSearch}
-                                sx={{ width: "87%" }}
+                                sx={{ flex: 1 }}
                             />
                             <SelectAllButton appearance="secondary" onClick={handleSelectAll}>
-                                Select All
+                                {selectedTablesCount === totalTablesCount && totalTablesCount > 0 ? "Deselect All" : "Select All"}
                             </SelectAllButton>
                         </SearchRow>
                         <TablesGrid>
@@ -701,7 +782,7 @@ export function DatabaseConnectionPopup(props: DatabaseConnectionPopupProps) {
                         <ActionButton
                             appearance="primary"
                             onClick={handleContinueToConnectionDetails}
-                            disabled={selectedTablesCount === 0}
+                            disabled={selectedTablesCount === 0 || !!connectionError}
                             buttonSx={{ width: "100%", height: "35px" }}
                         >
                             Continue to Connection Details

@@ -18,8 +18,7 @@ import { TestUseCase, UsecaseResult } from '../types';
 import { executeSingleTestCase } from './test-execution';
 import { convertTestResultToUsecaseResult, createFailedUsecaseResult } from '../result-management/result-conversion';
 import { FILES, PATHS, TIMING, VSCODE_COMMANDS } from './constants';
-import path from 'path';
-import { commands, Uri, workspace } from 'vscode';
+import { commands } from 'vscode';
 
 /**
  * Processes a single batch of test cases in parallel
@@ -37,16 +36,16 @@ export async function processSingleBatch(
         const batchPromises = batch.map(useCase =>
             executeSingleTestCase(useCase)
         );
-    
+
         const batchResults = await Promise.allSettled(batchPromises);
         const usecaseResults: UsecaseResult[] = [];
-    
+
         for (let j = 0; j < batchResults.length; j++) {
             const settledResult = batchResults[j];
             const useCase = batch[j];
-    
+
             let usecaseResult: UsecaseResult;
-    
+
             if (settledResult.status === 'fulfilled') {
                 usecaseResult = convertTestResultToUsecaseResult(settledResult.value, iteration);
             } else {
@@ -57,10 +56,10 @@ export async function processSingleBatch(
                     usecaseResult = { ...usecaseResult, iteration };
                 }
             }
-    
+
             usecaseResults.push(usecaseResult);
         }
-    
+
         return usecaseResults;
     } catch (error) {
         console.error(`❌ Batch ${batchNumber} processing failed:`, (error as Error).message);
@@ -89,17 +88,10 @@ export function wait(ms: number): Promise<void> {
 }
 
 async function setupTestEnvironmentForBatch(projectPath: string): Promise<void> {
-    // Wait for VSCode startup to complete
-    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETUP_DELAY));
-    
+    // With isolated test projects, we no longer need to switch workspaces
+    // Just ensure editors are closed to avoid memory issues
     await commands.executeCommand(VSCODE_COMMANDS.CLOSE_ALL_EDITORS);
-    
-    // Add the Ballerina workspace to trigger workspaceContains activation event
-    const currentFolderCount = workspace.workspaceFolders?.length || 0;
-    workspace.updateWorkspaceFolders(0, currentFolderCount, {
-        uri: Uri.file(projectPath),
-    });
-    
-    // Give VSCode time to detect the workspace and trigger activation
-    await new Promise(resolve => setTimeout(resolve, TIMING.WORKSPACE_SETTLE_DELAY));
+
+    console.log(`[Batch Setup] Batch using base project: ${projectPath}`);
+    // Note: Each test will get its own isolated copy via createIsolatedTestProject
 }

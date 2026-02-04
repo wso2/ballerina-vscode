@@ -15,7 +15,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType, IntermediateClause } from "@wso2/ballerina-core";
+import { FnMetadata, ExpandedDMModel, IOType, LineRange, Mapping, ResultClauseType, IntermediateClause, TypeKind } from "@wso2/ballerina-core";
 import { View } from "../../components/DataMapper/Views/DataMapperView";
 
 export interface IDataMapperContext {
@@ -34,6 +34,7 @@ export interface IDataMapperContext {
     goToFunction: (functionRange: LineRange) => Promise<void>;
     enrichChildFields: (parentField: IOType) => Promise<void>;
     genUniqueName: (name: string, viewId: string) => Promise<string>;
+    getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>;
 }
 
 export class DataMapperContext implements IDataMapperContext {
@@ -53,6 +54,7 @@ export class DataMapperContext implements IDataMapperContext {
         public mapWithTransformFn: (mapping: Mapping, metadata: FnMetadata, viewId: string) => Promise<void>,
         public goToFunction: (functionRange: LineRange) => Promise<void>,
         public enrichChildFields: (parentField: IOType) => Promise<void>,
-        public genUniqueName: (name: string, viewId: string) => Promise<string>
+        public genUniqueName: (name: string, viewId: string) => Promise<string>,
+        public getConvertedExpression: (expression: string, expressionType: TypeKind, outputType: TypeKind) => Promise<string>
     ){}
 }

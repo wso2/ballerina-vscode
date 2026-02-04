@@ -23,7 +23,7 @@ import { TitleBar } from "../../../components/TitleBar";
 import { isBetaModule } from "../ComponentListView/componentListUtils";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues } from "@wso2/ballerina-side-panel";
-import { EVENT_TYPE, LineRange, Property, PropertyModel, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
+import { EVENT_TYPE, getPrimaryInputType, LineRange, Property, PropertyModel, RecordTypeField, ServiceInitModel } from "@wso2/ballerina-core";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import styled from "@emotion/styled";
@@ -111,9 +111,10 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
 
     return Object.entries(properties).map(([key, property]) => {
 
-        // Determine value for MULTIPLE_SELECT
+        // Determine value for MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET
         let value: any = property.value;
-        if (property.valueType === "MULTIPLE_SELECT") {
+        const fieldType = getPrimaryInputType(property.types)?.fieldType;
+        if (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET") {
             if (property.values && property.values.length > 0) {
                 value = property.values;
             } else if (property.value) {
@@ -126,21 +127,21 @@ function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }
         }
 
         let items = undefined;
-        if (property.valueType === "MULTIPLE_SELECT" || property.valueType === "SINGLE_SELECT") {
+        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.types)?.fieldType === "SINGLE_SELECT") {
             items = property.items;
         }
 
         return {
             key,
             label: property?.metadata?.label,
-            type: property.valueType,
+            type: getPrimaryInputType(property.types)?.fieldType,
             documentation: property?.metadata?.description || "",
-            valueType: property.valueTypeConstraint,
+            valueType: getPrimaryInputType(property.types)?.ballerinaType,
             editable: true,
             enabled: property.enabled ?? true,
             optional: property.optional,
             value,
-            valueTypeConstraint: property.valueTypeConstraint,
+            types: property.types,
             advanced: property.advanced,
             diagnostics: [],
             items,
@@ -169,8 +170,8 @@ function populateServiceInitModelFromFormFields(formFields: FormField[], model: 
 
         const value = field.value;
 
-        // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET") {
+        // Handle MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET types
+        if (field.type === "MULTIPLE_SELECT" || field.type === "EXPRESSION_SET" || field.type === "TEXT_SET") {
             property.values = normalizeValueToArray(value);
         } else {
             property.value = value as string;
@@ -278,66 +279,48 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
     useEffect(() => {
         if (model) {
-            const hasPropertiesWithChoices = model?.moduleName === "http" &&
-                Object.values(model.properties).some(property => property.choices);
+            const recordTypeFields: RecordTypeField[] = [];
 
-            if (hasPropertiesWithChoices) {
-                const choiceRecordTypeFields = Object.entries(model.properties)
-                    .filter(([_, property]) => property.choices)
-                    .flatMap(([parentKey, property]) =>
-                        Object.entries(property.choices).flatMap(([choiceKey, choice]) =>
-                            Object.entries(choice.properties || {})
-                                .filter(([_, choiceProperty]) =>
-                                    choiceProperty.typeMembers &&
-                                    choiceProperty.typeMembers.some(member => member.kind === "RECORD_TYPE")
-                                )
-                                .map(([choicePropertyKey, choiceProperty]) => ({
-                                    key: choicePropertyKey,
-                                    property: {
-                                        ...choiceProperty,
-                                        metadata: {
-                                            label: choiceProperty.metadata?.label || choicePropertyKey,
-                                            description: choiceProperty.metadata?.description || ''
-                                        },
-                                        valueType: choiceProperty?.valueType || 'string',
-                                        diagnostics: {
-                                            hasDiagnostics: choiceProperty.diagnostics && choiceProperty.diagnostics.length > 0,
-                                            diagnostics: choiceProperty.diagnostics
-                                        }
-                                    } as Property,
-                                    recordTypeMembers: choiceProperty.typeMembers.filter(member => member.kind === "RECORD_TYPE")
-                                }))
-                        )
-                    );
-                console.log(">>> recordTypeFields of http serviceModel", choiceRecordTypeFields);
+            // Recursive function to collect record type fields from properties and nested choices
+            const collectRecordTypeFields = (properties: any) => {
+                if (!properties) return;
 
-                setRecordTypeFields(choiceRecordTypeFields);
-            } else {
-                const recordTypeFields: RecordTypeField[] = Object.entries(model.properties)
-                    .filter(([_, property]) =>
-                        property.typeMembers &&
-                        property.typeMembers.some(member => member.kind === "RECORD_TYPE")
-                    )
-                    .map(([key, property]) => ({
-                        key,
-                        property: {
-                            ...property,
-                            metadata: {
-                                label: property.metadata?.label || key,
-                                description: property.metadata?.description || ''
-                            },
-                            valueType: property?.valueType || 'string',
-                            diagnostics: {
-                                hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
-                                diagnostics: property.diagnostics
+                Object.entries(properties).forEach(([key, property]: [string, any]) => {
+                    // Check if this property itself is a record type
+                    const primaryType = getPrimaryInputType(property.types);
+                    if (primaryType?.typeMembers && primaryType.typeMembers.some((member: any) => member.kind === "RECORD_TYPE")) {
+                        recordTypeFields.push({
+                            key,
+                            property: {
+                                ...property,
+                                metadata: {
+                                    label: property.metadata?.label || key,
+                                    description: property.metadata?.description || ''
+                                },
+                                types: property.types,
+                                diagnostics: {
+                                    hasDiagnostics: property.diagnostics && property.diagnostics.length > 0,
+                                    diagnostics: property.diagnostics
+                                }
+                            } as Property,
+                            recordTypeMembers: primaryType.typeMembers.filter((member: any) => member.kind === "RECORD_TYPE")
+                        });
+                    }
+
+                    // If this property has choices, recursively collect from all choice properties
+                    if (property.choices && property.choices.length > 0) {
+                        property.choices.forEach((choice: any) => {
+                            if (choice.properties) {
+                                collectRecordTypeFields(choice.properties);
                             }
-                        } as Property,
-                        recordTypeMembers: property.typeMembers.filter(member => member.kind === "RECORD_TYPE")
-                    }));
-                console.log(">>> recordTypeFields of serviceModel", recordTypeFields);
+                        });
+                    }
+                });
+            };
 
-                setRecordTypeFields(recordTypeFields);
-            }
+            // Start collection from top-level properties
+            collectRecordTypeFields(model.properties);
+            setRecordTypeFields(recordTypeFields);
         }
     }, [model]);
 
@@ -347,15 +330,25 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
      * @param property The property to process
      * @param data The form data containing all field values
      */
-    const processPropertyRecursively = (property: PropertyModel, data: FormValues): void => {
+    const processPropertyRecursively = (property: PropertyModel, data: FormValues, propertyKey?: string): void => {
         // If this property is a CHOICE field, process it
-        if (property.valueType === "CHOICE" && property.choices) {
+        if (getPrimaryInputType(property.types)?.fieldType === "CHOICE" && property.choices) {
+            // Get the selected index from form data if available, otherwise use property.value
+            const selectedIndex = propertyKey && data[propertyKey] !== undefined
+                ? Number(data[propertyKey])
+                : (property.value !== undefined ? Number(property.value) : 0);
+
+            // Update property.value with the current UI selection
+            if (propertyKey && data[propertyKey] !== undefined) {
+                property.value = data[propertyKey] as string;
+            }
+
             property.choices.forEach((choice, index) => {
                 // Disable all choices first
                 choice.enabled = false;
 
-                // The property.value should contain the selected index
-                if (property.value !== undefined && Number(property.value) === index) {
+                // Enable the selected choice based on form data or property.value
+                if (selectedIndex === index) {
                     choice.enabled = true;
 
                     // Process all properties in this selected choice
@@ -365,8 +358,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
                             // Set value from form data if available
                             if (data[nestedKey] !== undefined) {
-                                // Handle MULTIPLE_SELECT and EXPRESSION_SET types
-                                if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                                // Handle MULTIPLE_SELECT, EXPRESSION_SET, and TEXT_SET types
+                                if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET" || getPrimaryInputType(nestedProperty.types)?.fieldType === "TEXT_SET") {
                                     const value = data[nestedKey];
                                     nestedProperty.values = normalizeValueToArray(value);
                                 } else {
@@ -374,8 +367,8 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                 }
                             }
 
-                            // Recursively process this nested property
-                            processPropertyRecursively(nestedProperty, data);
+                            // Recursively process this nested property, passing the key
+                            processPropertyRecursively(nestedProperty, data, nestedKey);
                         }
                     }
                 }
@@ -388,7 +381,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
 
                 // Set value from form data if available
                 if (data[nestedKey] !== undefined) {
-                    if (nestedProperty.valueType === "MULTIPLE_SELECT" || nestedProperty.valueType === "EXPRESSION_SET") {
+                    if (getPrimaryInputType(nestedProperty.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(nestedProperty.types)?.fieldType === "EXPRESSION_SET" || getPrimaryInputType(nestedProperty.types)?.fieldType === "TEXT_SET") {
                         const value = data[nestedKey];
                         nestedProperty.values = normalizeValueToArray(value);
                     } else {
@@ -396,9 +389,60 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                     }
                 }
 
-                // Recursively process nested properties
-                processPropertyRecursively(nestedProperty, data);
+                // Recursively process nested properties, passing the key
+                processPropertyRecursively(nestedProperty, data, nestedKey);
             }
+        }
+    };
+
+    /**
+     * Recursively updates CHOICE field selections in the model
+     *
+     * @param properties The properties object to search through
+     * @param fieldKey The key of the field that changed
+     * @param value The new value
+     * @returns true if the field was found and updated
+     */
+    const updateChoiceInModel = (properties: { [key: string]: PropertyModel }, fieldKey: string, value: any): boolean => {
+        // Check if the field exists at this level
+        if (properties[fieldKey]) {
+            const property = properties[fieldKey];
+            if (getPrimaryInputType(property.types)?.fieldType === "CHOICE" && property.choices) {
+                property.value = value as string;
+                property.choices.forEach((choice, index) => {
+                    choice.enabled = (Number(value) === index);
+                });
+                return true;
+            }
+        }
+
+        // Search in nested choice properties - ONLY search through enabled choices
+        for (const key in properties) {
+            const property = properties[key];
+            if (property.choices) {
+                // Only search in the currently enabled choice
+                const enabledChoice = property.choices.find(choice => choice.enabled);
+                if (enabledChoice?.properties && updateChoiceInModel(enabledChoice.properties, fieldKey, value)) {
+                    return true;
+                }
+            }
+            // Also check nested properties (for CONDITIONAL_FIELDS, etc.)
+            if (property.properties && updateChoiceInModel(property.properties, fieldKey, value)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const handleOnChange = (fieldKey: string, value: any) => {
+        // Try to update the CHOICE field in the model (recursively)
+        const wasUpdated = updateChoiceInModel(model.properties, fieldKey, value);
+
+        if (wasUpdated) {
+            // Regenerate form fields to reflect the nested structure changes
+            const updatedFormFields = mapPropertiesToFormFields(model.properties);
+            setFormFields(updatedFormFields);
         }
     };
 
@@ -414,13 +458,19 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                             for (const key in choice.properties) {
                                 const property = choice.properties[key];
                                 if (data[key] !== undefined) {
-                                    if (key === "basePath") {
-                                        property.value = sanitizedHttpPath(data[key]);
+                                    const fieldType = getPrimaryInputType(property.types)?.fieldType;
+                                    // Handle array types (TEXT_SET, EXPRESSION_SET, MULTIPLE_SELECT)
+                                    if (fieldType === "MULTIPLE_SELECT" || fieldType === "EXPRESSION_SET" || fieldType === "TEXT_SET") {
+                                        property.values = normalizeValueToArray(data[key]);
                                     } else {
-                                        property.value = data[key];
+                                        if (key === "basePath") {
+                                            property.value = sanitizedHttpPath(data[key]);
+                                        } else {
+                                            property.value = data[key];
+                                        }
                                     }
                                 }
-                                processPropertyRecursively(property, data);
+                                processPropertyRecursively(property, data, key);
                             }
                         }
                     }
@@ -436,7 +486,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                         if (data[subField.key] !== undefined) {
                             subProperty.value = data[subField.key];
                         }
-                        processPropertyRecursively(subProperty, data);
+                        processPropertyRecursively(subProperty, data, subField.key);
                     }
                 });
             }
@@ -514,6 +564,7 @@ export function ServiceCreationView(props: ServiceCreationViewProps) {
                                                 isSaving={isSaving}
                                                 nestedForm={true}
                                                 onSubmit={handleOnSubmit}
+                                                onChange={handleOnChange}
                                                 preserveFieldOrder={true}
                                                 recordTypeFields={recordTypeFields}
                                                 submitText="Create"

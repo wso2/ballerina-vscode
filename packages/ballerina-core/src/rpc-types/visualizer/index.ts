@@ -36,4 +36,5 @@ export interface VisualizerAPI {
     joinProjectPath: (params: JoinProjectPathRequest) => Promise<JoinProjectPathResponse>;
     getThemeKind: () => Promise<ColorThemeKind>;
     updateCurrentArtifactLocation: (params: UpdatedArtifactsResponse) => Promise<ProjectStructureArtifactResponse>;
+    reviewAccepted: () => void;
 }

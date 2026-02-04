@@ -44,8 +44,7 @@ export function activatePackCommand() {
             const context = StateMachine.context();
             const { workspacePath, view: webviewType, projectPath } = context;
 
-            let targetPath = projectPath ?? "";
-
+            let targetPath = projectPath ?? "";          
             if (workspacePath && webviewType === MACHINE_VIEW.WorkspaceOverview) {
                 targetPath = workspacePath;
             } else if (workspacePath && !projectPath) {

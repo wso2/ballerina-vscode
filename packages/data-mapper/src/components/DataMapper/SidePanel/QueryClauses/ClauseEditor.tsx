@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { EditorContainer, ProgressRingWrapper } from "./styles";
 import { Divider, Dropdown, OptionProps, ProgressRing, Typography } from "@wso2/ui-toolkit";
 import { DMFormProps, DMFormField, DMFormFieldValues, IntermediateClauseType, IntermediateClause, IntermediateClauseProps, LinePosition } from "@wso2/ballerina-core";
-import { useDMQueryClausesPanelStore } from "../../../../store/store";
+import { useDMQueryClausesStore } from "../../../../store/store";
 import { useQuery } from "@tanstack/react-query";
 
 export interface ClauseEditorProps {
@@ -35,21 +35,33 @@ export interface ClauseEditorProps {
     generateForm: (formProps: DMFormProps) => JSX.Element;
 }
 
+export const clauseTypeLabels: Record<IntermediateClauseType, string> = {
+    [IntermediateClauseType.WHERE]: "Condition",
+    [IntermediateClauseType.LET]: "Local variable",
+    [IntermediateClauseType.ORDER_BY]: "Sort by",
+    [IntermediateClauseType.LIMIT]: "Limit",
+    [IntermediateClauseType.FROM]: "From",
+    [IntermediateClauseType.JOIN]: "Join",
+    [IntermediateClauseType.GROUP_BY]: "Group by"
+};
+
 export function ClauseEditor(props: ClauseEditorProps) {
     const { index, targetField, clause, onSubmitText, isSaving, onSubmit, onCancel, getClausePosition, generateForm } = props;
-    const { clauseToAdd, setClauseToAdd } = useDMQueryClausesPanelStore.getState();
-    const { type: _clauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
+    const { clauseToAdd, setClauseToAdd, clauseTypes, setClauseTypes } = useDMQueryClausesStore();
+    const { type: initialClauseType, properties: clauseProps } = clause ?? clauseToAdd ?? {};
 
-    const [clauseType, setClauseType] = React.useState<string>(_clauseType ?? IntermediateClauseType.WHERE);
-    const clauseTypeItems: OptionProps[] = [
-        { content: "Condition", value: IntermediateClauseType.WHERE },
-        { content: "Local variable", value: IntermediateClauseType.LET },
-        { content: "Sort by", value: IntermediateClauseType.ORDER_BY },
-        { content: "Limit", value: IntermediateClauseType.LIMIT },
-        { content: "From", value: IntermediateClauseType.FROM },
-        { content: "Join", value: IntermediateClauseType.JOIN },
-        { content: "Group by", value: IntermediateClauseType.GROUP_BY }
-    ]
+    const [clauseType, setClauseType] = useState<string>(initialClauseType ?? IntermediateClauseType.WHERE);
+
+    useEffect(() => {
+        if (initialClauseType) {
+            setClauseType(initialClauseType);
+        }
+    }, [initialClauseType]);
+    
+    const clauseTypeItems = useMemo(() => {
+        const types = clauseTypes ?? Object.values(IntermediateClauseType);
+        return types.map((type) => ({ content: clauseTypeLabels[type], value: type }));
+    }, [clauseTypes]);
 
     const nameField: DMFormField = {
         key: "name",
@@ -59,7 +71,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
         enabled: true,
     }
 
@@ -67,11 +79,11 @@ export function ClauseEditor(props: ClauseEditorProps) {
         key: "type",
         label: "Type",
         type: "TYPE",
-        optional: false,
+        optional: true,
         editable: true,
         documentation: "Enter the type of the clause",
         value: clauseProps?.type ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "TYPE", selected: false }],
         enabled: true,
     }
 
@@ -87,7 +99,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "EXPRESSION", selected: false }],
         enabled: true,
     }
 
@@ -99,7 +111,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the order",
         value: clauseProps?.order ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "ENUM", selected: false }],
         enabled: true,
         items: ["ascending", "descending"]
     }
@@ -112,7 +124,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "EXPRESSION", selected: false }],
         enabled: true,
     }
 
@@ -124,12 +136,13 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: "Enter the RHS expression of join-on condition",
         value: clauseProps?.rhsExpression ?? "",
-        valueTypeConstraint: "Global",
+        types: [{ fieldType: "DM_JOIN_CLAUSE_RHS_EXPRESSION", selected: false }],
         enabled: true,
     }
 
     const handleSubmit = (data: DMFormFieldValues) => {
         setClauseToAdd(undefined);
+        setClauseTypes(undefined);
         const clause: IntermediateClause = {
             type: clauseType as IntermediateClauseType,
             properties: data as IntermediateClauseProps
@@ -139,6 +152,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
 
     const handleCancel = () => {
         setClauseToAdd(undefined);
+        setClauseTypes(undefined);
         onCancel();
     }
 
@@ -146,8 +160,9 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const generateFields = () => {
         switch (clauseType) {
             case IntermediateClauseType.LET:
-            case IntermediateClauseType.FROM:
                 return [nameField, typeField, expressionField];
+            case IntermediateClauseType.FROM:
+                return [expressionField, nameField];
             case IntermediateClauseType.ORDER_BY:
                 return [expressionField, orderField];
             case IntermediateClauseType.JOIN:
@@ -159,8 +174,8 @@ export function ClauseEditor(props: ClauseEditorProps) {
         }
     }
 
-    const { 
-        data: clausePosition, 
+    const {
+        data: clausePosition,
         isFetching: isFetchingTargetLineRange
     } = useQuery({
         queryKey: ['getClausePosition', targetField, index],
@@ -201,7 +216,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
                 </ProgressRingWrapper> :
                 generateForm(formProps)
             }
-            
+
         </EditorContainer >
     );
 }

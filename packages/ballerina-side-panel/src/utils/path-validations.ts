@@ -207,6 +207,13 @@ export function readUnquoted(content: string, pos: number, offset: number) {
     while (pos < content.length) {
         const c = content[pos];
         if (/\s/.test(c) || c === ']' || c === '[') break;
+        if (c === '/') {
+            return {
+                value: null,
+                newPos: pos + 1,
+                error: { position: pos + offset, message: 'Slash (/) is not allowed in segment' }
+            };
+        }
         if (isValidFollowing(c)) {
             value += c;
             pos++;
@@ -304,6 +311,11 @@ export function parseBasePath(input: string): ParseResult {
         return result;
     }
 
+    if (input.length > 1 && input.endsWith('/')) {
+        result.errors.push({ position: input.length - 1, message: 'base path cannot end with a slash (/)' });
+        return result;
+    }
+
     const segments = splitSegments(input);
     for (const segment of segments) {
         processSegment(segment, result);
@@ -338,6 +350,11 @@ export function parseResourceActionPath(input: string): ParseResult {
 
     if (input.includes('//')) {
         result.errors.push({ position: 0, message: 'cannot have two consecutive slashes (//)' });
+        return result;
+    }
+
+    if (input.length > 1 && input.endsWith('/')) {
+        result.errors.push({ position: input.length - 1, message: 'path cannot end with a slash (/)' });
         return result;
     }
 

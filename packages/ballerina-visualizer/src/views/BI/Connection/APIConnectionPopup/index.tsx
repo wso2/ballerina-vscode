@@ -18,7 +18,7 @@
 
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
-import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography } from "@wso2/ui-toolkit";
+import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography, Icon } from "@wso2/ui-toolkit";
 import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
@@ -158,6 +158,47 @@ const StepHeader = styled.div`
     gap: 4px;
 `;
 
+const ErrorContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    border-radius: 8px;
+    background-color: ${ThemeColors.SURFACE_DIM};
+    border: 1px solid ${ThemeColors.ERROR};
+    margin-top: 16px;
+`;
+
+const ErrorHeader = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+`;
+
+const ErrorTitle = styled(Typography)`
+    font-size: 16px;
+    font-weight: 600;
+    color: ${ThemeColors.ERROR};
+    margin: 0;
+`;
+
+const SeparatorLine = styled.div`
+    width: 100%;
+    height: 1px;
+    background-color: ${ThemeColors.OUTLINE_VARIANT};
+    opacity: 0.5;
+`;
+
+const BrowseMoreButton = styled(Button)`
+    margin-top: 0;
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--vscode-button-secondaryBackground, #3c3c3c) !important;
+    color: var(--vscode-button-secondaryForeground, #ffffff) !important;
+`;
+
 interface APIConnectionPopupProps {
     projectPath: string;
     fileName: string;
@@ -179,6 +220,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
     const [isSavingConnection, setIsSavingConnection] = useState<boolean>(false);
     const [selectedFlowNode, setSelectedFlowNode] = useState<FlowNode | undefined>(undefined);
     const [updatedExpressionField, setUpdatedExpressionField] = useState<ExpressionFormField>(undefined);
+    const [connectionError, setConnectionError] = useState<string | null>(null);
 
     const steps = useMemo(() => ["Import API Specification", "Create Connection"], []);
 
@@ -202,6 +244,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         const projectDirectory = await rpcClient.getCommonRpcClient().selectFileOrDirPath({ isFile: true });
         if (projectDirectory.path) {
             setSelectedFilePath(projectDirectory.path);
+            setConnectionError(null);
         }
     };
 
@@ -263,30 +306,44 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             return;
         }
         setIsSavingConnector(true);
+        setConnectionError(null);
         const generateResponse = await handleOnGenerateSubmit(selectedFilePath, connectorName, specType);
 
         // Only proceed if there's no error message
         if (generateResponse?.success) {
             try {
                 // Small delay to ensure the connector is available
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 1000));
 
                 const defaultPosition = target || { line: 0, offset: 0 };
-                const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
-                    position: {
-                        startLine: defaultPosition,
-                        endLine: defaultPosition,
-                    },
-                    filePath: fileName,
-                    queryMap: {
-                        limit: 60,
-                        filterByCurrentOrg: false,
-                    },
-                    searchKind: "CONNECTOR",
-                });
+                
+                // Helper function to search for connectors
+                const searchForConnector = async () => {
+                    const searchResponse = await rpcClient.getBIDiagramRpcClient().search({
+                        position: {
+                            startLine: defaultPosition,
+                            endLine: defaultPosition,
+                        },
+                        filePath: fileName,
+                        queryMap: {
+                            limit: 60,
+                            filterByCurrentOrg: false,
+                        },
+                        searchKind: "CONNECTOR",
+                    });
+                    return findConnectorByModule(searchResponse.categories, connectorName);
+                };
 
                 // Find the connector we just created
-                const createdConnector = findConnectorByModule(searchResponse.categories, connectorName);
+                let createdConnector = await searchForConnector();
+                
+                // If connector not found, retry after 2 second
+                if (!createdConnector) {
+                    console.warn(">>> Connector not found on first attempt, retrying after 1 second...");
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    createdConnector = await searchForConnector();
+                }
+                
                 if (createdConnector && createdConnector.codedata) {
                     // Get the flowNode template
                     const nodeTemplateResponse = await rpcClient.getBIDiagramRpcClient().getNodeTemplate({
@@ -304,8 +361,47 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
             setCurrentStep(1);
         } else {
             console.error(">>> Error generating connector:", generateResponse?.errorMessage);
+            const errorMessage = generateResponse?.errorMessage || "";
+            if (errorMessage.toLowerCase().includes("module already exists")) {
+                setConnectionError("A connector with this name already exists. Please use a different connector name.");
+            } else {
+                setConnectionError("Failed to create the connector. Please check your specification file and connector name.");
+            }
         }
         setIsSavingConnector(false);
+    };
+
+    const handleBrowseMoreConnectors = () => {
+        if (onBack) {
+            onBack();
+        } else if (onClose) {
+            onClose();
+        }
+    };
+
+    const renderErrorDisplay = () => {
+        if (!connectionError) return null;
+
+        return (
+            <ErrorContainer>
+                <ErrorHeader>
+                    <Icon name="bi-error" sx={{ color: ThemeColors.ERROR, fontSize: '20px', width: '20px', height: '20px' }} />
+                    <ErrorTitle variant="h4">Connector Creation Failed</ErrorTitle>
+                </ErrorHeader>
+                <Typography variant="body2">
+                    {connectionError}
+                </Typography>
+                <SeparatorLine />
+                <Typography variant="body2">
+                    Or try using a pre-built connector:
+                </Typography>
+                <BrowseMoreButton appearance="secondary" onClick={handleBrowseMoreConnectors} buttonSx={{ width: "100%" }}>
+                    <Typography variant="body2">
+                        Browse Pre-built Connectors
+                    </Typography>
+                </BrowseMoreButton>
+            </ErrorContainer>
+        );
     };
 
     const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
@@ -383,6 +479,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     Import API specification for the connector
                 </Typography>
             </StepHeader>
+            {renderErrorDisplay()}
             <FormSection>
                 <FormField>
                     <Dropdown
@@ -390,7 +487,10 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                         label="Specification Type"
                         items={apiSpecOptions}
                         value={specType}
-                        onValueChange={(value) => setSpecType(value)}
+                        onValueChange={(value) => {
+                            setSpecType(value);
+                            setConnectionError(null);
+                        }}
                     />
                 </FormField>
                 <FormField>
@@ -403,7 +503,10 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     <TextField
                         id="connector-name"
                         value={connectorName}
-                        onTextChange={(value) => setConnectorName(value)}
+                        onTextChange={(value) => {
+                            setConnectorName(value);
+                            setConnectionError(null);
+                        }}
                         placeholder="Enter connector name"
                     />
                 </FormField>
@@ -495,7 +598,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
                     <FooterContainer>
                         <ActionButton
                             appearance="primary"
-                            disabled={!selectedFilePath || !connectorName || isSavingConnector}
+                            disabled={!selectedFilePath || !connectorName || isSavingConnector || !!connectionError}
                             onClick={handleSaveConnector}
                             buttonSx={{ width: "100%", height: "35px" }}
                         >

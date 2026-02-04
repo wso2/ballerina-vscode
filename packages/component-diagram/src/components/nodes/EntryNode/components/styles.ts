@@ -41,7 +41,7 @@ export const Header = styled.div<NodeStyleProp>`
     align-items: flex-start;
     gap: 6px;
     width: 100%;
-    cursor: pointer;
+    cursor: ${(props: NodeStyleProp) => props.inactive ? "default" : "pointer"};
 `;
 
 export const TopPortWidget = styled(PortWidget)`
@@ -121,7 +121,7 @@ export const Box = styled.div<NodeStyleProp>`
     padding: 8px;
 `;
 
-export const ServiceBox = styled.div`
+export const ServiceBox = styled.div<{ readonly?: boolean }>`
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -129,9 +129,9 @@ export const ServiceBox = styled.div`
     gap: 10px;
     width: ${ENTRY_NODE_WIDTH}px;
     height: ${ENTRY_NODE_HEIGHT - 8}px;
-    cursor: pointer;
+    cursor: ${(props) => props.readonly ? "default" : "pointer"};
     &:hover {
-        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        background-color: ${(props) => !props.readonly ? ThemeColors.PRIMARY_CONTAINER : "transparent"};
         border-radius: 8px;
     }
 `;

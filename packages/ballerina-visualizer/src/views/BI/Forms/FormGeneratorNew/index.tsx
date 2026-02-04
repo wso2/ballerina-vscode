@@ -37,6 +37,8 @@ import {
     NodeProperties,
     ExpressionCompletionsRequest,
     ExpressionCompletionsResponse,
+    InputType,
+    getPrimaryInputType,
     Diagnostic
 } from "@wso2/ballerina-core";
 import {
@@ -535,7 +537,7 @@ export function FormGeneratorNew(props: FormProps) {
                 value: string,
                 cursorPosition: number,
                 fetchReferenceTypes?: boolean,
-                valueTypeConstraint?: string,
+                types?: InputType[],
                 fieldKey?: string
             ) => {
                 let context: TypeHelperContext | undefined;
@@ -546,22 +548,22 @@ export function FormGeneratorNew(props: FormProps) {
                 let visibleTypes = typesCache.current.get(typesCacheKey);
 
                 if (!visibleTypes) {
-                    let types;
+                    let visibleTypesResponse;
                     if (isGraphqlEditor && fieldKey && context) {
-                        types = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
+                        visibleTypesResponse = await rpcClient.getServiceDesignerRpcClient().getResourceReturnTypes({
                             filePath: fileName,
                             context: context,
                         });
                     } else {
-                        types = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
+                        visibleTypesResponse = await rpcClient.getBIDiagramRpcClient().getVisibleTypes({
                             filePath: fileName,
                             position: getAdjustedStartLine(targetLineRange, expressionOffsetRef.current),
-                            ...(valueTypeConstraint && { typeConstraint: valueTypeConstraint })
+                            ...(getPrimaryInputType(types)?.ballerinaType && { typeConstraint: getPrimaryInputType(types)?.ballerinaType })
                         });
                     }
 
-                    const isFetchingTypesForDM = valueTypeConstraint === "json";
-                    visibleTypes = convertToVisibleTypes(types, isFetchingTypesForDM);
+                    const isFetchingTypesForDM = getPrimaryInputType(types)?.ballerinaType === "json";
+                    visibleTypes = convertToVisibleTypes(visibleTypesResponse, isFetchingTypesForDM);
                     typesCache.current.set(typesCacheKey, visibleTypes);
                 }
                 setTypes(visibleTypes);
@@ -583,8 +585,8 @@ export function FormGeneratorNew(props: FormProps) {
     );
 
     const handleGetVisibleTypes = useCallback(
-        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, valueTypeConstraint?: string, fieldKey?: string) => {
-            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, valueTypeConstraint, fieldKey);
+        async (value: string, cursorPosition: number, fetchReferenceTypes?: boolean, types?: InputType[], fieldKey?: string) => {
+            await debouncedGetVisibleTypes(value, cursorPosition, fetchReferenceTypes, types, fieldKey);
         },
         [debouncedGetVisibleTypes]
     );
@@ -628,7 +630,7 @@ export function FormGeneratorNew(props: FormProps) {
                 shouldUpdateNode?: boolean,
                 variableType?: string
             ) => {
-                if (!showDiagnostics) {
+                if (!showDiagnostics || isDataMapperEditor) {
                     setDiagnosticsInfo({ key, diagnostics: [] });
                     return;
                 }
@@ -681,7 +683,7 @@ export function FormGeneratorNew(props: FormProps) {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string,
+        types?: InputType[],
         inputMode?: InputMode,
     ) => {
         const handleHelperPaneClose = () => {
@@ -708,7 +710,7 @@ export function FormGeneratorNew(props: FormProps) {
             selectedType: selectedType,
             filteredCompletions: filteredCompletions,
             isInModal: false,
-            valueTypeConstraint: valueTypeConstraint,
+            types: types,
             handleRetrieveCompletions: handleRetrieveCompletions,
             handleValueTypeConstChange: handleValueTypeConstChange,
             forcedValueTypeConstraint: valueTypeConstraints,
@@ -718,7 +720,7 @@ export function FormGeneratorNew(props: FormProps) {
 
     const handleGetTypeHelper = (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -750,7 +752,7 @@ export function FormGeneratorNew(props: FormProps) {
 
         return getTypeHelper({
             fieldKey: fieldKey,
-            valueTypeConstraint: valueTypeConstraint,
+            types: types,
             typeBrowserRef: typeBrowserRef,
             filePath: fileName,
             targetLineRange: targetLineRange ? updateLineRange(targetLineRange, expressionOffsetRef.current) : undefined,
@@ -918,7 +920,6 @@ export function FormGeneratorNew(props: FormProps) {
             retrieveCompletions: handleRetrieveCompletions,
             extractArgsFromFunction: extractArgsFromFunction,
             types: filteredTypes,
-            fileName: fileName,
             referenceTypes: types,
             rpcManager: {
                 getExpressionTokens: getExpressionTokens
@@ -931,9 +932,9 @@ export function FormGeneratorNew(props: FormProps) {
             onBlur: handleExpressionEditorBlur,
             onCancel: handleExpressionEditorCancel,
             onOpenRecordConfigPage: openRecordConfigPage,
-            helperPaneOrigin: "vertical",
-            helperPaneHeight: "default",
-        } as FormExpressionEditorProps;
+            helperPaneOrigin: "vertical" as const,
+            helperPaneHeight: "default" as const,
+        } satisfies FormExpressionEditorProps;
     }, [
         filteredCompletions,
         filteredTypes,
@@ -1021,6 +1022,7 @@ export function FormGeneratorNew(props: FormProps) {
                             newTypeValue={typeEditorState.newTypeValue}
                             isPopupTypeForm={true}
                             isGraphql={isGraphqlEditor}
+                            // payloadContext={{protocol: "GRAPHQL"}}
                             onTypeChange={handleTypeChange}
                             onSaveType={onSaveType}
                             onTypeCreate={() => { }}

@@ -21,6 +21,8 @@ import { DiagnosticMessage, FormDiagnostics, TextEdit, PropertyModel, LinePositi
 import { ParamConfig } from "../ParamManager/ParamManager";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, HelperPaneOrigin, OptionProps } from "@wso2/ui-toolkit";
 import { InputMode } from "../editors/MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { InputType } from "@wso2/ballerina-core/lib/interfaces/bi";
+
 
 export type FormValues = {
     [key: string]: any;
@@ -46,14 +48,13 @@ export type FormField = {
     documentation: string;
     value: string | any[];
     advanceProps?: FormField[];
-    valueType?: string;
     diagnostics?: DiagnosticMessage[];
     items?: string[];
     itemOptions?: OptionProps[]
     choices?: PropertyModel[];
     dynamicFormFields?: { [key: string]: FormField[] }
     paramManagerProps?: ParamConfig;
-    valueTypeConstraint: string | string[];
+    types: InputType[];
     groupNo?: number;
     groupName?: string;
     addNewButton?: boolean;
@@ -153,12 +154,12 @@ type FormTypeConditionalProps = {
         value: string,
         cursorPosition: number,
         fetchReferenceTypes: boolean,
-        valueTypeConstraint: string,
+        types: InputType[],
         fieldKey?: string
     ) => Promise<void>;
     getTypeHelper: (
         fieldKey: string,
-        valueTypeConstraint: string,
+        types: InputType[],
         typeBrowserRef: RefObject<HTMLDivElement>,
         currentType: string,
         currentCursorPosition: number,
@@ -192,7 +193,7 @@ type FormHelperPaneConditionalProps = {
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
         isAssignIdentifier?: boolean,
-        valueTypeConstraint?: string | string[],
+        inputTypes?: InputType[],
         inputMode?: InputMode
     ) => JSX.Element;
     helperPaneOrigin?: HelperPaneOrigin;

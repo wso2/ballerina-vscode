@@ -32,7 +32,7 @@
         "monaco-editor": "~0.52.2",
         "vscode-uri": "~3.1.0",
         "@vscode/webview-ui-toolkit": "~1.4.0",
-        "lodash": "~4.17.21"
+        "lodash": "4.17.23"
     },
     "devDependencies": {
         "@types/react": "18.2.0",
@@ -42,7 +42,7 @@
         "@types/lodash.debounce": "^4.0.9",
         "typescript": "5.8.3",
         "copyfiles": "~2.4.1",
-        "eslint": "~9.26.0",
+        "eslint": "9.27.0",
         "@types/lodash": "~4.17.15"
     },
     "author": "wso2",

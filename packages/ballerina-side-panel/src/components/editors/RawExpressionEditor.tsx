@@ -19,6 +19,7 @@
 import React from "react";
 import { useFormContext } from "../../context";
 import { ContextAwareExpressionEditorProps, ExpressionEditor } from "./ExpressionEditor";
+import { getPrimaryInputType, InputType } from "@wso2/ballerina-core";
 
 interface TemplateConfig {
     prefix: string;
@@ -36,17 +37,17 @@ const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     }
 };
 
-const getTemplateConfig = (valueTypeConstraint?: string | string[]): TemplateConfig => {
-    if (!valueTypeConstraint) {
+const getTemplateConfig = (inputTypes?: InputType[]): TemplateConfig => {
+    if (!inputTypes) {
         return { prefix: "`", suffix: "`" };
     }
-    const constraint = Array.isArray(valueTypeConstraint) ? valueTypeConstraint[0] : valueTypeConstraint;
+    const constraint = getPrimaryInputType(inputTypes)?.ballerinaType;
     return TEMPLATE_CONFIGS[constraint] || { prefix: "`", suffix: "`" };
 };
 
 export const ContextAwareRawExpressionEditor = (props: ContextAwareExpressionEditorProps) => {
     const { form, expressionEditor, targetLineRange, fileName } = useFormContext();
-    const templateConfig = getTemplateConfig(props.field.valueTypeConstraint);
+    const templateConfig = getTemplateConfig(props.field.types);
 
     const getSanitizedExp = (value: string) => {
         if (!value) {

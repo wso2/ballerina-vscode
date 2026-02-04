@@ -25,6 +25,7 @@ export interface DiagramContextState {
     project: CDModel;
     expandedNodes: Set<string>; // Track which nodes are expanded by their UUID
     graphQLGroupOpen?: Record<string, { Query: boolean; Subscription: boolean; Mutation: boolean }>;
+    readonly?: boolean;
     onListenerSelect: (listener: CDListener) => void;
     onServiceSelect: (service: CDService) => void;
     onFunctionSelect: (func: CDFunction | CDResourceFunction) => void;
@@ -39,6 +40,7 @@ export const DiagramContext = React.createContext<DiagramContextState>({
     project: { connections: [], listeners: [], services: [] },
     expandedNodes: new Set(),
     graphQLGroupOpen: {},
+    readonly: false,
     onListenerSelect: () => {},
     onServiceSelect: () => {},
     onFunctionSelect: () => {},
