@@ -739,7 +739,13 @@ class ServiceIndexGenerator {
             String fieldType,
             String ballerinaType,
             List<Object> options,
-            List<ServiceInitializerPropertyMemberType> typeMembers
+            List<ServiceInitializerPropertyMemberType> typeMembers,
+            Template template
     ) {
+    }
+
+    record Template(
+            List<PropertyType> types
+    ){
     }
 }
