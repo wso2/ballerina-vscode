@@ -3115,10 +3115,10 @@
                     "packageInfo": "ballerinax:redis:3.1.0",
                     "packageName": "redis",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",

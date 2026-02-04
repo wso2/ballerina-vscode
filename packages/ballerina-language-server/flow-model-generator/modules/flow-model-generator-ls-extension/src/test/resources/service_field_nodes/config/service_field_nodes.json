@@ -906,10 +906,10 @@
                     "packageInfo": "ballerinax:ai:1.0.1",
                     "packageName": "ai",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",

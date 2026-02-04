@@ -53,10 +53,10 @@
                   "packageInfo": "ballerina:ai:1.9.0",
                   "packageName": "ai",
                   "kind": "RECORD_TYPE",
-                  "selected": false
+                  "selected": true
                 }
               ],
-              "selected": false
+              "selected": true
             },
             {
               "fieldType": "EXPRESSION",

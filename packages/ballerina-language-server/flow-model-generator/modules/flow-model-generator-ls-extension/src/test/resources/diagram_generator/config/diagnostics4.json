@@ -205,10 +205,10 @@
                     "packageInfo": "nipunaf:new_connection1:0.1.0",
                     "packageName": "new_connection1",
                     "kind": "RECORD_TYPE",
-                    "selected": false
+                    "selected": true
                   }
                 ],
-                "selected": false
+                "selected": true
               },
               {
                 "fieldType": "EXPRESSION",
