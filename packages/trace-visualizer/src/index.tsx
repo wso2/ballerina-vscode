@@ -66,6 +66,8 @@ declare global {
             requestSessionTraces: (sessionId: string) => void;
             exportSession: (sessionTraces: TraceData[], sessionId: string) => void;
             exportTrace: (traceData: TraceData) => void;
+            exportTraceAsEvalset: (traceData: TraceData) => void;
+            exportSessionAsEvalset: (sessionTraces: TraceData[], sessionId: string) => void;
         };
     }
 }

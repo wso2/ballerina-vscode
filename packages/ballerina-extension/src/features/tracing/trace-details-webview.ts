@@ -23,6 +23,7 @@ import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { Trace, TraceServer } from './trace-server';
 import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } from '../../utils/webview-utils';
+import { convertTraceToEvalset, convertTracesToEvalset } from './trace-converter';
 
 // TraceData interface matching the trace-visualizer component
 interface TraceData {
@@ -111,6 +112,16 @@ export class TraceDetailsWebview {
                     case 'exportSession':
                         if (message.data) {
                             await this.exportSession(message.data.sessionTraces, message.data.sessionId);
+                        }
+                        break;
+                    case 'exportTraceAsEvalset':
+                        if (message.data) {
+                            await this.exportTraceAsEvalset(message.data);
+                        }
+                        break;
+                    case 'exportSessionAsEvalset':
+                        if (message.data) {
+                            await this.exportSessionAsEvalset(message.data.sessionTraces, message.data.sessionId);
                         }
                         break;
                 }
@@ -357,6 +368,86 @@ export class TraceDetailsWebview {
         }
     }
 
+    private async exportTraceAsEvalset(traceData: TraceData): Promise<void> {
+        try {
+            const fileName = `trace-${traceData.traceId}.evalset.json`;
+            const wf = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+            let defaultUri: vscode.Uri;
+
+            if (wf) {
+                const evaluationsDirPath = path.join(wf.uri.fsPath, 'evalsets');
+                const evaluationsDirUri = vscode.Uri.file(evaluationsDirPath);
+                try {
+                    await vscode.workspace.fs.createDirectory(evaluationsDirUri);
+                } catch (e) {
+                    // Ignore errors and fall back to workspace root
+                }
+
+                defaultUri = vscode.Uri.file(path.join(evaluationsDirPath, fileName));
+            } else {
+                defaultUri = vscode.Uri.file(path.join(os.homedir(), fileName));
+            }
+
+            const fileUri = await vscode.window.showSaveDialog({
+                defaultUri,
+                filters: {
+                    'Evalset Files': ['evalset.json'],
+                    'JSON Files': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (fileUri) {
+                const evalsetTrace = convertTraceToEvalset(traceData);
+                const jsonContent = JSON.stringify(evalsetTrace, null, 2);
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                vscode.window.showInformationMessage(`Trace exported as evalset to ${fileUri.fsPath}`);
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to export trace as evalset: ${error}`);
+        }
+    }
+
+    private async exportSessionAsEvalset(sessionTraces: TraceData[], sessionId: string): Promise<void> {
+        try {
+            const fileName = `session-${sessionId}.evalset.json`;
+            const wf = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+            let defaultUri: vscode.Uri;
+
+            if (wf) {
+                const evaluationsDirPath = path.join(wf.uri.fsPath, 'evalsets');
+                const evaluationsDirUri = vscode.Uri.file(evaluationsDirPath);
+                try {
+                    await vscode.workspace.fs.createDirectory(evaluationsDirUri);
+                } catch (e) {
+                    // Ignore errors
+                }
+
+                defaultUri = vscode.Uri.file(path.join(evaluationsDirPath, fileName));
+            } else {
+                defaultUri = vscode.Uri.file(path.join(os.homedir(), fileName));
+            }
+
+            const fileUri = await vscode.window.showSaveDialog({
+                defaultUri,
+                filters: {
+                    'Evalset Files': ['evalset.json'],
+                    'JSON Files': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (fileUri) {
+                const evalsetTraces = convertTracesToEvalset(sessionTraces);
+                const jsonContent = JSON.stringify(evalsetTraces, null, 2);
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                vscode.window.showInformationMessage(`Session exported as evalset to ${fileUri.fsPath}`);
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to export session as evalset: ${error}`);
+        }
+    }
+
     private getWebviewContent(trace: Trace | null, webView: Webview): string {
         const body = `<div class="container" id="webview-container"></div>`;
         const bodyCss = ``;
@@ -393,6 +484,18 @@ export class TraceDetailsWebview {
                     vscode.postMessage({
                         command: 'exportTrace',
                         data: traceData
+                    });
+                },
+                exportTraceAsEvalset: (traceData) => {
+                    vscode.postMessage({
+                        command: 'exportTraceAsEvalset',
+                        data: traceData
+                    });
+                },
+                exportSessionAsEvalset: (sessionTraces, sessionId) => {
+                    vscode.postMessage({
+                        command: 'exportSessionAsEvalset',
+                        data: { sessionTraces, sessionId }
                     });
                 }
             };
@@ -441,6 +544,29 @@ export class TraceDetailsWebview {
                 if (event.detail && event.detail.sessionTraces && event.detail.currentSessionId) {
                     vscode.postMessage({
                         command: 'exportSession',
+                        data: {
+                            sessionTraces: event.detail.sessionTraces,
+                            sessionId: event.detail.currentSessionId
+                        }
+                    });
+                }
+            });
+
+            // Listen for evalset export requests from React component
+            window.addEventListener('exportTraceAsEvalset', (event) => {
+                if (event.detail && event.detail.traceData) {
+                    vscode.postMessage({
+                        command: 'exportTraceAsEvalset',
+                        data: event.detail.traceData
+                    });
+                }
+            });
+
+            // Listen for session evalset export requests from React component
+            window.addEventListener('exportSessionAsEvalset', (event) => {
+                if (event.detail && event.detail.sessionTraces && event.detail.currentSessionId) {
+                    vscode.postMessage({
+                        command: 'exportSessionAsEvalset',
                         data: {
                             sessionTraces: event.detail.sessionTraces,
                             sessionId: event.detail.currentSessionId
