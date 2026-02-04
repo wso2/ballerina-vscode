@@ -25,6 +25,7 @@ import { WaterfallView } from "./components/WaterfallView";
 import { TraceEmptyState } from "./components/TraceEmptyState";
 import { SpanTree, AISpanTreeContainer } from "./components/SpanTree";
 import { SearchInput } from "./components/SearchInput";
+import { ExportDropdown } from "./components/ExportDropdown";
 import {
     timeContainsSpan,
     sortSpansByUmbrellaFirst,
@@ -798,6 +799,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
         }));
     };
 
+    const handleExportAsEvalset = () => {
+        // Use the traceVisualizerAPI if available
+        if (window.traceVisualizerAPI?.exportTraceAsEvalset) {
+            window.traceVisualizerAPI.exportTraceAsEvalset(traceData);
+        }
+    };
+
     const renderTraceLogs = () => {
         if (traceData.spans.length === 0) {
             return (
@@ -838,15 +846,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
                                     >
                                         Timeline
                                     </ModeToggleButton>
-                                    <ModeToggleButton onClick={handleExportTrace} title="Export trace as JSON">
-                                        <Icon name="bi-download"
-                                            sx={{ fontSize: '16px', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            iconSx={{ fontSize: "16px", display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-                                    </ModeToggleButton>
-                                    {/* Only show the toggle button in agent chat context with AI spans.
-                                        When opened from trace tree view (!isAgentChat), always show all spans
-                                        and hide the toggle button.
-                                    */}
+                                    <ExportDropdown
+                                        onExportJson={handleExportTrace}
+                                        onExportEvalset={handleExportAsEvalset}
+                                        buttonText=""
+                                        showIcon={true}
+                                        compact={true}
+                                    />
                                     {isAgentChat && hasAISpans && (
                                         <ModeToggleButton
                                             onClick={() => setUserAdvancedModePreference(!userAdvancedModePreference)}

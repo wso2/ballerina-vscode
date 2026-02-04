@@ -22,6 +22,7 @@ import { Icon } from "@wso2/ui-toolkit";
 import { TraceData } from "./index";
 import { formatDate, getAttributeValue, extractUserMessage, extractAgentResponse, calculateTotalInputTokens, calculateTotalOutputTokens, calculateTraceLatency, formatDuration, formatNumber } from "./utils";
 import { SearchInput } from "./components/SearchInput";
+import { ExportDropdown } from "./components/ExportDropdown";
 
 interface SessionOverviewProps {
     sessionTraces: TraceData[];
@@ -231,6 +232,13 @@ const EmptyStateSubtitle = styled.div`
 export function SessionOverview({ sessionTraces, sessionId, onSelectTrace, onExportSession }: SessionOverviewProps) {
     const [searchQuery, setSearchQuery] = useState("");
 
+    const handleExportAsEvalset = () => {
+        // Use the traceVisualizerAPI if available
+        if (window.traceVisualizerAPI?.exportSessionAsEvalset) {
+            window.traceVisualizerAPI.exportSessionAsEvalset(sessionTraces, sessionId);
+        }
+    };
+
     // Extract trace row data
     const traceRows: TraceRowData[] = useMemo(() => {
         return sessionTraces.map(trace => {
@@ -303,14 +311,13 @@ export function SessionOverview({ sessionTraces, sessionId, onSelectTrace, onExp
                     <Subtitle>Session ID: {sessionId}</Subtitle>
                 </HeaderLeft>
                 <HeaderRight>
-                    <ExportButton onClick={onExportSession} title="Export session traces">
-                        <Icon
-                            name="bi-download"
-                            sx={{ fontSize: '16px', width: '16px', height: '16px' }}
-                            iconSx={{ display: 'flex' }}
-                        />
-                        Export
-                    </ExportButton>
+                    <ExportDropdown
+                        onExportJson={onExportSession}
+                        onExportEvalset={handleExportAsEvalset}
+                        buttonText="Export"
+                        showIcon={true}
+                        compact={false}
+                    />
                 </HeaderRight>
             </Header>
 
