@@ -811,48 +811,43 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return new ArrayList<>(options != null ? options : List.of());
             }
 
-            try {
-                // Clean the default value by removing quotes if present
-                String cleanedDefaultValue = stripQuotes(defaultValue);
+            // Clean the default value by removing quotes if present
+            String cleanedDefaultValue = stripQuotes(defaultValue);
 
-                // Find the option that matches the default value
-                Option defaultOption = null;
-                int defaultOptionIndex = -1;
+            // Find the option that matches the default value
+            Option defaultOption = null;
+            int defaultOptionIndex = -1;
 
-                for (int i = 0; i < options.size(); i++) {
-                    Option option = options.get(i);
+            for (int i = 0; i < options.size(); i++) {
+                Option option = options.get(i);
 
-                    // Match against both label and value (try exact match first, then case-insensitive)
-                    if (cleanedDefaultValue.equals(option.label()) ||
-                        cleanedDefaultValue.equals(option.value()) ||
-                        cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
-                        cleanedDefaultValue.equalsIgnoreCase(option.value())) {
-                        defaultOption = option;
-                        defaultOptionIndex = i;
-                        break;
-                    }
-
-                    // Also try matching against value with quotes removed
-                    String cleanedOptionValue = stripQuotes(option.value());
-                    if (cleanedDefaultValue.equals(cleanedOptionValue) ||
-                        cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue)) {
-                        defaultOption = option;
-                        defaultOptionIndex = i;
-                        break;
-                    }
+                // Match against both label and value (try exact match first, then case-insensitive)
+                if (cleanedDefaultValue.equals(option.label()) ||
+                    cleanedDefaultValue.equals(option.value()) ||
+                    cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
+                    cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                    defaultOption = option;
+                    defaultOptionIndex = i;
+                    break;
                 }
 
-                // Create a new list and move the matching option to the front if found
-                List<Option> reorderedOptions = new ArrayList<>(options);
-                if (defaultOption != null && defaultOptionIndex > 0) {
-                    reorderedOptions.remove(defaultOptionIndex);
-                    reorderedOptions.addFirst(defaultOption);
+                // Also try matching against value with quotes removed
+                String cleanedOptionValue = stripQuotes(option.value());
+                if (cleanedDefaultValue.equals(cleanedOptionValue) ||
+                    cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue)) {
+                    defaultOption = option;
+                    defaultOptionIndex = i;
+                    break;
                 }
-                return reorderedOptions;
-            } catch (Exception e) {
-                // In case of any exceptions, return a copy of the original list
-                return new ArrayList<>(options);
             }
+
+            // Create a new list and move the matching option to the front if found
+            List<Option> reorderedOptions = new ArrayList<>(options);
+            if (defaultOption != null && defaultOptionIndex > 0) {
+                reorderedOptions.remove(defaultOptionIndex);
+                reorderedOptions.addFirst(defaultOption);
+            }
+            return reorderedOptions;
         }
 
         public Builder<T> types(List<PropertyType> existingTypes) {
