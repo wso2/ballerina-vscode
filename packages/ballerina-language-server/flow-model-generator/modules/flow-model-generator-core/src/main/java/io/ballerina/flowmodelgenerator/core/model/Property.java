@@ -275,15 +275,22 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         List<String> keyValuePairs = new ArrayList<>();
         valueMap.forEach((keyObj, valueObj) -> {
-            if (keyObj instanceof String key && valueObj instanceof Property property) {
-                String propertyValue = property.toSourceCode();
-                if (!propertyValue.isEmpty()) {
-                    keyValuePairs.add(key + ": " + propertyValue);
-                }
+            String key = (String) keyObj;
+            String propertyValue = convertToProperty(valueObj).toSourceCode();
+            if (!propertyValue.isEmpty()) {
+                keyValuePairs.add(key + ": " + propertyValue);
             }
         });
 
         return keyValuePairs.isEmpty() ? "" : "{%s}".formatted(String.join(", ", keyValuePairs));
+    }
+
+    private Property convertToProperty(Object propObj) {
+        Property.Builder<Object> builder = new Property.Builder<>(null);
+        if (propObj instanceof Map<?,?> propMap) {
+            builder.value(propMap.get("value"));
+        }
+        return builder.build();
     }
 
     private String buildListSourceCode(List<?> valueList) {
@@ -292,10 +299,9 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         List<String> stringValues = valueList.stream()
-                .filter(Property.class::isInstance)
-                .map(Property.class::cast)
-                .map(Property::toSourceCode)
-                .filter(str -> !str.isEmpty())
+                .filter(Map.class::isInstance)
+                .map(Map.class::cast)
+                .map(val -> new Property.Builder<>(null).value(val.get("value")).build().toSourceCode())
                 .toList();
 
         return stringValues.isEmpty() ? "" : "[%s]".formatted(String.join(", ", stringValues));
