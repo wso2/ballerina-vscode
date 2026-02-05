@@ -135,8 +135,8 @@ export const ProfilePic = styled.div`
 
 export const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
     position: relative;
-    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "0 14px")};
-    max-width: min(600px, 70%);
+    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "6px 14px")};
+    max-width: 100%;
     align-self: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     overflow-wrap: break-word;
     word-break: break-word;

@@ -53,6 +53,27 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
         }
     });
 
+    // Register command to save evalset changes
+    const saveEvalCaseCommand = commands.registerCommand('ballerina.saveEvalCase', async (data: { filePath: string, updatedEvalSet: EvalSet }) => {
+        try {
+            const { filePath, updatedEvalSet } = data;
+
+            // Write the updated evalset back to the file
+            await fs.promises.writeFile(
+                filePath,
+                JSON.stringify(updatedEvalSet, null, 2),
+                'utf-8'
+            );
+
+            window.showInformationMessage('Evalset saved successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving evalset:', error);
+            window.showErrorMessage(`Failed to save evalset: ${error}`);
+            return { success: false, error: String(error) };
+        }
+    });
+
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
 
     const workspaceRoot = getWorkspaceRoot();
@@ -93,7 +114,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalCaseCommand);
 
     activateEditBiTest();
 }

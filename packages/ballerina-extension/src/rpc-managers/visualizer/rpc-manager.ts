@@ -28,6 +28,8 @@ import {
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     ReopenApprovalViewRequest,
+    SaveEvalCaseRequest,
+    SaveEvalCaseResponse,
     SHARED_COMMANDS,
     undo,
     UndoRedoStateResponse,
@@ -313,5 +315,43 @@ export class VisualizerRpcManager implements VisualizerAPI {
 
     reopenApprovalView(params: ReopenApprovalViewRequest): void {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
+    }
+    
+    async saveEvalCase(params: SaveEvalCaseRequest): Promise<SaveEvalCaseResponse> {
+        try {
+            const { filePath, updatedEvalSet } = params;
+
+            // Write the updated evalset back to the file
+            await fs.promises.writeFile(
+                filePath,
+                JSON.stringify(updatedEvalSet, null, 2),
+                'utf-8'
+            );
+
+            // Read back the file to get fresh data
+            const savedContent = await fs.promises.readFile(filePath, 'utf-8');
+            const savedEvalSet = JSON.parse(savedContent);
+
+            // Get the current caseId from context
+            const currentContext = StateMachine.context();
+            const caseId = currentContext.evalsetData?.caseId;
+
+            // Reload the view with fresh data from disk
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.EvalsetViewer,
+                evalsetData: {
+                    filePath,
+                    content: savedEvalSet,
+                    caseId
+                }
+            });
+
+            window.showInformationMessage('Evalset saved successfully');
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving evalset:', error);
+            window.showErrorMessage(`Failed to save evalset: ${error}`);
+            return { success: false, error: String(error) };
+        }
     }
 }

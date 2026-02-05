@@ -27,6 +27,8 @@ import {
     OpenViewRequest,
     ReopenApprovalViewRequest,
     ProjectStructureArtifactResponse,
+    SaveEvalCaseRequest,
+    SaveEvalCaseResponse,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
     VisualizerAPI,
@@ -43,6 +45,7 @@ import {
     redo,
     reopenApprovalView,
     resetUndoRedoStack,
+    saveEvalCase,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
@@ -124,5 +127,8 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     reopenApprovalView(params: ReopenApprovalViewRequest): void {
         return this._messenger.sendNotification(reopenApprovalView, HOST_EXTENSION, params);
+    }
+    saveEvalCase(params: SaveEvalCaseRequest): Promise<SaveEvalCaseResponse> {
+        return this._messenger.sendRequest(saveEvalCase, HOST_EXTENSION, params);
     }
 }
