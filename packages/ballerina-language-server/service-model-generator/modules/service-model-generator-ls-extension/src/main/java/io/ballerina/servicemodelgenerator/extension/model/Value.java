@@ -111,7 +111,6 @@ public class Value {
         FILE_SELECT,
         OPTIONAL_IDENTIFIER,
         ACTION_TYPE
-//        SQL_QUERY
     }
 
     public MetaData getMetadata() {
