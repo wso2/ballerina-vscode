@@ -64,6 +64,7 @@ import { InputMode } from "../types";
 export type ChipExpressionEditorComponentProps = {
     onTokenRemove?: (token: string) => void;
     onTokenClick?: (token: string) => void;
+    onBlur?: () => void;
     isExpandedVersion: boolean;
     getHelperPane?: (
         value: string,
@@ -207,6 +208,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     const handleFocusOutListner = buildOnFocusOutListner(() => {
         setIsTokenUpdateScheduled(true);
+        props.onBlur?.();
     });
 
     const waitForStateChange = (): Promise<CompletionItem[]> => {

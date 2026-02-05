@@ -369,6 +369,7 @@ export function IfForm(props: IfFormProps) {
                             <ExpressionEditor
                                 {...expressionEditor}
                                 // ref={exprRef}
+                                fieldInputType={{fieldType: "EXPRESSION", selected: false}}
                                 control={control}
                                 field={field}
                                 watch={watch}
