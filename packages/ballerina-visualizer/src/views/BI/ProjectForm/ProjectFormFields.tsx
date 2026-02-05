@@ -17,10 +17,10 @@
  */
 
 import { useEffect, useState } from "react";
-import { DirectorySelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon, FormCheckBox } from "@wso2/ui-toolkit";
+import { DirectorySelector, TextField, CheckBox, LinkButton, ThemeColors, Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName } from "./utils";
 
 const FieldGroup = styled.div`
     margin-bottom: 20px;
