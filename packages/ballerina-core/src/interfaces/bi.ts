@@ -148,12 +148,23 @@ export type FormFieldInputType = "TEXT" |
     "ai:Prompt" |
     "FIXED_PROPERTY" |
     "REPEATABLE_PROPERTY" |
-    "MAPPING_EXPRESSION_SET" |
-    "MAPPING_EXPRESSION" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
-    "PROMPT";
+    "REPEATABLE_MAP" |
+    "PROMPT" |
+    "HEADER_SET" |
+    "DROPDOWN_CHOICE" |
+    "CUSTOM_DROPDOWN" |
+    "ACTION_TYPE" |
+    "ACTION_EXPRESSION" |
+    "VIEW" |
+    "SERVICE_PATH" |
+    "ACTION_PATH" |
+    "NUMBER" |
+    "REPEATABLE_LIST" |
+    "CONDITIONAL_FIELDS"
+    ;
 
 export interface BaseType {
     fieldType: FormFieldInputType;
