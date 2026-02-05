@@ -28,8 +28,7 @@ export enum InputMode {
   ARRAY = "Array",
   TEXT_ARRAY = "Text Array",
   PROMPT = "Prompt",
-  MAP = "Map",
-  MAP_EXP = "Mapping"
+  MAP = "Map"
 };
 
 export const INPUT_MODE_MAP = {

@@ -121,7 +121,6 @@ export namespace S {
         border: 1px solid var(--vscode-dropdown-border);
         border-radius: 4px;
         padding: 8px;
-        margin-top: 12px;
     `;
 
     export const LabelContainer = styled.div({

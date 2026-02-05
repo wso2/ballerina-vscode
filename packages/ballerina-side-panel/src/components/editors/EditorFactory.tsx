@@ -45,10 +45,10 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
-import { FormArrayEditorWrapper } from "./FormMapEditorWrapper";
-import { FormMapEditorWrapper } from "./NewFormMapEditorWrapper";
+import { FormArrayEditorWrapper } from "./FormArrayEditorWrapper";
+import { FormMapEditorWrapper } from "./FormMapEditorNewWrapper";
 
-interface FormFieldEditorProps {
+export interface FormFieldEditorProps {
     field: FormField;
     fieldInputType: InputType;
     selectedNode?: NodeKind;
@@ -94,8 +94,6 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         fieldInputType.fieldType === "ACTION_OR_EXPRESSION" ||
         fieldInputType.fieldType === "TEXT" ||
         fieldInputType.fieldType === "EXPRESSION_SET" ||
-        fieldInputType.fieldType === "MAPPING_EXPRESSION_SET" ||
-        fieldInputType.fieldType === "MAPPING_EXPRESSION" ||
         fieldInputType.fieldType === "TEXT_SET" ||
         (fieldInputType.fieldType === "SINGLE_SELECT" && isDropDownType(fieldInputType)) ||
         fieldInputType.fieldType === "RECORD_MAP_EXPRESSION" ||
