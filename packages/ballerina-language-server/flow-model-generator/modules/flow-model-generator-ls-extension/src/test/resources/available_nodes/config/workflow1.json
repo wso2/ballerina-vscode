@@ -1,10 +1,10 @@
 {
-  "description": "",
+  "description": "Test workflow nodes available in service resource function",
   "position": {
-    "line": 16,
-    "offset": 8
+    "line": 27,
+    "offset": 68
   },
-  "source": "function_body.bal",
+  "source": "workflow_module.bal",
   "categories": [
     {
       "metadata": {

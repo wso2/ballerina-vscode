@@ -533,6 +533,42 @@
     },
     {
       "metadata": {
+        "label": "Workflow",
+        "description": "Workflow orchestration components"
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "Start Workflow",
+            "description": "Create and start a new workflow instance"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "workflow",
+            "packageName": "workflow",
+            "symbol": "createInstance"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Send Event",
+            "description": "Send an event to an existing workflow instance"
+          },
+          "codedata": {
+            "node": "FUNCTION_CALL",
+            "org": "ballerina",
+            "module": "workflow",
+            "packageName": "workflow",
+            "symbol": "sendEvent"
+          },
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "metadata": {
         "label": "Statement",
         "description": "Fundamental executable units in a program"
       },

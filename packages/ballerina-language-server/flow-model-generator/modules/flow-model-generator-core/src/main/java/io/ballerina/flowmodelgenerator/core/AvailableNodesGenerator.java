@@ -29,9 +29,12 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.VariableSymbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
 import io.ballerina.flowmodelgenerator.core.model.Category;
@@ -67,8 +70,11 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_PACKAGE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
@@ -168,11 +174,14 @@ public class AvailableNodesGenerator {
         NonTerminalNode nonTerminalNode = ((ModulePartNode) document.syntaxTree().rootNode()).findNode(range);
         NonTerminalNode iterationNode = nonTerminalNode;
 
+        // Check if we're inside a @workflow:Process function
+        boolean isInWorkflowProcess = isInsideWorkflowProcessFunction(nonTerminalNode);
+
         while (iterationNode != null) {
             SyntaxKind kind = iterationNode.kind();
             switch (kind) {
                 case WHILE_STATEMENT, FOREACH_STATEMENT -> {
-                    setAvailableNodesForIteratingBlock(nonTerminalNode, disableBallerinaAiNodes);
+                    setAvailableNodesForIteratingBlock(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowProcess);
                     return this.rootBuilder.build().items();
                 }
                 default -> iterationNode = iterationNode.parent();
@@ -184,23 +193,25 @@ public class AvailableNodesGenerator {
             switch (kind) {
                 case IF_ELSE_STATEMENT, LOCK_STATEMENT, TRANSACTION_STATEMENT, MATCH_STATEMENT, DO_STATEMENT,
                      ON_FAIL_CLAUSE -> {
-                    setAvailableDefaultNodes(nonTerminalNode, disableBallerinaAiNodes);
+                    setAvailableDefaultNodes(nonTerminalNode, disableBallerinaAiNodes, isInWorkflowProcess);
                     return this.rootBuilder.build().items();
                 }
                 default -> nonTerminalNode = nonTerminalNode.parent();
             }
         }
-        setDefaultNodes(disableBallerinaAiNodes);
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
         return this.rootBuilder.build().items();
     }
 
-    private void setAvailableDefaultNodes(NonTerminalNode node, boolean disableBallerinaAiNodes) {
-        setDefaultNodes(disableBallerinaAiNodes);
+    private void setAvailableDefaultNodes(NonTerminalNode node, boolean disableBallerinaAiNodes,
+                                          boolean isInWorkflowProcess) {
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
         setStopNode(node);
     }
 
-    private void setAvailableNodesForIteratingBlock(NonTerminalNode node, boolean disableBallerinaAiNodes) {
-        setDefaultNodes(disableBallerinaAiNodes);
+    private void setAvailableNodesForIteratingBlock(NonTerminalNode node, boolean disableBallerinaAiNodes,
+                                                     boolean isInWorkflowProcess) {
+        setDefaultNodes(disableBallerinaAiNodes, isInWorkflowProcess);
         setStopNode(node);
         this.rootBuilder.stepIn(Category.Name.CONTROL)
                 .node(NodeKind.BREAK)
@@ -208,9 +219,13 @@ public class AvailableNodesGenerator {
                 .stepOut();
     }
 
-    private void setDefaultNodes(boolean disableBallerinaAiNodes) {
+    private void setDefaultNodes(boolean disableBallerinaAiNodes, boolean isInWorkflowProcess) {
         this.rootBuilder.stepIn(Category.Name.AI)
                 .items(getAiNodes(disableBallerinaAiNodes))
+                .stepOut();
+
+        this.rootBuilder.stepIn(Category.Name.WORKFLOW)
+                .items(getWorkflowNodes(isInWorkflowProcess))
                 .stepOut();
 
         AvailableNode function = new AvailableNode(
@@ -332,6 +347,100 @@ public class AvailableNodesGenerator {
                 .items(List.of(agentCall)).build();
 
         return List.of(directLlmCategory, ragCategory, agentCategory);
+    }
+
+    private List<Item> getWorkflowNodes(boolean isInWorkflowProcess) {
+        List<Item> workflowNodes = new ArrayList<>();
+
+        // Always available workflow orchestration nodes
+        AvailableNode createInstance = new AvailableNode(
+                new Metadata.Builder<>(null)
+                        .label(Workflow.CREATE_INSTANCE_LABEL)
+                        .description(Workflow.CREATE_INSTANCE_DESCRIPTION)
+                        .build(),
+                new Codedata.Builder<>(null)
+                        .node(NodeKind.FUNCTION_CALL)
+                        .org(Workflow.BALLERINA_ORG)
+                        .module(Workflow.WORKFLOW_PACKAGE)
+                        .packageName(Workflow.WORKFLOW_PACKAGE)
+                        .symbol(Workflow.CREATE_INSTANCE_METHOD_NAME)
+                        .build(),
+                true
+        );
+
+        AvailableNode sendEvent = new AvailableNode(
+                new Metadata.Builder<>(null)
+                        .label(Workflow.SEND_EVENT_LABEL)
+                        .description(Workflow.SEND_EVENT_DESCRIPTION)
+                        .build(),
+                new Codedata.Builder<>(null)
+                        .node(NodeKind.FUNCTION_CALL)
+                        .org(Workflow.BALLERINA_ORG)
+                        .module(Workflow.WORKFLOW_PACKAGE)
+                        .packageName(Workflow.WORKFLOW_PACKAGE)
+                        .symbol(Workflow.SEND_EVENT_METHOD_NAME)
+                        .build(),
+                true
+        );
+
+        workflowNodes.add(createInstance);
+        workflowNodes.add(sendEvent);
+
+        // Only add these nodes inside @workflow:Process functions
+        if (isInWorkflowProcess) {
+            AvailableNode callActivity = new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(Workflow.CALL_ACTIVITY_LABEL)
+                            .description(Workflow.CALL_ACTIVITY_DESCRIPTION)
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.REMOTE_ACTION_CALL)
+                            .build(),
+                    true
+            );
+
+            AvailableNode waitEvent = new AvailableNode(
+                    new Metadata.Builder<>(null)
+                            .label(Workflow.WAIT_EVENT_LABEL)
+                            .description(Workflow.WAIT_EVENT_DESCRIPTION)
+                            .build(),
+                    new Codedata.Builder<>(null)
+                            .node(NodeKind.WAIT)
+                            .build(),
+                    true
+            );
+
+            workflowNodes.add(callActivity);
+            workflowNodes.add(waitEvent);
+        }
+
+        return workflowNodes;
+    }
+
+    private boolean isInsideWorkflowProcessFunction(NonTerminalNode node) {
+        Node parent = node;
+        while (parent != null) {
+            if (parent.kind() == SyntaxKind.FUNCTION_DEFINITION) {
+                FunctionDefinitionNode functionNode = (FunctionDefinitionNode) parent;
+                // Check if function has metadata
+                if (functionNode.metadata().isEmpty()) {
+                    return false;
+                }
+                // Check if function has @workflow:Process annotation
+                for (AnnotationNode annotation : functionNode.metadata().get().annotations()) {
+                    if (annotation.annotReference().kind().equals(SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
+                        QualifiedNameReferenceNode annotRef =  (QualifiedNameReferenceNode) annotation.annotReference();
+                        if (annotRef.modulePrefix().text().equals(WORKFLOW_PACKAGE) &&
+                                annotRef.identifier().text().equals(PROCESS_ANNOTATION)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+            parent = parent.parent();
+        }
+        return false;
     }
 
     private void setStopNode(NonTerminalNode node) {

@@ -1,10 +1,10 @@
 {
-  "description": "",
+  "description": "Test workflow nodes available in workflow process function",
   "position": {
-    "line": 16,
-    "offset": 8
+    "line": 17,
+    "offset": 4
   },
-  "source": "function_body.bal",
+  "source": "workflow_module.bal",
   "categories": [
     {
       "metadata": {
@@ -193,6 +193,26 @@
             "module": "workflow",
             "packageName": "workflow",
             "symbol": "sendEvent"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Call Activity",
+            "description": "Call a workflow activity function"
+          },
+          "codedata": {
+            "node": "REMOTE_ACTION_CALL"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "Wait for Event",
+            "description": "Wait for a workflow event to be received"
+          },
+          "codedata": {
+            "node": "WAIT"
           },
           "enabled": true
         }
