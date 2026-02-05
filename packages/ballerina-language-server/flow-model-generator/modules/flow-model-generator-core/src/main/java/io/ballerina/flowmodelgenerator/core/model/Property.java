@@ -818,9 +818,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 Option option = options.get(i);
 
                 // Match against both label and value (try exact match first, then case-insensitive)
-                if (cleanedDefaultValue.equals(option.label()) ||
-                    cleanedDefaultValue.equals(option.value()) ||
-                    cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
+                if (cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
                     cleanedDefaultValue.equalsIgnoreCase(option.value())) {
                     defaultOption = option;
                     defaultOptionIndex = i;
