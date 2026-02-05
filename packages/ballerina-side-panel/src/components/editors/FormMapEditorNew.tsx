@@ -16,189 +16,198 @@
  * under the License.
  */
 
-import React from "react";
-import { Form, FormField, FormValues, S, useFormContext } from "../..";
-import { getPrimaryInputType, PropertyModel, NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView, InputType } from "@wso2/ballerina-core";
-import { Codicon, CompletionItem } from "@wso2/ui-toolkit";
+import React, { useEffect, useRef, useState } from "react";
+import { InputType } from "@wso2/ballerina-core";
+import { Form, FormValues, S, useFormContext, useModeSwitcherContext, FormField, FormFieldEditorProps } from "../..";
+import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
+import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
+import ModeSwitcher from "../ModeSwitcher";
+import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries } from "./utils";
 
-
-//Add to util
-/**
- * Maps the properties to an array of FormField objects.
- * 
- * @param properties The properties to map.
- * @returns An array of FormField objects.
- */
-function mapPropertiesToFormFields(properties: { [key: string]: PropertyModel; }): FormField[] {
-    if (!properties) return [];
-
-    return Object.entries(properties).map(([key, property]) => {
-
-        // Determine value for MULTIPLE_SELECT
-        let value: any = property.value;
-        if (getPrimaryInputType(property.types).fieldType === "MULTIPLE_SELECT") {
-            if (property.values && property.values.length > 0) {
-                value = property.values;
-            } else if (property.value) {
-                value = [property.value];
-            } else if (property.items && property.items.length > 0) {
-                value = [property.items[0]];
-            } else {
-                value = [];
-            }
-        }
-
-        let items = undefined;
-        if (getPrimaryInputType(property.types)?.fieldType === "MULTIPLE_SELECT" || getPrimaryInputType(property.types)?.fieldType === "SINGLE_SELECT") {
-            items = property.items;
-        }
-
-        return {
-            key,
-            label: property?.metadata?.label,
-            type: getPrimaryInputType(property.types)?.fieldType,
-            documentation: property?.metadata?.description || "",
-            editable: true,
-            enabled: property.enabled ?? true,
-            optional: property.optional,
-            value,
-            types: property.types,
-            advanced: property.advanced,
-            diagnostics: [],
-            items,
-            choices: property.choices,
-            placeholder: property.placeholder,
-            addNewButton: property.addNewButton,
-            lineRange: property?.codedata?.lineRange,
-            advanceProps: mapPropertiesToFormFields(property.properties)
-        } as FormField;
-    });
-}
-
-const getFormFieldFromTypes = (formId: string, types: InputType[]): FormField => {
-    return {
-        key: `test-${formId}`,
-        label: "test label",
-        type: getPrimaryInputType(types)?.fieldType || "",
-        optional: false,
-        editable: true,
-        documentation: "",
-        value: "",
-        types: types,
-        enabled: true
-    }
-}
-
-
-
-export interface FormMapEditorProps {
-    field: FormField;
-    selectedNode?: NodeKind;
-    openRecordEditor?: (open: boolean, newType?: string | NodeProperties) => void;
-    openSubPanel?: (subPanel: SubPanel) => void;
-    subPanelView?: SubPanelView;
-    handleOnFieldFocus?: (key: string) => void;
-    onBlur?: () => void | Promise<void>;
-    autoFocus?: boolean;
-    handleOnTypeChange?: () => void;
-    recordTypeFields?: RecordTypeField[];
-    onIdentifierEditingStateChange?: (isEditing: boolean) => void;
-    setSubComponentEnabled?: (isAdding: boolean) => void;
-    handleNewTypeSelected?: (type: string | CompletionItem) => void;
-    scopeFieldAddon?: React.ReactNode;
-    isContextTypeEditorSupported?: boolean;
-    openFormTypeEditor?: (open: boolean, newType?: string) => void;
-    onSubmit?: (data: any) => void;
-    onCancelForm?: () => void;
-    onCompletionItemSelect?: any;
-    getHelperPane?: any;
-    getTypeHelper?: any;
-    onCancelEdit?: any;
-    parameter?: any;
-}
-
-export const FormMapEditorNew = (props: FormMapEditorProps & {
+export const FormMapEditorNew = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
     value: any;
 }) => {
-    const {
-        field,
-        openRecordEditor,
-        onSubmit,
-        onCancelForm,
-        onCompletionItemSelect,
-        getHelperPane,
-        getTypeHelper,
-        onCancelEdit,
-        parameter,
-        onChange,
-        value
-    } = props;
+    const [repeatableFields, setRepeatableFields] = useState<FormField[][]>([]);
+    const scrollableListRef = useRef<ScrollableListRef>(null);
+    const isInternalUpdate = useRef(false);
+    const { expressionEditor } = useFormContext();
 
-    const [repeatableFields, setRepeatableFields] = React.useState<FormField[][]>([]);
-    const {  expressionEditor } = useFormContext();
+    const modeSwitcherContext = useModeSwitcherContext();
 
-    const handleFormOnChange = (fieldKey: string, value: any, allValues: FormValues, formId: string) => {
-        const newRepeatableFields = repeatableFields.map((formFieldArray) => {
-            if (formFieldArray[0].key === formId) {
-                return formFieldArray.map((formField) => {
-                    if (formField.key === fieldKey) {
-                        return { ...formField, value };
-                    }
-                    return formField;
-                });
+    const prcoessToOutputFormat = (fields: FormField[][]): Record<string, unknown> => {
+        const output: Record<string, unknown> = {};
+        fields.forEach((field) => {
+            const keyField = field[0];
+            const valueField = field[1];
+            if (keyField.value) {
+                output[keyField.value as string] = valueField;
             }
-            return formFieldArray;
+        });
+        return output;
+    }
+
+    const prcoessToInputFormat = (input: Record<string, unknown>): FormField[][] => {
+        const fields: FormField[][] = [];
+        Object.entries(input).forEach(([key, value]) => {
+            const keyId = (value as FormField)?.key?.replace("mp-val-", "mp-key-") || crypto.randomUUID();
+            const keyField: FormField = {
+                key: keyId,
+                label: "Key",
+                type: "IDENTIFIER",
+                optional: false,
+                editable: true,
+                documentation: "",
+                value: key,
+                types: [{ fieldType: "IDENTIFIER", selected: true }],
+                enabled: true
+            };
+            const valueField: FormField = value as FormField;
+            fields.push([keyField, valueField]);
+        });
+        return fields;
+    }
+
+    const handleAddNewItem = () => {
+        const key = crypto.randomUUID();
+        const newField = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[])
+        setRepeatableFields(prev => [...prev, newField]);
+        isInternalUpdate.current = true;
+        // Wait for the dom update
+        setTimeout(() => {
+            scrollableListRef.current?.scrollToBottom();
+        }, 100);
+    }
+
+    const handleFormOnChange = (fieldKey: string, value: any, _allValues: FormValues, _parentKey: string) => {
+        const newRepeatableFields = repeatableFields.map((formFields) => {
+            // Check if any field in this array matches the fieldKey
+            const fieldIndex = formFields.findIndex(field => field.key === fieldKey);
+            if (fieldIndex !== -1) {
+                const newFields = [...formFields];
+                newFields[fieldIndex] = { ...newFields[fieldIndex], value };
+                return newFields;
+            }
+            return formFields;
         });
         setRepeatableFields(newRepeatableFields);
-        onChange(newRepeatableFields);
+        isInternalUpdate.current = true;
+        props.onChange(prcoessToOutputFormat(newRepeatableFields));
     }
 
-    const handleAddAnotherFuture = () => {
-        setRepeatableFields(prev => [...prev, [getFormFieldFromTypes(crypto.randomUUID(), (field.types[0] as any).template.types as InputType[])]]);
+    const handleModeSwitchValueChange = () => {
+        const stringValue = buildStringMap(repeatableFields);
+        props.onChange(stringValue);
     }
+
+    const handleDeleteItem = (keyToDelete: string) => {
+        const newRepeatableFields = repeatableFields.filter((formField) => formField[0].key !== keyToDelete);
+        setRepeatableFields(newRepeatableFields);
+        isInternalUpdate.current = true;
+        props.onChange(prcoessToOutputFormat(newRepeatableFields));
+    };
+
+    useEffect(() => {
+        if (!props.value) return;
+        if (isInternalUpdate.current) {
+            isInternalUpdate.current = false;
+            return;
+        }
+        let processedInputValue: string | FormField[][] = "";
+        if (typeof props.value === 'string') {
+            processedInputValue = props.value;
+        } else {
+            processedInputValue = prcoessToInputFormat(props.value);
+        }
+        let newValue = buildStringMap(processedInputValue);
+        const initialValues = stringToRawObjectEntries(newValue);
+        const initialFields = initialValues.map((val) => {
+            const key = crypto.randomUUID();
+            const fields = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[]);
+            fields[0].value = val.key;
+            fields[1].value = val.value;
+            return fields;
+        });
+        setRepeatableFields(initialFields);
+    }, [props.value]);
 
     return (
         <S.Container>
-            <S.Label>{field.label}</S.Label>
-            <S.Description>{field.documentation}</S.Description>
-            {
-                repeatableFields.map((formField) => (
-                    <S.ItemContainer style={{ padding: '1px' }} key={formField[0].key}>
-                        <Form
-                            key={formField[0].key}
-                            formFields={formField}
-                            openRecordEditor={openRecordEditor}
-                            onSubmit={onSubmit}
-                            onChange={(fieldKey: string, value: any, allValues: FormValues) => {
-                                handleFormOnChange(fieldKey, value, allValues, formField[0].key);
-                            }}
-                            onCancelForm={onCancelForm}
-                            expressionEditor={{
-                                ...expressionEditor,
-                                onCompletionItemSelect: onCompletionItemSelect,
-                                getHelperPane: getHelperPane,
-                                types: expressionEditor?.types,
-                                referenceTypes: expressionEditor?.referenceTypes,
-                                retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
-                                getTypeHelper: getTypeHelper,
-                                helperPaneHeight: expressionEditor?.helperPaneHeight
-                            }}
-                            submitText={'Save'}
-                            nestedForm={true}
-                            preserveOrder={true}
-                        />
-                    </S.ItemContainer>
+            <S.Header>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
+                    <div>
+                        <S.HeaderContainer>
+                            <S.LabelContainer>
+                                <S.Label>{props.field.label}</S.Label>
+                            </S.LabelContainer>
+                        </S.HeaderContainer>
+                        <S.EditorMdContainer>
+                            <S.Description>{props.field.documentation}</S.Description>
+                        </S.EditorMdContainer>
+                    </div>
+                    {modeSwitcherContext?.isModeSwitcherEnabled && (
+                        <S.FieldInfoSection>
+                            <ModeSwitcher
+                                fieldKey={props.field.key}
+                                value={modeSwitcherContext.inputMode}
+                                isRecordTypeField={modeSwitcherContext.isRecordTypeField}
+                                onChange={(value) => {
+                                    handleModeSwitchValueChange();
+                                    modeSwitcherContext.onModeChange(value);
+                                }}
+                                types={modeSwitcherContext.types}
+                            />
+                        </S.FieldInfoSection>
+                    )}
+                </div>
+            </S.Header>
+            <ScrollableList
+                ref={scrollableListRef}
+                itemCount={repeatableFields.length}
+                maxVisibleItems={2}
+            >
+                {
+                    repeatableFields.map((formField) => (
+                        <S.ItemContainer style={{ padding: '1px', position: 'relative', marginBottom: '4px' }} key={formField[0].key}>
+                            <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
+                                <Codicon
+                                    name="close"
+                                    sx={{ cursor: 'pointer', opacity: 0.6, '&:hover': { opacity: 1 } }}
+                                    onClick={() => handleDeleteItem(formField[0].key)}
+                                />
+                            </div>
+                            <Form
+                                key={formField[0].key}
+                                formFields={formField}
+                                openRecordEditor={props.openRecordEditor}
+                                onChange={(fieldKey: string, value: any, allValues: FormValues) => {
+                                    handleFormOnChange(fieldKey, value, allValues, formField[0].key);
+                                }}
+                                expressionEditor={{
+                                    ...expressionEditor,
+                                    onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
+                                    getHelperPane: expressionEditor?.getHelperPane,
+                                    types: expressionEditor?.types,
+                                    referenceTypes: expressionEditor?.referenceTypes,
+                                    retrieveVisibleTypes: expressionEditor?.retrieveVisibleTypes,
+                                    getTypeHelper: expressionEditor?.getTypeHelper,
+                                    helperPaneHeight: expressionEditor?.helperPaneHeight
+                                }}
+                                submitText={'Save'}
+                                nestedForm={true}
+                                preserveOrder={true}
+                            />
+                        </S.ItemContainer>
 
-                ))
-            }
+                    ))}
+            </ScrollableList>
             <S.AddNewButton
-                onClick={handleAddAnotherFuture}
+                onClick={handleAddNewItem}
                 appearance="icon"
             >
                 <Codicon name="add" sx={{ marginRight: "5px" }} />
-                Add another future
+                {repeatableFields.length === 0 ? "Initialize Map" : "Add New Item"}
             </S.AddNewButton>
         </S.Container>
     )
-}
+};

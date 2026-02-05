@@ -62,12 +62,6 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
     if (inputType.fieldType === "TEXT_SET") {
         return InputMode.TEXT_ARRAY;
     }
-    if (inputType.fieldType === "MAPPING_EXPRESSION_SET") {
-        return InputMode.MAP;
-    }
-    if (inputType.fieldType === "MAPPING_EXPRESSION") {
-        return InputMode.MAP_EXP;
-    }
     if (inputType.fieldType === "PROMPT") {
         return InputMode.PROMPT;
     }
@@ -81,7 +75,7 @@ export const getInputModeFromTypes = (inputType: InputType): InputMode => {
         return InputMode.MAP;
     }
     if (inputType.fieldType === "REPEATABLE_LIST") {
-        return InputMode.MAP;
+        return InputMode.ARRAY;
     }
 
     //default behaviour

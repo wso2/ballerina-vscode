@@ -17,16 +17,14 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { FormMapEditorProps } from "./FormMapEditorNew";
 import { InputType } from "@wso2/ballerina-core";
-import { Form, FormField, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
+import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
 import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getPropertyFromFormField } from "./utils";
-import { cloneDeep } from "lodash";
 
-export const FormArrayEditor = (props: FormMapEditorProps & {
+export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
     value: any;
 }) => {
@@ -47,10 +45,8 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
     }
 
     const handleFormOnChange = (_fieldKey: string, value: any, _allValues: FormValues, parentKey: string) => {
-        let relatedField;
         const newRepeatableFields = repeatableFields.map((formField) => {
             if (formField.key === parentKey) {
-                relatedField = formField;
                 return { ...formField, value };
             }
             return formField;
@@ -122,7 +118,7 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
             >
                 {
                     repeatableFields.map((formField) => (
-                        <S.ItemContainer style={{ padding: '1px', position: 'relative' }} key={formField.key}>
+                        <S.ItemContainer style={{ padding: '1px', position: 'relative', marginBottom: '4px' }} key={formField.key}>
                             <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
                                 <Codicon
                                     name="close"
@@ -134,11 +130,9 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
                                 key={formField.key}
                                 formFields={[formField]}
                                 openRecordEditor={props.openRecordEditor}
-                                onSubmit={props.onSubmit}
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
                                     handleFormOnChange(fieldKey, value, allValues, formField.key);
                                 }}
-                                onCancelForm={props.onCancelForm}
                                 expressionEditor={{
                                     ...expressionEditor,
                                     onCompletionItemSelect: expressionEditor?.onCompletionItemSelect,
@@ -162,7 +156,7 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
                 appearance="icon"
             >
                 <Codicon name="add" sx={{ marginRight: "5px" }} />
-                Add New Item
+               {repeatableFields.length === 0 ?  "Initialize Array" : "Add New Item"}
             </S.AddNewButton>
         </S.Container>
     )

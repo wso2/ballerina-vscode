@@ -24,7 +24,7 @@ import { InputType, ExpressionProperty } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
-import { ModeSwitcherProvider, useModeSwitcherContext } from "./ModeSwitcherContext";
+import { ModeSwitcherProvider } from "./ModeSwitcherContext";
 
 const Container = styled.div`
     width: 100%;
