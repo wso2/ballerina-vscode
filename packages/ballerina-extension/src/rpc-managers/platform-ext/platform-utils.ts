@@ -340,26 +340,6 @@ export const initializeDevantConnection = async (params: {
         projectPath,
     });
 
-    // Update bal.toml with created connection reference
-    const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
-
-    const updatedToml: Partial<PackageTomlValues> = {
-        ...tomlValues,
-        tool: {
-            ...tomlValues?.tool,
-            openapi: tomlValues.tool?.openapi?.map((item) => {
-                if (item.id === moduleName) {
-                    return { ...item, remoteId: params?.name, filePath: `.choreo/${moduleName}-spec.yaml` };
-                }
-                return item;
-            }),
-        },
-    };
-
-    const balTomlPath = path.join(projectPath, "Ballerina.toml");
-    const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
-    fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
-
     const configFileUri = getConfigFileUri();
 
     const envIds = Object.keys(params.configurations || {});
