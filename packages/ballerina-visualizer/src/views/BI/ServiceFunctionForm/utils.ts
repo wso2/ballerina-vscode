@@ -148,7 +148,7 @@ const handleFunctionSave = async (
                 }
             },
             function: updatedFunction,
-            artifactType: DIRECTORY_MAP.SERVICE
+            artifactType: DIRECTORY_MAP.TYPE
         });
 
         handleNavigateBack(rpcClient, currentFilePath, position);
