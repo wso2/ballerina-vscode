@@ -94,17 +94,9 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
     };
 
     const handleMarketplaceItemClick = (item: MarketplaceItem, type: DevantConnectionType) => {
-        // Handle the marketplace item click event
+        // TODO: once we store the connector info in Devant side,
+        // we should be able to open the correct form
         let availableNode: AvailableNode | undefined;
-        if (item.serviceType === "REST") {
-            availableNode = getKnownAvailableNode("ballerina", "http");
-        } else if (item.serviceType === "GRAPHQL") {
-            availableNode = getKnownAvailableNode("ballerina", "graphql");
-        } else if (item.serviceType === "SOAP") {
-            availableNode = getKnownAvailableNode("ballerina", "soap");
-        } else if (item.serviceType === "GRPC") {
-            availableNode = getKnownAvailableNode("ballerina", "grpc");
-        }
 
         if (type === DevantConnectionType.THIRD_PARTY) {
             if (item.serviceType === "REST") {
@@ -115,6 +107,15 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 onItemSelect(DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR, item, availableNode);
             }
         } else if (type === DevantConnectionType.INTERNAL) {
+            if (item.serviceType === "REST") {
+                availableNode = getKnownAvailableNode("ballerina", "http");
+            } else if (item.serviceType === "GRAPHQL") {
+                availableNode = getKnownAvailableNode("ballerina", "graphql");
+            } else if (item.serviceType === "SOAP") {
+                availableNode = getKnownAvailableNode("ballerina", "soap");
+            } else if (item.serviceType === "GRPC") {
+                availableNode = getKnownAvailableNode("ballerina", "grpc");
+            }
             if (item.serviceType === "REST") {
                 onItemSelect(DevantConnectionFlow.CREATE_INTERNAL_OAS, item, availableNode);
             } else if (availableNode) {
