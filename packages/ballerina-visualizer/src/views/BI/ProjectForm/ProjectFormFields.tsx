@@ -149,6 +149,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
 
             <FieldGroup>
                 <DirectorySelector
+                    id="project-folder-selector"
                     label="Select Path"
                     placeholder="Choose a folder for your project..."
                     selectedPath={formData.path}

@@ -151,6 +151,7 @@ export function ImportIntegrationForm({
                     <Typography variant="h3" sx={{ marginBottom: 8 }}>Select Your Project Folder</Typography>
                     <BodyText>{selectedIntegration.description}</BodyText>
                     <DirectorySelector
+                        id="import-project-folder-selector"
                         placeholder="Choose your project folder..."
                         selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
