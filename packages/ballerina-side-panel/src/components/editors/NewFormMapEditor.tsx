@@ -18,7 +18,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { FormMapEditorProps } from "./FormMapEditorNew";
-import { InputType, getPrimaryInputType } from "@wso2/ballerina-core";
+import { InputType } from "@wso2/ballerina-core";
 import { Form, FormField, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
@@ -165,7 +165,7 @@ export const NewFormMapEditor = (props: FormMapEditorProps & {
             <ScrollableList
                 ref={scrollableListRef}
                 itemCount={repeatableFields.length}
-                maxVisibleItems={3}
+                maxVisibleItems={2}
             >
                 {
                     repeatableFields.map((formField) => (

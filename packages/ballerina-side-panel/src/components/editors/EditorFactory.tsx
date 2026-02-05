@@ -46,7 +46,6 @@ import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
 import { FormArrayEditorWrapper } from "./FormMapEditorWrapper";
-import { NewFormMapEditor } from "./NewFormMapEditor";
 import { FormMapEditorWrapper } from "./NewFormMapEditorWrapper";
 
 interface FormFieldEditorProps {
@@ -86,8 +85,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         setSubComponentEnabled,
         handleNewTypeSelected,
         isContextTypeEditorSupported,
-        openFormTypeEditor,
-        scopeFieldAddon
+        openFormTypeEditor
     } = props;
 
     const showWithExpressionEditor = (
