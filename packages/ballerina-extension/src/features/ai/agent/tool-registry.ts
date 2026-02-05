@@ -39,6 +39,7 @@ import { getLibraryProviderTool } from './tools/library-provider';
 import { LIBRARY_PROVIDER_TOOL, GenerationType } from '../utils/libs/libraries';
 import { getHealthcareLibraryProviderTool, HEALTHCARE_LIBRARY_PROVIDER_TOOL } from './tools/healthcare-library';
 import { createConnectorGeneratorTool, CONNECTOR_GENERATOR_TOOL } from './tools/connector-generator';
+import { EXTERNAL_LIBRARY_SEARCH_TOOL, getExternalLibrarySearchTool } from './tools/external-library-search';
 
 export interface ToolRegistryOptions {
     eventHandler: CopilotEventHandler;
@@ -66,6 +67,9 @@ export function createToolRegistry(opts: ToolRegistryOptions) {
         [LIBRARY_PROVIDER_TOOL]: getLibraryProviderTool(
             libraryDescriptions,
             generationType,
+            eventHandler
+        ),
+        [EXTERNAL_LIBRARY_SEARCH_TOOL]: getExternalLibrarySearchTool(
             eventHandler
         ),
         [HEALTHCARE_LIBRARY_PROVIDER_TOOL]: getHealthcareLibraryProviderTool(

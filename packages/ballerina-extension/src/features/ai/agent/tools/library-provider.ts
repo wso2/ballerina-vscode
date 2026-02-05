@@ -21,6 +21,7 @@ import { Library } from "../../utils/libs/library-types";
 import { selectRequiredFunctions } from "../../utils/libs/function-registry";
 import { CopilotEventHandler } from "../../utils/events";
 import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { EXTERNAL_LIBRARY_SEARCH_TOOL } from "./external-library-search";
 
 /**
  * Emits tool_result event for library provider with filtering
@@ -107,25 +108,41 @@ export function getLibraryProviderTool(
         description: `Fetches detailed information about Ballerina libraries along with their API documentation, including services, clients, functions, and types.
 This tool analyzes a user query and returns **only the relevant** services, clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
 
-Available libraries:
+**This tool has a single purpose: fetch library descriptions. However, there are two cases for how to obtain library names:**
+
+## Case 1: Core Ballerina Libraries (Direct Usage)
+For core Ballerina libraries (packages starting with **ballerina/**) listed below, you can directly call this tool with the library names.
+
+Available core libraries:
 <AVAILABLE LIBRARIES>
 ${libraryDescriptions}
 </AVAILABLE LIBRARIES>
 
-Before calling this tool:
-- Review all library names and their descriptions.
-- Analyze the user query provided in the user message to identify the relevant Ballerina libraries which can be utilized to fulfill the query.
-- Select the minimal set of libraries that can fulfill the query based on their descriptions.
+**Workflow for core libraries:**
+1. Review the library names and descriptions above
+2. Analyze the user query to identify relevant core Ballerina libraries (ballerina/*)
+3. Call this tool directly with the selected library names and user prompt
 
-# Example
-**Query**: Write an integration to read GitHub issues, summarize them, and post the summary to a Slack channel.
-**Tool Call**: Call with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
+## Case 2: External Libraries (Two-Step Process)
+For external libraries NOT listed in the core libraries above, you MUST follow a two-step process.
 
+**External libraries include:**
+- **ballerinax/*** - Extended/connector packages
+- **xlibb/*** - C library bindings
+- Any other organization packages available in Ballerina Central
+
+**Workflow for external libraries:**
+1. **FIRST**: Call ${EXTERNAL_LIBRARY_SEARCH_TOOL} with the user prompt to search for relevant external libraries from Ballerina Central
+   - This searches across ballerinax/*, xlibb/*, and any other organization packages
+2. **THEN**: Call this tool ${LIBRARY_PROVIDER_TOOL} with the library names returned from step 1
+
+**How to decide which case applies:**
+- If the library starts with **ballerina/** and is in the "Available core libraries" list above → Use Case 1 (direct call)
+- If the library starts with **ballerinax/**, **xlibb/**, or any other organization → Use Case 2 (search first)
 
 Tool Response:
 Tool responds with the following information about the requested libraries:
 name, description, type definitions (records, objects, enums, type aliases), clients (if any), functions and services (if any).
-
 `,
         inputSchema: LibraryProviderToolSchema,
         execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
