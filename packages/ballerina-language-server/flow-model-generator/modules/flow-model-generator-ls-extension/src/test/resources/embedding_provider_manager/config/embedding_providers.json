@@ -23,21 +23,6 @@
           },
           {
             "metadata": {
-              "label": "Azure Embedding Provider",
-              "description": "EmbeddingProvider provides an interface for interacting with Azure OpenAI Embedding Models."
-            },
-            "codedata": {
-              "node": "EMBEDDING_PROVIDER",
-              "org": "ballerinax",
-              "module": "ai.azure",
-              "packageName": "ai.azure",
-              "object": "EmbeddingProvider",
-              "symbol": "init"
-            },
-            "enabled": true
-          },
-          {
-            "metadata": {
               "label": "OpenAI Embedding Provider",
               "description": "EmbeddingProvider provides an interface for interacting with OpenAI Embedding Models."
             },
