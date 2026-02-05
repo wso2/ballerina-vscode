@@ -287,7 +287,8 @@ public class CodeAnalyzer extends NodeVisitor {
             } else {
                 kind = FunctionKind.RESOURCE;
             }
-        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+        } else if (functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else {
             kind = FunctionKind.FUNCTION;
@@ -1047,16 +1048,20 @@ public class CodeAnalyzer extends NodeVisitor {
                 List<String> restArgs = new ArrayList<>();
                 for (int i = 0; i < paramsList.size(); i++) {
                     ParameterSymbol parameterSymbol = paramsList.get(i);
-                    String escapedParamName = parameterSymbol.getName().get();
+                    Optional<String> nameOptional = parameterSymbol.getName();
+                    if (nameOptional.isEmpty()) {
+                        continue;
+                    }
+                    String escapedParamName = nameOptional.get();
                     ParameterData paramResult = funcParamMap.get(escapedParamName);
                     if (paramResult == null) {
-                        escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
+                        escapedParamName = CommonUtil.escapeReservedKeyword(nameOptional.get());
                     }
                     paramResult = funcParamMap.get(escapedParamName);
                     Node paramValue = i < argCount ? positionalArgs.poll()
                             : namedArgValueMap.get(paramResult.name());
 
-                    funcParamMap.remove(parameterSymbol.getName().get());
+                    funcParamMap.remove(nameOptional.get());
                     Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
@@ -1088,13 +1093,22 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String escapedParamName = restParamSymbol.getName().get();
+                Optional<String> restNameOptional = restParamSymbol.getName();
+                if (restNameOptional.isEmpty()) {
+                    return;
+                }
+                String escapedParamName = restNameOptional.get();
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
                 if (restParamResult == null) {
-                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
-                            restParamSymbol.getName().get()));
+                    Optional<String> restParamNameOptional = restParamSymbol.getName();
+                    if (restParamNameOptional.isPresent()) {
+                        restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                                restParamNameOptional.get()));
+                    }
                 }
-                funcParamMap.remove(restParamSymbol.getName().get());
+                Optional<String> restParamNameForRemoval = restParamSymbol.getName();
+                restParamNameForRemoval.ifPresent(funcParamMap::remove);
+                assert restParamResult != null;
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 buildPropertyType(customPropBuilder, restParamResult);
                 customPropBuilder
@@ -1128,7 +1142,11 @@ public class CodeAnalyzer extends NodeVisitor {
             final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = parameterSymbol.getName().get();
+                Optional<String> paramNameOptional = parameterSymbol.getName();
+                if (paramNameOptional.isEmpty()) {
+                    continue;
+                }
+                String escapedParamName = paramNameOptional.get();
                 if (!funcParamMap.containsKey(escapedParamName)) {
                     escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     if (!funcParamMap.containsKey(escapedParamName)) {
@@ -2282,9 +2300,14 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RetryStatementNode retryStatementNode) {
-        int retryCount = retryStatementNode.arguments().isEmpty() ? 3 :
-                Integer.parseInt(retryStatementNode.arguments()
-                        .map(arg -> arg.arguments().get(0)).get().toString());
+        int retryCount;
+        if (retryStatementNode.arguments().isEmpty()) {
+            retryCount = 3;
+        } else {
+            Optional<Node> argumentOptional = retryStatementNode.arguments()
+                    .map(arg -> arg.arguments().get(0));
+            retryCount = argumentOptional.map(node -> Integer.parseInt(node.toString())).orElse(3);
+        }
 
         StatementNode statementNode = retryStatementNode.retryBody();
         if (statementNode.kind() == SyntaxKind.BLOCK_STATEMENT) {
@@ -2733,8 +2756,12 @@ public class CodeAnalyzer extends NodeVisitor {
 
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
-        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)
-                semanticModel.types().getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate").get();
+        Optional<Symbol> rawSymbolOptional = semanticModel.types()
+                .getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate");
+        if (rawSymbolOptional.isEmpty()) {
+            return false;
+        }
+        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol) rawSymbolOptional.get();
 
         TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
@@ -2783,9 +2810,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .collect(Collectors.joining());
     }
 
-    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
-        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
-    }
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();

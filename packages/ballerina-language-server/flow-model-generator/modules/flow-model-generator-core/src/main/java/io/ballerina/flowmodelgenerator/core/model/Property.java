@@ -619,8 +619,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
 
             // All the ballerina types will have a default to expression type
-            // For SQL queries, don't select EXPRESSION as default since SQL_QUERY should be selected
-            boolean isSqlQuery = "sql:ParameterizedQuery".equals(ballerinaType);
             type().fieldType(ValueType.EXPRESSION)
                     .ballerinaType(ballerinaType)
                     .stepOut();
