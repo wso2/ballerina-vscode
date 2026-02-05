@@ -172,6 +172,10 @@ export function stringToRawArrayElements(input: string): string[] {
     // remove outer [ ]
     const s = input.trim().slice(1, -1);
 
+    if (s === "") {
+        return [""];
+    }
+
     const result: string[] = [];
     let current = "";
     let depth = 0;
@@ -202,9 +206,8 @@ export function stringToRawArrayElements(input: string): string[] {
         current += char;
     }
 
-    if (current.trim()) {
-        result.push(current);
-    }
+    // Always push the final element (even if empty) to preserve trailing empty values
+    result.push(current);
 
     return result;
 }
