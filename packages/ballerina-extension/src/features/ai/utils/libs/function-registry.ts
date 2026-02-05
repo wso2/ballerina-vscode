@@ -32,14 +32,13 @@ import { getAnthropicClient, ANTHROPIC_HAIKU } from "../ai-client";
 import { GenerationType } from "./libraries";
 // import { getRequiredTypesFromLibJson } from "../healthcare/healthcare";
 import { langClient } from "../../activator";
-import { getGenerationMode } from "../ai-utils";
 
 // Constants for type definitions
 const TYPE_RECORD = 'Record';
 const TYPE_CONSTRUCTOR = 'Constructor';
 
 export async function selectRequiredFunctions(prompt: string, selectedLibNames: string[], generationType: GenerationType): Promise<Library[]> {
-    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames, generationType);
+    const selectedLibs: Library[] = await getMaximizedSelectedLibs(selectedLibNames);
     const functionsResponse: GetFunctionResponse[] = await getRequiredFunctions(selectedLibNames, prompt, selectedLibs, generationType);
     let typeLibraries: Library[] = [];
     if (generationType === GenerationType.HEALTHCARE_GENERATION) {
@@ -329,10 +328,9 @@ function filteredNormalFunctions(functions?: RemoteFunction[], generationType?: 
     }));
 }
 
-export async function getMaximizedSelectedLibs(libNames: string[], generationType: GenerationType): Promise<Library[]> {
+export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Library[]> {
     const result = (await langClient.getCopilotFilteredLibraries({
-        libNames: libNames,
-        mode: getGenerationMode(generationType),
+        libNames: libNames
     })) as { libraries: Library[] };
     return result.libraries as Library[];
 }
@@ -708,8 +706,7 @@ async function getExternalRecords(
         if (!library) {
             console.warn(`Library ${libName} is not found in the context. Fetching library details.`);
             const result = (await langClient.getCopilotFilteredLibraries({
-                libNames: [libName],
-                mode: getGenerationMode(GenerationType.CODE_GENERATION),
+                libNames: [libName]
             })) as { libraries: Library[] };
             if (result.libraries && result.libraries.length > 0) {
                 library = result.libraries[0];
