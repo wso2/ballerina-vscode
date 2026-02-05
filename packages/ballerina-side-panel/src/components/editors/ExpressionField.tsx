@@ -352,6 +352,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             isExpandedVersion={false}
             completions={completions}
             onChange={onChange}
+            onBlur={onBlur}
             value={value}
             sanitizedExpression={sanitizedExpression}
             rawExpression={rawExpression}
