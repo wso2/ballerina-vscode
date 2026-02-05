@@ -18,12 +18,10 @@
 
 import * as vscode from 'vscode';
 import { extension } from "../../BalExtensionContext";
-import { AUTH_CLIENT_ID, AUTH_ORG, getDevantExchangeUrl } from '../../features/ai/utils';
+import { AUTH_CLIENT_ID, AUTH_ORG } from '../../features/ai/utils';
 import axios from 'axios';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { AuthCredentials, DevantEnvSecrets, LoginMethod } from '@wso2/ballerina-core';
-import { checkDevantEnvironment } from '../../views/ai-panel/utils';
-import { getDevantStsToken } from '../../features/devant/activator';
+import { AuthCredentials, LoginMethod } from '@wso2/ballerina-core';
 
 export const REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Refresh token is not available.";
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
@@ -150,16 +148,11 @@ export const clearAuthCredentials = async (): Promise<void> => {
 // BI Copilot Auth Utils
 // ==================================
 export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
-    // Priority 1: Check devant environment first
-    const devantCredentials = await checkDevantEnvironment();
-    if (devantCredentials) {
-        return devantCredentials.loginMethod;
-    }
-
-    // Priority 2: Check stored credentials
+    // Priority 1: Check Anthropic API key from environment
     if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
         return LoginMethod.ANTHROPIC_KEY;
     }
+    // Priority 2: Check stored credentials
     const credentials = await getAuthCredentials();
     if (credentials) {
         return credentials.loginMethod;
@@ -170,18 +163,12 @@ export const getLoginMethod = async (): Promise<LoginMethod | undefined> => {
 export const getAccessToken = async (): Promise<AuthCredentials | undefined> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // Priority 1: Check devant environment (highest priority)
-            const devantCredentials = await checkDevantEnvironment();
-            if (devantCredentials) {
-                resolve(devantCredentials);
-                return;
-            }
-
-            // Priority 2: Check stored credentials
+            // Priority 1: Check Anthropic API key from environment
             if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
                 resolve({loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: {apiKey: process.env.ANTHROPIC_API_KEY.trim()}});
                 return;
             }
+            // Priority 2: Check stored credentials
             const credentials = await getAuthCredentials();
 
             if (credentials) {
@@ -218,10 +205,6 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                         }
 
                     case LoginMethod.ANTHROPIC_KEY:
-                        resolve(credentials);
-                        return;
-
-                    case LoginMethod.DEVANT_ENV:
                         resolve(credentials);
                         return;
 
@@ -302,67 +285,4 @@ export const getRefreshedAccessToken = async (): Promise<string> => {
             reject(error);
         }
     });
-};
-
-// ==================================
-// Devant STS Token Exchange Utils
-// ==================================
-
-/**
- * Exchanges a Choreo STS token for a Devant Bearer token
- * @param choreoStsToken The Choreo STS token to exchange
- * @returns DevantEnvSecrets containing the access token and calculated expiry time
- */
-export const exchangeStsToken = async (choreoStsToken: string): Promise<DevantEnvSecrets> => {
-    try {
-        const response = await axios.post(getDevantExchangeUrl(), {
-            choreo_sts_token: choreoStsToken
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const { access_token, expires_in } = response.data;
-        const devantEnv: DevantEnvSecrets =  {
-            accessToken: access_token,
-            expiresAt: Date.now() + (expires_in * 1000) // Convert seconds to milliseconds
-        };
-
-        await storeAuthCredentials({
-            loginMethod: LoginMethod.DEVANT_ENV,
-            secrets: devantEnv
-        });
-        return devantEnv;
-    } catch (error: any) {
-        console.error('Error exchanging STS token:', error);
-        throw new Error(`Failed to exchange STS token: ${error.message}`);
-    }
-};
-
-/**
- * Refreshes the Devant token by fetching a new STS token and exchanging it
- * This is called when a 401 error occurs during DEVANT_ENV authentication
- * @returns The new access token
- */
-export const refreshDevantToken = async (): Promise<string> => {
-    try {
-        // Get fresh STS token from platform extension
-        const newStsToken = await getDevantStsToken();
-
-        if (!newStsToken) {
-            throw new Error('Failed to retrieve STS token from platform extension');
-        }
-
-        // Exchange for new Bearer token
-        const newSecrets = await exchangeStsToken(newStsToken);
-
-        // Update stored credentials (this is in-memory only for DEVANT_ENV)
-        // Note: checkDevantEnvironment already handles the storage, so we just return the token
-
-        return newSecrets.accessToken;
-    } catch (error: any) {
-        console.error('Error refreshing Devant token:', error);
-        throw error;
-    }
 };
