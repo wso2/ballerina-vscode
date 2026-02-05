@@ -70,6 +70,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
 
     const handleAddNewItem = () => {
         const key = crypto.randomUUID();
+        if (!(props.field.types[0] as any).template) return;
         const newField = getMapSubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[])
         setRepeatableFields(prev => [...prev, newField]);
         isInternalUpdate.current = true;
