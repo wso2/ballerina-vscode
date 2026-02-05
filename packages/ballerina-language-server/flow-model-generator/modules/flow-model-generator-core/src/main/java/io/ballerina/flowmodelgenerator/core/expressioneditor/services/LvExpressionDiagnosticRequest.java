@@ -51,6 +51,8 @@ public class LvExpressionDiagnosticRequest extends DiagnosticsRequest {
             DiagnosticErrorCode.UNDERSCORE_NOT_ALLOWED_AS_IDENTIFIER;
     private static final DiagnosticErrorCode VARIABLE_NOT_INITIALIZED_CODE =
             DiagnosticErrorCode.USAGE_OF_UNINITIALIZED_VARIABLE;
+    private static final DiagnosticErrorCode CANNOT_INFER_OBJECT_TYPE_CODE =
+            DiagnosticErrorCode.CANNOT_INFER_OBJECT_TYPE_FROM_LHS;
 
     public LvExpressionDiagnosticRequest(ExpressionEditorContext context) {
         super(context);
@@ -119,6 +121,7 @@ public class LvExpressionDiagnosticRequest extends DiagnosticsRequest {
     private boolean isRelevantDiagnostic(io.ballerina.tools.diagnostics.Diagnostic diagnostic) {
         String code = diagnostic.diagnosticInfo().code();
         return !UNDERSCORE_NOT_ALLOWED_CODE.diagnosticId().equals(code)
-                && !VARIABLE_NOT_INITIALIZED_CODE.diagnosticId().equals(code);
+                && !VARIABLE_NOT_INITIALIZED_CODE.diagnosticId().equals(code)
+                && !CANNOT_INFER_OBJECT_TYPE_CODE.diagnosticId().equals(code);
     }
 }
