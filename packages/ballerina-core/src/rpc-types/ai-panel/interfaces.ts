@@ -322,6 +322,18 @@ export interface CopilotFilterLibrariesResponse {
     libraries: any[];
 }
 
+export interface CopilotSearchPackagesByPromptRequest {
+    userPrompt: string;
+}
+
+export interface CopilotSearchPackagesByPromptResponse {
+    libraries: MinifiedLibrary[];
+}
+
+export interface ExternalLibrarySearchResult {
+    libraries: MinifiedLibrary[];
+}
+
 // ==================================
 // Doc Generation Related Interfaces
 // ==================================

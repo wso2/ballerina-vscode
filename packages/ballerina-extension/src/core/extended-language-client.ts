@@ -281,7 +281,9 @@ import {
     PersistClientGenerateRequest,
     PersistClientGenerateResponse,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    CopilotSearchPackagesByPromptRequest,
+    CopilotSearchPackagesByPromptResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -473,6 +475,7 @@ enum EXTENDED_APIS {
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    COPILOT_SEARCH_PACKAGES_BY_PROMPT = 'copilotLibraryManager/searchPackagesByPrompt',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
     MULE_TO_BI = 'projectService/importMule',
@@ -1426,6 +1429,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
+    }
+
+    async getCopilotPackagesByPrompt(params: CopilotSearchPackagesByPromptRequest): Promise<CopilotSearchPackagesByPromptResponse> {
+        return this.sendRequest<CopilotSearchPackagesByPromptResponse>(EXTENDED_APIS.COPILOT_SEARCH_PACKAGES_BY_PROMPT, params);
     }
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
