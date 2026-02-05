@@ -144,6 +144,8 @@ public class PropertyType {
                 }
                 // group by the fieldType
                 propertyTypes.stream()
+                        .filter(pt -> !(pt.fieldType() == Value.FieldType.REPEATABLE_LIST
+                                || pt.fieldType() == Value.FieldType.REPEATABLE_MAP))
                         .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
                         .forEach((fieldType, groupedTypes) -> {
                             if (groupedTypes.size() > 1) {

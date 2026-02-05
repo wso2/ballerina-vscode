@@ -641,6 +641,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                     // group by the fieldType
                     List<PropertyType> propTypes = builder.types;
                     propTypes.stream()
+                            .filter(pt -> !(pt.fieldType() == ValueType.REPEATABLE_LIST
+                                    || pt.fieldType() == ValueType.REPEATABLE_MAP))
                             .collect(java.util.stream.Collectors.groupingBy(PropertyType::fieldType))
                             .forEach((fieldType, groupedTypes) -> {
                                 if (groupedTypes.size() > 1) {
