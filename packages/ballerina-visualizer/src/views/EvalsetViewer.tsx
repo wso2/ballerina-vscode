@@ -19,6 +19,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { EvalSet } from "@wso2/ballerina-core";
+import { EvalCaseViewer } from "./EvalCaseViewer";
 
 const Container = styled.div`
     padding: 20px;
@@ -64,18 +65,46 @@ const Preformatted = styled.pre`
     color: var(--vscode-editor-foreground);
 `;
 
+const ErrorMessage = styled.div`
+    padding: 15px;
+    background-color: var(--vscode-inputValidation-errorBackground);
+    border: 1px solid var(--vscode-inputValidation-errorBorder);
+    border-radius: 4px;
+    color: var(--vscode-errorForeground);
+`;
+
 interface EvalsetViewerProps {
+    projectPath: string;
     filePath: string;
     content: EvalSet;
     caseId?: string;
 }
 
-export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ filePath, content, caseId }) => {
+export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, filePath, content, caseId }) => {
+    if (caseId) {
+        const evalCase = content.cases.find(c => c.id === caseId);
+
+        if (!evalCase) {
+            return (
+                <Container>
+                    <Header>
+                        <Title>{filePath}</Title>
+                        <Subtitle>Case not found</Subtitle>
+                    </Header>
+                    <ErrorMessage>
+                        Case with ID "{caseId}" not found in this evalset.
+                    </ErrorMessage>
+                </Container>
+            );
+        }
+
+        return <EvalCaseViewer projectPath={projectPath} evalSet={content} evalCase={evalCase} />;
+    }
     return (
         <Container>
             <Header>
                 <Title>{filePath}</Title>
-                <Subtitle>Case: {caseId}</Subtitle>
+                <Subtitle>{content.cases.length} case(s)</Subtitle>
             </Header>
             <ContentSection>
                 <Preformatted>{JSON.stringify(content, null, 2)}</Preformatted>

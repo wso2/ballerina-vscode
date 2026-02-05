@@ -635,6 +635,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.EvalsetViewer:
                         setViewComponent(
                             <EvalsetViewer
+                                projectPath={value.projectPath}
                                 filePath={value?.evalsetData.filePath}
                                 content={value?.evalsetData.content}
                                 caseId={value?.evalsetData?.caseId}

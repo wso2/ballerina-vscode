@@ -16,66 +16,15 @@
  * under the License.
  */
 
-// --- Type Definitions (matching Ballerina records) ---
-
-type Role = 'system' | 'user' | 'assistant' | 'function';
-
-interface ChatUserMessage {
-    role: 'user';
-    content: string | any;
-    name?: string;
-}
-
-interface ChatSystemMessage {
-    role: 'system';
-    content: string | any;
-    name?: string;
-}
-
-interface ChatAssistantMessage {
-    role: 'assistant';
-    content?: string | null;
-    name?: string;
-    toolCalls?: FunctionCall[];
-}
-
-interface ChatFunctionMessage {
-    role: 'function';
-    content?: string | null;
-    name: string;
-    id?: string;
-}
-
-type ChatMessage = ChatUserMessage | ChatSystemMessage | ChatAssistantMessage | ChatFunctionMessage;
-
-interface FunctionCall {
-    name: string;
-    arguments?: { [key: string]: any };
-    id?: string;
-}
-
-interface ToolSchema {
-    name: string;
-    description: string;
-    parametersSchema?: { [key: string]: any };
-}
-
-interface Iteration {
-    history: ChatMessage[];
-    output: ChatAssistantMessage | ChatFunctionMessage | any;
-    startTime: string;
-    endTime: string;
-}
-
-interface EvalsetTrace {
-    id: string;
-    userMessage: ChatUserMessage;
-    iterations: Iteration[];
-    output: ChatAssistantMessage | any;
-    tools: ToolSchema[];
-    startTime: string;
-    endTime: string;
-}
+import {
+    EvalChatUserMessage as ChatUserMessage,
+    EvalChatAssistantMessage as ChatAssistantMessage,
+    EvalChatMessage as ChatMessage,
+    EvalToolSchema as ToolSchema,
+    EvalIteration as Iteration,
+    EvalsetTrace,
+    EvalFunctionCall
+} from '@wso2/ballerina-core';
 
 // TraceData interface (from trace-details-webview.ts)
 interface TraceData {
@@ -149,7 +98,7 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
 
     // Find the span containing the GenAI interaction attributes
     const aiSpan = spans.find((s: SpanData) =>
-        s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.messages')
+        s.name.includes('invoke_agent') && s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.messages')
     );
 
     if (!rootSpan || !aiSpan) {
@@ -218,12 +167,46 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
 
     if (parsedOutput && typeof parsedOutput === 'object' && parsedOutput.role) {
         outputObj = parsedOutput;
-    } else {
+    } else if (outputMessagesStr) {
         // Construct a generic assistant message if raw string
         outputObj = {
             role: 'assistant',
             content: outputMessagesStr
         };
+    } else {
+        // No output found - use a placeholder
+        outputObj = {
+            role: 'assistant',
+            content: 'No output available'
+        };
+    }
+
+    // Extract tool calls from execute_tool spans
+    const toolCallSpans = spans.filter((s: SpanData) => s.name.includes('execute_tool'));
+    if (toolCallSpans.length > 0) {
+        const toolCalls: EvalFunctionCall[] = [];
+
+        for (const toolSpan of toolCallSpans) {
+            const toolName = getAttribute(toolSpan, 'gen_ai.tool.name') || getAttribute(toolSpan, 'tool.name');
+            const toolArgs = getAttribute(toolSpan, 'gen_ai.tool.arguments') || getAttribute(toolSpan, 'tool.arguments');
+            const toolId = getAttribute(toolSpan, 'gen_ai.tool.id') || getAttribute(toolSpan, 'tool.id') || toolSpan.spanId;
+
+            // parse tool arguments if they are in JSON format
+            const parsedArgs = safeJsonParse(toolArgs);
+            const finalArgs = typeof parsedArgs === 'object' ? parsedArgs : toolArgs;
+
+            if (toolName) {
+                toolCalls.push({
+                    id: toolId,
+                    name: toolName,
+                    arguments: finalArgs
+                });
+            }
+        }
+
+        if (toolCalls.length > 0) {
+            outputObj.toolCalls = toolCalls;
+        }
     }
 
     // Construct Iteration
