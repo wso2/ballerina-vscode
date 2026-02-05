@@ -65,16 +65,16 @@ export const FieldFactory = (props: FieldFactoryProps) => {
             key: string,
             property: ExpressionProperty
         ): Promise<void> => {
-            property.types.forEach(type => {
-                if (getInputModeFromTypes(type) === inputMode) {
-                    type.selected = true;
-                }
-            });
+            const newTypes = property.types.map(type => ({
+                ...type,
+                selected: getInputModeFromTypes(type) === inputMode
+            }));
+            const updatedProperty = { ...property, types: newTypes };
             expressionEditor?.getExpressionEditorDiagnostics?.(
                 showDiagnostics,
                 expression,
                 key,
-                property
+                updatedProperty
             )
         },
         [expressionEditor, inputMode]

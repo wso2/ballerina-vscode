@@ -207,9 +207,9 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <FormMapEditor field={field} label={"Add Another Key-Value Pair"} />;
     }
 
-    else if (field.type === "REPEATABLE_LIST") {
+    else if (fieldInputType.fieldType === "REPEATABLE_LIST") {
         return <FormArrayEditorWrapper {...props} />;
-    } else if (field.type === "REPEATABLE_MAP") {
+    } else if (fieldInputType.fieldType === "REPEATABLE_MAP") {
         return <FormMapEditorWrapper {...props} />;
     } else if (fieldInputType.fieldType === "IDENTIFIER" && !field.editable && field?.lineRange) {
         return <IdentifierEditor

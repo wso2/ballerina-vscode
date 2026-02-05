@@ -22,7 +22,7 @@ import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, u
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getPropertyFromFormField, getRecordTypeFields } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getRecordTypeFields } from "./utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -36,6 +36,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
 
     const handleAddNewItem = () => {
         const key = crypto.randomUUID();
+        if (!(props.field.types[0] as any).template) return;
         const newField = getArraySubFormFieldFromTypes(key, (props.field.types[0] as any).template.types as InputType[])
         setRepeatableFields(prev => [...prev, newField]);
         // Wait for the dom update
@@ -69,7 +70,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
     useEffect(() => {
         if (!props.value) return;
         if (JSON.stringify(props.value) === JSON.stringify(repeatableFields)) return;
-        let newValue = buildStringArray(props.value);;
+        let newValue = buildStringArray(props.value);
         const initialValues = stringToRawArrayElements(newValue);
         const initialFields = initialValues.map((val) => {
             const key = crypto.randomUUID();
@@ -79,7 +80,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
             }
         });
         setRepeatableFields(initialFields);
-    }, [props.value]);
+    }, [props.value, props.field.types]);
 
     return (
         <S.Container>

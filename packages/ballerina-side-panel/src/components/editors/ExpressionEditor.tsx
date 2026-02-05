@@ -412,7 +412,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const modeSwitcherContext = useModeSwitcherContext();
 
-    const inputMode = getInputModeFromTypes(fieldInputType);
+    const {inputMode} = modeSwitcherContext
 
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
