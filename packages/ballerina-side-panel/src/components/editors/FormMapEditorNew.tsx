@@ -35,7 +35,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
 
     const modeSwitcherContext = useModeSwitcherContext();
 
-    const prcoessToOutputFormat = (fields: FormField[][]): Record<string, unknown> => {
+    const processToOutputFormat = (fields: FormField[][]): Record<string, unknown> => {
         const output: Record<string, unknown> = {};
         fields.forEach((field) => {
             const keyField = field[0];
@@ -47,7 +47,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         return output;
     }
 
-    const prcoessToInputFormat = (input: Record<string, unknown>): FormField[][] => {
+    const processToInputFormat = (input: Record<string, unknown>): FormField[][] => {
         const fields: FormField[][] = [];
         Object.entries(input).forEach(([key, value]) => {
             const keyId = (value as FormField)?.key?.replace("mp-val-", "mp-key-") || crypto.randomUUID();
@@ -92,7 +92,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         });
         setRepeatableFields(newRepeatableFields);
         isInternalUpdate.current = true;
-        props.onChange(prcoessToOutputFormat(newRepeatableFields));
+        props.onChange(processToOutputFormat(newRepeatableFields));
     }
 
     const handleModeSwitchValueChange = () => {
@@ -104,7 +104,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         const newRepeatableFields = repeatableFields.filter((formField) => formField[0].key !== keyToDelete);
         setRepeatableFields(newRepeatableFields);
         isInternalUpdate.current = true;
-        props.onChange(prcoessToOutputFormat(newRepeatableFields));
+        props.onChange(processToOutputFormat(newRepeatableFields));
     };
 
     useEffect(() => {
@@ -117,7 +117,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
         if (typeof props.value === 'string') {
             processedInputValue = props.value;
         } else {
-            processedInputValue = prcoessToInputFormat(props.value);
+            processedInputValue = processToInputFormat(props.value);
         }
         let newValue = buildStringMap(processedInputValue);
         const initialValues = stringToRawObjectEntries(newValue);
@@ -129,7 +129,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
             return fields;
         });
         setRepeatableFields(initialFields);
-    }, [props.value]);
+    }, [props.value, props.field.types]);
 
     return (
         <S.Container>

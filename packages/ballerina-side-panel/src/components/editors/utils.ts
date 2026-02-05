@@ -333,6 +333,8 @@ export function getRecordTypeFields(fields: FormField[]): RecordTypeField[] {
         .map((field) => ({
             key: field.key,
             property: getPropertyFromFormField(field),
-            recordTypeMembers: getPrimaryInputType(field?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+            recordTypeMembers: field.types
+                .flatMap(type => type.typeMembers || [])
+                .filter(member => member.kind === "RECORD_TYPE")
         }));
 }

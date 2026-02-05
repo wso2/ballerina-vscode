@@ -59,7 +59,13 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     const handleModeSwitch = (mode: InputMode) => {
         const currentFieldValue = getValues(fieldKey);
         const configForNewMode = getEditorConfiguration(mode);
-        const isValueCompatible = configForNewMode.getIsValueCompatible ? configForNewMode.getIsValueCompatible(currentFieldValue) : true;
+        let isValueCompatible = true;
+        if (mode === InputMode.BOOLEAN) {
+            isValueCompatible = false;
+        }
+        else {
+            isValueCompatible = configForNewMode.getIsValueCompatible ? configForNewMode.getIsValueCompatible(currentFieldValue) : true;
+        }
 
         if (!isValueCompatible) {
             setPendingMode(mode);
@@ -72,7 +78,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
     const handleConfirmSwitch = () => {
         if (pendingMode) {
             onChange(pendingMode);
-            setValue(fieldKey, "");
+            setValue(fieldKey, undefined);
             setPendingMode(null);
         }
         setShowWarning(false);
