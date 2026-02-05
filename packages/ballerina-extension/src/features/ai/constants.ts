@@ -16,6 +16,8 @@
  * under the License.
  */
 
+export const WI_EXTENSION_ID = 'wso2.wso2-integrator';
+
 export const CONFIG_FILE_NAME = "Config.toml";
 export const CONFIGURE_DEFAULT_MODEL_COMMAND = "ballerina.configureWso2DefaultModelProvider";
 
