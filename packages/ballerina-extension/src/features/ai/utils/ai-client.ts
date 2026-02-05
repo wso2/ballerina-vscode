@@ -16,10 +16,10 @@
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, refreshDevantToken } from "../../../utils/ai/auth";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
-import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets, DevantEnvSecrets } from "@wso2/ballerina-core";
+import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
 export const ANTHROPIC_SONNET_4 = "claude-sonnet-4-5-20250929";
@@ -72,15 +72,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             'Connection': 'keep-alive',
         };
 
-        if (credentials && loginMethod === LoginMethod.DEVANT_ENV) {
-            // For DEVANT_ENV, use Bearer token (exchanged from STS token)
-            const secrets = credentials.secrets as DevantEnvSecrets;
-            if (secrets.accessToken && secrets.accessToken.trim() !== "") {
-                headers["Authorization"] = `Bearer ${secrets.accessToken}`;
-            } else {
-                console.warn("DevantEnv access token missing, this may cause authentication issues");
-            }
-        } else if (credentials && loginMethod === LoginMethod.BI_INTEL) {
+        if (credentials && loginMethod === LoginMethod.BI_INTEL) {
             // For BI_INTEL, use Bearer token
             const secrets = credentials.secrets as BIIntelSecrets;
             headers["Authorization"] = `Bearer ${secrets.accessToken}`;
@@ -95,7 +87,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration for both BI_INTEL and DEVANT_ENV methods
+        // Handle token expiration for BI_INTEL method
         if (response.status === 401) {
             if (loginMethod === LoginMethod.BI_INTEL) {
                 console.log("Token expired. Refreshing BI_INTEL token...");
@@ -107,25 +99,6 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
                     };
                     response = await fetch(input, options);
                 } else {
-                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                    return;
-                }
-            } else if (loginMethod === LoginMethod.DEVANT_ENV) {
-                console.log("Token expired. Refreshing DEVANT_ENV token...");
-                try {
-                    const newToken = await refreshDevantToken();
-                    if (newToken) {
-                        options.headers = {
-                            ...options.headers,
-                            'Authorization': `Bearer ${newToken}`,
-                        };
-                        response = await fetch(input, options);
-                    } else {
-                        AIStateMachine.service().send(AIMachineEventType.LOGOUT);
-                        return;
-                    }
-                } catch (error) {
-                    console.error("Failed to refresh Devant token:", error);
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                     return;
                 }
@@ -161,7 +134,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
         let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
-        if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
+        if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,
                 apiKey: "xx", // dummy value; real auth is via fetchWithAuth

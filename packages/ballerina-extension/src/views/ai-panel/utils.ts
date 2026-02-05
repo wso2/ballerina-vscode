@@ -23,10 +23,8 @@ import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { generateText } from 'ai';
 import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
-import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod, exchangeStsToken, getAuthCredentials } from '../../utils/ai/auth';
-import { DEVANT_STS_TOKEN_CONFIG } from '../../features/ai/utils';
+import { getAccessToken, clearAuthCredentials, storeAuthCredentials } from '../../utils/ai/auth';
 import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
-import { getDevantStsToken } from '../../features/devant/activator';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -130,53 +128,6 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
             throw new Error('Connection failed. Please check your internet connection and ensure your API key is valid.');
         }
         throw new Error('Validation failed. Please try again.');
-    }
-};
-
-export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefined> => {
-    // Check if CLOUD_STS_TOKEN environment variable exists (Devant flow identifier)
-    if (!('CLOUD_STS_TOKEN' in process.env)) {
-        return undefined;
-    }
-
-    try {
-        // Check if a valid access token already exists to avoid redundant exchanges
-        const existingCredentials = await getAuthCredentials();
-
-        if (existingCredentials && existingCredentials.loginMethod === LoginMethod.DEVANT_ENV) {
-            // existing session, check expiry
-            const { expiresAt } = existingCredentials.secrets;
-            const now = Date.now();
-
-            // If token is still valid (not expired), return existing credentials
-            if (expiresAt && expiresAt > now) {
-                return existingCredentials;
-            }
-        }
-        if (existingCredentials && existingCredentials.loginMethod !== LoginMethod.DEVANT_ENV) {
-            // not devant
-            return undefined;
-        }
-
-        // Get STS token from config or platform extension
-        const choreoStsToken = await getDevantStsToken() || DEVANT_STS_TOKEN_CONFIG;
-
-        if (!choreoStsToken || choreoStsToken.trim() === '') {
-            console.warn('CLOUD_STS_TOKEN env variable exists but no STS token available');
-            return undefined;
-        }
-
-        // Exchange STS token for Bearer token (if no valid token exists or token expired)
-        const devantSecrets = await exchangeStsToken(choreoStsToken);
-
-        // Return devant credentials without storing (always read from env and exchange on demand)
-        return {
-            loginMethod: LoginMethod.DEVANT_ENV,
-            secrets: devantSecrets
-        };
-    } catch (error) {
-        console.error('Error in checkDevantEnvironment:', error);
-        return undefined;
     }
 };
 

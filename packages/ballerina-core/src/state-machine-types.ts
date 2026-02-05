@@ -594,7 +594,6 @@ export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIR
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
-    DEVANT_ENV = 'devant_env',
     AWS_BEDROCK = 'aws_bedrock'
 }
 
@@ -605,11 +604,6 @@ export interface BIIntelSecrets {
 
 export interface AnthropicKeySecrets {
     apiKey: string;
-}
-
-export interface DevantEnvSecrets {
-    accessToken: string;
-    expiresAt: number;
 }
 
 interface AwsBedrockSecrets {
@@ -627,10 +621,6 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.ANTHROPIC_KEY;
         secrets: AnthropicKeySecrets;
-    }
-    | {
-        loginMethod: LoginMethod.DEVANT_ENV;
-        secrets: DevantEnvSecrets;
     }
     | {
         loginMethod: LoginMethod.AWS_BEDROCK;
