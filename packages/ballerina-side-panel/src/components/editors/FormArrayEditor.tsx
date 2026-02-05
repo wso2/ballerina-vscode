@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { getPrimaryInputType, InputType, RecordTypeField } from "@wso2/ballerina-core";
+import { InputType } from "@wso2/ballerina-core";
 import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
