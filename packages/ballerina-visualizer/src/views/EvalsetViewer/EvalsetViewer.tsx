@@ -98,7 +98,7 @@ export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, fileP
             );
         }
 
-        return <EvalCaseViewer projectPath={projectPath} evalSet={content} evalCase={evalCase} />;
+        return <EvalCaseViewer projectPath={projectPath} filePath={filePath} evalSet={content} evalCase={evalCase} />;
     }
     return (
         <Container>

@@ -19,8 +19,8 @@
  */
 import { HistoryEntry } from "../../history";
 import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
-import { ColorThemeKind } from "../../state-machine-types";
-import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse } from "./interfaces";
+import { ColorThemeKind, EvalSet } from "../../state-machine-types";
+import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse, SaveEvalCaseRequest, SaveEvalCaseResponse } from "./interfaces";
 import { NotificationType, RequestType } from "vscode-messenger-common";
 
 const _preFix = "visualizer";
@@ -42,3 +42,4 @@ export const reviewAccepted: NotificationType<void> = { method: `${_preFix}/revi
 export const refreshReviewMode: NotificationType<void> = { method: `${_preFix}/refreshReviewMode` };
 export const handleApprovalPopupClose: NotificationType<HandleApprovalPopupCloseRequest> = { method: `${_preFix}/handleApprovalPopupClose` };
 export const reopenApprovalView: NotificationType<ReopenApprovalViewRequest> = { method: `${_preFix}/reopenApprovalView` };
+export const saveEvalCase: RequestType<SaveEvalCaseRequest, SaveEvalCaseResponse> = { method: `${_preFix}/saveEvalCase` };
