@@ -18,7 +18,7 @@
 
 import { startCase } from "lodash";
 import { FormField } from "../Form/types";
-import { ExpressionProperty, getPrimaryInputType, InputType } from "@wso2/ballerina-core";
+import { ExpressionProperty, getPrimaryInputType, InputType, RecordTypeField } from "@wso2/ballerina-core";
 import { InputMode } from "../..";
 import { EditorMode } from "./ExpandedEditor";
 import { EXPANDABLE_MODES } from "./ExpandedEditor/modes/types";
@@ -316,4 +316,23 @@ export function buildStringMap(elements: FormField[][] | string): string {
     });
 
     return finalString + "}";
+}
+
+export function getRecordTypeFields(fields: FormField[]): RecordTypeField[] {
+    return fields.filter(field => {
+        const types = field.types;
+        if (!types) return false;
+        return types.some(
+            type =>
+            (
+                type.typeMembers &&
+                type.typeMembers.some(member => member.kind === "RECORD_TYPE")
+            )
+        );
+    })
+        .map((field) => ({
+            key: field.key,
+            property: getPropertyFromFormField(field),
+            recordTypeMembers: getPrimaryInputType(field?.types)?.typeMembers.filter(member => member.kind === "RECORD_TYPE")
+        }));
 }

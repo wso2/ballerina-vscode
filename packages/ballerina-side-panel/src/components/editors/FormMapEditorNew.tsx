@@ -22,7 +22,7 @@ import { Form, FormValues, S, useFormContext, useModeSwitcherContext, FormField,
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries } from "./utils";
+import { getMapSubFormFieldFromTypes, buildStringMap, stringToRawObjectEntries, getRecordTypeFields } from "./utils";
 
 export const FormMapEditorNew = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -179,6 +179,7 @@ export const FormMapEditorNew = (props: FormFieldEditorProps & {
                             <Form
                                 key={formField[0].key}
                                 formFields={formField}
+                                recordTypeFields={getRecordTypeFields(formField)}
                                 openRecordEditor={props.openRecordEditor}
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
                                     handleFormOnChange(fieldKey, value, allValues, formField[0].key);

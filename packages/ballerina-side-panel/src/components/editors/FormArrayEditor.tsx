@@ -17,12 +17,12 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { InputType } from "@wso2/ballerina-core";
+import { getPrimaryInputType, InputType, RecordTypeField } from "@wso2/ballerina-core";
 import { Form, FormField, FormFieldEditorProps, FormValues, S, useFormContext, useModeSwitcherContext } from "../..";
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getPropertyFromFormField } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getPropertyFromFormField, getRecordTypeFields } from "./utils";
 
 export const FormArrayEditor = (props: FormFieldEditorProps & {
     onChange: (value: any) => void;
@@ -129,6 +129,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                             <Form
                                 key={formField.key}
                                 formFields={[formField]}
+                                recordTypeFields={getRecordTypeFields([formField])}
                                 openRecordEditor={props.openRecordEditor}
                                 onChange={(fieldKey: string, value: any, allValues: FormValues) => {
                                     handleFormOnChange(fieldKey, value, allValues, formField.key);
@@ -156,7 +157,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
                 appearance="icon"
             >
                 <Codicon name="add" sx={{ marginRight: "5px" }} />
-               {repeatableFields.length === 0 ?  "Initialize Array" : "Add New Item"}
+                {repeatableFields.length === 0 ? "Initialize Array" : "Add New Item"}
             </S.AddNewButton>
         </S.Container>
     )

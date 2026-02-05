@@ -23,8 +23,8 @@ import { FormArrayEditor } from "./FormArrayEditor";
 import { FormFieldEditorProps } from "./EditorFactory";
 
 export const FormArrayEditorWrapper = (props: FormFieldEditorProps) => {
-       const { form } = useFormContext();
-       const { control } = form;
+    const { form } = useFormContext();
+    const { control } = form;
 
     return (
         <Controller
