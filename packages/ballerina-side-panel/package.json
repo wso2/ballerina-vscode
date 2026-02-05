@@ -49,10 +49,6 @@
         "rehype-raw": "7.0.0",
         "remark-gfm": "4.0.1",
         "@github/markdown-toolbar-element": "2.2.3",
-        "@codemirror/commands": "6.10.0",
-        "@codemirror/state": "6.5.2",
-        "@codemirror/view": "6.38.6",
-        "@codemirror/autocomplete": "6.19.1",
         "@codemirror/lang-sql": "6.10.0",
         "@codemirror/language": "6.11.3",
         "@lezer/highlight": "1.2.3"
