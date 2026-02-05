@@ -280,7 +280,6 @@ public class FunctionDataBuilder {
                     .orElseThrow(() -> new IllegalStateException("Function name not found"));
         }
 
-
         // The module information is required to build the FunctionResult
         if (moduleInfo == null) {
             throw new IllegalStateException("Module information not found");

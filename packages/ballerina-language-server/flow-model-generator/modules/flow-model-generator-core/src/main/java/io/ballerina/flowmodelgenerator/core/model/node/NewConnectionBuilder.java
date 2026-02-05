@@ -132,7 +132,6 @@ public class NewConnectionBuilder extends CallBuilder {
         Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
                 codedata.org(), codedata.packageName());
 
-
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
                 .name(codedata.symbol())

@@ -92,7 +92,7 @@
               "metadata": {
                 "label": "SearchIndexerLimits",
                 "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.1.png"
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_azure.ai.search_1.0.0.png"
               },
               "codedata": {
                 "node": "TYPEDESC",
@@ -100,7 +100,217 @@
                 "module": "azure.ai.search",
                 "packageName": "azure.ai.search",
                 "symbol": "SearchIndexerLimits",
-                "version": "1.0.1"
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "smartsheet",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultItem",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultItem",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResult",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResult",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResultData",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResultData",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_smartsheet_1.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "smartsheet",
+                "packageName": "smartsheet",
+                "symbol": "SearchResponse",
+                "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "squareup",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchCatalogObjectsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchCatalogObjectsRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAvailabilityRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchAvailabilityRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalCheckoutsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalCheckoutsRequest",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchCatalogObjectsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchCatalogObjectsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchAvailabilityResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchAvailabilityResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalCheckoutsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalCheckoutsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalRefundsResponse",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalRefundsResponse",
+                "version": "1.3.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchTerminalRefundsRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_squareup_1.3.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "squareup",
+                "packageName": "squareup",
+                "symbol": "SearchTerminalRefundsRequest",
+                "version": "1.3.1"
               },
               "enabled": true
             }
@@ -151,6 +361,170 @@
                 "packageName": "geonames",
                 "symbol": "SearchResponse",
                 "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "optimizely",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResult",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_optimizely_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "optimizely",
+                "packageName": "optimizely",
+                "symbol": "SearchResult",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "prodpad",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchProduct",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchProduct",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchFeedback",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchFeedback",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchfeedbackCustomer",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchfeedbackCustomer",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchPersona",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchPersona",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            },
+            {
+              "metadata": {
+                "label": "SearchResults",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_prodpad_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "prodpad",
+                "packageName": "prodpad",
+                "symbol": "SearchResults",
+                "version": "1.5.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "github",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResultTextMatches",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_github_5.1.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "github",
+                "packageName": "github",
+                "symbol": "SearchResultTextMatches",
+                "version": "5.1.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "stripe",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "SearchResult",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_stripe_2.0.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "stripe",
+                "packageName": "stripe",
+                "symbol": "SearchResult",
+                "version": "2.0.0"
               },
               "enabled": true
             }
@@ -271,326 +645,6 @@
                 "module": "pipedrive",
                 "packageName": "pipedrive",
                 "symbol": "Searchpersonsresponse200DataItemOwner",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchpersonsresponse200DataItemOrganization",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchpersonsresponse200DataItemOrganization",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItems",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItems",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItem",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItem",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItemOwner",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItemOwner",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItemStage",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItemStage",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItemPerson",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItemPerson",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200DataItemOrganization",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200DataItemOrganization",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchproductsresponse200DataItems",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchproductsresponse200DataItems",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchproductsresponse200DataItem",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchproductsresponse200DataItem",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchproductsresponse200DataItemOwner",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchproductsresponse200DataItemOwner",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchProductsResponse200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "SearchProductsResponse200",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchproductsresponse200Data",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchproductsresponse200Data",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchPersonsResponse200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "SearchPersonsResponse200",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchOrganizationResponse200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "SearchOrganizationResponse200",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchorganizationresponse200Data",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchorganizationresponse200Data",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchorganizationresponse200DataItems",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchorganizationresponse200DataItems",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchorganizationresponse200DataItem",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchorganizationresponse200DataItem",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchdealsresponse200Data",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchdealsresponse200Data",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "SearchDealsResponse200",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "SearchDealsResponse200",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            },
-            {
-              "metadata": {
-                "label": "Searchitembyfieldresponse200Data",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_pipedrive_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "pipedrive",
-                "packageName": "pipedrive",
-                "symbol": "Searchitembyfieldresponse200Data",
                 "version": "1.5.1"
               },
               "enabled": true

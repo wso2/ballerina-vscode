@@ -10,7 +10,7 @@
       "metadata": {
         "label": "HTTP",
         "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.4.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "http",
         "object": "Client",
         "symbol": "init",
-        "version": "2.15.4",
+        "version": "2.15.0",
         "isGenerated": false
       },
       "enabled": true
@@ -52,7 +52,7 @@
       "metadata": {
         "label": "Discord",
         "description": "Preview of the Discord v10 HTTP API specification. See https://discord.com/developers/docs for more details.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_2.0.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_discord_1.0.0.png",
         "data": {
           "isAgentSupport": true
         }
@@ -64,7 +64,7 @@
         "packageName": "discord",
         "object": "Client",
         "symbol": "init",
-        "version": "2.0.0",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -197,30 +197,9 @@
     },
     {
       "metadata": {
-        "label": "Mistral",
-        "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mistral",
-        "packageName": "mistral",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Asana",
         "description": "This is the interface for interacting with the [Asana Platform](https://developers.asana.com). Our API reference is generated from our [OpenAPI spec] (https://raw.githubusercontent.com/Asana/openapi/master/defs/asana_oas.yaml).",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_3.0.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png",
         "data": {
           "isAgentSupport": true
         }
@@ -232,7 +211,28 @@
         "packageName": "asana",
         "object": "Client",
         "symbol": "init",
-        "version": "3.0.0",
+        "version": "2.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Mistral",
+        "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mistral",
+        "packageName": "mistral",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -304,7 +304,7 @@
       "metadata": {
         "label": "Websubhub Hub",
         "description": "HTTP Based client for WebSub content publishing to subscribers",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websubhub_1.15.2.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_websubhub_1.15.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -316,7 +316,7 @@
         "packageName": "websubhub",
         "object": "HubClient",
         "symbol": "init",
-        "version": "1.15.2",
+        "version": "1.15.1",
         "isGenerated": false
       },
       "enabled": true
