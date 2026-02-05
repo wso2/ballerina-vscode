@@ -19,15 +19,15 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { EvalCase, EvalSet, EvalFunctionCall, EvalsetTrace } from "@wso2/ballerina-core";
-import { MessageContainer, MessageBubble, ProfilePic, preprocessLatex } from "./AgentChatPanel/Components/ChatInterface";
-import { ToolCallsTimeline } from "./AgentChatPanel/Components/ToolCallsTimeline";
+import { MessageContainer, MessageBubble, ProfilePic, preprocessLatex } from "../AgentChatPanel/Components/ChatInterface";
+import { ToolCallsTimeline } from "../AgentChatPanel/Components/ToolCallsTimeline";
 import { Icon } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import { TopNavigationBar } from "../components/TopNavigationBar";
+import { TopNavigationBar } from "../../components/TopNavigationBar";
 
 const Container = styled.div`
     height: 100%;
