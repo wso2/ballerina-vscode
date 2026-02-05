@@ -117,7 +117,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
             );
             item.tooltip = `Case ID: ${element.caseId} (${element.traceCount} traces)`;
 
-            item.iconPath = new vscode.ThemeIcon('beaker');
+            item.iconPath = new vscode.ThemeIcon('file-text');
             item.contextValue = 'evalsetCase';
             item.resourceUri = element.parentUri;
 

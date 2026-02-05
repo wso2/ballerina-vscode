@@ -203,10 +203,70 @@ export interface ReviewModeData {
     onReject?: string;
 }
 
+// --- Evalset Trace Types ---
+export type EvalRole = 'system' | 'user' | 'assistant' | 'function';
+
+export interface EvalChatUserMessage {
+    role: 'user';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatSystemMessage {
+    role: 'system';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatAssistantMessage {
+    role: 'assistant';
+    content?: string | null;
+    name?: string;
+    toolCalls?: EvalFunctionCall[];
+}
+
+export interface EvalChatFunctionMessage {
+    role: 'function';
+    content?: string | null;
+    name: string;
+    id?: string;
+}
+
+export type EvalChatMessage = EvalChatUserMessage | EvalChatSystemMessage | EvalChatAssistantMessage | EvalChatFunctionMessage;
+
+export interface EvalFunctionCall {
+    name: string;
+    arguments?: { [key: string]: any };
+    id?: string;
+}
+
+export interface EvalToolSchema {
+    name: string;
+    description: string;
+    parametersSchema?: { [key: string]: any };
+}
+
+export interface EvalIteration {
+    history: EvalChatMessage[];
+    output: EvalChatAssistantMessage | EvalChatFunctionMessage | any;
+    startTime: string;
+    endTime: string;
+}
+
+export interface EvalsetTrace {
+    id: string;
+    userMessage: EvalChatUserMessage;
+    iterations: EvalIteration[];
+    output: EvalChatAssistantMessage | any;
+    tools: EvalToolSchema[];
+    startTime: string;
+    endTime: string;
+}
+
 export interface EvalCase {
     id: string;
     name: string;
-    traces: any[];
+    traces: EvalsetTrace[];
     created_on: string;
 }
 

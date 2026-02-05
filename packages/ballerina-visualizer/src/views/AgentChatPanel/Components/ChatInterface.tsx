@@ -77,14 +77,14 @@ const WatermarkSubTitle = styled.div`
 `;
 
 // ---------- CHAT AREA ----------
-const ChatWrapper = styled.div`
+export const ChatWrapper = styled.div`
     display: flex;
     flex-direction: column;
     height: 100vh;
     width: 100%;
 `;
 
-const ChatContainer = styled.div`
+export const ChatContainer = styled.div`
     position: relative;
     display: flex;
     flex-direction: column;
@@ -93,26 +93,38 @@ const ChatContainer = styled.div`
     margin: 20px 0 32px 0;
 `;
 
-const Messages = styled.div`
+export const Messages = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 8px 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
     position: relative;
     z-index: 1;
     padding: 8px 20px;
+    height: 100%;
+
+    @media (min-width: 1000px) {
+        padding: 8px 10%;
+    }
+
+    @media (min-width: 1600px) {
+        padding: 8px 15%;
+    }
+
+    @media (min-width: 2000px) {
+        padding: 8px 20%;
+    }
 `;
 
-const MessageContainer = styled.div<{ isUser: boolean }>`
+export const MessageContainer = styled.div<{ isUser: boolean }>`
     display: flex;
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
 `;
 
-const ProfilePic = styled.div`
+export const ProfilePic = styled.div`
     padding: 4px;
     border: 1px solid var(--vscode-panel-border);
     width: 18px;
@@ -121,10 +133,10 @@ const ProfilePic = styled.div`
     object-fit: cover;
 `;
 
-const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
+export const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
     position: relative;
     padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "0 14px")};
-    max-width: 55%;
+    max-width: min(600px, 70%);
     align-self: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     overflow-wrap: break-word;
     word-break: break-word;
@@ -301,7 +313,7 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
 };
 
 // Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
-function preprocessLatex(text: string): string {
+export function preprocessLatex(text: string): string {
     if (!text || typeof text !== 'string') return text;
 
     // Convert display math \[...\] to $$...$$

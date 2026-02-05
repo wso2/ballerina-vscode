@@ -419,7 +419,15 @@ export class TraceDetailsWebview {
 
                 const jsonContent = JSON.stringify(evalSet, null, 2);
                 await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
-                vscode.window.showInformationMessage(`Trace exported as evalset to ${fileUri.fsPath}`);
+
+                const action = await vscode.window.showInformationMessage(
+                    `Trace exported as evalset to ${fileUri.fsPath}`,
+                    'View'
+                );
+
+                if (action === 'View') {
+                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalCase.id);
+                }
             }
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to export trace as evalset: ${error}`);
@@ -475,7 +483,15 @@ export class TraceDetailsWebview {
 
                 const jsonContent = JSON.stringify(evalSet, null, 2);
                 await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
-                vscode.window.showInformationMessage(`Session exported as evalset to ${fileUri.fsPath}`);
+
+                const action = await vscode.window.showInformationMessage(
+                    `Session exported as evalset to ${fileUri.fsPath}`,
+                    'View'
+                );
+
+                if (action === 'View') {
+                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalCase.id);
+                }
             }
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to export session as evalset: ${error}`);
