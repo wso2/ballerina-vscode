@@ -1101,17 +1101,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     async deployProject(params: DeploymentRequest): Promise<DeploymentResponse> {
         const scopes = params.integrationTypes;
 
-        let integrationType: SCOPE;
-
-        if (scopes.length === 1) {
-            integrationType = scopes[0];
-        } else {
-            // Show a quick pick to select deployment option
-            const selectedScope = await window.showQuickPick(scopes, {
-                placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
-            });
-            integrationType = selectedScope as SCOPE;
-        }
+        const integrationType = await this.selectIntegrationType(scopes);
 
         if (!integrationType) {
             return { isCompleted: true };
@@ -1133,23 +1123,62 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         const projectScopes = params.projectScopes;
         const deployementParams: ICreateComponentCmdParams[] = [];
 
-        for (const projectScope of projectScopes) {
-            const { projectPath, integrationTypes } = projectScope;
+        // If there is only one project in the workspace and it has multiple integration types,
+        // ask the user to pick the type similar to the single project deploy flow.
+        if (projectScopes.length === 1) {
+            const { projectPath, integrationTypes } = projectScopes[0];
+
+            const integrationType = await this.selectIntegrationType(integrationTypes);
+
+            if (!integrationType) {
+                return { isCompleted: true };
+            }
 
             const deployementParam: ICreateComponentCmdParams = {
-                // Use the first type as default, user can change in the UI
-                integrationType: integrationTypes[0] as any,
+                integrationType: integrationType as any,
                 buildPackLang: "ballerina",
                 name: path.basename(projectPath),
                 componentDir: projectPath,
                 extName: "Devant",
-                // Pass all available types so user can select in the component form
                 supportedIntegrationTypes: integrationTypes as any[]
             };
             deployementParams.push(deployementParam);
+        } else {
+            for (const projectScope of projectScopes) {
+                const { projectPath, integrationTypes } = projectScope;
+
+                const deployementParam: ICreateComponentCmdParams = {
+                    // Use the first type as default, user can change in the UI
+                    integrationType: integrationTypes[0] as any,
+                    buildPackLang: "ballerina",
+                    name: path.basename(projectPath),
+                    componentDir: projectPath,
+                    extName: "Devant",
+                    // Pass all available types so user can select in the component form
+                    supportedIntegrationTypes: integrationTypes as any[]
+                };
+                deployementParams.push(deployementParam);
+            }
         }
+
         commands.executeCommand(PlatformExtCommandIds.CreateMultipleNewComponents, deployementParams, params.rootDirectory);
         return { isCompleted: true };
+    }
+
+    private async selectIntegrationType(integrationTypes: SCOPE[]): Promise<SCOPE | undefined> {
+        if (!integrationTypes || integrationTypes.length === 0) {
+            return undefined;
+        }
+
+        if (integrationTypes.length === 1) {
+            return integrationTypes[0];
+        }
+
+        const selectedScope = await window.showQuickPick(integrationTypes, {
+            placeHolder: 'You have different types of artifacts within this integration. Select the artifact type to be deployed'
+        });
+
+        return selectedScope as SCOPE;
     }
 
     openAIChat(params: AIChatRequest): void {
