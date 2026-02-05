@@ -451,21 +451,25 @@ function DeploymentOptions({
         
         if (hasUndeployedIntegrations) {
             // There are undeployed projects that CAN be deployed
-            description = `You have undeployed integrations: ${deployableNames || deployableUndeployed.length + " integration(s)"}.`;
+            const baseMessage = deployableUndeployed.length === 1 ? "You have an undeployed integration" : "You have undeployed integrations";
+            description = `${baseMessage}: ${deployableNames || deployableUndeployed.length + " integration(s)"}`;
             buttonText = "Deploy Remaining";
         } else {
             // There are undeployed projects but they CANNOT be deployed (no entry point found)
-            description = `Some integrations (${nonDeployableNames || nonDeployableUndeployed.length + " integration(s)"}) cannot be deployed. No entry point found within these integrations.`;
+            description = `Some integration(s) (${nonDeployableNames || nonDeployableUndeployed.length + " integration(s)"}) cannot be deployed. No entry point found within these integration(s).`;
             buttonText = "Deploy Remaining";
         }
         
         primaryAction = handleDeploy;
         isDeploymentDisabled = !hasUndeployedIntegrations;
-        disabledTooltip = hasUndeployedIntegrations ? "" : "No entry point found in the remaining integrations";
+        disabledTooltip = hasUndeployedIntegrations ? "" : "No entry point found in the remaining integration(s)";
         
         if (hasDeployedWithChanges) {
+            const baseMessage = deployedWithChanges.length === 1
+                ? `A deployed integration has uncommitted changes (${deployedWithChanges[0].projectName})`
+                : `Some deployed integrations have uncommitted changes (${deployedWithChanges.map((p: any) => p.projectName).filter(Boolean).join(", ")})`;
             secondaryAction = {
-                description: "Some deployed integrations have uncommitted changes. Commit and push to redeploy.",
+                description: `${baseMessage}. Commit and push to redeploy.`,
                 buttonText: "Open Source Control",
                 onClick: () => rpcClient.getCommonRpcClient().executeCommand({ commands: ["workbench.scm.focus"] })
             };
@@ -473,7 +477,7 @@ function DeploymentOptions({
     } else {
         // No deployments yet
         isDeploymentDisabled = !hasDeployableIntegration;
-        disabledTooltip = hasDeployableIntegration ? "" : "No deployable integrations found";
+        disabledTooltip = hasDeployableIntegration ? "" : "No deployable integration(s) found";
     }
 
     return (
@@ -495,7 +499,7 @@ function DeploymentOptions({
 
                 <DeploymentOption
                     title="Deploy with Docker"
-                    description="Create a Docker image of your integrations and deploy it to any Docker-enabled system."
+                    description="Create Docker image(s) of your integration(s) and deploy them to any Docker-enabled system."
                     buttonText="Create Docker Image"
                     isExpanded={expandedOptions.has('docker')}
                     onToggle={() => toggleOption('docker')}
@@ -505,7 +509,7 @@ function DeploymentOptions({
 
                 <DeploymentOption
                     title="Deploy on a VM"
-                    description="Create a self-contained Ballerina executable and run it on any system with Java installed."
+                    description="Create self-contained Ballerina executable(s) and run them on any system with Java installed."
                     buttonText="Create Executable"
                     isExpanded={expandedOptions.has('vm')}
                     onToggle={() => toggleOption('vm')}
