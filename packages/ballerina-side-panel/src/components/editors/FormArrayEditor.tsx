@@ -23,7 +23,8 @@ import { Form, FormField, FormValues, S, useFormContext, useModeSwitcherContext 
 import { Codicon } from "@wso2/ui-toolkit/lib/components/Codicon/Codicon";
 import { ScrollableList, ScrollableListRef } from "@wso2/ui-toolkit/lib/components/ScrollableList/ScrollableList";
 import ModeSwitcher from "../ModeSwitcher";
-import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray } from "./utils";
+import { getArraySubFormFieldFromTypes, stringToRawArrayElements, buildStringArray, getPropertyFromFormField } from "./utils";
+import { cloneDeep } from "lodash";
 
 export const FormArrayEditor = (props: FormMapEditorProps & {
     onChange: (value: any) => void;
@@ -46,8 +47,10 @@ export const FormArrayEditor = (props: FormMapEditorProps & {
     }
 
     const handleFormOnChange = (_fieldKey: string, value: any, _allValues: FormValues, parentKey: string) => {
+        let relatedField;
         const newRepeatableFields = repeatableFields.map((formField) => {
             if (formField.key === parentKey) {
+                relatedField = formField;
                 return { ...formField, value };
             }
             return formField;

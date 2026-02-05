@@ -19,12 +19,12 @@
 import React, { useRef } from "react";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import styled from '@emotion/styled';
-import { EditorFactory, FormField, InputMode } from "../..";
-import { InputType } from "@wso2/ballerina-core";
+import { EditorFactory, FormField, InputMode, useFormContext, Provider as FormContextProvider } from "../..";
+import { InputType, ExpressionProperty } from "@wso2/ballerina-core";
 import { NodeKind, NodeProperties, RecordTypeField, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { getInputModeFromTypes } from "./MultiModeExpressionEditor/ChipExpressionEditor/utils";
-import { ModeSwitcherProvider } from "./ModeSwitcherContext";
+import { ModeSwitcherProvider, useModeSwitcherContext } from "./ModeSwitcherContext";
 
 const Container = styled.div`
     width: 100%;
@@ -55,6 +55,46 @@ export const FieldFactory = (props: FieldFactoryProps) => {
     const [inputMode, setInputMode] = useState<InputMode>(InputMode.EXP);
     const isModeSelectionDirty = useRef<boolean>(false)
 
+    const formContext = useFormContext();
+    const { expressionEditor } = formContext;
+
+    const updatedGetExpressionEditorDiagnostics = useCallback(
+        async (
+            showDiagnostics: boolean,
+            expression: string,
+            key: string,
+            property: ExpressionProperty
+        ): Promise<void> => {
+            property.types.forEach(type => {
+                if (getInputModeFromTypes(type) === inputMode) {
+                    type.selected = true;
+                }
+            });
+            expressionEditor?.getExpressionEditorDiagnostics?.(
+                showDiagnostics,
+                expression,
+                key,
+                property
+            )
+        },
+        [expressionEditor, inputMode]
+    );
+
+    const updatedExpressionEditor = useMemo(() => {
+        if (!expressionEditor) {
+            return undefined;
+        }
+        return {
+            ...expressionEditor,
+            getExpressionEditorDiagnostics: updatedGetExpressionEditorDiagnostics
+        };
+    }, [expressionEditor, updatedGetExpressionEditorDiagnostics]);
+
+    const updatedFormContext = useMemo(() => ({
+        ...formContext,
+        expressionEditor: updatedExpressionEditor
+    }), [formContext, updatedExpressionEditor]);
+
     useEffect(() => {
         if (!props.field.types || props.field.types.length === 0) {
             throw new Error("Field types are not defined");
@@ -80,7 +120,7 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
         if (!isModeSelectionDirty.current) {
             const selectedInputType = props.field.types.find(type => type.selected) || (
-               props.field.types[props.field.types.length - 1]
+                props.field.types[props.field.types.length - 1]
             );
             const initialInputMode = getInputModeFromTypes(selectedInputType) || InputMode.EXP;
             setInputMode(initialInputMode);
@@ -115,16 +155,18 @@ export const FieldFactory = (props: FieldFactoryProps) => {
 
 
     return (
-        <ModeSwitcherProvider
-            inputMode={inputMode}
-            onModeChange={handleModeChange}
-            types={renderingEditors}
-            isRecordTypeField={isRecordTypeField}
-            isModeSwitcherEnabled={isModeSwitcherEnabled}
-        >
-            <Container>
-                {editorElements}
-            </Container>
-        </ModeSwitcherProvider>
+        <FormContextProvider {...updatedFormContext}>
+            <ModeSwitcherProvider
+                inputMode={inputMode}
+                onModeChange={handleModeChange}
+                types={renderingEditors}
+                isRecordTypeField={isRecordTypeField}
+                isModeSwitcherEnabled={isModeSwitcherEnabled}
+            >
+                <Container>
+                    {editorElements}
+                </Container>
+            </ModeSwitcherProvider>
+        </FormContextProvider>
     );
 };
