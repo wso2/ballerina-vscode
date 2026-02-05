@@ -42,10 +42,5 @@
     "copyfiles": "2.4.1"
   },
   "resolutions": {
-    "@storybook/react/webpack": "5.56.0",
-    "@storybook/core-common/webpack": "5.56.0",
-    "@storybook/core-server/webpack": "5.56.0",
-    "@storybook/builder-webpack4/webpack": "5.56.0",
-    "@storybook/manager-webpack4/webpack": "5.56.0"
   }
 }
