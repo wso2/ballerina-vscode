@@ -85,7 +85,7 @@ import { SamplesView } from "./views/BI/SamplesView";
 import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
-import { EvalsetViewer } from "./views/EvalsetViewer";
+import { EvalsetViewer } from "./views/EvalsetViewer/EvalsetViewer";
 
 const globalStyles = css`
     *,
