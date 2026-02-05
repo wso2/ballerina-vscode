@@ -182,7 +182,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
             ];
 
             // Get libraries for library provider tool
-            const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
+            const allLibraries = await getAllLibraries();
             const libraryDescriptions = allLibraries.length > 0
                 ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
                 : "- No libraries available";
