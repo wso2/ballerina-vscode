@@ -545,18 +545,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
             : `${field.documentation}.`
         : '';
 
-    // const isModeSwitcherRestricted = () => {
-    //     return !field.types || !(field.types.length > 1);
-    // };
-
-    // const isModeSwitcherAvailable = () => {
-    //     if (recordTypeField) return true;
-    //     if (isModeSwitcherRestricted()) return false;
-    //     if (!(focused || isExpressionEditorHovered)) return false;
-    //     if (!getInputModeFromTypes(getPrimaryInputType(field.types))) return false;
-    //     return true;
-    // }
-
     return (
         <FieldProvider
             initialField={props.field}
@@ -829,13 +817,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     }}
                 />
             </S.Container>
-            {/* {showModeSwitchWarning && (
-                <WarningPopup
-                    isOpen={showModeSwitchWarning}
-                    onContinue={handleModeSwitchWarningContinue}
-                    onCancel={handleModeSwitchWarningCancel}
-                />
-            )} */}
         </FieldProvider>
     );
 };
