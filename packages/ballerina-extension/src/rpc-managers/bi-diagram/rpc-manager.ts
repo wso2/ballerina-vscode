@@ -1121,6 +1121,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
         const projectScopes = params.projectScopes;
+        if (!projectScopes?.length) {
+            window.showWarningMessage("No deployable projects found in the workspace.");
+            return { isCompleted: true };
+        }
         const deployementParams: ICreateComponentCmdParams[] = [];
 
         // If there is only one project in the workspace and it has multiple integration types,
@@ -1146,6 +1150,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         } else {
             for (const projectScope of projectScopes) {
                 const { projectPath, integrationTypes } = projectScope;
+                if (!integrationTypes?.length) {
+                    window.showWarningMessage(`No integration types found for ${path.basename(projectPath)}.`);
+                    continue;
+                }
 
                 const deployementParam: ICreateComponentCmdParams = {
                     // Use the first type as default, user can change in the UI
@@ -1161,6 +1169,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             }
         }
 
+        if (deployementParams.length === 0) {
+            return { isCompleted: true };
+        }
+            
         commands.executeCommand(PlatformExtCommandIds.CreateMultipleNewComponents, deployementParams, params.rootDirectory);
         return { isCompleted: true };
     }
