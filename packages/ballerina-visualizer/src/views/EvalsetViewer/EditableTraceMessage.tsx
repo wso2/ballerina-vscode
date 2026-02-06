@@ -68,8 +68,8 @@ const EditableContent = styled.div`
 
 const EditActions = styled.div<{ isUser: boolean }>`
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
+    gap: 4px;
+    margin-top: 16px;
     justify-content: flex-end;
 `;
 
@@ -85,7 +85,7 @@ const SaveButton = styled.button`
     color: var(--vscode-button-foreground);
     border: none;
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 4px 8px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
@@ -101,7 +101,7 @@ const CancelButton = styled.button`
     color: var(--vscode-button-secondaryForeground);
     border: none;
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 4px 8px;
     cursor: pointer;
     font-size: 13px;
     white-space: nowrap;

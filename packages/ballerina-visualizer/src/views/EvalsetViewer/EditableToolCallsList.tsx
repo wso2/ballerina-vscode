@@ -48,7 +48,7 @@ const Container = styled.div`
 `;
 
 const ToolCallItem = styled.div<{ isDragging?: boolean }>`
-    background-color: var(--vscode-editorWidget-background);
+    background-color: transparent;
     border: 1px solid var(--vscode-widget-border);
     border-radius: 6px;
     padding: 12px;
@@ -125,21 +125,28 @@ const ActionButton = styled.button`
 `;
 
 const AddButton = styled.button`
-    background-color: var(--vscode-button-secondaryBackground);
-    color: var(--vscode-button-secondaryForeground);
-    border: none;
+    background-color: var(--vscode-editorWidget-background);
+    color: var(--vscode-descriptionForeground);
+    border: 1px solid var(--vscode-panel-border);
     border-radius: 4px;
-    padding: 8px 12px;
+    padding: 4px 12px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 6px;
     align-self: flex-start;
+    transition: all 0.15s ease;
 
     &:hover {
-        background-color: var(--vscode-button-secondaryHoverBackground);
+        background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
+        color: var(--vscode-foreground);
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 `;
 
