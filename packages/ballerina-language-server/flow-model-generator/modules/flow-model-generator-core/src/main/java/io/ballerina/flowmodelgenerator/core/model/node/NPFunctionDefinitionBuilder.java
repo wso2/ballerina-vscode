@@ -86,7 +86,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
 
         // Create and set the resolved package for the function
         Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
-                NaturalFunctions.BALLERINA_ORG, NaturalFunctions.AI_PACKAGE);
+                NaturalFunctions.BALLERINA_ORG, NaturalFunctions.AI_PACKAGE, null);
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())

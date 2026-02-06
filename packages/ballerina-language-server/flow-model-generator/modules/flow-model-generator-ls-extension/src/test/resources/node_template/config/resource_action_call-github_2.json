@@ -245,7 +245,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "per_page"
         },
-        "defaultValue": "30"
+        "defaultValue": "0"
       },
       "page": {
         "metadata": {
@@ -273,7 +273,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "page"
         },
-        "defaultValue": "1"
+        "defaultValue": "0"
       },
       "type": {
         "metadata": {

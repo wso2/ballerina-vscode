@@ -89,7 +89,7 @@ public class VectorStoreBuilder extends CallBuilder {
 
         // Create and set the resolved package for the function
         Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
-                codedata.org(), codedata.packageName());
+                codedata.org(), codedata.packageName(), codedata.version());
 
         FunctionData functionData = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object()).name(codedata.symbol())

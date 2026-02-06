@@ -80,7 +80,7 @@ public abstract class CallBuilder extends NodeBuilder {
         Codedata codedata = context.codedata();
 
         Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
-                codedata.org(), codedata.packageName());
+                codedata.org(), codedata.packageName(), codedata.version());
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())

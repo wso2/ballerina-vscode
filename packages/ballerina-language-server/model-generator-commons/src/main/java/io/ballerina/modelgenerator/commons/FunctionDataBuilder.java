@@ -385,7 +385,7 @@ public class FunctionDataBuilder {
                         String clientName = getFunctionName();
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
                                 getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
-                                moduleInfo.org(), getEffectiveVersion(), "", functionKind,
+                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
                                 false, false, null);
                         functionData.setParameters(Map.of());
                         return functionData;
@@ -405,7 +405,7 @@ public class FunctionDataBuilder {
                         String clientName = getFunctionName();
                         FunctionData functionData = new FunctionData(0, clientName, getDescription(classSymbol),
                                 getTypeSignature(clientName), moduleInfo.packageName(), moduleInfo.moduleName(),
-                                moduleInfo.org(), getEffectiveVersion(), "", functionKind,
+                                moduleInfo.org(), moduleInfo.version(), "", functionKind,
                                 false, false, null);
                         functionData.setParameters(Map.of());
                         return functionData;
@@ -468,7 +468,7 @@ public class FunctionDataBuilder {
         }
 
         FunctionData functionData = new FunctionData(0, getFunctionName(), description, returnData.returnType(),
-                moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), getEffectiveVersion(),
+                moduleInfo.packageName(), moduleInfo.moduleName(), moduleInfo.org(), moduleInfo.version(),
                 resourcePath, functionKind, returnData.returnError(),
                 paramForTypeInfer != null, returnData.importStatements());
 
@@ -674,7 +674,7 @@ public class FunctionDataBuilder {
                     moduleInfo.packageName(),
                     moduleInfo.moduleName(),
                     moduleInfo.org(),
-                    getEffectiveVersion(),
+                    moduleInfo.version(),
                     methodResourcePath,
                     methodKind,
                     returnData.returnError(),
@@ -1275,16 +1275,6 @@ public class FunctionDataBuilder {
     private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
     }
 
-    /**
-     * Gets the effective version to use - preferring the resolved package version over moduleInfo version.
-     * @return the version string to use for the FunctionData
-     */
-    private String getEffectiveVersion() {
-        if (resolvedPackage != null) {
-            return resolvedPackage.descriptor().version().value().toString();
-        }
-        return moduleInfo.version();
-    }
 
     private record ReturnData(String returnType, ParamForTypeInfer paramForTypeInfer, boolean returnError,
                               String importStatements) {

@@ -349,9 +349,9 @@ public class PackageUtil {
      * @param packageName The name of the package
      * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
      */
-    public static Optional<Package> safeResolveModulePackage(String org, String packageName) {
+    public static Optional<Package> safeResolveModulePackage(String org, String packageName,String version) {
         try {
-            return getModulePackage(getSampleProject(), org, packageName);
+            return getModulePackage(getSampleProject(), org, packageName, version);
         } catch (Exception e) {
             // If package resolution fails (e.g., package doesn't exist in Central),
             // treat it as a generated/test package and continue with empty resolved package
