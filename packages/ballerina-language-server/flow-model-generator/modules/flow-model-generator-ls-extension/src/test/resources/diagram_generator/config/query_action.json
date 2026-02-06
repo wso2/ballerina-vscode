@@ -342,7 +342,7 @@
         "metadata": {
           "label": "Kafka Producer",
           "description": "Represents a Kafka producer endpoint.\n",
-          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.2.png"
+          "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_kafka_4.6.3.png"
         },
         "codedata": {
           "node": "NEW_CONNECTION",
@@ -1427,7 +1427,7 @@
                 "typeMembers": [
                   {
                     "type": "SecureSocket",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
@@ -1464,7 +1464,7 @@
                 "typeMembers": [
                   {
                     "type": "AuthenticationConfiguration",
-                    "packageInfo": "ballerinax:kafka:4.6.2",
+                    "packageInfo": "ballerinax:kafka:4.6.3",
                     "packageName": "kafka",
                     "kind": "RECORD_TYPE",
                     "selected": false
