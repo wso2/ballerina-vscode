@@ -358,9 +358,28 @@ export function updateNodeProperties(
         if (values.hasOwnProperty(key) && updatedNodeProperties.hasOwnProperty(key)) {
             const expression = updatedNodeProperties[key as NodePropertyKey];
             if (expression) {
-                expression.value = values[key];
-                expression.imports = formImports[key];
+                expression.imports = formImports?.[key];
                 expression.modified = dirtyFields?.hasOwnProperty(key);
+
+                const dataValue = values[key];
+                const primaryType = getPrimaryInputType(expression.types);
+                if (primaryType?.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(primaryType)) {
+                    const template = primaryType?.template;
+                    expression.value = {};
+                    // Go through the parameters array
+                    for (const [repeatKey, repeatValue] of Object.entries(dataValue)) {
+                        // Create a deep copy for each iteration
+                        const valueConstraint = JSON.parse(JSON.stringify(template));
+                        // Fill the values of the parameter constraint
+                        for (const [paramKey, param] of Object.entries((valueConstraint as any).value as NodeProperties)) {
+                            param.value = (repeatValue as any).formValues[paramKey] || "";
+                        }
+                        (expression.value as any)[(repeatValue as any).key] = valueConstraint;
+                    }
+                } else {
+                    expression.value = dataValue;
+                }
+
             }
         }
     }
