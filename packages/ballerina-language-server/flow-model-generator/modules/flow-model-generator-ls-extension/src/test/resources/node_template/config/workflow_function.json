@@ -2,7 +2,7 @@
   "source": "empty.bal",
   "description": "Workflow process function template",
   "codedata": {
-    "node": "WORKFLOW_FUNCTION"
+    "node": "WORKFLOW"
   },
   "output": {
     "id": "31",
@@ -11,7 +11,7 @@
       "description": "Define a workflow process function"
     },
     "codedata": {
-      "node": "WORKFLOW_FUNCTION",
+      "node": "WORKFLOW",
       "isNew": true
     },
     "returning": false,

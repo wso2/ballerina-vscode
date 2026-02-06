@@ -174,11 +174,7 @@
             "description": "Create and start a new workflow instance"
           },
           "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "workflow",
-            "packageName": "workflow",
-            "symbol": "createInstance"
+            "node": "WORKFLOW"
           },
           "enabled": true
         },
@@ -188,11 +184,7 @@
             "description": "Send an event to an existing workflow instance"
           },
           "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "workflow",
-            "packageName": "workflow",
-            "symbol": "sendEvent"
+            "node": "EVENT"
           },
           "enabled": true
         },
@@ -202,12 +194,7 @@
             "description": "Call a workflow activity function"
           },
           "codedata": {
-            "node": "REMOTE_ACTION_CALL",
-            "org": "ballerina",
-            "module": "workflow",
-            "packageName": "workflow",
-            "object": "Context",
-            "symbol": "callActivity"
+            "node": "ACTIVITY"
           },
           "enabled": true
         },
@@ -217,7 +204,7 @@
             "description": "Wait for a workflow event to be received"
           },
           "codedata": {
-            "node": "WAIT"
+            "node": "WAIT_EVENT"
           },
           "enabled": true
         }

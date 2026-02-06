@@ -1,0 +1,150 @@
+{
+  "source": "workflow_function/functions.bal",
+  "description": "Create a workflow process function with context and input parameters",
+  "diagram": {
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "isNew": true,
+      "node": "WORKFLOW"
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "processWithActivity",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "TEXT",
+        "value": "Workflow that calls activities",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Workflow process function parameters"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "contextParam": {
+            "metadata": {
+              "label": "Context Parameter",
+              "description": "Optional workflow context parameter"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "workflow:Context",
+            "value": "workflow:Context ctx",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "inputParam": {
+            "metadata": {
+              "label": "Input Parameter",
+              "description": "Mandatory input parameter for workflow data"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "anydata",
+            "value": "record {| string id; string name; |} data",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "eventsParam": {
+            "metadata": {
+              "label": "Events Parameter",
+              "description": "Optional events parameter for receiving signals"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "record {|future...|}",
+            "value": "",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "string|error",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Return Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "TEXT",
+        "value": "Result of the workflow",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_function/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/workflow;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 1
+          },
+          "end": {
+            "line": 4,
+            "character": 1
+          }
+        },
+        "newText": "\n# Workflow that calls activities\n# \n# + return - Result of the workflow\n@workflow:Process\nfunction processWithActivity(workflow:Context ctx, record {| string id; string name; |} data) returns string|error {\n}\n"
+      }
+    ]
+  }
+}
+

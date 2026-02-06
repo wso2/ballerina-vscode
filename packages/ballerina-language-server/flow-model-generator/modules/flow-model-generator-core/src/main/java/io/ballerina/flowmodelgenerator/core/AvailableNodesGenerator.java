@@ -73,8 +73,6 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_TYPE_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_PACKAGE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
@@ -361,11 +359,7 @@ public class AvailableNodesGenerator {
                         .description(Workflow.CREATE_INSTANCE_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.FUNCTION_CALL)
-                        .org(Workflow.BALLERINA_ORG)
-                        .module(Workflow.WORKFLOW_PACKAGE)
-                        .packageName(Workflow.WORKFLOW_PACKAGE)
-                        .symbol(Workflow.CREATE_INSTANCE_METHOD_NAME)
+                        .node(NodeKind.WORKFLOW)
                         .build(),
                 true
         );
@@ -376,11 +370,7 @@ public class AvailableNodesGenerator {
                         .description(Workflow.SEND_EVENT_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.FUNCTION_CALL)
-                        .org(Workflow.BALLERINA_ORG)
-                        .module(Workflow.WORKFLOW_PACKAGE)
-                        .packageName(Workflow.WORKFLOW_PACKAGE)
-                        .symbol(Workflow.SEND_EVENT_METHOD_NAME)
+                        .node(NodeKind.EVENT)
                         .build(),
                 true
         );
@@ -396,12 +386,7 @@ public class AvailableNodesGenerator {
                             .description(Workflow.CALL_ACTIVITY_DESCRIPTION)
                             .build(),
                     new Codedata.Builder<>(null)
-                            .node(NodeKind.REMOTE_ACTION_CALL)
-                            .org(Workflow.BALLERINA_ORG)
-                            .module(Workflow.WORKFLOW_PACKAGE)
-                            .packageName(Workflow.WORKFLOW_PACKAGE)
-                            .object(Workflow.CONTEXT_TYPE_NAME)
-                            .symbol(Workflow.CALL_ACTIVITY_METHOD_NAME)
+                            .node(NodeKind.ACTIVITY)
                             .build(),
                     true
             );
@@ -412,7 +397,7 @@ public class AvailableNodesGenerator {
                             .description(Workflow.WAIT_EVENT_DESCRIPTION)
                             .build(),
                     new Codedata.Builder<>(null)
-                            .node(NodeKind.WAIT)
+                            .node(NodeKind.WAIT_EVENT)
                             .build(),
                     true
             );

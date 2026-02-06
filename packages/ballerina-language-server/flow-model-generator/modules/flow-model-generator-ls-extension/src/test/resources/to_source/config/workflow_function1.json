@@ -1,0 +1,150 @@
+{
+  "source": "workflow_function/functions.bal",
+  "description": "Create a new workflow process function with all three parameters",
+  "diagram": {
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "isNew": true,
+      "node": "WORKFLOW"
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "valueType": "IDENTIFIER",
+        "valueTypeConstraint": "Global",
+        "value": "orderWorkflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "valueType": "TEXT",
+        "value": "Process an order workflow",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Workflow process function parameters"
+        },
+        "valueType": "FIXED_PROPERTY",
+        "value": {
+          "contextParam": {
+            "metadata": {
+              "label": "Context Parameter",
+              "description": "Optional workflow context parameter"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "workflow:Context",
+            "value": "workflow:Context ctx",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "inputParam": {
+            "metadata": {
+              "label": "Input Parameter",
+              "description": "Mandatory input parameter for workflow data"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "anydata",
+            "value": "OrderInput input",
+            "optional": false,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          },
+          "eventsParam": {
+            "metadata": {
+              "label": "Events Parameter",
+              "description": "Optional events parameter for receiving signals"
+            },
+            "valueType": "EXPRESSION",
+            "valueTypeConstraint": "record {|future...|}",
+            "value": "OrderEvents events",
+            "optional": true,
+            "editable": true,
+            "advanced": false,
+            "hidden": false
+          }
+        },
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "valueType": "TYPE",
+        "value": "error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Return Description",
+          "description": "Description of the return value"
+        },
+        "valueType": "TEXT",
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  },
+  "output": {
+    "workflow_function/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/workflow;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 1
+          },
+          "end": {
+            "line": 4,
+            "character": 1
+          }
+        },
+        "newText": "\n# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderEvents events) returns error? {\n}\n"
+      }
+    ]
+  }
+}
+

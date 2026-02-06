@@ -38,7 +38,7 @@ import java.util.Optional;
  *
  * @since 2.0.0
  */
-public class WorkflowFunctionBuilder extends FunctionDefinitionBuilder {
+public class WorkflowBuilder extends FunctionDefinitionBuilder {
 
     public static final String LABEL = "Workflow Process Function";
     public static final String DESCRIPTION = "Define a workflow process function";
@@ -70,7 +70,7 @@ public class WorkflowFunctionBuilder extends FunctionDefinitionBuilder {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.WORKFLOW_FUNCTION);
+        codedata().node(NodeKind.WORKFLOW);
     }
 
     @Override

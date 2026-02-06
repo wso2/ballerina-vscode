@@ -258,11 +258,7 @@
             "description": "Create and start a new workflow instance"
           },
           "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "workflow",
-            "packageName": "workflow",
-            "symbol": "createInstance"
+            "node": "WORKFLOW"
           },
           "enabled": true
         },
@@ -272,11 +268,7 @@
             "description": "Send an event to an existing workflow instance"
           },
           "codedata": {
-            "node": "FUNCTION_CALL",
-            "org": "ballerina",
-            "module": "workflow",
-            "packageName": "workflow",
-            "symbol": "sendEvent"
+            "node": "EVENT"
           },
           "enabled": true
         }
