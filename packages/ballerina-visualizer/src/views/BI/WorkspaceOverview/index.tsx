@@ -406,9 +406,9 @@ function DeploymentOptions({
     };
 
     // Calculate deployment states
-    const deployedProjects = devantMetadata?.projectsMetadata?.filter((p: any) => p.hasComponent) || [];
-    const undeployedProjects = devantMetadata?.projectsMetadata?.filter((p: any) => !p.hasComponent) || [];
-    const deployedWithChanges = deployedProjects.filter((p: any) => p.hasLocalChanges);
+    const deployedProjects = devantMetadata?.projectsMetadata?.filter(p => p.hasComponent) || [];
+    const undeployedProjects = devantMetadata?.projectsMetadata?.filter(p => !p.hasComponent) || [];
+    const deployedWithChanges = deployedProjects.filter(p => p.hasLocalChanges);
     
     const hasDeployedProjects = deployedProjects.length > 0;
     const hasUndeployedProjects = undeployedProjects.length > 0;
@@ -443,11 +443,11 @@ function DeploymentOptions({
         title = "Partially Deployed in Devant";
         
         // Separate deployable and non-deployable undeployed projects
-        const deployableUndeployed = undeployedProjects.filter((p: any) => deployableProjectPaths.has(p.projectPath));
-        const nonDeployableUndeployed = undeployedProjects.filter((p: any) => !deployableProjectPaths.has(p.projectPath));
+        const deployableUndeployed = undeployedProjects.filter(p => deployableProjectPaths.has(p.projectPath));
+        const nonDeployableUndeployed = undeployedProjects.filter(p => !deployableProjectPaths.has(p.projectPath));
         
-        const deployableNames = deployableUndeployed.map((p: any) => p.projectName).filter(Boolean).join(", ");
-        const nonDeployableNames = nonDeployableUndeployed.map((p: any) => p.projectName).filter(Boolean).join(", ");
+        const deployableNames = deployableUndeployed.map(p => p.projectName).filter(Boolean).join(", ");
+        const nonDeployableNames = nonDeployableUndeployed.map(p => p.projectName).filter(Boolean).join(", ");
         
         if (hasUndeployedIntegrations) {
             // There are undeployed projects that CAN be deployed
@@ -467,7 +467,7 @@ function DeploymentOptions({
         if (hasDeployedWithChanges) {
             const baseMessage = deployedWithChanges.length === 1
                 ? `A deployed integration has uncommitted changes (${deployedWithChanges[0].projectName})`
-                : `Some deployed integrations have uncommitted changes (${deployedWithChanges.map((p: any) => p.projectName).filter(Boolean).join(", ")})`;
+                : `Some deployed integrations have uncommitted changes (${deployedWithChanges.map(p => p.projectName).filter(Boolean).join(", ")})`;
             secondaryAction = {
                 description: `${baseMessage}. Commit and push to redeploy.`,
                 buttonText: "Open Source Control",
@@ -628,12 +628,16 @@ export function WorkspaceOverview() {
 
         const deployedPaths = new Set(
             devantMetadata.projectsMetadata
-                .filter((p: any) => p.hasComponent)
-                .map((p: any) => p.projectPath)
+                .filter(p => p.hasComponent)
+                .map(p => p.projectPath)
         );
 
         return projectScopes.filter(scope => !deployedPaths.has(scope.projectPath));
     }, [projectScopes, devantMetadata, workspaceStructure]);
+
+    const deployableProjectPaths = useMemo(() => {
+        return new Set(projectScopes.map(scope => scope.projectPath));
+    }, [projectScopes]);
 
     if (!workspaceStructure) {
         return (
@@ -719,7 +723,7 @@ export function WorkspaceOverview() {
         // For workspace, open the Devant console at the project level
         // If there are deployed projects, open the first one
         if (devantMetadata?.projectsMetadata && devantMetadata.projectsMetadata.length > 0) {
-            const firstDeployedProject = devantMetadata.projectsMetadata.find((p: any) => p.hasComponent);
+            const firstDeployedProject = devantMetadata.projectsMetadata.find(p => p.hasComponent);
             if (firstDeployedProject) {
                 rpcClient.getCommonRpcClient().executeCommand({
                     commands: [
@@ -861,7 +865,7 @@ export function WorkspaceOverview() {
                             devantMetadata={devantMetadata}
                             hasDeployableIntegration={projectScopes.length > 0}
                             hasUndeployedIntegrations={undeployedProjectScopes.length > 0}
-                            deployableProjectPaths={new Set(projectScopes.map(scope => scope.projectPath))}
+                            deployableProjectPaths={deployableProjectPaths}
                         />
                         <Divider sx={{ margin: "16px 0" }} />
                         <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
