@@ -14,7 +14,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import { MinifiedLibrary } from "@wso2/ballerina-core";
+import { LibraryMode, MinifiedLibrary } from "@wso2/ballerina-core";
 import { langClient } from "../../activator";
 import { getGenerationMode } from "../ai-utils";
 
@@ -31,6 +31,7 @@ export const LIBRARY_PROVIDER_TOOL = "LibraryProviderTool";
 export enum GenerationType {
     CODE_GENERATION = "CODE_GENERATION",
     HEALTHCARE_GENERATION = "HEALTHCARE_GENERATION",
+    ALL = "ALL"
 }
 
 export async function getAllLibraries(): Promise<MinifiedLibrary[]> {
