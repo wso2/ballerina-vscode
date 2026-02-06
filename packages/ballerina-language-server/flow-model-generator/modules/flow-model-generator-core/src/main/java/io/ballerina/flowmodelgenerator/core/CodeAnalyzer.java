@@ -1056,13 +1056,13 @@ public class CodeAnalyzer extends NodeVisitor {
                     String escapedParamName = nameOptional.get();
                     ParameterData paramResult = funcParamMap.get(escapedParamName);
                     if (paramResult == null) {
-                        escapedParamName = CommonUtil.escapeReservedKeyword(nameOptional.get());
+                        escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     }
                     paramResult = funcParamMap.get(escapedParamName);
                     Node paramValue = i < argCount ? positionalArgs.poll()
                             : namedArgValueMap.get(paramResult.name());
 
-                    funcParamMap.remove(nameOptional.get());
+                    funcParamMap.remove(escapedParamName);
                     Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
