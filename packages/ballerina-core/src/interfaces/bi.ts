@@ -493,6 +493,7 @@ export type NodeKind =
     | "FUNCTION"
     | "FUNCTION_CALL"
     | "FUNCTION_DEFINITION"
+    | "FUNCTION_CREATION"
     | "IF"
     | "INCLUDED_FIELD"
     | "LOCK"
