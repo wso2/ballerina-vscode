@@ -35,7 +35,7 @@ const Overlay = styled.div`
 
 const ModalContainer = styled(motion.div)`
     background-color: var(--vscode-editorWidget-background);
-    border-radius: 3px;
+    border-radius: 6px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     width: 100%;
     max-width: 600px;

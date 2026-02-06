@@ -18,7 +18,6 @@
 
 import React from "react";
 import styled from "@emotion/styled";
-import { Icon } from "@wso2/ui-toolkit";
 
 const Overlay = styled.div`
     position: fixed;

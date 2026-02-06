@@ -25,7 +25,6 @@ import { Icon } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EditableTraceMessage } from "./EditableTraceMessage";
-import { EditFooter } from "./EditFooter";
 import { EditableToolCallsList } from "./EditableToolCallsList";
 import { ToolEditorModal } from "./ToolEditorModal";
 import { ConfirmationModal } from "./ConfirmationModal";
@@ -63,9 +62,11 @@ const Container = styled.div`
 
 const Header = styled.div`
     top: 0;
-    padding: 12px 20px;
+    padding: 16px 24px;
     position: sticky;
     background-color: var(--vscode-editorWidget-background);
+    border-top: 1px solid var(--vscode-panel-border);
+    border-bottom: 1px solid var(--vscode-panel-border);
     z-index: 2;
     display: flex;
     align-items: flex-start;
@@ -76,48 +77,125 @@ const HeaderLeft = styled.div`
     flex: 1;
 `;
 
+const HeaderRight = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+`;
+
+const UnsavedIndicator = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--vscode-descriptionForeground);
+    margin-right: 8px;
+`;
+
+const Dot = styled.span`
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--vscode-notificationsWarningIcon-foreground);
+`;
+
 const EditButton = styled.button`
     background-color: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     border: none;
     border-radius: 4px;
-    padding: 6px 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+
+    &:hover {
+        background-color: var(--vscode-button-hoverBackground);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+`;
+
+const DiscardButton = styled.button`
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-top: 4px;
+
+    &:hover {
+        background-color: var(--vscode-button-secondaryHoverBackground);
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+`;
+
+const SaveButton = styled.button`
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 
     &:hover {
         background-color: var(--vscode-button-hoverBackground);
     }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 `;
 
 const Title = styled.h2`
-    font-size: 1.2em;
+    font-size: 1.3em;
     font-weight: 600;
-    margin: 0 0 4px 0;
+    margin: 0 0 6px 0;
     color: var(--vscode-foreground);
+    letter-spacing: -0.01em;
 `;
 
 const Subtitle = styled.p`
     font-size: 14px;
+    font-weight: 500;
     color: var(--vscode-descriptionForeground);
     margin: 0;
 `;
 
-export const Messages = styled.div<{ hasEditFooter?: boolean }>`
+export const Messages = styled.div`
     display: flex;
     flex-direction: column;
     flex: 1;
     overflow-y: auto;
-    gap: 8px;
+    gap: 16px;
     position: relative;
     z-index: 1;
-    padding: 16px 20px;
-    padding-bottom: ${(props: { hasEditFooter: boolean; }) => props.hasEditFooter ? '80px' : '48px'};
+    padding: 24px 20px 48px;
 
     @media (min-width: 1000px) {
         padding-left: 15%;
@@ -137,33 +215,42 @@ export const Messages = styled.div<{ hasEditFooter?: boolean }>`
 
 const AddTurnButton = styled.button`
     background-color: transparent;
-    color: var(--vscode-textLink-foreground);
-    border: 1px dashed var(--vscode-textLink-foreground);
-    border-radius: 4px;
-    padding: 12px 16px;
+    color: var(--vscode-button-background);
+    border: 2px dashed var(--vscode-button-background);
+    border-radius: 6px;
+    padding: 14px 20px;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    margin: 16px 0;
+    margin: 16px auto;
     transition: all 0.2s ease;
+    width: 200px;
 
     &:hover {
-        background-color: var(--vscode-textLink-foreground);
-        color: var(--vscode-editor-background);
+        background-color: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        border-style: solid;
         opacity: 0.9;
+        transform: translateY(-1px);
     }
 
     &:active {
-        transform: scale(0.98);
+        transform: translateY(0) scale(0.98);
     }
 `;
 
 const TraceWrapper = styled.div`
     position: relative;
+`;
+
+const StyledMessageContainer = styled(MessageContainer)`
+    &:last-child {
+        margin-bottom: 0;
+    }
 `;
 
 interface EvalCaseViewerProps {
@@ -347,34 +434,77 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                         <Title>{evalSet.name}</Title>
                         <Subtitle>{displayCase.name}</Subtitle>
                     </HeaderLeft>
-                    {!isEditMode && (
-                        <EditButton onClick={handleEnterEditMode}>
-                            <Icon
-                                name="bi-edit"
-                                iconSx={{
-                                    fontSize: "14px",
-                                }}
-                            />
-                            Edit
-                        </EditButton>
-                    )}
+                    <HeaderRight>
+                        {isEditMode ? (
+                            <>
+                                {hasUnsavedChanges && (
+                                    <UnsavedIndicator>
+                                        <Dot />
+                                        <span>Unsaved changes</span>
+                                    </UnsavedIndicator>
+                                )}
+                                <DiscardButton
+                                    onClick={handleRequestDiscardConfirmation}
+                                    disabled={isSaving}
+                                >
+                                    <Icon
+                                        name="bi-close"
+                                        iconSx={{
+                                            fontSize: "16px",
+                                        }}
+                                    />
+                                    Discard
+                                </DiscardButton>
+                                <SaveButton onClick={handleSave} disabled={isSaving}>
+                                    {isSaving ? (
+                                        <>
+                                            <Icon
+                                                name="bi-spinner"
+                                                iconSx={{
+                                                    fontSize: "16px",
+                                                }}
+                                            />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Icon
+                                                name="bi-save"
+                                                iconSx={{
+                                                    fontSize: "16px",
+                                                }}
+                                            />
+                                            Save Case
+                                        </>
+                                    )}
+                                </SaveButton>
+                            </>
+                        ) : (
+                            <EditButton onClick={handleEnterEditMode}>
+                                <Icon
+                                    name="bi-edit"
+                                    sx={{
+                                        width: "16px",
+                                        height: "16px",
+                                        fontSize: "16px"
+                                    }}
+                                    iconSx={{
+                                        fontSize: "16px",
+                                    }}
+                                />
+                                Edit
+                            </EditButton>
+                        )}
+                    </HeaderRight>
                 </Header>
-                <Messages hasEditFooter={isEditMode}>
+                <Messages>
                     {displayCase.traces.map((trace, traceIdx) => {
                         const toolCalls = extractToolCalls(trace);
 
                         return (
                             <TraceWrapper key={traceIdx}>
-                                {isEditMode && (
-                                    <Icon
-                                        name="bi-x"
-                                        iconSx={{
-                                            fontSize: "16px",
-                                        }}
-                                    />
-                                )}
                                 {/* Render user's initial message */}
-                                <MessageContainer isUser={true}>
+                                <StyledMessageContainer isUser={true}>
                                     <EditableTraceMessage
                                         traceId={trace.id}
                                         isUser={true}
@@ -392,10 +522,10 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                                             }}
                                         />
                                     </ProfilePic>
-                                </MessageContainer>
+                                </StyledMessageContainer>
 
                                 {/* Render agent response */}
-                                <MessageContainer isUser={false}>
+                                <StyledMessageContainer isUser={false}>
                                     <ProfilePic>
                                         <Icon
                                             name="bi-ai-agent"
@@ -426,7 +556,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                                             onSave={handleSaveAgentOutput}
                                         />
                                     </div>
-                                </MessageContainer>
+                                </StyledMessageContainer>
                             </TraceWrapper>
                         );
                     })}
@@ -442,15 +572,6 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                         </AddTurnButton>
                     )}
                 </Messages>
-                {isEditMode && (
-                    <EditFooter
-                        hasUnsavedChanges={hasUnsavedChanges}
-                        isSaving={isSaving}
-                        onSave={handleSave}
-                        onDiscard={handleDiscard}
-                        onRequestDiscardConfirmation={handleRequestDiscardConfirmation}
-                    />
-                )}
             </Container>
             {selectedToolCall && (() => {
                 const trace = workingEvalCase.traces.find(
