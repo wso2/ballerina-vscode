@@ -306,6 +306,11 @@ export interface GenerateAgentCodeRequest {
     codeContext?: CodeContext;
 }
 
+export type LibraryMode = "CORE" | "HEALTHCARE" | "ALL";
+
+export interface CopilotAllLibrariesRequest {
+    mode: LibraryMode;
+}
 export interface MinifiedLibrary {
     name: string;
     description: string;
@@ -322,11 +327,11 @@ export interface CopilotFilterLibrariesResponse {
     libraries: any[];
 }
 
-export interface CopilotSearchPackagesByPromptRequest {
-    userPrompt: string;
+export interface CopilotSearchLibrariesBySearchRequest {
+    keywords: string[];
 }
 
-export interface CopilotSearchPackagesByPromptResponse {
+export interface CopilotSearchLibrariesBySearchResponse {
     libraries: MinifiedLibrary[];
 }
 
