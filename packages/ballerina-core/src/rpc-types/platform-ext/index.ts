@@ -17,7 +17,7 @@
  */
 
 import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, UpdateDevantTempConfigsReq, UpdateDevantTempConfigsResp, } from "./interfaces";
+import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, SetConnectedToDevantReq, AddDevantTempConfigReq, AddDevantTempConfigResp } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
 
@@ -28,7 +28,7 @@ export interface PlatformExtAPI {
     createDevantComponentConnectionV2: (params: CreateDevantConnectionV2Req) => Promise<CreateDevantConnectionResp>
     importDevantComponentConnection: (params: ImportDevantConnectionReq) => Promise<ImportDevantConnectionResp>
     registerAndCreateDevantComponentConnection: (params: RegisterAndCreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
-    updateDevantTempConfigs: (params: UpdateDevantTempConfigsReq) => Promise<UpdateDevantTempConfigsResp>
+    addDevantTempConfig: (params: AddDevantTempConfigReq) => Promise<AddDevantTempConfigResp>
     deleteDevantTempConfigs: (params: DeleteDevantTempConfigReq) => Promise<void>
 
     // Platform ext proxies

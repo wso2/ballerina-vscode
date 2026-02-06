@@ -29,44 +29,66 @@ interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> 
     selectedMarketplaceItem: MarketplaceItem;
     selectedFlow: DevantConnectionFlow;
     devantConfigs: DevantTempConfig[];
+    resetDevantConfigs: () => void;
+    onAddDevantConfig: (name: string, value: string, isSecret: boolean) => Promise<void>;
     IDLFilePath?: string;
 }
 
 export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
-    const { selectedMarketplaceItem, selectedFlow, devantConfigs, IDLFilePath, onClose } = props;
+    const { selectedMarketplaceItem, selectedFlow, devantConfigs, onAddDevantConfig, IDLFilePath, onClose, resetDevantConfigs } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
     const { mutate: createDevantInternalConnNonOAS, isPending: isCreating } = useMutation({
-        mutationFn: ({recentIdentifier}: { recentIdentifier: string }) => {
-            if([DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR, DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS].includes(selectedFlow)){
-                return platformRpcClient.registerAndCreateDevantComponentConnection({
-                    name: getConnectionInitialName(recentIdentifier, platformExtState?.devantConns?.list?.map((conn) => conn.name) || []),
-                    configs: devantConfigs?.map(item=>({...item, id: item.name})) || [],
-                    idlFilePath: IDLFilePath || "",
-                    idlType: selectedFlow === DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS ? "OpenAPI" : "TCP",
-                    serviceType: "REST"
+        mutationFn: ({ recentIdentifier }: { recentIdentifier: string }) => {
+            if (devantConfigs?.length > 0) {
+                if (
+                    [
+                        DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
+                        DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
+                    ].includes(selectedFlow)
+                ) {
+                    return platformRpcClient.registerAndCreateDevantComponentConnection({
+                        name: getConnectionInitialName(
+                            recentIdentifier,
+                            platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                        ),
+                        configs: devantConfigs?.map((item) => ({ ...item, id: item.name })) || [],
+                        idlFilePath: IDLFilePath || "",
+                        idlType:
+                            selectedFlow === DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS
+                                ? "OpenAPI"
+                                : "TCP",
+                        serviceType: "REST",
+                    });
+                }
+                return platformRpcClient.createDevantComponentConnectionV2({
+                    flow: selectedFlow,
+                    marketplaceItem: selectedMarketplaceItem,
+                    createInternalConnectionParams: {
+                        devantTempConfigs: devantConfigs || [],
+                        name: getConnectionInitialName(
+                            selectedMarketplaceItem?.name,
+                            platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                        ),
+                        schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
+                        visibility: "PUBLIC",
+                    },
+                    importThirdPartyConnectionParams: {
+                        devantTempConfigs: devantConfigs || [],
+                        name: getConnectionInitialName(
+                            selectedMarketplaceItem?.name,
+                            platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                        ),
+                        schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
+                    },
                 });
             }
-            return platformRpcClient.createDevantComponentConnectionV2({
-                flow: selectedFlow,
-                marketplaceItem: selectedMarketplaceItem,
-                createInternalConnectionParams: {
-                    devantTempConfigs: devantConfigs || [],
-                    name: getConnectionInitialName(selectedMarketplaceItem?.name, platformExtState?.devantConns?.list?.map((conn) => conn.name) || []),
-                    schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
-                    visibility: "PUBLIC",
-                },
-                importThirdPartyConnectionParams:{
-                    devantTempConfigs: devantConfigs || [],
-                    name: getConnectionInitialName(selectedMarketplaceItem?.name, platformExtState?.devantConns?.list?.map((conn) => conn.name) || []),
-                    schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
-                }
-            });
         },
         onError: (error) => {
             console.error(">>> Error creating Devant connection", error);
         },
         onSuccess: (_, { recentIdentifier }) => {
+            resetDevantConfigs();
             onClose({ recentIdentifier, artifactType: DIRECTORY_MAP.CONNECTION });
         },
     });
@@ -74,9 +96,22 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
     return (
         <ConnectionConfigurationForm
             {...props}
-            devantConfigs={devantConfigs.map((config) => config.name)}
+            devantExpressionEditor={{
+                devantConfigs: devantConfigs.map((config) => config.name),
+                onAddDevantConfig: [
+                    // Only allow users to create devant configs via these flows
+                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
+                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
+                ].includes(selectedFlow)
+                    ? onAddDevantConfig
+                    : undefined,
+            }}
             onClose={(params) => {
-                createDevantInternalConnNonOAS({ recentIdentifier: params.recentIdentifier });
+                if (params.recentIdentifier) {
+                    createDevantInternalConnNonOAS({ recentIdentifier: params.recentIdentifier });
+                } else {
+                    onClose();
+                }
             }}
             loading={isCreating}
         />

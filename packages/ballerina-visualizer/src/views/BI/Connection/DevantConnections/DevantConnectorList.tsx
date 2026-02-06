@@ -226,8 +226,8 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                         onItemClick={(item) => handleMarketplaceItemClick(item, DevantConnectionType.INTERNAL)}
                     />
                     <ConnectionSection
-                        emptyText={"No third party connections configured"}
-                        title="Connections configured in Devant"
+                        emptyText={"No third party services configured"}
+                        title="Services configured in Devant"
                         loading={thirdPartyApisLoading}
                         data={thirdPartyApisResp?.data || []}
                         searchText={searchText}
