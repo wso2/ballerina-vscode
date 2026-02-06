@@ -95,8 +95,8 @@ export function getWorkspaceProjectScopes(
         const integrationTypes = getIntegrationTypes(project);
         if (integrationTypes.length > 0) {
             return {
-                projectPath: project.projectPath,
-                projectTitle: project.projectTitle,
+                projectPath: project.projectPath!,
+                projectTitle: project.projectTitle || project.projectName,
                 integrationTypes
             };
         }
