@@ -248,8 +248,9 @@ type SanitizedExpressionEditorProps = {
     sanitizedExpression?: (expression: string) => string; // sanitized expression that will be rendered in the editor
 }
 
-type ExpressionEditorDevantProps = {
+export type ExpressionEditorDevantProps = {
     devantConfigs?: string[];
+    onAddDevantConfig?: (name: string, value: string, isSecret: boolean) => Promise<void>;
 }
 
 export type FormExpressionEditorProps =

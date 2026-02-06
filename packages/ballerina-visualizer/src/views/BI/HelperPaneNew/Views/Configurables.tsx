@@ -20,7 +20,7 @@ import { CompletionInsertText, ConfigVariable, FlowNode, LineRange, TomlPackage 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ReactNode, useEffect, useState } from "react";
 import ExpandableList from "../Components/ExpandableList";
-import { Divider, SearchBox, Typography } from "@wso2/ui-toolkit";
+import { Button, CheckBox, Divider, SearchBox, TextField, Typography } from "@wso2/ui-toolkit";
 import { ScrollableContainer } from "../Components/ScrollableContainer";
 import FooterButtons from "../Components/FooterButtons";
 import FormGenerator from "../../Forms/FormGenerator";
@@ -46,7 +46,7 @@ type ListItem = {
     items: any[]
 }
 
-type ConfigurablesPageProps = {
+export type ConfigurablesPageProps = {
     onChange: (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean) => void;
     isInModal?: boolean;
     anchorRef: React.RefObject<HTMLDivElement>;
@@ -54,18 +54,18 @@ type ConfigurablesPageProps = {
     targetLineRange: LineRange;
     onClose?: () => void;
     inputMode?: InputMode;
-    devantConfigs?: string[];
-    devantConfigsOnly?: boolean;
-    showAddNewConfigurable?: boolean;
+    excludedConfigs?: string[];
+    onAddNewConfigurable?: (refreshConfigVariables: () => Promise<void>) => void;
+    showAddNew?: boolean;
 }
 
 
 export const Configurables = (props: ConfigurablesPageProps) => {
-    const { onChange, onClose, fileName, targetLineRange, inputMode, devantConfigs, devantConfigsOnly, showAddNewConfigurable = true } = props;
+    const { onChange, onClose, fileName, targetLineRange, excludedConfigs = [], onAddNewConfigurable, showAddNew = true } = props;
 
     const { rpcClient } = useRpcContext();
     const { breadCrumbSteps, navigateToNext, navigateToBreadcrumb, isAtRoot } = useHelperPaneNavigation("Configurables");
-    const [configVariables, setConfigVariables] = useState<ConfigVariablesState>({});
+    const [configVariables, setConfigVariables] = useState<ListItem[]>([]);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [configVarNode, setCofigVarNode] = useState<FlowNode>();
     const [isSaving, setIsSaving] = useState(false);
@@ -143,7 +143,24 @@ export const Configurables = (props: ConfigurablesPageProps) => {
             setShowContent(true);
         });
 
-        setConfigVariables(data);
+        let configVariablesArr = translateToArrayFormat(data).filter(data =>
+            Array.isArray(data.items) &&
+            data.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
+        );
+
+        configVariablesArr =  configVariablesArr.map(category => ({
+            ...category,
+            items: category.items.map(subCategory => ({
+                ...subCategory,
+                items: subCategory.items.filter((item: ConfigVariable) => {
+                    const value = item?.properties?.variable?.value as string;
+                    return !excludedConfigs.includes(value);
+                })
+            })).filter(subCategory => subCategory.items.length > 0)
+        })).filter(category => category.items.length > 0);
+
+
+        setConfigVariables(configVariablesArr);
         setErrorMessage(errorMsg);
     };
 
@@ -175,23 +192,6 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         });
     }
 
-    /** Decide whether to show only Devant configs */
-    const showOnlyDevantConfigs = (filteredCategories: ListItem[]) => {
-        if(devantConfigs?.length > 0){
-            return filteredCategories.map(category => ({
-                ...category,
-                items: category.items.map(subCategory => ({
-                    ...subCategory,
-                    items: subCategory.items.filter((item: ConfigVariable) => {
-                        const value = item?.properties?.variable?.value as string;
-                        return devantConfigsOnly ? devantConfigs.includes(value) : !devantConfigs.includes(value);
-                    })
-                })).filter(subCategory => subCategory.items.length > 0)
-            })).filter(category => category.items.length > 0);
-        }
-        return filteredCategories;
-    }
-
     const handleItemClicked = (name: string) => {
         onChange(name, false)
         onClose && onClose();
@@ -202,6 +202,12 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     };
 
     const handleAddNewConfigurable = () => {
+        // Use override if provided
+        if (onAddNewConfigurable) {
+            onAddNewConfigurable(getConfigVariables);
+            return;
+        }
+
         addModal(
             <FormGenerator
                 fileName={fileName}
@@ -261,14 +267,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 ) : (
                     <>
                         {(() => {
-                            let filteredCategories = translateToArrayFormat(configVariables)
-                                .filter(category =>
-                                    Array.isArray(category.items) &&
-                                    category.items.some(sub => Array.isArray(sub.items) && sub.items.length > 0)
-                                );
-
-                            filteredCategories = showOnlyDevantConfigs(filteredCategories);
-
+                            let filteredCategories = configVariables;
                             // Apply search filter if search value exists
                             if (searchValue && searchValue.trim()) {
                                 filteredCategories = filteredCategories.map(category => ({
@@ -346,7 +345,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
                 )}
             </ScrollableContainer>
 
-            {showAddNewConfigurable && (
+            {showAddNew && (
                 <>
                     <Divider sx={{ margin: "0px" }} />
                     <div style={{ margin: '4px 0' }}>

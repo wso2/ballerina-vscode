@@ -18,6 +18,7 @@
 
 import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes } from "@wso2/wso2-platform-core";
 import { AvailableNode, NodePosition } from "../../interfaces/bi";
+import { ModuleVarDecl } from "@wso2/syntax-tree/lib/syntax-tree-interfaces";
 
 
 export interface GenerateCustomConnectorFromOASReq {
@@ -59,26 +60,16 @@ export interface RegisterAndCreateDevantConnectionReq {
     configs: DevantTempConfig[];
 }
 
-export interface UpdateDevantTempConfigsReq {
-    configs: {
-        name: string;
-        value: string;
-        isSecret: boolean;
-        nodePosition?: NodePosition;
-    }[];
+export interface AddDevantTempConfigReq {
+    name: string;
 }
 
-export interface UpdateDevantTempConfigsResp {
-    configs: {
-        name: string;
-        value: string;
-        isSecret: boolean;
-        nodePosition?: NodePosition;
-    }[];
+export interface AddDevantTempConfigResp{
+    configNode: ModuleVarDecl;
 }
 
 export interface DeleteDevantTempConfigReq {
-    nodePosition: NodePosition;
+    nodes: ModuleVarDecl[];
 }
 
 export interface CreateDevantConnectionResp {
@@ -133,8 +124,7 @@ export interface DevantTempConfig {
     name: string;
     value: string;
     isSecret: boolean;
-    nodePosition?: NodePosition;
+    node?: ModuleVarDecl;
     description?: string;
     type?: string;
-    selected?: boolean;
 }

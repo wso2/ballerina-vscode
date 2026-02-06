@@ -34,7 +34,7 @@ import { Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
-import { ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { ExpressionEditorDevantProps, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -242,11 +242,11 @@ export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopup
 
 export interface ConnectionConfigurationFormProps extends Omit<ConnectionConfigurationPopupProps, 'onBack'> {
     loading?: boolean;
-    devantConfigs?: string[];
+    devantExpressionEditor?: ExpressionEditorDevantProps;
 }
 
 export function ConnectionConfigurationForm(props: ConnectionConfigurationFormProps) {
-    const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantConfigs = [] } = props;
+    const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantExpressionEditor } = props;
     const { rpcClient } = useRpcContext();
 
     const [pullingStatus, setPullingStatus] = useState<PullingStatus | undefined>(undefined);
@@ -494,7 +494,7 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                                 resetUpdatedExpressionField={handleResetUpdatedExpressionField}
                                 isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
                                 footerActionButton={true}
-                                devantConfigs={devantConfigs}
+                                devantExpressionEditor={devantExpressionEditor}
                             />
                         </FormContainer>
                     </>

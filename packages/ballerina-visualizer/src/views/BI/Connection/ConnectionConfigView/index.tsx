@@ -18,7 +18,7 @@
 
 import React, { ReactNode, useEffect, useState } from "react";
 import styled from "@emotion/styled";
-import { ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { ExpressionEditorDevantProps, ExpressionFormField } from "@wso2/ballerina-side-panel";
 import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel } from "@wso2/ballerina-core";
 import FormGenerator from "../../Forms/FormGenerator";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -66,7 +66,7 @@ interface ConnectionConfigViewProps {
     isPullingConnector?: boolean;
     navigateToPanel?: (targetPanel: SidePanelView, connectionKind?: ConnectionKind) => void;
     footerActionButton?: boolean; // Render save button as footer action button
-    devantConfigs?: string[]; // Devant configurations for expression editor
+    devantExpressionEditor?: ExpressionEditorDevantProps;
 }
 
 export function ConnectionConfigView(props: ConnectionConfigViewProps) {
@@ -82,7 +82,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
         isSaving,
         navigateToPanel,
         footerActionButton,
-        devantConfigs
+        devantExpressionEditor,
     } = props;
     const { rpcClient } = useRpcContext();
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
@@ -128,7 +128,7 @@ export function ConnectionConfigView(props: ConnectionConfigViewProps) {
                     footerActionButton={footerActionButton}
                     navigateToPanel={navigateToPanel}
                     handleOnFormSubmit={onSubmit}
-                    devantConfigs={devantConfigs}
+                    devantExpressionEditor={devantExpressionEditor}
                 />
             )}
         </Container>

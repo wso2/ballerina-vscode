@@ -58,6 +58,8 @@ import {
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
+    AddDevantTempConfigReq,
+    AddDevantTempConfigResp,
     CreateDevantConnectionResp,
     CreateDevantConnectionV2Req,
     DeleteDevantTempConfigReq,
@@ -69,8 +71,6 @@ import {
     ImportDevantConnectionResp,
     RegisterAndCreateDevantConnectionReq,
     SetConnectedToDevantReq,
-    UpdateDevantTempConfigsReq,
-    UpdateDevantTempConfigsResp,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -917,13 +917,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const configBalFileUri = getConfigFileUri();
 
             const configBalEdits = new WorkspaceEdit();
-            configBalEdits.delete(
-                configBalFileUri,
-                new vscode.Range(
-                    new vscode.Position(params.nodePosition.startLine, params.nodePosition.startColumn),
-                    new vscode.Position(params.nodePosition.endLine, params.nodePosition.endColumn),
-                ),
-            );
+            for(const node of params.nodes){
+                configBalEdits.delete(
+                    configBalFileUri,
+                    new vscode.Range(
+                        new vscode.Position(node.position.startLine, node.position.startColumn),
+                        new vscode.Position(node.position.endLine, node.position.endColumn),
+                    ),
+                );
+            }
 
             await updateSourceCode({
                 textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
@@ -934,62 +936,51 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async updateDevantTempConfigs(params: UpdateDevantTempConfigsReq): Promise<UpdateDevantTempConfigsResp> {
+    async addDevantTempConfig(params: AddDevantTempConfigReq): Promise<AddDevantTempConfigResp> {
         try {
             const configBalFileUri = getConfigFileUri();
             const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
                 documentIdentifier: { uri: configBalFileUri.toString() },
             })) as SyntaxTree;
 
+            const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
             const configBalEdits = new WorkspaceEdit();
 
-            const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
+            configBalEdits.insert(
+                configBalFileUri,
+                new vscode.Position(newConfigEditLine, 0),
+                Templates.emptyLine(),
+            );
 
-            if (params.configs.some((item) => !item.nodePosition)) {
-                configBalEdits.insert(
-                    configBalFileUri,
-                    new vscode.Position(newConfigEditLine, 0),
-                    Templates.emptyLine(),
+            const newConfigTemplate = Templates.newDefaultEnvConfigurable({ CONFIG_NAME: params.name });
+            configBalEdits.insert(
+                configBalFileUri,
+                new vscode.Position(newConfigEditLine, 0),
+                newConfigTemplate,
+            );
+
+            await updateSourceCode({
+                textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
+                skipPayloadCheck: true,
+            });
+
+            const updatedSyntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
+                documentIdentifier: { uri: configBalFileUri.toString() },
+            })) as SyntaxTree;
+
+            const matchingConfig = (updatedSyntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
+                return (
+                    (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName
+                        ?.value === params.name
                 );
+            });
+            if (STKindChecker.isModuleVarDecl(matchingConfig)) {
+                return { configNode: matchingConfig };
             }
 
-            for (const config of params.configs) {
-                if (!config.nodePosition) {
-                    const newConfigTemplate = Templates.newDefaultEnvConfigurable({ CONFIG_NAME: config.name });
-                    configBalEdits.insert(
-                        configBalFileUri,
-                        new vscode.Position(newConfigEditLine, 0),
-                        newConfigTemplate,
-                    );
-                }
-            }
-
-            if (configBalEdits.size > 0) {
-                await updateSourceCode({
-                    textEdits: { [configBalFileUri.toString()]: configBalEdits.get(configBalFileUri) || [] },
-                    skipPayloadCheck: true,
-                });
-
-                const updatedSyntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
-                    documentIdentifier: { uri: configBalFileUri.toString() },
-                })) as SyntaxTree;
-
-                for (const config of params.configs) {
-                    const matchingConfig = (updatedSyntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
-                        return (
-                            (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName
-                                ?.value === config.name
-                        );
-                    });
-                    if (STKindChecker.isModuleVarDecl(matchingConfig)) {
-                        config.nodePosition = matchingConfig.position;
-                    }
-                }
-            }
-
-            return { configs: params.configs };
+            throw new Error("failed to add new temp config");
         } catch (err) {
-            log(`Failed to invoke updateConfigFile: ${err}`);
+            log(`Failed to invoke addDevantTempConfig: ${err}`);
         }
     }
 
@@ -1121,30 +1112,22 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         const configBalEdits = new WorkspaceEdit();
 
         for (const config of configs) {
-            const matchingConfigNode = (syntaxTree?.syntaxTree as ModulePart)?.members?.find((member) => {
-                return (
-                    (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                    config.name
-                );
-            });
             const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
             if (
-                matchingConfigNode &&
-                STKindChecker.isModuleVarDecl(matchingConfigNode) &&
                 matchingConfigEntry &&
-                config.nodePosition
+                config.node
             ) {
                 hasUpdatedConfig = true;
                 configBalEdits.replace(
                     getConfigFileUri(),
                     new vscode.Range(
                         new vscode.Position(
-                            matchingConfigNode.initializer.position.startLine,
-                            matchingConfigNode.initializer.position.startColumn,
+                            config.node.initializer.position.startLine,
+                            config.node.initializer.position.startColumn,
                         ),
                         new vscode.Position(
-                            matchingConfigNode.initializer.position.endLine,
-                            matchingConfigNode.initializer.position.endColumn,
+                            config.node.initializer.position.endLine,
+                            config.node.initializer.position.endColumn,
                         ),
                     ),
                     `os:getEnv("${getInjectedEnvVarNames(matchingConfigEntry.envVariableName)}")`,
