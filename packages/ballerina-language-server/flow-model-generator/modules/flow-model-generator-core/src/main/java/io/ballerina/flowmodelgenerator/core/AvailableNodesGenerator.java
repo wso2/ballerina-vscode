@@ -73,6 +73,8 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Ai;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CALL_ACTIVITY_METHOD_NAME;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.CONTEXT_TYPE_NAME;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_PACKAGE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
@@ -395,6 +397,11 @@ public class AvailableNodesGenerator {
                             .build(),
                     new Codedata.Builder<>(null)
                             .node(NodeKind.REMOTE_ACTION_CALL)
+                            .org(Workflow.BALLERINA_ORG)
+                            .module(Workflow.WORKFLOW_PACKAGE)
+                            .packageName(Workflow.WORKFLOW_PACKAGE)
+                            .object(Workflow.CONTEXT_TYPE_NAME)
+                            .symbol(Workflow.CALL_ACTIVITY_METHOD_NAME)
                             .build(),
                     true
             );

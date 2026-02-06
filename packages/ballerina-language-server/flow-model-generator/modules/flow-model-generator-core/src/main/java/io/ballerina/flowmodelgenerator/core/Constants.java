@@ -100,12 +100,14 @@ public class Constants {
 
         public static final String BALLERINA_ORG = "ballerina";
         public static final String WORKFLOW_PACKAGE = "workflow";
+        public static final String CONTEXT_TYPE_NAME = "Context";
         public static final String CREATE_INSTANCE_METHOD_NAME = "createInstance";
         public static final String CREATE_INSTANCE_LABEL = "Start Workflow";
         public static final String CREATE_INSTANCE_DESCRIPTION = "Create and start a new workflow instance";
         public static final String SEND_EVENT_METHOD_NAME = "sendEvent";
         public static final String SEND_EVENT_LABEL = "Send Event";
         public static final String SEND_EVENT_DESCRIPTION = "Send an event to an existing workflow instance";
+        public static final String CALL_ACTIVITY_METHOD_NAME = "callActivity";
         public static final String CALL_ACTIVITY_LABEL = "Call Activity";
         public static final String CALL_ACTIVITY_DESCRIPTION = "Call a workflow activity function";
         public static final String WAIT_EVENT_LABEL = "Wait for Event";

@@ -202,7 +202,12 @@
             "description": "Call a workflow activity function"
           },
           "codedata": {
-            "node": "REMOTE_ACTION_CALL"
+            "node": "REMOTE_ACTION_CALL",
+            "org": "ballerina",
+            "module": "workflow",
+            "packageName": "workflow",
+            "object": "Context",
+            "symbol": "callActivity"
           },
           "enabled": true
         },
