@@ -131,7 +131,6 @@ test {
         copyStdlibs
     }
     systemProperty "ballerina.home", balDistribution
-    maxHeapSize = "2048m"
     useTestNG() {
         suites "src/test/resources/testng.xml"
     }
