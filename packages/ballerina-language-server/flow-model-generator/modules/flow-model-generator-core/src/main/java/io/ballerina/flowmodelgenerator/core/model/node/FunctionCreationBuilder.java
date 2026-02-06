@@ -38,6 +38,8 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
 
     public static final String OUTPUT_DOC = "Output type of the function";
 
+    private static final String FUNCTION_DEFINITION_FILE = "functions.bal";
+
     @Override
     protected String getNameLabel() {
         return FUNCTION_NAME_LABEL;
@@ -62,6 +64,11 @@ public class FunctionCreationBuilder extends DataMapperCreationBuilder {
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
         codedata().node(NodeKind.FUNCTION_CREATION);
+    }
+
+    @Override
+    protected String getNodeDefinitionFile() {
+        return FUNCTION_DEFINITION_FILE;
     }
 
     @Override
