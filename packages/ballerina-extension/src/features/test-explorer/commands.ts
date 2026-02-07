@@ -44,15 +44,21 @@ export function activateEditBiTest() {
             return;
         }
 
-        const fileName = entry.id.split(":")[1];
+        const fileName = entry.id.split(":")[2];
         const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
-            openView(EVENT_TYPE.OPEN_VIEW, { documentUri: fileUri, 
-                position: { startLine: range.start.line, startColumn: range.start.character, 
-                    endLine: range.end.line, endColumn: range.end.character } });
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.BIDiagram,
+                documentUri: fileUri,
+                identifier: entry.label,
+                position: {
+                    startLine: range.start.line, startColumn: range.start.character,
+                    endLine: range.end.line, endColumn: range.end.character
+                }
+            });
             history.clear();
-        }        
+        }
     });
 
     commands.registerCommand(BI_COMMANDS.BI_ADD_TEST_FUNCTION, async (entry?: TestItem) => {
@@ -65,8 +71,10 @@ export function activateEditBiTest() {
 
         const fileUri = path.resolve(projectPath, `tests`, `tests.bal`);
         ensureFileExists(fileUri);
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
-            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST' });
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view: MACHINE_VIEW.BITestFunctionForm,
+            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST'
+        });
     });
 
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
@@ -81,11 +89,22 @@ export function activateEditBiTest() {
             return;
         }
 
-        const fileName = entry.id.split(":")[1];
+        const fileName = entry.id.split(":")[2];
         const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
-            openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.BITestFunctionForm, 
-                documentUri: fileUri, identifier: entry.label, serviceType: 'UPDATE_TEST' });
+            const range = entry.range;
+            openView(EVENT_TYPE.OPEN_VIEW, {
+                view: MACHINE_VIEW.BITestFunctionForm,
+                documentUri: fileUri,
+                identifier: entry.label,
+                position: {
+                    startLine: range.start.line,
+                    startColumn: range.start.character,
+                    endLine: range.end.line,
+                    endColumn: range.end.character
+                },
+                serviceType: 'UPDATE_TEST'
+            });
         }
     });
 }
