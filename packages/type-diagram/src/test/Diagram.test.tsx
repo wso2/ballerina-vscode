@@ -26,6 +26,78 @@ import { Type } from "@wso2/ballerina-core";
 // Import sample data
 import typeModel from "../stories/type-model.json";
 
+// --- Emotion Style Snapshot Helpers ---
+
+function getEmotionStyles(container: HTMLElement): string {
+    const domContent = container.innerHTML;
+    const usedHashes = new Set<string>();
+    const hashRegex = /css-([a-z0-9]+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(domContent)) !== null) {
+        usedHashes.add(match[1]);
+    }
+
+    // Emotion uses insertRule (speedy mode) so CSS is in styleSheets.cssRules, not textContent
+    const relevantRules: string[] = [];
+    const styleTags = document.querySelectorAll("style[data-emotion]");
+    styleTags.forEach((tag) => {
+        if (tag instanceof HTMLStyleElement && tag.sheet) {
+            try {
+                Array.from(tag.sheet.cssRules).forEach((rule) => {
+                    const ruleText = rule.cssText;
+                    const ruleHashMatch = /\.css-([a-z0-9]+)/.exec(ruleText);
+                    if (ruleHashMatch && usedHashes.has(ruleHashMatch[1])) {
+                        relevantRules.push(ruleText);
+                    }
+                });
+            } catch (e) {
+                // CORS may block access to cssRules
+            }
+        }
+    });
+    return relevantRules.sort().join("\n");
+}
+
+function buildHashMap(content: string): Map<string, string> {
+    const hashRegex = /css-([a-z0-9]+)/g;
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(content)) !== null) {
+        if (!seen.has(match[1])) {
+            seen.add(match[1]);
+            ordered.push(match[1]);
+        }
+    }
+    const map = new Map<string, string>();
+    ordered.forEach((hash, i) => map.set(`css-${hash}`, `css-${i}`));
+    return map;
+}
+
+function applyHashMap(content: string, hashMap: Map<string, string>): string {
+    let result = content;
+    for (const [original, stable] of hashMap) {
+        result = result.split(original).join(stable);
+    }
+    return result;
+}
+
+function buildSnapshot(container: HTMLElement, prettyDom: string, attrPattern: RegExp): string {
+    const emotionStyles = getEmotionStyles(container);
+    const hashMap = buildHashMap(prettyDom);
+
+    let sanitizedDom = prettyDom
+        .replaceAll(attrPattern, "")
+        .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
+
+    sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+    const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+    return normalizedStyles.trim()
+        ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+        : sanitizedDom;
+}
+
 async function renderAndCheckSnapshot(types: Type[], testName: string) {
     const mockProps = {
         goToSource: jest.fn(),
@@ -56,15 +128,12 @@ async function renderAndCheckSnapshot(types: Type[], testName: string) {
 
     expect(prettyDom).toBeTruthy();
 
-    // Sanitization: remove dynamic IDs and non-deterministic attributes
-    const sanitizedDom = (prettyDom as string)
-        .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g, "")
-        // Normalize emotion CSS class hashes (css-xxxxx) to stable placeholder
-        .replaceAll(/\bcss-[a-z0-9]+/g, "css-HASH")
-        // Collapse duplicate css-HASH entries in class attributes
-        .replaceAll(/\b(css-HASH)(\s+css-HASH)+\b/g, "css-HASH")
-        .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
-    expect(sanitizedDom).toMatchSnapshot(testName);
+    const snapshot = buildSnapshot(
+        dom.container,
+        prettyDom as string,
+        /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g
+    );
+    expect(snapshot).toMatchSnapshot(testName);
 }
 
 describe("Type Diagram - Snapshot Tests", () => {
@@ -123,11 +192,11 @@ describe("Type Diagram - Snapshot Tests", () => {
 
         expect(prettyDom).toBeTruthy();
 
-        const sanitizedDom = (prettyDom as string)
-            .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g, "")
-            .replaceAll(/\bcss-[a-z0-9]+/g, "css-HASH")
-            .replaceAll(/\b(css-HASH)(\s+css-HASH)+\b/g, "css-HASH")
-            .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
-        expect(sanitizedDom).toMatchSnapshot("empty-types");
+        const snapshot = buildSnapshot(
+            dom.container,
+            prettyDom as string,
+            /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g
+        );
+        expect(snapshot).toMatchSnapshot("empty-types");
     }, 15000);
 });

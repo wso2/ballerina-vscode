@@ -31,6 +31,73 @@ import model4 from "../stories/4-with-diagnostics.json";
 import model5 from "../stories/5-complex-1.json";
 import model6 from "../stories/6-ai-agent.json";
 
+// --- Emotion Style Snapshot Helpers ---
+
+/**
+ * Extract Emotion CSS rules from <style data-emotion> tags in the document,
+ * filtered to only include rules for classes actually used in the given container.
+ */
+function getEmotionStyles(container: HTMLElement): string {
+    const domContent = container.innerHTML;
+    const usedHashes = new Set<string>();
+    const hashRegex = /css-([a-z0-9]+)/g;
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(domContent)) !== null) {
+        usedHashes.add(match[1]);
+    }
+
+    // Emotion uses insertRule (speedy mode) so CSS is in styleSheets.cssRules, not textContent
+    const relevantRules: string[] = [];
+    const styleTags = document.querySelectorAll("style[data-emotion]");
+    styleTags.forEach((tag) => {
+        if (tag instanceof HTMLStyleElement && tag.sheet) {
+            try {
+                Array.from(tag.sheet.cssRules).forEach((rule) => {
+                    const ruleText = rule.cssText;
+                    const ruleHashMatch = /\.css-([a-z0-9]+)/.exec(ruleText);
+                    if (ruleHashMatch && usedHashes.has(ruleHashMatch[1])) {
+                        relevantRules.push(ruleText);
+                    }
+                });
+            } catch (e) {
+                // CORS may block access to cssRules
+            }
+        }
+    });
+    return relevantRules.sort().join("\n");
+}
+
+/**
+ * Build a deterministic mapping from Emotion CSS hashes to stable indices
+ * based on order of first appearance in the content.
+ */
+function buildHashMap(content: string): Map<string, string> {
+    const hashRegex = /css-([a-z0-9]+)/g;
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = hashRegex.exec(content)) !== null) {
+        if (!seen.has(match[1])) {
+            seen.add(match[1]);
+            ordered.push(match[1]);
+        }
+    }
+    const map = new Map<string, string>();
+    ordered.forEach((hash, i) => map.set(`css-${hash}`, `css-${i}`));
+    return map;
+}
+
+/**
+ * Apply hash mapping to normalize Emotion class names in content.
+ */
+function applyHashMap(content: string, hashMap: Map<string, string>): string {
+    let result = content;
+    for (const [original, stable] of hashMap) {
+        result = result.split(original).join(stable);
+    }
+    return result;
+}
+
 async function renderAndCheckSnapshot(model: Flow, testName: string) {
     const mockProps = {
         onAddNode: jest.fn(),
@@ -57,6 +124,9 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
         { timeout: 10000 }
     );
 
+    // Extract Emotion CSS styles relevant to this render
+    const emotionStyles = getEmotionStyles(dom.container);
+
     const prettyDom = prettyDOM(dom.container, 1000000, {
         highlight: false,
         filterNode(node) {
@@ -66,17 +136,25 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
 
     expect(prettyDom).toBeTruthy();
 
+    // Build deterministic hash mapping from DOM (order of first appearance)
+    const hashMap = buildHashMap(prettyDom as string);
+
     // Sanitization: remove dynamic IDs and non-deterministic attributes
-    const sanitizedDom = (prettyDom as string)
+    let sanitizedDom = (prettyDom as string)
         .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
         .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
-        // Normalize emotion CSS class hashes (css-xxxxx) to stable placeholder
-        .replaceAll(/\bcss-[a-z0-9]+/g, "css-HASH")
-        // Collapse duplicate css-HASH entries in class attributes
-        .replaceAll(/\b(css-HASH)(\s+css-HASH)+\b/g, "css-HASH")
         // Normalize vscode-button tag formatting
         .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
-    expect(sanitizedDom).toMatchSnapshot(testName);
+
+    // Apply deterministic hash normalization to both DOM and styles
+    sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+    const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+    // Combine styles + DOM for comprehensive snapshot that captures both structure and styling
+    const snapshot = normalizedStyles.trim()
+        ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+        : sanitizedDom;
+    expect(snapshot).toMatchSnapshot(testName);
 }
 
 describe("BI Diagram - Snapshot Tests", () => {
