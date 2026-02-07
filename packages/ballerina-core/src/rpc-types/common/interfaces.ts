@@ -20,6 +20,7 @@
 import { Diagnostic } from "vscode-languageserver-types";
 import { Completion } from "../../interfaces/extended-lang-client";
 import { NodePosition } from "@wso2/syntax-tree";
+import { QuickPickOptions } from "vscode";
 
 export interface TypeResponse {
     data: Completion[];
@@ -94,6 +95,11 @@ export interface ShowErrorMessageRequest {
 export interface ShowInfoModalRequest {
     message: string;
     items?: string[];
+}
+
+export interface ShowQuickPickRequest {
+    items: string[];
+    options?: QuickPickOptions;
 }
 
 export interface TomlWorkspace {

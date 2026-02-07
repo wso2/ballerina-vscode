@@ -39,7 +39,7 @@ const defaultPlatformExtContext: {
         setConnector?: (node: AvailableNode) => void;
     };
 } = {
-    platformExtState: { components: [], isLoggedIn: false },
+    platformExtState: { components: [], isLoggedIn: false, userInfo: null },
     refetchProjectInfo: () => {},
     onLinkDevantProject: () => {},
     devantConsoleUrl: "",

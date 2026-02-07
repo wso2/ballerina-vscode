@@ -55,6 +55,8 @@ import {
     ConnectionConfigurations,
     RegisterMarketplaceConnectionReq,
     RegisterMarketplaceConfigMap,
+    Project,
+    Organization,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -70,7 +72,6 @@ import {
     ImportDevantConnectionReq,
     ImportDevantConnectionResp,
     RegisterAndCreateDevantConnectionReq,
-    SetConnectedToDevantReq,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -115,16 +116,39 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     private async initAuthState() {
         const platformExt = await this.getPlatformExt();
-        const isLoggedIn = platformExt.isLoggedIn();
+        const userInfo = platformExt.getAuthState().userInfo;
         const selectedContext = platformExt.getSelectedContext();
-        platformExtStore.getState().setState({ isLoggedIn, selectedContext });
+        platformExtStore.getState().setState({ userInfo, isLoggedIn: !!userInfo, selectedContext });
 
-        platformExt.subscribeIsLoggedIn((isLoggedIn) => {
-            platformExtStore.getState().setState({ isLoggedIn });
+        if(selectedContext?.project){
+            const envs = await platformExt.getProjectEnvs({
+                orgId: selectedContext?.org?.id?.toString(), 
+                orgUuid: selectedContext?.org?.uuid, 
+                projectId: selectedContext?.project?.id
+            });
+            const selectedEnv = envs.find(env => env.id === platformExtStore.getState().state?.selectedEnv?.id) || envs[0];
+            platformExtStore.getState().setState({ envs, selectedEnv });
+        }
+        
+        platformExt.subscribeAuthState((authState) => {
+            platformExtStore.getState().setState({ userInfo: authState.userInfo, isLoggedIn: !!authState.userInfo });
         });
 
-        platformExt.subscribeContextState((selectedContext) => {
+        const debouncedEnvListRefresh = debounce(async (org?: Organization,project?: Project) => {
+            if (org && project) {
+                const envs = await platformExt.getProjectEnvs({
+                    orgId: org.id?.toString(), 
+                    orgUuid: org.uuid, 
+                    projectId: project.id
+                });
+                const selectedEnv = envs.find(env => env.id === platformExtStore.getState().state?.selectedEnv?.id) || envs[0];
+                platformExtStore.getState().setState({ envs, selectedEnv });
+            }
+        }, 1000);
+
+        platformExt.subscribeContextState(async (selectedContext) => {
             platformExtStore.getState().setState({ selectedContext });
+            debouncedEnvListRefresh(selectedContext?.org, selectedContext?.project);
         });
     }
 
@@ -330,12 +354,17 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    setConnectedToDevant(params: SetConnectedToDevantReq): void {
-        if (params.mode === "runInDevant") {
-            platformExtStore.getState().setConnectionState({ runInDevant: params.value });
-        } else if (params.mode === "debugInDevant") {
-            platformExtStore.getState().setConnectionState({ debugInDevant: params.value });
+    setSelectedEnv(envId: string): void {
+        const selectedEnv = platformExtStore
+            .getState()
+            .state?.envs?.find((item) => item?.id === envId);
+        if (selectedEnv) {
+            platformExtStore.getState().setState({ selectedEnv });
         }
+    }
+
+    setConnectedToDevant(connected: boolean): void {
+        platformExtStore.getState().setConnectionState({ connectedToDevant: connected });
     }
 
     async registerMarketplaceConnection(params: RegisterMarketplaceConnectionReq): Promise<MarketplaceItem> {
@@ -520,8 +549,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
                 platformExtStore.getState().state?.devantConns?.list?.filter((item) => item.isUsed)?.length > 0 &&
-                ((debugConfig?.noDebug && platformExtStore.getState().state?.devantConns?.runInDevant) ||
-                    (!debugConfig?.noDebug && platformExtStore.getState().state?.devantConns?.debugInDevant))
+                platformExtStore.getState().state?.devantConns?.connectedToDevant
             ) {
                 // TODO: need to check whether at least one devant connection being used
                 const resp = await window.withProgress(
@@ -539,7 +567,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                                 debugConfig?.choreoConnect?.component ||
                                 platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
                                 "",
-                            env: debugConfig?.choreoConnect?.env || "",
+                            env: debugConfig?.choreoConnect?.env || platformExtStore?.getState().state?.selectedEnv?.name || "",
                             skipConnection: debugConfig?.choreoConnect?.skipConnection || [],
                         }),
                 );
@@ -946,11 +974,13 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const newConfigEditLine = (syntaxTree?.syntaxTree?.position?.endLine ?? 0) + 1;
             const configBalEdits = new WorkspaceEdit();
 
-            configBalEdits.insert(
-                configBalFileUri,
-                new vscode.Position(newConfigEditLine, 0),
-                Templates.emptyLine(),
-            );
+            if (params.newLine) {
+                configBalEdits.insert(
+                    configBalFileUri,
+                    new vscode.Position(newConfigEditLine, 0),
+                    Templates.emptyLine(),
+                );
+            }
 
             const newConfigTemplate = Templates.newDefaultEnvConfigurable({ CONFIG_NAME: params.name });
             configBalEdits.insert(

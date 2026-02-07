@@ -58,7 +58,9 @@ import {
     RestoreWebviewCache,
     ClearWebviewCache,
     ShowInfoModalRequest,
-    showInformationModal
+    showInformationModal,
+    ShowQuickPickRequest,
+    showQuickPick
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -124,6 +126,10 @@ export class CommonRpcClient implements CommonRPCAPI {
     
     showInformationModal(params: ShowInfoModalRequest): Promise<string> {
         return this._messenger.sendRequest(showInformationModal, HOST_EXTENSION, params);
+    }
+
+    showQuickPick(params: ShowQuickPickRequest): Promise<string> {
+        return this._messenger.sendRequest(showQuickPick, HOST_EXTENSION, params);
     }
 
     getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {

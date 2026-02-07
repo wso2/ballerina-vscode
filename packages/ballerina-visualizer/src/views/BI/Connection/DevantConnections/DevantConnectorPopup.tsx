@@ -209,8 +209,8 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                     selected: true,
                 };
             });
-            for(const config of configs) {
-                const resp = await platformRpcClient.addDevantTempConfig({ name: config.name })
+            for (const [index, config] of configs.entries()) {
+                const resp = await platformRpcClient.addDevantTempConfig({ name: config.name, newLine: index === 0 })
                 config.node = resp.configNode;
             }
             setDevantConfigs(configs);
@@ -368,7 +368,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                 selectedConnector={availableNode}
                                                 IDLFilePath={IDLFilePath}
                                                 onAddDevantConfig={async (name, value, isSecret) => {
-                                                    const resp = await platformRpcClient.addDevantTempConfig({ name })
+                                                    const resp = await platformRpcClient.addDevantTempConfig({ name, newLine: devantConfigs.length === 0 })
                                                     const newDevantConfig: DevantTempConfig = {
                                                         id: name,
                                                         name: name,

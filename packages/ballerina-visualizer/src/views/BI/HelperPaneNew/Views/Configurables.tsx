@@ -91,6 +91,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
     }, [isImportEnv]);
 
     useEffect(() => {
+        setConfigVariables([]);
         getConfigVariables()
         getProjectInfo()
         const fetchTomlValues = async () => {
