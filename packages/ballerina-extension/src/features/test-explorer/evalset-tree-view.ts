@@ -106,7 +106,7 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
             );
             item.tooltip = element.description || `EvalSet with ${element.threadCount} threads`;
             item.description = `${element.threadCount} thread${element.threadCount !== 1 ? 's' : ''}`;
-            item.iconPath = new vscode.ThemeIcon('library');
+            item.iconPath = new vscode.ThemeIcon('collection');
             item.contextValue = 'evalsetFile';
             item.resourceUri = element.uri;
             return item;
