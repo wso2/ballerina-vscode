@@ -20,8 +20,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Interface matching the EvalCase object structure
-interface EvalCaseJson {
+// Interface matching the EvalThread object structure
+interface EvalThreadJson {
     id: string;
     name: string;
     traces: any[];
@@ -32,7 +32,7 @@ interface EvalSetJson {
     id: string;
     name?: string;
     description?: string;
-    cases: EvalCaseJson[]; // Array of Case objects
+    threads: EvalThreadJson[]; // Array of Thread objects
     created_on?: number;
 }
 
@@ -43,25 +43,25 @@ class EvalsetFileNode {
     constructor(
         public readonly uri: vscode.Uri,
         public readonly label: string,
-        public readonly caseCount: number,
+        public readonly threadCount: number,
         public readonly description?: string
     ) { }
 }
 
 /**
- * Represents a single case within an evalset
+ * Represents a single thread within an evalset
  */
-class EvalsetCaseNode {
+class EvalsetThreadNode {
     constructor(
         public readonly parentUri: vscode.Uri,
-        public readonly caseIndex: number,
+        public readonly threadIndex: number,
         public readonly label: string,
-        public readonly caseId: string,
+        public readonly threadId: string,
         public readonly traceCount: number
     ) { }
 }
 
-type EvalsetNode = EvalsetFileNode | EvalsetCaseNode;
+type EvalsetNode = EvalsetFileNode | EvalsetThreadNode;
 
 /**
  * TreeDataProvider for displaying evalsets
@@ -104,8 +104,8 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
                 element.label,
                 vscode.TreeItemCollapsibleState.Collapsed
             );
-            item.tooltip = element.description || `EvalSet with ${element.caseCount} cases`;
-            item.description = `${element.caseCount} case${element.caseCount !== 1 ? 's' : ''}`;
+            item.tooltip = element.description || `EvalSet with ${element.threadCount} threads`;
+            item.description = `${element.threadCount} thread${element.threadCount !== 1 ? 's' : ''}`;
             item.iconPath = new vscode.ThemeIcon('library');
             item.contextValue = 'evalsetFile';
             item.resourceUri = element.uri;
@@ -115,16 +115,16 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
                 element.label,
                 vscode.TreeItemCollapsibleState.None
             );
-            item.tooltip = `Case ID: ${element.caseId} (${element.traceCount} traces)`;
+            item.tooltip = `Thread ID: ${element.threadId} (${element.traceCount} traces)`;
 
             item.iconPath = new vscode.ThemeIcon('file-text');
-            item.contextValue = 'evalsetCase';
+            item.contextValue = 'evalsetThread';
             item.resourceUri = element.parentUri;
 
             item.command = {
                 command: 'ballerina.openEvalsetViewer',
-                title: 'Open Evalset Case',
-                arguments: [element.parentUri, element.caseId]
+                title: 'Open Evalset Thread',
+                arguments: [element.parentUri, element.threadId]
             };
             return item;
         }
@@ -135,8 +135,8 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
             // Root level - return all evalset files
             return this.getEvalsetFiles();
         } else if (element instanceof EvalsetFileNode) {
-            // Return cases for this evalset file
-            return this.getCasesForFile(element.uri);
+            // Return threads for this evalset file
+            return this.getThreadsForFile(element.uri);
         }
 
         return [];
@@ -160,15 +160,15 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
                 const evalsetData: EvalSetJson = JSON.parse(content);
 
                 // Validation for new format
-                if (!evalsetData.cases || !Array.isArray(evalsetData.cases)) {
+                if (!evalsetData.threads || !Array.isArray(evalsetData.threads)) {
                     continue;
                 }
 
-                const caseCount = evalsetData.cases.length;
+                const threadCount = evalsetData.threads.length;
                 const label = evalsetData.name || path.basename(uri.fsPath, '.evalset.json');
                 const description = evalsetData.description || '';
 
-                nodes.push(new EvalsetFileNode(uri, label, caseCount, description));
+                nodes.push(new EvalsetFileNode(uri, label, threadCount, description));
             } catch (error) {
                 console.error(`Failed to parse evalset file ${uri.fsPath}:`, error);
             }
@@ -178,38 +178,38 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
     }
 
     /**
-     * Get cases for a specific evalset file
+     * Get threads for a specific evalset file
      */
-    private async getCasesForFile(uri: vscode.Uri): Promise<EvalsetCaseNode[]> {
+    private async getThreadsForFile(uri: vscode.Uri): Promise<EvalsetThreadNode[]> {
         try {
             const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
             const evalsetData: EvalSetJson = JSON.parse(content);
-            const nodes: EvalsetCaseNode[] = [];
+            const nodes: EvalsetThreadNode[] = [];
 
-            if (!evalsetData.cases || !Array.isArray(evalsetData.cases)) {
+            if (!evalsetData.threads || !Array.isArray(evalsetData.threads)) {
                 return [];
             }
 
-            evalsetData.cases.forEach((caseObj: EvalCaseJson, index: number) => {
+            evalsetData.threads.forEach((threadObj: EvalThreadJson, index: number) => {
                 // Ensure traces is an array
-                const traceCount = Array.isArray(caseObj.traces) ? caseObj.traces.length : 0;
+                const traceCount = Array.isArray(threadObj.traces) ? threadObj.traces.length : 0;
 
-                // Use the name defined in the case object, fallback to generated name
-                const label = caseObj.name || `Case ${index + 1}`;
-                const caseId = caseObj.id || `case-${index + 1}`;
+                // Use the name defined in the thread object, fallback to generated name
+                const label = threadObj.name || `Thread ${index + 1}`;
+                const threadId = threadObj.id || `thread-${index + 1}`;
 
-                nodes.push(new EvalsetCaseNode(
+                nodes.push(new EvalsetThreadNode(
                     uri,
                     index,
                     label,
-                    caseId,
+                    threadId,
                     traceCount
                 ));
             });
 
             return nodes;
         } catch (error) {
-            console.error(`Failed to get cases for ${uri.fsPath}:`, error);
+            console.error(`Failed to get threads for ${uri.fsPath}:`, error);
             return [];
         }
     }

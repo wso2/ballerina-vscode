@@ -122,6 +122,7 @@ export const MessageContainer = styled.div<{ isUser: boolean }>`
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
+    margin-bottom: 4px;
 `;
 
 export const ProfilePic = styled.div`
@@ -135,7 +136,7 @@ export const ProfilePic = styled.div`
 
 export const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
     position: relative;
-    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "6px 14px")};
+    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "2px 14px")};
     max-width: 100%;
     align-self: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     overflow-wrap: break-word;

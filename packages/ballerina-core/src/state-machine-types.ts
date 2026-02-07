@@ -263,7 +263,7 @@ export interface EvalsetTrace {
     endTime: string;
 }
 
-export interface EvalCase {
+export interface EvalThread {
     id: string;
     name: string;
     traces: EvalsetTrace[];
@@ -274,14 +274,14 @@ export interface EvalSet {
     id: string;
     name?: string;
     description?: string;
-    cases: EvalCase[];
+    threads: EvalThread[];
     created_on: string;
 }
 
 export interface EvalsetData {
     filePath: string;
     content: EvalSet;
-    caseId?: string;
+    threadId?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
