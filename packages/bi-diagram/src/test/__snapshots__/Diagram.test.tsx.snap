@@ -3,13 +3,13 @@
 exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-flow 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -17,13 +17,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -31,10 +31,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -44,15 +44,15 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -86,10 +86,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -105,7 +105,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -122,19 +122,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -179,10 +182,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -199,13 +202,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               height="20"
               width="70"
               x="-147"
-              y="315"
+              y="345"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -221,7 +224,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -238,19 +241,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -295,10 +301,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -315,13 +321,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               height="20"
               width="70"
               x="-147"
-              y="315"
+              y="345"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -337,7 +343,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -354,19 +360,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -450,10 +459,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -469,7 +478,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-4"
                   height="24"
                   viewBox="0 0 24 24"
@@ -486,19 +495,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -546,10 +558,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -565,7 +577,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-5"
                   height="24"
                   viewBox="0 0 24 24"
@@ -582,19 +594,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -642,10 +657,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -661,7 +676,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-6"
                   height="24"
                   viewBox="0 0 24 24"
@@ -678,19 +693,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -738,10 +756,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -757,7 +775,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-7"
                   height="24"
                   viewBox="0 0 24 24"
@@ -774,19 +792,22 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -810,7 +831,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -819,31 +840,31 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1041.6px; left: -26px;"
         >
           <div
-            class="css-wqt9em"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-109gxsh"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-ty77o7"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-1532mfp"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-shield"
@@ -851,21 +872,21 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ligivo"
+                class="css-HASH"
               >
                 <div
-                  class="css-eh1ezq"
+                  class="css-HASH"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-1uv8k48 css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -891,62 +912,63 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-qs30t0"
+            class="css-HASH"
             data-testid="agent-call-node"
           >
             <div
-              class="css-cuoibw"
+              class="css-HASH"
+              title="Configure Agent"
             >
               <div
-                class="port css-3hvpph"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1ruzfeg"
+                class="css-HASH"
                 style="height: 365px;"
               >
                 <div
-                  class="css-db89gf"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-133qne0"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1hb35sd"
+                      class="css-HASH"
                       color="var(--vscode-terminal-ansiCyan)"
                     >
                       <div
-                        class="css-xg9w82"
+                        class="css-HASH"
                       >
                         <i
                           class="fw-bi-ai-agent"
@@ -955,27 +977,27 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     </div>
                   </div>
                   <div
-                    class="css-db89gf"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1c9uq3k"
+                      class="css-HASH"
                     >
                       <div
-                        class="css-1rr3cka"
+                        class="css-HASH"
                       >
                         AI Agent
                       </div>
                       <div
-                        class="css-knxpgm"
+                        class="css-HASH"
                       >
                         stringResult
                       </div>
                     </div>
                     <div
-                      class="css-1pki51o"
+                      class="css-HASH"
                     >
                       <div
-                        class="css-1uv8k48 css-1qcscwo"
+                        class="css-HASH"
                       >
                         <vscode-button>
                           <svg
@@ -1000,33 +1022,34 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div />
                 </div>
                 <div
-                  class="css-p2fcmq"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-db89gf"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1nlecr3"
+                      class="css-HASH"
+                      title="Configure Memory"
                     >
                       <div
-                        class="css-db89gf"
+                        class="css-HASH"
                       >
                         <div
                           style="flex: 1;"
                         >
                           <div
-                            class="css-tardgd"
+                            class="css-HASH"
                           >
                             Memory
                           </div>
                           <div
-                            class="css-cc6nx4"
+                            class="css-HASH"
                           >
-                            ai:MessageWindowChatMemory
+                            MessageWindowChatMemory
                           </div>
                         </div>
                         <div
-                          class="css-1uv8k48 css-1qcscwo"
+                          class="css-HASH"
                         >
                           <vscode-button>
                             <svg
@@ -1052,26 +1075,26 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div />
                 </div>
                 <div
-                  class="css-db89gf"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ef1d75"
+                    class="css-HASH"
                   >
                     Define agent's role
                   </div>
                 </div>
                 <div
-                  class="css-qlqj2c"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-16sb3dh"
+                    class="css-HASH"
                   >
                     Provide specific instructions on how the agent should behave.
                   </div>
                 </div>
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
@@ -1083,7 +1106,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
             >
               <g>
                 <circle
-                  class="css-gaytah"
+                  class="css-HASH"
                   cx="80"
                   cy="24"
                   fill="var(--vscode-menu-background)"
@@ -1092,7 +1115,11 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   stroke="var(--vscode-dropdown-border)"
                   stroke-dasharray="none"
                   stroke-width="1.5"
-                />
+                >
+                  <title>
+                    Configure Model Provider
+                  </title>
+                </circle>
                 <foreignobject
                   fill="var(--vscode-foreground)"
                   height="44"
@@ -1102,7 +1129,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="12"
                 >
                   <div
-                    class="css-1q0m39t"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-wso2"
@@ -1118,7 +1145,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 />
               </g>
               <g
-                class="css-1f3g9pc"
+                class="css-HASH"
                 transform="translate(0, 175)"
               >
                 <circle
@@ -1163,7 +1190,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-1edw2uv"
+                  class="css-HASH"
                   height="48"
                   width="220"
                   x="60"
@@ -1174,14 +1201,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-wzh6e4"
+                  class="tool-menu-button css-HASH"
                   height="24"
                   width="24"
                   x="173"
                   y="14"
                 >
                   <div
-                    class="css-1mc6rlv css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -1218,7 +1245,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-1m27j85"
+                    class="css-HASH"
                   >
                     Click to edit 
                     appendKey
@@ -1226,7 +1253,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </foreignobject>
               </g>
               <g
-                class="css-1f3g9pc"
+                class="css-HASH"
                 transform="translate(0, 230)"
               >
                 <circle
@@ -1251,7 +1278,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     class="connector-icon"
                   >
                     <div
-                      class="css-1jgcc3g"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-function"
@@ -1274,7 +1301,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-1edw2uv"
+                  class="css-HASH"
                   height="48"
                   width="220"
                   x="60"
@@ -1285,14 +1312,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-wzh6e4"
+                  class="tool-menu-button css-HASH"
                   height="24"
                   width="24"
                   x="187"
                   y="14"
                 >
                   <div
-                    class="css-1mc6rlv css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -1329,7 +1356,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-1m27j85"
+                    class="css-HASH"
                   >
                     Click to edit 
                     getNameTool
@@ -1337,7 +1364,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </foreignobject>
               </g>
               <g
-                class="css-1f3g9pc"
+                class="css-HASH"
                 transform="translate(0, 285)"
               >
                 <circle
@@ -1361,10 +1388,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div
                     class="connector-icon"
                   >
-                    <img
-                      src="https://bcentral-packageicons.azureedge.net/images/ballerina_mcp_0.4.2.png"
-                      style="width: 24px; height: 24px; font-size: 24px;"
-                    />
+                    <div
+                      class="css-HASH"
+                    >
+                      <i
+                        class="fw-bi-mcp"
+                      />
+                    </div>
                   </div>
                 </foreignobject>
                 <text
@@ -1382,7 +1412,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-1edw2uv"
+                  class="css-HASH"
                   height="48"
                   width="220"
                   x="60"
@@ -1393,14 +1423,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-wzh6e4"
+                  class="tool-menu-button css-HASH"
                   height="24"
                   width="24"
                   x="173"
                   y="14"
                 >
                   <div
-                    class="css-1mc6rlv css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -1437,7 +1467,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-1m27j85"
+                    class="css-HASH"
                   >
                     Click to edit 
                     mcpClient
@@ -1450,14 +1480,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 transform="translate(-11, 340)"
               >
                 <svg
-                  class="css-11zrbpt"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
                   xmlns="http://www.w3.org/2000/svg"
                 >
                   <title>
-                    Add new tool / MCP server
+                    Add New Tool / MCP Server
                   </title>
                   <path
                     d="M12 0C5 0 0 5 0 12s5 12 12 12 12-5 12-12S19 0 12 0z"
@@ -1476,9 +1506,9 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="custom-tooltip css-wajrlc"
+                    class="custom-tooltip css-HASH"
                   >
-                    Add new tool / MCP server
+                    Add New Tool / MCP Server
                   </div>
                 </foreignobject>
               </g>
@@ -1557,20 +1587,20 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 701.6px; left: -32.5px;"
         >
           <div
-            class="css-2cgblt"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="port css-3hvpph"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <svg
@@ -1600,7 +1630,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     y="18"
                   >
                     <div
-                      class="css-1g8lt5t"
+                      class="css-HASH"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <svg
@@ -1618,21 +1648,21 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-f25ld8"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-ca1ncl"
+                class="css-HASH"
               >
                 <div
-                  class="css-uzupaf"
+                  class="css-HASH"
                 >
                   If
                 </div>
               </div>
               <div
-                class="css-1llmtcj css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -1657,24 +1687,24 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 866.6px; left: -310px;"
         >
           <div
-            class="css-12emq2y"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1g8lt5t"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiBlue)"
                 >
                   <svg
@@ -1690,27 +1720,27 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     Return
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     stringResult
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -1735,30 +1765,30 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 866.6px; left: 30px;"
         >
           <div
-            class="css-unbx0x"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1u1x7sc"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -1774,30 +1804,30 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     log : printError
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     "Failed to get a valid name from AI agent"
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-6l4gmo"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-pk5gz1"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-error-outline-rounded"
@@ -1806,7 +1836,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </div>
                   <div />
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -1831,65 +1861,65 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-18t8u8f"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 983.6px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1143.6px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>
@@ -1904,13 +1934,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flow 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -1918,13 +1948,13 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -1932,10 +1962,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -1945,15 +1975,15 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -1987,10 +2017,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2006,7 +2036,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2023,19 +2053,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -2083,10 +2116,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2102,7 +2135,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2119,19 +2152,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -2176,10 +2212,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2196,13 +2232,13 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               height="20"
               width="70"
               x="-147"
-              y="315"
+              y="345"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2218,7 +2254,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2235,19 +2271,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -2295,10 +2334,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2314,7 +2353,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-3"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2331,19 +2370,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -2463,10 +2505,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2482,7 +2524,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-6"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2499,19 +2541,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -2556,10 +2601,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2648,10 +2693,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2740,10 +2785,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               height="24"
               width="280"
               x="-252"
-              y="295"
+              y="345"
             >
               <div
-                class="css-1aldfs2"
+                class="css-HASH"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2907,10 +2952,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2926,7 +2971,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-15"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2943,19 +2988,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3003,10 +3051,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3022,7 +3070,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-16"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3039,19 +3087,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3099,10 +3150,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3118,7 +3169,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-17"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3135,19 +3186,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3195,10 +3249,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3214,7 +3268,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-18"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3231,19 +3285,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3291,10 +3348,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3310,7 +3367,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-19"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3327,19 +3384,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3387,10 +3447,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3406,7 +3466,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-20"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3423,19 +3483,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3483,10 +3546,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3502,7 +3565,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-21"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3519,19 +3582,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3579,10 +3645,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3598,7 +3664,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-22"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3615,19 +3681,22 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -3651,7 +3720,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -3660,31 +3729,31 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1669.4px; left: -26px;"
         >
           <div
-            class="css-wqt9em"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-109gxsh"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-ty77o7"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-1532mfp"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-shield"
@@ -3692,21 +3761,21 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ligivo"
+                class="css-HASH"
               >
                 <div
-                  class="css-eh1ezq"
+                  class="css-HASH"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-1uv8k48 css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -3732,50 +3801,50 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-12emq2y"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1w3cmvg"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -3791,27 +3860,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     names = ["Alice", "Bob", "Charlie", "Diana", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -3836,33 +3905,33 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 410.20000000000005px; left: -140px;"
         >
           <div
-            class="css-qs30t0"
+            class="css-HASH"
           >
             <div
-              class="css-wt0ibu"
+              class="css-HASH"
             >
               <div
-                class="port css-3hvpph"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-133qne0"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1u1x7sc"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiGreen)"
                   >
                     <svg
@@ -3878,27 +3947,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </div>
                 </div>
                 <div
-                  class="css-1o4gefw"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-fl1ojc"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1rr3cka"
+                      class="css-HASH"
                     >
                       redis : append
                     </div>
                     <div
-                      class="css-hg46z0"
+                      class="css-HASH"
                     >
                       intResult
                     </div>
                   </div>
                   <div
-                    class="css-1pki51o"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1uv8k48 css-1qcscwo"
+                      class="css-HASH"
                     >
                       <vscode-button>
                         <svg
@@ -3923,7 +3992,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 <div />
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
@@ -3990,20 +4059,20 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 530.2px; left: -32.5px;"
         >
           <div
-            class="css-2cgblt"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="port css-3hvpph"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <svg
@@ -4033,7 +4102,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     y="18"
                   >
                     <div
-                      class="css-1g8lt5t"
+                      class="css-HASH"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <svg
@@ -4051,21 +4120,21 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-f25ld8"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-ca1ncl"
+                class="css-HASH"
               >
                 <div
-                  class="css-uzupaf"
+                  class="css-HASH"
                 >
                   If
                 </div>
               </div>
               <div
-                class="css-1llmtcj css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -4090,24 +4159,24 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 695.2px; left: -275px;"
         >
           <div
-            class="css-12emq2y"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1u1x7sc"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -4123,27 +4192,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     log : printInfo
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     "TEXT_HERE"
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -4168,26 +4237,26 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 870.2px; left: -32.5px;"
         >
           <div
-            class="css-2cgblt"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="port css-3hvpph"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <svg
@@ -4217,11 +4286,11 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     y="18"
                   >
                     <div
-                      class="css-1g8lt5t"
+                      class="css-HASH"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <div
-                        class="css-ma388f"
+                        class="css-HASH"
                       >
                         <i
                           class="fw-bi-match"
@@ -4231,26 +4300,26 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-f25ld8"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-ca1ncl"
+                class="css-HASH"
               >
                 <div
-                  class="css-uzupaf"
+                  class="css-HASH"
                 >
                   Match
                 </div>
                 <div
-                  class="css-1ef7jzc"
+                  class="css-HASH"
                 >
                   intResult 
                 </div>
               </div>
               <div
-                class="css-1llmtcj css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -4275,32 +4344,32 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1210.2px; left: -26px;"
         >
           <div
-            class="css-z2vab7"
+            class="css-HASH"
             readonly=""
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hh6ygl"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-1g8lt5t"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiBlue)"
                   >
                     <div
-                      class="css-ma388f"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-loop"
@@ -4308,27 +4377,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ilzyg4"
+                class="css-HASH"
               >
                 <div
-                  class="css-1wbe4bb"
+                  class="css-HASH"
                 >
                   While
                 </div>
                 <div
-                  class="css-1hx7rbp"
+                  class="css-HASH"
                 >
                   intResult == 0 
                 </div>
               </div>
               <div
-                class="css-u7yedl css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -4351,34 +4420,34 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="css-1s0oi61"
+              class="css-HASH"
               height="261.6"
               width="500"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1312.2px; left: -140px;"
         >
           <div
-            class="css-qs30t0"
+            class="css-HASH"
           >
             <div
-              class="css-wt0ibu"
+              class="css-HASH"
             >
               <div
-                class="port css-3hvpph"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-133qne0"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1u1x7sc"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiGreen)"
                   >
                     <svg
@@ -4394,25 +4463,25 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </div>
                 </div>
                 <div
-                  class="css-1o4gefw"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-fl1ojc"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1rr3cka"
+                      class="css-HASH"
                     >
                       redis : append
                     </div>
                     <div
-                      class="css-hg46z0"
+                      class="css-HASH"
                     />
                   </div>
                   <div
-                    class="css-1pki51o"
+                    class="css-HASH"
                   >
                     <div
-                      class="css-1uv8k48 css-1qcscwo"
+                      class="css-HASH"
                     >
                       <vscode-button>
                         <svg
@@ -4437,7 +4506,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 <div />
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
@@ -4504,24 +4573,24 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1412.2px; left: -140px;"
         >
           <div
-            class="css-12emq2y"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1u1x7sc"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -4537,27 +4606,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     log : printInfo
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     "TEXT_HERE"
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -4582,30 +4651,30 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1565.8000000000002px; left: -140px;"
         >
           <div
-            class="css-12emq2y"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1g8lt5t"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiBlue)"
                 >
                   <svg
@@ -4621,27 +4690,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     Return
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     names[0]
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -4666,114 +4735,114 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-18t8u8f"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 812.2px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 695.2px; left: 125px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1152.2px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1035.2px; left: -310px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1sbo4bu"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1qjz23j"
+                class="css-HASH"
               >
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4805,48 +4874,51 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1035.2px; left: -110px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1sbo4bu"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1qjz23j"
+                class="css-HASH"
               >
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4878,48 +4950,51 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1035.2px; left: 90px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1sbo4bu"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1qjz23j"
+                class="css-HASH"
               >
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4951,83 +5026,86 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1035.2px; left: 290px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1507.8000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1uuxnjw"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 1771.4px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>
@@ -5042,13 +5120,13 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
 exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: flow-with-diagnostics 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -5056,13 +5134,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -5070,10 +5148,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -5083,15 +5161,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -5125,10 +5203,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5144,7 +5222,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5161,19 +5239,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -5221,10 +5302,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5240,7 +5321,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5257,19 +5338,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -5317,10 +5401,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5336,7 +5420,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5353,19 +5437,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -5389,7 +5476,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -5398,31 +5485,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-wqt9em"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-109gxsh"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-ty77o7"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-1532mfp"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-shield"
@@ -5430,21 +5517,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ligivo"
+                class="css-HASH"
               >
                 <div
-                  class="css-eh1ezq"
+                  class="css-HASH"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-1uv8k48 css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -5470,25 +5557,25 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-1b96wte"
+            class="css-HASH"
             disabled=""
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1w3cmvg"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -5504,27 +5591,27 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     names = ["Alice", "Bob", "Charlie", "David", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -5549,76 +5636,76 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-18t8u8f"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 266.6px; left: 30px;"
         >
           <div
-            class="css-110ro5e"
+            class="css-HASH"
           >
             <div
-              class="css-vcptoa"
+              class="css-HASH"
             >
               <div
-                class="css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-yb5bwe"
+                    class="css-HASH"
                   >
                     Accept
                   </div>
@@ -5630,13 +5717,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                 </vscode-button>
               </div>
               <div
-                class="css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-yb5bwe"
+                    class="css-HASH"
                   >
                     Discard
                   </div>
@@ -5651,17 +5738,17 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>
@@ -5676,13 +5763,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
 exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: flow-with-error 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -5690,13 +5777,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -5704,10 +5791,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -5717,15 +5804,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -5831,10 +5918,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5850,7 +5937,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5867,19 +5954,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -5903,7 +5993,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -5912,31 +6002,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-wqt9em"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-109gxsh"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-ty77o7"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-1532mfp"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-shield"
@@ -5944,21 +6034,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ligivo"
+                class="css-HASH"
               >
                 <div
-                  class="css-eh1ezq"
+                  class="css-HASH"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-1uv8k48 css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -5984,71 +6074,71 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-18t8u8f"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-1sbo4bu"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="css-1qjz23j"
+                class="css-HASH"
               >
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -6080,41 +6170,44 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-1ksyk40"
+                  class="css-HASH"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>
@@ -6129,13 +6222,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
 exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: flow-with-suggestions 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -6143,13 +6236,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -6157,10 +6250,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -6170,15 +6263,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -6212,10 +6305,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6231,7 +6324,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6248,19 +6341,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -6308,10 +6404,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6327,7 +6423,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6344,19 +6440,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -6404,10 +6503,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-120sseh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6423,7 +6522,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6440,19 +6539,22 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-edwwdx"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -6476,7 +6578,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -6485,31 +6587,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-wqt9em"
+            class="css-HASH"
           >
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-2ttski"
+                class="css-HASH"
               >
                 <div
-                  class="css-109gxsh"
+                  class="css-HASH"
                 >
                   <div
-                    class="port css-3hvpph"
+                    class="port css-HASH"
                     data-name="in"
                   />
                   <div
-                    class="css-ty77o7"
+                    class="css-HASH"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-1532mfp"
+                      class="css-HASH"
                     >
                       <i
                         class="fw-bi-shield"
@@ -6517,21 +6619,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                     </div>
                   </div>
                   <div
-                    class="port css-f25ld8"
+                    class="port css-HASH"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-1ligivo"
+                class="css-HASH"
               >
                 <div
-                  class="css-eh1ezq"
+                  class="css-HASH"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-1uv8k48 css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -6557,51 +6659,51 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-1b96wte"
+            class="css-HASH"
             disabled=""
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1o4gefw"
+              class="css-HASH"
             >
               <div
-                class="css-133qne0"
+                class="css-HASH"
               >
                 <div
-                  class="css-1w3cmvg"
+                  class="css-HASH"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -6617,27 +6719,27 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                 </div>
               </div>
               <div
-                class="css-1o4gefw"
+                class="css-HASH"
               >
                 <div
-                  class="css-fl1ojc"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1rr3cka"
+                    class="css-HASH"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-10iaeox"
+                    class="css-HASH"
                   >
                     names = ["Alice", "Bob", "Charlie", "Diana", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-1pki51o"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1uv8k48 css-1qcscwo"
+                    class="css-HASH"
                   >
                     <vscode-button>
                       <svg
@@ -6662,50 +6764,50 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               <div />
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-1uezm6h"
+            class="css-HASH"
           >
             <div
-              class="css-18t8u8f"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
               <div
-                class="port css-f25ld8"
+                class="port css-HASH"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 266.6px; left: 30px;"
         >
           <div
-            class="css-110ro5e"
+            class="css-HASH"
           >
             <div
-              class="css-vcptoa"
+              class="css-HASH"
             >
               <div
-                class="css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-yb5bwe"
+                    class="css-HASH"
                   >
                     Accept
                   </div>
@@ -6717,13 +6819,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                 </vscode-button>
               </div>
               <div
-                class="css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-yb5bwe"
+                    class="css-HASH"
                   >
                     Discard
                   </div>
@@ -6738,17 +6840,17 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>
@@ -6763,13 +6865,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
 exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`] = `
 "<div>
   <div
-    class="css-19co26n"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -6777,13 +6879,13 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -6791,10 +6893,10 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -6804,15 +6906,15 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
     </div>
   </div>
   <div
-    class="css-ps8e0j"
+    class="css-HASH"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-b5llim"
+      class="css-HASH"
     >
       <svg
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -6846,10 +6948,10 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
               y="285"
             >
               <div
-                class="css-i578qh"
+                class="css-HASH"
               >
                 <svg
-                  class="css-afz7hf"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6865,7 +6967,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
                   />
                 </svg>
                 <svg
-                  class="css-1tuoove"
+                  class="css-HASH"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6882,19 +6984,22 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
                   />
                 </svg>
                 <svg
-                  class="css-afz7hf"
+                  class="css-HASH"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
                   xmlns="http://www.w3.org/2000/svg"
                 >
+                  <title>
+                    You need to be logged into BI Copilot to access AI features
+                  </title>
                   <path
                     d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
                     fill="var(--vscode-editor-background)"
                   />
                   <path
                     d="M7.5 5.6L5 7l1.4-2.5L5 2l2.5 1.4L10 2L8.6 4.5L10 7zm12 9.8L22 14l-1.4 2.5L22 19l-2.5-1.4L17 19l1.4-2.5L17 14zM22 2l-1.4 2.5L22 7l-2.5-1.4L17 7l1.4-2.5L17 2l2.5 1.4zm-8.66 10.78l2.44-2.44l-2.12-2.12l-2.44 2.44zm1.03-5.49l2.34 2.34c.39.37.39 1.02 0 1.41L5.04 22.71c-.39.39-1.04.39-1.41 0l-2.34-2.34c-.39-.37-.39-1.02 0-1.41L12.96 7.29c.39-.39 1.04-.39 1.41 0"
-                    fill="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                    fill="var(--vscode-dropdown-border)"
                   />
                 </svg>
               </div>
@@ -6918,7 +7023,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
         </g>
       </svg>
       <div
-        class="css-poo601"
+        class="css-HASH"
         style="transform: translate(
 				512px,
 				0px)
@@ -6927,43 +7032,43 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-c4o6zp"
+            class="css-HASH"
           >
             <div
-              class="port css-3hvpph"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1uqbp5k"
+              class="css-HASH"
             >
               <div
-                class="css-1bzmuz2"
+                class="css-HASH"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-f25ld8"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 286.6px; left: -10px;"
         >
           <div
-            class="css-b5f3mp"
+            class="css-HASH"
           >
             <div
-              class="css-1j3pmtt"
+              class="css-HASH"
             >
               <div
-                class="port css-1fb31et"
+                class="port css-HASH"
                 data-name="in"
               />
             </div>

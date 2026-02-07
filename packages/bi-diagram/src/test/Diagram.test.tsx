@@ -70,6 +70,10 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
     const sanitizedDom = (prettyDom as string)
         .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
         .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
+        // Normalize emotion CSS class hashes (css-xxxxx) to stable placeholder
+        .replaceAll(/\bcss-[a-z0-9]+/g, "css-HASH")
+        // Collapse duplicate css-HASH entries in class attributes
+        .replaceAll(/\b(css-HASH)(\s+css-HASH)+\b/g, "css-HASH")
         // Normalize vscode-button tag formatting
         .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
     expect(sanitizedDom).toMatchSnapshot(testName);
