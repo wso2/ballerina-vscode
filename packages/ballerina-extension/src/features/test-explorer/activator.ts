@@ -34,7 +34,7 @@ export let testController: TestController;
 
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
     // Register command to open evalset viewer
-    const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, caseId?: string) => {
+    const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, threadId?: string) => {
         try {
             const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
             const evalsetData = JSON.parse(content) as EvalSet;
@@ -44,7 +44,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
                 evalsetData: {
                     filePath: uri.fsPath,
                     content: evalsetData,
-                    caseId: caseId
+                    threadId: threadId
                 }
             });
         } catch (error) {
@@ -54,7 +54,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     });
 
     // Register command to save evalset changes
-    const saveEvalCaseCommand = commands.registerCommand('ballerina.saveEvalCase', async (data: { filePath: string, updatedEvalSet: EvalSet }) => {
+    const saveEvalThreadCommand = commands.registerCommand('ballerina.saveEvalThread', async (data: { filePath: string, updatedEvalSet: EvalSet }) => {
         try {
             const { filePath, updatedEvalSet } = data;
 
@@ -114,7 +114,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalCaseCommand);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand);
 
     activateEditBiTest();
 }

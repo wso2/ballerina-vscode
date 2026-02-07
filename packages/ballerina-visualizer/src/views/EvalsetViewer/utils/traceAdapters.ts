@@ -16,13 +16,13 @@
  * under the License.
  */
 
-import { EvalCase, EvalsetTrace, EvalFunctionCall } from "@wso2/ballerina-core";
+import { EvalThread, EvalsetTrace, EvalFunctionCall } from "@wso2/ballerina-core";
 
 /**
- * Deep clone an EvalCase for editing
+ * Deep clone an EvalThread for editing
  */
-export const cloneEvalCase = (evalCase: EvalCase): EvalCase => {
-    return JSON.parse(JSON.stringify(evalCase));
+export const cloneEvalThread = (evalThread: EvalThread): EvalThread => {
+    return JSON.parse(JSON.stringify(evalThread));
 };
 
 /**

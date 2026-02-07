@@ -28,8 +28,8 @@ import {
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
     ReopenApprovalViewRequest,
-    SaveEvalCaseRequest,
-    SaveEvalCaseResponse,
+    SaveEvalThreadRequest,
+    SaveEvalThreadResponse,
     SHARED_COMMANDS,
     undo,
     UndoRedoStateResponse,
@@ -317,7 +317,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
     }
     
-    async saveEvalCase(params: SaveEvalCaseRequest): Promise<SaveEvalCaseResponse> {
+    async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {
         try {
             const { filePath, updatedEvalSet } = params;
 
@@ -332,9 +332,9 @@ export class VisualizerRpcManager implements VisualizerAPI {
             const savedContent = await fs.promises.readFile(filePath, 'utf-8');
             const savedEvalSet = JSON.parse(savedContent);
 
-            // Get the current caseId from context
+            // Get the current threadId from context
             const currentContext = StateMachine.context();
-            const caseId = currentContext.evalsetData?.caseId;
+            const threadId = currentContext.evalsetData?.threadId;
 
             // Reload the view with fresh data from disk
             openView(EVENT_TYPE.OPEN_VIEW, {
@@ -342,7 +342,7 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 evalsetData: {
                     filePath,
                     content: savedEvalSet,
-                    caseId
+                    threadId
                 }
             });
 

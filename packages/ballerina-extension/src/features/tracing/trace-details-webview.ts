@@ -25,7 +25,7 @@ import { extension } from '../../BalExtensionContext';
 import { Trace, TraceServer } from './trace-server';
 import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } from '../../utils/webview-utils';
 import { convertTraceToEvalset, convertTracesToEvalset } from './trace-converter';
-import { EvalCase, EvalSet } from '@wso2/ballerina-core';
+import { EvalThread, EvalSet } from '@wso2/ballerina-core';
 
 // TraceData interface matching the trace-visualizer component
 interface TraceData {
@@ -402,9 +402,9 @@ export class TraceDetailsWebview {
             if (fileUri) {
                 const evalsetTrace = convertTraceToEvalset(traceData);
 
-                const evalCase: EvalCase = {
+                const evalThread: EvalThread = {
                     id: crypto.randomUUID(),
-                    name: `Case - ${traceData.traceId.substring(0, 8)}`,
+                    name: `Thread - ${traceData.traceId.substring(0, 8)}`,
                     traces: [evalsetTrace],
                     created_on: new Date().toISOString()
                 };
@@ -413,7 +413,7 @@ export class TraceDetailsWebview {
                     id: crypto.randomUUID(),
                     name: `Trace ${traceData.traceId}`,
                     description: "Single trace export",
-                    cases: [evalCase],
+                    threads: [evalThread],
                     created_on: new Date().toISOString()
                 };
 
@@ -426,7 +426,7 @@ export class TraceDetailsWebview {
                 );
 
                 if (action === 'View') {
-                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalCase.id);
+                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalThread.id);
                 }
             }
         } catch (error) {
@@ -466,9 +466,9 @@ export class TraceDetailsWebview {
             if (fileUri) {
                 const evalsetTraces = convertTracesToEvalset(sessionTraces);
 
-                const evalCase: EvalCase = {
+                const evalThread: EvalThread = {
                     id: crypto.randomUUID(),
-                    name: `Case - ${sessionId.substring(0, 8)}`,
+                    name: `Thread - ${sessionId.substring(0, 8)}`,
                     traces: evalsetTraces,
                     created_on: new Date().toISOString()
                 };
@@ -477,7 +477,7 @@ export class TraceDetailsWebview {
                     id: crypto.randomUUID(),
                     name: `Session ${sessionId}`,
                     description: "Session export",
-                    cases: [evalCase],
+                    threads: [evalThread],
                     created_on: new Date().toISOString()
                 };
 
@@ -490,7 +490,7 @@ export class TraceDetailsWebview {
                 );
 
                 if (action === 'View') {
-                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalCase.id);
+                    await vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, evalThread.id);
                 }
             }
         } catch (error) {

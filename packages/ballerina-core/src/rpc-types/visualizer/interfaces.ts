@@ -68,12 +68,12 @@ export interface ReopenApprovalViewRequest {
     requestId: string;
 }
 
-export interface SaveEvalCaseRequest {
+export interface SaveEvalThreadRequest {
     filePath: string;
     updatedEvalSet: EvalSet;
 }
 
-export interface SaveEvalCaseResponse {
+export interface SaveEvalThreadResponse {
     success: boolean;
     error?: string;
 }

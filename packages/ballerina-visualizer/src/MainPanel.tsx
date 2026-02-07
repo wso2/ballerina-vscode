@@ -638,7 +638,7 @@ const MainPanel = () => {
                                 projectPath={value.projectPath}
                                 filePath={value?.evalsetData.filePath}
                                 content={value?.evalsetData.content}
-                                caseId={value?.evalsetData?.caseId}
+                                threadId={value?.evalsetData?.threadId}
                             />
                         );
                         break;

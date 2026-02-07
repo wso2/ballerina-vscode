@@ -18,7 +18,7 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { EvalCase, EvalSet, EvalFunctionCall, EvalsetTrace } from "@wso2/ballerina-core";
+import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace } from "@wso2/ballerina-core";
 import { MessageContainer, ProfilePic } from "../AgentChatPanel/Components/ChatInterface";
 import { ToolCallsTimeline } from "./ToolCallsTimeline";
 import { Icon } from "@wso2/ui-toolkit";
@@ -29,7 +29,7 @@ import { EditableToolCallsList } from "./EditableToolCallsList";
 import { ToolEditorModal } from "./ToolEditorModal";
 import { ConfirmationModal } from "./ConfirmationModal";
 import {
-    cloneEvalCase,
+    cloneEvalThread,
     updateTraceUserMessage,
     updateTraceAgentOutput,
     updateToolCallsInTrace,
@@ -253,18 +253,18 @@ const StyledMessageContainer = styled(MessageContainer)`
     }
 `;
 
-interface EvalCaseViewerProps {
+interface EvalThreadViewerProps {
     projectPath: string;
     filePath: string;
     evalSet: EvalSet;
-    evalCase: EvalCase;
+    evalThread: EvalThread;
 }
 
-export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, filePath, evalSet, evalCase }) => {
+export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath, filePath, evalSet, evalThread }) => {
     const { rpcClient } = useRpcContext();
     const [isEditMode, setIsEditMode] = useState(false);
-    const [originalEvalCase, setOriginalEvalCase] = useState<EvalCase>(evalCase);
-    const [workingEvalCase, setWorkingEvalCase] = useState<EvalCase>(evalCase);
+    const [originalEvalThread, setOriginalEvalThread] = useState<EvalThread>(evalThread);
+    const [workingEvalThread, setWorkingEvalThread] = useState<EvalThread>(evalThread);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [selectedToolCall, setSelectedToolCall] = useState<{
@@ -282,8 +282,8 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
     };
 
     const handleEnterEditMode = () => {
-        setOriginalEvalCase(cloneEvalCase(evalCase));
-        setWorkingEvalCase(cloneEvalCase(evalCase));
+        setOriginalEvalThread(cloneEvalThread(evalThread));
+        setWorkingEvalThread(cloneEvalThread(evalThread));
         setHasUnsavedChanges(false);
         setIsEditMode(true);
     };
@@ -294,7 +294,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
     };
 
     const handleSaveUserMessage = (traceId: string, content: string) => {
-        setWorkingEvalCase(prev => {
+        setWorkingEvalThread(prev => {
             const updatedTraces = prev.traces.map(trace => {
                 if (trace.id === traceId) {
                     const originalType = getContentType(trace.userMessage.content);
@@ -309,7 +309,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
     };
 
     const handleSaveAgentOutput = (traceId: string, content: string) => {
-        setWorkingEvalCase(prev => {
+        setWorkingEvalThread(prev => {
             const updatedTraces = prev.traces.map(trace => {
                 if (trace.id === traceId) {
                     const originalType = getContentType(trace.output?.content);
@@ -329,13 +329,13 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
             // Update the evalSet with the modified case
             const updatedEvalSet: EvalSet = {
                 ...evalSet,
-                cases: evalSet.cases.map(c =>
-                    c.id === workingEvalCase.id ? workingEvalCase : c
+                threads: evalSet.threads.map(c =>
+                    c.id === workingEvalThread.id ? workingEvalThread : c
                 )
             };
 
             // Call the RPC to save
-            const response = await rpcClient.getVisualizerRpcClient().saveEvalCase({
+            const response = await rpcClient.getVisualizerRpcClient().saveEvalThread({
                 filePath,
                 updatedEvalSet
             });
@@ -347,14 +347,14 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                 console.error('Failed to save:', response.error);
             }
         } catch (error) {
-            console.error('Error saving evalCase:', error);
+            console.error('Error saving evalThread:', error);
         } finally {
             setIsSaving(false);
         }
     };
 
     const handleDiscard = () => {
-        setWorkingEvalCase(cloneEvalCase(originalEvalCase));
+        setWorkingEvalThread(cloneEvalThread(originalEvalThread));
         setHasUnsavedChanges(false);
         setSelectedToolCall(null);
         setIsEditMode(false);
@@ -370,7 +370,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
     };
 
     const handleUpdateToolCalls = (traceId: string, toolCalls: EvalFunctionCall[]) => {
-        setWorkingEvalCase(prev => {
+        setWorkingEvalThread(prev => {
             const updatedTraces = prev.traces.map(trace => {
                 if (trace.id === traceId) {
                     return updateToolCallsInTrace(trace, toolCalls);
@@ -390,7 +390,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
         if (!selectedToolCall) return;
 
         const { traceId, toolCallIndex } = selectedToolCall;
-        const trace = workingEvalCase.traces.find(t => t.id === traceId);
+        const trace = workingEvalThread.traces.find(t => t.id === traceId);
         if (!trace) return;
 
         const currentToolCalls = extractToolCalls(trace);
@@ -416,14 +416,14 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
     };
 
     const handleAddTurn = () => {
-        setWorkingEvalCase(prev => ({
+        setWorkingEvalThread(prev => ({
             ...prev,
             traces: [...prev.traces, createNewTrace()]
         }));
         setHasUnsavedChanges(true);
     };
 
-    const displayCase = isEditMode ? workingEvalCase : evalCase;
+    const displayCase = isEditMode ? workingEvalThread : evalThread;
 
     return (
         <PageWrapper>
@@ -574,7 +574,7 @@ export const EvalCaseViewer: React.FC<EvalCaseViewerProps> = ({ projectPath, fil
                 </Messages>
             </Container>
             {selectedToolCall && (() => {
-                const trace = workingEvalCase.traces.find(
+                const trace = workingEvalThread.traces.find(
                     t => t.id === selectedToolCall.traceId
                 );
                 if (!trace) return null;

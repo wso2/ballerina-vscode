@@ -19,7 +19,7 @@
 import React from "react";
 import styled from "@emotion/styled";
 import { EvalSet } from "@wso2/ballerina-core";
-import { EvalCaseViewer } from "./EvalCaseViewer";
+import { EvalThreadViewer } from "./EvalThreadViewer";
 
 const Container = styled.div`
     padding: 20px;
@@ -77,14 +77,14 @@ interface EvalsetViewerProps {
     projectPath: string;
     filePath: string;
     content: EvalSet;
-    caseId?: string;
+    threadId?: string;
 }
 
-export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, filePath, content, caseId }) => {
-    if (caseId) {
-        const evalCase = content.cases.find(c => c.id === caseId);
+export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, filePath, content, threadId }) => {
+    if (threadId) {
+        const evalThread = content.threads.find(c => c.id === threadId);
 
-        if (!evalCase) {
+        if (!evalThread) {
             return (
                 <Container>
                     <Header>
@@ -92,19 +92,19 @@ export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, fileP
                         <Subtitle>Case not found</Subtitle>
                     </Header>
                     <ErrorMessage>
-                        Case with ID "{caseId}" not found in this evalset.
+                        Case with ID "{threadId}" not found in this evalset.
                     </ErrorMessage>
                 </Container>
             );
         }
 
-        return <EvalCaseViewer projectPath={projectPath} filePath={filePath} evalSet={content} evalCase={evalCase} />;
+        return <EvalThreadViewer projectPath={projectPath} filePath={filePath} evalSet={content} evalThread={evalThread} />;
     }
     return (
         <Container>
             <Header>
                 <Title>{filePath}</Title>
-                <Subtitle>{content.cases.length} case(s)</Subtitle>
+                <Subtitle>{content.threads.length} case(s)</Subtitle>
             </Header>
             <ContentSection>
                 <Preformatted>{JSON.stringify(content, null, 2)}</Preformatted>
