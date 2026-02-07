@@ -50,6 +50,8 @@ import {
     NodeProperties,
     VisualizerLocation,
     getPrimaryInputType,
+    MACHINE_VIEW,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -897,7 +899,13 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ ...data, openInDataMapper: true });
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: MACHINE_VIEW.InlineDataMapper,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
         })();
     };
 

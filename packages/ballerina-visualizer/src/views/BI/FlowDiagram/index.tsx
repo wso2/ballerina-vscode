@@ -44,12 +44,13 @@ import {
     ParentMetadata,
     NodeMetadata,
     SearchKind,
-    DataMapperDisplayMode,
+    EditorConfig,
     CodeData,
     JoinProjectPathRequest,
     CodeContext,
     AIPanelPrompt,
     LinePosition,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 
 import {
@@ -1281,7 +1282,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnFormSubmit = (
         updatedNode?: FlowNode,
-        dataMapperMode?: DataMapperDisplayMode,
+        editorConfig?: EditorConfig,
         options?: FormSubmitOptions
     ) => {
         if (!updatedNode) {
@@ -1318,7 +1319,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             updatedNode.codedata.lineRange.endLine = targetLine;
         }
 
-        if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
+        if (
+            editorConfig &&
+            editorConfig.view === MACHINE_VIEW.InlineDataMapper &&
+            editorConfig.displayMode !== EditorDisplayMode.NONE
+        ) {
             rpcClient
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
@@ -1348,12 +1353,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     codeData: response.codedata,
                                 }
                             },
-                            isPopup: dataMapperMode === DataMapperDisplayMode.POPUP
+                            isPopup: editorConfig.displayMode === EditorDisplayMode.POPUP
                         });
                     }
                 })
                 .finally(() => {
-                    if (dataMapperMode !== DataMapperDisplayMode.POPUP) setShowSidePanel(false);
+                    if (editorConfig.displayMode !== EditorDisplayMode.POPUP) setShowSidePanel(false);
                     if (options?.postUpdateCallBack) {
                         options.postUpdateCallBack();
                     }
@@ -1366,7 +1371,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             .getSourceCode({
                 filePath: model.fileName,
                 flowNode: updatedNode,
-                isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
+                isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
             })
             .then(async (response) => {
