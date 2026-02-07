@@ -152,7 +152,7 @@ export function ImportIntegrationForm({
                     <BodyText>{selectedIntegration.description}</BodyText>
                     <DirectorySelector
                         id="import-project-folder-selector"
-                        placeholder="Choose your project folder..."
+                        placeholder="Enter path or browse to select your project folder..."
                         selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
                         onChange={(value) => {
