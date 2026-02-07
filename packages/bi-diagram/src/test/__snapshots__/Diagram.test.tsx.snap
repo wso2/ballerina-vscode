@@ -1,15 +1,155 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-flow 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-16 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px;}
+.css-62 {font-size: 12px; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; color: var(--vscode-foreground); opacity: 0.7; white-space: normal; line-height: 14px; max-height: 28px;}
+.css-53 {cursor: pointer;}
+.css-53:hover path:last-of-type {fill: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-53:hover+.custom-tooltip {opacity: 1; visibility: visible;}
+.css-7 {display: none; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-60 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 10px; cursor: pointer;}
+.css-31 svg {fill: var(--vscode-foreground);}
+.css-31 {padding: 4px;}
+.css-19 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
+.css-68 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 0px; height: 0px; border: 2px solid transparent; background-color: transparent; border-radius: 50%; cursor: not-allowed;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-animation: animation-1l5m1tj 0.5s ease-out forwards; animation: animation-1l5m1tj 0.5s ease-out forwards;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-26 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-34 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; width: 100%; padding: 8px; margin-top: 2px;}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-48 {pointer-events: all;}
+.css-48:hover+.tool-menu-button {opacity: 1; visibility: visible;}
+.css-47 {cursor: pointer;}
+.css-47:hover .tool-menu-button {opacity: 1; visibility: visible;}
+.css-47:hover .tool-tooltip {opacity: 1; visibility: visible;}
+.css-47:hover circle {stroke: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-47:hover foreignObject .connector-icon path {fill: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-47:hover text {fill: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-69 {margin-top: -2px;}
+.css-56 svg {fill: var(--vscode-terminal-ansiBlue);}
+.css-32 svg {fill: var(--vscode-terminal-ansiCyan);}
+.css-72 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-52 {height: 16px; width: 14px; cursor: pointer; font-size: 24px;}
+.css-21 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; position: absolute; padding: 8px; left: 52px; width: max-content;}
+.css-51 {background-color: var(--vscode-editor-background); color: var(--vscode-foreground); padding: 4px 8px; border-radius: 4px; font-size: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); opacity: 0; visibility: hidden; -webkit-transition: opacity 0.2s ease-in-out; transition: opacity 0.2s ease-in-out; pointer-events: none; white-space: nowrap; font-family: "GilmerRegular";}
+.css-39 {width: 100%; padding: 8px 6px 8px 12px; border: 1px solid var(--vscode-dropdown-border); border-radius: 4px; background-color: transparent; color: var(--vscode-foreground); cursor: pointer;}
+.css-39:hover {border-color: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-14 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%;}
+.css-37 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 2px;}
+.css-46 {height: 24px; width: 24px; cursor: pointer; font-size: 24px;}
+.css-35 {font-size: 14px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-29 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 8px; width: 100%; height: 100%; overflow: hidden;}
+.css-50 {display: flex; height: 24px; width: 24px; border-radius: 5px; padding: 2px; min-width: 24px;}
+.css-9 {cursor: pointer;}
+.css-10 {cursor: not-allowed; visibility: hidden;}
+.css-64 svg {fill: var(--vscode-terminal-ansiGreen);}
+.css-67 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 16px; height: 16px; cursor: pointer;}
+.css-25 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-70 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 8px; height: 8px; border: 2px solid var(--vscode-contrastBorder, var(--vscode-button-background)); background-color: var(--vscode-sideBar-background); border-radius: 50%; cursor: not-allowed;}
+.css-55 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); cursor: pointer;}
+.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.css-17 {margin-top: -3px;}
+.css-65 {width: 20px; height: 20px; font-size: 20px; color: var(--vscode-errorForeground);}
+.css-71 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-24 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-57 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; width: 100%; padding: 8px;}
+.css-41 {font-size: 12px; font-family: monospace; color: var(--vscode-foreground); opacity: 0.7;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-28 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 10px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground);}
+.css-30 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%; cursor: pointer;}
+.css-59 {display: flex; height: fit-content; width: fit-content; border-radius: 5px; position: absolute; top: -6px; left: 46px;}
+.css-8 {cursor: pointer; visibility: hidden;}
+.css-22 {font-size: 14px; max-width: 230px; font-family: "GilmerMedium";}
+.css-20 {margin-bottom: -2px;}
+.css-61 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; -webkit-flex: 1; -ms-flex: 1; flex: 1; min-width: 0; padding: 8px;}
+.css-45 {cursor: pointer;}
+.css-45:hover {stroke: var(--vscode-contrastActiveBorder, var(--vscode-editorLightBulb-foreground));}
+.css-42 a {color: var(--vscode-contrastBorder, var(--vscode-button-background)); -webkit-text-decoration: none; text-decoration: none;}
+.css-42 a:hover {-webkit-text-decoration: underline; text-decoration: underline;}
+.css-42 blockquote {margin: 0.3em 0; padding-left: 8px; border-left: 2px solid var(--vscode-dropdown-border);}
+.css-42 blockquote:first-child {margin-top: 0;}
+.css-42 blockquote:last-child {margin-bottom: 0;}
+.css-42 code {background-color: rgba(127, 127, 127, 0.1); padding: 1px 3px; border-radius: 2px; font-size: 11px;}
+.css-42 em {font-style: italic;}
+.css-42 h1,.css-42 h2,.css-42 h3,.css-42 h4,.css-42 h5,.css-42 h6 {font-size: 12px;}
+.css-42 h1,.css-42 h2,.css-42 h3,.css-42 h4,.css-42 h5,.css-42 h6 {margin: 0.4em 0 0.2em 0; padding: 0; font-weight: 600;}
+.css-42 h1:first-child,.css-42 h2:first-child,.css-42 h3:first-child,.css-42 h4:first-child,.css-42 h5:first-child,.css-42 h6:first-child {margin-top: 0;}
+.css-42 li {margin: 0 0 0.1em 0;}
+.css-42 li:last-child {margin-bottom: 0;}
+.css-42 p {display: inline; margin: 0;}
+.css-42 p {margin: 0 0 0.3em 0; padding: 0;}
+.css-42 p:last-child {margin-bottom: 0;}
+.css-42 pre code {background-color: transparent; padding: 0;}
+.css-42 pre {margin: 0.3em 0; padding: 4px; background-color: rgba(127, 127, 127, 0.1); border-radius: 2px; overflow-x: auto;}
+.css-42 pre:first-child {margin-top: 0;}
+.css-42 pre:last-child {margin-bottom: 0;}
+.css-42 strong {font-weight: 600;}
+.css-42 ul,.css-42 ol {margin: 0.3em 0; padding-left: 1.2em;}
+.css-42 ul:first-child,.css-42 ol:first-child {margin-top: 0;}
+.css-42 ul:last-child,.css-42 ol:last-child {margin-bottom: 0;}
+.css-42 {font-size: 12px; line-height: 1.4; width: 100%; color: var(--vscode-foreground); font-family: "GilmerMedium"; font-weight: bold; padding: 0 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; opacity: 0.5; font-style: italic;}
+.css-36 {font-size: 12px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; color: var(--vscode-foreground); opacity: 0.7;}
+.css-23 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
+.css-12 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-38 {width: 100%; border-bottom: 1px dashed var(--vscode-dropdown-border); padding-bottom: 8px;}
+.css-66 {height: 16px; width: 14px; cursor: pointer;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+.css-43 {-webkit-flex: 1; -ms-flex: 1; flex: 1; overflow: hidden; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; margin-bottom: 6px; cursor: pointer;}
+.css-27 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; cursor: pointer;}
+.css-44 a {color: var(--vscode-contrastBorder, var(--vscode-button-background)); -webkit-text-decoration: none; text-decoration: none;}
+.css-44 a:hover {-webkit-text-decoration: underline; text-decoration: underline;}
+.css-44 blockquote {margin: 0.3em 0; padding-left: 8px; border-left: 2px solid var(--vscode-dropdown-border);}
+.css-44 blockquote:first-child {margin-top: 0;}
+.css-44 blockquote:last-child {margin-bottom: 0;}
+.css-44 code {background-color: rgba(127, 127, 127, 0.1); padding: 1px 3px; border-radius: 2px; font-size: 11px;}
+.css-44 em {font-style: italic;}
+.css-44 h1,.css-44 h2,.css-44 h3,.css-44 h4,.css-44 h5,.css-44 h6 {font-size: 12px;}
+.css-44 h1,.css-44 h2,.css-44 h3,.css-44 h4,.css-44 h5,.css-44 h6 {margin: 0.4em 0 0.2em 0; padding: 0; font-weight: 600;}
+.css-44 h1:first-child,.css-44 h2:first-child,.css-44 h3:first-child,.css-44 h4:first-child,.css-44 h5:first-child,.css-44 h6:first-child {margin-top: 0;}
+.css-44 li {margin: 0 0 0.1em 0;}
+.css-44 li:last-child {margin-bottom: 0;}
+.css-44 p {margin: 0 0 0.3em 0; padding: 0;}
+.css-44 p:last-child {margin-bottom: 0;}
+.css-44 pre code {background-color: transparent; padding: 0;}
+.css-44 pre {margin: 0.3em 0; padding: 4px; background-color: rgba(127, 127, 127, 0.1); border-radius: 2px; overflow-x: auto;}
+.css-44 pre:first-child {margin-top: 0;}
+.css-44 pre:last-child {margin-bottom: 0;}
+.css-44 strong {font-weight: 600;}
+.css-44 ul,.css-44 ol {margin: 0.3em 0; padding-left: 1.2em;}
+.css-44 ul:first-child,.css-44 ol:first-child {margin-top: 0;}
+.css-44 ul:last-child,.css-44 ol:last-child {margin-bottom: 0;}
+.css-44 {font-size: 12px; line-height: 1.4; width: 100%; color: var(--vscode-foreground); opacity: 0.5; overflow: hidden; height: 100%; max-height: calc(100% - 5px); padding: 0 4px 4px; font-style: italic;}
+.css-40 {font-size: 14px; font-family: "GilmerMedium"; font-weight: bold; margin-bottom: 4px;}
+.css-18 svg {fill: var(--vscode-terminal-ansiYellow);}
+.css-63 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-errorForeground); border-radius: 10px; cursor: pointer;}
+.css-58 {font-size: 14px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium"; color: var(--vscode-foreground);}
+.css-54 {background-color: var(--vscode-editor-background); color: var(--vscode-foreground); padding: 4px 8px; border-radius: 4px; font-size: 12px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); opacity: 0; visibility: hidden; -webkit-transition: opacity 0.2s ease-in-out; transition: opacity 0.2s ease-in-out; pointer-events: none; white-space: nowrap; font-family: "GilmerRegular";}
+.css-13 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: pointer;}
+.css-49 {opacity: 0; visibility: hidden; -webkit-transition: opacity 0.2s ease-in-out; transition: opacity 0.2s ease-in-out; pointer-events: all;}
+.css-49:hover {opacity: 1; visibility: visible;}
+.css-33 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiCyan);}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -17,13 +157,13 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -31,10 +171,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -44,15 +184,15 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -86,10 +226,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -105,7 +245,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -122,7 +262,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -185,7 +325,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -205,10 +345,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -224,7 +364,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -241,7 +381,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -304,7 +444,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -324,10 +464,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -343,7 +483,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -360,7 +500,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -459,10 +599,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -478,7 +618,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-4"
                   height="24"
                   viewBox="0 0 24 24"
@@ -495,7 +635,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -558,10 +698,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -577,7 +717,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-5"
                   height="24"
                   viewBox="0 0 24 24"
@@ -594,7 +734,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -657,10 +797,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -676,7 +816,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-6"
                   height="24"
                   viewBox="0 0 24 24"
@@ -693,7 +833,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -756,10 +896,10 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -775,7 +915,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-7"
                   height="24"
                   viewBox="0 0 24 24"
@@ -792,7 +932,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -831,7 +971,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -840,31 +980,31 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1041.6px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-13"
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="css-HASH"
+                  class="css-16"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-17"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-18"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-19"
                     >
                       <i
                         class="fw-bi-shield"
@@ -872,21 +1012,21 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-20"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-21"
               >
                 <div
-                  class="css-HASH"
+                  class="css-22"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-23"
                 >
                   <vscode-button>
                     <svg
@@ -912,63 +1052,63 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-24"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-25"
             >
               <div
-                class="css-HASH"
+                class="css-26"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-27"
             data-testid="agent-call-node"
           >
             <div
-              class="css-HASH"
+              class="css-28"
               title="Configure Agent"
             >
               <div
-                class="port css-HASH"
+                class="port css-17"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-29"
                 style="height: 365px;"
               >
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-32"
                       color="var(--vscode-terminal-ansiCyan)"
                     >
                       <div
-                        class="css-HASH"
+                        class="css-33"
                       >
                         <i
                           class="fw-bi-ai-agent"
@@ -977,27 +1117,27 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     </div>
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-30"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-34"
                     >
                       <div
-                        class="css-HASH"
+                        class="css-35"
                       >
                         AI Agent
                       </div>
                       <div
-                        class="css-HASH"
+                        class="css-36"
                       >
                         stringResult
                       </div>
                     </div>
                     <div
-                      class="css-HASH"
+                      class="css-37"
                     >
                       <div
-                        class="css-HASH"
+                        class="css-23"
                       >
                         <vscode-button>
                           <svg
@@ -1022,34 +1162,34 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div />
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-38"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-30"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-39"
                       title="Configure Memory"
                     >
                       <div
-                        class="css-HASH"
+                        class="css-30"
                       >
                         <div
                           style="flex: 1;"
                         >
                           <div
-                            class="css-HASH"
+                            class="css-40"
                           >
                             Memory
                           </div>
                           <div
-                            class="css-HASH"
+                            class="css-41"
                           >
                             MessageWindowChatMemory
                           </div>
                         </div>
                         <div
-                          class="css-HASH"
+                          class="css-23"
                         >
                           <vscode-button>
                             <svg
@@ -1075,26 +1215,26 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   <div />
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-42"
                   >
                     Define agent's role
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-43"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-44"
                   >
                     Provide specific instructions on how the agent should behave.
                   </div>
                 </div>
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
@@ -1106,7 +1246,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
             >
               <g>
                 <circle
-                  class="css-HASH"
+                  class="css-45"
                   cx="80"
                   cy="24"
                   fill="var(--vscode-menu-background)"
@@ -1129,7 +1269,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="12"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-46"
                   >
                     <i
                       class="fw-bi-wso2"
@@ -1145,7 +1285,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 />
               </g>
               <g
-                class="css-HASH"
+                class="css-47"
                 transform="translate(0, 175)"
               >
                 <circle
@@ -1190,7 +1330,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-HASH"
+                  class="css-48"
                   height="48"
                   width="220"
                   x="60"
@@ -1201,14 +1341,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-HASH"
+                  class="tool-menu-button css-49"
                   height="24"
                   width="24"
                   x="173"
                   y="14"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-50"
                   >
                     <vscode-button>
                       <svg
@@ -1245,7 +1385,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-51"
                   >
                     Click to edit 
                     appendKey
@@ -1253,7 +1393,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </foreignobject>
               </g>
               <g
-                class="css-HASH"
+                class="css-47"
                 transform="translate(0, 230)"
               >
                 <circle
@@ -1278,7 +1418,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     class="connector-icon"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-52"
                     >
                       <i
                         class="fw-bi-function"
@@ -1301,7 +1441,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-HASH"
+                  class="css-48"
                   height="48"
                   width="220"
                   x="60"
@@ -1312,14 +1452,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-HASH"
+                  class="tool-menu-button css-49"
                   height="24"
                   width="24"
                   x="187"
                   y="14"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-50"
                   >
                     <vscode-button>
                       <svg
@@ -1356,7 +1496,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-51"
                   >
                     Click to edit 
                     getNameTool
@@ -1364,7 +1504,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </foreignobject>
               </g>
               <g
-                class="css-HASH"
+                class="css-47"
                 transform="translate(0, 285)"
               >
                 <circle
@@ -1389,7 +1529,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     class="connector-icon"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-46"
                     >
                       <i
                         class="fw-bi-mcp"
@@ -1412,7 +1552,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </title>
                 </text>
                 <foreignobject
-                  class="css-HASH"
+                  class="css-48"
                   height="48"
                   width="220"
                   x="60"
@@ -1423,14 +1563,14 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   />
                 </foreignobject>
                 <foreignobject
-                  class="tool-menu-button css-HASH"
+                  class="tool-menu-button css-49"
                   height="24"
                   width="24"
                   x="173"
                   y="14"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-50"
                   >
                     <vscode-button>
                       <svg
@@ -1467,7 +1607,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-51"
                   >
                     Click to edit 
                     mcpClient
@@ -1480,7 +1620,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 transform="translate(-11, 340)"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-53"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -1506,7 +1646,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   y="-10"
                 >
                   <div
-                    class="custom-tooltip css-HASH"
+                    class="custom-tooltip css-54"
                   >
                     Add New Tool / MCP Server
                   </div>
@@ -1587,20 +1727,20 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 701.6px; left: -32.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-55"
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="port css-HASH"
+                  class="port css-17"
                   data-name="in"
                 />
                 <svg
@@ -1630,7 +1770,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                     y="18"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-56"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <svg
@@ -1648,21 +1788,21 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-HASH"
+                  class="port css-20"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-HASH"
+                class="css-57"
               >
                 <div
-                  class="css-HASH"
+                  class="css-58"
                 >
                   If
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-59"
               >
                 <vscode-button>
                   <svg
@@ -1687,24 +1827,24 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 866.6px; left: -310px;"
         >
           <div
-            class="css-HASH"
+            class="css-60"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-31"
               >
                 <div
-                  class="css-HASH"
+                  class="css-56"
                   color="var(--vscode-terminal-ansiBlue)"
                 >
                   <svg
@@ -1720,27 +1860,27 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-61"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-35"
                   >
                     Return
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-62"
                   >
                     stringResult
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-37"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -1765,30 +1905,30 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 866.6px; left: 30px;"
         >
           <div
-            class="css-HASH"
+            class="css-63"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-31"
               >
                 <div
-                  class="css-HASH"
+                  class="css-64"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -1804,30 +1944,30 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-61"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-35"
                   >
                     log : printError
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-62"
                   >
                     "Failed to get a valid name from AI agent"
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-37"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-65"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-66"
                     >
                       <i
                         class="fw-error-outline-rounded"
@@ -1836,7 +1976,7 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
                   </div>
                   <div />
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -1861,65 +2001,65 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-67"
           >
             <div
-              class="css-HASH"
+              class="css-68"
             >
               <div
-                class="port css-HASH"
+                class="port css-69"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 983.6px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-67"
           >
             <div
-              class="css-HASH"
+              class="css-70"
             >
               <div
-                class="port css-HASH"
+                class="port css-69"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1143.6px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-71"
           >
             <div
-              class="css-HASH"
+              class="css-72"
             >
               <div
-                class="port css-HASH"
+                class="port css-69"
                 data-name="in"
               />
             </div>
@@ -1932,15 +2072,88 @@ exports[`BI Diagram - Snapshot Tests renders AI agent flow correctly: ai-agent-f
 `;
 
 exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flow 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-16 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px;}
+.css-32 {font-size: 12px; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; color: var(--vscode-foreground); opacity: 0.7; white-space: normal; line-height: 14px; max-height: 28px;}
+.css-7 {display: none; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-27 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 10px; cursor: pointer;}
+.css-28 svg {fill: var(--vscode-foreground);}
+.css-28 {padding: 4px;}
+.css-19 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
+.css-59 {display: none; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards; cursor: not-allowed;}
+.css-53 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 0px; height: 0px; border: 2px solid transparent; background-color: transparent; border-radius: 50%; cursor: not-allowed;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-animation: animation-1l5m1tj 0.5s ease-out forwards; animation: animation-1l5m1tj 0.5s ease-out forwards;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-26 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-44 {font-size: 12px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: monospace; opacity: 0.7;}
+.css-54 {margin-top: -2px;}
+.css-39 svg {fill: var(--vscode-terminal-ansiBlue);}
+.css-46 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px; cursor: pointer;}
+.css-49 {font-size: 12px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: monospace;}
+.css-47 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; width: 100%; position: absolute; padding: 8px; left: 52px;}
+.css-61 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-58 {display: none; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards; cursor: pointer;}
+.css-21 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; position: absolute; padding: 8px; left: 52px; width: max-content;}
+.css-14 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%;}
+.css-33 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 2px;}
+.css-57 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px;}
+.css-31 {font-size: 14px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-51 {position: fixed; width: 500px; height: 261.6px; top: 1254.2px; left: -185px; border: 2px dashed var(--vscode-dropdown-border); border-radius: 10px; background-color: transparent; z-index: -1; display: flex; -webkit-align-items: flex-end; -webkit-box-align: flex-end; -ms-flex-align: flex-end; align-items: flex-end; pointer-events: none;}
+.css-56 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 8px; height: 8px; border: 2px solid var(--vscode-contrastBorder, var(--vscode-button-background)); background-color: var(--vscode-sideBar-background); border-radius: 50%; cursor: pointer;}
+.css-9 {cursor: pointer;}
+.css-10 {cursor: not-allowed; visibility: hidden;}
+.css-36 svg {fill: var(--vscode-terminal-ansiGreen);}
+.css-52 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 16px; height: 16px; cursor: pointer;}
+.css-25 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-55 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 8px; height: 8px; border: 2px solid var(--vscode-contrastBorder, var(--vscode-button-background)); background-color: var(--vscode-sideBar-background); border-radius: 50%; cursor: not-allowed;}
+.css-29 svg {fill: var(--vscode-terminal-ansiMagenta);}
+.css-48 {font-size: 14px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-50 {display: flex; height: fit-content; width: fit-content; border-radius: 5px; position: absolute; top: -10px; left: 52px;}
+.css-38 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); cursor: pointer;}
+.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.css-17 {margin-top: -3px;}
+.css-60 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-24 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-40 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; width: 100%; padding: 8px;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-42 {display: flex; height: fit-content; width: fit-content; border-radius: 5px; position: absolute; top: -6px; left: 46px;}
+.css-8 {cursor: pointer; visibility: hidden;}
+.css-22 {font-size: 14px; max-width: 230px; font-family: "GilmerMedium";}
+.css-20 {margin-bottom: -2px;}
+.css-30 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; -webkit-flex: 1; -ms-flex: 1; flex: 1; min-width: 0; padding: 8px;}
+.css-37 {font-size: 12px; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; color: var(--vscode-foreground); opacity: 0.7;}
+.css-23 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
+.css-43 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiBlue);}
+.css-12 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+.css-34 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; cursor: pointer;}
+.css-18 svg {fill: var(--vscode-terminal-ansiYellow);}
+.css-41 {font-size: 14px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium"; color: var(--vscode-foreground);}
+.css-13 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: pointer;}
+.css-35 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; opacity: 1; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 10px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: pointer;}
+.css-45 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: default;}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -1948,13 +2161,13 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -1962,10 +2175,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -1975,15 +2188,15 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -2017,10 +2230,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2036,7 +2249,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2053,7 +2266,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2116,10 +2329,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2135,7 +2348,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2152,7 +2365,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2215,7 +2428,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2235,10 +2448,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2254,7 +2467,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2271,7 +2484,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2334,10 +2547,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2353,7 +2566,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-3"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2370,7 +2583,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2505,10 +2718,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2524,7 +2737,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-6"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2541,7 +2754,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2604,7 +2817,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2696,7 +2909,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2788,7 +3001,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="345"
             >
               <div
-                class="css-HASH"
+                class="css-11"
               >
                 <div
                   style="display: flex; justify-content: center; align-items: center; border-radius: 20px; padding: 2px 10px; box-sizing: border-box;"
@@ -2952,10 +3165,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -2971,7 +3184,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-15"
                   height="24"
                   viewBox="0 0 24 24"
@@ -2988,7 +3201,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3051,10 +3264,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3070,7 +3283,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-16"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3087,7 +3300,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3150,10 +3363,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3169,7 +3382,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-17"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3186,7 +3399,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3249,10 +3462,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3268,7 +3481,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-18"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3285,7 +3498,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3348,10 +3561,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3367,7 +3580,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-19"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3384,7 +3597,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3447,10 +3660,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3466,7 +3679,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-20"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3483,7 +3696,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3546,10 +3759,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3565,7 +3778,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-21"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3582,7 +3795,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3645,10 +3858,10 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3664,7 +3877,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-22"
                   height="24"
                   viewBox="0 0 24 24"
@@ -3681,7 +3894,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -3720,7 +3933,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -3729,31 +3942,31 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1669.4px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-13"
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="css-HASH"
+                  class="css-16"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-17"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-18"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-19"
                     >
                       <i
                         class="fw-bi-shield"
@@ -3761,21 +3974,21 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-20"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-21"
               >
                 <div
-                  class="css-HASH"
+                  class="css-22"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-23"
                 >
                   <vscode-button>
                     <svg
@@ -3801,50 +4014,50 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-24"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-25"
             >
               <div
-                class="css-HASH"
+                class="css-26"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-27"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-28"
               >
                 <div
-                  class="css-HASH"
+                  class="css-29"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -3860,27 +4073,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-32"
                   >
                     names = ["Alice", "Bob", "Charlie", "Diana", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-33"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -3905,33 +4118,33 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 410.20000000000005px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-34"
           >
             <div
-              class="css-HASH"
+              class="css-35"
             >
               <div
-                class="port css-HASH"
+                class="port css-17"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-28"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-36"
                     color="var(--vscode-terminal-ansiGreen)"
                   >
                     <svg
@@ -3947,27 +4160,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-14"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-30"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-31"
                     >
                       redis : append
                     </div>
                     <div
-                      class="css-HASH"
+                      class="css-37"
                     >
                       intResult
                     </div>
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-33"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-23"
                     >
                       <vscode-button>
                         <svg
@@ -3992,7 +4205,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 <div />
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
@@ -4059,20 +4272,20 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 530.2px; left: -32.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-38"
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="port css-HASH"
+                  class="port css-17"
                   data-name="in"
                 />
                 <svg
@@ -4102,7 +4315,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     y="18"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-39"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <svg
@@ -4120,21 +4333,21 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-HASH"
+                  class="port css-20"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-HASH"
+                class="css-40"
               >
                 <div
-                  class="css-HASH"
+                  class="css-41"
                 >
                   If
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-42"
               >
                 <vscode-button>
                   <svg
@@ -4159,24 +4372,24 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 695.2px; left: -275px;"
         >
           <div
-            class="css-HASH"
+            class="css-27"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-28"
               >
                 <div
-                  class="css-HASH"
+                  class="css-36"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -4192,27 +4405,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     log : printInfo
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-32"
                   >
                     "TEXT_HERE"
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-33"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -4237,26 +4450,26 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 870.2px; left: -32.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-38"
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="port css-HASH"
+                  class="port css-17"
                   data-name="in"
                 />
                 <svg
@@ -4286,11 +4499,11 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     y="18"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-39"
                       color="var(--vscode-terminal-ansiBlue)"
                     >
                       <div
-                        class="css-HASH"
+                        class="css-43"
                       >
                         <i
                           class="fw-bi-match"
@@ -4300,26 +4513,26 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </foreignobject>
                 </svg>
                 <div
-                  class="port css-HASH"
+                  class="port css-20"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-HASH"
+                class="css-40"
               >
                 <div
-                  class="css-HASH"
+                  class="css-41"
                 >
                   Match
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-44"
                 >
                   intResult 
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-42"
               >
                 <vscode-button>
                   <svg
@@ -4344,32 +4557,32 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1210.2px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-45"
             readonly=""
           >
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 <div
-                  class="css-HASH"
+                  class="css-46"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-17"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-39"
                     color="var(--vscode-terminal-ansiBlue)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-43"
                     >
                       <i
                         class="fw-bi-loop"
@@ -4377,27 +4590,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-20"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-47"
               >
                 <div
-                  class="css-HASH"
+                  class="css-48"
                 >
                   While
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-49"
                 >
                   intResult == 0 
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-50"
               >
                 <vscode-button>
                   <svg
@@ -4420,34 +4633,34 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="css-HASH"
+              class="css-51"
               height="261.6"
               width="500"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1312.2px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-34"
           >
             <div
-              class="css-HASH"
+              class="css-35"
             >
               <div
-                class="port css-HASH"
+                class="port css-17"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-28"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-36"
                     color="var(--vscode-terminal-ansiGreen)"
                   >
                     <svg
@@ -4463,25 +4676,25 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-14"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-30"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-31"
                     >
                       redis : append
                     </div>
                     <div
-                      class="css-HASH"
+                      class="css-37"
                     />
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-33"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-23"
                     >
                       <vscode-button>
                         <svg
@@ -4506,7 +4719,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 <div />
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
@@ -4573,24 +4786,24 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1412.2px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-27"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-28"
               >
                 <div
-                  class="css-HASH"
+                  class="css-36"
                   color="var(--vscode-terminal-ansiGreen)"
                 >
                   <svg
@@ -4606,27 +4819,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     log : printInfo
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-32"
                   >
                     "TEXT_HERE"
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-33"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -4651,30 +4864,30 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1565.8000000000002px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-27"
           >
             <div
-              class="port css-HASH"
+              class="port css-17"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-28"
               >
                 <div
-                  class="css-HASH"
+                  class="css-39"
                   color="var(--vscode-terminal-ansiBlue)"
                 >
                   <svg
@@ -4690,27 +4903,27 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-30"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     Return
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-32"
                   >
                     names[0]
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-33"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-23"
                   >
                     <vscode-button>
                       <svg
@@ -4735,114 +4948,114 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-20"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-53"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 812.2px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-55"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 695.2px; left: 125px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-55"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1152.2px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-55"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1035.2px; left: -310px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-56"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-57"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-58"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4874,7 +5087,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-59"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4894,31 +5107,31 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </svg>
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1035.2px; left: -110px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-56"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-57"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-58"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4950,7 +5163,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-59"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -4970,31 +5183,31 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </svg>
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1035.2px; left: 90px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-56"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-57"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-58"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -5026,7 +5239,7 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-59"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -5046,66 +5259,66 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
                 </svg>
               </div>
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1035.2px; left: 290px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-55"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1507.8000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-52"
           >
             <div
-              class="css-HASH"
+              class="css-55"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-20"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-12"
           style="top: 1771.4px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-60"
           >
             <div
-              class="css-HASH"
+              class="css-61"
             >
               <div
-                class="port css-HASH"
+                class="port css-54"
                 data-name="in"
               />
             </div>
@@ -5118,15 +5331,68 @@ exports[`BI Diagram - Snapshot Tests renders complex flow correctly: complex-flo
 `;
 
 exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: flow-with-diagnostics 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px;}
+.css-28 {font-size: 12px; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; color: var(--vscode-foreground); opacity: 0.7; white-space: normal; line-height: 14px; max-height: 28px;}
+.css-36 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 160px; height: 30px; padding: 0 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); color: var(--vscode-foreground);}
+.css-7 {display: none; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-24 svg {fill: var(--vscode-foreground);}
+.css-24 {padding: 4px;}
+.css-18 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
+.css-34 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 0px; height: 0px; border: 2px solid transparent; background-color: transparent; border-radius: 50%; cursor: not-allowed;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-23 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 0.7; border: 2px; border-style: dashed; border-color: var(--vscode-dropdown-border); border-radius: 10px; cursor: pointer;}
+.css-32 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-35 {margin-top: -2px;}
+.css-41 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-20 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; position: absolute; padding: 8px; left: 52px; width: max-content;}
+.css-13 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%;}
+.css-29 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 2px;}
+.css-38 {display: flex; height: fit-content; width: fit-content;}
+.css-27 {font-size: 14px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-9 {cursor: pointer;}
+.css-10 {cursor: not-allowed; visibility: hidden;}
+.css-33 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 16px; height: 16px; cursor: pointer;}
+.css-31 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-25 svg {fill: var(--vscode-terminal-ansiMagenta);}
+.css-14 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.css-16 {margin-top: -3px;}
+.css-40 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-30 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-8 {cursor: pointer; visibility: hidden;}
+.css-21 {font-size: 14px; max-width: 230px; font-family: "GilmerMedium";}
+.css-19 {margin-bottom: -2px;}
+.css-26 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; -webkit-flex: 1; -ms-flex: 1; flex: 1; min-width: 0; padding: 8px;}
+.css-22 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
+.css-11 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+.css-17 svg {fill: var(--vscode-terminal-ansiYellow);}
+.css-37 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: space-around; -ms-flex-pack: space-around; -webkit-justify-content: space-around; justify-content: space-around; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 4px; width: 100%;}
+.css-12 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: pointer;}
+.css-39 {font-size: 12px;}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -5134,13 +5400,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -5148,10 +5414,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -5161,15 +5427,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -5203,10 +5469,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5222,7 +5488,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5239,7 +5505,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5302,10 +5568,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5321,7 +5587,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5338,7 +5604,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5401,10 +5667,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5420,7 +5686,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5437,7 +5703,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5476,7 +5742,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -5485,31 +5751,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-12"
           >
             <div
-              class="css-HASH"
+              class="css-13"
             >
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-15"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-16"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-17"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-18"
                     >
                       <i
                         class="fw-bi-shield"
@@ -5517,21 +5783,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-19"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-20"
               >
                 <div
-                  class="css-HASH"
+                  class="css-21"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-22"
                 >
                   <vscode-button>
                     <svg
@@ -5557,25 +5823,25 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-23"
             disabled=""
           >
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-13"
             >
               <div
-                class="css-HASH"
+                class="css-24"
               >
                 <div
-                  class="css-HASH"
+                  class="css-25"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -5591,27 +5857,27 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-13"
               >
                 <div
-                  class="css-HASH"
+                  class="css-26"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-27"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-28"
                   >
                     names = ["Alice", "Bob", "Charlie", "David", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-29"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-22"
                   >
                     <vscode-button>
                       <svg
@@ -5636,76 +5902,76 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-19"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-30"
           >
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-31"
             >
               <div
-                class="css-HASH"
+                class="css-32"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-19"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-33"
           >
             <div
-              class="css-HASH"
+              class="css-34"
             >
               <div
-                class="port css-HASH"
+                class="port css-35"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-19"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 266.6px; left: 30px;"
         >
           <div
-            class="css-HASH"
+            class="css-36"
           >
             <div
-              class="css-HASH"
+              class="css-37"
             >
               <div
-                class="css-HASH"
+                class="css-38"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-39"
                   >
                     Accept
                   </div>
@@ -5717,13 +5983,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
                 </vscode-button>
               </div>
               <div
-                class="css-HASH"
+                class="css-38"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-39"
                   >
                     Discard
                   </div>
@@ -5738,17 +6004,17 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-40"
           >
             <div
-              class="css-HASH"
+              class="css-41"
             >
               <div
-                class="port css-HASH"
+                class="port css-35"
                 data-name="in"
               />
             </div>
@@ -5761,15 +6027,60 @@ exports[`BI Diagram - Snapshot Tests renders flow with diagnostics correctly: fl
 `;
 
 exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: flow-with-error 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px;}
+.css-7 {display: none; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-18 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
+.css-32 {display: none; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards; cursor: not-allowed;}
+.css-27 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 0px; height: 0px; border: 2px solid transparent; background-color: transparent; border-radius: 50%; cursor: not-allowed;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-25 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-28 {margin-top: -2px;}
+.css-34 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-31 {display: none; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards; cursor: pointer;}
+.css-20 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; position: absolute; padding: 8px; left: 52px; width: max-content;}
+.css-13 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%;}
+.css-30 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px;}
+.css-29 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 8px; height: 8px; border: 2px solid var(--vscode-contrastBorder, var(--vscode-button-background)); background-color: var(--vscode-sideBar-background); border-radius: 50%; cursor: pointer;}
+.css-9 {cursor: pointer;}
+.css-10 {cursor: not-allowed; visibility: hidden;}
+.css-26 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 16px; height: 16px; cursor: pointer;}
+.css-24 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-14 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.css-16 {margin-top: -3px;}
+.css-33 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-23 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-8 {cursor: pointer; visibility: hidden;}
+.css-21 {font-size: 14px; max-width: 230px; font-family: "GilmerMedium";}
+.css-19 {margin-bottom: -2px;}
+.css-22 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
+.css-11 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+.css-17 svg {fill: var(--vscode-terminal-ansiYellow);}
+.css-12 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: pointer;}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -5777,13 +6088,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -5791,10 +6102,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -5804,15 +6115,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -5918,10 +6229,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5937,7 +6248,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -5954,7 +6265,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -5993,7 +6304,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -6002,31 +6313,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-12"
           >
             <div
-              class="css-HASH"
+              class="css-13"
             >
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-15"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-16"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-17"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-18"
                     >
                       <i
                         class="fw-bi-shield"
@@ -6034,21 +6345,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-19"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-20"
               >
                 <div
-                  class="css-HASH"
+                  class="css-21"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-22"
                 >
                   <vscode-button>
                     <svg
@@ -6074,71 +6385,71 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-23"
           >
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-24"
             >
               <div
-                class="css-HASH"
+                class="css-25"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-19"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-26"
           >
             <div
-              class="css-HASH"
+              class="css-27"
             >
               <div
-                class="port css-HASH"
+                class="port css-28"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-19"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 286.6px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-26"
           >
             <div
-              class="css-HASH"
+              class="css-29"
             >
               <div
-                class="port css-HASH"
+                class="port css-28"
                 data-name="in"
               />
               <div
-                class="css-HASH"
+                class="css-30"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-31"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -6170,7 +6481,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-32"
                   height="20"
                   viewBox="0 0 24 24"
                   width="20"
@@ -6190,24 +6501,24 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
                 </svg>
               </div>
               <div
-                class="port css-HASH"
+                class="port css-19"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-33"
           >
             <div
-              class="css-HASH"
+              class="css-34"
             >
               <div
-                class="port css-HASH"
+                class="port css-28"
                 data-name="in"
               />
             </div>
@@ -6220,15 +6531,68 @@ exports[`BI Diagram - Snapshot Tests renders flow with error handler correctly: 
 `;
 
 exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: flow-with-suggestions 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border: 1.8px; border-style: solid; border-color: var(--vscode-dropdown-border); border-radius: 8px; background-color: var(--vscode-menu-background); width: 52px; height: 52px;}
+.css-31 {font-size: 12px; width: 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: monospace; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-all; color: var(--vscode-foreground); opacity: 0.7; white-space: normal; line-height: 14px; max-height: 28px;}
+.css-36 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 160px; height: 30px; padding: 0 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); color: var(--vscode-foreground);}
+.css-7 {display: none; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-27 svg {fill: var(--vscode-foreground);}
+.css-27 {padding: 4px;}
+.css-18 {height: 24px; width: 24px; cursor: pointer; font-size: 24px; color: var(--vscode-terminal-ansiYellow);}
+.css-34 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 0px; height: 0px; border: 2px solid transparent; background-color: transparent; border-radius: 50%; cursor: not-allowed;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-26 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 280px; min-height: 50px; padding: 0 8px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); opacity: 0.7; border: 2px; border-style: dashed; border-color: var(--vscode-dropdown-border); border-radius: 10px; cursor: pointer;}
+.css-25 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-35 {margin-top: -2px;}
+.css-41 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-20 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; position: absolute; padding: 8px; left: 52px; width: max-content;}
+.css-13 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 100%;}
+.css-32 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 2px;}
+.css-38 {display: flex; height: fit-content; width: fit-content;}
+.css-30 {font-size: 14px; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-9 {cursor: pointer;}
+.css-10 {cursor: not-allowed; visibility: hidden;}
+.css-33 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 16px; height: 16px; cursor: pointer;}
+.css-24 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-28 svg {fill: var(--vscode-terminal-ansiMagenta);}
+.css-14 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center;}
+.css-16 {margin-top: -3px;}
+.css-40 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-23 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-8 {cursor: pointer; visibility: hidden;}
+.css-21 {font-size: 14px; max-width: 230px; font-family: "GilmerMedium";}
+.css-19 {margin-bottom: -2px;}
+.css-29 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: flex-start; -webkit-box-align: flex-start; -ms-flex-align: flex-start; align-items: flex-start; gap: 2px; -webkit-flex: 1; -ms-flex: 1; flex: 1; min-width: 0; padding: 8px;}
+.css-22 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
+.css-11 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+.css-17 svg {fill: var(--vscode-terminal-ansiYellow);}
+.css-37 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-box-pack: space-around; -ms-flex-pack: space-around; -webkit-justify-content: space-around; justify-content: space-around; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 4px; width: 100%;}
+.css-12 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; color: var(--vscode-foreground); cursor: pointer;}
+.css-39 {font-size: 12px;}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -6236,13 +6600,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -6250,10 +6614,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -6263,15 +6627,15 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -6305,10 +6669,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6324,7 +6688,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6341,7 +6705,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6404,10 +6768,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6423,7 +6787,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-1"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6440,7 +6804,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6503,10 +6867,10 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6522,7 +6886,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-2"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6539,7 +6903,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6578,7 +6942,7 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -6587,31 +6951,31 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 436.6px; left: -26px;"
         >
           <div
-            class="css-HASH"
+            class="css-12"
           >
             <div
-              class="css-HASH"
+              class="css-13"
             >
               <div
-                class="css-HASH"
+                class="css-14"
               >
                 <div
-                  class="css-HASH"
+                  class="css-15"
                 >
                   <div
-                    class="port css-HASH"
+                    class="port css-16"
                     data-name="in"
                   />
                   <div
-                    class="css-HASH"
+                    class="css-17"
                     color="var(--vscode-terminal-ansiYellow)"
                   >
                     <div
-                      class="css-HASH"
+                      class="css-18"
                     >
                       <i
                         class="fw-bi-shield"
@@ -6619,21 +6983,21 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                     </div>
                   </div>
                   <div
-                    class="port css-HASH"
+                    class="port css-19"
                     data-name="out"
                   />
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-20"
               >
                 <div
-                  class="css-HASH"
+                  class="css-21"
                 >
                   Error Handler
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-22"
                 >
                   <vscode-button>
                     <svg
@@ -6659,51 +7023,51 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-23"
           >
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-24"
             >
               <div
-                class="css-HASH"
+                class="css-25"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-19"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 286.6px; left: -140px;"
         >
           <div
-            class="css-HASH"
+            class="css-26"
             disabled=""
           >
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-13"
             >
               <div
-                class="css-HASH"
+                class="css-27"
               >
                 <div
-                  class="css-HASH"
+                  class="css-28"
                   color="var(--vscode-terminal-ansiMagenta)"
                 >
                   <svg
@@ -6719,27 +7083,27 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                 </div>
               </div>
               <div
-                class="css-HASH"
+                class="css-13"
               >
                 <div
-                  class="css-HASH"
+                  class="css-29"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-30"
                   >
                     Declare Variable
                   </div>
                   <div
-                    class="css-HASH"
+                    class="css-31"
                   >
                     names = ["Alice", "Bob", "Charlie", "Diana", "Eve"]
                   </div>
                 </div>
                 <div
-                  class="css-HASH"
+                  class="css-32"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-22"
                   >
                     <vscode-button>
                       <svg
@@ -6764,50 +7128,50 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
               <div />
             </div>
             <div
-              class="port css-HASH"
+              class="port css-19"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 228.60000000000002px; left: -8px;"
         >
           <div
-            class="css-HASH"
+            class="css-33"
           >
             <div
-              class="css-HASH"
+              class="css-34"
             >
               <div
-                class="port css-HASH"
+                class="port css-35"
                 data-name="in"
               />
               <div
-                class="port css-HASH"
+                class="port css-19"
                 data-name="out"
               />
             </div>
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 266.6px; left: 30px;"
         >
           <div
-            class="css-HASH"
+            class="css-36"
           >
             <div
-              class="css-HASH"
+              class="css-37"
             >
               <div
-                class="css-HASH"
+                class="css-38"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-39"
                   >
                     Accept
                   </div>
@@ -6819,13 +7183,13 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
                 </vscode-button>
               </div>
               <div
-                class="css-HASH"
+                class="css-38"
               >
                 <vscode-button
                   style="height: 18px;"
                 >
                   <div
-                    class="css-HASH"
+                    class="css-39"
                   >
                     Discard
                   </div>
@@ -6840,17 +7204,17 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 538.6px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-40"
           >
             <div
-              class="css-HASH"
+              class="css-41"
             >
               <div
-                class="port css-HASH"
+                class="port css-35"
                 data-name="in"
               />
             </div>
@@ -6863,15 +7227,45 @@ exports[`BI Diagram - Snapshot Tests renders flow with suggestions correctly: fl
 `;
 
 exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`] = `
-"<div>
+"/* Emotion Styles */
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-1 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-1:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-1:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-15 {font-size: 14px; max-width: 81.33333333333333px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "GilmerMedium";}
+.css-3 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-3>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-3>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-3>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-19 {margin-top: -2px;}
+.css-18 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); border-radius: 50%;}
+.css-9 {cursor: pointer;}
+.css-14 {position: relative; display: inline-block; cursor: default; pointer-events: auto;}
+.css-13 {margin-top: -3px;}
+.css-8 {cursor: pointer; visibility: visible;}
+.css-17 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 20px;}
+.css-5 {position: relative; cursor: move; overflow: unset; height: unset !important;}
+.css-12 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 93.33333333333333px; min-height: 33.333333333333336px; padding: 0 8px; border: 1.8px solid var(--vscode-dropdown-border); border-radius: 40px; background-color: var(--vscode-menu-background); color: var(--vscode-foreground); cursor: default;}
+.css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
+.css-16 {margin-bottom: -2px;}
+.css-7 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; gap: 5px; -webkit-animation: animation-1l5m1tj 0.2s ease-out forwards; animation: animation-1l5m1tj 0.2s ease-out forwards;}
+.css-10 {cursor: not-allowed; visibility: visible;}
+.css-11 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
+.css-6 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
+.css-4 >* {height: 100%; min-height: 100%; width: 100%;}
+.css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; pointer-events: auto; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
+
+/* DOM */
+<div>
   <div
-    class="css-HASH"
+    class="css-0"
   >
     <div
-      class="css-HASH"
+      class="css-1"
     >
       <div
-        class="css-HASH"
+        class="css-2"
       >
         <i
           class="fw-bi-fit-screen"
@@ -6879,13 +7273,13 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
       </div>
     </div>
     <div
-      class="css-HASH"
+      class="css-3"
     >
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-plus"
@@ -6893,10 +7287,10 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
         </div>
       </div>
       <div
-        class="css-HASH"
+        class="css-1"
       >
         <div
-          class="css-HASH"
+          class="css-2"
         >
           <i
             class="fw-bi-minus"
@@ -6906,15 +7300,15 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
     </div>
   </div>
   <div
-    class="css-HASH"
+    class="css-4"
     color="var(--vscode-foreground)"
     data-testid="bi-diagram-canvas"
   >
     <div
-      class="css-HASH"
+      class="css-5"
     >
       <svg
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -6948,10 +7342,10 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
               y="285"
             >
               <div
-                class="css-HASH"
+                class="css-7"
               >
                 <svg
-                  class="css-HASH"
+                  class="css-8"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -6967,7 +7361,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-9"
                   data-testid="link-add-button-undefined"
                   height="24"
                   viewBox="0 0 24 24"
@@ -6984,7 +7378,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
                   />
                 </svg>
                 <svg
-                  class="css-HASH"
+                  class="css-10"
                   height="24"
                   viewBox="0 0 24 24"
                   width="24"
@@ -7023,7 +7417,7 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
         </g>
       </svg>
       <div
-        class="css-HASH"
+        class="css-6"
         style="transform: translate(
 				512px,
 				0px)
@@ -7032,43 +7426,43 @@ exports[`BI Diagram - Snapshot Tests renders start flow correctly: start-flow 1`
 			);"
       >
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 200px; left: -46.5px;"
         >
           <div
-            class="css-HASH"
+            class="css-12"
           >
             <div
-              class="port css-HASH"
+              class="port css-13"
               data-name="in"
             />
             <div
-              class="css-HASH"
+              class="css-14"
             >
               <div
-                class="css-HASH"
+                class="css-15"
               >
                 Start
               </div>
             </div>
             <div
-              class="port css-HASH"
+              class="port css-16"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-HASH"
+          class="node css-11"
           style="top: 286.6px; left: -10px;"
         >
           <div
-            class="css-HASH"
+            class="css-17"
           >
             <div
-              class="css-HASH"
+              class="css-18"
             >
               <div
-                class="port css-HASH"
+                class="port css-19"
                 data-name="in"
               />
             </div>
