@@ -151,7 +151,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                 <DirectorySelector
                     id="project-folder-selector"
                     label="Select Path"
-                    placeholder="Choose a folder for your project..."
+                    placeholder="Enter path or browse to select a folder..."
                     selectedPath={formData.path}
                     required={true}
                     onSelect={handleProjectDirSelection}

@@ -75,7 +75,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
                 <DirectorySelector
                     id="multi-project-folder-selector"
                     label="Select Path"
-                    placeholder="Choose a folder for your packages..."
+                    placeholder="Enter path or browse to select a folder..."
                     selectedPath={formData.path}
                     onSelect={handleProjectDirSelection}
                     onChange={(value) => onFormDataChange({ path: value })}
