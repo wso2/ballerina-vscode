@@ -155,6 +155,10 @@ export function ImportIntegrationForm({
                         placeholder="Choose your project folder..."
                         selectedPath={importSourcePath}
                         onSelect={handleFolderSelection}
+                        onChange={(value) => {
+                            setImportSourcePath(value);
+                            setSourcePathError(null);
+                        }}
                         errorMsg={sourcePathError || undefined}
                     />
                 </StepContainer>

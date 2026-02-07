@@ -155,6 +155,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
                     selectedPath={formData.path}
                     required={true}
                     onSelect={handleProjectDirSelection}
+                    onChange={(value) => onFormDataChange({ path: value })}
                     errorMsg={pathError || undefined}
                 />
 

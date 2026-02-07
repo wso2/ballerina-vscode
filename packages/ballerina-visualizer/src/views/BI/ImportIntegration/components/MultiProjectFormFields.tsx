@@ -78,6 +78,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange, pathError, 
                     placeholder="Choose a folder for your packages..."
                     selectedPath={formData.path}
                     onSelect={handleProjectDirSelection}
+                    onChange={(value) => onFormDataChange({ path: value })}
                     errorMsg={pathError}
                 />
             </FieldGroup>
