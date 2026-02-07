@@ -593,6 +593,7 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm
+                                key={value?.identifier} // Force remount when switching between different tests
                                 projectPath={value.projectPath}
                                 functionName={value?.identifier}
                                 filePath={value?.documentUri}
