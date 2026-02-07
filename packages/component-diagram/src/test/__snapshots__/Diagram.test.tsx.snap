@@ -3,13 +3,13 @@
 exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: ai-agent-complex 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -17,13 +17,13 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -31,10 +31,10 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -44,14 +44,14 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -223,7 +223,7 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -232,27 +232,27 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 1010px;"
         >
           <div
-            class="css-1v2vksi"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1pw7pch"
+              class="css-HASH"
             >
               <div
-                class="css-i39d00"
+                class="css-HASH"
               >
                 <div
-                  class="css-1spvwsg"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-connection"
@@ -261,21 +261,21 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 </div>
               </div>
               <div
-                class="css-12znkyi"
+                class="css-HASH"
               >
                 <div
-                  class="css-nps6m6"
+                  class="css-HASH"
                 >
                   redisClient
                 </div>
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   Connection
                 </div>
               </div>
               <div
-                class="css-ij0d9h css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -298,33 +298,33 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -332,19 +332,19 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -366,19 +366,19 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -389,19 +389,19 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -412,10 +412,10 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 />
               </div>
               <div
-                class="css-165ws9o"
+                class="css-HASH"
               >
                 <div
-                  class="css-1jh13ph"
+                  class="css-HASH"
                 >
                   Show More Resources
                 </div>
@@ -427,33 +427,33 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 332px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-ai-agent"
@@ -461,19 +461,19 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     AI Service
                   </div>
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   />
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -497,34 +497,34 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="post-chat"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -538,19 +538,19 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -574,30 +574,30 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 332px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -617,12 +617,12 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -643,13 +643,13 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   ai:Listener
                 </div>
@@ -659,24 +659,24 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -696,12 +696,12 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -722,13 +722,13 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -739,18 +739,18 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -765,13 +765,13 @@ exports[`Component Diagram - Snapshot Tests renders ai agent complex correctly: 
 exports[`Component Diagram - Snapshot Tests renders connections complex correctly: connections-complex 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -779,13 +779,13 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -793,10 +793,10 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -806,14 +806,14 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -931,7 +931,7 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -940,27 +940,27 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 1010px;"
         >
           <div
-            class="css-1v2vksi"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1pw7pch"
+              class="css-HASH"
             >
               <div
-                class="css-i39d00"
+                class="css-HASH"
               >
                 <div
-                  class="css-1spvwsg"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-connection"
@@ -969,21 +969,21 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                 </div>
               </div>
               <div
-                class="css-12znkyi"
+                class="css-HASH"
               >
                 <div
-                  class="css-nps6m6"
+                  class="css-HASH"
                 >
                   redisClient
                 </div>
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   Connection
                 </div>
               </div>
               <div
-                class="css-ij0d9h css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -1006,33 +1006,33 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -1040,19 +1040,19 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -1074,19 +1074,19 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -1097,19 +1097,19 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -1120,10 +1120,10 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                 />
               </div>
               <div
-                class="css-165ws9o"
+                class="css-HASH"
               >
                 <div
-                  class="css-1jh13ph"
+                  class="css-HASH"
                 >
                   Show More Resources
                 </div>
@@ -1135,30 +1135,30 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -1172,19 +1172,19 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -1208,30 +1208,30 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -1251,12 +1251,12 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -1277,13 +1277,13 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -1294,18 +1294,18 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -1320,13 +1320,13 @@ exports[`Component Diagram - Snapshot Tests renders connections complex correctl
 exports[`Component Diagram - Snapshot Tests renders empty project correctly: empty-project 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -1334,13 +1334,13 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -1348,10 +1348,10 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -1361,14 +1361,14 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -1377,7 +1377,7 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
 			);"
       />
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -1386,24 +1386,24 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -1417,19 +1417,19 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -1453,25 +1453,25 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -1486,13 +1486,13 @@ exports[`Component Diagram - Snapshot Tests renders empty project correctly: emp
 exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: graphql-complex 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -1500,13 +1500,13 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -1514,10 +1514,10 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -1527,14 +1527,14 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -1760,7 +1760,7 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -1769,27 +1769,27 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 1010px;"
         >
           <div
-            class="css-1v2vksi"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1pw7pch"
+              class="css-HASH"
             >
               <div
-                class="css-i39d00"
+                class="css-HASH"
               >
                 <div
-                  class="css-1spvwsg"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-connection"
@@ -1798,21 +1798,21 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 </div>
               </div>
               <div
-                class="css-12znkyi"
+                class="css-HASH"
               >
                 <div
-                  class="css-nps6m6"
+                  class="css-HASH"
                 >
                   redisClient
                 </div>
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   Connection
                 </div>
               </div>
               <div
-                class="css-ij0d9h css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -1835,33 +1835,33 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-ai-agent"
@@ -1869,19 +1869,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     AI Service
                   </div>
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   />
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -1905,37 +1905,37 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="post-chat"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 244px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-zr8vic"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-graphql"
@@ -1943,19 +1943,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     GraphQL Service
                   </div>
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   />
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -1979,33 +1979,33 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 340px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -2013,19 +2013,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -2047,19 +2047,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -2070,19 +2070,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -2093,10 +2093,10 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 />
               </div>
               <div
-                class="css-165ws9o"
+                class="css-HASH"
               >
                 <div
-                  class="css-1jh13ph"
+                  class="css-HASH"
                 >
                   Show More Resources
                 </div>
@@ -2108,30 +2108,30 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -2145,19 +2145,19 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -2181,30 +2181,30 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -2224,12 +2224,12 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -2250,13 +2250,13 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   ai:Listener
                 </div>
@@ -2266,24 +2266,24 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 244px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -2303,12 +2303,12 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -2329,13 +2329,13 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   graphql:Listener
                 </div>
@@ -2345,24 +2345,24 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 340px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -2382,12 +2382,12 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -2408,13 +2408,13 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -2425,18 +2425,18 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -2451,13 +2451,13 @@ exports[`Component Diagram - Snapshot Tests renders graphql complex correctly: g
 exports[`Component Diagram - Snapshot Tests renders multiple connections complex correctly: multiple-connections-complex 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -2465,13 +2465,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -2479,10 +2479,10 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -2492,14 +2492,14 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -2725,7 +2725,7 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -2734,27 +2734,27 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 1010px;"
         >
           <div
-            class="css-1v2vksi"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-1pw7pch"
+              class="css-HASH"
             >
               <div
-                class="css-i39d00"
+                class="css-HASH"
               >
                 <div
-                  class="css-1spvwsg"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-connection"
@@ -2763,21 +2763,21 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 </div>
               </div>
               <div
-                class="css-12znkyi"
+                class="css-HASH"
               >
                 <div
-                  class="css-nps6m6"
+                  class="css-HASH"
                 >
                   redisClient
                 </div>
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   Connection
                 </div>
               </div>
               <div
-                class="css-ij0d9h css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -2800,33 +2800,33 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-ai-agent"
@@ -2834,19 +2834,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     AI Service
                   </div>
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   />
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -2870,37 +2870,37 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="post-chat"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 244px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-zr8vic"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-graphql"
@@ -2908,19 +2908,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     GraphQL Service
                   </div>
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   />
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -2944,33 +2944,33 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 340px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -2978,19 +2978,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -3012,19 +3012,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -3035,19 +3035,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -3058,10 +3058,10 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 />
               </div>
               <div
-                class="css-165ws9o"
+                class="css-HASH"
               >
                 <div
-                  class="css-1jh13ph"
+                  class="css-HASH"
                 >
                   Show More Resources
                 </div>
@@ -3073,30 +3073,30 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3110,19 +3110,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -3146,30 +3146,30 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3189,12 +3189,12 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -3215,13 +3215,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   ai:Listener
                 </div>
@@ -3231,24 +3231,24 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 244px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3268,12 +3268,12 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -3294,13 +3294,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   graphql:Listener
                 </div>
@@ -3310,24 +3310,24 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 340px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3347,12 +3347,12 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -3373,13 +3373,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -3390,18 +3390,18 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -3416,13 +3416,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple connections complex
 exports[`Component Diagram - Snapshot Tests renders multiple services correctly: multiple-services 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -3430,13 +3430,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -3444,10 +3444,10 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -3457,14 +3457,14 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -3528,7 +3528,7 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -3537,27 +3537,27 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -3565,19 +3565,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -3599,19 +3599,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -3622,19 +3622,19 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -3645,10 +3645,10 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                 />
               </div>
               <div
-                class="css-165ws9o"
+                class="css-HASH"
               >
                 <div
-                  class="css-1jh13ph"
+                  class="css-HASH"
                 >
                   Show More Resources
                 </div>
@@ -3660,30 +3660,30 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3703,12 +3703,12 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -3729,13 +3729,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -3746,18 +3746,18 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -3772,13 +3772,13 @@ exports[`Component Diagram - Snapshot Tests renders multiple services correctly:
 exports[`Component Diagram - Snapshot Tests renders only automation correctly: only-automation 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -3786,13 +3786,13 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -3800,10 +3800,10 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -3813,14 +3813,14 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -3829,7 +3829,7 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
 			);"
       />
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -3838,24 +3838,24 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 0px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -3869,19 +3869,19 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
                   </svg>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     Automation
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -3905,25 +3905,25 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />
@@ -3938,13 +3938,13 @@ exports[`Component Diagram - Snapshot Tests renders only automation correctly: o
 exports[`Component Diagram - Snapshot Tests renders simple service correctly: simple-service 1`] = `
 "<div>
   <div
-    class="css-qrq0mx"
+    class="css-HASH"
   >
     <div
-      class="css-1b56tvn"
+      class="css-HASH"
     >
       <div
-        class="css-cs29wk"
+        class="css-HASH"
       >
         <i
           class="fw-bi-fit-screen"
@@ -3952,13 +3952,13 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
       </div>
     </div>
     <div
-      class="css-1cig59z"
+      class="css-HASH"
     >
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-plus"
@@ -3966,10 +3966,10 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
         </div>
       </div>
       <div
-        class="css-1b56tvn"
+        class="css-HASH"
       >
         <div
-          class="css-cs29wk"
+          class="css-HASH"
         >
           <i
             class="fw-bi-minus"
@@ -3979,14 +3979,14 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
     </div>
   </div>
   <div
-    class="css-15d0qwh"
+    class="css-HASH"
     color="var(--vscode-foreground)"
   >
     <div
-      class="css-18f0176"
+      class="css-HASH"
     >
       <svg
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -4050,7 +4050,7 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
         </g>
       </svg>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
         style="transform: translate(
 				0px,
 				0px)
@@ -4059,27 +4059,27 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
 			);"
       >
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 610px;"
         >
           <div
-            class="css-18qyo8"
+            class="css-HASH"
           >
             <div
-              class="port css-17ojsx0"
+              class="port css-HASH"
               data-name="in"
             />
             <div
-              class="css-3747zb"
+              class="css-HASH"
             >
               <div
-                class="css-1qsh1rq"
+                class="css-HASH"
               >
                 <div
-                  class="css-e6qb9j"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-pk5gz1"
+                    class="css-HASH"
                   >
                     <i
                       class="fw-bi-globe"
@@ -4087,19 +4087,19 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
                   </div>
                 </div>
                 <div
-                  class="css-qfsllv"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   />
                   <div
-                    class="css-14sqwk5"
+                    class="css-HASH"
                   >
                     http:Service
                   </div>
                 </div>
                 <div
-                  class="css-ij0d9h css-1qcscwo"
+                  class="css-HASH"
                 >
                   <vscode-button>
                     <svg
@@ -4121,19 +4121,19 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
                 </div>
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-1ve7bhg"
+                    class="css-HASH"
                     color="#3d7eff"
                   >
                     get
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /greeting
                   </div>
@@ -4144,19 +4144,19 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
                 />
               </div>
               <div
-                class="css-18qyo8"
+                class="css-HASH"
               >
                 <div
-                  class="css-1hw7c52"
+                  class="css-HASH"
                 >
                   <div
-                    class="css-n0ufzt"
+                    class="css-HASH"
                     color="#49cc90"
                   >
                     post
                   </div>
                   <div
-                    class="css-3zq9ag"
+                    class="css-HASH"
                   >
                     /users
                   </div>
@@ -4169,30 +4169,30 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
             </div>
             <div />
             <div
-              class="port css-1npsqqa"
+              class="port css-HASH"
               data-name="out"
             />
           </div>
         </div>
         <div
-          class="node css-nlpftr"
+          class="node css-HASH"
           style="top: 100px; left: 250px;"
         >
           <div
-            class="css-1tzm7i5"
+            class="css-HASH"
           >
             <div
-              class="css-tgthlr"
+              class="css-HASH"
             >
               <div
-                class="css-j6r2z4"
+                class="css-HASH"
               >
                 <div
-                  class="port css-17ojsx0"
+                  class="port css-HASH"
                   data-name="in"
                 />
                 <div
-                  class="css-1entvng"
+                  class="css-HASH"
                 >
                   <svg
                     height="24"
@@ -4212,12 +4212,12 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
                   </svg>
                 </div>
                 <div
-                  class="port css-1npsqqa"
+                  class="port css-HASH"
                   data-name="out"
                 />
               </div>
               <div
-                class="css-1958obz css-1qcscwo"
+                class="css-HASH"
               >
                 <vscode-button>
                   <svg
@@ -4238,13 +4238,13 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
                 </vscode-button>
               </div>
               <div
-                class="css-90fogs"
+                class="css-HASH"
               >
                 <div
-                  class="css-dwbn0j"
+                  class="css-HASH"
                 />
                 <div
-                  class="css-1vv0d9"
+                  class="css-HASH"
                 >
                   http:Listener
                 </div>
@@ -4255,18 +4255,18 @@ exports[`Component Diagram - Snapshot Tests renders simple service correctly: si
         </div>
       </div>
       <div
-        class="css-12q0bj3"
+        class="css-HASH"
       >
         <div
-          class="css-15d0qwh"
+          class="css-HASH"
           color="var(--vscode-foreground)"
         >
           <div
-            class="css-8z0lf3"
+            class="css-HASH"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-1vredql"
+              class="css-HASH"
               color="var(--vscode-contrastBorder, var(--vscode-button-background))"
               role="alert"
             />

@@ -110,17 +110,13 @@ async function renderAndCheckSnapshot(model: CDModel, testName: string) {
     expect(prettyDom).toBeTruthy();
 
     // Sanitization: remove dynamic IDs and non-deterministic attributes
-    // Consolidated sanitization logic for better performance and maintainability
-    function sanitizeDom(domString: string): string {
-        // Remove dynamic attributes and normalize <vscode-button> tags in one pass
-        return domString
-            .replace(
-                /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g,
-                ''
-            )
-            .replace(/<vscode-button\s+>/g, '<vscode-button>');
-    }
-    const sanitizedDom = sanitizeDom(prettyDom as string);
+    const sanitizedDom = (prettyDom as string)
+        .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g, '')
+        // Normalize emotion CSS class hashes (css-xxxxx) to stable placeholder
+        .replaceAll(/\bcss-[a-z0-9]+/g, 'css-HASH')
+        // Collapse duplicate css-HASH entries in class attributes
+        .replaceAll(/\b(css-HASH)(\s+css-HASH)+\b/g, 'css-HASH')
+        .replaceAll(/<vscode-button\s+>/g, '<vscode-button>');
     expect(sanitizedDom).toMatchSnapshot(testName);
 }
 
