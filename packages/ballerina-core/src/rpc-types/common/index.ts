@@ -35,7 +35,8 @@ import {
     WorkspaceTypeResponse,
     SetWebviewCacheRequestParam,
     ShowInfoModalRequest,
-    SampleDownloadRequest
+    SampleDownloadRequest,
+    ShowQuickPickRequest
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -53,6 +54,7 @@ export interface CommonRPCAPI {
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
     showInformationModal: (params: ShowInfoModalRequest) => Promise<string>;
+    showQuickPick: (params: ShowQuickPickRequest) => Promise<string>;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
     setWebviewCache: (params: SetWebviewCacheRequestParam) => void;

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionListItem, ContextItemEnriched, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes } from "@wso2/wso2-platform-core";
+import { ComponentKind, ConnectionListItem, ContextItemEnriched, Environment, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes, UserInfo } from "@wso2/wso2-platform-core";
 import { AvailableNode, NodePosition } from "../../interfaces/bi";
 import { ModuleVarDecl } from "@wso2/syntax-tree/lib/syntax-tree-interfaces";
 
@@ -62,6 +62,7 @@ export interface RegisterAndCreateDevantConnectionReq {
 
 export interface AddDevantTempConfigReq {
     name: string;
+    newLine?: boolean;
 }
 
 export interface AddDevantTempConfigResp{
@@ -89,23 +90,20 @@ export interface BiDevantConnectionListItem extends ConnectionListItem {
 export interface PlatformExtConnectionState {
     loading?: boolean;
     list?: BiDevantConnectionListItem[];
-    runInDevant?: boolean;
-    debugInDevant?: boolean;
+    connectedToDevant?: boolean;
 }
 
 export interface PlatformExtState {
 	isLoggedIn: boolean;
+    userInfo: UserInfo | null;
     hasPossibleComponent?: boolean;
     hasLocalChanges?: boolean;
 	components: ComponentKind[];
     selectedComponent?: ComponentKind;
 	selectedContext?: ContextItemEnriched;
+    envs?: Environment[];
+    selectedEnv?: Environment;
     devantConns?: PlatformExtConnectionState;
-}
-
-export interface SetConnectedToDevantReq {
-    mode: "runInDevant" | "debugInDevant";
-    value: boolean;
 }
 
 export enum DevantConnectionFlow {

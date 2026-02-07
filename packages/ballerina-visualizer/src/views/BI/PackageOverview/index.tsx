@@ -40,7 +40,7 @@ import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
-import { RunDebugButton } from "./RunDebugButton";
+import { PlatformExtPopover } from "./PlatformExtPopover";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -642,6 +642,7 @@ export function PackageOverview(props: PackageOverviewProps) {
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
     const [isWorkspace, setIsWorkspace] = useState(false);
     const [isLibrary, setIsLibrary] = useState<boolean>(false);
+    const [devantBtnAnchor, setDevantBtnAnchor] = useState<HTMLElement>(null);
 
     const fetchContext = () => {
         rpcClient
@@ -844,32 +845,19 @@ export function PackageOverview(props: PackageOverviewProps) {
 
             {!isLibrary && (
                 <>
-                    <RunDebugButton 
-                        icon="play"
-                        onClick={handleLocalRun}
-                        text="Run"
-                        devantMode="runInDevant"
-                    />
-                    <RunDebugButton 
-                        icon="debug"
-                        onClick={handleLocalDebug}
-                        text="Debug"
-                        devantMode="debugInDevant"
-                    />
-                    {platformExtState.components?.length > 1 && (
-                        <Dropdown
-                            id="selected component"
-                            value={platformExtState?.selectedComponent?.metadata?.id}
-                            onValueChange={(id) => platformRpcClient.setSelectedComponent(id)}
-                            items={platformExtState.components?.map((item) => ({
-                                content: item.metadata?.displayName,
-                                value: item.metadata?.id,
-                            }))}
-                            style={{ background: "transparent" }}
-                        />
-                    )}
+                    <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="plat" sx={{ marginRight: 5 }} /> Run
+                    </Button>
+                    <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
+                        <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
+                    </Button>
                 </>
             )}
+
+            <Button appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)} buttonSx={{ padding: "4px" }}>
+                <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
+            </Button>
+            <PlatformExtPopover anchorEl={devantBtnAnchor} onClose={() => setDevantBtnAnchor(null)} isVisible={!!devantBtnAnchor} />
         </>
     );
 

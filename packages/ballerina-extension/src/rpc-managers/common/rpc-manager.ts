@@ -44,6 +44,7 @@ import {
     WorkspaceTypeResponse,
     SetWebviewCacheRequestParam,
     ShowInfoModalRequest,
+    ShowQuickPickRequest,
 } from "@wso2/ballerina-core";
 import child_process from 'child_process';
 import path from "path";
@@ -284,6 +285,10 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     async showInformationModal(params: ShowInfoModalRequest): Promise<string> {
         return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
+    }
+
+    async showQuickPick(params: ShowQuickPickRequest): Promise<string> {
+        return window.showQuickPick(params?.items, params?.options);
     }
 
     async isNPSupported(): Promise<boolean> {

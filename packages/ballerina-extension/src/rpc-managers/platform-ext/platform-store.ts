@@ -18,28 +18,36 @@
 
 import { createStore } from "zustand";
 import { persist } from "zustand/middleware";
-import { PlatformExtConnectionState, PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import {
+    PlatformExtConnectionState,
+    PlatformExtState,
+} from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { getWorkspaceStateStore } from "./platform-utils";
 
 interface PlatformExtStore {
-	state: PlatformExtState;
-	setState: (params: Partial<PlatformExtState>) => void;
-	setConnectionState: (params: Partial<PlatformExtConnectionState>) => void;
+    state: PlatformExtState;
+    setState: (params: Partial<PlatformExtState>) => void;
+    setConnectionState: (params: Partial<PlatformExtConnectionState>) => void;
 }
 
-const initialState: PlatformExtState = { isLoggedIn: false, components: [], devantConns: { list: [], loading: false, debugInDevant: true, runInDevant: true } };
+const initialState: PlatformExtState = {
+    isLoggedIn: false,
+    userInfo: null,
+    components: [],
+    devantConns: { list: [], loading: false, connectedToDevant: true },
+};
 
 export const platformExtStore = createStore(
-	persist<PlatformExtStore>(
-		(set, get) => ({
-			state: initialState,
-			setState: (params: Partial<PlatformExtState>) => {
-				set(({ state }) => ({ state: { ...state, ...params } }));
-			},
-			setConnectionState: (params: Partial<PlatformExtConnectionState>) => {
-				set(({ state }) => ({ state: { ...state, devantConns: { ...state.devantConns, ...params } } }));
-			}
-		}),
-		getWorkspaceStateStore("bi-platform-storage"),
-	),
+    persist<PlatformExtStore>(
+        (set, get) => ({
+            state: initialState,
+            setState: (params: Partial<PlatformExtState>) => {
+                set(({ state }) => ({ state: { ...state, ...params } }));
+            },
+            setConnectionState: (params: Partial<PlatformExtConnectionState>) => {
+                set(({ state }) => ({ state: { ...state, devantConns: { ...state.devantConns, ...params } } }));
+            },
+        }),
+        getWorkspaceStateStore("bi-platform-storage"),
+    ),
 );

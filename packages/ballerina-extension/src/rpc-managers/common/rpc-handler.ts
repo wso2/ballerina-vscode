@@ -48,7 +48,9 @@ import {
     selectFileOrDirPath,
     selectFileOrFolderPath,
     showErrorMessage,
-    ShowInfoModalRequest
+    ShowInfoModalRequest,
+    showQuickPick,
+    ShowQuickPickRequest
 } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { CommonRpcManager } from "./rpc-manager";
@@ -69,6 +71,7 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getWorkspaceRoot, () => rpcManger.getWorkspaceRoot());
     messenger.onNotification(showErrorMessage, (args: ShowErrorMessageRequest) => rpcManger.showErrorMessage(args));
     messenger.onRequest(showInformationModal, (params: ShowInfoModalRequest) => rpcManger.showInformationModal(params));
+    messenger.onRequest(showQuickPick, (params: ShowQuickPickRequest) => rpcManger.showQuickPick(params));
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
     messenger.onRequest(SetWebviewCache, (params: SetWebviewCacheRequestParam) => rpcManger.setWebviewCache(params));
