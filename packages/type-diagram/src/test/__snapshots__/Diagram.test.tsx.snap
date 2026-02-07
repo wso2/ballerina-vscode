@@ -1,0 +1,3237 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`] = `
+"<div>
+  <div
+    style="width: 100%; height: 100%; overflow: hidden;"
+  >
+    <div
+      class="css-HASH"
+      data-testid="type-diagram"
+    >
+      <div
+        class="css-HASH"
+      >
+        <svg
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Comment/post-Post"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Comment/author-User"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-User/posts-Post"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Post/author-User"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Post/comments-Comment"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+        </svg>
+        <div
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-Comment"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      Comment
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-Comment-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-Comment"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/postId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  postId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/postId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/post"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  post
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Post|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/post"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/author"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  author
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  User|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/author"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-Comment"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-Comment"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-User"
+              >
+                <div
+                  class="port "
+                  data-name="left-User"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      User
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-User-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-User"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/name"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  name
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/name"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/email"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  email
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/email"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/posts"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  posts
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Post[]
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/posts"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-User"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-User"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-UserRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      UserRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-UserRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-UserRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/name"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  name
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/name"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/email"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  email
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/email"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-UserRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-UserRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-PostRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      PostRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-PostRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-PostRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/title"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  title
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/title"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-PostRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-PostRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-CommentRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      CommentRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-CommentRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/postId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  postId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/postId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-CommentRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-CommentRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-Post"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      Post
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-Post-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-Post"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/title"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  title
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/title"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/author"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  author
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  User|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/author"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/comments"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  comments
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Comment[]
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/comments"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-Post"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-Post"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+        >
+          <div
+            class="css-HASH"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-HASH"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="css-HASH"
+    >
+      <div
+        class="css-HASH"
+        title="Download"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-download"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Refresh"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-retry"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Zoom to fit nodes"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-fit-screen"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+      >
+        <div
+          class="css-HASH"
+          title="Zoom in"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-plus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+          title="Zoom out"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-minus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Type Diagram - Snapshot Tests renders class types correctly: class-types 1`] = `
+"<div>
+  <div
+    style="width: 100%; height: 100%; overflow: hidden;"
+  >
+    <div
+      class="css-HASH"
+      data-testid="type-diagram"
+    >
+      <div
+        class="css-HASH"
+      >
+        <svg
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Comment/post-Post"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Comment/author-User"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-User/posts-Post"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Post/author-User"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+          <g
+          >
+            <g>
+              <path
+                cursor="pointer"
+                d="M0 0 C175 0, -175 0, 0 0"
+                data-testid="node-link-Post/comments-Comment"
+                fill="none"
+                pointer-events="all"
+                stroke="var(--vscode-contrastBorder, var(--vscode-button-background))"
+                stroke-width="1.5"
+              />
+            </g>
+          </g>
+        </svg>
+        <div
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-Comment"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      Comment
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-Comment-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-Comment"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/postId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  postId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/postId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/post"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  post
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Post|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/post"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/author"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  author
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  User|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/author"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-Comment"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-Comment"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-User"
+              >
+                <div
+                  class="port "
+                  data-name="left-User"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      User
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-User-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-User"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/name"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  name
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/name"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/email"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  email
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/email"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-User/posts"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  posts
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Post[]
+                </span>
+                <div
+                  class="port "
+                  data-name="right-User/posts"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-User"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-User"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-Post"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      Post
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-Post-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-Post"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/title"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  title
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/title"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/author"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  author
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  User|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/author"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Post/comments"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  comments
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Comment[]
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Post/comments"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-Post"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-Post"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+        >
+          <div
+            class="css-HASH"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-HASH"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="css-HASH"
+    >
+      <div
+        class="css-HASH"
+        title="Download"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-download"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Refresh"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-retry"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Zoom to fit nodes"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-fit-screen"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+      >
+        <div
+          class="css-HASH"
+          title="Zoom in"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-plus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+          title="Zoom out"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-minus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Type Diagram - Snapshot Tests renders empty type list correctly: empty-types 1`] = `
+"<div>
+  <div
+    style="width: 100%; height: 100%; overflow: hidden;"
+  >
+    <div
+      class="css-HASH"
+      data-testid="type-diagram"
+    >
+      <div
+        class="css-HASH"
+      >
+        <svg
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        />
+        <div
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        />
+        <div
+          class="css-HASH"
+        >
+          <div
+            class="css-HASH"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-HASH"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="css-HASH"
+    >
+      <div
+        class="css-HASH"
+        title="Download"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-download"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Refresh"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-retry"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Zoom to fit nodes"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-fit-screen"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+      >
+        <div
+          class="css-HASH"
+          title="Zoom in"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-plus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+          title="Zoom out"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-minus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Type Diagram - Snapshot Tests renders record types correctly: record-types 1`] = `
+"<div>
+  <div
+    style="width: 100%; height: 100%; overflow: hidden;"
+  >
+    <div
+      class="css-HASH"
+      data-testid="type-diagram"
+    >
+      <div
+        class="css-HASH"
+      >
+        <svg
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        />
+        <div
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-UserRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      UserRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-UserRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-UserRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/name"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  name
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/name"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-UserRecord/email"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  email
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-UserRecord/email"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-UserRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-UserRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-PostRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      PostRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-PostRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-PostRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/title"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  title
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/title"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-PostRecord/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-PostRecord/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-PostRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-PostRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-CommentRecord"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      CommentRecord
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-CommentRecord-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/postId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  postId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/postId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-CommentRecord/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-CommentRecord/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-CommentRecord"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-CommentRecord"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+        >
+          <div
+            class="css-HASH"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-HASH"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="css-HASH"
+    >
+      <div
+        class="css-HASH"
+        title="Download"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-download"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Refresh"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-retry"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Zoom to fit nodes"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-fit-screen"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+      >
+        <div
+          class="css-HASH"
+          title="Zoom in"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-plus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+          title="Zoom out"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-minus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
+
+exports[`Type Diagram - Snapshot Tests renders single type correctly: single-type 1`] = `
+"<div>
+  <div
+    style="width: 100%; height: 100%; overflow: hidden;"
+  >
+    <div
+      class="css-HASH"
+      data-testid="type-diagram"
+    >
+      <div
+        class="css-HASH"
+      >
+        <svg
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        />
+        <div
+          class="css-HASH"
+          style="transform: translate(
+				0px,
+				0px)
+			scale(
+				1
+			);"
+        >
+          <div
+            class="node css-HASH"
+            style="top: 0px; left: 0px;"
+          >
+            <div
+              class="css-HASH"
+            >
+              <div
+                class="css-HASH"
+                data-testid="type-node-Comment"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div
+                  class="css-HASH"
+                >
+                  <div
+                    class="css-HASH"
+                  >
+                    <span
+                      class="css-HASH"
+                    >
+                      Comment
+                    </span>
+                  </div>
+                  <div
+                    class="css-HASH"
+                  >
+                    <div
+                      class="css-HASH"
+                    >
+                      <vscode-button
+                        data-testid="type-node-Comment-menu"
+                      >
+                        <svg
+                          height="24"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0 14c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2m0-7c-1.1 0-2 .9-2 2s.9 2 2 2s2-.9 2-2s-.9-2-2-2"
+                          />
+                        </svg>
+                        <input
+                          slot="form-associated-proxy"
+                          style="display: none;"
+                          type="undefined"
+                        />
+                      </vscode-button>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="port "
+                  data-name="right-Comment"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <div />
+                <div />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/id"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  id
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/id"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/content"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  content
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/content"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/postId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  postId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/postId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/authorId"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  authorId
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  string
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/authorId"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/post"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  post
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  Post|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/post"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="left-Comment/author"
+                  style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+                <span
+                  class="css-HASH"
+                >
+                  author
+                </span>
+                <span
+                  class="css-HASH"
+                >
+                  User|()
+                </span>
+                <div
+                  class="port "
+                  data-name="right-Comment/author"
+                  style="right: 0px; height: 0.5px; position: absolute; width: 8px;"
+                />
+              </div>
+              <div
+                class="css-HASH"
+              >
+                <div
+                  class="port "
+                  data-name="top-Comment"
+                  style="top: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+                <div
+                  class="port "
+                  data-name="bottom-Comment"
+                  style="bottom: 0px; height: 2px; position: absolute; width: 2px;"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+        >
+          <div
+            class="css-HASH"
+          >
+            <vscode-progress-ring
+              aria-live="assertive"
+              class="css-HASH"
+              role="alert"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="css-HASH"
+    >
+      <div
+        class="css-HASH"
+        title="Download"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-download"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Refresh"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-retry"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+        title="Zoom to fit nodes"
+      >
+        <div
+          class="css-HASH"
+        >
+          <i
+            class="fw-bi-fit-screen"
+            style="font-size: 16px;"
+          />
+        </div>
+      </div>
+      <div
+        class="css-HASH"
+      >
+        <div
+          class="css-HASH"
+          title="Zoom in"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-plus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+        <div
+          class="css-HASH"
+          title="Zoom out"
+        >
+          <div
+            class="css-HASH"
+          >
+            <i
+              class="fw-bi-minus"
+              style="font-size: 16px;"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>"
+`;
