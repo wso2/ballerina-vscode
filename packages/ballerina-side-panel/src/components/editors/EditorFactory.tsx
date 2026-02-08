@@ -42,6 +42,7 @@ import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
 import { RadioButtonGroupEditor } from "./RadioButtonGroupEditor";
+import { SliderEditor } from "./SliderEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
@@ -108,6 +109,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <></>;
     } else if (field.type === "RADIO_GROUP") {
         return <RadioButtonGroupEditor field={field} />;
+    } else if (field.type === "SLIDER") {
+        return <SliderEditor field={field} />;
     } else if (field.type === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
     } else if (field.type === "HEADER_SET") {

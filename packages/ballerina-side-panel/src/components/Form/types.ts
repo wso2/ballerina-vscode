@@ -70,6 +70,14 @@ export type FormField = {
     actionCallback?: () => void;
     onValueChange?: (value: string | boolean) => void;
     isGraphqlId?: boolean;
+    sliderProps?: {
+        min?: number;
+        max?: number;
+        step?: number;
+        showValue?: boolean;
+        showMarkers?: boolean;
+        valueFormatter?: (value: number) => string;
+    };
 };
 
 export type ParameterValue = {

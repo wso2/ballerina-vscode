@@ -155,6 +155,7 @@ export type FormFieldInputType = "TEXT" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
     "CLAUSE_EXPRESSION";
+    "SLIDER";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
