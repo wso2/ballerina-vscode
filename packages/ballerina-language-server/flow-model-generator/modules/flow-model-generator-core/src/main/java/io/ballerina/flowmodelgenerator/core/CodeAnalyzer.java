@@ -1059,6 +1059,9 @@ public class CodeAnalyzer extends NodeVisitor {
                         escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     }
                     paramResult = funcParamMap.get(escapedParamName);
+                    if (paramResult == null) {
+                        continue;
+                    }
                     Node paramValue = i < argCount ? positionalArgs.poll()
                             : namedArgValueMap.get(paramResult.name());
 
@@ -1100,16 +1103,15 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 String escapedParamName = restNameOptional.get();
                 ParameterData restParamResult = funcParamMap.get(escapedParamName);
-                if (restParamResult == null) {
-                    Optional<String> restParamNameOptional = restParamSymbol.getName();
-                    if (restParamNameOptional.isPresent()) {
-                        restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
-                                restParamNameOptional.get()));
-                    }
+                Optional<String> restParamName = restParamSymbol.getName();
+                if (restParamResult == null && restParamName.isPresent()) {
+                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                            restParamName.get()));
                 }
-                Optional<String> restParamNameForRemoval = restParamSymbol.getName();
-                restParamNameForRemoval.ifPresent(funcParamMap::remove);
-                assert restParamResult != null;
+                restParamName.ifPresent(funcParamMap::remove);
+                if (restParamResult == null) {
+                    return;
+                }
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 buildPropertyType(customPropBuilder, restParamResult);
                 customPropBuilder
