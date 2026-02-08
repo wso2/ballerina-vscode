@@ -18,14 +18,11 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
-import com.google.gson.Gson;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.tools.text.LineRange;
-import org.ballerinalang.model.types.TypeKind;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
@@ -43,29 +40,10 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
     public static final String LABEL = "Workflow Process Function";
     public static final String DESCRIPTION = "Define a workflow process function";
 
-    public static final String PARAMETERS_LABEL = "Parameters";
-    public static final String PARAMETERS_DOC = "Workflow process function parameters";
-
-    public static final String CONTEXT_PARAM_KEY = "contextParam";
-    public static final String CONTEXT_PARAM_LABEL = "Context Parameter";
-    public static final String CONTEXT_PARAM_DOC = "Optional workflow context parameter";
-
-    public static final String INPUT_PARAM_KEY = "inputParam";
-    public static final String INPUT_PARAM_LABEL = "Input Parameter";
-    public static final String INPUT_PARAM_DOC = "Mandatory input parameter for workflow data";
-
-    public static final String EVENTS_PARAM_KEY = "eventsParam";
-    public static final String EVENTS_PARAM_LABEL = "Events Parameter";
-    public static final String EVENTS_PARAM_DOC = "Optional events parameter for receiving signals";
-    public static final String WORKFLOW_CONTEXT_TYPE = "workflow:Context";
-    public static final String WORKFLOW_EVENTS_TYPE = "record {|future...|}";
-
-
-    private static final Gson gson = new Gson();
-
-    public static Property getParameterSchema() {
-        return ParameterSchemaHolder.PARAMETER_SCHEMA;
-    }
+    public static final String INPUT_KEY = "inputType";
+    public static final String INPUT_LABEL = "Input Type";
+    public static final String INPUT_DOC = "Type of the input data to the workflow";
+    public static final String ANYDATA_TYPE = "anydata";
 
     @Override
     public void setConcreteConstData() {
@@ -81,10 +59,17 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         // Add function description
         properties().functionDescription("");
 
-        // Add nested parameters property (schema defined in ParameterSchemaHolder)
-        properties().nestedProperty();
-        properties().endNestedProperty(Property.ValueType.FIXED_PROPERTY, Property.PARAMETERS_KEY,
-                PARAMETERS_LABEL, PARAMETERS_DOC, getParameterSchema(), false, false);
+        // Add input property with WORKFLOW_INPUT_TYPE
+        properties().custom()
+                .metadata()
+                    .label(INPUT_LABEL)
+                    .description(INPUT_DOC)
+                    .stepOut()
+                .type(Property.ValueType.WORKFLOW_INPUT_TYPE, ANYDATA_TYPE)
+                .value("")
+                .editable(true)
+                .stepOut()
+                .addProperty(INPUT_KEY);
 
         // Return type
         properties().returnType("error?", null, true);
@@ -118,46 +103,18 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                 .name(funcName)
                 .keyword(SyntaxKind.OPEN_PAREN_TOKEN);
 
-        // Build parameters list from the parameters property
-        StringBuilder paramsBuilder = new StringBuilder();
+        // Always add workflow:Context ctx as the first parameter
+        StringBuilder paramsBuilder = new StringBuilder("workflow:Context ctx");
 
-        Optional<Property> parameters = sourceBuilder.getProperty(Property.PARAMETERS_KEY);
-        if (parameters.isPresent() && parameters.get().value() instanceof Map<?, ?> paramMap) {
-            Map<String, Property> paramProperties = gson.fromJson(gson.toJsonTree(paramMap),
-                    FormBuilder.NODE_PROPERTIES_TYPE);
-
-            // Optional context parameter (first)
-            Property contextParam = paramProperties.get(CONTEXT_PARAM_KEY);
-            if (contextParam != null && contextParam.value() != null &&
-                    !contextParam.value().toString().isEmpty()) {
-                paramsBuilder.append(contextParam.value());
-            }
-
-            // Mandatory input parameter (second)
-            Property inputParam = paramProperties.get(INPUT_PARAM_KEY);
-            if (inputParam != null && inputParam.value() != null &&
-                    !inputParam.value().toString().isEmpty()) {
-                if (!paramsBuilder.isEmpty()) {
-                    paramsBuilder.append(", ");
-                }
-                paramsBuilder.append(inputParam.value());
-            }
-
-            // Optional events parameter (third)
-            Property eventsParam = paramProperties.get(EVENTS_PARAM_KEY);
-            if (eventsParam != null && eventsParam.value() != null &&
-                    !eventsParam.value().toString().isEmpty()) {
-                if (!paramsBuilder.isEmpty()) {
-                    paramsBuilder.append(", ");
-                }
-                paramsBuilder.append(eventsParam.value());
-            }
+        // Build additional parameters from inputType property (only contains the type)
+        Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
+        if (inputProperty.isPresent() && inputProperty.get().value() != null
+                && !inputProperty.get().value().toString().isEmpty()) {
+            String inputType = inputProperty.get().value().toString();
+            paramsBuilder.append(", ").append(inputType).append(" input");
         }
 
-        // Write parameters
-        if (!paramsBuilder.isEmpty()) {
-            sourceBuilder.token().name(paramsBuilder.toString());
-        }
+        sourceBuilder.token().name(paramsBuilder.toString());
 
         sourceBuilder.token().keyword(SyntaxKind.CLOSE_PAREN_TOKEN);
 
@@ -186,62 +143,5 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
                     .textEdit();
         }
         return sourceBuilder.build();
-    }
-
-    private static class ParameterSchemaHolder {
-
-        private static final Property PARAMETER_SCHEMA = initParameterSchema();
-
-        private static Property initParameterSchema() {
-            FormBuilder<?> formBuilder = new FormBuilder<>(null, null, null, null);
-
-            // Context parameter - EXPRESSION type with ballerinaType for type hints
-            formBuilder.custom()
-                    .metadata()
-                        .label(CONTEXT_PARAM_LABEL)
-                        .description(CONTEXT_PARAM_DOC)
-                        .stepOut()
-                    .value("workflow:Context ctx")
-                    .type(Property.ValueType.EXPRESSION, WORKFLOW_CONTEXT_TYPE)
-                    .optional(true)
-                    .editable()
-                    .stepOut()
-                    .addProperty(CONTEXT_PARAM_KEY);
-
-            // Input parameter - EXPRESSION type with anydata ballerinaType
-            formBuilder.custom()
-                    .metadata()
-                        .label(INPUT_PARAM_LABEL)
-                        .description(INPUT_PARAM_DOC)
-                        .stepOut()
-                    .value("Input input")
-                    .type(Property.ValueType.EXPRESSION, TypeKind.ANYDATA.typeName())
-                    .optional(false)
-                    .editable()
-                    .stepOut()
-                    .addProperty(INPUT_PARAM_KEY);
-
-            // Events parameter - EXPRESSION type with record futures ballerinaType
-            formBuilder.custom()
-                    .metadata()
-                        .label(EVENTS_PARAM_LABEL)
-                        .description(EVENTS_PARAM_DOC)
-                        .stepOut()
-                    .value("")
-                    .type(Property.ValueType.EXPRESSION, WORKFLOW_EVENTS_TYPE)
-                    .optional(true)
-                    .editable()
-                    .stepOut()
-                    .addProperty(EVENTS_PARAM_KEY);
-
-            // Build the properties map containing all three parameters
-            Map<String, Property> nodeProperties = formBuilder.build();
-
-            // Wrap the map in a Property object and return it
-            // This is different from other builders because we need specific keys for each parameter
-            return new Property.Builder<>(null)
-                    .value(nodeProperties)
-                    .build();
-        }
     }
 }

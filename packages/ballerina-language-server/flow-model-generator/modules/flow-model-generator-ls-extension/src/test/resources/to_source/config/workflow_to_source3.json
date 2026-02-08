@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Create a new workflow process function with all three parameters",
+  "description": "Create a workflow process function with record input and custom return type",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
@@ -19,7 +19,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "orderWorkflow",
+        "value": "processWithActivity",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -31,59 +31,20 @@
           "description": "Description of the function"
         },
         "valueType": "TEXT",
-        "value": "Process an order workflow",
+        "value": "Workflow that calls activities",
         "optional": true,
         "editable": true,
         "advanced": false,
         "hidden": false
       },
-      "parameters": {
+      "inputType": {
         "metadata": {
-          "label": "Parameters",
-          "description": "Workflow process function parameters"
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
         },
-        "valueType": "FIXED_PROPERTY",
-        "value": {
-          "contextParam": {
-            "metadata": {
-              "label": "Context Parameter",
-              "description": "Optional workflow context parameter"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "workflow:Context",
-            "value": "workflow:Context ctx",
-            "optional": true,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "inputParam": {
-            "metadata": {
-              "label": "Input Parameter",
-              "description": "Mandatory input parameter for workflow data"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "anydata",
-            "value": "OrderInput input",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "eventsParam": {
-            "metadata": {
-              "label": "Events Parameter",
-              "description": "Optional events parameter for receiving signals"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "record {|future...|}",
-            "value": "OrderEvents events",
-            "optional": true,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          }
-        },
+        "valueType": "WORKFLOW_INPUT_TYPE",
+        "valueTypeConstraint": "anydata",
+        "value": "record {| string id; string name; |}",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -95,7 +56,7 @@
           "description": "Type of the return value"
         },
         "valueType": "TYPE",
-        "value": "error?",
+        "value": "string|error",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -107,7 +68,7 @@
           "description": "Description of the return value"
         },
         "valueType": "TEXT",
-        "value": "",
+        "value": "Result of the workflow",
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -142,9 +103,8 @@
             "character": 1
           }
         },
-        "newText": "\n# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input, OrderEvents events) returns error? {\n}\n"
+        "newText": "\n# Workflow that calls activities\n# \n# + return - Result of the workflow\n@workflow:Process\nfunction processWithActivity(workflow:Context ctx, record {| string id; string name; |} input) returns string|error {\n}\n"
       }
     ]
   }
 }
-

@@ -1,0 +1,109 @@
+{
+  "source": "empty.bal",
+  "description": "Workflow process function template",
+  "codedata": {
+    "node": "WORKFLOW"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Workflow Process Function",
+      "description": "Define a workflow process function"
+    },
+    "codedata": {
+      "node": "WORKFLOW",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Name",
+          "description": "Name of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global",
+            "selected": true
+          }
+        ],
+        "value": "workflow",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "inputType": {
+        "metadata": {
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
+        },
+        "types": [
+          {
+            "fieldType": "WORKFLOW_INPUT_TYPE",
+            "ballerinaType": "anydata",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "error?",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

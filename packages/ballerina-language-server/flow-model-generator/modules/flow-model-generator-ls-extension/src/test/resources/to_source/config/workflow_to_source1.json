@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Create a workflow process function with only input parameter",
+  "description": "Create a new workflow process function with input parameter",
   "diagram": {
     "metadata": {
       "label": "Workflow Process Function",
@@ -19,7 +19,7 @@
         },
         "valueType": "IDENTIFIER",
         "valueTypeConstraint": "Global",
-        "value": "simpleWorkflow",
+        "value": "orderWorkflow",
         "optional": false,
         "editable": true,
         "advanced": false,
@@ -31,59 +31,20 @@
           "description": "Description of the function"
         },
         "valueType": "TEXT",
-        "value": "",
+        "value": "Process an order workflow",
         "optional": true,
         "editable": true,
         "advanced": false,
         "hidden": false
       },
-      "parameters": {
+      "inputType": {
         "metadata": {
-          "label": "Parameters",
-          "description": "Workflow process function parameters"
+          "label": "Input Type",
+          "description": "Type of the input data to the workflow"
         },
-        "valueType": "FIXED_PROPERTY",
-        "value": {
-          "contextParam": {
-            "metadata": {
-              "label": "Context Parameter",
-              "description": "Optional workflow context parameter"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "workflow:Context",
-            "value": "",
-            "optional": true,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "inputParam": {
-            "metadata": {
-              "label": "Input Parameter",
-              "description": "Mandatory input parameter for workflow data"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "anydata",
-            "value": "string taskId",
-            "optional": false,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          },
-          "eventsParam": {
-            "metadata": {
-              "label": "Events Parameter",
-              "description": "Optional events parameter for receiving signals"
-            },
-            "valueType": "EXPRESSION",
-            "valueTypeConstraint": "record {|future...|}",
-            "value": "",
-            "optional": true,
-            "editable": true,
-            "advanced": false,
-            "hidden": false
-          }
-        },
+        "valueType": "WORKFLOW_INPUT_TYPE",
+        "valueTypeConstraint": "anydata",
+        "value": "OrderInput",
         "optional": false,
         "editable": false,
         "advanced": false,
@@ -142,9 +103,8 @@
             "character": 1
           }
         },
-        "newText": "\n@workflow:Process\nfunction simpleWorkflow(string taskId) returns error? {\n}\n"
+        "newText": "\n# Process an order workflow\n@workflow:Process\nfunction orderWorkflow(workflow:Context ctx, OrderInput input) returns error? {\n}\n"
       }
     ]
   }
 }
-
