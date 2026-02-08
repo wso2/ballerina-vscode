@@ -328,18 +328,33 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     const generateFieldFromProperty = (key: string, property: ValueProperty): FormField => {
-        return {
+        const fieldType = getPrimaryInputType(property.types)?.fieldType;
+        const baseField: FormField = {
             key: key,
             label: property.metadata.label,
-            type: getPrimaryInputType(property.types)?.fieldType,
+            type: fieldType,
             optional: property.optional,
             editable: property.editable,
             advanced: property.advanced,
             enabled: true,
             documentation: property.metadata.description,
             value: property.value,
-            types: [{ fieldType: getPrimaryInputType(property.types)?.fieldType, selected: false }]
+            types: [{ fieldType: fieldType, selected: false }]
+        };
+
+        // Add slider-specific configuration for minPassRate
+        if (key === 'minPassRate' && fieldType === 'SLIDER') {
+            baseField.sliderProps = {
+                min: 0,
+                max: 100,
+                step: 1,
+                showValue: true,
+                showMarkers: true,
+                valueFormatter: (value: number) => `${value}%`
+            };
         }
+
+        return baseField;
     }
 
     const fillFunctionModel = (formValues: FormValues, formImports: FormImports): TestFunction => {
@@ -565,10 +580,10 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         },
                         {
                             metadata: {
-                                label: "Min Pass Rate (%)",
+                                label: "Minimum Pass Rate (%)",
                                 description: "Minimum percentage of runs that must pass (0-100)"
                             },
-                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            types: [{ fieldType: "SLIDER", selected: false }],
                             originalName: "minPassRate",
                             value: "100",
                             optional: true,
