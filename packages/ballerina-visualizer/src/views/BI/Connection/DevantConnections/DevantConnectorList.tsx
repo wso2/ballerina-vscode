@@ -52,7 +52,7 @@ import {
     StyledSearchBox,
 } from "../AddConnectionPopup/styles";
 import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
-import { DevantConnectionType } from "./DevantConnectorPopup";
+import { DevantConnectionType } from "./utils";
 
 interface DevantConnectorListProps {
     showBiConnectors: () => void;

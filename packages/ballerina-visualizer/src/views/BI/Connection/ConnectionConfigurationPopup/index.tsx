@@ -34,7 +34,7 @@ import { Codicon, Icon, ThemeColors, Typography } from "@wso2/ui-toolkit";
 import { ConnectorIcon } from "@wso2/bi-diagram";
 import ConnectionConfigView from "../ConnectionConfigView";
 import { getFormProperties } from "../../../../utils/bi";
-import { ExpressionEditorDevantProps, ExpressionFormField } from "@wso2/ballerina-side-panel";
+import { ExpressionEditorDevantProps, ExpressionFormField, FormValues } from "@wso2/ballerina-side-panel";
 import { RelativeLoader } from "../../../../components/RelativeLoader";
 import { HelperView } from "../../HelperView";
 import { DownloadIcon } from "../../../../components/DownloadIcon";
@@ -208,6 +208,8 @@ export interface ConnectionConfigurationPopupProps {
     onClose: (parent?: ParentPopupData) => void;
     onBack: () => void;
     filteredCategories?: Category[];
+    customValidator?: (fieldKey: string, value: any, allValues: FormValues) => string | undefined;
+    overrideFlowNode?: (node: FlowNode) => FlowNode;
 }
 
 export function ConnectionConfigurationPopup(props: ConnectionConfigurationPopupProps) {
@@ -246,7 +248,7 @@ export interface ConnectionConfigurationFormProps extends Omit<ConnectionConfigu
 }
 
 export function ConnectionConfigurationForm(props: ConnectionConfigurationFormProps) {
-    const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantExpressionEditor } = props;
+    const { selectedConnector, fileName, target, onClose, filteredCategories = [], loading, devantExpressionEditor, customValidator, overrideFlowNode } = props;
     const { rpcClient } = useRpcContext();
 
     const [pullingStatus, setPullingStatus] = useState<PullingStatus | undefined>(undefined);
@@ -287,7 +289,7 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 });
 
                 // Wait for either the timer or the request to finish
-                const response = await Promise.race([
+                let response = await Promise.race([
                     nodeTemplatePromise.then((res) => {
                         if (timer) {
                             clearTimeout(timer);
@@ -304,6 +306,9 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                 }
 
                 console.log(">>> FlowNode template", response);
+                if (overrideFlowNode) {
+                    response.flowNode = overrideFlowNode(response.flowNode);
+                }
                 selectedNodeRef.current = response.flowNode;
                 const formProperties = getFormProperties(response.flowNode);
                 console.log(">>> Form properties", formProperties);
@@ -495,6 +500,7 @@ export function ConnectionConfigurationForm(props: ConnectionConfigurationFormPr
                                 isPullingConnector={savingFormStatus === SavingFormStatus.SAVING}
                                 footerActionButton={true}
                                 devantExpressionEditor={devantExpressionEditor}
+                                customValidator={customValidator}
                             />
                         </FormContainer>
                     </>

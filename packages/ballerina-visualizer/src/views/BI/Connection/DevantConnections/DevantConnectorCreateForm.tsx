@@ -24,7 +24,7 @@ import {
     capitalizeFirstLetter,
 } from "@wso2/wso2-platform-core";
 import React, { ReactNode, useEffect, useState, type FC } from "react";
-import { UseFormReturn, useForm, SubmitHandler } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { FormStyles } from "../../Forms/styles";
 import { Dropdown, TextField, Codicon, LinkButton, ThemeColors, CheckBox, CheckBoxGroup } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
@@ -32,12 +32,8 @@ import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-pr
 import { useMutation } from "@tanstack/react-query";
 import { ActionButton, ConnectorContentContainer, ConnectorInfoContainer, FooterContainer } from "../styles";
 import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
 
-interface Props {
-    item: MarketplaceItem;
-    visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
-    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>;
-}
 
 const Row = styled.div<{}>`
     display: flex;
@@ -65,21 +61,6 @@ const RowTitle = styled.div`
     gap: 2px;
     align-items: center;
 `;
-
-export const getConnectionInitialName = (baseName: string, existingNames: string[] = []) => {
-    if(!baseName){
-        return ""
-    }
-    let uniqueName = baseName;
-    let counter = 1;
-    const existingNamesSet = new Set(existingNames.map((name) => name.toLowerCase()));
-
-    while (existingNamesSet.has(uniqueName.toLowerCase())) {
-        uniqueName = `${baseName}${counter}`;
-        counter++;
-    }
-    return uniqueName;
-};
 
 const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
     const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem ?? {};
@@ -155,7 +136,7 @@ const getPossibleSchemas = (
     return schemasFiltered;
 };
 
-export interface CreateConnectionForm {
+interface CreateConnectionForm {
     name?: string;
     visibility?: string;
     schemaId?: string;
@@ -163,23 +144,33 @@ export interface CreateConnectionForm {
     envKeys?: string[];
 }
 
-/**
- * Custom hook to manage the Devant connector form logic
- */
-export const useDevantConnectorForm = (
-    selectedDevantConnector: MarketplaceItem | undefined,
+interface DevantConnectorCreateFormProps {
+    marketplaceItem: MarketplaceItem | undefined,
     devantFlow: DevantConnectionFlow,
+    biConnectionNames?: string[],
     onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void,
-) => {
-    const { platformExtState, platformRpcClient } = usePlatformExtContext();
+}
 
-    const visibilities = getPossibleVisibilities(selectedDevantConnector, platformExtState?.selectedContext?.project);
+export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
+    biConnectionNames,
+    marketplaceItem,
+    devantFlow,
+    onSuccess,
+}) => {
+    const { platformExtState, platformRpcClient } = usePlatformExtContext();
+    const [showAdvancedSection, setShowAdvancedSection] = useState(false);
+
+    const visibilities = getPossibleVisibilities(marketplaceItem, platformExtState?.selectedContext?.project);
 
     const form = useForm<CreateConnectionForm>({
         mode: "all",
         defaultValues: {
-            name: getConnectionInitialName(selectedDevantConnector?.name || "", platformExtState?.devantConns?.list?.map((conn) => conn.name) || []),
-            visibility: getInitialVisibility(selectedDevantConnector, visibilities),
+            name: generateInitialConnectionName(
+                biConnectionNames,
+                platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                marketplaceItem?.name || ""
+            ),
+            visibility: getInitialVisibility(marketplaceItem, visibilities),
             schemaId: "",
             isProjectLevel: false,
             envKeys: [],
@@ -188,19 +179,20 @@ export const useDevantConnectorForm = (
 
     useEffect(() => {
         form.reset({
-            name: selectedDevantConnector?.name,
-            visibility: getInitialVisibility(selectedDevantConnector, visibilities),
+            name: marketplaceItem?.name,
+            visibility: getInitialVisibility(marketplaceItem, visibilities),
             schemaId: "",
             isProjectLevel: false,
         });
-    }, [selectedDevantConnector]);
+    }, [marketplaceItem]);
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
         mutationFn: (data: CreateConnectionForm) =>
             platformRpcClient?.createDevantComponentConnectionV2({
                 flow: devantFlow,
-                marketplaceItem: selectedDevantConnector,
+                marketplaceItem: marketplaceItem,
                 createInternalConnectionParams: {
+                    // todo: need to check if name doesn't exist in ballerina
                     name: data.name,
                     schemaId: data.schemaId,
                     visibility: data.visibility,
@@ -216,29 +208,9 @@ export const useDevantConnectorForm = (
 
     const createDevantConnection: SubmitHandler<CreateConnectionForm> = (data) => createConnection(data);
 
-    return {
-        form,
-        visibilities,
-        isCreatingConnection,
-        createDevantConnection,
-    };
-};
-
-interface Props {
-    item: MarketplaceItem;
-    visibilities: ("PUBLIC" | "ORGANIZATION" | "PROJECT")[];
-    form: UseFormReturn<CreateConnectionForm, any, CreateConnectionForm>;
-    onCreateClick: () => void;
-    isCreatingConnection: boolean;
-}
-
-export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities, onCreateClick, isCreatingConnection }) => {
-    const { platformExtState } = usePlatformExtContext();
-    const [showAdvancedSection, setShowAdvancedSection] = useState(false);
-
     const selectedVisibility = form.watch("visibility");
 
-    const schemas = getPossibleSchemas(item, selectedVisibility, item?.connectionSchemas);
+    const schemas = getPossibleSchemas(marketplaceItem, selectedVisibility, marketplaceItem?.connectionSchemas);
 
     useEffect(() => {
         if (!schemas.some((item) => item.id === form.getValues("schemaId")) && schemas.length > 0) {
@@ -256,7 +228,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities,
     }, [selectedSchema]);
 
     const advancedConfigItems: ReactNode[] = [];
-    if (!item.isThirdParty) {
+    if (!marketplaceItem.isThirdParty) {
         advancedConfigItems.push(
             <FormStyles.Row>
                 <Dropdown
@@ -317,7 +289,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities,
     return (
         <ConnectorInfoContainer>
             <ConnectorContentContainer hasFooterButton>
-                <FormStyles.Container style={{ padding: 0}}>
+                <FormStyles.Container style={{ padding: 0 }}>
                     <FormStyles.Row>
                         <TextField
                             label="Name"
@@ -326,25 +298,12 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities,
                             placeholder="connection-name"
                             sx={{ width: "100%" }}
                             {...form.register("name", {
-                                validate: (value) => {
-                                    if (!value || value.trim().length === 0) {
-                                        return "Required";
-                                    } else if (
-                                        platformExtState?.devantConns?.list?.some((item) => item.name === value)
-                                    ) {
-                                        return "Name already exists";
-                                    } else if (
-                                        !/^[\s]*(?!.*[^a-zA-Z0-9][^a-zA-Z0-9])[a-zA-Z0-9][a-zA-Z0-9 _\-.]{1,48}[a-zA-Z0-9][\s]*$/.test(
-                                            value,
-                                        )
-                                    ) {
-                                        return "Cannot contain special characters";
-                                    } else if (value.length < 3) {
-                                        return "Name is too short";
-                                    } else if (value.length > 50) {
-                                        return "Name is too long";
-                                    }
-                                },
+                                validate: (value) =>
+                                    isValidDevantConnName(
+                                        value,
+                                        platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                                        biConnectionNames,
+                                    ),
                             })}
                             errorMsg={form.formState.errors.name?.message}
                         />
@@ -378,7 +337,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities,
 
                     {showAdvancedSection && advancedConfigItems}
 
-                    {item?.isThirdParty && selectedSchema && (
+                    {marketplaceItem?.isThirdParty && selectedSchema && (
                         <FormStyles.Row>
                             <CheckBoxGroup>
                                 <RowTitle>
@@ -413,7 +372,7 @@ export const DevantConnectorCreateForm: FC<Props> = ({ item, form, visibilities,
             <FooterContainer>
                 <ActionButton
                     appearance="primary"
-                    onClick={onCreateClick}
+                    onClick={form.handleSubmit(createDevantConnection)}
                     disabled={isCreatingConnection}
                     buttonSx={{ width: "100%", height: "35px" }}
                 >
