@@ -43,8 +43,6 @@ import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo
 import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import {
     DevantConnectorCreateForm,
-    getConnectionInitialName,
-    useDevantConnectorForm,
 } from "./DevantConnectorCreateForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
@@ -57,6 +55,9 @@ import { DevantBIConnectorCreateForm } from "./DevantBIConnectorInitForm";
 import { DevantBIConnectorSelect } from "./DevantBIConnectorSelect";
 import { AddConnectionPopupContent } from "../AddConnectionPopup/AddConnectionPopupContent";
 import { APIConnectionForm } from "../APIConnectionPopup";
+import { DEVANT_CONNECTION_FLOWS_STEPS, DevantConnectionFlowStep, DevantConnectionFlowSubTitles, DevantConnectionFlowTitles, generateInitialConnectionName } from "./utils";
+import { ModulePart, STKindChecker } from "@wso2/syntax-tree";
+import { URI } from "vscode-uri";
 
 interface AddConnectionPopupProps {
     onClose?: (parent?: ParentPopupData) => void;
@@ -66,80 +67,6 @@ interface AddConnectionPopupProps {
     target?: LinePosition;
 }
 
-export const DevantConnectionFlowTitles: Partial<Record<DevantConnectionFlow, string>> = {
-    [DevantConnectionFlow.CREATE_INTERNAL_OAS]: "Connect to Devant service",
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER]: "Connect to Devant service",
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR]: "Connect to Devant service",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OAS]: "Connect via API Specification",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER]: "Connect to Third-Party service",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR]: "Connect to Third-Party service",
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR]: "Connect to Third-Party service",
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS]: "Connect to Third-Party service",
-};
-
-export const DevantConnectionFlowSubTitles: Partial<Record<DevantConnectionFlow, string>> = {
-    [DevantConnectionFlow.CREATE_INTERNAL_OAS]: "Connect to REST API service running in Devant",
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER]: "Connect to service running in Devant by configuring your connector",
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR]:
-        "Connect to service running in Devant by configuring your connector",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OAS]:
-        "Connect to Third-Party REST API service by creating and mapping configurations",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER]:
-        "Connect to Third-Party service by creating and mapping configurations",
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR]:
-        "Connect to Third-Party service by configuring your connector",
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR]:
-        "Connect to Third-Party service by configuring your Ballerina connector",
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS]:
-        "Connect to Third-Party service from API Specification",
-};
-
-export enum DevantConnectionFlowStep {
-    VIEW_SWAGGER = "Connection Details",
-    INIT_DEVANT_INTERNAL_OAS_CONNECTOR = "Create Connection",
-    SELECT_BI_CONNECTOR = "Select Connector",
-    INIT_CONNECTOR = "Initialize Connector",
-    SELECT_OR_CREATE_BI_CONNECTOR = "Select or Create Connector",
-    UPLOAD_OAS = "Upload Specification",
-}
-
-export const DEVANT_CONNECTION_FLOWS_STEPS: Partial<Record<DevantConnectionFlow, DevantConnectionFlowStep[]>> = {
-    [DevantConnectionFlow.CREATE_INTERNAL_OAS]: [
-        DevantConnectionFlowStep.VIEW_SWAGGER,
-        DevantConnectionFlowStep.INIT_DEVANT_INTERNAL_OAS_CONNECTOR,
-    ],
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER]: [
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR]: [
-        DevantConnectionFlowStep.SELECT_BI_CONNECTOR,
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OAS]: [
-        DevantConnectionFlowStep.VIEW_SWAGGER,
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER]: [
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR]: [
-        DevantConnectionFlowStep.SELECT_BI_CONNECTOR,
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR]: [
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-    [DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS]: [
-        DevantConnectionFlowStep.UPLOAD_OAS,
-        DevantConnectionFlowStep.INIT_CONNECTOR,
-    ],
-};
-
-export enum DevantConnectionType {
-    INTERNAL = "INTERNAL",
-    THIRD_PARTY = "THIRD_PARTY",
-    DATABASE = "DATABASE",
-}
 
 export function DevantConnectorPopup(props: AddConnectionPopupProps) {
     const { onClose, onNavigateToOverview, isPopup, fileName, target } = props;
@@ -249,38 +176,38 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
         }
     };
 
-    // todo: move this back into connector create form
-    const { form, visibilities, isCreatingConnection, createDevantConnection } = useDevantConnectorForm(
-        selectedMarketplaceItem,
-        selectedFlow,
-        async (data) => {
-            if (data.connectionNode) {
-                rpcClient
-                    .getBIDiagramRpcClient()
-                    .getNodeTemplate({
-                        position: target || null,
-                        filePath: fileName,
-                        id: data.connectionNode.codedata,
-                    })
-                    .then((nodeTemplatePromise) => {
-                        // init connector flow
-                    });
-            } else if (data.connectionName) {
-                if (onClose) {
-                    onClose({ recentIdentifier: data.connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
+
+    const { data: biConnectionNames = [] } = useQuery({
+        queryKey: ["bi-connectionNames", projectPath],
+        queryFn: async () => {
+            const biConnectionNames = new Set<string>();
+            const joinedPath = await rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['connections.bal'] })
+            const stResp = await rpcClient.getLangClientRpcClient().getST({
+                documentIdentifier: { uri: URI.file(joinedPath.filePath).toString() },
+            })
+
+            for(const member of (stResp?.syntaxTree as ModulePart)?.members) {
+                if(STKindChecker.isModuleVarDecl(member)){
+                    if(STKindChecker.isCaptureBindingPattern(member.typedBindingPattern?.bindingPattern)){
+                        if(STKindChecker.isIdentifierToken(member.typedBindingPattern?.bindingPattern.variableName)){
+                            biConnectionNames.add(member.typedBindingPattern?.bindingPattern.variableName.value);
+                        }
+                    }
                 }
             }
+            return Array.from(biConnectionNames);
         },
-    );
+    });
 
     const { mutate: generateCustomConnectorFromOAS, isPending: generatingCustomConnectorFromOAS } = useMutation({
         mutationFn: () =>
             platformRpcClient?.generateCustomConnectorFromOAS({
                 marketplaceItem: selectedMarketplaceItem!,
-                connectionName: getConnectionInitialName(
-                    selectedMarketplaceItem?.name,
-                    platformExtState?.devantConns?.list?.map((conn) => conn.name),
-                ),
+                connectionName: generateInitialConnectionName(
+                    biConnectionNames,
+                    platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                    selectedMarketplaceItem?.name
+                )
             }),
         onSuccess: (data) => {
             setAvailableNode(data.connectionNode);
@@ -349,11 +276,28 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                     {steps[currentStepIndex] ===
                                         DevantConnectionFlowStep.INIT_DEVANT_INTERNAL_OAS_CONNECTOR && (
                                         <DevantConnectorCreateForm
-                                            item={selectedMarketplaceItem}
-                                            form={form}
-                                            visibilities={visibilities}
-                                            onCreateClick={() => createDevantConnection(form.getValues())}
-                                            isCreatingConnection={isCreatingConnection}
+                                            biConnectionNames={biConnectionNames}
+                                            marketplaceItem={selectedMarketplaceItem}
+                                            devantFlow={selectedFlow!}
+                                            onSuccess={(data) => {
+                                                if (data.connectionNode) {
+                                                    rpcClient
+                                                        .getBIDiagramRpcClient()
+                                                        .getNodeTemplate({
+                                                            position: target || null,
+                                                            filePath: fileName,
+                                                            id: data.connectionNode.codedata,
+                                                        })
+                                                        .then((nodeTemplatePromise) => {
+                                                            // todo: check this flow
+                                                            // init connector flow
+                                                        });
+                                                } else if (data.connectionName) {
+                                                    if (onClose) {
+                                                        onClose({ recentIdentifier: data.connectionName, artifactType: DIRECTORY_MAP.CONNECTION });
+                                                    }
+                                                }
+                                            }}
                                         />
                                     )}
                                     {steps[currentStepIndex] === DevantConnectionFlowStep.INIT_CONNECTOR &&
@@ -367,6 +311,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                 selectedMarketplaceItem={selectedMarketplaceItem}
                                                 selectedConnector={availableNode}
                                                 IDLFilePath={IDLFilePath}
+                                                biConnectionNames={biConnectionNames}
                                                 onAddDevantConfig={async (name, value, isSecret) => {
                                                     const resp = await platformRpcClient.addDevantTempConfig({ name, newLine: devantConfigs.length === 0 })
                                                     const newDevantConfig: DevantTempConfig = {
