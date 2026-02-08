@@ -49,7 +49,8 @@ import {
     FormExpressionEditorProps,
     FormImports,
     HelperpaneOnChangeOptions,
-    InputMode
+    InputMode,
+    FormSectionConfig
 } from "@wso2/ballerina-side-panel";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { CompletionItem, FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from "@wso2/ui-toolkit";
@@ -119,6 +120,7 @@ interface FormProps {
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
     hideSaveButton?: boolean;
     customDiagnosticFilter?: (diagnostics: Diagnostic[]) => Diagnostic[];
+    sections?: FormSectionConfig;
 }
 
 export function FormGeneratorNew(props: FormProps) {
@@ -152,7 +154,8 @@ export function FormGeneratorNew(props: FormProps) {
         changeOptionalFieldTitle,
         onChange,
         hideSaveButton,
-        customDiagnosticFilter
+        customDiagnosticFilter,
+        sections
     } = props;
 
     const { rpcClient } = useRpcContext();
@@ -992,6 +995,7 @@ export function FormGeneratorNew(props: FormProps) {
                     changeOptionalFieldTitle={changeOptionalFieldTitle}
                     onChange={onChange}
                     hideSaveButton={hideSaveButton}
+                    sections={sections}
                 />
             )}
             {

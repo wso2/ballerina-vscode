@@ -31,21 +31,19 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues } from "./types";
+import { ExpressionFormField, FieldDerivation, FormExpressionEditorProps, FormField, FormImports, FormValues, FormSectionConfig } from "./types";
 import { EditorFactory } from "../editors/EditorFactory";
 import { getValueForDropdown, isDropdownField } from "../editors/utils";
 import {
     Diagnostic,
     LineRange,
     NodeKind,
-    NodePosition,
     SubPanel,
     SubPanelView,
     FormDiagnostics,
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
-    Type,
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
@@ -103,6 +101,14 @@ namespace S {
         justify-content: space-between;
         align-items: center;
         width: 100%;
+    `;
+
+    export const HoverableSection = styled(Row)<{}>`
+        padding: 12px 16px;
+        cursor: pointer;
+        &:hover {
+            background: var(--vscode-list-hoverBackground);
+        }
     `;
 
     export const CategoryRow = styled.div<{ bottomBorder?: boolean; topBorder?: boolean }>`
@@ -405,6 +411,7 @@ export interface FormProps {
     changeOptionalFieldTitle?: string; // Option to change the title of optional fields
     openFormTypeEditor?: (open: boolean, newType?: string, editingField?: FormField) => void;
     derivedFields?: FieldDerivation[]; // Configuration for auto-deriving field values from other fields
+    sections?: FormSectionConfig;
 }
 
 export const Form = forwardRef((props: FormProps) => {
@@ -446,7 +453,8 @@ export const Form = forwardRef((props: FormProps) => {
         onValidityChange,
         changeOptionalFieldTitle = undefined,
         openFormTypeEditor,
-        derivedFields = []
+        derivedFields = [],
+        sections
     } = props;
 
     const {
@@ -471,6 +479,9 @@ export const Form = forwardRef((props: FormProps) => {
     const [manuallyEditedFields, setManuallyEditedFields] = useState<Set<string>>(new Set());
     const [isSubComponentEnabled, setIsSubComponentEnabled] = useState(false);
     const [optionalFieldsTitle, setOptionalFieldsTitle] = useState("Advanced Configurations");
+    const [sectionCollapseState, setSectionCollapseState] = useState<Map<string, boolean>>(
+        new Map(sections?.sections.map(s => [s.id, s.defaultCollapsed ?? true]) || [])
+    );
 
     const markdownRef = useRef<HTMLDivElement>(null);
 
@@ -926,6 +937,80 @@ export const Form = forwardRef((props: FormProps) => {
         })();
     };
 
+    const assignFieldsToSections = useMemo(() => {
+        if (!sections) return null;
+
+        const sectionGroups = new Map<string, FormField[]>();
+        const unmappedFields: FormField[] = [];
+
+        formFields.forEach(field => {
+            if (field.hidden) return;
+
+            // Find section for this field
+            let assignedSection: string | null = null;
+
+            // Strategy 1: Check explicit fieldKeys in sections
+            for (const section of sections.sections) {
+                if (section.fieldKeys?.includes(field.key)) {
+                    assignedSection = section.id;
+                    break;
+                }
+            }
+
+            // Strategy 2: Check field's groupName property
+            if (!assignedSection && field.groupName) {
+                const matchingSection = sections.sections.find(s => s.id === field.groupName);
+                if (matchingSection) assignedSection = field.groupName;
+            }
+
+            if (assignedSection) {
+                if (!sectionGroups.has(assignedSection)) {
+                    sectionGroups.set(assignedSection, []);
+                }
+                sectionGroups.get(assignedSection)!.push(field);
+            } else {
+                unmappedFields.push(field);
+            }
+        });
+
+        return { sectionGroups, unmappedFields };
+    }, [formFields, sections]);
+
+    // has advance fields that are not in custom sections
+    const hasAdvanceFieldsNotInSections = useMemo(() => {
+        if (!sections || !assignFieldsToSections) {
+            return hasAdvanceFields;
+        }
+
+        // Check if there are any advanced fields not in custom sections
+        const hasAdvancedFormFields = formFields.some((field) => {
+            if (!field.advanced || !field.enabled || field.hidden) return false;
+
+            // Check if field is in a custom section
+            const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                .some(fields => fields.find(f => f.key === field.key));
+
+            return !isInSection; // Return true if NOT in section
+        });
+
+        // Check advanced choice fields
+        const hasAdvancedChoiceFieldsNotInSections = advancedChoiceFields.some((field) => {
+            const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                .some(fields => fields.find(f => f.key === field.key));
+            return !isInSection;
+        });
+
+        return hasAdvancedFormFields || hasAdvancedChoiceFieldsNotInSections;
+    }, [formFields, advancedChoiceFields, sections, assignFieldsToSections, hasAdvanceFields]);
+
+    const handleSectionToggle = (sectionId: string, collapsed: boolean) => {
+        setSectionCollapseState(prev => {
+            const newState = new Map(prev);
+            newState.set(sectionId, collapsed);
+            return newState;
+        });
+    };
+
     const handleOnSaveClick = async () => {
         setSavingButton('save');
 
@@ -1009,6 +1094,13 @@ export const Form = forwardRef((props: FormProps) => {
                                 return;
                             }
 
+                            // Skip if field is in a section
+                            if (sections && assignFieldsToSections) {
+                                const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                                    .some(fields => fields.find(f => f.key === field.key));
+                                if (isInSection) return;
+                            }
+
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             renderedComponents.push(
                                 <S.Row key={updatedField.key}>
@@ -1057,7 +1149,96 @@ export const Form = forwardRef((props: FormProps) => {
 
                         return renderedComponents;
                     })()}
-                    {hasAdvanceFields && (
+                </S.CategoryRow>
+
+                {/* Render configured sections */}
+                {sections && assignFieldsToSections && (
+                    <S.CategoryRow bottomBorder={false}>
+                        {sections.sections
+                            .filter(section => {
+                                const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
+                                const hasFields = fields.length > 0;
+                                const meetsCondition = !section.renderCondition ||
+                                                      section.renderCondition(getValues());
+                                return hasFields && meetsCondition;
+                            })
+                            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                            .map(section => {
+                                const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
+                                const isCollapsed = sectionCollapseState.get(section.id) ?? section.defaultCollapsed ?? true;
+                                const isCollapsible = section.isCollapsible !== false;
+                                return (
+                                    <React.Fragment key={section.id}>
+                                        <div style={{display: "flex", flexDirection: "column", width: "100%", borderRadius: "4px", border: "1px solid var(--vscode-panel-border)"}}>
+                                            <S.HoverableSection onClick={() => handleSectionToggle(section.id, !isCollapsed)}>
+                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                        {section.title}
+                                                    </Typography>
+                                                    <Typography variant="body2" sx={{ opacity: 0.7, fontSize: 11 }}>
+                                                        {section.description}
+                                                    </Typography>
+                                                </div>
+                                                {isCollapsible && (
+                                                    <S.ButtonContainer>
+                                                        {isCollapsed && (
+                                                            <Codicon
+                                                                name={"chevron-down"}
+                                                                iconSx={{ fontSize: 12 }}
+                                                                sx={{ height: 12 }}
+                                                            />
+                                                        )}
+                                                        {!isCollapsed && (
+                                                            <Codicon
+                                                                name={"chevron-up"}
+                                                                iconSx={{ fontSize: 12 }}
+                                                                sx={{ height: 12 }}
+                                                            />
+                                                        )}
+                                                    </S.ButtonContainer>
+                                                )}
+                                            </S.HoverableSection>
+                                            {!isCollapsed && (<S.Row style={{flexDirection: "column", gap: "20px", padding: "8px 16px 28px", borderTop: "1px solid var(--vscode-panel-border)"}}>
+                                                {fields.map(field => {
+                                                    const updatedField = updateFormFieldWithImports(field, formImports);
+                                                    return (
+                                                        <S.Row key={updatedField.key}>
+                                                            <EditorFactory
+                                                                field={updatedField}
+                                                                selectedNode={selectedNode}
+                                                                openRecordEditor={
+                                                                    openRecordEditor &&
+                                                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                                                }
+                                                                openSubPanel={handleOpenSubPanel}
+                                                                subPanelView={subPanelView}
+                                                                handleOnFieldFocus={handleOnFieldFocus}
+                                                                recordTypeFields={recordTypeFields}
+                                                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                                                handleOnTypeChange={handleOnTypeChange}
+                                                                setSubComponentEnabled={setIsSubComponentEnabled}
+                                                                handleNewTypeSelected={handleNewTypeSelected}
+                                                                onBlur={handleOnBlur}
+                                                                isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                                                openFormTypeEditor={
+                                                                    openFormTypeEditor &&
+                                                                    ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                                                }
+                                                            />
+                                                            {updatedField.key === "scope" && scopeFieldAddon}
+                                                        </S.Row>
+                                                    );
+                                                })}
+                                            </S.Row>)}
+                                        </div>
+                                    </React.Fragment>
+                                );
+                            })}
+                    </S.CategoryRow>
+                )}
+
+                <S.CategoryRow bottomBorder={false}>
+                    {hasAdvanceFieldsNotInSections && (
                         <S.Row>
                             {optionalFieldsTitle}
                             <S.ButtonContainer>
@@ -1089,10 +1270,17 @@ export const Form = forwardRef((props: FormProps) => {
                             </S.ButtonContainer>
                         </S.Row>
                     )}
-                    {hasAdvanceFields &&
+                    {hasAdvanceFieldsNotInSections &&
                         showAdvancedOptions &&
                         formFields.map((field) => {
                             if (field.advanced && !field.hidden) {
+                                // Skip if field is in a custom section
+                                if (sections && assignFieldsToSections) {
+                                    const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                                        .some(fields => fields.find(f => f.key === field.key));
+                                    if (isInSection) return null;
+                                }
+
                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                 return (
                                     <S.Row key={updatedField.key}>
@@ -1114,9 +1302,16 @@ export const Form = forwardRef((props: FormProps) => {
                             }
                             return null;
                         })}
-                    {hasAdvanceFields &&
+                    {hasAdvanceFieldsNotInSections &&
                         showAdvancedOptions &&
                         advancedChoiceFields.map((field) => {
+                            // Skip if field is in a custom section
+                            if (sections && assignFieldsToSections) {
+                                const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                                    .some(fields => fields.find(f => f.key === field.key));
+                                if (isInSection) return null;
+                            }
+
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             return (
                                 <S.Row key={updatedField.key}>

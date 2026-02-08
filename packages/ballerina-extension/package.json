@@ -589,7 +589,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(type-hierarchy)",
                 "category": "BI"
             },
             {

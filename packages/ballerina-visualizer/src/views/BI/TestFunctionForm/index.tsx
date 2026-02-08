@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import { View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
+import { FormField, FormImports, FormValues, Parameter, FormSectionConfig } from "@wso2/ballerina-side-panel";
 import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType } from "@wso2/ballerina-core";
 import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
@@ -33,16 +33,51 @@ const FormContainer = styled.div`
     display: flex;
     flex-direction: column;
     max-width: 600px;
-    gap: 20px;
-    margin-top: 20px;
+    margin-bottom: 20px;
+
+    .side-panel-body {
+        overflow: visible;
+        overflow-y: none;
+    }
 `;
 
 const Container = styled.div`
     display: "flex";
     flex-direction: "column";
     gap: 10;
-    margin: 20px;
 `;
+
+const TEST_FORM_SECTIONS: FormSectionConfig = {
+    sections: [
+        {
+            id: 'data-provider',
+            title: 'Data Provider',
+            isCollapsible: true,
+            defaultCollapsed: true,
+            order: 1,
+            description: 'Configure test data sources',
+            fieldKeys: ['dataProvider']
+        },
+        {
+            id: 'repetition',
+            title: 'Repetition',
+            isCollapsible: true,
+            defaultCollapsed: true,
+            order: 2,
+            description: 'Configure run frequency and pass criteria',
+            fieldKeys: ['runs', 'minPassRate']
+        },
+        {
+            id: 'execution-organization',
+            title: 'Execution & Organization',
+            isCollapsible: true,
+            defaultCollapsed: true,
+            order: 3,
+            description: 'Manage test groups, dependencies, and lifecycle hooks',
+            fieldKeys: ['groups', 'dependsOn', 'before', 'after']
+        }
+    ]
+};
 
 interface TestFunctionDefProps {
     projectPath: string;
@@ -116,7 +151,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             endColumn: res.function.codedata.lineRange.endLine.offset
         };
         console.log("Node Position: ", nodePosition);
-        await rpcClient.getVisualizerRpcClient().openView(
+        rpcClient.getVisualizerRpcClient().openView(
             { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
     };
 
@@ -150,6 +185,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 editable: true,
                 enabled: true,
                 advanced: true,
+                hidden: true,
                 documentation: '',
                 value: '',
                 paramManagerProps: {
@@ -159,9 +195,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 },
                 types: [{ fieldType: "PARAM_MANAGER", selected: false }]
             });
-        }
-        if (testFunction.returnType) {
-            fields.push(generateFieldFromProperty('returnType', testFunction.returnType));
         }
         if (testFunction.annotations) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
@@ -271,6 +304,24 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     if (field.originalName == 'enabled') {
                         field.value = formValues['enabled'];
                     }
+                    if (field.originalName == 'dependsOn') {
+                        field.value = formValues['dependsOn'] || [];
+                    }
+                    if (field.originalName == 'before') {
+                        field.value = formValues['before'] || "";
+                    }
+                    if (field.originalName == 'after') {
+                        field.value = formValues['after'] || "";
+                    }
+                    if (field.originalName == 'runs') {
+                        field.value = formValues['runs'] || "1";
+                    }
+                    if (field.originalName == 'minPassRate') {
+                        field.value = formValues['minPassRate'] || "100";
+                    }
+                    if (field.originalName == 'dataProvider') {
+                        field.value = formValues['dataProvider'] || "";
+                    }
                 }
             }
         }
@@ -285,21 +336,21 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 optional: false,
                 editable: true,
                 advanced: false,
-                types: [{fieldType: "TYPE", selected: false }]
+                types: [{ fieldType: "TYPE", selected: false }]
             },
             variable: {
                 value: "b",
                 optional: false,
                 editable: true,
                 advanced: false,
-                types: [{fieldType: "IDENTIFIER", selected: false }]
+                types: [{ fieldType: "IDENTIFIER", selected: false }]
             },
             defaultValue: {
                 value: "\"default\"",
                 optional: false,
                 editable: true,
                 advanced: false,
-                types: [{fieldType: "EXPRESSION", selected: false }]
+                types: [{ fieldType: "EXPRESSION", selected: false }]
             },
             optional: false,
             editable: true,
@@ -312,8 +363,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         return {
             functionName: {
                 metadata: {
-                    label: "Test Function",
-                    description: "Test function"
+                    label: "Test Name",
+                    description: "Name of the test function"
                 },
                 value: "",
                 optional: false,
@@ -344,6 +395,18 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     fields: [
                         {
                             metadata: {
+                                label: "Enabled",
+                                description: "Enable/Disable the test"
+                            },
+                            originalName: "enabled",
+                            value: true,
+                            optional: true,
+                            editable: true,
+                            advanced: false,
+                            types: [{ fieldType: "FLAG", selected: false }]
+                        },
+                        {
+                            metadata: {
                                 label: "Groups",
                                 description: "Groups to run"
                             },
@@ -356,15 +419,75 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         },
                         {
                             metadata: {
-                                label: "Enabled",
-                                description: "Enable/Disable the test"
+                                label: "Depends On",
+                                description: "List of test function names that this test depends on"
                             },
-                            originalName: "enabled",
-                            value: true,
+                            types: [{ fieldType: "EXPRESSION_SET", selected: false }],
+                            originalName: "dependsOn",
+                            value: [],
                             optional: true,
                             editable: true,
-                            advanced: false,
-                            types: [{ fieldType: "FLAG", selected: false }]
+                            advanced: true
+                        },
+                        {
+                            metadata: {
+                                label: "Before Function",
+                                description: "Function to execute before this test"
+                            },
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            originalName: "before",
+                            value: "",
+                            optional: true,
+                            editable: true,
+                            advanced: true
+                        },
+                        {
+                            metadata: {
+                                label: "After Function",
+                                description: "Function to execute after this test"
+                            },
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            originalName: "after",
+                            value: "",
+                            optional: true,
+                            editable: true,
+                            advanced: true
+                        },
+                        {
+                            metadata: {
+                                label: "Runs",
+                                description: "Number of times to execute this test"
+                            },
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            originalName: "runs",
+                            value: "1",
+                            optional: true,
+                            editable: true,
+                            advanced: true
+                        },
+                        {
+                            metadata: {
+                                label: "Min Pass Rate (%)",
+                                description: "Minimum percentage of runs that must pass (0-100)"
+                            },
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            originalName: "minPassRate",
+                            value: "100",
+                            optional: true,
+                            editable: true,
+                            advanced: true
+                        },
+                        {
+                            metadata: {
+                                label: "Data Provider",
+                                description: "Function that provides test data"
+                            },
+                            types: [{ fieldType: "EXPRESSION", selected: false }],
+                            originalName: "dataProvider",
+                            value: "",
+                            optional: true,
+                            editable: true,
+                            advanced: true
                         }
                     ]
                 }
@@ -422,6 +545,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             <FormGeneratorNew
                                 fileName={filePath}
                                 fields={formFields}
+                                sections={TEST_FORM_SECTIONS}
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}

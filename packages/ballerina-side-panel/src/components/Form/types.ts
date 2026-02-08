@@ -259,3 +259,23 @@ export type FormExpressionEditorProps =
 export type FormImports = {
     [fieldKey: string]: Imports;
 }
+
+export interface FormSection {
+    id: string;
+    title: string;
+    isCollapsible?: boolean;
+    defaultCollapsed?: boolean;
+    order?: number;
+    description?: string;
+    fieldKeys?: string[];
+    renderCondition?: (formValues: FormValues) => boolean;
+}
+
+export interface FormSectionConfig {
+    sections: FormSection[];
+    defaultSection?: {
+        id: string;
+        title?: string;
+        order?: number;
+    };
+}
