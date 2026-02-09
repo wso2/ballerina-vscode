@@ -484,8 +484,10 @@ export function SpanDetails({ spanData, spanName, totalInputTokens, totalOutputT
             ? new Date(spanData.endTime).getTime() - new Date(spanData.startTime).getTime()
             : null;
 
-        const inputTokens = parseInt(getAttributeValue(spanData.attributes, 'gen_ai.usage.input_tokens') || '0');
-        const outputTokens = parseInt(getAttributeValue(spanData.attributes, 'gen_ai.usage.output_tokens') || '0');
+        const rawInput = parseInt(getAttributeValue(spanData.attributes, 'gen_ai.usage.input_tokens') || '0');
+        const rawOutput = parseInt(getAttributeValue(spanData.attributes, 'gen_ai.usage.output_tokens') || '0');
+        const inputTokens = Number.isFinite(rawInput) ? rawInput : 0;
+        const outputTokens = Number.isFinite(rawOutput) ? rawOutput : 0;
         const temperature = getAttributeValue(spanData.attributes, 'gen_ai.request.temperature');
         const provider = getAttributeValue(spanData.attributes, 'gen_ai.provider.name');
         const model = getAttributeValue(spanData.attributes, 'gen_ai.request.model');
