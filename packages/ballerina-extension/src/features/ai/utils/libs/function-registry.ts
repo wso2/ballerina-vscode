@@ -200,9 +200,11 @@ async function getSuggestedFunctions(
 
     const getLibSystemPrompt = `You are an AI assistant tasked with filtering and removing unwanted functions and clients from a provided set of libraries and clients based on a user query. The provided libraries are a subset of the full requirements for the query. Your goal is to return ONLY the relevant libraries, clients, and functions from the provided context that match the user's needs.
 
-Rules:
-1. Use ONLY the libraries listed in Library_Context_JSON.
-2. Do NOT create or infer new libraries or functions.`;
+CRITICAL RULES:
+1. Use ONLY items from Library_Context_JSON - do not create or infer new ones.
+2. Your ONLY task is selection - include or exclude items, NEVER modify field values.
+3. Copy all field values EXACTLY as provided - preserve every character including backslashes and special characters.
+4. For resource functions: "accessor" and "paths" are SEPARATE fields - NEVER combine them.`;
 
     const getLibUserPrompt = `You will be provided with a list of libraries, clients, and their functions, and a user query.
 
@@ -220,8 +222,15 @@ To process the user query and filter the libraries, clients, and functions, foll
 2. Review the provided libraries, clients, and functions in Library_Context_JSON.
 3. Select only the libraries, clients, and functions that directly match the query's needs.
 4. Exclude any irrelevant libraries, clients, or functions.
-5. If no relevant functions are found, return an empty array for the libraries.
+5. If no relevant functions are found, return an empty array for libraries.
 6. Organize the remaining relevant information.
+
+CRITICAL - Field Preservation:
+- For resource functions: "accessor" contains ONLY the HTTP method (e.g., "post", "get") - do NOT put path info in it.
+- The "paths" field is separate - do NOT merge with accessor.
+- Copy all values exactly - preserve backslashes, dots, and special characters.
+
+Return the filtered subset with IDENTICAL field values.
 
 Now, based on the provided libraries, clients, and functions, and the user query, please filter and return the relevant information.
 `;
