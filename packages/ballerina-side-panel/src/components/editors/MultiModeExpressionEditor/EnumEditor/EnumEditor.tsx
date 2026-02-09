@@ -37,7 +37,7 @@ export const EnumEditor = (props: EnumEditorProps) => {
             ...baseItems,
             {
                 id: "default-option",
-                content: "None Selected",
+                content: "No Selection",
                 value: DEFAULT_NONE_SELECTED_VALUE
             }
         ];
