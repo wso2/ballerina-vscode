@@ -19,9 +19,6 @@ import { langClient } from "../../activator";
 import { getGenerationMode } from "../ai-utils";
 
 
-
-export const LIBRARY_PROVIDER_TOOL = "LibraryProviderTool";
-
 // export async function getRelevantLibs(params: GenerateCodeParams): Promise<Library[]> {
 //     // const prompt = getReadmeQuery(params);
 //     const selectedLibs: string[] = await getSelectedLibraries(prompt);

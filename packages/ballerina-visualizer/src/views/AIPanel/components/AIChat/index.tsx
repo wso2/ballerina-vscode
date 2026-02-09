@@ -353,14 +353,31 @@ const AIChat: React.FC = () => {
                 return newMessages;
             });
         } else if (type === "tool_call") {
-            if (response.toolName == "LibraryProviderTool") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting libraries...</toolcall>`;
-                    }
-                    return newMessages;
-                });
+            if (response.toolName === "LibrarySearchTool") {
+                const toolCallId = response?.toolCallId;
+                const toolInput = response.toolInput;
+                const searchDescription = toolInput?.searchDescription;
+                const displayMessage = searchDescription
+                    ? `Searching for ${searchDescription}...`
+                    : "Searching for libraries...";
+                    setMessages((prevMessages) => {
+                        const newMessages = [...prevMessages];
+                        if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content +=
+                            `\n\n<toolcall id="${toolCallId}">${displayMessage}</toolcall>`;
+                        }
+                        return newMessages;
+                    });
+            } else if (response.toolName === "LibraryGetTool") {
+                const toolCallId = response?.toolCallId;
+                    setMessages((prevMessages) => {
+                        const newMessages = [...prevMessages];
+                        if (newMessages.length > 0) {
+                        newMessages[newMessages.length - 1].content +=
+                            `\n\n<toolcall id="${toolCallId}">Fetching library details...</toolcall>`;
+                        }
+                        return newMessages;
+                    });
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
@@ -401,29 +418,59 @@ const AIChat: React.FC = () => {
                 });
             }
         } else if (type === "tool_result") {
-            if (response.toolName == "LibraryProviderTool") {
-                const libraryNames = response.toolOutput;
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        if (libraryNames.length === 0) {
+            if (response.toolName === "LibrarySearchTool") {
+                const toolCallId = response.toolCallId;
+                const toolOutput = response.toolOutput;
+                    const searchDescription = toolOutput?.searchDescription;
+
+                    // Build the original message to replace
+                    const originalMessage = searchDescription
+                        ? `Searching for ${searchDescription}...`
+                        : "Searching for libraries...";
+
+                    // Build the completion message
+                    const completionMessage = searchDescription
+                        ? `${searchDescription.charAt(0).toUpperCase() + searchDescription.slice(1)} search completed`
+                        : "Library search completed";
+
+                    setMessages((prevMessages) => {
+                        const newMessages = [...prevMessages];
+                        if (newMessages.length > 0) {
                             newMessages[newMessages.length - 1].content = newMessages[
                                 newMessages.length - 1
                             ].content.replace(
-                                `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolresult>No relevant libraries found.</toolresult>`
-                            );
-                        } else {
-                            newMessages[newMessages.length - 1].content = newMessages[
-                                newMessages.length - 1
-                            ].content.replace(
-                                `<toolcall>Analyzing request & selecting libraries...</toolcall>`,
-                                `<toolresult>Fetched libraries: [${libraryNames.join(", ")}]</toolresult>`
+                                `<toolcall id="${toolCallId}">${originalMessage}</toolcall>`,
+                                `<toolresult id="${toolCallId}">${completionMessage}</toolresult>`,
                             );
                         }
-                    }
-                    return newMessages;
-                });
+                        return newMessages;
+                    });
+            } else if (response.toolName === "LibraryGetTool") {
+                const toolCallId = response.toolCallId;
+                const libraryNames = response.toolOutput || [];
+                if (toolCallId) {
+                    setMessages((prevMessages) => {
+                        const newMessages = [...prevMessages];
+                        if (newMessages.length > 0) {
+                            if (libraryNames.length === 0) {
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(
+                                    `<toolcall id="${toolCallId}">Fetching library details...</toolcall>`,
+                                    `<toolresult id="${toolCallId}">No relevant libraries found</toolresult>`
+                                );
+                            } else {
+                                newMessages[newMessages.length - 1].content = newMessages[
+                                    newMessages.length - 1
+                                ].content.replace(
+                                    `<toolcall id="${toolCallId}">Fetching library details...</toolcall>`,
+                                    `<toolresult id="${toolCallId}">Fetched libraries: [${libraryNames.join(", ")}]</toolresult>`
+                                );
+                            }
+                        }
+                        return newMessages;
+                    });
+                }
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 const libraryNames = response.toolOutput;
                 setMessages((prevMessages) => {
