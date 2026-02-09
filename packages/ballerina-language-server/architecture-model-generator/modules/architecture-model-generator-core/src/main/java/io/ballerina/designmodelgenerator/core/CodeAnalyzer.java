@@ -120,6 +120,9 @@ public class CodeAnalyzer extends NodeVisitor {
         this.intermediateModel = intermediateModel;
         this.rootPath = rootPath;
         this.connectionFinder = connectionFinder;
+        this.currentFunctionModel = null;
+        this.currentServiceModel = null;
+        this.currentServiceClass = null;
     }
 
     @Override
@@ -348,12 +351,21 @@ public class CodeAnalyzer extends NodeVisitor {
         implicitNewExpressionNode.parenthesizedArgList()
                 .ifPresent(parenthesizedArgList -> parenthesizedArgList.arguments()
                         .forEach(expr -> expr.accept(this)));
+        if (currentFunctionModel != null) {
+            semanticModel.symbol(implicitNewExpressionNode).ifPresent(symbol -> {
+                if (symbol instanceof ClassSymbol classSymbol) {
+                    currentFunctionModel.usedClasses.add(classSymbol.getName().orElse(""));
+                }
+            });
+        }
     }
 
     @Override
     public void visit(ExplicitNewExpressionNode explicitNewExpressionNode) {
         explicitNewExpressionNode.parenthesizedArgList().arguments().forEach(expr -> expr.accept(this));
-        currentFunctionModel.usedClasses.add(explicitNewExpressionNode.typeDescriptor().toSourceCode().trim());
+        if (currentFunctionModel != null) {
+            currentFunctionModel.usedClasses.add(explicitNewExpressionNode.typeDescriptor().toSourceCode().trim());
+        }
     }
 
     @Override
