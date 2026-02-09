@@ -40,8 +40,8 @@
       },
       "variable": {
         "metadata": {
-          "label": "Result",
-          "description": "Name of the result variable"
+          "label": "Variable Name",
+          "description": "Name of the variable"
         },
         "types": [
           {
@@ -49,7 +49,7 @@
             "selected": true
           }
         ],
-        "value": "outputResult",
+        "value": "var2",
         "optional": false,
         "editable": true,
         "advanced": false,
