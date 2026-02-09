@@ -317,9 +317,16 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         data(node == null ? null : node.bindingPattern(), variableLabel, variableDoc,
                 NameUtil.generateTypeName("var", names), false);
 
-        String typeName = node == null ? "" : CommonUtils.getTypeSymbol(semanticModel, node)
-                .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
-                .orElse(CommonUtils.getVariableName(node));
+        String typeName;
+        if (node == null) {
+            typeName = "";
+        } else if (node.typeDescriptor().kind() == SyntaxKind.VAR_TYPE_DESC) {
+            typeName = "var";
+        } else {
+            typeName = CommonUtils.getTypeSymbol(semanticModel, node)
+                    .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
+                    .orElse(CommonUtils.getVariableName(node));
+        }
         return type(typeName, typeDoc, editable, null, node == null ? null : node.typeDescriptor().lineRange(), hidden);
     }
 
