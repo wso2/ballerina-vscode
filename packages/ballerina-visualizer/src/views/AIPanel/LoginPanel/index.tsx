@@ -153,6 +153,10 @@ const LoginPanel: React.FC = () => {
         rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_AWS_BEDROCK);
     };
 
+    const handleVertexAiClick = () => {
+        rpcClient.sendAIStateEvent(AIMachineEventType.AUTH_WITH_VERTEX_AI);
+    };
+
     return (
         <PanelWrapper>
             <TopSpacer />
@@ -184,6 +188,7 @@ const LoginPanel: React.FC = () => {
                 {isPlatformAvailable && <Divider>or</Divider>}
                 <TextButton onClick={handleAnthropicKeyClick}>Enter your Anthropic API key</TextButton>
                 <TextButton onClick={handleAwsBedrockClick}>Enter your AWS Bedrock credentials</TextButton>
+                <TextButton onClick={handleVertexAiClick}>Enter your Google Vertex AI credentials</TextButton>
             </FooterContent>
         </PanelWrapper>
     );

@@ -16,7 +16,8 @@
 
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createAmazonBedrock } from "@ai-sdk/amazon-bedrock";
-import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials } from "../../../utils/ai/auth";
+import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
+import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
@@ -201,6 +202,34 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
             const bedrockModelId = `${regionalPrefix}.${baseModelId}`;
             
             return bedrock(bedrockModelId);
+        } else if (loginMethod === LoginMethod.VERTEX_AI) {
+            const vertexCredentials = await getVertexAiCredentials();
+            if (!vertexCredentials) {
+                throw new Error('Vertex AI credentials not found');
+            }
+
+            const vertexAnthropic = createVertexAnthropic({
+                project: vertexCredentials.projectId,
+                location: vertexCredentials.location,
+                googleAuthOptions: {
+                    credentials: {
+                        client_email: vertexCredentials.clientEmail,
+                        private_key: vertexCredentials.privateKey,
+                    },
+                },
+            });
+
+            const vertexModelMap: Record<AnthropicModel, string> = {
+                [ANTHROPIC_HAIKU]: "claude-3-5-haiku@20241022",
+                [ANTHROPIC_SONNET_4]: "claude-sonnet-4-5@20250929",
+            };
+
+            const vertexModelId = vertexModelMap[model];
+            if (!vertexModelId) {
+                throw new Error(`Unsupported model for Vertex AI: ${model}`);
+            }
+
+            return vertexAnthropic(vertexModelId);
         } else {
             throw new Error(`Unsupported login method: ${loginMethod}`);
         }
@@ -229,6 +258,7 @@ export const getProviderCacheControl = async (): Promise<ProviderCacheOptions> =
     switch (loginMethod) {
         case LoginMethod.AWS_BEDROCK:
             return { bedrock: { cachePoint: { type: 'default' } } };
+        case LoginMethod.VERTEX_AI:
         case LoginMethod.ANTHROPIC_KEY:
         case LoginMethod.BI_INTEL:
         default:

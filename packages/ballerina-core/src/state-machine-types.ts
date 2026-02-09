@@ -384,7 +384,7 @@ export const breakpointChanged: NotificationType<boolean> = { method: 'breakpoin
 export type AIMachineStateValue =
     | 'Initialize'          // (checking auth, first load)
     | 'Unauthenticated'     // (show login window)
-    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' } // hierarchical substates
+    | { Authenticating: 'determineFlow' | 'ssoFlow' | 'apiKeyFlow' | 'validatingApiKey' | 'awsBedrockFlow' | 'validatingAwsCredentials' | 'vertexAiFlow' | 'validatingVertexAiCredentials' } // hierarchical substates
     | 'Authenticated'       // (ready, main view)
     | 'Disabled';           // (optional: if AI Chat is globally unavailable)
 
@@ -395,6 +395,8 @@ export enum AIMachineEventType {
     SUBMIT_API_KEY = 'SUBMIT_API_KEY',
     AUTH_WITH_AWS_BEDROCK = 'AUTH_WITH_AWS_BEDROCK',
     SUBMIT_AWS_CREDENTIALS = 'SUBMIT_AWS_CREDENTIALS',
+    AUTH_WITH_VERTEX_AI = 'AUTH_WITH_VERTEX_AI',
+    SUBMIT_VERTEX_AI_CREDENTIALS = 'SUBMIT_VERTEX_AI_CREDENTIALS',
     LOGOUT = 'LOGOUT',
     SILENT_LOGOUT = "SILENT_LOGOUT",
     COMPLETE_AUTH = 'COMPLETE_AUTH',
@@ -414,6 +416,13 @@ export type AIMachineEventMap = {
         secretAccessKey: string;
         region: string;
         sessionToken?: string;
+    };
+    [AIMachineEventType.AUTH_WITH_VERTEX_AI]: undefined;
+    [AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS]: {
+        projectId: string;
+        location: string;
+        clientEmail: string;
+        privateKey: string;
     };
     [AIMachineEventType.LOGOUT]: undefined;
     [AIMachineEventType.SILENT_LOGOUT]: undefined;
@@ -594,7 +603,8 @@ export type OperationType = "CODE_FOR_USER_REQUIREMENT" | "TESTS_FOR_USER_REQUIR
 export enum LoginMethod {
     BI_INTEL = 'biIntel',
     ANTHROPIC_KEY = 'anthropic_key',
-    AWS_BEDROCK = 'aws_bedrock'
+    AWS_BEDROCK = 'aws_bedrock',
+    VERTEX_AI = 'vertex_ai'
 }
 
 export interface BIIntelSecrets {
@@ -613,6 +623,13 @@ interface AwsBedrockSecrets {
     sessionToken?: string;
 }
 
+export interface VertexAiSecrets {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+}
+
 export type AuthCredentials =
     | {
         loginMethod: LoginMethod.BI_INTEL;
@@ -625,6 +642,10 @@ export type AuthCredentials =
     | {
         loginMethod: LoginMethod.AWS_BEDROCK;
         secrets: AwsBedrockSecrets;
+    }
+    | {
+        loginMethod: LoginMethod.VERTEX_AI;
+        secrets: VertexAiSecrets;
     };
 
 export interface AIUserToken {
