@@ -64,6 +64,7 @@ import {
     generateOpenAPI,
     getAIMachineSnapshot,
     getActiveTempDir,
+    getAffectedPackages,
     getChatMessages,
     getCheckpoints,
     getDefaultPrompt,
@@ -72,12 +73,12 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
-    getAffectedPackages,
-    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
+    isPlatformExtensionAvailable,
     isUserAuthenticated,
+    isWorkspaceProject,
     markAlertShown,
     openAIPanel,
     openChatWindowWithCommand,
@@ -101,6 +102,10 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     getLoginMethod(): Promise<LoginMethod> {
         return this._messenger.sendRequest(getLoginMethod, HOST_EXTENSION);
+    }
+
+    isPlatformExtensionAvailable(): Promise<boolean> {
+        return this._messenger.sendRequest(isPlatformExtensionAvailable, HOST_EXTENSION);
     }
 
     getDefaultPrompt(): Promise<AIPanelPrompt> {

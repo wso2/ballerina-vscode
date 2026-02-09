@@ -56,7 +56,11 @@ let cachedAnthropic: ReturnType<typeof createAnthropic> | null = null;
 let cachedAuthMethod: LoginMethod | null = null;
 
 /**
- * Reusable fetch function that handles authentication with token refresh
+ * Reusable fetch function that handles authentication with token refresh.
+ * Uses tiered refresh strategy for BI_INTEL:
+ * 1. Try STS token re-exchange via platform extension
+ * 2. If both fail, logout the user
+ *
  * @param input - The URL, Request object, or string to fetch
  * @param options - Fetch options
  * @returns Promise<Response>
@@ -70,6 +74,9 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
             "Content-Type": "application/json",
             'User-Agent': 'Ballerina-VSCode-Plugin',
             'Connection': 'keep-alive',
+            'x-product': 'bi',
+            'x-usage-context': 'copilot',
+            'x-metadata': JSON.stringify({ isCloudEditor: !!process.env.CLOUD_ENV }),
         };
 
         if (credentials && loginMethod === LoginMethod.BI_INTEL) {
@@ -87,19 +94,36 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         let response = await fetch(input, options);
         console.log("Response status: ", response.status);
 
-        // Handle token expiration for BI_INTEL method
+        // Handle token expiration for BI_INTEL method with tiered refresh
         if (response.status === 401) {
             if (loginMethod === LoginMethod.BI_INTEL) {
-                console.log("Token expired. Refreshing BI_INTEL token...");
-                const newToken = await getRefreshedAccessToken();
-                if (newToken) {
-                    options.headers = {
-                        ...options.headers,
-                        'Authorization': `Bearer ${newToken}`,
-                    };
-                    response = await fetch(input, options);
-                } else {
-                    AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+                console.log("Token expired. Attempting tiered refresh for BI_INTEL...");
+
+                try {
+                    // Tiered refresh: STS token re-exchange via platform extension
+                    const newToken = await getRefreshedAccessToken();
+                    if (newToken) {
+                        console.log("Token refreshed via STS exchange");
+                        options.headers = {
+                            ...options.headers,
+                            'Authorization': `Bearer ${newToken}`,
+                        };
+                        response = await fetch(input, options);
+
+                        // If still 401 after refresh, logout
+                        if (response.status === 401) {
+                            console.log("Still unauthorized after token refresh. Logging out.");
+                            AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
+                            return;
+                        }
+                    } else {
+                        console.log("Token refresh returned null. Logging out.");
+                        AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
+                        return;
+                    }
+                } catch (refreshError) {
+                    console.error("Token refresh failed:", refreshError);
+                    AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
                     return;
                 }
             }
@@ -117,7 +141,7 @@ export async function fetchWithAuth(input: string | URL | Request, options: Requ
         return response;
     } catch (error: any) {
         if (error?.message === "TOKEN_EXPIRED") {
-            AIStateMachine.service().send(AIMachineEventType.LOGOUT);
+            AIStateMachine.service().send(AIMachineEventType.SILENT_LOGOUT);
         } else {
             throw error;
         }
@@ -133,7 +157,8 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
-        let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
+        // let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
+        let url = BACKEND_URL + "/intel/claude";
         if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,

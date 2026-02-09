@@ -21,9 +21,16 @@ import { AIUserToken, LoginMethod, AuthCredentials } from '@wso2/ballerina-core'
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { generateText } from 'ai';
-import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
-import { getAccessToken, clearAuthCredentials, storeAuthCredentials } from '../../utils/ai/auth';
+import {
+    getAccessToken,
+    clearAuthCredentials,
+    storeAuthCredentials,
+    isPlatformExtensionAvailable,
+    isDevantUserLoggedIn,
+    getPlatformStsToken,
+    exchangeStsToCopilotToken
+} from '../../utils/ai/auth';
 import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
@@ -35,12 +42,38 @@ export const checkToken = async (): Promise<AuthCredentials | undefined> => {
             // Clean up any legacy tokens on initialization
             await cleanupLegacyTokens();
 
+            // First check if we have stored credentials
             const credentials = await getAccessToken();
-            if (!credentials) {
-                resolve(undefined);
+            if (credentials) {
+                resolve(credentials);
                 return;
             }
-            resolve(credentials);
+
+            // No stored credentials - check if user is logged into Devant
+            if (isPlatformExtensionAvailable()) {
+                const isLoggedIn = await isDevantUserLoggedIn();
+                if (isLoggedIn) {
+                    // User is logged into Devant but no stored credentials
+                    // Exchange STS token and store credentials
+                    try {
+                        const stsToken = await getPlatformStsToken();
+                        if (stsToken) {
+                            const secrets = await exchangeStsToCopilotToken(stsToken);
+                            const newCredentials: AuthCredentials = {
+                                loginMethod: LoginMethod.BI_INTEL,
+                                secrets
+                            };
+                            await storeAuthCredentials(newCredentials);
+                            resolve(newCredentials);
+                            return;
+                        }
+                    } catch (exchangeError) {
+                        console.error('Failed to exchange STS token during checkToken:', exchangeError);
+                    }
+                }
+            }
+
+            resolve(undefined);
         } catch (error) {
             reject(error);
         }
@@ -61,26 +94,25 @@ const cleanupLegacyTokens = async (): Promise<void> => {
     }
 };
 
-export const logout = async (isUserLogout: boolean = true) => {
-    // For user-initiated logout, check if we need to redirect to SSO logout
-    if (isUserLogout) {
-        const credentials = await checkToken();
-        if (credentials.loginMethod === LoginMethod.BI_INTEL) {
-            const logoutURL = getLogoutUrl();
-            vscode.env.openExternal(vscode.Uri.parse(logoutURL));
-        }
-    }
-
+export const logout = async (_isUserLogout: boolean = true) => {
+    // For BI_INTEL with Devant, we just clear credentials
+    // The platform extension manages the Devant session separately
     // Always clear stored credentials
     await clearAuthCredentials();
 };
 
-export async function initiateInbuiltAuth() {
-    const callbackUri = await vscode.env.asExternalUri(
-        vscode.Uri.parse(`${vscode.env.uriScheme}://wso2.ballerina/signin`)
-    );
-    const oauthURL = await getAuthUrl(callbackUri.toString());
-    return vscode.env.openExternal(vscode.Uri.parse(oauthURL));
+/**
+ * Initiate Devant authentication via the platform extension.
+ * Returns true if login was triggered, false if platform extension is not available.
+ */
+export async function initiateDevantAuth(): Promise<boolean> {
+    if (!isPlatformExtensionAvailable()) {
+        throw new Error('WSO2 Platform extension is not installed. Please install it to use BI Copilot.');
+    }
+
+    // Trigger platform extension login command
+    await vscode.commands.executeCommand('wso2.wso2-platform.sign.in');
+    return true;
 }
 
 export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): Promise<AIUserToken> => {
