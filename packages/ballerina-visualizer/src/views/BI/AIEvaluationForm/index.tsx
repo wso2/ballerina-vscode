@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { View, ViewContent } from "@wso2/ui-toolkit";
+import { Icon, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues, Parameter, FormSectionConfig } from "@wso2/ballerina-side-panel";
@@ -28,6 +28,7 @@ import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { FormHeader } from "../../../components/FormHeader";
 import FormGeneratorNew from "../Forms/FormGeneratorNew";
 import { getImportsForProperty } from "../../../utils/bi";
+import { CardSelector } from "./CardSelector";
 
 const FormContainer = styled.div`
     display: flex;
@@ -65,7 +66,7 @@ const TEST_FORM_SECTIONS: FormSectionConfig = {
             defaultCollapsed: true,
             order: 1,
             description: 'Configure test data sources',
-            fieldKeys: ['dataProviderMode', 'dataProvider', 'evalSetFile']
+            fieldKeys: ['dataProviderMode', 'dataProvider']
         },
         {
             id: 'repetition',
@@ -73,8 +74,8 @@ const TEST_FORM_SECTIONS: FormSectionConfig = {
             isCollapsible: true,
             defaultCollapsed: true,
             order: 2,
-            description: 'Configure run frequency and pass criteria',
-            fieldKeys: ['runs', 'minPassRate']
+            description: 'Configure run frequency',
+            fieldKeys: ['runs']
         },
         {
             id: 'execution-organization',
@@ -83,7 +84,7 @@ const TEST_FORM_SECTIONS: FormSectionConfig = {
             defaultCollapsed: true,
             order: 3,
             description: 'Manage test groups, dependencies, and lifecycle hooks',
-            fieldKeys: ['groups', 'dependsOn', 'before', 'after']
+            fieldKeys: ['groups', 'dependsOn', 'before', 'after', 'enabled']
         }
     ]
 };
@@ -102,10 +103,10 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const [testFunction, setTestFunction] = useState<TestFunction>();
     const [formTitle, setFormTitle] = useState<string>('Create New AI Evaluation');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
-    const [dataProviderMode, setDataProviderMode] = useState<string>('function');
+    const [dataProviderMode, setDataProviderMode] = useState<string>('evalSet');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
 
-    const handleFieldChange = (fieldKey: string, value: any, allValues: FormValues) => {
+    const handleFieldChange = (fieldKey: string, value: any) => {
         if (fieldKey === 'dataProviderMode') {
             setDataProviderMode(value);
             updateFieldVisibility(value);
@@ -119,6 +120,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             }
             if (field.key === 'evalSetFile') {
                 return { ...field, hidden: mode !== 'evalSet' };
+            }
+            if (field.key === 'runs') {
+                return { ...field, hidden: mode === 'evalSet' };
             }
             return field;
         }));
@@ -159,7 +163,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
             // Get the dataProviderMode value to initialize field visibility
             const modeField = formFields.find(f => f.key === 'dataProviderMode');
-            const mode = String(modeField?.value || 'function');
+            const mode = String(modeField?.value || 'evalSet');
             setDataProviderMode(mode);
 
             // Set field visibility based on mode
@@ -169,6 +173,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 }
                 if (field.key === 'evalSetFile') {
                     return { ...field, hidden: mode !== 'evalSet' };
+                }
+                if (field.key === 'runs') {
+                    return { ...field, hidden: mode === 'evalSet' };
                 }
                 return field;
             });
@@ -182,7 +189,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             const res = await rpcClient.getTestManagerRpcClient().getEvalsets({ projectPath });
             const options = res.evalsets.map((evalset: EvalsetItem) => ({
                 value: evalset.filePath,
-                content: `${evalset.name} (${evalset.threadCount} thread${evalset.threadCount !== 1 ? 's' : ''})`
+                content: `${evalset.name}`
             }));
             setEvalsetOptions(options);
         } catch (error) {
@@ -198,7 +205,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
         // Get the dataProviderMode value to initialize field visibility
         const modeField = formFields.find(f => f.key === 'dataProviderMode');
-        const mode = String(modeField?.value || 'function');
+        const mode = String(modeField?.value || 'evalSet');
         setDataProviderMode(mode);
 
         // Set initial field visibility
@@ -208,6 +215,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             }
             if (field.key === 'evalSetFile') {
                 return { ...field, hidden: mode !== 'evalSet' };
+            }
+            if (field.key === 'runs') {
+                return { ...field, hidden: mode === 'evalSet' };
             }
             return field;
         });
@@ -222,16 +232,19 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
         // Get the dataProviderMode value to initialize field visibility
         const modeField = formFields.find(f => f.key === 'dataProviderMode');
-        const mode = String(modeField?.value || 'function');
+        const mode = String(modeField?.value || 'evalSet');
         setDataProviderMode(mode);
 
-        // Set initial field visibility (default is 'function' mode)
+        // Set initial field visibility (default is 'evalSet' mode)
         formFields = formFields.map(field => {
             if (field.key === 'dataProvider') {
                 return { ...field, hidden: mode !== 'function' };
             }
             if (field.key === 'evalSetFile') {
                 return { ...field, hidden: mode !== 'evalSet' };
+            }
+            if (field.key === 'runs') {
+                return { ...field, hidden: mode === 'evalSet' };
             }
             return field;
         });
@@ -240,7 +253,12 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     const onFormSubmit = async (data: FormValues, formImports: FormImports) => {
-        const updatedTestFunction = fillFunctionModel(data, formImports);
+        // Include the dataProviderMode from CardSelector state
+        const formData = {
+            ...data,
+            dataProviderMode: dataProviderMode
+        };
+        const updatedTestFunction = fillFunctionModel(formData, formImports);
         if (serviceType === 'UPDATE_TEST') {
             await rpcClient.getTestManagerRpcClient().updateTestFunction({ function: updatedTestFunction, filePath });
         } else {
@@ -303,15 +321,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
             if (configAnnotation && configAnnotation.fields) {
                 for (const field of configAnnotation.fields) {
+                    // Skip dataProviderMode - it will be rendered as CardSelector
                     if (field.originalName === 'dataProviderMode') {
-                        fields.push({
-                            ...generateFieldFromProperty(field.originalName, field),
-                            type: 'RADIO_GROUP',
-                            itemOptions: [
-                                { value: 'function', content: 'Use a custom function' },
-                                { value: 'evalSet', content: 'Use an Evalset' }
-                            ]
-                        });
                         continue;
                     }
 
@@ -559,7 +570,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         {
                             metadata: {
                                 label: "Enabled",
-                                description: "Enable/Disable the test"
+                                description: "Enable/Disable the evaluation"
                             },
                             originalName: "enabled",
                             value: true,
@@ -636,9 +647,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             types: [{ fieldType: "SLIDER", selected: false }],
                             originalName: "minPassRate",
                             value: "1.0",
-                            optional: true,
+                            optional: false,
                             editable: true,
-                            advanced: true
+                            advanced: false
                         },
                         {
                             metadata: {
@@ -672,9 +683,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             types: [{ fieldType: "STRING", selected: false }],
                             originalName: "evalSetFile",
                             value: "",
-                            optional: true,
+                            optional: false,
                             editable: true,
-                            advanced: true
+                            advanced: false
                         }
                     ]
                 }
@@ -720,6 +731,26 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         }
     ];
 
+    const cardOptions = [
+        {
+            value: 'evalSet',
+            title: 'From Evalset',
+            description: 'Use conversation traces from an existing dataset to evaluate your agent.',
+            icon: <Icon name="bi-data-table" sx={{ fontSize: "20px", width: "20px", height: "20px" }} />
+        },
+        {
+            value: 'function',
+            title: 'Standalone/Custom',
+            description: 'Implement a fully custom logic to evaluate specific behaviors from scratch.',
+            icon: <Icon name="bi-config" sx={{ fontSize: "20px", width: "20px", height: "20px" }} />
+        }
+    ];
+
+    const handleCardSelectorChange = (value: string) => {
+        setDataProviderMode(value);
+        updateFieldVisibility(value);
+    };
+
     return (
         <View>
             <TopNavigationBar projectPath={projectPath} />
@@ -728,6 +759,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 <Container>
                     <FormHeader title={formTitle} />
                     <FormContainer>
+
                         {targetLineRange && (
                             <FormGeneratorNew
                                 fileName={filePath}
@@ -737,6 +769,17 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
                                 onChange={handleFieldChange}
+                                injectedComponents={[
+                                    {
+                                        component: <CardSelector
+                                            title="How would you like to build this evaluation?"
+                                            options={cardOptions}
+                                            value={dataProviderMode}
+                                            onChange={handleCardSelectorChange}
+                                        />,
+                                        index: 2
+                                    }
+                                ]}
                             />
                         )}
                     </FormContainer>
