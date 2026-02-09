@@ -21,17 +21,7 @@ module.exports = {
     testEnvironment: 'jsdom',
     transform: {
         '^.+\\.(js|jsx)$': 'babel-jest',
-        '^.+\\.(ts|tsx)$': 'ts-jest',
-    },
-    globals: {
-        'ts-jest': {
-            isolatedModules: true,
-            tsconfig: {
-                jsx: 'react',
-                esModuleInterop: true,
-                allowSyntheticDefaultImports: true,
-            }
-        },
+        '^.+\\.(ts|tsx)$': ['ts-jest', { isolatedModules: true, tsconfig: { jsx: 'react', esModuleInterop: true, allowSyntheticDefaultImports: true } }],
     },
     moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
     testMatch: ['**/?(*.)+(spec|test).ts?(x)'],
