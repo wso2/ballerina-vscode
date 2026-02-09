@@ -1,6 +1,7 @@
 import new_connection1.db;
 
 import ballerina/http;
+import ballerina/sql;
 import ballerina/io;
 
 http:Client httpClient = check new ("http://localhost:9090");
@@ -71,4 +72,13 @@ function customFn(Address address, Person Person) returns Location {
 
 function customFnWithImportedType(http:ClientConfiguration config, Address address) returns http:HttpServiceConfig {
     return {};
+}
+
+function function1(string a1) {
+    do {
+        stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`SELECT * from users`);
+
+    } on fail {
+
+    }
 }
