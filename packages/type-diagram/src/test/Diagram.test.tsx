@@ -121,7 +121,7 @@ async function renderAndCheckSnapshot(types: Type[], testName: string) {
 
     const prettyDom = prettyDOM(dom.container, 1000000, {
         highlight: false,
-        filterNode(node) {
+        filterNode(_node) {
             return true;
         },
     });
@@ -185,7 +185,7 @@ describe("Type Diagram - Snapshot Tests", () => {
 
         const prettyDom = prettyDOM(dom.container, 1000000, {
             highlight: false,
-            filterNode(node) {
+            filterNode(_node) {
                 return true;
             },
         });
