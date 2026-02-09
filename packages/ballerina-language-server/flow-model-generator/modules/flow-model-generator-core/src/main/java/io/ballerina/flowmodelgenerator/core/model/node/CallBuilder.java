@@ -44,6 +44,8 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
@@ -79,9 +81,16 @@ public abstract class CallBuilder extends NodeBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
-        Optional<Package> resolvedPackage = PackageUtil.safeResolveModulePackage(
-                codedata.org(), codedata.packageName(), codedata.version());
-
+        Document document = null;
+        Package resolvedPackage;
+        if (isLocalFunction(context.workspaceManager(), context.filePath(), codedata)) {
+            resolvedPackage = context.workspaceManager().project(context.filePath()).get().currentPackage();
+            Module defaultModule = resolvedPackage.getDefaultModule();
+            document = defaultModule.document(resolvedPackage.project().documentId(context.filePath()));
+        } else {
+            resolvedPackage = PackageUtil.getModulePackage(codedata.org(), codedata.packageName(),
+                    codedata.version()).orElse(null);
+        }
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
@@ -90,7 +99,8 @@ public abstract class CallBuilder extends NodeBuilder {
                 .functionResultKind(getFunctionResultKind())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
                 .userModuleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage.orElse(null));
+                .resolvedPackage(resolvedPackage)
+                .document(document);
 
         NodeKind functionNodeKind = getFunctionNodeKind();
         if (functionNodeKind != NodeKind.FUNCTION_CALL) {

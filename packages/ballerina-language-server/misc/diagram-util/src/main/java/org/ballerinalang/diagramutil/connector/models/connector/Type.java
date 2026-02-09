@@ -55,7 +55,9 @@ import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.TableTypeDescriptorNode;
 import io.ballerina.compiler.syntax.tree.UnionTypeDescriptorNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
+import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.Package;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ArrayType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.ConstType;
 import org.ballerinalang.diagramutil.connector.models.connector.types.EnumType;
@@ -598,7 +600,10 @@ public class Type {
                                           String packageName) {
         TypeSymbol typeDescriptor = fieldSymbol.typeDescriptor();
 
-        io.ballerina.projects.Package resolvedPackage = null;
+        // Create a single FunctionDataBuilder to reuse for all default value extractions within this record
+        FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder().semanticModel(semanticModel);
+
+        Package resolvedPackage = null;
         try {
             // Try to resolve the package using the field symbol's module information and provided packageName
             if (fieldSymbol.getModule().isPresent()) {
@@ -607,7 +612,7 @@ public class Type {
                 String pkgName = packageName != null ? packageName : moduleID.packageName();
                 String version = moduleID.version();
 
-                Optional<io.ballerina.projects.Package> packageOpt =
+                Optional<Package> packageOpt =
                         PackageUtil.getModulePackage(PackageUtil.getSampleProject(), org, pkgName, version);
                 resolvedPackage = packageOpt.orElse(null);
             }
@@ -615,9 +620,10 @@ public class Type {
             return e.getMessage();
         }
 
+        functionDataBuilder.resolvedPackage(resolvedPackage);
         // Use CommonUtils API to extract default values from syntax tree
-        String extractedDefaultValue = CommonUtils.extractDefaultValue(fieldSymbol, typeDescriptor, resolvedPackage,
-                semanticModel);
+        String extractedDefaultValue = CommonUtils.extractDefaultValue(fieldSymbol, typeDescriptor, semanticModel,
+                functionDataBuilder);
         if (extractedDefaultValue != null && !extractedDefaultValue.isEmpty()) {
             return extractedDefaultValue;
         }

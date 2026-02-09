@@ -1414,33 +1414,21 @@ public class CommonUtils {
     }
 
     /**
-     * Extracts the actual default value from a parameter or record field symbol by analyzing its syntax tree.
-     * This method resolves default values from various expression types, including literal values, enum references,
-     * qualified references, and constant expressions.
+     * Extracts the default value from a symbol using an existing FunctionDataBuilder or creating a new one.
+     * This overloaded method allows reusing an existing builder instance for performance optimization.
      *
-     * @param paramSymbol the parameter or record field symbol containing the default value definition.
-     *                    Must be a {@link io.ballerina.compiler.api.symbols.ParameterSymbol} or
-     *                    {@link io.ballerina.compiler.api.symbols.RecordFieldSymbol}
-     * @param typeSymbol the type descriptor of the parameter, used for fallback default value generation
-     *                   when extraction fails
-     * @param resolvedPackage the resolved Ballerina package containing the symbol's source code.
-     *                        Required for document lookup and syntax tree access. May be {@code null},
-     *                        in which case a fallback default value will be returned
-     * @param semanticModel the semantic model for symbol resolution and type checking.
-     *                      Required for resolving enum members and constants. May be {@code null},
-     *                      in which case enum resolution will be skipped
-     * @return the extracted default value as a string, or a fallback default value if extraction fails.
-     *         Returns {@code null} only if the type-based fallback generation also fails
-     *
-     * @throws IllegalStateException if the symbol location is found but the corresponding syntax node
-     *                              cannot be parsed or is of an unexpected type
-     * @since 1.0.0
+     * @param paramSymbol     the parameter or record field symbol
+     * @param typeSymbol      the type descriptor of the parameter
+     * @param semanticModel   the semantic model for symbol resolution
+     * @param existingBuilder optional existing FunctionDataBuilder to reuse (can be null)
+     * @return the extracted default value as a string
      */
     public static String extractDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol,
-                                             io.ballerina.projects.Package resolvedPackage,
-                                             SemanticModel semanticModel) {
+                                             SemanticModel semanticModel, FunctionDataBuilder existingBuilder) {
+        if (existingBuilder != null) {
+            return existingBuilder.getDefaultValue(paramSymbol, typeSymbol);
+        }
         return new FunctionDataBuilder()
-                .resolvedPackage(resolvedPackage)
                 .semanticModel(semanticModel)
                 .getDefaultValue(paramSymbol, typeSymbol);
     }

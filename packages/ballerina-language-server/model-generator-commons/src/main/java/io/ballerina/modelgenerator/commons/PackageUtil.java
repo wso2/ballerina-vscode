@@ -349,7 +349,7 @@ public class PackageUtil {
      * @param packageName The name of the package
      * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
      */
-    public static Optional<Package> safeResolveModulePackage(String org, String packageName, String version) {
+    public static Optional<Package> getModulePackage(String org, String packageName, String version) {
         try {
             return getModulePackage(getSampleProject(), org, packageName, version);
         } catch (Exception e) {

@@ -62,13 +62,13 @@ import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
 import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
+import io.ballerina.compiler.syntax.tree.EnumMemberNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
 import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
 import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -123,6 +123,7 @@ public class FunctionDataBuilder {
     private SemanticModel semanticModel;
     private TypeSymbol errorTypeSymbol;
     private Package resolvedPackage;
+    private Document document;
     private FunctionSymbol functionSymbol;
     private FunctionData.Kind functionKind;
     private String functionName;
@@ -185,6 +186,11 @@ public class FunctionDataBuilder {
 
     public FunctionDataBuilder name(String name) {
         this.functionName = name;
+        return this;
+    }
+
+    public FunctionDataBuilder document(Document document) {
+        this.document = document;
         return this;
     }
 
@@ -778,7 +784,6 @@ public class FunctionDataBuilder {
                 }
             }
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-
             defaultValue = getDefaultValue(paramSymbol, typeSymbol);
             paramType = getTypeSignature(typeSymbol);
         }
@@ -933,7 +938,7 @@ public class FunctionDataBuilder {
      *
      * @return the extracted value, or null if extraction fails
      */
-    private String extractEnumMemberValue(ExpressionNode expression) {
+    private String resolveEnumMemberValue(ExpressionNode expression) {
         if (semanticModel == null) {
             return null;
         }
@@ -948,10 +953,7 @@ public class FunctionDataBuilder {
         if (symbol.kind() == SymbolKind.CONSTANT) {
             // Handle constants by extracting their value
             if (symbol instanceof ConstantSymbol constantSymbol) {
-                Object constantValue = constantSymbol.constValue();
-                if (constantValue != null) {
-                    return constantValue.toString();
-                }
+                return String.valueOf(constantSymbol.constValue());
             }
             return null;
         }
@@ -974,17 +976,13 @@ public class FunctionDataBuilder {
         NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
 
         // Look for enum member node that has an expression (the value assignment)
-        if (node == null || node.kind() != SyntaxKind.ENUM_MEMBER) {
+        if (!(node instanceof EnumMemberNode enumMemberNode)) {
             return null;
         }
 
-        // Get the enum member node and extract the expression
-        io.ballerina.compiler.syntax.tree.EnumMemberNode enumMemberNode =
-            (io.ballerina.compiler.syntax.tree.EnumMemberNode) node;
-
         // Check if the enum member has an expression (assignment)
-        if (enumMemberNode.equalToken().isEmpty() || enumMemberNode.constExprNode().isEmpty()) {
-            return null;
+        if (enumMemberNode.constExprNode().isEmpty()) {
+            return enumMemberNode.identifier().text();
         }
 
         ExpressionNode valueExpression = enumMemberNode.constExprNode().get();
@@ -1018,10 +1016,10 @@ public class FunctionDataBuilder {
         }
 
         if (expression instanceof SimpleNameReferenceNode simpleNameReferenceNode) {
-            String enumValue = extractEnumMemberValue(simpleNameReferenceNode);
+            String enumValue = resolveEnumMemberValue(simpleNameReferenceNode);
             return enumValue != null ? enumValue : simpleNameReferenceNode.name().text();
         } else if (expression instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
-            String enumValue = extractEnumMemberValue(qualifiedNameReferenceNode);
+            String enumValue = resolveEnumMemberValue(qualifiedNameReferenceNode);
             return enumValue != null ? enumValue :
                     qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
                     .text();
@@ -1034,9 +1032,13 @@ public class FunctionDataBuilder {
         if (resolvedPackage == null) {
             return null;
         }
+        if (document != null) {
+            return document;
+        }
         Project project = pkg.project();
         Module defaultModule = pkg.getDefaultModule();
         String module = pkg.packageName().value();
+        // TODO: only supported for the submodules
         Path docPath = project.sourceRoot().resolve("modules").resolve(module).resolve(path);
         try {
             DocumentId documentId = project.documentId(docPath);
@@ -1270,11 +1272,8 @@ public class FunctionDataBuilder {
         return sb.toString();
     }
 
-
-
     private record ParamForTypeInfer(String paramName, String defaultValue, TypeSymbol typeSymbol, String type) {
     }
-
 
     private record ReturnData(String returnType, ParamForTypeInfer paramForTypeInfer, boolean returnError,
                               String importStatements) {
