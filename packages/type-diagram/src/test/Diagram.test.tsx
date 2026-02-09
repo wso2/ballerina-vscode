@@ -146,22 +146,19 @@ describe("Type Diagram - Snapshot Tests", () => {
     // Test with individual type categories
     test("renders record types correctly", async () => {
         const recordTypes = allTypes.filter((t: any) => t.codedata?.node === "RECORD");
-        if (recordTypes.length > 0) {
-            await renderAndCheckSnapshot(recordTypes, "record-types");
-        }
+        expect(recordTypes.length).toBeGreaterThan(0);
+        await renderAndCheckSnapshot(recordTypes, "record-types");
     }, 15000);
 
     test("renders class types correctly", async () => {
         const classTypes = allTypes.filter((t: any) => t.codedata?.node === "CLASS");
-        if (classTypes.length > 0) {
-            await renderAndCheckSnapshot(classTypes, "class-types");
-        }
+        expect(classTypes.length).toBeGreaterThan(0);
+        await renderAndCheckSnapshot(classTypes, "class-types");
     }, 15000);
 
     test("renders single type correctly", async () => {
-        if (allTypes.length > 0) {
-            await renderAndCheckSnapshot([allTypes[0]], "single-type");
-        }
+        expect(allTypes.length).toBeGreaterThan(0);
+        await renderAndCheckSnapshot([allTypes[0]], "single-type");
     }, 15000);
 
     test("renders empty type list correctly", async () => {
