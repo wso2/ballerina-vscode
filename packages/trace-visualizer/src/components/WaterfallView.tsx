@@ -40,7 +40,6 @@ interface WaterfallViewProps {
     spans: SpanData[];
     selectedSpanId: string | null;
     onSpanSelect: (spanId: string) => void;
-    isAdvancedMode: boolean;
     getChildSpans: (spanId: string) => SpanData[];
     traceStartTime: string;
     traceDuration: number;

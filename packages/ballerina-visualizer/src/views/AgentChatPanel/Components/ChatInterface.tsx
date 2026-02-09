@@ -141,7 +141,7 @@ const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading
         opacity: ${({ isUser, isError }: { isUser: boolean; isError?: boolean }) => (isUser ? "0.3" : isError ? "0.05" : "1")};
         border-radius: inherit;
         border: 1px solid ${({ isUser }: { isUser: boolean }) =>
-        isUser ? "var(--vscode-peekView-border)" : "var(--vscode-panel-border)"};;
+        isUser ? "var(--vscode-peekView-border)" : "var(--vscode-panel-border)"};
         z-index: -1;
     }
 
@@ -317,7 +317,6 @@ const ChatInterface: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isTracingEnabled, setIsTracingEnabled] = useState(false);
     const [showClearWarning, setShowClearWarning] = useState(false);
-    const [expandedSteps, setExpandedSteps] = useState<Record<number, boolean>>({});
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
