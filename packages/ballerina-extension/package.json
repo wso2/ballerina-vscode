@@ -1292,7 +1292,7 @@
         "typescript": "5.8.3",
         "vscode-debugadapter-testsupport": "1.51.0",
         "vscode-extension-tester": "5.10.0",
-        "webpack": "5.99.9",
+        "webpack": "5.104.1",
         "webpack-cli": "6.0.1",
         "yarn": "1.22.19"
     },
