@@ -833,7 +833,6 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                     spans={shouldShowAdvancedView ? traceData.spans : rootAISpans}
                                     selectedSpanId={selectedSpanId}
                                     onSpanSelect={selectSpan}
-                                    isAdvancedMode={shouldShowAdvancedView}
                                     getChildSpans={shouldShowAdvancedView ? getChildSpans : getAIChildSpans}
                                     traceStartTime={traceData.firstSeen}
                                     traceDuration={duration}
