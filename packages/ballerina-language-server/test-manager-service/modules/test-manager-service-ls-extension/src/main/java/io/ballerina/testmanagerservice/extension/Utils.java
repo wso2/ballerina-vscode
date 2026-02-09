@@ -83,7 +83,7 @@ public class Utils {
         // annotations
         functionDefinitionNode.metadata().ifPresent(metadata -> {
             List<Annotation> annotations = new ArrayList<>();
-            for (AnnotationNode annotationNode: metadata.annotations()) {
+            for (AnnotationNode annotationNode : metadata.annotations()) {
                 annotations.add(getAnnotationModel(annotationNode, semanticModel));
             }
             functionBuilder.annotations(annotations);
@@ -116,7 +116,7 @@ public class Utils {
             return builder.build();
         }
         SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
-        for (MappingFieldNode field: fields) {
+        for (MappingFieldNode field : fields) {
             if (field instanceof SpecificFieldNode specificFieldNode) {
                 String fieldName = specificFieldNode.fieldName().toSourceCode().trim();
                 Optional<ExpressionNode> expressionNode = specificFieldNode.valueExpr();
@@ -136,13 +136,60 @@ public class Utils {
                         if (expressionNode.isPresent() &&
                                 expressionNode.get() instanceof ListConstructorExpressionNode expr) {
                             List<String> groupList = new ArrayList<>();
-                            for (Node groupExpr: expr.expressions()) {
+                            for (Node groupExpr : expr.expressions()) {
                                 groupList.add(groupExpr.toSourceCode().trim());
                             }
                             builder.groups(groupList);
                         }
                     }
-                    default -> { }
+                    case "dataProvider" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.dataProvider(value);
+                        }
+                    }
+                    case "dataProviderMode" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.dataProviderMode(value);
+                        }
+                    }
+                    case "dependsOn" -> {
+                        if (expressionNode.isPresent() &&
+                                expressionNode.get() instanceof ListConstructorExpressionNode expr) {
+                            List<String> functionList = new ArrayList<>();
+                            for (Node functionExpr : expr.expressions()) {
+                                functionList.add(functionExpr.toSourceCode().trim());
+                            }
+                            builder.dependsOn(functionList);
+                        }
+                    }
+                    case "after" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.after(value);
+                        }
+                    }
+                    case "before" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.before(value);
+                        }
+                    }
+                    case "runs" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.runs(value);
+                        }
+                    }
+                    case "minPassRate" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.minPassRate(value);
+                        }
+                    }
+                    default -> {
+                    }
                 }
             }
         }
@@ -263,13 +310,56 @@ public class Utils {
                 case "groups" -> {
                     if (value instanceof List<?> valueList && !valueList.isEmpty()
                             && valueList.getFirst() instanceof String) {
-                        List<String> groupList = valueList.stream().map(Object::toString).toList();
+                        List<String> groupList = valueList.stream()
+                                .map(group -> {
+                                    String groupStr = group.toString();
+                                    if (!groupStr.startsWith(Constants.DOUBLE_QUOTE)) {
+                                        return Constants.DOUBLE_QUOTE + groupStr + Constants.DOUBLE_QUOTE;
+                                    }
+                                    return groupStr;
+                                })
+                                .toList();
                         String groupStr = Constants.OPEN_BRACKET + String.join(Constants.COMMA + Constants.SPACE,
                                 groupList) + Constants.CLOSE_BRACKET;
                         fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, groupStr));
                     }
                 }
-                default -> { }
+                case "dataProvider" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "dependsOn" -> {
+                    if (value instanceof List<?> valueList && !valueList.isEmpty()
+                            && valueList.getFirst() instanceof String) {
+                        List<String> functionList = valueList.stream().map(Object::toString).toList();
+                        String functionStr = Constants.OPEN_BRACKET + String.join(Constants.COMMA + Constants.SPACE,
+                                functionList) + Constants.CLOSE_BRACKET;
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, functionStr));
+                    }
+                }
+                case "after" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "before" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty()) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "runs" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty() && !valueStr.equals("1")) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                case "minPassRate" -> {
+                    if (value instanceof String valueStr && !valueStr.isEmpty() && !valueStr.equals("1")) {
+                        fieldStrings.add(Constants.FILED_TEMPLATE.formatted(fieldName, valueStr));
+                    }
+                }
+                default -> {
+                }
             }
         }
         if (fieldStrings.isEmpty()) {
@@ -294,6 +384,52 @@ public class Utils {
                     Constants.ORG_BALLERINA.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     Constants.MODULE_TEST.equals(moduleName);
         });
+    }
+
+    /**
+     * Check whether the ai import exists in the module.
+     *
+     * @param node module part node
+     * @return true if the import exists, false otherwise
+     */
+    public static boolean isAiModuleImportExists(ModulePartNode node) {
+        return node.imports().stream().anyMatch(importDeclarationNode -> {
+            String moduleName = importDeclarationNode.moduleName().stream()
+                    .map(IdentifierToken::text)
+                    .collect(Collectors.joining("."));
+            return importDeclarationNode.orgName().isPresent() &&
+                    Constants.ORG_BALLERINA.equals(importDeclarationNode.orgName().get().orgName().text()) &&
+                    Constants.MODULE_AI.equals(moduleName);
+        });
+    }
+
+    /**
+     * Generate an evalSet data provider function template.
+     *
+     * @param functionName the name of the data provider function
+     * @return the generated function template
+     */
+    public static String getEvalSetDataProviderFunctionTemplate(String functionName) {
+        StringBuilder builder = new StringBuilder();
+        builder.append(Constants.LINE_SEPARATOR)
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.KEYWORD_FUNCTION)
+                .append(Constants.SPACE)
+                .append(functionName)
+                .append(Constants.OPEN_PARAM)
+                .append(Constants.CLOSED_PARAM)
+                .append(Constants.SPACE)
+                .append(Constants.KEYWORD_RETURNS)
+                .append(Constants.SPACE)
+                .append("map<[" + Constants.AI_CONVERSATION_THREAD_TYPE + "]>|error")
+                .append(Constants.SPACE)
+                .append(Constants.OPEN_CURLY_BRACE)
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.TAB_SEPARATOR)
+                .append("return {};")
+                .append(Constants.LINE_SEPARATOR)
+                .append(Constants.CLOSE_CURLY_BRACE);
+        return builder.toString();
     }
 
     /**

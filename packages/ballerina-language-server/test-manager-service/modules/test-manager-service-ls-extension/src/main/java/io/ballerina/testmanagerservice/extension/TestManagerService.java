@@ -19,6 +19,7 @@
 package io.ballerina.testmanagerservice.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
@@ -26,6 +27,9 @@ import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.testmanagerservice.extension.model.Annotation;
+import io.ballerina.testmanagerservice.extension.model.FunctionParameter;
+import io.ballerina.testmanagerservice.extension.model.Property;
 import io.ballerina.testmanagerservice.extension.request.AddTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.GetTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.TestsDiscoveryRequest;
@@ -37,6 +41,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
@@ -49,7 +54,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Represents the extended language server service for the test manager service.
@@ -172,22 +179,123 @@ public class TestManagerService implements ExtendedLanguageServerService {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
                 LineRange lineRange = modulePartNode.lineRange();
                 List<TextEdit> edits = new ArrayList<>();
+
+                // Check if test import is needed
                 if (!Utils.isTestModuleImportExists(modulePartNode)) {
                     edits.add(new TextEdit(Utils.toRange(lineRange.startLine()), Constants.IMPORT_TEST_STMT));
                 }
+
+                // Check if dataProviderMode is evalSet
+                String dataProviderMode = getDataProviderMode(request.function());
+                String dataProviderFunctionName = null;
+
+                if (Constants.DATA_PROVIDER_MODE_EVALSET.equals(dataProviderMode)) {
+                    // Add AI import if needed
+                    if (!Utils.isAiModuleImportExists(modulePartNode)) {
+                        edits.add(new TextEdit(Utils.toRange(lineRange.startLine()), Constants.IMPORT_AI_STMT));
+                    }
+
+                    // Generate unique function name for evalSet data provider
+                    List<Symbol> visibleSymbols = semanticModel.get().visibleSymbols(
+                            document.get(),
+                            lineRange.endLine()
+                    );
+                    Set<String> visibleSymbolNames = visibleSymbols.stream()
+                            .map(Symbol::getName)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toSet());
+                    dataProviderFunctionName = NameUtil.getValidatedSymbolName(
+                            visibleSymbolNames,
+                            Constants.DEFAULT_EVALSET_FUNCTION_NAME
+                    );
+
+                    // Generate the evalSet data provider function
+                    String dataProviderFunction = Utils.getEvalSetDataProviderFunctionTemplate(
+                            dataProviderFunctionName
+                    );
+                    edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), dataProviderFunction));
+
+                    // Add ai:Trace parameter to the test function
+                    addAiConversationThreadParameter(request.function());
+
+                    // Update the dataProvider field with the generated function name
+                    updateDataProviderField(request.function(), dataProviderFunctionName);
+                }
+
+                // Generate the test function
                 String function = Utils.getTestFunctionTemplate(request.function());
                 edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), function));
+
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
         });
+    }
+
+    private String getDataProviderMode(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+        if (function.annotations() == null) {
+            return null;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (Property field : annotation.fields()) {
+                    if ("dataProviderMode".equals(field.originalName())) {
+                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private void addAiConversationThreadParameter(
+            io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+        if (function.parameters() == null) {
+            return;
+        }
+        FunctionParameter.FunctionParameterBuilder paramBuilder = new FunctionParameter.FunctionParameterBuilder();
+        paramBuilder.type(Constants.AI_CONVERSATION_THREAD_TYPE);
+        paramBuilder.variable("thread");
+        function.parameters().add(paramBuilder.build());
+    }
+
+    private void updateDataProviderField(io.ballerina.testmanagerservice.extension.model.TestFunction function,
+                                         String functionName) {
+        if (function.annotations() == null) {
+            return;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (int i = 0; i < annotation.fields().size(); i++) {
+                    Property field = annotation.fields().get(i);
+                    if ("dataProvider".equals(field.originalName())) {
+                        // Update the dataProvider value with the generated function name
+                        Property.PropertyBuilder builder = new Property.PropertyBuilder();
+                        builder.metadata(field.metadata());
+                        builder.codedata(field.codedata());
+                        builder.valueType(field.valueType());
+                        builder.valueTypeConstraint(field.valueTypeConstraint());
+                        builder.value(functionName);
+                        builder.originalName(field.originalName());
+                        builder.placeholder(field.placeholder());
+                        builder.optional(field.optional());
+                        builder.editable(field.editable());
+                        builder.advanced(field.advanced());
+                        annotation.fields().set(i, builder.build());
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**

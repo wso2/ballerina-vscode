@@ -20,15 +20,24 @@ package io.ballerina.testmanagerservice.extension.model;
 
 import io.ballerina.testmanagerservice.extension.Constants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record Annotation(Metadata metadata, Codedata codedata, String org, String module, String name,
                          List<Property> fields) {
 
     public static class ConfigAnnotationBuilder {
+
         private Metadata metadata;
         private Property groups;
         private Property enabled;
+        private Property dataProvider;
+        private Property dataProviderMode;
+        private Property dependsOn;
+        private Property after;
+        private Property before;
+        private Property runs;
+        private Property minPassRate;
 
         public void metadata(Metadata metadata) {
             this.metadata = metadata;
@@ -45,8 +54,43 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
                     "FLAG", "enabled");
         }
 
+        public void dataProvider(String functionName) {
+            dataProvider = value("Data Provider", "Data provider function", functionName,
+                    "EXPRESSION", "dataProvider");
+        }
+
+        public void dataProviderMode(String mode) {
+            dataProviderMode = value("Data Provider Mode", "Mode of data provider (function or evalSet)", mode,
+                    "EXPRESSION", "dataProviderMode");
+        }
+
+        public void dependsOn(List<String> functionList) {
+            dependsOn = value("Depends On", "Functions this test depends on", functionList,
+                    "EXPRESSION_SET", "dependsOn");
+        }
+
+        public void after(String functionName) {
+            after = value("After", "Function to run after this test", functionName,
+                    "EXPRESSION", "after");
+        }
+
+        public void before(String functionName) {
+            before = value("Before", "Function to run before this test", functionName,
+                    "EXPRESSION", "before");
+        }
+
+        public void runs(String runs) {
+            this.runs = value("Runs", "Number of times to execute this test", runs,
+                    "EXPRESSION", "runs");
+        }
+
+        public void minPassRate(String minPassRate) {
+            this.minPassRate = value("Minimum Pass Rate (%)", "Minimum percentage of runs that must pass (0-100)",
+                    minPassRate, "SLIDER", "minPassRate");
+        }
+
         private static Property value(String label, String description, Object value, String valueType,
-                                     String originalName) {
+                                      String originalName) {
             Property.PropertyBuilder builder = new Property.PropertyBuilder();
             builder.metadata(new Metadata(label, description));
             builder.valueType(valueType);
@@ -59,18 +103,52 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
         }
 
         public Annotation build() {
+            List<Property> properties = new ArrayList<>();
+
             if (groups == null) {
                 groups = value("Groups", "Groups to run", List.of(),
                         "EXPRESSION_SET", "groups");
             }
+            properties.add(groups);
+
             if (enabled == null) {
                 enabled = value("Enabled", "Enable/Disable the test", true,
                         "FLAG", "enabled");
             }
+            properties.add(enabled);
+
+            if (dataProvider != null) {
+                properties.add(dataProvider);
+            }
+
+            if (dataProviderMode != null) {
+                properties.add(dataProviderMode);
+            }
+
+            if (dependsOn != null) {
+                properties.add(dependsOn);
+            }
+
+            if (after != null) {
+                properties.add(after);
+            }
+
+            if (before != null) {
+                properties.add(before);
+            }
+
+            if (runs != null) {
+                properties.add(runs);
+            }
+
+            if (minPassRate != null) {
+                properties.add(minPassRate);
+            }
+
             String org = Constants.ORG_BALLERINA;
             String module = Constants.MODULE_TEST;
             String name = "Config";
-            return new Annotation(metadata, null, org, module, name, List.of(groups, enabled));
+            return new Annotation(metadata, null, org, module, name, properties);
         }
     }
 }
