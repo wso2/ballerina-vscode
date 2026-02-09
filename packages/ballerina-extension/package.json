@@ -747,7 +747,7 @@
             "test": [
                 {
                     "id": "ballerina-evalsets",
-                    "name": "Eval Sets",
+                    "name": "Evalsets",
                     "when": "isBIProject || isBallerinaProject"
                 }
             ],

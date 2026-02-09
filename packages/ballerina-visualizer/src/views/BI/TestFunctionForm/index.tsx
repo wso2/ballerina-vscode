@@ -21,7 +21,7 @@ import { View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { FormField, FormImports, FormValues, Parameter, FormSectionConfig } from "@wso2/ballerina-side-panel";
-import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType } from "@wso2/ballerina-core";
+import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType, EvalsetItem } from "@wso2/ballerina-core";
 import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -103,6 +103,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const [formTitle, setFormTitle] = useState<string>('Create New Test Case');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [dataProviderMode, setDataProviderMode] = useState<string>('function');
+    const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
 
     const handleFieldChange = (fieldKey: string, value: any, allValues: FormValues) => {
         if (fieldKey === 'dataProviderMode') {
@@ -136,6 +137,10 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     useEffect(() => {
+        loadEvalsets();
+    }, []);
+
+    useEffect(() => {
         if (serviceType === 'UPDATE_TEST') {
             setFormTitle('Update Test Case');
             loadFunction();
@@ -146,6 +151,45 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
         updateTargetLineRange();
     }, [functionName]);
+
+    // Regenerate form fields when evalsetOptions changes
+    useEffect(() => {
+        if (testFunction && evalsetOptions.length > 0) {
+            let formFields = generateFormFields(testFunction);
+
+            // Get the dataProviderMode value to initialize field visibility
+            const modeField = formFields.find(f => f.key === 'dataProviderMode');
+            const mode = String(modeField?.value || 'function');
+            setDataProviderMode(mode);
+
+            // Set field visibility based on mode
+            formFields = formFields.map(field => {
+                if (field.key === 'dataProvider') {
+                    return { ...field, hidden: mode !== 'function' };
+                }
+                if (field.key === 'evalSetFile') {
+                    return { ...field, hidden: mode !== 'evalSet' };
+                }
+                return field;
+            });
+
+            setFormFields(formFields);
+        }
+    }, [evalsetOptions]);
+
+    const loadEvalsets = async () => {
+        try {
+            const res = await rpcClient.getTestManagerRpcClient().getEvalsets({ projectPath });
+            const options = res.evalsets.map((evalset: EvalsetItem) => ({
+                value: evalset.filePath,
+                content: `${evalset.name} (${evalset.threadCount} thread${evalset.threadCount !== 1 ? 's' : ''})`
+            }));
+            setEvalsetOptions(options);
+        } catch (error) {
+            console.error('Failed to load evalsets:', error);
+            setEvalsetOptions([]);
+        }
+    };
 
     const loadFunction = async () => {
         const res = await rpcClient.getTestManagerRpcClient().getTestFunction({ functionName, filePath });
@@ -275,11 +319,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
                             type: 'SINGLE_SELECT',
-                            itemOptions: [
-                                { value: 'evalset-1.json', content: 'Evalset 1' },
-                                { value: 'evalset-2.json', content: 'Evalset 2' },
-                                { value: 'evalset-3.json', content: 'Evalset 3' }
-                            ]
+                            itemOptions: evalsetOptions
                         });
                         continue;
                     }
@@ -329,6 +369,14 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
     const generateFieldFromProperty = (key: string, property: ValueProperty): FormField => {
         const fieldType = getPrimaryInputType(property.types)?.fieldType;
+
+        // Convert decimal (0-1) to percentage (0-100) for minPassRate display
+        let displayValue = property.value;
+        if (key === 'minPassRate' && fieldType === 'SLIDER') {
+            const decimalValue = parseFloat(property.value) || 1;
+            displayValue = String(Math.round(decimalValue * 100));
+        }
+
         const baseField: FormField = {
             key: key,
             label: property.metadata.label,
@@ -338,7 +386,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             advanced: property.advanced,
             enabled: true,
             documentation: property.metadata.description,
-            value: property.value,
+            value: displayValue,
             types: [{ fieldType: fieldType, selected: false }]
         };
 
@@ -416,7 +464,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         field.value = formValues['runs'] || "1";
                     }
                     if (field.originalName == 'minPassRate') {
-                        field.value = formValues['minPassRate'] || "100";
+                        // Convert percentage (0-100) to decimal (0-1)
+                        const percentageValue = formValues['minPassRate'] || 100;
+                        field.value = String(Number(percentageValue) / 100);
                     }
                     if (field.originalName == 'dataProviderMode') {
                         field.value = formValues['dataProviderMode'] || "function";
@@ -585,7 +635,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             },
                             types: [{ fieldType: "SLIDER", selected: false }],
                             originalName: "minPassRate",
-                            value: "100",
+                            value: "1.0",
                             optional: true,
                             editable: true,
                             advanced: true

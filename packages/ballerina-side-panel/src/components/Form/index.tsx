@@ -103,9 +103,11 @@ namespace S {
         width: 100%;
     `;
 
-    export const HoverableSection = styled(Row)<{}>`
+    export const HoverableSection = styled(Row) <{}>`
         padding: 12px 16px;
         cursor: pointer;
+        background: var(--vscode-sideBar-background); 
+        border-radius: 4px 4px 0;
         &:hover {
             background: var(--vscode-list-hoverBackground);
         }
@@ -509,60 +511,61 @@ export const Form = forwardRef((props: FormProps) => {
             formFields.forEach((field) => {
                 // Only set field defaults if no existing value is present
                 if (defaultValues[field.key] === undefined) {
-                  if (field.hidden) {
-                      defaultValues[field.key] = field.value;
-                  } else if (isDropdownField(field)) {
-                      defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                  } else if (field.type === "FLAG" && field.types?.length > 1) {
-                      defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
-                  } else if (field.type === "FLAG") {
-                      defaultValues[field.key] = field.value || "true";
-                  } else if (typeof field.value === "string") {
-                      defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
-                  } else {
-                      defaultValues[field.key] = field.value ?? "";
-                }
-                if (field.key === "variable") {
-                    defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
-                }
-                if (field.key === "parameters" && field.value.length === 0) {
-                    defaultValues[field.key] = formValues[field.key] ?? [];
-                }
-
-                if (field.key === "type") {
-                    // Handle the case where the type is changed via 'Add Type'
-                    const existingType = formValues[field.key];
-                    const newType = field.value;
-
-                    if (existingType !== newType) {
-                        setValue(field.key, newType);
-                        getVisualiableFields();
+                    if (field.hidden) {
+                        defaultValues[field.key] = field.value;
+                    } else if (isDropdownField(field)) {
+                        defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                    } else if (field.type === "FLAG" && field.types?.length > 1) {
+                        defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                    } else if (field.type === "FLAG") {
+                        defaultValues[field.key] = field.value || "true";
+                    } else if (typeof field.value === "string") {
+                        defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
+                    } else {
+                        defaultValues[field.key] = field.value ?? "";
                     }
-                }
-
-                // Handle choice fields and their properties
-                if (field?.choices && field.choices.length > 0) {
-                    // Get the selected choice index (default to 0 if not set)
-                    const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
-
-                    const selectedChoice = field.choices[selectedChoiceIndex];
-
-                    if (selectedChoice && selectedChoice?.properties) {
-                        Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            // Preserve existing form values if they exist, otherwise use propValue.value
-                            if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
-                                defaultValues[propKey] = formValues[propKey];
-                            } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
-                                defaultValues[propKey] = propValue.value;
-                            }
-
-                            diagnosticsMap.push({ key: propKey, diagnostics: [] });
-                        });
+                    if (field.key === "variable") {
+                        defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                }
+                    if (field.key === "parameters" && field.value.length === 0) {
+                        defaultValues[field.key] = formValues[field.key] ?? [];
+                    }
 
-                diagnosticsMap.push({ key: field.key, diagnostics: [] });
-            }});
+                    if (field.key === "type") {
+                        // Handle the case where the type is changed via 'Add Type'
+                        const existingType = formValues[field.key];
+                        const newType = field.value;
+
+                        if (existingType !== newType) {
+                            setValue(field.key, newType);
+                            getVisualiableFields();
+                        }
+                    }
+
+                    // Handle choice fields and their properties
+                    if (field?.choices && field.choices.length > 0) {
+                        // Get the selected choice index (default to 0 if not set)
+                        const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
+
+                        const selectedChoice = field.choices[selectedChoiceIndex];
+
+                        if (selectedChoice && selectedChoice?.properties) {
+                            Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
+                                // Preserve existing form values if they exist, otherwise use propValue.value
+                                if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
+                                    defaultValues[propKey] = formValues[propKey];
+                                } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
+                                    defaultValues[propKey] = propValue.value;
+                                }
+
+                                diagnosticsMap.push({ key: propKey, diagnostics: [] });
+                            });
+                        }
+                    }
+
+                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                }
+            });
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
 
@@ -1031,112 +1034,51 @@ export const Form = forwardRef((props: FormProps) => {
             {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
             {infoLabel && !compact && (
                 <S.MarkdownWrapper>
-                        <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
-                            <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
-                        </S.MarkdownContainer>
-                        {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
-                            <S.ButtonContainer>
-                                <LinkButton
-                                    onClick={handleShowMoreClick}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={isMarkdownExpanded ? "chevron-up" : "chevron-down"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />
-                                    {isMarkdownExpanded ? "Show Less" : "Show More"}
-                                </LinkButton>
-                            </S.ButtonContainer>
-                        )}
-                    </S.MarkdownWrapper>
-                )}
-                {!preserveOrder && !compact && (
-                    <FormDescription formFields={formFields} selectedNode={selectedNode} />
-                )}
+                    <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
+                        <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
+                    </S.MarkdownContainer>
+                    {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
+                        <S.ButtonContainer>
+                            <LinkButton
+                                onClick={handleShowMoreClick}
+                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                            >
+                                <Codicon
+                                    name={isMarkdownExpanded ? "chevron-up" : "chevron-down"}
+                                    iconSx={{ fontSize: 12 }}
+                                    sx={{ height: 12 }}
+                                />
+                                {isMarkdownExpanded ? "Show Less" : "Show More"}
+                            </LinkButton>
+                        </S.ButtonContainer>
+                    )}
+                </S.MarkdownWrapper>
+            )}
+            {!preserveOrder && !compact && (
+                <FormDescription formFields={formFields} selectedNode={selectedNode} />
+            )}
 
-                {/*
+            {/*
                  * Two rendering modes based on preserveOrder prop:
                  *
                  * 1. preserveOrder = true: Render all fields in original order from formFields array
                  * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
                  */}
-                <S.CategoryRow bottomBorder={false}>
-                    {(() => {
-                        const fieldsToRender = formFields
-                            .sort((a, b) => b.groupNo - a.groupNo)
-                            .filter((field) => field.type !== "VIEW");
+            <S.CategoryRow bottomBorder={false}>
+                {(() => {
+                    const fieldsToRender = formFields
+                        .sort((a, b) => b.groupNo - a.groupNo)
+                        .filter((field) => field.type !== "VIEW");
 
-                        const renderedComponents: React.ReactNode[] = [];
-                        let renderedFieldCount = 0;
-                        const injectedIndices = new Set<number>(); // Track which injections have been added
+                    const renderedComponents: React.ReactNode[] = [];
+                    let renderedFieldCount = 0;
+                    const injectedIndices = new Set<number>(); // Track which injections have been added
 
-                        fieldsToRender.forEach((field) => {
-                            // Check if we need to inject components before this field
-                            if (injectedComponents) {
-                                injectedComponents.forEach((injected) => {
-                                    if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
-                                        renderedComponents.push(
-                                            <React.Fragment key={`injected-${injected.index}`}>
-                                                {injected.component}
-                                            </React.Fragment>
-                                        );
-                                        injectedIndices.add(injected.index);
-                                    }
-                                });
-                            }
-
-                            if (field.advanced || field.hidden) {
-                                return;
-                            }
-                            // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
-                            if (!preserveOrder && isPrioritizedField(field)) {
-                                return;
-                            }
-
-                            // Skip if field is in a section
-                            if (sections && assignFieldsToSections) {
-                                const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
-                                    .some(fields => fields.find(f => f.key === field.key));
-                                if (isInSection) return;
-                            }
-
-                            const updatedField = updateFormFieldWithImports(field, formImports);
-                            renderedComponents.push(
-                                <S.Row key={updatedField.key}>
-                                    <EditorFactory
-                                        field={updatedField}
-                                        selectedNode={selectedNode}
-                                        openRecordEditor={
-                                            openRecordEditor &&
-                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                        }
-                                        openSubPanel={handleOpenSubPanel}
-                                        subPanelView={subPanelView}
-                                        handleOnFieldFocus={handleOnFieldFocus}
-                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
-                                        recordTypeFields={recordTypeFields}
-                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                        handleOnTypeChange={handleOnTypeChange}
-                                        setSubComponentEnabled={setIsSubComponentEnabled}
-                                        handleNewTypeSelected={handleNewTypeSelected}
-                                        onBlur={handleOnBlur}
-                                        isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
-                                        openFormTypeEditor={
-                                            openFormTypeEditor &&
-                                            ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
-                                        }
-                                    />
-                                    {updatedField.key === "scope" && scopeFieldAddon}
-                                </S.Row>
-                            );
-                            renderedFieldCount++;
-                        });
-
-                        // Check if we need to inject components after all fields
+                    fieldsToRender.forEach((field) => {
+                        // Check if we need to inject components before this field
                         if (injectedComponents) {
                             injectedComponents.forEach((injected) => {
-                                if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
                                     renderedComponents.push(
                                         <React.Fragment key={`injected-${injected.index}`}>
                                             {injected.component}
@@ -1147,164 +1089,194 @@ export const Form = forwardRef((props: FormProps) => {
                             });
                         }
 
-                        return renderedComponents;
-                    })()}
-                </S.CategoryRow>
+                        if (field.advanced || field.hidden) {
+                            return;
+                        }
+                        // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
+                        if (!preserveOrder && isPrioritizedField(field)) {
+                            return;
+                        }
 
-                {/* Render configured sections */}
-                {sections && assignFieldsToSections && (
-                    <S.CategoryRow bottomBorder={false}>
-                        {sections.sections
-                            .filter(section => {
-                                const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
-                                const hasFields = fields.length > 0;
-                                const meetsCondition = !section.renderCondition ||
-                                                      section.renderCondition(getValues());
-                                return hasFields && meetsCondition;
-                            })
-                            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-                            .map(section => {
-                                const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
-                                const isCollapsed = sectionCollapseState.get(section.id) ?? section.defaultCollapsed ?? true;
-                                const isCollapsible = section.isCollapsible !== false;
-                                return (
-                                    <React.Fragment key={section.id}>
-                                        <div style={{display: "flex", flexDirection: "column", width: "100%", borderRadius: "4px", border: "1px solid var(--vscode-panel-border)"}}>
-                                            <S.HoverableSection onClick={() => handleSectionToggle(section.id, !isCollapsed)}>
-                                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                                        {section.title}
-                                                    </Typography>
-                                                    <Typography variant="body2" sx={{ opacity: 0.7, fontSize: 11 }}>
-                                                        {section.description}
-                                                    </Typography>
-                                                </div>
-                                                {isCollapsible && (
-                                                    <S.ButtonContainer>
-                                                        {isCollapsed && (
-                                                            <Codicon
-                                                                name={"chevron-down"}
-                                                                iconSx={{ fontSize: 12 }}
-                                                                sx={{ height: 12 }}
-                                                            />
-                                                        )}
-                                                        {!isCollapsed && (
-                                                            <Codicon
-                                                                name={"chevron-up"}
-                                                                iconSx={{ fontSize: 12 }}
-                                                                sx={{ height: 12 }}
-                                                            />
-                                                        )}
-                                                    </S.ButtonContainer>
-                                                )}
-                                            </S.HoverableSection>
-                                            {!isCollapsed && (<S.Row style={{flexDirection: "column", gap: "20px", padding: "8px 16px 28px", borderTop: "1px solid var(--vscode-panel-border)"}}>
-                                                {fields.map(field => {
-                                                    const updatedField = updateFormFieldWithImports(field, formImports);
-                                                    return (
-                                                        <S.Row key={updatedField.key}>
-                                                            <EditorFactory
-                                                                field={updatedField}
-                                                                selectedNode={selectedNode}
-                                                                openRecordEditor={
-                                                                    openRecordEditor &&
-                                                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                                                }
-                                                                openSubPanel={handleOpenSubPanel}
-                                                                subPanelView={subPanelView}
-                                                                handleOnFieldFocus={handleOnFieldFocus}
-                                                                recordTypeFields={recordTypeFields}
-                                                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                                                handleOnTypeChange={handleOnTypeChange}
-                                                                setSubComponentEnabled={setIsSubComponentEnabled}
-                                                                handleNewTypeSelected={handleNewTypeSelected}
-                                                                onBlur={handleOnBlur}
-                                                                isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
-                                                                openFormTypeEditor={
-                                                                    openFormTypeEditor &&
-                                                                    ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
-                                                                }
-                                                            />
-                                                            {updatedField.key === "scope" && scopeFieldAddon}
-                                                        </S.Row>
-                                                    );
-                                                })}
-                                            </S.Row>)}
-                                        </div>
+                        // Skip if field is in a section
+                        if (sections && assignFieldsToSections) {
+                            const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                                .some(fields => fields.find(f => f.key === field.key));
+                            if (isInSection) return;
+                        }
+
+                        const updatedField = updateFormFieldWithImports(field, formImports);
+                        renderedComponents.push(
+                            <S.Row key={updatedField.key}>
+                                <EditorFactory
+                                    field={updatedField}
+                                    selectedNode={selectedNode}
+                                    openRecordEditor={
+                                        openRecordEditor &&
+                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                    }
+                                    openSubPanel={handleOpenSubPanel}
+                                    subPanelView={subPanelView}
+                                    handleOnFieldFocus={handleOnFieldFocus}
+                                    autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
+                                    recordTypeFields={recordTypeFields}
+                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
+                                    setSubComponentEnabled={setIsSubComponentEnabled}
+                                    handleNewTypeSelected={handleNewTypeSelected}
+                                    onBlur={handleOnBlur}
+                                    isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                    openFormTypeEditor={
+                                        openFormTypeEditor &&
+                                        ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                    }
+                                />
+                                {updatedField.key === "scope" && scopeFieldAddon}
+                            </S.Row>
+                        );
+                        renderedFieldCount++;
+                    });
+
+                    // Check if we need to inject components after all fields
+                    if (injectedComponents) {
+                        injectedComponents.forEach((injected) => {
+                            if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                renderedComponents.push(
+                                    <React.Fragment key={`injected-${injected.index}`}>
+                                        {injected.component}
                                     </React.Fragment>
                                 );
-                            })}
-                    </S.CategoryRow>
-                )}
-
-                <S.CategoryRow bottomBorder={false}>
-                    {hasAdvanceFieldsNotInSections && (
-                        <S.Row>
-                            {optionalFieldsTitle}
-                            <S.ButtonContainer>
-                                {!showAdvancedOptions && (
-                                    <LinkButton
-                                        onClick={handleOnShowAdvancedOptions}
-                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                    >
-                                        <Codicon
-                                            name={"chevron-down"}
-                                            iconSx={{ fontSize: 12 }}
-                                            sx={{ height: 12 }}
-                                        />
-                                        Expand
-                                    </LinkButton>
-                                )}
-                                {showAdvancedOptions && (
-                                    <LinkButton
-                                        onClick={handleOnHideAdvancedOptions}
-                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                    >
-                                        <Codicon
-                                            name={"chevron-up"}
-                                            iconSx={{ fontSize: 12 }}
-                                            sx={{ height: 12 }}
-                                        />Collapse
-                                    </LinkButton>
-                                )}
-                            </S.ButtonContainer>
-                        </S.Row>
-                    )}
-                    {hasAdvanceFieldsNotInSections &&
-                        showAdvancedOptions &&
-                        formFields.map((field) => {
-                            if (field.advanced && !field.hidden) {
-                                // Skip if field is in a custom section
-                                if (sections && assignFieldsToSections) {
-                                    const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
-                                        .some(fields => fields.find(f => f.key === field.key));
-                                    if (isInSection) return null;
-                                }
-
-                                const updatedField = updateFormFieldWithImports(field, formImports);
-                                return (
-                                    <S.Row key={updatedField.key}>
-                                        <EditorFactory
-                                            field={updatedField}
-                                            openRecordEditor={
-                                                openRecordEditor &&
-                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                            }
-                                            subPanelView={subPanelView}
-                                            handleOnFieldFocus={handleOnFieldFocus}
-                                            recordTypeFields={recordTypeFields}
-                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                            handleOnTypeChange={handleOnTypeChange}
-                                            onBlur={handleOnBlur}
-                                        />
-                                    </S.Row>
-                                );
+                                injectedIndices.add(injected.index);
                             }
-                            return null;
+                        });
+                    }
+
+                    return renderedComponents;
+                })()}
+            </S.CategoryRow>
+
+            {/* Render configured sections */}
+            {sections && assignFieldsToSections && (
+                <S.CategoryRow bottomBorder={false}>
+                    {sections.sections
+                        .filter(section => {
+                            const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
+                            const hasFields = fields.length > 0;
+                            const meetsCondition = !section.renderCondition ||
+                                section.renderCondition(getValues());
+                            return hasFields && meetsCondition;
+                        })
+                        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                        .map(section => {
+                            const fields = assignFieldsToSections.sectionGroups.get(section.id) || [];
+                            const isCollapsed = sectionCollapseState.get(section.id) ?? section.defaultCollapsed ?? true;
+                            const isCollapsible = section.isCollapsible !== false;
+                            return (
+                                <React.Fragment key={section.id}>
+                                    <div style={{ display: "flex", flexDirection: "column", width: "100%", borderRadius: "4px", border: "1px solid var(--vscode-panel-border)" }}>
+                                        <S.HoverableSection onClick={() => handleSectionToggle(section.id, !isCollapsed)}>
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                                    {section.title}
+                                                </Typography>
+                                                <Typography variant="body2" sx={{ opacity: 0.7, fontSize: 11 }}>
+                                                    {section.description}
+                                                </Typography>
+                                            </div>
+                                            {isCollapsible && (
+                                                <S.ButtonContainer>
+                                                    {isCollapsed && (
+                                                        <Codicon
+                                                            name={"chevron-down"}
+                                                            iconSx={{ fontSize: 12 }}
+                                                            sx={{ height: 12 }}
+                                                        />
+                                                    )}
+                                                    {!isCollapsed && (
+                                                        <Codicon
+                                                            name={"chevron-up"}
+                                                            iconSx={{ fontSize: 12 }}
+                                                            sx={{ height: 12 }}
+                                                        />
+                                                    )}
+                                                </S.ButtonContainer>
+                                            )}
+                                        </S.HoverableSection>
+                                        {!isCollapsed && (<S.Row style={{ flexDirection: "column", gap: "20px", padding: "8px 16px 28px", borderTop: "1px solid var(--vscode-panel-border)" }}>
+                                            {fields.map(field => {
+                                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                                return (
+                                                    <S.Row key={updatedField.key}>
+                                                        <EditorFactory
+                                                            field={updatedField}
+                                                            selectedNode={selectedNode}
+                                                            openRecordEditor={
+                                                                openRecordEditor &&
+                                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                                            }
+                                                            openSubPanel={handleOpenSubPanel}
+                                                            subPanelView={subPanelView}
+                                                            handleOnFieldFocus={handleOnFieldFocus}
+                                                            recordTypeFields={recordTypeFields}
+                                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                                            handleOnTypeChange={handleOnTypeChange}
+                                                            setSubComponentEnabled={setIsSubComponentEnabled}
+                                                            handleNewTypeSelected={handleNewTypeSelected}
+                                                            onBlur={handleOnBlur}
+                                                            isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                                            openFormTypeEditor={
+                                                                openFormTypeEditor &&
+                                                                ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                                            }
+                                                        />
+                                                        {updatedField.key === "scope" && scopeFieldAddon}
+                                                    </S.Row>
+                                                );
+                                            })}
+                                        </S.Row>)}
+                                    </div>
+                                </React.Fragment>
+                            );
                         })}
-                    {hasAdvanceFieldsNotInSections &&
-                        showAdvancedOptions &&
-                        advancedChoiceFields.map((field) => {
+                </S.CategoryRow>
+            )}
+
+            <S.CategoryRow bottomBorder={false}>
+                {hasAdvanceFieldsNotInSections && (
+                    <S.Row>
+                        {optionalFieldsTitle}
+                        <S.ButtonContainer>
+                            {!showAdvancedOptions && (
+                                <LinkButton
+                                    onClick={handleOnShowAdvancedOptions}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon
+                                        name={"chevron-down"}
+                                        iconSx={{ fontSize: 12 }}
+                                        sx={{ height: 12 }}
+                                    />
+                                    Expand
+                                </LinkButton>
+                            )}
+                            {showAdvancedOptions && (
+                                <LinkButton
+                                    onClick={handleOnHideAdvancedOptions}
+                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                >
+                                    <Codicon
+                                        name={"chevron-up"}
+                                        iconSx={{ fontSize: 12 }}
+                                        sx={{ height: 12 }}
+                                    />Collapsed
+                                </LinkButton>
+                            )}
+                        </S.ButtonContainer>
+                    </S.Row>
+                )}
+                {hasAdvanceFieldsNotInSections &&
+                    showAdvancedOptions &&
+                    formFields.map((field) => {
+                        if (field.advanced && !field.hidden) {
                             // Skip if field is in a custom section
                             if (sections && assignFieldsToSections) {
                                 const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
@@ -1330,57 +1302,88 @@ export const Form = forwardRef((props: FormProps) => {
                                     />
                                 </S.Row>
                             );
-                        })}
-                </S.CategoryRow>
+                        }
+                        return null;
+                    })}
+                {hasAdvanceFieldsNotInSections &&
+                    showAdvancedOptions &&
+                    advancedChoiceFields.map((field) => {
+                        // Skip if field is in a custom section
+                        if (sections && assignFieldsToSections) {
+                            const isInSection = Array.from(assignFieldsToSections.sectionGroups.values())
+                                .some(fields => fields.find(f => f.key === field.key));
+                            if (isInSection) return null;
+                        }
 
-                {!preserveOrder && (variableField || typeField || targetTypeField) && (
-                    <S.CategoryRow topBorder={!compact && hasParameters}>
-                        {variableField && (
-                            <EditorFactory
-                                field={variableField}
-                                handleOnFieldFocus={handleOnFieldFocus}
-                                recordTypeFields={recordTypeFields}
-                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                onBlur={handleOnBlur}
-                            />
-                        )}
-                        {typeField && !isInferredReturnType && (
-                            <EditorFactory
-                                field={typeField}
-                                openRecordEditor={
-                                    openRecordEditor &&
-                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
-                                }
-                                handleOnFieldFocus={handleOnFieldFocus}
-                                handleOnTypeChange={handleOnTypeChange}
-                                recordTypeFields={recordTypeFields}
-                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                handleNewTypeSelected={handleNewTypeSelected}
-                                onBlur={handleOnBlur}
-
-                            />
-                        )}
-                        {targetTypeField && !targetTypeField.advanced && (
-                            <>
+                        const updatedField = updateFormFieldWithImports(field, formImports);
+                        return (
+                            <S.Row key={updatedField.key}>
                                 <EditorFactory
-                                    field={targetTypeField}
+                                    field={updatedField}
+                                    openRecordEditor={
+                                        openRecordEditor &&
+                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                    }
+                                    subPanelView={subPanelView}
                                     handleOnFieldFocus={handleOnFieldFocus}
                                     recordTypeFields={recordTypeFields}
                                     onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleNewTypeSelected={handleNewTypeSelected}
                                     handleOnTypeChange={handleOnTypeChange}
                                     onBlur={handleOnBlur}
                                 />
-                                {typeField && (
-                                    <TypeHelperText
-                                        targetTypeField={targetTypeField}
-                                        typeField={typeField}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </S.CategoryRow>
-                )}
+                            </S.Row>
+                        );
+                    })}
+            </S.CategoryRow>
+
+            {!preserveOrder && (variableField || typeField || targetTypeField) && (
+                <S.CategoryRow topBorder={!compact && hasParameters}>
+                    {variableField && (
+                        <EditorFactory
+                            field={variableField}
+                            handleOnFieldFocus={handleOnFieldFocus}
+                            recordTypeFields={recordTypeFields}
+                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                            onBlur={handleOnBlur}
+                        />
+                    )}
+                    {typeField && !isInferredReturnType && (
+                        <EditorFactory
+                            field={typeField}
+                            openRecordEditor={
+                                openRecordEditor &&
+                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
+                            }
+                            handleOnFieldFocus={handleOnFieldFocus}
+                            handleOnTypeChange={handleOnTypeChange}
+                            recordTypeFields={recordTypeFields}
+                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                            handleNewTypeSelected={handleNewTypeSelected}
+                            onBlur={handleOnBlur}
+
+                        />
+                    )}
+                    {targetTypeField && !targetTypeField.advanced && (
+                        <>
+                            <EditorFactory
+                                field={targetTypeField}
+                                handleOnFieldFocus={handleOnFieldFocus}
+                                recordTypeFields={recordTypeFields}
+                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                handleNewTypeSelected={handleNewTypeSelected}
+                                handleOnTypeChange={handleOnTypeChange}
+                                onBlur={handleOnBlur}
+                            />
+                            {typeField && (
+                                <TypeHelperText
+                                    targetTypeField={targetTypeField}
+                                    typeField={typeField}
+                                />
+                            )}
+                        </>
+                    )}
+                </S.CategoryRow>
+            )}
 
             {concertMessage && (
                 <S.ConcertContainer>
