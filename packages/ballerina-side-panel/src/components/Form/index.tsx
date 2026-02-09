@@ -1201,7 +1201,7 @@ export const Form = forwardRef((props: FormProps) => {
                                                 </S.ButtonContainer>
                                             )}
                                         </S.HoverableSection>
-                                        {!isCollapsed && (<S.Row style={{ flexDirection: "column", gap: "20px", padding: "8px 16px 28px", borderTop: "1px solid var(--vscode-panel-border)" }}>
+                                        {!isCollapsed && (<S.Row style={{ flexDirection: "column", gap: "20px", padding: "12px 16px 28px", borderTop: "1px solid var(--vscode-panel-border)" }}>
                                             {fields.map(field => {
                                                 const updatedField = updateFormFieldWithImports(field, formImports);
                                                 return (

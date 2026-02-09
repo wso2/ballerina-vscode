@@ -65,7 +65,7 @@ const TEST_FORM_SECTIONS: FormSectionConfig = {
             defaultCollapsed: true,
             order: 1,
             description: 'Configure test data sources',
-            fieldKeys: ['dataProviderMode', 'dataProvider', 'evalSetFile']
+            fieldKeys: ['dataProvider']
         },
         {
             id: 'repetition',
@@ -102,27 +102,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const [testFunction, setTestFunction] = useState<TestFunction>();
     const [formTitle, setFormTitle] = useState<string>('Create New Test Case');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
-    const [dataProviderMode, setDataProviderMode] = useState<string>('function');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
-
-    const handleFieldChange = (fieldKey: string, value: any, allValues: FormValues) => {
-        if (fieldKey === 'dataProviderMode') {
-            setDataProviderMode(value);
-            updateFieldVisibility(value);
-        }
-    };
-
-    const updateFieldVisibility = (mode: string) => {
-        setFormFields(prevFields => prevFields.map(field => {
-            if (field.key === 'dataProvider') {
-                return { ...field, hidden: mode !== 'function' };
-            }
-            if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
-            }
-            return field;
-        }));
-    };
 
     const updateTargetLineRange = () => {
         rpcClient
@@ -156,23 +136,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     useEffect(() => {
         if (testFunction && evalsetOptions.length > 0) {
             let formFields = generateFormFields(testFunction);
-
-            // Get the dataProviderMode value to initialize field visibility
-            const modeField = formFields.find(f => f.key === 'dataProviderMode');
-            const mode = String(modeField?.value || 'function');
-            setDataProviderMode(mode);
-
-            // Set field visibility based on mode
-            formFields = formFields.map(field => {
-                if (field.key === 'dataProvider') {
-                    return { ...field, hidden: mode !== 'function' };
-                }
-                if (field.key === 'evalSetFile') {
-                    return { ...field, hidden: mode !== 'evalSet' };
-                }
-                return field;
-            });
-
             setFormFields(formFields);
         }
     }, [evalsetOptions]);
@@ -195,23 +158,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         const res = await rpcClient.getTestManagerRpcClient().getTestFunction({ functionName, filePath });
         setTestFunction(res.function);
         let formFields = generateFormFields(res.function);
-
-        // Get the dataProviderMode value to initialize field visibility
-        const modeField = formFields.find(f => f.key === 'dataProviderMode');
-        const mode = String(modeField?.value || 'function');
-        setDataProviderMode(mode);
-
-        // Set initial field visibility
-        formFields = formFields.map(field => {
-            if (field.key === 'dataProvider') {
-                return { ...field, hidden: mode !== 'function' };
-            }
-            if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
-            }
-            return field;
-        });
-
         setFormFields(formFields);
     }
 
@@ -219,23 +165,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         const emptyTestFunction = getEmptyTestFunctionModel();
         setTestFunction(emptyTestFunction);
         let formFields = generateFormFields(emptyTestFunction);
-
-        // Get the dataProviderMode value to initialize field visibility
-        const modeField = formFields.find(f => f.key === 'dataProviderMode');
-        const mode = String(modeField?.value || 'function');
-        setDataProviderMode(mode);
-
-        // Set initial field visibility (default is 'function' mode)
-        formFields = formFields.map(field => {
-            if (field.key === 'dataProvider') {
-                return { ...field, hidden: mode !== 'function' };
-            }
-            if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
-            }
-            return field;
-        });
-
         setFormFields(formFields);
     }
 
@@ -303,27 +232,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
             if (configAnnotation && configAnnotation.fields) {
                 for (const field of configAnnotation.fields) {
-                    if (field.originalName === 'dataProviderMode') {
-                        fields.push({
-                            ...generateFieldFromProperty(field.originalName, field),
-                            type: 'RADIO_GROUP',
-                            itemOptions: [
-                                { value: 'function', content: 'Use a custom function' },
-                                { value: 'evalSet', content: 'Use an Evalset' }
-                            ]
-                        });
-                        continue;
-                    }
-
-                    if (field.originalName === 'evalSetFile') {
-                        fields.push({
-                            ...generateFieldFromProperty(field.originalName, field),
-                            type: 'SINGLE_SELECT',
-                            itemOptions: evalsetOptions
-                        });
-                        continue;
-                    }
-
                     fields.push(generateFieldFromProperty(field.originalName, field));
                 }
             }
@@ -468,22 +376,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         const percentageValue = formValues['minPassRate'] || 100;
                         field.value = String(Number(percentageValue) / 100);
                     }
-                    if (field.originalName == 'dataProviderMode') {
-                        field.value = formValues['dataProviderMode'] || "function";
-                    }
                     if (field.originalName == 'dataProvider') {
-                        if (formValues['dataProviderMode'] === 'function') {
-                            field.value = formValues['dataProvider'] || "";
-                        } else {
-                            field.value = "";
-                        }
-                    }
-                    if (field.originalName == 'evalSetFile') {
-                        if (formValues['dataProviderMode'] === 'evalSet') {
-                            field.value = formValues['evalSetFile'] || "";
-                        } else {
-                            field.value = "";
-                        }
+                        field.value = formValues['dataProvider'] || "";
                     }
                 }
             }
@@ -642,35 +536,11 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         },
                         {
                             metadata: {
-                                label: "",
-                                description: "Choose how to provide test data"
-                            },
-                            types: [{ fieldType: "STRING", selected: false }],
-                            originalName: "dataProviderMode",
-                            value: "function",
-                            optional: true,
-                            editable: true,
-                            advanced: false
-                        },
-                        {
-                            metadata: {
                                 label: "Data Provider",
                                 description: "Function that provides test data"
                             },
                             types: [{ fieldType: "EXPRESSION", selected: false }],
                             originalName: "dataProvider",
-                            value: "",
-                            optional: true,
-                            editable: true,
-                            advanced: true
-                        },
-                        {
-                            metadata: {
-                                label: "Evalset File",
-                                description: "Select an evalset for test data"
-                            },
-                            types: [{ fieldType: "STRING", selected: false }],
-                            originalName: "evalSetFile",
                             value: "",
                             optional: true,
                             editable: true,
@@ -736,7 +606,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
-                                onChange={handleFieldChange}
                             />
                         )}
                     </FormContainer>
