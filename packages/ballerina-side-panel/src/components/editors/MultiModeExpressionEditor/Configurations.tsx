@@ -150,7 +150,7 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
         return () => null;
     }
     getSerializationPrefix(): string {
-        return "sql `";
+        return "`";
     }
     getSerializationSuffix(): string {
         return "`";

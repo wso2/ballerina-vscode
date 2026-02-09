@@ -153,7 +153,8 @@ export type FormFieldInputType = "TEXT" |
     "ENUM" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
-    "PROMPT";
+    "PROMPT" |
+    "SQL_QUERY";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
