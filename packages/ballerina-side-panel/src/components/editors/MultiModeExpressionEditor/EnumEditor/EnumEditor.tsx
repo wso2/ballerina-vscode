@@ -17,7 +17,7 @@
  */
 
 import { Dropdown, OptionProps } from "@wso2/ui-toolkit";
-import React, { ChangeEvent, useEffect, useMemo } from "react"
+import React, { ChangeEvent, useMemo } from "react"
 import { FormField } from "../../../Form/types";
 
 interface EnumEditorProps {
@@ -27,20 +27,41 @@ interface EnumEditorProps {
     items: OptionProps[];
 }
 
+const DEFAULT_NONE_SELECTED_VALUE = "__none__";
+
 export const EnumEditor = (props: EnumEditorProps) => {
     // Ensure value is in items, otherwise use first item's value
-    const itemsList = props.items.length > 0 ? props.items : props.field.itemOptions;
-    const selectedValue = props.value && props.value !== "" && itemsList.some(item => item.value === props.value) ? props.value : itemsList[0].value;
+    const itemsList = useMemo(() => {
+        const baseItems = props.items.length > 0 ? props.items : props.field.itemOptions;
+        return [
+            ...baseItems,
+            {
+                id: "default-option",
+                content: "None Selected",
+                value: DEFAULT_NONE_SELECTED_VALUE
+            }
+        ];
+    }, [props.items, props.field.itemOptions]);
+
+    const selectedValue = useMemo(() => {
+        if (props.value === undefined || props.value === null || props.value === "") {
+            return DEFAULT_NONE_SELECTED_VALUE;
+        }
+        if (props.value && itemsList.some(item => item.value === props.value)) {
+            return props.value;
+        }
+        return itemsList[0].value;
+    }, [props.value, itemsList]);
+
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        props.onChange(e.target.value, e.target.value.length)
+        const value = e.target.value;
+        if (value === DEFAULT_NONE_SELECTED_VALUE) {
+            props.onChange("", 0);
+        } else {
+            props.onChange(value, value.length);
+        }
     }
 
-    // Set the selected value as field value by calling onChange only if the value is not already set
-    useEffect(() => {
-        if (props.value === undefined || props.value === null || props.value === "") {
-            props.onChange(selectedValue, selectedValue.length)
-        }
-    }, [selectedValue, props.value])
 
     return (
         <Dropdown
