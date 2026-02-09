@@ -20,6 +20,7 @@ import * as vscode from 'vscode';
 import { AIUserToken, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import { generateText } from 'ai';
 import { extension } from '../../BalExtensionContext';
 import {
@@ -231,6 +232,64 @@ export const validateAwsCredentials = async (credentials: {
 
     } catch (error) {
         console.error('AWS Bedrock validation failed:', error);
+        throw new Error('Validation failed. Please check the log for more details.');
+    }
+};
+
+export const validateVertexAiCredentials = async (credentials: {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+}): Promise<AIUserToken> => {
+    const { projectId, location, clientEmail, privateKey } = credentials;
+
+    if (!projectId || !location || !clientEmail || !privateKey) {
+        throw new Error('GCP Project ID, location, client email, and private key are required.');
+    }
+
+    try {
+        const vertexAnthropic = createVertexAnthropic({
+            project: projectId,
+            location: location,
+            googleAuthOptions: {
+                credentials: {
+                    client_email: clientEmail,
+                    private_key: privateKey,
+                },
+            },
+        });
+
+        await generateText({
+            model: vertexAnthropic('claude-3-5-haiku@20241022'),
+            maxOutputTokens: 1,
+            messages: [{ role: 'user', content: 'Hi' }]
+        });
+
+        const authCredentials: AuthCredentials = {
+            loginMethod: LoginMethod.VERTEX_AI,
+            secrets: {
+                projectId,
+                location,
+                clientEmail,
+                privateKey
+            }
+        };
+        await storeAuthCredentials(authCredentials);
+
+        return { credentials: authCredentials };
+
+    } catch (error) {
+        console.error('Vertex AI validation failed:', error);
+        if (error instanceof Error) {
+            if (error.message.includes('401') || error.message.includes('authentication') || error.message.includes('UNAUTHENTICATED')) {
+                throw new Error('Invalid credentials. Please check your service account email and private key.');
+            } else if (error.message.includes('403') || error.message.includes('PERMISSION_DENIED')) {
+                throw new Error('Permission denied. Please ensure your service account has access to Vertex AI.');
+            } else if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+                throw new Error('Project or location not found. Please check your GCP Project ID and location.');
+            }
+        }
         throw new Error('Validation failed. Please check the log for more details.');
     }
 };

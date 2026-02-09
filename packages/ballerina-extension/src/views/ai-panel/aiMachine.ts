@@ -22,7 +22,7 @@ import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContex
 import { AiPanelWebview } from './webview';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, getLoginMethod } from '../../utils/ai/auth';
-import { checkToken, initiateDevantAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
+import { checkToken, initiateDevantAuth, logout, validateApiKey, validateAwsCredentials, validateVertexAiCredentials } from './utils';
 import {
     isDevantUserLoggedIn,
     getPlatformStsToken,
@@ -177,6 +177,12 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                     actions: assign({
                         loginMethod: (_ctx) => LoginMethod.AWS_BEDROCK
                     })
+                },
+                [AIMachineEventType.AUTH_WITH_VERTEX_AI]: {
+                    target: 'Authenticating',
+                    actions: assign({
+                        loginMethod: (_ctx) => LoginMethod.VERTEX_AI
+                    })
                 }
             }
         },
@@ -196,6 +202,10 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                         {
                             cond: (context) => context.loginMethod === LoginMethod.AWS_BEDROCK,
                             target: 'awsBedrockFlow'
+                        },
+                        {
+                            cond: (context) => context.loginMethod === LoginMethod.VERTEX_AI,
+                            target: 'vertexAiFlow'
                         },
                         {
                             target: 'ssoFlow' // default
@@ -296,6 +306,41 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
                             target: 'awsBedrockFlow',
                             actions: assign({
                                 errorMessage: (_ctx, event) => event.data?.message || 'AWS credentials validation failed'
+                            })
+                        }
+                    }
+                },
+                vertexAiFlow: {
+                    on: {
+                        [AIMachineEventType.SUBMIT_VERTEX_AI_CREDENTIALS]: {
+                            target: 'validatingVertexAiCredentials',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined
+                            })
+                        },
+                        [AIMachineEventType.CANCEL_LOGIN]: {
+                            target: '#ballerina-ai.Unauthenticated',
+                            actions: assign({
+                                loginMethod: (_ctx) => undefined,
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        }
+                    }
+                },
+                validatingVertexAiCredentials: {
+                    invoke: {
+                        id: 'validateVertexAiCredentials',
+                        src: 'validateVertexAiCredentials',
+                        onDone: {
+                            target: '#ballerina-ai.Authenticated',
+                            actions: assign({
+                                errorMessage: (_ctx) => undefined,
+                            })
+                        },
+                        onError: {
+                            target: 'vertexAiFlow',
+                            actions: assign({
+                                errorMessage: (_ctx, event) => event.data?.message || 'Vertex AI credentials validation failed'
                             })
                         }
                     }
@@ -418,6 +463,19 @@ const validateAwsCredentialsService = async (_context: AIMachineContext, event: 
     });
 };
 
+const validateVertexAiCredentialsService = async (_context: AIMachineContext, event: any) => {
+    const { projectId, location, clientEmail, privateKey } = event.payload || {};
+    if (!projectId || !location || !clientEmail || !privateKey) {
+        throw new Error('GCP Project ID, location, client email, and private key are required');
+    }
+    return await validateVertexAiCredentials({
+        projectId,
+        location,
+        clientEmail,
+        privateKey
+    });
+};
+
 const getTokenAfterAuth = async () => {
     const result = await getAccessToken();
     const loginMethod = await getLoginMethod();
@@ -433,6 +491,7 @@ const aiStateService = interpret(aiMachine.withConfig({
         openLogin: openLogin,
         validateApiKey: validateApiKeyService,
         validateAwsCredentials: validateAwsCredentialsService,
+        validateVertexAiCredentials: validateVertexAiCredentialsService,
         getTokenAfterAuth: getTokenAfterAuth,
     },
     actions: {

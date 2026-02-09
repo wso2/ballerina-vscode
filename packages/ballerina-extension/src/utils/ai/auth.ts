@@ -300,6 +300,10 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
                         resolve(credentials);
                         return;
 
+                    case LoginMethod.VERTEX_AI:
+                        resolve(credentials);
+                        return;
+
                     default:
                         const { loginMethod }: AuthCredentials = credentials;
                         reject(new Error(`Unsupported login method: ${loginMethod}`));
@@ -322,6 +326,19 @@ export const getAwsBedrockCredentials = async (): Promise<{
 } | undefined> => {
     const credentials = await getAuthCredentials();
     if (!credentials || credentials.loginMethod !== LoginMethod.AWS_BEDROCK) {
+        return undefined;
+    }
+    return credentials.secrets;
+};
+
+export const getVertexAiCredentials = async (): Promise<{
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+} | undefined> => {
+    const credentials = await getAuthCredentials();
+    if (!credentials || credentials.loginMethod !== LoginMethod.VERTEX_AI) {
         return undefined;
     }
     return credentials.secrets;
