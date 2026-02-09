@@ -4,32 +4,33 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
 "/* Emotion Styles */
 .css-6 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border-bottom: 1px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; width: 100%; height: 40px; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; line-height: 20px; min-width: calc(100% - 32px); padding: 0 8px; text-align: center;}
 .css-5 {background-color: var(--vscode-editor-background); border: 1.8px solid var(--vscode-dropdown-border); border-radius: 6px !important; color: var(--vscode-foreground); cursor: auto; display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; min-height: 40px; opacity: 1; overflow: hidden;}
-.css-17::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
-.css-16 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
-.css-15 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
+.css-18::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
+.css-17 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
+.css-16 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
 .css-7 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; width: 100%;}
-.css-19 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
-.css-19:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-19:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
-.css-21 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
-.css-21>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
-.css-21>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
-.css-21>*:not(:first-child):not(:last-child) {border-radius: 0;}
-.css-21>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-12 {display: flex; height: fit-content; width: fit-content;}
+.css-20 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-20:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-20:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-14 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
+.css-22 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-22>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-22>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-22>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-22>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-1 {background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); -webkit-background-size: 16px 16px; background-size: 16px 16px; min-height: calc(100vh - 50px); min-width: 100vw;}
-.css-11 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
 .css-2 {position: relative; cursor: move; overflow: unset; height: unset !important;}
-.css-12 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
-.css-12:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
+.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
+.css-13:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
 .css-9 {font-family: "GilmerMedium"; font-size: 14px;}
 .css-9:hover {color: var(--vscode-contrastActiveBorder, var(--vscode-button-background)); cursor: pointer;}
-.css-18 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {border-radius: 5px;}
+.css-19 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-8 {-webkit-flex: 1; -ms-flex: 1; flex: 1; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; display: flex; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px;}
 .css-4 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
-.css-20 {height: 16px; width: 14px; cursor: pointer;}
+.css-21 {height: 16px; width: 14px; cursor: pointer;}
 .css-3 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
-.css-14 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
+.css-15 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
 .css-10 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-left: auto; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; width: 45px;}
 .css-0 svg:not(:root) {overflow: visible;}
 .css-0 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; backgroundImage: 'radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0)',backgroundColor:'var(--vscode-input-background)',backgroundSize:'8px 8px',display:flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; height: calc(100vh - 50px); -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100vw;}
@@ -167,7 +168,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-Comment-menu"
@@ -200,7 +201,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -208,12 +209,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -224,7 +225,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -232,12 +233,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -248,7 +249,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -256,12 +257,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   postId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -272,7 +273,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -280,12 +281,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -296,7 +297,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -304,12 +305,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   post
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Post|()
                 </span>
@@ -320,7 +321,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -328,12 +329,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   author
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   User|()
                 </span>
@@ -344,7 +345,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -391,7 +392,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-User-menu"
@@ -424,7 +425,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -432,12 +433,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -448,7 +449,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -456,12 +457,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   name
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -472,7 +473,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -480,12 +481,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   email
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -496,7 +497,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -504,12 +505,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   posts
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Post[]
                 </span>
@@ -520,7 +521,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -567,7 +568,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-UserRecord-menu"
@@ -600,7 +601,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -608,12 +609,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -624,7 +625,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -632,12 +633,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   name
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -648,7 +649,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -656,12 +657,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   email
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -672,7 +673,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -719,7 +720,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-PostRecord-menu"
@@ -752,7 +753,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -760,12 +761,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -776,7 +777,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -784,12 +785,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   title
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -800,7 +801,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -808,12 +809,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -824,7 +825,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -832,12 +833,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -848,7 +849,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -895,7 +896,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-CommentRecord-menu"
@@ -928,7 +929,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -936,12 +937,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -952,7 +953,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -960,12 +961,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -976,7 +977,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -984,12 +985,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   postId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1000,7 +1001,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1008,12 +1009,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1024,7 +1025,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -1071,7 +1072,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-Post-menu"
@@ -1104,7 +1105,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1112,12 +1113,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1128,7 +1129,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1136,12 +1137,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   title
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1152,7 +1153,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1160,12 +1161,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1176,7 +1177,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1184,12 +1185,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1200,7 +1201,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1208,12 +1209,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   author
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   User|()
                 </span>
@@ -1224,7 +1225,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1232,12 +1233,12 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   comments
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Comment[]
                 </span>
@@ -1248,7 +1249,7 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -1268,11 +1269,11 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
           class="css-3"
         >
           <div
-            class="css-16"
+            class="css-17"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-17"
+              class="css-18"
               role="alert"
             />
           </div>
@@ -1280,14 +1281,14 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
       </div>
     </div>
     <div
-      class="css-18"
+      class="css-19"
     >
       <div
-        class="css-19"
+        class="css-20"
         title="Download"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-download"
@@ -1296,11 +1297,11 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Refresh"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-retry"
@@ -1309,11 +1310,11 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Zoom to fit nodes"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-fit-screen"
@@ -1322,14 +1323,14 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
         </div>
       </div>
       <div
-        class="css-21"
+        class="css-22"
       >
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom in"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-plus"
@@ -1338,11 +1339,11 @@ exports[`Type Diagram - Snapshot Tests renders all types correctly: all-types 1`
           </div>
         </div>
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom out"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-minus"
@@ -1360,32 +1361,33 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
 "/* Emotion Styles */
 .css-6 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border-bottom: 1px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; width: 100%; height: 40px; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; line-height: 20px; min-width: calc(100% - 32px); padding: 0 8px; text-align: center;}
 .css-5 {background-color: var(--vscode-editor-background); border: 1.8px solid var(--vscode-dropdown-border); border-radius: 6px !important; color: var(--vscode-foreground); cursor: auto; display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; min-height: 40px; opacity: 1; overflow: hidden;}
-.css-17::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
-.css-16 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
-.css-15 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
+.css-18::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
+.css-17 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
+.css-16 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
 .css-7 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; width: 100%;}
-.css-19 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
-.css-19:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-19:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
-.css-21 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
-.css-21>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
-.css-21>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
-.css-21>*:not(:first-child):not(:last-child) {border-radius: 0;}
-.css-21>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-12 {display: flex; height: fit-content; width: fit-content;}
+.css-20 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-20:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-20:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-14 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
+.css-22 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-22>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-22>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-22>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-22>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-1 {background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); -webkit-background-size: 16px 16px; background-size: 16px 16px; min-height: calc(100vh - 50px); min-width: 100vw;}
-.css-11 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
 .css-2 {position: relative; cursor: move; overflow: unset; height: unset !important;}
-.css-12 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
-.css-12:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
+.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
+.css-13:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
 .css-9 {font-family: "GilmerMedium"; font-size: 14px;}
 .css-9:hover {color: var(--vscode-contrastActiveBorder, var(--vscode-button-background)); cursor: pointer;}
-.css-18 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {border-radius: 5px;}
+.css-19 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-8 {-webkit-flex: 1; -ms-flex: 1; flex: 1; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; display: flex; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px;}
 .css-4 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
-.css-20 {height: 16px; width: 14px; cursor: pointer;}
+.css-21 {height: 16px; width: 14px; cursor: pointer;}
 .css-3 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
-.css-14 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
+.css-15 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
 .css-10 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-left: auto; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; width: 45px;}
 .css-0 svg:not(:root) {overflow: visible;}
 .css-0 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; backgroundImage: 'radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0)',backgroundColor:'var(--vscode-input-background)',backgroundSize:'8px 8px',display:flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; height: calc(100vh - 50px); -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100vw;}
@@ -1523,7 +1525,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-Comment-menu"
@@ -1556,7 +1558,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1564,12 +1566,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1580,7 +1582,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1588,12 +1590,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1604,7 +1606,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1612,12 +1614,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   postId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1628,7 +1630,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1636,12 +1638,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1652,7 +1654,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1660,12 +1662,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   post
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Post|()
                 </span>
@@ -1676,7 +1678,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1684,12 +1686,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   author
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   User|()
                 </span>
@@ -1700,7 +1702,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -1747,7 +1749,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-User-menu"
@@ -1780,7 +1782,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1788,12 +1790,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1804,7 +1806,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1812,12 +1814,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   name
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1828,7 +1830,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1836,12 +1838,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   email
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1852,7 +1854,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1860,12 +1862,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   posts
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Post[]
                 </span>
@@ -1876,7 +1878,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -1923,7 +1925,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-Post-menu"
@@ -1956,7 +1958,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1964,12 +1966,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -1980,7 +1982,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -1988,12 +1990,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   title
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2004,7 +2006,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2012,12 +2014,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2028,7 +2030,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2036,12 +2038,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2052,7 +2054,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2060,12 +2062,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   author
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   User|()
                 </span>
@@ -2076,7 +2078,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2084,12 +2086,12 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   comments
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Comment[]
                 </span>
@@ -2100,7 +2102,7 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -2120,11 +2122,11 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
           class="css-3"
         >
           <div
-            class="css-16"
+            class="css-17"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-17"
+              class="css-18"
               role="alert"
             />
           </div>
@@ -2132,14 +2134,14 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
       </div>
     </div>
     <div
-      class="css-18"
+      class="css-19"
     >
       <div
-        class="css-19"
+        class="css-20"
         title="Download"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-download"
@@ -2148,11 +2150,11 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Refresh"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-retry"
@@ -2161,11 +2163,11 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Zoom to fit nodes"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-fit-screen"
@@ -2174,14 +2176,14 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
         </div>
       </div>
       <div
-        class="css-21"
+        class="css-22"
       >
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom in"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-plus"
@@ -2190,11 +2192,11 @@ exports[`Type Diagram - Snapshot Tests renders class types correctly: class-type
           </div>
         </div>
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom out"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-minus"
@@ -2354,32 +2356,33 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
 "/* Emotion Styles */
 .css-6 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border-bottom: 1px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; width: 100%; height: 40px; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; line-height: 20px; min-width: calc(100% - 32px); padding: 0 8px; text-align: center;}
 .css-5 {background-color: var(--vscode-editor-background); border: 1.8px solid var(--vscode-dropdown-border); border-radius: 6px !important; color: var(--vscode-foreground); cursor: auto; display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; min-height: 40px; opacity: 1; overflow: hidden;}
-.css-17::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
-.css-16 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
-.css-15 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
+.css-18::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
+.css-17 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
+.css-16 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
 .css-7 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; width: 100%;}
-.css-19 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
-.css-19:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-19:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
-.css-21 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
-.css-21>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
-.css-21>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
-.css-21>*:not(:first-child):not(:last-child) {border-radius: 0;}
-.css-21>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-12 {display: flex; height: fit-content; width: fit-content;}
+.css-20 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-20:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-20:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-14 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
+.css-22 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-22>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-22>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-22>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-22>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-1 {background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); -webkit-background-size: 16px 16px; background-size: 16px 16px; min-height: calc(100vh - 50px); min-width: 100vw;}
-.css-11 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
 .css-2 {position: relative; cursor: move; overflow: unset; height: unset !important;}
-.css-12 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
-.css-12:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
+.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
+.css-13:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
 .css-9 {font-family: "GilmerMedium"; font-size: 14px;}
 .css-9:hover {color: var(--vscode-contrastActiveBorder, var(--vscode-button-background)); cursor: pointer;}
-.css-18 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {border-radius: 5px;}
+.css-19 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-8 {-webkit-flex: 1; -ms-flex: 1; flex: 1; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; display: flex; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px;}
 .css-4 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
-.css-20 {height: 16px; width: 14px; cursor: pointer;}
+.css-21 {height: 16px; width: 14px; cursor: pointer;}
 .css-3 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
-.css-14 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
+.css-15 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
 .css-10 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-left: auto; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; width: 45px;}
 .css-0 svg:not(:root) {overflow: visible;}
 .css-0 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; backgroundImage: 'radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0)',backgroundColor:'var(--vscode-input-background)',backgroundSize:'8px 8px',display:flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; height: calc(100vh - 50px); -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100vw;}
@@ -2446,7 +2449,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-UserRecord-menu"
@@ -2479,7 +2482,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2487,12 +2490,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2503,7 +2506,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2511,12 +2514,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   name
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2527,7 +2530,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2535,12 +2538,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   email
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2551,7 +2554,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -2598,7 +2601,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-PostRecord-menu"
@@ -2631,7 +2634,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2639,12 +2642,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2655,7 +2658,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2663,12 +2666,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   title
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2679,7 +2682,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2687,12 +2690,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2703,7 +2706,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2711,12 +2714,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2727,7 +2730,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -2774,7 +2777,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-CommentRecord-menu"
@@ -2807,7 +2810,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2815,12 +2818,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2831,7 +2834,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2839,12 +2842,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2855,7 +2858,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2863,12 +2866,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   postId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2879,7 +2882,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -2887,12 +2890,12 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -2903,7 +2906,7 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -2923,11 +2926,11 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
           class="css-3"
         >
           <div
-            class="css-16"
+            class="css-17"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-17"
+              class="css-18"
               role="alert"
             />
           </div>
@@ -2935,14 +2938,14 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
       </div>
     </div>
     <div
-      class="css-18"
+      class="css-19"
     >
       <div
-        class="css-19"
+        class="css-20"
         title="Download"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-download"
@@ -2951,11 +2954,11 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Refresh"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-retry"
@@ -2964,11 +2967,11 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Zoom to fit nodes"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-fit-screen"
@@ -2977,14 +2980,14 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
         </div>
       </div>
       <div
-        class="css-21"
+        class="css-22"
       >
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom in"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-plus"
@@ -2993,11 +2996,11 @@ exports[`Type Diagram - Snapshot Tests renders record types correctly: record-ty
           </div>
         </div>
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom out"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-minus"
@@ -3015,32 +3018,33 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
 "/* Emotion Styles */
 .css-6 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; border-bottom: 1px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; width: 100%; height: 40px; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; line-height: 20px; min-width: calc(100% - 32px); padding: 0 8px; text-align: center;}
 .css-5 {background-color: var(--vscode-editor-background); border: 1.8px solid var(--vscode-dropdown-border); border-radius: 6px !important; color: var(--vscode-foreground); cursor: auto; display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; min-height: 40px; opacity: 1; overflow: hidden;}
-.css-17::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
-.css-16 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
-.css-15 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
+.css-18::part(indeterminate-indicator-1) {stroke: var(--vscode-progressBar-background);}
+.css-17 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-image: radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0); background-color: var(--vscode-editor-background); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; height: 100%; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100%;}
+.css-16 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center;}
 .css-7 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; width: 100%;}
-.css-19 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
-.css-19:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-19:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
-.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
-.css-21 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
-.css-21>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
-.css-21>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
-.css-21>*:not(:first-child):not(:last-child) {border-radius: 0;}
-.css-21>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
+.css-12 {display: flex; height: fit-content; width: fit-content;}
+.css-20 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px; border-radius: 4px; background-color: var(--vscode-sideBar-background); fill: var(--vscode-foreground); width: 32px; height: 32px; cursor: pointer;}
+.css-20:active {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-20:hover {background-color: var(--vscode-editor-inactiveSelectionBackground);}
+.css-14 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; color: var(--vscode-foreground); display: flex; -webkit-flex: 1; -ms-flex: 1; flex: 1; font-family: GilmerRegular; font-size: 12px; line-height: 30px; padding-right: 8px; text-align: left; min-width: fit-content; white-space: nowrap;}
+.css-22 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 0;}
+.css-22>*:first-child {border-bottom-left-radius: 0; border-bottom-right-radius: 0;}
+.css-22>*:last-child {border-top-left-radius: 0; border-top-right-radius: 0;}
+.css-22>*:not(:first-child):not(:last-child) {border-radius: 0;}
+.css-22>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-1 {background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); -webkit-background-size: 16px 16px; background-size: 16px 16px; min-height: calc(100vh - 50px); min-width: 100vw;}
-.css-11 {display: flex; height: fit-content; width: fit-content; border-radius: 5px;}
 .css-2 {position: relative; cursor: move; overflow: unset; height: unset !important;}
-.css-12 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
-.css-12:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
+.css-13 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; background-color: var(--vscode-editor-background); border-top: 0.5px solid var(--vscode-dropdown-border); display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; font-size: 12px; height: 30px; -webkit-box-pack: justify; -webkit-justify-content: space-between; justify-content: space-between; min-width: calc(100% - 20px); padding: 8px 8px 8px 12px;}
+.css-13:last-of-type {border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;}
 .css-9 {font-family: "GilmerMedium"; font-size: 14px;}
 .css-9:hover {color: var(--vscode-contrastActiveBorder, var(--vscode-button-background)); cursor: pointer;}
-.css-18 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-11 {border-radius: 5px;}
+.css-19 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-8 {-webkit-flex: 1; -ms-flex: 1; flex: 1; -webkit-box-pack: start; -ms-flex-pack: start; -webkit-justify-content: flex-start; justify-content: flex-start; display: flex; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; padding: 8px;}
 .css-4 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
-.css-20 {height: 16px; width: 14px; cursor: pointer;}
+.css-21 {height: 16px; width: 14px; cursor: pointer;}
 .css-3 {top: 0; left: 0; right: 0; bottom: 0; position: absolute; pointer-events: none; transform-origin: 0 0; width: 100%; height: 100%; overflow: visible;}
-.css-14 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
+.css-15 {background-color: var(--vscode-editor-inactiveSelectionBackground); border-radius: 3px; color: var(--vscode-foreground); font-family: GilmerRegular; font-size: 12px; height: 24px; line-height: 24px; min-width: 60px; padding-inline: 6px; text-align: center; cursor: default; white-space: nowrap;}
 .css-10 {display: flex; -webkit-flex-direction: row; -ms-flex-direction: row; flex-direction: row; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; margin-left: auto; -webkit-box-pack: end; -ms-flex-pack: end; -webkit-justify-content: flex-end; justify-content: flex-end; width: 45px;}
 .css-0 svg:not(:root) {overflow: visible;}
 .css-0 {-webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; backgroundImage: 'radial-gradient(circle at 0.5px 0.5px, var(--vscode-textBlockQuote-border) 1px, transparent 0)',backgroundColor:'var(--vscode-input-background)',backgroundSize:'8px 8px',display:flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; height: calc(100vh - 50px); -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; width: 100vw;}
@@ -3107,7 +3111,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                     class="css-10"
                   >
                     <div
-                      class="css-11"
+                      class="css-11 css-12"
                     >
                       <vscode-button
                         data-testid="type-node-Comment-menu"
@@ -3140,7 +3144,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 <div />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3148,12 +3152,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   id
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -3164,7 +3168,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3172,12 +3176,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   content
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -3188,7 +3192,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3196,12 +3200,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   postId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -3212,7 +3216,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3220,12 +3224,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   authorId
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   string
                 </span>
@@ -3236,7 +3240,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3244,12 +3248,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   post
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   Post|()
                 </span>
@@ -3260,7 +3264,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-12"
+                class="css-13"
               >
                 <div
                   class="port "
@@ -3268,12 +3272,12 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                   style="left: 0px; height: 0.5px; position: absolute; width: 8px;"
                 />
                 <span
-                  class="css-13"
+                  class="css-14"
                 >
                   author
                 </span>
                 <span
-                  class="css-14"
+                  class="css-15"
                 >
                   User|()
                 </span>
@@ -3284,7 +3288,7 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
                 />
               </div>
               <div
-                class="css-15"
+                class="css-16"
               >
                 <div
                   class="port "
@@ -3304,11 +3308,11 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
           class="css-3"
         >
           <div
-            class="css-16"
+            class="css-17"
           >
             <vscode-progress-ring
               aria-live="assertive"
-              class="css-17"
+              class="css-18"
               role="alert"
             />
           </div>
@@ -3316,14 +3320,14 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
       </div>
     </div>
     <div
-      class="css-18"
+      class="css-19"
     >
       <div
-        class="css-19"
+        class="css-20"
         title="Download"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-download"
@@ -3332,11 +3336,11 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Refresh"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-retry"
@@ -3345,11 +3349,11 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
         </div>
       </div>
       <div
-        class="css-19"
+        class="css-20"
         title="Zoom to fit nodes"
       >
         <div
-          class="css-20"
+          class="css-21"
         >
           <i
             class="fw-bi-fit-screen"
@@ -3358,14 +3362,14 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
         </div>
       </div>
       <div
-        class="css-21"
+        class="css-22"
       >
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom in"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-plus"
@@ -3374,11 +3378,11 @@ exports[`Type Diagram - Snapshot Tests renders single type correctly: single-typ
           </div>
         </div>
         <div
-          class="css-19"
+          class="css-20"
           title="Zoom out"
         >
           <div
-            class="css-20"
+            class="css-21"
           >
             <i
               class="fw-bi-minus"
