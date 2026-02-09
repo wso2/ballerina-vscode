@@ -46,7 +46,8 @@ import {
     PopupMessage,
     FunctionForm,
     SetupView,
-    TestFunctionForm
+    TestFunctionForm,
+    AIEvaluationForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
@@ -593,6 +594,16 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm
+                                key={value?.identifier} // Force remount when switching between different tests
+                                projectPath={value.projectPath}
+                                functionName={value?.identifier}
+                                filePath={value?.documentUri}
+                                serviceType={value?.serviceType}
+                            />);
+                        break;
+                    case MACHINE_VIEW.BIAIEvaluationForm:
+                        setViewComponent(
+                            <AIEvaluationForm
                                 key={value?.identifier} // Force remount when switching between different tests
                                 projectPath={value.projectPath}
                                 functionName={value?.identifier}
