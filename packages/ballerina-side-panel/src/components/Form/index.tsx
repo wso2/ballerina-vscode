@@ -501,7 +501,7 @@ export const Form = forwardRef((props: FormProps) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (field.value && typeof field.value === "boolean") {
+                        if (typeof field.value === "boolean") {
                             defaultValues[field.key] = String(field.value);
                         }
                         else {
