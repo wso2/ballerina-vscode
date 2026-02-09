@@ -18,11 +18,19 @@
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import { createMachine, assign, interpret } from 'xstate';
-import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIUserToken, AIMachineSendableEvent, LoginMethod, SHARED_COMMANDS } from '@wso2/ballerina-core';
+import { AIMachineStateValue, AIPanelPrompt, AIMachineEventType, AIMachineContext, AIMachineSendableEvent, LoginMethod, SHARED_COMMANDS } from '@wso2/ballerina-core';
 import { AiPanelWebview } from './webview';
 import { extension } from '../../BalExtensionContext';
 import { getAccessToken, getLoginMethod } from '../../utils/ai/auth';
-import { checkToken, initiateInbuiltAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
+import { checkToken, initiateDevantAuth, logout, validateApiKey, validateAwsCredentials } from './utils';
+import {
+    isDevantUserLoggedIn,
+    getPlatformStsToken,
+    exchangeStsToCopilotToken,
+    storeAuthCredentials,
+    isPlatformExtensionAvailable,
+    PLATFORM_EXTENSION_ID
+} from '../../utils/ai/auth';
 import * as vscode from 'vscode';
 import { notifyAiPromptUpdated } from '../../RPCLayer';
 
@@ -357,10 +365,31 @@ const aiMachine = createMachine<AIMachineContext, AIMachineSendableEvent>({
 const openLogin = async () => {
     return new Promise(async (resolve, reject) => {
         try {
-            const status = await initiateInbuiltAuth();
+            // Check if already logged into Devant
+            const isLoggedIn = await isDevantUserLoggedIn();
+            if (isLoggedIn) {
+                // Already logged in, exchange token
+                const stsToken = await getPlatformStsToken();
+                if (!stsToken) {
+                    throw new Error('Failed to get STS token from platform extension');
+                }
+
+                const secrets = await exchangeStsToCopilotToken(stsToken);
+                await storeAuthCredentials({
+                    loginMethod: LoginMethod.BI_INTEL,
+                    secrets
+                });
+                aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
+                resolve(true);
+                return;
+            }
+
+            // Not logged in, trigger platform extension login
+            const status = await initiateDevantAuth();
             if (!status) {
                 aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
             }
+            // Auth completion will be handled by platform extension login state listener
             resolve(status);
         } catch (error) {
             reject(error);
@@ -422,8 +451,61 @@ const isExtendedEvent = <K extends AIMachineEventType>(
     return typeof arg !== "string";
 };
 
+/**
+ * Set up listener for platform extension login state changes.
+ * When user logs in via platform extension, we exchange the token and complete auth.
+ */
+const setupPlatformExtensionListener = () => {
+    if (!isPlatformExtensionAvailable()) {
+        return;
+    }
+
+    const platformExt = vscode.extensions.getExtension(PLATFORM_EXTENSION_ID);
+    if (!platformExt) {
+        return;
+    }
+
+    // Activate and subscribe to login state changes
+    platformExt.activate().then(
+        (api) => {
+            if (api.subscribeIsLoggedIn) {
+                api.subscribeIsLoggedIn(async (isLoggedIn: boolean) => {
+                    const currentState = aiStateService.getSnapshot().value;
+
+                    // Only handle login events when we're in the SSO authentication flow
+                    if (isLoggedIn && typeof currentState === 'object' && 'Authenticating' in currentState) {
+                        try {
+                            const stsToken = await getPlatformStsToken();
+                            if (!stsToken) {
+                                console.error('Failed to get STS token after platform login');
+                                return;
+                            }
+
+                            const secrets = await exchangeStsToCopilotToken(stsToken);
+                            await storeAuthCredentials({
+                                loginMethod: LoginMethod.BI_INTEL,
+                                secrets
+                            });
+                            aiStateService.send(AIMachineEventType.COMPLETE_AUTH);
+                        } catch (error) {
+                            console.error('Failed to exchange token after platform login:', error);
+                            aiStateService.send(AIMachineEventType.CANCEL_LOGIN);
+                        }
+                    }
+                });
+            }
+        },
+        (error) => {
+            console.error('Failed to activate platform extension for login listener:', error);
+        }
+    );
+};
+
 export const AIStateMachine = {
-    initialize: () => aiStateService.start(),
+    initialize: () => {
+        setupPlatformExtensionListener();
+        return aiStateService.start();
+    },
     service: () => { return aiStateService; },
     context: () => { return aiStateService.getSnapshot().context; },
     state: () => { return aiStateService.getSnapshot().value as AIMachineStateValue; },

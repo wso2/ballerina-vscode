@@ -42,7 +42,7 @@ import { AIMachineEventType, BallerinaProject, BIIntelSecrets, LoginMethod } fro
 import { isBallerinaProjectAsync, OLD_BACKEND_URL } from '../ai/utils';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaExtension } from 'src/core';
-import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
+import { getAccessToken as getAccesstokenFromUtils, getLoginMethod, getRefreshedAccessToken, TOKEN_NOT_AVAILABLE_ERROR_MESSAGE, TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { performApiDocsDriftCheck, performDocumentationDriftCheck } from './drift-check';
 import { ApiDocsDriftResponse, DocumentationDriftResponse } from './drift-check/schemas';
@@ -586,7 +586,7 @@ export async function getTokenForNaturalFunction() {
         }
         return token;
     } catch (error) {
-        if ((error as Error).message === REFRESH_TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
+        if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
             vscode.window.showWarningMessage(LOGIN_REQUIRED_WARNING);
         }
         throw error;
