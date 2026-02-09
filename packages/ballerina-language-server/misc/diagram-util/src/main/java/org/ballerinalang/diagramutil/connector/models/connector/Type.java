@@ -613,7 +613,7 @@ public class Type {
                 String version = moduleID.version();
 
                 Optional<Package> packageOpt =
-                        PackageUtil.getModulePackage(PackageUtil.getSampleProject(), org, pkgName, version);
+                        PackageUtil.getModulePackage(org, pkgName, version);
                 resolvedPackage = packageOpt.orElse(null);
             }
         } catch (Exception e) {

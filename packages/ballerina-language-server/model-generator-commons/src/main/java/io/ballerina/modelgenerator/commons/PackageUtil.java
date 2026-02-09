@@ -350,8 +350,13 @@ public class PackageUtil {
      * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
      */
     public static Optional<Package> getModulePackage(String org, String packageName, String version) {
+        // TODO: remove this logic after resolving the package without using the buildProject
         try {
-            return getModulePackage(getSampleProject(), org, packageName, version);
+            if (version == null) {
+                return getModulePackage(getSampleProject(), org, packageName);
+            } else {
+                return getModulePackage(getSampleProject(), org, packageName, version);
+            }
         } catch (Exception e) {
             // If package resolution fails (e.g., package doesn't exist in Central),
             // treat it as a generated/test package and continue with empty resolved package

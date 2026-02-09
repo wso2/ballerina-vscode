@@ -14,7 +14,7 @@
     "metadata": {
       "label": "DS Admin",
       "description": "An API for an organization administrator to manage organizations, accounts and users",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_2.0.0.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_null.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -23,7 +23,6 @@
       "packageName": "docusign.dsadmin",
       "object": "Client",
       "symbol": "init",
-      "version": "2.0.0",
       "isNew": true
     },
     "returning": false,
@@ -138,7 +137,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "httpVersion"
         },
-        "defaultValue": "\"2.0\""
+        "defaultValue": "http:HTTP_2_0"
       },
       "http1Settings": {
         "metadata": {
@@ -240,7 +239,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "timeout"
         },
-        "defaultValue": "0.0d"
+        "defaultValue": "60"
       },
       "forwarded": {
         "metadata": {
@@ -268,7 +267,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "forwarded"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "\"disable\""
       },
       "poolConfig": {
         "metadata": {
@@ -383,7 +382,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "compression"
         },
-        "defaultValue": "\"AUTO\""
+        "defaultValue": "AUTO"
       },
       "circuitBreaker": {
         "metadata": {
@@ -596,7 +595,7 @@
           "kind": "INCLUDED_FIELD",
           "originalName": "validation"
         },
-        "defaultValue": "false"
+        "defaultValue": "true"
       },
       "type": {
         "metadata": {
