@@ -119,8 +119,7 @@ export namespace S {
 
     export const ItemContainer = styled.div`
         border: 1px solid var(--vscode-dropdown-border);
-        border-radius: 4px;
-        padding: 8px;
+        border-radius: 4px
     `;
 
     export const LabelContainer = styled.div({
@@ -412,7 +411,7 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
     const modeSwitcherContext = useModeSwitcherContext();
 
-    const {inputMode} = modeSwitcherContext
+    const { inputMode } = modeSwitcherContext
 
     // Use to fetch initial diagnostics
     const previousDiagnosticsFetchContext = useRef<diagnosticsFetchContext>({
@@ -560,27 +559,25 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                     <S.Header>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '8px' }}>
                             <div>
-                                <S.HeaderContainer>
-                                    <S.LabelContainer>
-                                        {field.label && (
-                                            <>
-                                                <S.Label>{field.label}</S.Label>
-                                                {(required ?? !field.optional) && <RequiredFormInput />}
-                                            </>
-                                        )}
-                                        {getPrimaryInputType(field.types)?.ballerinaType && (
-                                            <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
-                                                {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
-                                            </S.Type>
-                                        )}
-                                    </S.LabelContainer>
-                                </S.HeaderContainer>
+                                {field.label && (
+                                    <S.HeaderContainer>
+                                        <S.LabelContainer>
+                                            <S.Label>{field.label}</S.Label>
+                                            {(required ?? !field.optional) && <RequiredFormInput />}
+                                            {getPrimaryInputType(field.types)?.ballerinaType && (
+                                                <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
+                                                    {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
+                                                </S.Type>
+                                            )}
+                                        </S.LabelContainer>
+                                    </S.HeaderContainer>
+                                )}
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
                                     {defaultValueText}
                                 </S.EditorMdContainer>
                             </div>
-                            {modeSwitcherContext?.isModeSwitcherEnabled && (
+                            {modeSwitcherContext?.isModeSwitcherEnabled && isExpressionEditorHovered && (
                                 <S.FieldInfoSection>
                                     <ModeSwitcher
                                         fieldKey={field.key}
