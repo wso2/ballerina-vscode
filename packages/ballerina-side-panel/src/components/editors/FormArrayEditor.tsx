@@ -119,7 +119,7 @@ export const FormArrayEditor = (props: FormFieldEditorProps & {
             >
                 {
                     repeatableFields.map((formField) => (
-                        <S.ItemContainer style={{ padding: '1px', position: 'relative', marginBottom: '4px' }} key={formField.key}>
+                        <S.ItemContainer style={{ position: 'relative', marginBottom: '4px' }} key={formField.key}>
                             <div style={{ position: 'absolute', top: '4px', right: '4px', zIndex: 1 }}>
                                 <Codicon
                                     name="close"
