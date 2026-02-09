@@ -1366,6 +1366,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
             return;
         }
+
         rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({
@@ -1373,9 +1374,22 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 flowNode: updatedNode,
                 isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
+                artifactData: editorConfig &&
+                    editorConfig.displayMode !== EditorDisplayMode.NONE &&
+                    editorConfig.view === MACHINE_VIEW.DataMapper ?
+                    { artifactType: DIRECTORY_MAP.DATA_MAPPER } : undefined,
             })
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
+
+                    if (editorConfig && editorConfig.displayMode !== EditorDisplayMode.NONE) {
+                        const newArtifact = response.artifacts.find(res => res.isNew);
+                        if (newArtifact) {
+                            rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
+                            return;
+                        }
+                    }
+                
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
