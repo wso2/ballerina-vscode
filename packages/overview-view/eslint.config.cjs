@@ -46,9 +46,9 @@ module.exports = defineConfig([
             'prefer-const': 'error',
             'no-var': 'error',
 
-            // React Rules
-            'react/jsx-uses-vars': 'error',
-            'react/jsx-uses-react': 'error',
+            // React Rules (temporarily disabled due to plugin/runtime mismatches)
+            'react/jsx-uses-vars': 'off',
+            'react/jsx-uses-react': 'off',
             'react/jsx-indent': ['error', 4],
             'react/jsx-indent-props': ['error', 4],
             'react/self-closing-comp': 'error',
