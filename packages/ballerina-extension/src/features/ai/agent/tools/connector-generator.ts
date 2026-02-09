@@ -35,6 +35,7 @@ import { applyTextEdits } from "../utils";
 import { LIBRARY_GET_TOOL } from "./library-get";
 import { approvalManager } from '../../state/ApprovalManager';
 import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
+import { LIBRARY_SEARCH_TOOL } from "./library-search";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -53,9 +54,9 @@ Generates a connector for an external service by deriving the service contract f
 
 Use this tool when:
 1. Target service is custom, internal, or niche
-2. User request is ambiguous and needs a custom connector
-3. User explicitly requests to create a custom connector
-4. After searching with LIBRARY_SEARCH_TOOL, no suitable connector is found
+2. User request is ambiguous and needs a SaaS connector
+3. User explicitly requests to create a SaaS connector
+4. After searching with ${LIBRARY_SEARCH_TOOL}, no suitable connector is found
 
 The tool will:
 1. Request OpenAPI spec from user (supports JSON and YAML formats)
