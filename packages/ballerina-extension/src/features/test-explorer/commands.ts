@@ -77,6 +77,22 @@ export function activateEditBiTest() {
         });
     });
 
+    commands.registerCommand(BI_COMMANDS.BI_ADD_AI_EVALUATION, async (entry?: TestItem) => {
+        const projectPath = await findProjectPath(entry?.uri?.fsPath);
+
+        if (!projectPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        const fileUri = path.resolve(projectPath, `tests`, `tests.bal`);
+        ensureFileExists(fileUri);
+        openView(EVENT_TYPE.OPEN_VIEW, {
+            view: MACHINE_VIEW.BIAIEvaluationForm,
+            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST'
+        });
+    });
+
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
         const projectPath = await findProjectPath(entry.uri?.fsPath);
 
@@ -110,15 +126,15 @@ export function activateEditBiTest() {
 }
 
 async function ensureFileExists(filePath: string) {
-  try {
-    await fs.access(filePath);
-  } catch {
-    // Ensure the directory exists
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    try {
+        await fs.access(filePath);
+    } catch {
+        // Ensure the directory exists
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
 
-    await fs.writeFile(filePath, '', 'utf8');
-    console.log('File created:', filePath);
-  }
+        await fs.writeFile(filePath, '', 'utf8');
+        console.log('File created:', filePath);
+    }
 }
 
 async function findProjectPath(filePath?: string): Promise<string | undefined> {

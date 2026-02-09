@@ -48,6 +48,7 @@ export const BI_COMMANDS = {
     ADD_DATA_MAPPER: 'BI.project-explorer.add-data-mapper',
     BI_EDIT_TEST_FUNCTION: 'BI.test.edit.function',
     BI_ADD_TEST_FUNCTION: 'BI.test.add.function',
+    BI_ADD_AI_EVALUATION: 'BI.test.add.ai.evaluation',
     BI_EDIT_TEST_FUNCTION_DEF: 'BI.test.edit.function.def',
     ADD_NATURAL_FUNCTION: 'BI.project-explorer.add-natural-function',
     TOGGLE_TRACE_LOGS: 'BI.toggle.trace.logs',
