@@ -1,0 +1,53 @@
+{
+  "source": "variable1.bal",
+  "description": "Sample diagram node",
+  "codedata": {
+    "node": "VARIABLE",
+    "lineRange": {
+      "fileName": "main.bal",
+      "startLine": {
+        "line": 22,
+        "offset": 0
+      },
+      "endLine": {
+        "line": 23,
+        "offset": 63
+      }
+    },
+    "isNew": true,
+    "sourceCode": ""
+  },
+  "typeName": "Student",
+  "variableName": "transform2",
+  "isInput": false,
+  "output": {
+    "variable1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 56
+          },
+          "end": {
+            "line": 23,
+            "character": 56
+          }
+        },
+        "newText": ", Student transform2 = {}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 23,
+            "character": 60
+          },
+          "end": {
+            "line": 23,
+            "character": 62
+          }
+        },
+        "newText": "transform2"
+      }
+    ]
+  }
+}
