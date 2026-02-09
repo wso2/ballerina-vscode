@@ -1,4 +1,4 @@
-// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+// Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
 
 // WSO2 LLC. licenses this file to you under the Apache License,
 // Version 2.0 (the "License"); you may not use this file except
@@ -20,17 +20,18 @@ import { jsonSchema } from "ai";
 import { Library } from "../../utils/libs/library-types";
 import { selectRequiredFunctions } from "../../utils/libs/function-registry";
 import { CopilotEventHandler } from "../../utils/events";
-import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
-import { EXTERNAL_LIBRARY_SEARCH_TOOL } from "./external-library-search";
+
+export const LIBRARY_GET_TOOL = "LibraryGetTool";
 
 /**
- * Emits tool_result event for library provider with filtering
+ * Emits tool_result event for library get with filtering
  */
 function emitLibraryToolResult(
     eventHandler: CopilotEventHandler,
     toolName: string,
     libraries: Library[],
-    requestedLibraryNames: string[]
+    requestedLibraryNames: string[],
+    toolCallId: string
 ): void {
     const libraryNames = libraries.map(lib => lib.name);
     const filteredNames = libraryNames.filter(name => requestedLibraryNames.includes(name));
@@ -38,11 +39,12 @@ function emitLibraryToolResult(
     eventHandler({
         type: "tool_result",
         toolName,
-        toolOutput: filteredNames
+        toolOutput: filteredNames,
+        toolCallId
     });
 }
 
-const LibraryProviderToolSchema = jsonSchema<{
+const LibraryGetToolSchema = jsonSchema<{
     libraryNames: string[];
     userPrompt: string;
 }>({
@@ -61,46 +63,48 @@ const LibraryProviderToolSchema = jsonSchema<{
     required: ["libraryNames", "userPrompt"],
 });
 
-export async function LibraryProviderTool(
+export async function LibraryGetTool(
     params: { libraryNames: string[]; userPrompt: string },
     generationType: GenerationType,
-    eventHandler: CopilotEventHandler
+    eventHandler: CopilotEventHandler,
+    toolCallId: string
 ): Promise<Library[]> {
     try {
-        // Emit tool_call event
+        // Emit tool_call event with ID from AI SDK
         eventHandler({
             type: "tool_call",
-            toolName: LIBRARY_PROVIDER_TOOL,
+            toolName: LIBRARY_GET_TOOL,
+            toolCallId
         });
 
         const startTime = Date.now();
         const libraries = await selectRequiredFunctions(params.userPrompt, params.libraryNames, generationType);
         console.log(
-            `[LibraryProviderTool] Fetched ${libraries.length} libraries: ${libraries
+            `[LibraryGetTool] Fetched ${libraries.length} libraries: ${libraries
                 .map((lib) => lib.name)
                 .join(", ")}, took ${(Date.now() - startTime) / 1000}s`
         );
 
-        // Emit tool_result event with filtered library names
-        emitLibraryToolResult(eventHandler, LIBRARY_PROVIDER_TOOL, libraries, params.libraryNames);
+        // Emit tool_result event with filtered library names and ID
+        emitLibraryToolResult(eventHandler, LIBRARY_GET_TOOL, libraries, params.libraryNames, toolCallId);
 
         return libraries;
     } catch (error) {
-        console.error(`[LibraryProviderTool] Error fetching libraries: ${error}`);
+        console.error(`[LibraryGetTool] Error fetching libraries: ${error}`);
 
-        // Emit error result
+        // Emit error result with same ID
         eventHandler({
             type: "tool_result",
-            toolName: LIBRARY_PROVIDER_TOOL,
-            toolOutput: []
+            toolName: LIBRARY_GET_TOOL,
+            toolOutput: [],
+            toolCallId
         });
 
         return [];
     }
 }
 
-export function getLibraryProviderTool(
-    libraryDescriptions: string,
+export function getLibraryGetTool(
     generationType: GenerationType,
     eventHandler: CopilotEventHandler
 ) {
@@ -108,50 +112,33 @@ export function getLibraryProviderTool(
         description: `Fetches detailed information about Ballerina libraries along with their API documentation, including services, clients, functions, and types.
 This tool analyzes a user query and returns **only the relevant** services, clients, functions, and types from the selected Ballerina libraries based on the provided user prompt.
 
-**This tool has a single purpose: fetch library descriptions. However, there are two cases for how to obtain library names:**
+Before calling this tool:
+- First use LibrarySearchTool to discover available libraries based on keywords
+- Review the library names and descriptions returned from the search
+- Analyze the user query to identify the relevant Ballerina libraries which can be utilized to fulfill the query
+- Select the minimal set of libraries that can fulfill the query based on their descriptions
 
-## Case 1: Core Ballerina Libraries (Direct Usage)
-For core Ballerina libraries (packages starting with **ballerina/**) listed below, you can directly call this tool with the library names.
-
-Available core libraries:
-<AVAILABLE LIBRARIES>
-${libraryDescriptions}
-</AVAILABLE LIBRARIES>
-
-**Workflow for core libraries:**
-1. Review the library names and descriptions above
-2. Analyze the user query to identify relevant core Ballerina libraries (ballerina/*)
-3. Call this tool directly with the selected library names and user prompt
-
-## Case 2: External Libraries (Two-Step Process)
-For external libraries NOT listed in the core libraries above, you MUST follow a two-step process.
-
-**External libraries include:**
-- **ballerinax/*** - Extended/connector packages
-- **xlibb/*** - C library bindings
-- Any other organization packages available in Ballerina Central
-
-**Workflow for external libraries:**
-1. **FIRST**: Call ${EXTERNAL_LIBRARY_SEARCH_TOOL} with the user prompt to search for relevant external libraries from Ballerina Central
-   - This searches across ballerinax/*, xlibb/*, and any other organization packages
-2. **THEN**: Call this tool ${LIBRARY_PROVIDER_TOOL} with the library names returned from step 1
-
-**How to decide which case applies:**
-- If the library starts with **ballerina/** and is in the "Available core libraries" list above → Use Case 1 (direct call)
-- If the library starts with **ballerinax/**, **xlibb/**, or any other organization → Use Case 2 (search first)
+# Example
+**Query**: Write an integration to read GitHub issues, summarize them, and post the summary to a Slack channel.
+**Step 1**: Call LibrarySearchTool with keywords: ["GitHub", "Slack", "OpenAI"]
+**Step 2**: Call this tool with libraryNames: ["ballerinax/github", "ballerinax/slack", "ballerinax/azure.openai.chat"]
 
 Tool Response:
 Tool responds with the following information about the requested libraries:
 name, description, type definitions (records, objects, enums, type aliases), clients (if any), functions and services (if any).
+
 `,
-        inputSchema: LibraryProviderToolSchema,
-        execute: async (input: { libraryNames: string[]; userPrompt: string }) => {
+        inputSchema: LibraryGetToolSchema,
+        execute: async (input: { libraryNames: string[]; userPrompt: string }, context?: { toolCallId?: string }) => {
+            // Extract toolCallId from AI SDK context
+            const toolCallId = context?.toolCallId || `fallback-${Date.now()}`;
+
             console.log(
-                `[LibraryProviderTool] Called with ${input.libraryNames.length} libraries: ${input.libraryNames.join(
+                `[LibraryGetTool] Called with ${input.libraryNames.length} libraries: ${input.libraryNames.join(
                     ", "
-                )} and prompt: ${input.userPrompt}`
+                )} and prompt: ${input.userPrompt} [toolCallId: ${toolCallId}]`
             );
-            return await LibraryProviderTool(input, generationType, eventHandler);
+            return await LibraryGetTool(input, generationType, eventHandler, toolCallId);
         },
     });
 }

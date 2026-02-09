@@ -335,10 +335,6 @@ export interface CopilotSearchLibrariesBySearchResponse {
     libraries: MinifiedLibrary[];
 }
 
-export interface ExternalLibrarySearchResult {
-    libraries: MinifiedLibrary[];
-}
-
 // ==================================
 // Doc Generation Related Interfaces
 // ==================================
