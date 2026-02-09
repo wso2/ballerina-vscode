@@ -247,7 +247,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
+                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(params.flowNode.codedata.node);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange);
                         resolve({ artifacts });
                     }
                 })

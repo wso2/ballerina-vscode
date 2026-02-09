@@ -267,7 +267,10 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
             node.codedata.object === "Agent" &&
             node.codedata.symbol === "run"
         );
-        return isAgentNode;
+        const isDataMapperCreationNode = node && node.codedata.node === "DATA_MAPPER_CREATION";
+        const isFunctionCreationNode = node && node.codedata.node === "FUNCTION_CREATION";
+        
+        return isAgentNode || isDataMapperCreationNode || isFunctionCreationNode;
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
