@@ -214,22 +214,22 @@ public class DesignModelGenerator {
                                       IntermediateModel.ServiceModel serviceModel) {
         Set<String> connections = new HashSet<>();
         Set<String> dependentServiceClasses = new HashSet<>();
-        functionModel.usedClasses.forEach(usedClass -> {
-            IntermediateModel.ServiceClassModel serviceClassModel = intermediateModel.serviceClassModelMap
-                    .get(usedClass);
-            if (serviceClassModel != null) {
-                serviceClassModel.functionModels.forEach(serviceClassFunctionModel -> {
-                    if (!serviceClassFunctionModel.analyzed) {
-                        buildConnectionGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
-                    }
-                    connections.addAll(serviceClassFunctionModel.allDependentConnections);
-                    connections.addAll(serviceClassFunctionModel.connections);
-                    dependentServiceClasses.addAll(serviceClassFunctionModel.usedClasses);
-                });
-            }
-        });
         if (!functionModel.visited && !functionModel.analyzed) {
             functionModel.visited = true;
+            functionModel.usedClasses.forEach(usedClass -> {
+                IntermediateModel.ServiceClassModel serviceClassModel = intermediateModel.serviceClassModelMap
+                        .get(usedClass);
+                if (serviceClassModel != null) {
+                    serviceClassModel.functionModels.forEach(serviceClassFunctionModel -> {
+                        if (!serviceClassFunctionModel.analyzed) {
+                            buildConnectionGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
+                        }
+                        connections.addAll(serviceClassFunctionModel.allDependentConnections);
+                        connections.addAll(serviceClassFunctionModel.connections);
+                        dependentServiceClasses.addAll(serviceClassFunctionModel.usedClasses);
+                    });
+                }
+            });
             functionModel.dependentFuncs.forEach(dependentFunc -> {
                 IntermediateModel.FunctionModel dependentFunctionModel = intermediateModel.functionModelMap
                         .get(dependentFunc);

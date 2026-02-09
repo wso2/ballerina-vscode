@@ -210,7 +210,7 @@ public class CodeAnalyzer extends NodeVisitor {
     @Override
     public void visit(FunctionDefinitionNode functionDefinitionNode) {
         String functionName = functionDefinitionNode.functionName().text().trim();
-        this.currentFunctionModel = new IntermediateModel.FunctionModel(functionName, serviceClassName);
+        this.currentFunctionModel = new IntermediateModel.FunctionModel(functionName);
         if (this.currentServiceModel != null) {
             Optional<Symbol> symbol = this.semanticModel.symbol(functionDefinitionNode);
             if (symbol.isPresent()) {
@@ -354,7 +354,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (currentFunctionModel != null) {
             semanticModel.symbol(implicitNewExpressionNode).ifPresent(symbol -> {
                 if (symbol instanceof ClassSymbol classSymbol) {
-                    currentFunctionModel.usedClasses.add(classSymbol.getName().orElse(""));
+                    classSymbol.getName().ifPresent(name -> currentFunctionModel.usedClasses.add(name));
                 }
             });
         }

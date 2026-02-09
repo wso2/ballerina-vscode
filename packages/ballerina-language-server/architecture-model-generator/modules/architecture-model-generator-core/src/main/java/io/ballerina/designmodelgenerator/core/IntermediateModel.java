@@ -85,12 +85,10 @@ public class IntermediateModel {
         protected String path;
         protected String displayName;
         protected final Set<String> connections = new HashSet<>();
-        protected final String serviceClassName;
         protected final Set<String> usedClasses = new HashSet<>();
 
-        public FunctionModel(String name, String serviceClassName) {
+        public FunctionModel(String name) {
             this.name = name;
-            this.serviceClassName = serviceClassName;
             this.dependentFuncs = new HashSet<>();
             this.analyzed = false;
             this.visited = false;
