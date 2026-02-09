@@ -173,8 +173,12 @@ export const getWordBeforeCursorPosition = (textBeforeCursor: string): string =>
 export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
         return completions.filter(completion =>
-            completion.kind === 'field'
-        );
+            completion.kind === 'field' || completion.kind === 'function'
+        ).sort((a, b) => {
+            if (a.kind === 'field' && b.kind === 'function') return -1;
+            if (a.kind === 'function' && b.kind === 'field') return 1;
+            return 0;
+        });
     }
 
     return completions.filter(completion =>

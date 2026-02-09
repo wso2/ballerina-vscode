@@ -333,7 +333,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 autocompletion({
                     override: [completionSource],
                     activateOnTyping: true,
-                    closeOnBlur: true
+                    closeOnBlur: true,
+                    compareCompletions: () => 0
                 }),
                 tooltips({ position: "absolute" }),
                 chipPlugin,
