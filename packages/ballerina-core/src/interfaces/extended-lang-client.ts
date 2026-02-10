@@ -1308,7 +1308,7 @@ export interface ListenerModelRequest {
         packageName: string;
         moduleName: string;
         version: string;
-        type: string;
+        type?: string;
     };
     filePath: string;
 }
