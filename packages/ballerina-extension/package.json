@@ -15,7 +15,7 @@
         "theme": "light"
     },
     "engines": {
-        "vscode": "1.83.1"
+        "vscode": "^1.100.0"
     },
     "categories": [
         "Programming Languages",
@@ -1201,7 +1201,7 @@
         "test": "pnpm run test-compile && node ./out/test/runTest.js",
         "test:ai": "pnpm run test-compile && node ./out/test/runAiTest.js",
         "test:libs-integration": "pnpm run test-compile && node ./out/test/runLibsIntegrationTest.js",
-        "e2e-test-setup": "npx extest get-vscode -c 1.83.1 && npx extest get-chromedriver -c 1.83.1 && npx extest install-vsix -f $(ls vsix/*.vsix)",
+        "e2e-test-setup": "npx extest get-vscode -c 1.100.0 && npx extest get-chromedriver -c 1.100.0 && npx extest install-vsix -f $(ls vsix/*.vsix)",
         "preui-test": "node -e \"const fs = require('fs'); if (fs.existsSync('test-resou')) { fs.unlinkSync('test-resou'); }\"",
         "e2e-test": "pnpm run test-compile && npx extest run-tests 'out/ui-test/*.test.js' --mocha_config ui-test/.mocharc.js -o ui-test/settings.json",
         "test-coverage": "cross-env COVER_CONFIG=html pnpm run test",
@@ -1268,7 +1268,7 @@
         "@types/mocha": "10.0.3",
         "@types/node": "18.18.7",
         "@types/tcp-port-used": "1.0.3",
-        "@types/vscode": "1.83.1",
+        "@types/vscode": "1.100.0",
         "@types/vscode-notebook-renderer": "1.72.2",
         "adm-zip": "0.5.16",
         "axios": "1.12.0",
