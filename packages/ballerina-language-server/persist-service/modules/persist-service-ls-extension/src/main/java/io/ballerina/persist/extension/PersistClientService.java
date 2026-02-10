@@ -112,7 +112,8 @@ public class PersistClientService implements ExtendedLanguageServerService {
 
                 JsonElement source = generator.generateClient(
                         request.getSelectedTables(),
-                        request.getModule()
+                        request.getModule(),
+                        request.getName()
                 );
                 response.setSource(source);
             } catch (Exception e) {

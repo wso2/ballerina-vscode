@@ -1091,6 +1091,23 @@ public class CommonUtils {
         return isPersistClient(classSymbol, semanticModel);
     }
 
+    public static Optional<ClassSymbol> getClientClassSymbol(SemanticModel semanticModel, FunctionData functionData,
+                                                             String name) {
+        Optional<Map<String, Symbol>> moduleTypesOpt = semanticModel.types()
+                .typesInModule(functionData.org(), functionData.moduleName(), functionData.version());
+        if (moduleTypesOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, Symbol> moduleTypes = moduleTypesOpt.get();
+        Symbol symbol = moduleTypes.get(name);
+        if (!(symbol instanceof ClassSymbol classSymbol)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(classSymbol);
+    }
+
     /**
      * Checks if the given class symbol is a subtype of AbstractPersistClient from the ballerina/persist module.
      *
@@ -1154,26 +1171,31 @@ public class CommonUtils {
      * Retrieves the file path of the persist model file in the given project directory.
      *
      * @param projectPath the path to the project directory as a string
+     * @param classSymbol the class symbol representing the persist model
      * @return an Optional containing the file path if it exists, or empty if not found
      */
-    public static Optional<String> getPersistModelFilePath(String projectPath) {
+    public static Optional<String> getPersistModelFilePath(String projectPath, ClassSymbol classSymbol) {
         if (projectPath == null || projectPath.isEmpty()) {
             return Optional.empty();
         }
-        return getPersistModelFilePath(Path.of(projectPath));
+        return getPersistModelFilePath(Path.of(projectPath), classSymbol);
     }
 
     /**
      * Retrieves the file path of the persist model file in the given project directory.
      *
      * @param projectPath the path to the project directory
+     * @param classSymbol the class symbol representing the persist model
      * @return an Optional containing the file path if it exists, or empty if not found
      */
-    public static Optional<String> getPersistModelFilePath(Path projectPath) {
-        // Since persist supports only one model per project, hardcoding the model file name
-        // Once we have multimodel support, we need to extract the model file name from class symbol
-        // Issue: https://github.com/ballerina-platform/ballerina-library/issues/8503
+    public static Optional<String> getPersistModelFilePath(Path projectPath, ClassSymbol classSymbol) {
+        Optional<ModuleSymbol> module = classSymbol.getModule();
+        if (module.isEmpty()) {
+            return Optional.empty();
+        }
+        String modelName = module.get().id().modulePrefix();
         Path persistModelPath = projectPath.resolve(PERSIST)
+                .resolve(modelName)
                 .resolve(DEFAULT_PERSIST_MODEL_FILE)
                 .toAbsolutePath();
         if (!Files.exists(persistModelPath)) {

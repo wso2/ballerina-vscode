@@ -460,7 +460,7 @@ public class AvailableNodesGenerator {
                     .label(parentSymbolName);
             if (isPersistClient(classSymbol, semanticModel)) {
                 metadataBuilder.addData(CONNECTOR_TYPE, PERSIST);
-                getPersistModelFilePath(pkg.project().sourceRoot())
+                getPersistModelFilePath(pkg.project().sourceRoot(), classSymbol)
                         .ifPresent(modelFile -> metadataBuilder.addData(PERSIST_MODEL_FILE, modelFile));
             }
 

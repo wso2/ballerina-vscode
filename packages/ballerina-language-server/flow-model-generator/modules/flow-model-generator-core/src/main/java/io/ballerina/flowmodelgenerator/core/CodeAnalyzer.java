@@ -190,6 +190,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.BALLERINA_ORG_NAME
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
+import static io.ballerina.modelgenerator.commons.CommonUtils.getClientClassSymbol;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistClientLabel;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
@@ -916,7 +917,7 @@ public class CodeAnalyzer extends NodeVisitor {
         if (isPersistClient(classSymbol, semanticModel)) {
             persistData = new HashMap<>();
             persistData.put(CONNECTOR_TYPE, PERSIST);
-            getPersistModelFilePath(project.sourceRoot())
+            getPersistModelFilePath(project.sourceRoot(), classSymbol)
                     .ifPresent(modelFile -> persistData.put(PERSIST_MODEL_FILE, modelFile));
         } else {
             persistData = null;
@@ -1544,8 +1545,9 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
 
-        if (isPersistClient(semanticModel, functionData, name)) {
-            updatePersistRelatedMetadata(functionData, packageName);
+        Optional<ClassSymbol> clientClassSymbolOpt = getClientClassSymbol(semanticModel, functionData, name);
+        if (clientClassSymbolOpt.isPresent() && isPersistClient(clientClassSymbolOpt.get(), semanticModel)) {
+            updatePersistRelatedMetadata(functionData, packageName, clientClassSymbolOpt.get());
         }
 
         nodeBuilder.codedata()
@@ -1567,14 +1569,15 @@ public class CodeAnalyzer extends NodeVisitor {
      *
      * @param functionData the function data containing the module name
      * @param packageName  the package name to strip from the module name
+     * @param classSymbol the class symbol representing the persist client
      */
-    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName) {
+    private void updatePersistRelatedMetadata(FunctionData functionData, String packageName, ClassSymbol classSymbol) {
         String moduleName = functionData.moduleName();
         getPersistClientLabel(packageName, moduleName)
                 .ifPresent(label -> nodeBuilder.metadata().label(label));
         nodeBuilder.metadata()
                 .addData(CONNECTOR_TYPE, PERSIST);
-        getPersistModelFilePath(project.sourceRoot())
+        getPersistModelFilePath(project.sourceRoot(), classSymbol)
                 .ifPresent(modelPath -> nodeBuilder.metadata().addData(PERSIST_MODEL_FILE, modelPath));
     }
 
