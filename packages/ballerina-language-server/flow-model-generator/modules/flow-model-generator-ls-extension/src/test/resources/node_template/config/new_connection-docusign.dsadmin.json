@@ -14,7 +14,7 @@
     "metadata": {
       "label": "DS Admin",
       "description": "An API for an organization administrator to manage organizations, accounts and users",
-      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_null.png"
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_docusign.dsadmin_2.0.0.png"
     },
     "codedata": {
       "node": "NEW_CONNECTION",
@@ -23,6 +23,7 @@
       "packageName": "docusign.dsadmin",
       "object": "Client",
       "symbol": "init",
+      "version": "2.0.0",
       "isNew": true
     },
     "returning": false,

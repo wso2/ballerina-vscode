@@ -291,6 +291,18 @@ public class FunctionDataBuilder {
             throw new IllegalStateException("Module information not found");
         }
 
+        // Update version from resolved package if available
+        if (resolvedPackage != null) {
+            String resolvedVersion = resolvedPackage.descriptor().version().toString();
+            // Always update moduleInfo with the resolved version to ensure consistency
+            moduleInfo = new ModuleInfo(
+                moduleInfo.org(),
+                moduleInfo.packageName(),
+                moduleInfo.moduleName(),
+                resolvedVersion
+            );
+        }
+
         // Check if this is a local symbol
         isCurrentModule = userModuleInfo != null && (!moduleInfo.isComplete() || userModuleInfo.equals(moduleInfo));
 

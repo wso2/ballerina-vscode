@@ -34,6 +34,8 @@ import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectEnvironmentBuilder;
 import io.ballerina.projects.bala.BalaProject;
 import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.environment.Environment;
+import io.ballerina.projects.environment.EnvironmentBuilder;
 import io.ballerina.projects.environment.PackageMetadataResponse;
 import io.ballerina.projects.environment.PackageResolver;
 import io.ballerina.projects.environment.ResolutionOptions;
@@ -148,10 +150,11 @@ public class PackageUtil {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version)));
 
-        Collection<ResolutionResponse> resolutionResponses =
-                buildProject.projectEnvironmentContext().getService(PackageResolver.class)
-                        .resolvePackages(Collections.singletonList(resolutionRequest),
-                                ResolutionOptions.builder().setOffline(false).setSticky(false).build());
+        Environment env = EnvironmentBuilder.buildDefault();
+        PackageResolver packageResolver = env.getService(PackageResolver.class);
+        Collection<ResolutionResponse> resolutionResponses = packageResolver.resolvePackages(
+                Collections.singletonList(resolutionRequest),
+                ResolutionOptions.builder().setOffline(false).setSticky(false).build());
         Optional<ResolutionResponse> resolutionResponse = resolutionResponses.stream().findFirst();
         if (resolutionResponse.isEmpty()) {
             return Optional.empty();
@@ -167,8 +170,11 @@ public class PackageUtil {
     public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)));
-        PackageResolver packageResolver = buildProject.projectEnvironmentContext().getService(PackageResolver.class);
-        Collection<PackageMetadataResponse> packageMetadataResponses = packageResolver.resolvePackageMetadata(
+
+        Environment env = EnvironmentBuilder.buildDefault();
+        PackageResolver packageResolver = env.getService(PackageResolver.class);
+        Collection<PackageMetadataResponse> packageMetadataResponses =
+                packageResolver.resolvePackageMetadata(
                 Collections.singletonList(resolutionRequest),
                 ResolutionOptions.builder().setOffline(true).build());
         Optional<PackageMetadataResponse> pkgMetadata = packageMetadataResponses.stream().findFirst();
