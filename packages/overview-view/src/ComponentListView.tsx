@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
@@ -94,8 +93,8 @@ export function ComponentListView(props: { currentComponents: ComponentCollectio
 
     if (currentComponents) {
         Object.keys(currentComponents)
-            .filter((key) => currentComponents[key].length)
-            .forEach((key) => {
+            .filter(key => currentComponents[key].length)
+            .forEach(key => {
                 const filteredComponents = currentComponents[key];
 
                 const components = filteredComponents.map((comp: ComponentViewInfo, compIndex: number) => {

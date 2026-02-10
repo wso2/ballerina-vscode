@@ -497,6 +497,8 @@ function getCustomEntryNodeIcon(type: string) {
             return "bi-solace";
         case "mssql":
             return "bi-mssql";
+        case "postgresql":
+            return "bi-postgresql";
         default:
             return "bi-globe";
     }
