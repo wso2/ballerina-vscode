@@ -330,10 +330,10 @@ public class ListenerUtil {
     }
 
     public static Optional<Listener> getListenerModelByName(Codedata codedata, SemanticModel semanticModel,
-                                                            ModuleInfo moduleInfo) {
+                                                            ModuleInfo moduleInfo, String type) {
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
-                .parentSymbolType("Listener")
+                .parentSymbolType(type == null ? "Listener": type)
                 .name("init")
                 .moduleInfo(new ModuleInfo(codedata.getOrgName(), codedata.getPackageName(), codedata.getModuleName(),
                         codedata.getVersion()))
@@ -343,6 +343,7 @@ public class ListenerUtil {
 
         FunctionData functionData = functionDataBuilder.build();
         Listener listener = createBaseListenerModel(functionData);
+        listener.getListenerTypeProperty().setValue(type == null ? "Listener": type);
         setParameterProperties(functionData, listener.getProperties(), semanticModel, moduleInfo);
         return Optional.of(listener);
     }

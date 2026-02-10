@@ -102,7 +102,7 @@ public class Listener {
         StringBuilder declaration = new StringBuilder();
         declaration.append("listener ")
                 .append(listenerProtocol)
-                .append(":Listener ")
+                .append(":").append(getListenerTypeProperty().getValue()).append(" ")
                 .append(getValueString(getVariableNameProperty()))
                 .append(" = new ");
 
@@ -120,7 +120,7 @@ public class Listener {
      */
     public String getInlineListenerExpression() {
         StringBuilder expression = new StringBuilder("new ");
-        expression.append(listenerProtocol).append(":Listener ");
+        expression.append(listenerProtocol).append(":").append(getListenerTypeProperty().getValue()).append(" ");
         appendListenerConstructorCall(expression);
         return expression.toString();
     }
