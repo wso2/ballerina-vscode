@@ -1,0 +1,61 @@
+{
+  "description": "Search for workflow process functions",
+  "kind": "WORKFLOW",
+  "source": "workflow_proj/main.bal",
+  "position": {
+    "startLine": {
+      "line": 40,
+      "offset": 0
+    },
+    "endLine": {
+      "line": 42,
+      "offset": 1
+    }
+  },
+  "queryMap": {
+    "q": ""
+  },
+  "categories": [
+    {
+      "metadata": {
+        "label": "Current Integration",
+        "description": "Workflows defined within the current integration",
+        "keywords": [
+          "Project",
+          "Local",
+          "Workflow"
+        ]
+      },
+      "items": [
+        {
+          "metadata": {
+            "label": "orderWorkflow",
+            "description": "Process an order workflow"
+          },
+          "codedata": {
+            "node": "WORKFLOW_CALL",
+            "org": "test",
+            "module": "workflow_proj",
+            "symbol": "orderWorkflow",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        },
+        {
+          "metadata": {
+            "label": "simpleWorkflow",
+            "description": "Simple workflow without events"
+          },
+          "codedata": {
+            "node": "WORKFLOW_CALL",
+            "org": "test",
+            "module": "workflow_proj",
+            "symbol": "simpleWorkflow",
+            "version": "0.1.0"
+          },
+          "enabled": true
+        }
+      ]
+    }
+  ]
+}

@@ -101,5 +101,6 @@ public enum NodeKind {
     ACTIVITY,
     EVENT,
     WORKFLOW,
-    WAIT_EVENT
+    WAIT_EVENT,
+    WORKFLOW_CALL
 }

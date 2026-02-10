@@ -74,7 +74,7 @@ import static io.ballerina.flowmodelgenerator.core.Constants.Workflow;
 import static io.ballerina.flowmodelgenerator.core.Constants.BALLERINA;
 import static io.ballerina.flowmodelgenerator.core.Constants.NaturalFunctions;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_PACKAGE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
@@ -422,7 +422,7 @@ public class AvailableNodesGenerator {
                 for (AnnotationNode annotation : functionNode.metadata().get().annotations()) {
                     if (annotation.annotReference().kind().equals(SyntaxKind.QUALIFIED_NAME_REFERENCE)) {
                         QualifiedNameReferenceNode annotRef =  (QualifiedNameReferenceNode) annotation.annotReference();
-                        if (annotRef.modulePrefix().text().equals(WORKFLOW_PACKAGE) &&
+                        if (annotRef.modulePrefix().text().equals(WORKFLOW_MODULE) &&
                                 annotRef.identifier().text().equals(PROCESS_ANNOTATION)) {
                             return true;
                         }

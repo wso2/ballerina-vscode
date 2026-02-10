@@ -53,6 +53,8 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
         DATA("Data", "Data nodes are used to create, read, update, delete, and transform data", null),
         CURRENT_INTEGRATION("Current Integration", "Functions defined within the current integration",
                 List.of("Project", "Local", "Function")),
+        CURRENT_WORKFLOWS("Current Integration", "Workflows defined within the current integration",
+                List.of("Project", "Local", "Workflow")),
         AGENT_TOOLS("Agent Tools", "Functions used as agent tools", List.of("Project", "Local", "Function")),
         CURRENT_ORGANIZATION("Current Organization", "Components in the current organization",
                 List.of("Organization", "Function", "Library")),
