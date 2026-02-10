@@ -30,7 +30,6 @@ import io.ballerina.compiler.api.symbols.AnnotationAttachmentSymbol;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
-import io.ballerina.compiler.api.symbols.ConstantSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
 import io.ballerina.compiler.api.symbols.ErrorTypeSymbol;
@@ -61,25 +60,14 @@ import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.compiler.api.symbols.resourcepath.PathSegmentList;
 import io.ballerina.compiler.api.symbols.resourcepath.ResourcePath;
 import io.ballerina.compiler.api.values.ConstantValue;
-import io.ballerina.compiler.syntax.tree.DefaultableParameterNode;
-import io.ballerina.compiler.syntax.tree.EnumMemberNode;
-import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.ModulePartNode;
-import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.QualifiedNameReferenceNode;
-import io.ballerina.compiler.syntax.tree.RecordFieldWithDefaultValueNode;
-import io.ballerina.compiler.syntax.tree.SimpleNameReferenceNode;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
 import io.ballerina.runtime.api.utils.IdentifierUtils;
-import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
-import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
@@ -88,7 +76,6 @@ import org.eclipse.lsp4j.MessageType;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -276,6 +263,20 @@ public class FunctionDataBuilder {
                 .orElse(null);
     }
 
+    private void updateModuleInfo() {
+        // Update version from resolved package if available
+        if (resolvedPackage != null && moduleInfo != null) {
+            String resolvedVersion = resolvedPackage.descriptor().version().toString();
+            // Always update moduleInfo with the resolved version to ensure consistency
+            this.moduleInfo = new ModuleInfo(
+                moduleInfo.org(),
+                moduleInfo.packageName(),
+                moduleInfo.moduleName(),
+                resolvedVersion
+            );
+        }
+    }
+
     public FunctionData build() {
         // The function name is required to build the FunctionResult
         if (this.functionName == null) {
@@ -291,17 +292,8 @@ public class FunctionDataBuilder {
             throw new IllegalStateException("Module information not found");
         }
 
-        // Update version from resolved package if available
-        if (resolvedPackage != null) {
-            String resolvedVersion = resolvedPackage.descriptor().version().toString();
-            // Always update moduleInfo with the resolved version to ensure consistency
-            moduleInfo = new ModuleInfo(
-                moduleInfo.org(),
-                moduleInfo.packageName(),
-                moduleInfo.moduleName(),
-                resolvedVersion
-            );
-        }
+        // Ensure moduleInfo is updated with resolved package version before any usage
+        updateModuleInfo();
 
         // Check if this is a local symbol
         isCurrentModule = userModuleInfo != null && (!moduleInfo.isComplete() || userModuleInfo.equals(moduleInfo));
@@ -646,6 +638,8 @@ public class FunctionDataBuilder {
             throw new IllegalStateException("Parent symbol must be provided");
         }
 
+        // Ensure moduleInfo is updated with resolved package version before any usage
+        updateModuleInfo();
         checkLocalModule();
 
         // Derive if the semantic model is not provided
@@ -796,7 +790,8 @@ public class FunctionDataBuilder {
                 }
             }
             placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-            defaultValue = getDefaultValue(paramSymbol, typeSymbol);
+            defaultValue = CommonUtils.resolveDefaultValue(paramSymbol, typeSymbol, semanticModel, resolvedPackage,
+                    document);
             paramType = getTypeSignature(typeSymbol);
         }
         ParameterData parameterData = ParameterData.from(paramName, paramDescription,
@@ -922,7 +917,8 @@ public class FunctionDataBuilder {
             }
 
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(fieldType);
-            String defaultValue = getDefaultValue(recordFieldSymbol, fieldType);
+            String defaultValue = CommonUtils.resolveDefaultValue(recordFieldSymbol, fieldType, semanticModel,
+                    resolvedPackage);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),
@@ -941,123 +937,6 @@ public class FunctionDataBuilder {
                     new ArrayList<>(), typeSymbol));
         });
         return parameters;
-    }
-
-    /**
-     * Extracts the actual default value from expressions, including enum member values.
-     * Handles both SimpleNameReferenceNode and QualifiedNameReferenceNode by resolving
-     * through semantic model and extracting enum values from source code.
-     *
-     * @return the extracted value, or null if extraction fails
-     */
-    private String resolveEnumMemberValue(ExpressionNode expression) {
-        if (semanticModel == null) {
-            return null;
-        }
-
-        // Get the symbol from the expression
-        Optional<Symbol> symbolOpt = semanticModel.symbol(expression);
-        if (symbolOpt.isEmpty()) {
-            return null;
-        }
-
-        Symbol symbol = symbolOpt.get();
-        if (symbol.kind() == SymbolKind.CONSTANT) {
-            // Handle constants by extracting their value
-            if (symbol instanceof ConstantSymbol constantSymbol) {
-                return String.valueOf(constantSymbol.constValue());
-            }
-            return null;
-        }
-        if (symbol.kind() != SymbolKind.ENUM_MEMBER) {
-            return null;
-        }
-
-        Optional<Location> symbolLocation = symbol.getLocation();
-        if (resolvedPackage == null || symbolLocation.isEmpty()) {
-            return null;
-        }
-
-        Document document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
-        if (document == null) {
-            return null;
-        }
-
-        ModulePartNode rootNode = document.syntaxTree().rootNode();
-        TextRange textRange = symbolLocation.get().textRange();
-        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
-
-        // Look for enum member node that has an expression (the value assignment)
-        if (!(node instanceof EnumMemberNode enumMemberNode)) {
-            return null;
-        }
-
-        // Check if the enum member has an expression (assignment)
-        if (enumMemberNode.constExprNode().isEmpty()) {
-            return enumMemberNode.identifier().text();
-        }
-
-        ExpressionNode valueExpression = enumMemberNode.constExprNode().get();
-        return valueExpression.toSourceCode().trim();
-    }
-
-    protected String getDefaultValue(Symbol paramSymbol, TypeSymbol typeSymbol) {
-        String defaultValue = DefaultValueGeneratorUtil.getDefaultValueForType(typeSymbol);
-
-        Optional<Location> symbolLocation = paramSymbol.getLocation();
-        if (resolvedPackage == null || symbolLocation.isEmpty()) {
-            return defaultValue;
-        }
-
-        Document document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
-        if (document == null) {
-            return defaultValue;
-        }
-
-        ModulePartNode rootNode = document.syntaxTree().rootNode();
-        TextRange textRange = symbolLocation.get().textRange();
-        NonTerminalNode node = rootNode.findNode(TextRange.from(textRange.startOffset(), textRange.length()));
-
-        ExpressionNode expression;
-        switch (node.kind()) {
-            case DEFAULTABLE_PARAM -> expression = (ExpressionNode) ((DefaultableParameterNode) node).expression();
-            case RECORD_FIELD_WITH_DEFAULT_VALUE -> expression = ((RecordFieldWithDefaultValueNode) node).expression();
-            default -> {
-                return defaultValue;
-            }
-        }
-
-        if (expression instanceof SimpleNameReferenceNode simpleNameReferenceNode) {
-            String enumValue = resolveEnumMemberValue(simpleNameReferenceNode);
-            return enumValue != null ? enumValue : simpleNameReferenceNode.name().text();
-        } else if (expression instanceof QualifiedNameReferenceNode qualifiedNameReferenceNode) {
-            String enumValue = resolveEnumMemberValue(qualifiedNameReferenceNode);
-            return enumValue != null ? enumValue :
-                    qualifiedNameReferenceNode.modulePrefix().text() + ":" + qualifiedNameReferenceNode.identifier()
-                    .text();
-        } else {
-            return expression.toSourceCode();
-        }
-    }
-
-    private Document findDocument(Package pkg, String path) {
-        if (resolvedPackage == null) {
-            return null;
-        }
-        if (document != null) {
-            return document;
-        }
-        Project project = pkg.project();
-        Module defaultModule = pkg.getDefaultModule();
-        String module = pkg.packageName().value();
-        // TODO: only supported for the submodules
-        Path docPath = project.sourceRoot().resolve("modules").resolve(module).resolve(path);
-        try {
-            DocumentId documentId = project.documentId(docPath);
-            return defaultModule.document(documentId);
-        } catch (RuntimeException ex) {
-            return null;
-        }
     }
 
     public static void allMembers(Map<String, TypeSymbol> typeMap, TypeSymbol typeSymbol) {
