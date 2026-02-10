@@ -167,12 +167,12 @@ const Duration = styled.span`
 export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTimelineProps) {
     const [open, setOpen] = useState(false);
 
-    if (!steps || steps.length === 0) {
-        return null;
-    }
-
     // Filter out steps with invoke operation type
     const filteredSteps = steps.filter(step => step.operationType !== 'invoke');
+
+    if (!filteredSteps || filteredSteps.length === 0) {
+        return null;
+    }
 
     const getIconName = (operationType: string) => {
         switch (operationType) {
@@ -211,7 +211,7 @@ export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTi
                 <TimelineList>
                     {filteredSteps.map((step, index) => (
                         <TimelineItem key={step.spanId}>
-                            <ConnectorColumn isLast={index === steps.length - 1}>
+                            <ConnectorColumn isLast={index === filteredSteps.length - 1}>
                                 <Dot operationType={step.operationType} />
                             </ConnectorColumn>
                             <ContentCard
