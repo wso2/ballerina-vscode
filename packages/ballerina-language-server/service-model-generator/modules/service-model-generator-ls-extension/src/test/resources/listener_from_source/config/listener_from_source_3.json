@@ -52,6 +52,23 @@
           "optional": false,
           "advanced": false
         },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
         "port": {
           "metadata": {
             "label": "Port",
