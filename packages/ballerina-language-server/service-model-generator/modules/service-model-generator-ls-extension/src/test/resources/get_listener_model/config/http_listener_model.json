@@ -4,7 +4,8 @@
     "orgName": "ballerina",
     "packageName": "http",
     "moduleName": "http",
-    "version": "2.15.3"
+    "version": "2.15.3",
+    "type": "Listener"
   },
   "filePath": "sample1/main.bal",
   "response": {
@@ -37,6 +38,23 @@
           ],
           "enabled": true,
           "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
