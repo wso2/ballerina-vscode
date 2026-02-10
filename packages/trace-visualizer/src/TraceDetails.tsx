@@ -644,6 +644,15 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
         return null;
     }, [traceData.spans]);
 
+    // Check if there's an invoke_agent span with gen_ai.conversation.id attribute
+    const hasInvokeAgentWithConversationId = useMemo(() => {
+        return traceData.spans.some(span => {
+            const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
+            const hasConversationId = span.attributes?.some(attr => attr.key === 'gen_ai.conversation.id');
+            return operationName.startsWith('invoke_agent') && hasConversationId;
+        });
+    }, [traceData.spans]);
+
     // Handle resize drag
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
         const target = e.currentTarget;
@@ -925,7 +934,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSessio
                 {selectedSpan && (
                     <DetailsPanelContainer>
                         <DetailsPanel>
-                            {onViewSession && (
+                            {onViewSession && hasInvokeAgentWithConversationId && (
                                 <BreadcrumbContainer>
                                     <BreadcrumbItem isClickable onClick={onViewSession}>
                                         <Icon name="bi-back" sx={{ fontSize: '12px', width: '12px', height: '12px' }} iconSx={{ fontSize: "12px" }} />
