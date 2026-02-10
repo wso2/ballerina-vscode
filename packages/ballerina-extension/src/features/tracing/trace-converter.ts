@@ -18,12 +18,10 @@
 
 import {
     EvalChatUserMessage as ChatUserMessage,
-    EvalChatAssistantMessage as ChatAssistantMessage,
     EvalChatMessage as ChatMessage,
     EvalToolSchema as ToolSchema,
     EvalIteration as Iteration,
-    EvalsetTrace,
-    EvalFunctionCall
+    EvalsetTrace
 } from '@wso2/ballerina-core';
 
 // TraceData interface (from trace-details-webview.ts)
@@ -87,6 +85,23 @@ function safeJsonParse(jsonString: string | null): any {
     }
 }
 
+/**
+ * Converts an ISO timestamp string to [seconds, nanoseconds] array format.
+ */
+function convertTimestamp(isoString: string | undefined): [number, number] {
+    if (!isoString) {
+        const now = Date.now();
+        return [Math.floor(now / 1000), (now % 1000) * 1000000];
+    }
+
+    const date = new Date(isoString);
+    const milliseconds = date.getTime();
+    const seconds = Math.floor(milliseconds / 1000);
+    const nanoseconds = (milliseconds % 1000) * 1000000;
+
+    return [seconds, nanoseconds];
+}
+
 // --- Main Conversion Logic ---
 
 /**
@@ -96,13 +111,20 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
     const spans = traceData.spans;
     const rootSpan = spans.find((s: SpanData) => s.kind === 2 || s.kind === '2');
 
-    // Find the span containing the GenAI interaction attributes
-    const aiSpan = spans.find((s: SpanData) =>
-        s.name.includes('invoke_agent') && s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.messages')
+    // Find all chat spans that contain conversation history
+    const chatSpans = spans.filter((s: SpanData) =>
+        s.name.startsWith('chat') && s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.messages')
     );
 
-    if (!rootSpan || !aiSpan) {
-        throw new Error("Could not find required Root or AI spans in trace.");
+    // Sort chat spans by start time to process in order
+    chatSpans.sort((a, b) => {
+        const timeA = a.startTime || '';
+        const timeB = b.startTime || '';
+        return timeA.localeCompare(timeB);
+    });
+
+    if (!rootSpan || chatSpans.length === 0) {
+        throw new Error("Could not find required Root span or chat spans in trace.");
     }
 
     // Extract Data
@@ -110,7 +132,7 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
     const startTime = rootSpan.startTime || traceData.firstSeen;
     const endTime = rootSpan.endTime || traceData.lastSeen;
 
-    // Extract Tools
+    // Extract Tools (look in any span that has gen_ai.input.tools)
     const toolSpan = spans.find((s: SpanData) =>
         s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.tools')
     );
@@ -128,104 +150,148 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         });
     }
 
-    // Extract History & Messages
-    const inputMessagesStr = getAttribute(aiSpan, 'gen_ai.input.messages');
-    const outputMessagesStr = getAttribute(aiSpan, 'gen_ai.output.messages');
+    // Helper function to parse messages
+    const parseMessages = (messagesStr: string | null): ChatMessage[] => {
+        if (!messagesStr) {
+            return [];
+        }
 
-    // Parse the input messages (History)
-    let rawHistory = safeJsonParse(inputMessagesStr);
+        let rawMessages = safeJsonParse(messagesStr);
 
-    // Handle case where history might be a single string
-    if (typeof rawHistory === 'string') {
-        rawHistory = [{ role: 'user', content: rawHistory }];
+        // Handle case where messages might be a single string
+        if (typeof rawMessages === 'string') {
+            rawMessages = [{ role: 'user', content: rawMessages }];
+        }
+
+        // Ensure we have an array
+        if (!Array.isArray(rawMessages)) {
+            console.warn('Expected array of messages, got:', typeof rawMessages);
+            return [];
+        }
+
+        // Map raw OpenAI-style messages to our ChatMessage types
+        return rawMessages.map((msg: any) => {
+            const base: any = {
+                role: msg.role,
+                content: msg.content ?? null
+            };
+
+            if (msg.name) { base.name = msg.name; }
+            if (msg.tool_calls) {
+                base.toolCalls = msg.tool_calls.map((tc: any) => ({
+                    id: tc.id,
+                    name: tc.function?.name || tc.name,
+                    arguments: typeof tc.function?.arguments === 'string'
+                        ? safeJsonParse(tc.function.arguments)
+                        : tc.function?.arguments || tc.arguments
+                }));
+            } else if (msg.toolCalls) {
+                base.toolCalls = msg.toolCalls;
+            } else {
+                base.toolCalls = null;
+            }
+            if (msg.id) { base.id = msg.id; }
+
+            return base as ChatMessage;
+        });
+    };
+
+    // Helper function to parse a single output message
+    const parseOutputMessage = (messageStr: string | null): ChatMessage => {
+        if (!messageStr) {
+            return {
+                role: 'assistant',
+                content: 'No output available',
+                toolCalls: null
+            };
+        }
+
+        const rawMessage = safeJsonParse(messageStr);
+
+        // If it's already a properly formatted message object
+        if (rawMessage && typeof rawMessage === 'object' && rawMessage.role) {
+            const base: any = {
+                role: rawMessage.role,
+                content: rawMessage.content ?? null
+            };
+
+            if (rawMessage.name) { base.name = rawMessage.name; }
+            if (rawMessage.tool_calls) {
+                base.toolCalls = rawMessage.tool_calls.map((tc: any) => ({
+                    id: tc.id,
+                    name: tc.function?.name || tc.name,
+                    arguments: typeof tc.function?.arguments === 'string'
+                        ? safeJsonParse(tc.function.arguments)
+                        : tc.function?.arguments || tc.arguments
+                }));
+            } else if (rawMessage.toolCalls) {
+                base.toolCalls = rawMessage.toolCalls;
+            } else {
+                base.toolCalls = null;
+            }
+            if (rawMessage.id) { base.id = rawMessage.id; }
+
+            return base as ChatMessage;
+        }
+
+        // Fallback: treat as plain content
+        return {
+            role: 'assistant',
+            content: typeof rawMessage === 'string' ? rawMessage : JSON.stringify(rawMessage),
+            toolCalls: null
+        };
+    };
+
+    // Build iterations from chat spans
+    const iterations: Iteration[] = [];
+
+    for (let i = 0; i < chatSpans.length; i++) {
+        const chatSpan = chatSpans[i];
+        const isLastSpan = i === chatSpans.length - 1;
+
+        const inputMessagesStr = getAttribute(chatSpan, 'gen_ai.input.messages');
+        const outputMessageStr = getAttribute(chatSpan, 'gen_ai.output.messages');
+
+        const inputMessages = parseMessages(inputMessagesStr);
+        const iterationHistory = [...inputMessages];
+
+        // Parse output message (single object)
+        const output = parseOutputMessage(outputMessageStr);
+
+        if (!isLastSpan) {
+            iterationHistory.push(output);
+        }
+
+        // Create iteration
+        iterations.push({
+            history: iterationHistory,
+            output: output,
+            startTime: convertTimestamp(chatSpan.startTime || startTime),
+            endTime: convertTimestamp(chatSpan.endTime || endTime)
+        } as any);
     }
 
-    // Map raw OpenAI-style messages to our ChatMessage types
-    const history: ChatMessage[] = (rawHistory || []).map((msg: any) => {
-        const base: any = {
-            role: msg.role,
-            content: msg.content
-        };
-
-        if (msg.name) { base.name = msg.name; }
-        if (msg.toolCalls) { base.toolCalls = msg.toolCalls; }
-        if (msg.id) { base.id = msg.id; }
-
-        return base as ChatMessage;
-    });
-
     // Determine User Message (Trigger)
-    // We assume the last user message in the history is the current trigger
-    const lastUserMsg = [...history].reverse().find(m => m.role === 'user');
+    // Get the first user message from the first chat span
+    const firstChatInputStr = getAttribute(chatSpans[0], 'gen_ai.input.messages');
+    const firstInputMessages = parseMessages(firstChatInputStr);
+    const lastUserMsg = [...firstInputMessages].reverse().find(m => m.role === 'user');
     const userMessage: ChatUserMessage = lastUserMsg
         ? (lastUserMsg as ChatUserMessage)
         : { role: 'user', content: 'Unknown input' };
 
-    // Determine Output
-    let outputObj: ChatAssistantMessage;
-    const parsedOutput = safeJsonParse(outputMessagesStr);
-
-    if (parsedOutput && typeof parsedOutput === 'object' && parsedOutput.role) {
-        outputObj = parsedOutput;
-    } else if (outputMessagesStr) {
-        // Construct a generic assistant message if raw string
-        outputObj = {
-            role: 'assistant',
-            content: outputMessagesStr
-        };
-    } else {
-        // No output found - use a placeholder
-        outputObj = {
-            role: 'assistant',
-            content: 'No output available'
-        };
-    }
-
-    // Extract tool calls from execute_tool spans
-    const toolCallSpans = spans.filter((s: SpanData) => s.name.includes('execute_tool'));
-    if (toolCallSpans.length > 0) {
-        const toolCalls: EvalFunctionCall[] = [];
-
-        for (const toolSpan of toolCallSpans) {
-            const toolName = getAttribute(toolSpan, 'gen_ai.tool.name') || getAttribute(toolSpan, 'tool.name');
-            const toolArgs = getAttribute(toolSpan, 'gen_ai.tool.arguments') || getAttribute(toolSpan, 'tool.arguments');
-            const toolId = getAttribute(toolSpan, 'gen_ai.tool.id') || getAttribute(toolSpan, 'tool.id') || toolSpan.spanId;
-
-            // parse tool arguments if they are in JSON format
-            const parsedArgs = safeJsonParse(toolArgs);
-            const finalArgs = typeof parsedArgs === 'object' ? parsedArgs : toolArgs;
-
-            if (toolName) {
-                toolCalls.push({
-                    id: toolId,
-                    name: toolName,
-                    arguments: finalArgs
-                });
-            }
-        }
-
-        if (toolCalls.length > 0) {
-            outputObj.toolCalls = toolCalls;
-        }
-    }
-
-    // Construct Iteration
-    const iteration: Iteration = {
-        startTime: aiSpan.startTime || startTime,
-        endTime: aiSpan.endTime || endTime,
-        history: history,
-        output: outputObj
-    };
+    // Final output is the last iteration's output
+    const finalOutput = iterations[iterations.length - 1].output;
 
     // Assemble Final Trace Object
     const evalsetTrace: EvalsetTrace = {
         id: traceId,
         userMessage: userMessage,
-        iterations: [iteration],
-        output: outputObj,
+        iterations: iterations,
+        output: finalOutput,
         tools: tools,
-        startTime: startTime,
-        endTime: endTime
+        startTime: convertTimestamp(startTime) as any,
+        endTime: convertTimestamp(endTime) as any
     };
 
     return evalsetTrace;

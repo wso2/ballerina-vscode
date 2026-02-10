@@ -250,8 +250,8 @@ export interface EvalToolSchema {
 export interface EvalIteration {
     history: EvalChatMessage[];
     output: EvalChatAssistantMessage | EvalChatFunctionMessage | any;
-    startTime: string;
-    endTime: string;
+    startTime: [number, number]; // [seconds, nanoseconds]
+    endTime: [number, number]; // [seconds, nanoseconds]
 }
 
 export interface EvalsetTrace {
@@ -260,8 +260,8 @@ export interface EvalsetTrace {
     iterations: EvalIteration[];
     output: EvalChatAssistantMessage | any;
     tools: EvalToolSchema[];
-    startTime: string;
-    endTime: string;
+    startTime: [number, number]; // [seconds, nanoseconds]
+    endTime: [number, number]; // [seconds, nanoseconds]
 }
 
 export interface EvalThread {
