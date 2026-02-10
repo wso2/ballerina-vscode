@@ -53,7 +53,7 @@ const PROJECT_TYPE_OPTIONS: ProjectTypeOption[] = [
     {
         value: "library",
         title: "Library Project",
-        description: "Shared logic and utilities that can be reused across multiple projects in the workspace.",
+        description: "Shared logic and utilities that can be reused across multiple integrations.",
     },
 ];
 

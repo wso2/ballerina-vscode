@@ -60,6 +60,7 @@ import {
     DeleteTypeRequest,
     DeleteTypeResponse,
     DeploymentRequest,
+    WorkspaceDeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
     EndOfFileRequest,
@@ -139,6 +140,7 @@ import {
     deleteProject,
     deleteType,
     deployProject,
+    deployWorkspace,
     formDidClose,
     formDidOpen,
     generateOpenApiClient,
@@ -156,6 +158,7 @@ import {
     getDataMapperCompletions,
     getDesignModel,
     getDevantMetadata,
+    getWorkspaceDevantMetadata,
     getEnclosedFunction,
     getEndOfFile,
     getExpressionCompletions,
@@ -200,7 +203,8 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
-    verifyTypeDelete
+    verifyTypeDelete,
+    WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
@@ -352,6 +356,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
         return this._messenger.sendRequest(deployProject, HOST_EXTENSION, params);
     }
 
+    deployWorkspace(params: WorkspaceDeploymentRequest): Promise<DeploymentResponse> {
+        return this._messenger.sendRequest(deployWorkspace, HOST_EXTENSION, params);
+    }
+
     openAIChat(params: AIChatRequest): void {
         return this._messenger.sendNotification(openAIChat, HOST_EXTENSION, params);
     }
@@ -498,6 +506,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getDevantMetadata(): Promise<DevantMetadata | undefined> {
         return this._messenger.sendRequest(getDevantMetadata, HOST_EXTENSION);
+    }
+
+    getWorkspaceDevantMetadata(): Promise<WorkspaceDevantMetadata | undefined> {
+        return this._messenger.sendRequest(getWorkspaceDevantMetadata, HOST_EXTENSION);
     }
 
     generateOpenApiClient(params: OpenAPIClientGenerationRequest): Promise<GeneratedClientSaveResponse> {

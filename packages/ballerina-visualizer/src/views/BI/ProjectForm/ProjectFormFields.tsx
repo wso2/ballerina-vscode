@@ -75,6 +75,10 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         setIsProjectStructureExpanded(!isProjectStructureExpanded);
     };
 
+    const projectTypeNote = formData.createAsWorkspace
+        ? "This sets the type for your first project. You can add more projects or libraries to this workspace later."
+        : undefined;
+
     useEffect(() => {
         (async () => {
             if (!formData.path) {
@@ -140,6 +144,14 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                 </CheckboxContainer>
             </FieldGroup>
 
+            <FieldGroup>
+                <ProjectTypeSelector
+                    value={formData.isLibrary}
+                    onChange={(isLibrary) => onFormDataChange({ isLibrary })}
+                    note={projectTypeNote}
+                />
+            </FieldGroup>
+
             <SectionDivider />
             <OptionalSectionsLabel>Optional Configurations</OptionalSectionsLabel>
 
@@ -162,23 +174,15 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                         </Description>
                     </CheckboxContainer>
                     {formData.createAsWorkspace && (
-                        <>
-                            <FieldGroup>
-                                <TextField
-                                    onTextChange={(value) => onFormDataChange({ workspaceName: value })}
-                                    value={formData.workspaceName}
-                                    label="Workspace Name"
-                                    placeholder="Enter workspace name"
-                                    required={true}
-                                />
-                            </FieldGroup>
-
-                            <ProjectTypeSelector
-                                value={formData.isLibrary}
-                                onChange={(isLibrary) => onFormDataChange({ isLibrary })}
-                                note="This sets the type for your first project. You can add more projects or libraries to this workspace later."
+                        <FieldGroup>
+                            <TextField
+                                onTextChange={(value) => onFormDataChange({ workspaceName: value })}
+                                value={formData.workspaceName}
+                                label="Workspace Name"
+                                placeholder="Enter workspace name"
+                                required={true}
                             />
-                        </>
+                        </FieldGroup>
                     )}
                 </CollapsibleSection>
             )}
