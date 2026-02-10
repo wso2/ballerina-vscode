@@ -313,7 +313,7 @@ export function ServiceClassDesigner(props: ServiceClassDesignerProps) {
         // TODO: Add the LS call when its ready
         const newVariable: FieldType = {
             isPrivate: true,
-            isFinal: true,
+            isFinal: false,
             codedata: {
                 lineRange: {
                     fileName: serviceClassModel.codedata.lineRange.fileName,
