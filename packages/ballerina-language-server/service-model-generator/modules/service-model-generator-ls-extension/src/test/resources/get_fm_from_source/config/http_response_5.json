@@ -465,8 +465,8 @@
             "imports": {},
             "value": [
               {
-                "name": "x\\-path",
                 "optional": false,
+                "name": "x\\-path",
                 "type": "string"
               }
             ],
@@ -481,7 +481,7 @@
             "optional": true,
             "advanced": false
           },
-          "enabled": false,
+          "enabled": true,
           "editable": true,
           "advanced": false
         }
