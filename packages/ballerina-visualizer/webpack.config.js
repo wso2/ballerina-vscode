@@ -23,7 +23,8 @@ module.exports = {
       "path": false,
       "fs": false,
       "child_process": false,
-    }
+    },
+    fullySpecified: false
   },
   module: {
     rules: [{
@@ -33,6 +34,12 @@ module.exports = {
       options: {
         configFile: path.resolve(__dirname, 'tsconfig.json'),
       },
+    },
+    {
+      test: /\.m?js$/,
+      resolve: {
+        fullySpecified: false
+      }
     },
     {
       enforce: "pre",
