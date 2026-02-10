@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -39,36 +39,67 @@ import { EvalFunctionCall, EvalToolSchema } from '@wso2/ballerina-core';
 import { Icon } from '@wso2/ui-toolkit';
 import { ConfirmationModal } from './ConfirmationModal';
 
-const Container = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 8px 0;
-    z-index: 2000;
+// --- STYLES ---
+
+const TimelineContainer = styled.div`
+    max-width: 600px;
+    margin: 4px 0 2px;
+    position: relative;
+    padding-left: 0;
 `;
 
-const ToolCallItem = styled.div<{ isDragging?: boolean }>`
-    background-color: transparent;
-    border: 1px solid var(--vscode-widget-border);
+const TimelineTrack = styled.div`
+    position: absolute;
+    left: 15px; 
+    top: 24px;
+    bottom: -2px;
+    width: 2px;
+    background-color: var(--vscode-button-background);
+    opacity: 0.3;
+    z-index: 0;
+`;
+
+const HeaderTitle = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 8px;
+    padding-left: 4px;
+`;
+
+const ToolCard = styled.div<{ $isDragging?: boolean }>`
+    background-color: var(--vscode-textBlockQuote-background);
+    border: 1px solid var(--vscode-panel-border);
     border-radius: 6px;
-    padding: 12px;
+    padding: 8px 6px;
     display: flex;
     align-items: center;
     gap: 12px;
-    opacity: ${(props: { isDragging: boolean; }) => props.isDragging ? 0.5 : 1};
-    transition: opacity 0.2s;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 8px;
+    
+    opacity: ${(props: { $isDragging: any; }) => props.$isDragging ? 0.5 : 1};
+    transition: border-color 0.2s, background-color 0.2s;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
     }
 `;
 
-const IconBadge = styled.div`
+const IconBadgeWrapper = styled.div`
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 28px;
+    height: 28px;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 50%;
     color: var(--vscode-terminal-ansiBrightMagenta);
     flex-shrink: 0;
+    z-index: 2;
 `;
 
 const DragHandle = styled.div`
@@ -76,6 +107,11 @@ const DragHandle = styled.div`
     color: var(--vscode-descriptionForeground);
     display: flex;
     align-items: center;
+    opacity: 0.5;
+
+    &:hover {
+        opacity: 1;
+    }
 
     &:active {
         cursor: grabbing;
@@ -85,70 +121,73 @@ const DragHandle = styled.div`
 const ToolInfo = styled.div`
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: 2px;
 `;
 
 const ToolName = styled.div`
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--vscode-foreground);
-    margin-bottom: 4px;
 `;
 
-const ToolArgs = styled.div`
+const ArgumentsPreview = styled.code`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    opacity: 0.8;
+    display: block;
 `;
 
 const Actions = styled.div`
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s;
+
+    /* Fixed interpolation: Target the parent class name */
+    .tool-card-row:hover & {
+        opacity: 1;
+    }
 `;
 
-const ActionButton = styled.button`
-    background: none;
+const ActionButton = styled.button<{ $danger?: boolean }>`
+    background: transparent;
     border: none;
-    padding: 4px;
+    padding: 6px;
     cursor: pointer;
-    color: var(--vscode-foreground);
     border-radius: 4px;
+    color: ${(props: { $danger: any; }) => props.$danger ? 'var(--vscode-errorForeground)' : 'var(--vscode-icon-foreground)'};
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 12px;
+    justify-content: center;
 
     &:hover {
         background-color: var(--vscode-toolbar-hoverBackground);
+        color: ${(props: { $danger: any; }) => props.$danger ? 'var(--vscode-testing-iconFailed)' : 'var(--vscode-foreground)'};
     }
 `;
 
-const AddButton = styled.button`
-    background-color: var(--vscode-editorWidget-background);
-    color: var(--vscode-descriptionForeground);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 4px 12px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    align-self: flex-start;
-    transition: all 0.15s ease;
+// --- HELPER ---
 
-    &:hover {
-        background-color: var(--vscode-list-hoverBackground);
-        border-color: var(--vscode-focusBorder);
-        color: var(--vscode-foreground);
+const formatArgs = (args: any) => {
+    if (!args) return "()";
+    if (typeof args === 'string') return args;
+    try {
+        // Create a compact representation: { a: 1, b: 2 }
+        return JSON.stringify(args).replace(/"/g, '').replace(/:/g, ': ').replace(/,/g, ', ');
+    } catch (e) {
+        return "Invalid arguments";
     }
+};
 
-    &:active {
-        transform: scale(0.98);
-    }
-`;
+// --- COMPONENTS ---
 
 interface SortableToolCallItemProps {
     toolCall: EvalFunctionCall;
@@ -175,65 +214,31 @@ const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
         transition,
     };
 
-    const argsPreview = toolCall.arguments
-        ? Object.entries(toolCall.arguments)
-            .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
-            .join(', ')
-        : 'No arguments';
-
     return (
         <div ref={setNodeRef} style={style}>
-            <ToolCallItem isDragging={isDragging}>
+            {/* Added className for the CSS selector in Actions */}
+            <ToolCard $isDragging={isDragging} className="tool-card-row">
                 <DragHandle {...attributes} {...listeners}>
-                    <Icon
-                        name="bi-drag"
-                        iconSx={{
-                            fontSize: "16px",
-                        }}
-                    />
+                    <Icon name="bi-drag" iconSx={{ fontSize: "16px" }} />
                 </DragHandle>
-                <IconBadge>
-                    <Icon
-                        name="bi-wrench"
-                        sx={{
-                            fontSize: '16px',
-                            width: '16px',
-                            height: '16px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                        iconSx={{
-                            fontSize: "16px",
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                        }}
-                    />
-                </IconBadge>
-                <ToolInfo>
+
+                <IconBadgeWrapper>
+                    <Icon name="bi-wrench" sx={{ display: "flex", justifyContent: "center", alignItems: "center" }} iconSx={{ display: "flex", fontSize: "16px" }} />
+                </IconBadgeWrapper>
+
+                <ToolInfo onClick={onEdit} style={{ cursor: 'pointer' }}>
                     <ToolName>{toolCall.name}</ToolName>
-                    <ToolArgs>{argsPreview}</ToolArgs>
+                    <ArgumentsPreview>
+                        {formatArgs(toolCall.arguments)}
+                    </ArgumentsPreview>
                 </ToolInfo>
+
                 <Actions>
-                    <ActionButton onClick={onEdit}>
-                        <Icon
-                            name="bi-edit"
-                            iconSx={{
-                                fontSize: "16px",
-                            }}
-                        />
-                    </ActionButton>
-                    <ActionButton onClick={onDelete}>
-                        <Icon
-                            name="bi-delete"
-                            iconSx={{
-                                fontSize: "16px",
-                            }}
-                        />
+                    <ActionButton $danger onClick={(e) => { e.stopPropagation(); onDelete(); }} title="Delete">
+                        <Icon name="bi-delete" iconSx={{ fontSize: "16px" }} />
                     </ActionButton>
                 </Actions>
-            </ToolCallItem>
+            </ToolCard>
         </div>
     );
 };
@@ -294,28 +299,17 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
         setDeleteIndex(null);
     };
 
-    const handleAdd = () => {
-        onEditToolCall(traceId, -1); // -1 indicates new tool call
-    };
-
     if (toolCalls.length === 0) {
-        return (
-            <Container>
-                <AddButton onClick={handleAdd}>
-                    <Icon
-                        name="bi-plus"
-                        iconSx={{
-                            fontSize: "16px",
-                        }}
-                    />
-                    Add Tool Execution
-                </AddButton>
-            </Container>
-        );
+        return null;
     }
 
     return (
-        <Container>
+        <TimelineContainer>
+            <HeaderTitle>Tool Execution Chain</HeaderTitle>
+
+            {/* Visual Line connecting the tools */}
+            <TimelineTrack />
+
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -335,18 +329,10 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
                     ))}
                 </SortableContext>
             </DndContext>
-            <AddButton onClick={handleAdd}>
-                <Icon
-                    name="bi-plus"
-                    iconSx={{
-                        fontSize: "16px",
-                    }}
-                />
-                Add Tool Execution
-            </AddButton>
+
             {deleteIndex !== null && (
                 <ConfirmationModal
-                    title="Delete Tool Call"
+                    title="Delete Tool Execution"
                     message="Are you sure you want to delete this tool call? This action cannot be undone."
                     confirmLabel="Delete"
                     cancelLabel="Cancel"
@@ -354,6 +340,6 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
                     onCancel={handleDeleteCancel}
                 />
             )}
-        </Container>
+        </TimelineContainer>
     );
 };

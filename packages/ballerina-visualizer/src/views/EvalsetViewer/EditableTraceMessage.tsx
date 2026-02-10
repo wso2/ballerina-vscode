@@ -26,28 +26,40 @@ import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 
 const EditableContainer = styled.div<{ isUser: boolean }>`
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-direction: ${(props: { isUser: boolean; }) => props.isUser ? 'row-reverse' : 'row'};
+    position: relative;
 `;
 
-const EditIconButton = styled.button`
-    background: transparent;
+const EditIconButton = styled.button<{ isUser: boolean }>`
+    position: absolute;
+    top: -10px;
+    ${(props: { isUser: boolean; }) => props.isUser ? 'left: -10px;' : 'right: -10px;'}
+    background: var(--vscode-editor-background);
     color: var(--vscode-foreground);
-    border: none;
-    border-radius: 4px;
-    padding: 6px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 8px;
+    padding: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.7;
-    flex-shrink: 0;
+    z-index: 10;
+
+    opacity: 0;
+    transform: ${(props: { isUser: boolean; }) => props.isUser ? 'translate(-4px, -4px)' : 'translate(4px, -4px)'};
+
+    transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        background-color 0.15s ease,
+        border-color 0.15s ease;
 
     &:hover {
-        opacity: 1;
-        background-color: var(--vscode-toolbar-hoverBackground);
+        background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
+    }
+
+    &:active {
+        transform: translate(0, 0) scale(0.95);
     }
 `;
 
@@ -78,6 +90,7 @@ const EditingMessageBubble = styled(MessageBubble)`
     flex-direction: column;
     flex-shrink: 1;
     min-width: 200px;
+    padding: 12px 14px;
 `;
 
 const SaveButton = styled.button`
@@ -227,7 +240,11 @@ export const EditableTraceMessage: React.FC<EditableTraceMessageProps> = ({
 
     return (
         <EditableContainer isUser={isUser}>
-            <MessageBubble isUser={isUser}>
+            <MessageBubble
+                isUser={isUser}
+                onDoubleClick={isEditMode ? handleStartEdit : undefined}
+                style={isEditMode ? { cursor: 'text' } : undefined}
+            >
                 <ReactMarkdown
                     remarkPlugins={[remarkMath, remarkGfm]}
                     rehypePlugins={[rehypeKatex]}
@@ -236,11 +253,16 @@ export const EditableTraceMessage: React.FC<EditableTraceMessageProps> = ({
                 </ReactMarkdown>
             </MessageBubble>
             {isEditMode && (
-                <EditIconButton onClick={handleStartEdit} title="Edit message">
+                <EditIconButton
+                    className="edit-button"
+                    isUser={isUser}
+                    onClick={handleStartEdit}
+                    title="Edit message"
+                >
                     <Icon
                         name="bi-edit"
                         iconSx={{
-                            fontSize: "16px",
+                            fontSize: "14px",
                         }}
                     />
                 </EditIconButton>
