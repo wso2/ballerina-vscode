@@ -89,10 +89,10 @@ export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, fileP
                 <Container>
                     <Header>
                         <Title>{filePath}</Title>
-                        <Subtitle>Case not found</Subtitle>
+                        <Subtitle>Thread not found</Subtitle>
                     </Header>
                     <ErrorMessage>
-                        Case with ID "{threadId}" not found in this evalset.
+                        Thread with ID "{threadId}" not found in this evalset.
                     </ErrorMessage>
                 </Container>
             );
@@ -104,7 +104,7 @@ export const EvalsetViewer: React.FC<EvalsetViewerProps> = ({ projectPath, fileP
         <Container>
             <Header>
                 <Title>{filePath}</Title>
-                <Subtitle>{content.threads.length} case(s)</Subtitle>
+                <Subtitle>{content.threads.length} thread(s)</Subtitle>
             </Header>
             <ContentSection>
                 <Preformatted>{JSON.stringify(content, null, 2)}</Preformatted>

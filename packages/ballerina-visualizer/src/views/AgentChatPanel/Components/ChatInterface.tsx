@@ -122,12 +122,13 @@ export const MessageContainer = styled.div<{ isUser: boolean }>`
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 `;
 
 export const ProfilePic = styled.div`
     padding: 4px;
     border: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
     width: 18px;
     height: 18px;
     border-radius: 50%;

@@ -18,6 +18,7 @@
 
 import React from "react";
 import styled from "@emotion/styled";
+import { Button } from "@wso2/ui-toolkit";
 
 const Overlay = styled.div`
     position: fixed;
@@ -35,7 +36,7 @@ const Overlay = styled.div`
 const ModalContainer = styled.div`
     background-color: var(--vscode-editorWidget-background);
     border: 1px solid var(--vscode-widget-border);
-    border-radius: 6px;
+    border-radius: 4px;
     width: 90%;
     max-width: 500px;
     padding: 20px;
@@ -69,30 +70,6 @@ const ModalActions = styled.div`
     justify-content: flex-end;
 `;
 
-const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
-    background-color: ${(props: { variant: string; }) =>
-        props.variant === 'primary'
-            ? 'var(--vscode-button-background)'
-            : 'var(--vscode-button-secondaryBackground)'};
-    color: ${(props: { variant: string; }) =>
-        props.variant === 'primary'
-            ? 'var(--vscode-button-foreground)'
-            : 'var(--vscode-button-secondaryForeground)'};
-    border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-
-    &:hover {
-        background-color: ${(props: { variant: string; }) =>
-        props.variant === 'primary'
-            ? 'var(--vscode-button-hoverBackground)'
-            : 'var(--vscode-button-secondaryHoverBackground)'};
-    }
-`;
-
 interface ConfirmationModalProps {
     title: string;
     message: string;
@@ -118,10 +95,10 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 </ModalHeader>
                 <ModalMessage>{message}</ModalMessage>
                 <ModalActions>
-                    <Button variant="secondary" onClick={onCancel}>
+                    <Button appearance="secondary" onClick={onCancel}>
                         {cancelLabel}
                     </Button>
-                    <Button variant="primary" onClick={onConfirm}>
+                    <Button appearance="primary" onClick={onConfirm}>
                         {confirmLabel}
                     </Button>
                 </ModalActions>

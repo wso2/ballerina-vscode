@@ -107,17 +107,21 @@ const Dot = styled.div`
 
 const ContentCard = styled.div`
     width: 60%;
-    background: var(--vscode-input-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 8px 12px;
-    transition: background-color 0.15s ease;
+    background-color: transparent;
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 6px;
+    padding: 12px;
+    transition: background-color 0.2s;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+    }
 `;
 
 const CardContent = styled.div`
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 `;
 
 const IconBadge = styled.div`
@@ -128,16 +132,21 @@ const IconBadge = styled.div`
     flex-shrink: 0;
 `;
 
-const OperationLabel = styled.span`
-    font-size: 10px;
-    font-weight: 600;
-    flex-shrink: 0;
+const ToolInfo = styled.div`
+    flex: 1;
+    min-width: 0;
 `;
 
-const ToolName = styled.span`
-    font-size: 12px;
+const ToolName = styled.div`
+    font-size: 14px;
+    font-weight: 600;
     color: var(--vscode-foreground);
-    flex: 1;
+    margin-bottom: 4px;
+`;
+
+const ToolArgs = styled.div`
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -153,49 +162,52 @@ export function ToolCallsTimeline({ toolCalls }: ToolCallsTimelineProps) {
     return (
         <TimelineContainer>
             <TimelineHeader onClick={() => setOpen(!open)} aria-expanded={open}>
-                <TimelineTitle>Tools Used ({toolCalls.length})</TimelineTitle>
+                <TimelineTitle>Tool Executions ({toolCalls.length})</TimelineTitle>
                 <ToggleIcon isOpen={open}>
                     <Codicon name="chevron-right" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                 </ToggleIcon>
             </TimelineHeader>
             {open && (
                 <TimelineList>
-                    {toolCalls.map((toolCall, index) => (
-                        <TimelineItem key={toolCall.id || index}>
-                            <ConnectorColumn isLast={index === toolCalls.length - 1}>
-                                <Dot />
-                            </ConnectorColumn>
-                            <ContentCard title={toolCall.name}>
-                                <CardContent>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {toolCalls.map((toolCall, index) => {
+                        const argsPreview = toolCall.arguments
+                            ? Object.entries(toolCall.arguments)
+                                .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+                                .join(', ')
+                            : 'No arguments';
+
+                        return (
+                            <TimelineItem key={toolCall.id || index}>
+                                <ContentCard title={toolCall.name}>
+                                    <CardContent>
                                         <IconBadge>
                                             <Icon
                                                 name="bi-wrench"
                                                 sx={{
-                                                    fontSize: '14px',
-                                                    width: '14px',
-                                                    height: '14px',
+                                                    fontSize: '16px',
+                                                    width: '16px',
+                                                    height: '16px',
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center'
                                                 }}
                                                 iconSx={{
-                                                    fontSize: "14px",
+                                                    fontSize: "16px",
                                                     display: 'flex',
                                                     alignItems: 'center',
                                                     justifyContent: 'center'
                                                 }}
                                             />
                                         </IconBadge>
-                                        <OperationLabel>
-                                            Execute Tool
-                                        </OperationLabel>
-                                    </div>
-                                    <ToolName>{toolCall.name}</ToolName>
-                                </CardContent>
-                            </ContentCard>
-                        </TimelineItem>
-                    ))}
+                                        <ToolInfo>
+                                            <ToolName>{toolCall.name}</ToolName>
+                                            <ToolArgs>{argsPreview}</ToolArgs>
+                                        </ToolInfo>
+                                    </CardContent>
+                                </ContentCard>
+                            </TimelineItem>
+                        );
+                    })}
                 </TimelineList>
             )}
         </TimelineContainer>
