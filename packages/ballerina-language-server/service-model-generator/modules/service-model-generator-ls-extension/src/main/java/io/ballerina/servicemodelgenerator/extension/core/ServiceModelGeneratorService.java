@@ -236,8 +236,7 @@ public class ServiceModelGeneratorService implements ExtendedLanguageServerServi
                 Document document = documentOpt.get();
                 ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
 
-                return ListenerUtil.getListenerModelByName(request.codedata(), semanticModel.get(), moduleInfo,
-                                "Listener")
+                return ListenerUtil.getListenerModelByName(request.codedata(), semanticModel.get(), moduleInfo)
                         .map(ListenerModelResponse::new)
                         .orElseGet(ListenerModelResponse::new);
             } catch (Throwable e) {

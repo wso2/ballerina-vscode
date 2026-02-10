@@ -133,7 +133,7 @@ public class Constants {
     public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
     public static final String PROP_READONLY_METADATA_KEY = "readOnlyMetadata";
     public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
-    public static final String DEFAULT__LISTENER_TYPE = "Listener";
+    public static final String DEFAULT_LISTENER_TYPE = "Listener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";

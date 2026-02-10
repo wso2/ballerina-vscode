@@ -79,7 +79,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
-import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT__LISTENER_TYPE;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
@@ -330,10 +330,10 @@ public class ListenerUtil {
     }
 
     public static Optional<Listener> getListenerModelByName(Codedata codedata, SemanticModel semanticModel,
-                                                            ModuleInfo moduleInfo, String type) {
-
+                                                            ModuleInfo moduleInfo) {
+        String listenerType = codedata.getType() == null ? "Listener" : codedata.getType();
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
-                .parentSymbolType(type == null ? "Listener": type)
+                .parentSymbolType(listenerType)
                 .name("init")
                 .moduleInfo(new ModuleInfo(codedata.getOrgName(), codedata.getPackageName(), codedata.getModuleName(),
                         codedata.getVersion()))
@@ -343,7 +343,7 @@ public class ListenerUtil {
 
         FunctionData functionData = functionDataBuilder.build();
         Listener listener = createBaseListenerModel(functionData);
-        listener.getListenerTypeProperty().setValue(type == null ? "Listener": type);
+        listener.getListenerTypeProperty().setValue(listenerType);
         setParameterProperties(functionData, listener.getProperties(), semanticModel, moduleInfo);
         return Optional.of(listener);
     }
@@ -452,7 +452,7 @@ public class ListenerUtil {
         Listener listener = createListenerModelFromNewExpressionNode(listenerNode.lineRange(), newExpressionNode,
                 semanticModel,
                 classSymbol, moduleInfo);
-        listener.getListenerTypeProperty().setValue(typeSymbol.getName().orElse(DEFAULT__LISTENER_TYPE));
+        listener.getListenerTypeProperty().setValue(typeSymbol.getName().orElse(DEFAULT_LISTENER_TYPE));
         return listener;
     }
 
@@ -481,6 +481,7 @@ public class ListenerUtil {
 
         Listener listener = createBaseListenerModel(functionData);
         listener.getProperties().put(PROP_KEY_DEFAULT_LISTENER, getHttpDefaultListenerValue());
+        listener.getListenerTypeProperty().setValue(DEFAULT_LISTENER_TYPE);
         listener.setCodedata(new Codedata(listenerNode.lineRange()));
 
         return Optional.of(listener);
