@@ -18,10 +18,12 @@
 
 import {
     EvalChatUserMessage as ChatUserMessage,
+    EvalChatAssistantMessage as ChatAssistantMessage,
     EvalChatMessage as ChatMessage,
     EvalToolSchema as ToolSchema,
     EvalIteration as Iteration,
-    EvalsetTrace
+    EvalsetTrace,
+    EvalFunctionCall
 } from '@wso2/ballerina-core';
 
 // TraceData interface (from trace-details-webview.ts)
@@ -115,6 +117,18 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
     const chatSpans = spans.filter((s: SpanData) =>
         s.name.startsWith('chat') && s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.messages')
     );
+
+    // Find all tool spans in the trace
+    const toolSpans = spans.filter((s: SpanData) =>
+        s.name.startsWith('execute_tool')
+    );
+
+    // Sort tool spans by start time to process in order
+    toolSpans.sort((a, b) => {
+        const timeA = a.startTime || '';
+        const timeB = b.startTime || '';
+        return timeA.localeCompare(timeB);
+    });
 
     // Sort chat spans by start time to process in order
     chatSpans.sort((a, b) => {
@@ -265,7 +279,7 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         // Create iteration
         iterations.push({
             history: iterationHistory,
-            output: output,
+            output: output as ChatAssistantMessage,
             startTime: convertTimestamp(chatSpan.startTime || startTime),
             endTime: convertTimestamp(chatSpan.endTime || endTime)
         } as any);
@@ -280,8 +294,22 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         ? (lastUserMsg as ChatUserMessage)
         : { role: 'user', content: 'Unknown input' };
 
+    const lastIteration = iterations[iterations.length - 1];
+    const finalOutputToolCalls: EvalFunctionCall[] = [];
+
+    for (let i = 0; i < toolSpans.length; i++) {
+        const toolSpan = toolSpans[i];
+        const toolCallsStr = getAttribute(toolSpan, 'gen_ai.tool.arguments');
+        const toolCallsData = safeJsonParse(toolCallsStr);
+        finalOutputToolCalls.push({
+            name: getAttribute(toolSpan, 'gen_ai.tool.name') || 'unknown_tool',
+            arguments: toolCallsData
+        });
+    }
+
     // Final output is the last iteration's output
-    const finalOutput = iterations[iterations.length - 1].output;
+    const finalOutput: ChatAssistantMessage = lastIteration.output;
+    finalOutput.toolCalls = finalOutputToolCalls.length > 0 ? finalOutputToolCalls : finalOutput.toolCalls;
 
     // Assemble Final Trace Object
     const evalsetTrace: EvalsetTrace = {

@@ -122,7 +122,6 @@ export const MessageContainer = styled.div<{ isUser: boolean }>`
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
-    margin-bottom: 8px;
 `;
 
 export const ProfilePic = styled.div`
