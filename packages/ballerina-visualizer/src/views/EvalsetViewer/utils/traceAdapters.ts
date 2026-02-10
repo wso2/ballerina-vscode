@@ -131,7 +131,11 @@ export const generateTraceId = (): string => {
  * Create a new empty trace
  */
 export const createNewTrace = (): EvalsetTrace => {
-    const now = new Date().toISOString();
+    const nowMs = Date.now();
+    const seconds = Math.floor(nowMs / 1000);
+    const nanoseconds = (nowMs % 1000) * 1000000;
+    const timestamp: [number, number] = [seconds, nanoseconds];
+
     return {
         id: generateTraceId(),
         userMessage: {
@@ -144,7 +148,7 @@ export const createNewTrace = (): EvalsetTrace => {
         },
         tools: [],
         iterations: [],
-        startTime: now,
-        endTime: now,
+        startTime: timestamp,
+        endTime: timestamp,
     };
 };
