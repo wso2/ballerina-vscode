@@ -349,6 +349,13 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
     }
 
     @JsonRequest
+    public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableAgents(
+            FlowModelAvailableNodesRequest request) {
+        return handleAvailableNodesRequest(request,
+                generator -> generator.getAvailableAgents(request.position()));
+    }
+
+    @JsonRequest
     public CompletableFuture<FlowModelAvailableNodesResponse> getAvailableModelProviders(
             FlowModelAvailableNodesRequest request) {
         return handleAvailableNodesRequest(request,
