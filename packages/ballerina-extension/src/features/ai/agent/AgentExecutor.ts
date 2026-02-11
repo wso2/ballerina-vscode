@@ -23,7 +23,7 @@ import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from 
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
 import { sendAgentDidOpenForFreshProjects } from '../utils/project/ls-schema-notifications';
 import { getSystemPrompt, getUserPrompt } from './prompts';
-import { GenerationType, getAllLibraries } from '../utils/libs/libraries';
+import { GenerationType } from '../utils/libs/libraries';
 import { createToolRegistry } from './tool-registry';
 import { getProjectSource, cleanupTempProject } from '../utils/project/temp-project';
 import { StreamContext } from './stream-handlers/stream-context';
@@ -181,19 +181,12 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 },
             ];
 
-            // Get libraries for library provider tool
-            const allLibraries = await getAllLibraries(GenerationType.CODE_GENERATION);
-            const libraryDescriptions = allLibraries.length > 0
-                ? allLibraries.map((lib) => `- ${lib.name}: ${lib.description}`).join("\n")
-                : "- No libraries available";
-
             // Create tools
             const tools = createToolRegistry({
                 eventHandler: this.config.eventHandler,
                 tempProjectPath,
                 modifiedFiles,
                 projects,
-                libraryDescriptions,
                 generationType: GenerationType.CODE_GENERATION,
                 workspaceId: this.config.executionContext.projectPath,
                 generationId: this.config.generationId,
