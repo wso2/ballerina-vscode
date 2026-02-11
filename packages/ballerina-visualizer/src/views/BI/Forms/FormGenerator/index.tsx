@@ -260,7 +260,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const skipFormValidation = useMemo(() => {
         const isAgentNode = node && (
-            node.codedata.node === "AGENT_CALL" &&
+            (node.codedata.node === "AGENT_CALL" || node.codedata.node === "AGENT_RUN") &&
             node.codedata.org === "ballerina" &&
             node.codedata.module === "ai" &&
             node.codedata.packageName === "ai" &&
