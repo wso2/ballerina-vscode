@@ -86,10 +86,6 @@ public class TypeParameterReplacer {
         }
 
         String result = original;
-
-        // Sort by key length descending so longer keys (e.g. "array:Type1") are
-        // replaced before their shorter prefixes (e.g. "array:Type"), preventing
-        // partial matches that leave stray characters like "(any|error)1".
         List<Map.Entry<String, String>> entries = TYPE_PARAMETER_REPLACEMENTS.entrySet().stream()
                 .sorted(Comparator.comparingInt((Map.Entry<String, String> e) -> e.getKey().length()).reversed())
                 .toList();
