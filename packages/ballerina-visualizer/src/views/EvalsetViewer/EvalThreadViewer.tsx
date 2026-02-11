@@ -460,7 +460,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     );
 
     const extractToolCalls = (trace: EvalsetTrace): EvalFunctionCall[] => {
-        return (trace.output?.toolCalls as EvalFunctionCall[]) || [];
+        return (trace.toolCalls as EvalFunctionCall[]) || [];
     };
 
     const handleEnterEditMode = () => {

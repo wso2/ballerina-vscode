@@ -309,7 +309,6 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
 
     // Final output is the last iteration's output
     const finalOutput: ChatAssistantMessage = lastIteration.output;
-    finalOutput.toolCalls = finalOutputToolCalls.length > 0 ? finalOutputToolCalls : finalOutput.toolCalls;
 
     // Assemble Final Trace Object
     const evalsetTrace: EvalsetTrace = {
@@ -318,6 +317,7 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         iterations: iterations,
         output: finalOutput,
         tools: tools,
+        toolCalls: finalOutputToolCalls,
         startTime: convertTimestamp(startTime) as any,
         endTime: convertTimestamp(endTime) as any
     };

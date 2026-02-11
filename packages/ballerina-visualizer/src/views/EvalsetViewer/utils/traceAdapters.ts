@@ -70,10 +70,7 @@ export const updateToolCallsInTrace = (
 ): EvalsetTrace => {
     return {
         ...trace,
-        output: {
-            ...trace.output,
-            toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-        },
+        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
     };
 };
 
@@ -147,6 +144,7 @@ export const createNewTrace = (): EvalsetTrace => {
             content: 'Agent Response',
         },
         tools: [],
+        toolCalls: [],
         iterations: [],
         startTime: timestamp,
         endTime: timestamp,
