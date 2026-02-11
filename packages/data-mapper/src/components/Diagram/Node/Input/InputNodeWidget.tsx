@@ -31,6 +31,7 @@ import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanel
 import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
+import { isGroupHeaderPort } from "../../utils/common-utils";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -79,12 +80,15 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         expanded = false;
     }
 
+    const isNotGroupHeaderPort = !(portOut && isGroupHeaderPort(portOut));
+
+    const headerLabel = valueLabel || dmType.displayName || dmType.name || id;
     const label = (
         <TruncatedLabelGroup style={{ alignItems: "baseline" }}>
             <TruncatedLabel className={classes.valueLabelHeader}>
-                <InputSearchHighlight>{valueLabel ? valueLabel : id}</InputSearchHighlight>
+                <InputSearchHighlight>{headerLabel}</InputSearchHighlight>
             </TruncatedLabel>
-            {typeName && (
+            {typeName && isNotGroupHeaderPort && (
                 <TruncatedLabel className={isUnknownType ? classes.unknownTypeLabel : classes.typeLabel}>
                     {typeName}
                 </TruncatedLabel>
@@ -151,7 +155,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     <InputCategoryIcon category={dmType.category} />
                 </span>
                 <span className={classes.outPort}>
-                    {portOut &&
+                    {portOut && (isNotGroupHeaderPort || !expanded && portOut.linkedPorts.length > 0) &&
                         <DataMapperPortWidget engine={engine} port={portOut} handlePortState={handlePortState} />
                     }
                 </span>
