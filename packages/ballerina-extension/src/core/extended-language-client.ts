@@ -227,13 +227,11 @@ import {
     DeleteConfigVariableRequestV2,
     DeleteConfigVariableResponseV2,
     ResourceReturnTypesRequest,
-    ResourceReturnTypesResponse,
     JsonToTypeRequest,
     JsonToTypeResponse,
     McpToolsRequest,
     McpToolsResponse,
     CopilotCompactLibrariesResponse,
-    CopilotAllLibrariesRequest,
     CopilotFilterLibrariesResponse,
     CopilotFilterLibrariesRequest,
     GetConfigVariableNodeTemplateRequest,
@@ -1422,8 +1420,8 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
 
-    async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
-        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
+    async getCopilotCompactLibraries(): Promise<CopilotCompactLibrariesResponse> {
+        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES);
     }
 
     async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
