@@ -1392,7 +1392,8 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
         } else {
             String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY) || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
+            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY)
+                    || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
                 // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
                         .fieldType(Property.ValueType.SQL_QUERY)
