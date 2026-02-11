@@ -64,15 +64,6 @@ export const validatePackageName = (name: string, integrationName: string): stri
     return null; // No error
 };
 
-export const isFormValid = (formData: ProjectFormData): boolean => {
-    return (
-        formData.integrationName.length >= 2 &&
-        formData.packageName.length >= 2 &&
-        formData.path.length >= 2 &&
-        validatePackageName(formData.packageName, formData.integrationName) === null
-    );
-};
-
 export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspace: boolean): boolean => {
     return (
         formData.integrationName.length >= 2 &&

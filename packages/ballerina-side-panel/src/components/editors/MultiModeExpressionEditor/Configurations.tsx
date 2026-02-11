@@ -150,7 +150,7 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
         return () => null;
     }
     getSerializationPrefix(): string {
-        return "sql `";
+        return "`";
     }
     getSerializationSuffix(): string {
         return "`";
@@ -210,6 +210,10 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
 
         return [numericOnly];
 
+    }
+
+    getIsToggleHelperAvailable(): boolean {
+        return false;
     }
 
     getIsValueCompatible(value: string): boolean {
