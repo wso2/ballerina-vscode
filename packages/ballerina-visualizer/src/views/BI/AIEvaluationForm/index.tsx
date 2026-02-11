@@ -586,7 +586,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             },
                             types: [{ fieldType: "EXPRESSION_SET", selected: false }],
                             originalName: "groups",
-                            value: [],
+                            value: ["Evaluation"],
                             optional: true,
                             editable: true,
                             advanced: false
