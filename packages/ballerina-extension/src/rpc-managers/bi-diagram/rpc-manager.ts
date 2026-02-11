@@ -2106,6 +2106,23 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available agents from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableAgents(params)
+                .then((model) => {
+                    console.log(">>> bi available agents from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available agents from ls", error);
+                    return new Promise((resolve) => {
+                        resolve(undefined);
+                    });
+                });
+        });
+    }
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {
