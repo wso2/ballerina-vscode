@@ -18,7 +18,9 @@
 
 package io.ballerina.flowmodelgenerator.core;
 
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -78,15 +80,15 @@ public class TypeParameterReplacer {
 
         String result = original;
 
-        // Replace each type parameter with its super type
-        for (Map.Entry<String, String> entry : TYPE_PARAMETER_REPLACEMENTS.entrySet()) {
-            String oldType = entry.getKey();
-            String newType = entry.getValue();
+        // Sort by key length descending so longer keys (e.g. "array:Type1") are
+        // replaced before their shorter prefixes (e.g. "array:Type"), preventing
+        // partial matches that leave stray characters like "(any|error)1".
+        List<Map.Entry<String, String>> entries = TYPE_PARAMETER_REPLACEMENTS.entrySet().stream()
+                .sorted(Comparator.comparingInt((Map.Entry<String, String> e) -> e.getKey().length()).reversed())
+                .toList();
 
-            if (result.contains(oldType)) {
-                // If the old type is found, replace it with the new type
-                result = result.replace(oldType, newType);
-            }
+        for (Map.Entry<String, String> entry : entries) {
+            result = result.replace(entry.getKey(), entry.getValue());
         }
 
         return result;

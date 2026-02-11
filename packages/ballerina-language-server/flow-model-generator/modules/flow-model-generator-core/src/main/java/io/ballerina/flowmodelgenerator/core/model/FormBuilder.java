@@ -217,6 +217,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
                                String importStatements, boolean hidden) {
+        String replacedTypeName = TypeParameterReplacer.replaceTypeParameters(typeName);
         propertyBuilder
                 .metadata()
                     .label(label)
@@ -225,9 +226,9 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .codedata()
                     .stepOut()
                 .placeholder("var")
-                .value(TypeParameterReplacer.replaceTypeParameters(typeName))
+                .value(replacedTypeName)
                 .imports(importStatements)
-                .hidden(hidden)
+                .hidden(hidden || !replacedTypeName.equals(typeName))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .selected(true)

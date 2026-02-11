@@ -61,7 +61,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function ((any|error)1 accum, (any|error) val) returns (any|error)1",
+            "ballerinaType": "function ((any|error) accum, (any|error) val) returns (any|error)",
             "selected": false
           }
         ],
@@ -83,7 +83,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "(any|error)1",
+            "ballerinaType": "(any|error)",
             "selected": false
           }
         ],
@@ -108,12 +108,12 @@
             "selected": true
           }
         ],
-        "value": "(any|error)1",
+        "value": "(any|error)",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
-        "hidden": false,
+        "hidden": true,
         "codedata": {}
       },
       "variable": {
