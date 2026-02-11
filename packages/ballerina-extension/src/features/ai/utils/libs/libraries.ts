@@ -31,7 +31,21 @@ export enum GenerationType {
     ALL = "ALL"
 }
 
-export async function getAllLibraries(): Promise<MinifiedLibrary[]> {
-    const result = (await langClient.getCopilotCompactLibraries()) as { libraries: MinifiedLibrary[] };
+export function getLibraryModeFromGenerationType(generationType: GenerationType): LibraryMode {
+    switch (generationType) {
+        case GenerationType.CODE_GENERATION:
+            return "CORE";
+        case GenerationType.HEALTHCARE_GENERATION:
+            return "HEALTHCARE";
+        case GenerationType.ALL:
+        default:
+            return "ALL";
+    }
+}
+
+export async function getAllLibraries(generationType: GenerationType): Promise<MinifiedLibrary[]> {
+    const result = (await langClient.getCopilotCompactLibraries({
+        mode: getLibraryModeFromGenerationType(generationType),
+    })) as { libraries: MinifiedLibrary[] };
     return result.libraries as MinifiedLibrary[];
 }
