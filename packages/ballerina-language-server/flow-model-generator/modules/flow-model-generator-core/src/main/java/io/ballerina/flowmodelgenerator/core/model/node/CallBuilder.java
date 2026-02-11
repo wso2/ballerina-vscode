@@ -46,6 +46,7 @@ import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.PackageDescriptor;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.eventsync.exceptions.EventSyncException;
@@ -374,7 +375,7 @@ public abstract class CallBuilder extends NodeBuilder {
             }
 
             return null;
-        } catch (Exception e) {
+        } catch (WorkspaceDocumentException | EventSyncException | ProjectException e) {
             return null;
         }
     }
