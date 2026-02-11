@@ -17,7 +17,7 @@
  */
 
 import { AICommandExecutor, AICommandConfig, AIExecutionResult } from '../executors/base/AICommandExecutor';
-import { Command, GenerateAgentCodeRequest, ProjectSource, EVENT_TYPE, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
+import { Command, GenerateAgentCodeRequest, ProjectSource, MACHINE_VIEW, refreshReviewMode, ExecutionContext } from '@wso2/ballerina-core';
 import { ModelMessage, stepCountIs, streamText, TextStreamPart } from 'ai';
 import { getAnthropicClient, getProviderCacheControl, ANTHROPIC_SONNET_4 } from '../utils/ai-client';
 import { populateHistoryForAgent, getErrorMessage } from '../utils/ai-utils';
@@ -30,10 +30,10 @@ import { StreamContext } from './stream-handlers/stream-context';
 import { checkCompilationErrors } from './tools/diagnostics-utils';
 import { updateAndSaveChat } from '../utils/events';
 import { chatStateStorage } from '../../../views/ai-panel/chatStateStorage';
-import { openView } from '../../../stateMachine';
 import { RPCLayer } from '../../../RPCLayer';
 import { VisualizerWebview } from '../../../views/visualizer/webview';
 import * as path from 'path';
+import { approvalViewManager } from '../state/ApprovalViewManager';
 
 /**
  * Determines which packages have been affected by analyzing modified files
@@ -70,7 +70,7 @@ function determineAffectedPackages(
         for (const project of projects) {
             if (project.packagePath === "") {
                 // Root package in workspace (edge case)
-                if (!modifiedFile.includes('/') || 
+                if (!modifiedFile.includes('/') ||
                     !projects.some(p => p.packagePath && modifiedFile.startsWith(p.packagePath + '/'))) {
                     // Root package is at the temp project path directly
                     affectedPackages.add(tempProjectPath);
@@ -80,7 +80,7 @@ function determineAffectedPackages(
                 }
             } else {
                 // Package with a specific path in workspace
-                if (modifiedFile.startsWith(project.packagePath + '/') || 
+                if (modifiedFile.startsWith(project.packagePath + '/') ||
                     modifiedFile === project.packagePath) {
                     // Map to temp package path: tempProjectPath + relative package path
                     const tempPackagePath = path.join(tempProjectPath, project.packagePath);
@@ -456,9 +456,8 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             affectedPackagePaths: affectedPackagePaths,
         });
 
-        // Automatically open review mode
-        openView(EVENT_TYPE.OPEN_VIEW, { view: MACHINE_VIEW.ReviewMode });
-        console.log("[AgentExecutor] Automatically opened review mode");
+        // Open ReviewMode
+        approvalViewManager.openView(MACHINE_VIEW.ReviewMode);
 
         // Notify ReviewMode component to refresh its data
         setTimeout(() => {

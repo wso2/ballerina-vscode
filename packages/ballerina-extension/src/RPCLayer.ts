@@ -19,7 +19,7 @@
 import { WebviewView, WebviewPanel, window } from 'vscode';
 import { Messenger } from 'vscode-messenger';
 import { StateMachine } from './stateMachine';
-import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated } from '@wso2/ballerina-core';
+import { stateChanged, getVisualizerLocation, VisualizerLocation, projectContentUpdated, aiStateChanged, sendAIStateEvent, popupStateChanged, getPopupVisualizerState, PopupVisualizerLocation, breakpointChanged, AIMachineEventType, ArtifactData, onArtifactUpdatedNotification, onArtifactUpdatedRequest, currentThemeChanged, AIMachineSendableEvent, checkpointCaptured, CheckpointCapturedPayload, promptUpdated, approvalOverlayState, ApprovalOverlayState } from '@wso2/ballerina-core';
 import { VisualizerWebview } from './views/visualizer/webview';
 import { registerVisualizerRpcHandlers } from './rpc-managers/visualizer/rpc-handler';
 import { registerLangClientRpcHandlers } from './rpc-managers/lang-client/rpc-handler';
@@ -150,7 +150,8 @@ async function getContext(): Promise<VisualizerLocation> {
             package: context.package,
             dataMapperMetadata: context.dataMapperMetadata,
             artifactInfo: context.artifactInfo,
-            reviewData: context.reviewData
+            reviewData: context.reviewData,
+            agentMetadata: context.agentMetadata
         });
     });
 }
@@ -164,6 +165,7 @@ async function getPopupContext(): Promise<PopupVisualizerLocation> {
             recentIdentifier: context.recentIdentifier,
             identifier: context.identifier,
             metadata: context.metadata,
+            agentMetadata: context.agentMetadata,
             dataMapperMetadata: context.dataMapperMetadata
         });
     });
@@ -192,4 +194,8 @@ export function notifyBreakpointChange() {
 
 export function notifyCheckpointCaptured(payload: CheckpointCapturedPayload) {
     RPCLayer._messenger.sendNotification(checkpointCaptured, { type: 'webview', webviewType: AiPanelWebview.viewType }, payload);
+}
+
+export function notifyApprovalOverlayState(state: ApprovalOverlayState) {
+    RPCLayer._messenger.sendNotification(approvalOverlayState, { type: 'webview', webviewType: AiPanelWebview.viewType }, state);
 }

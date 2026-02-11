@@ -19,6 +19,7 @@ import {
     AddToUndoStackRequest,
     ColorThemeKind,
     EVENT_TYPE,
+    HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
     JoinProjectPathResponse,
@@ -26,6 +27,7 @@ import {
     OpenViewRequest,
     PopupVisualizerLocation,
     ProjectStructureArtifactResponse,
+    ReopenApprovalViewRequest,
     SHARED_COMMANDS,
     undo,
     UndoRedoStateResponse,
@@ -37,6 +39,7 @@ import fs from "fs";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { notifyCurrentWebview } from "../../RPCLayer";
+import { approvalViewManager } from "../../features/ai/state/ApprovalViewManager";
 import { history, openView, StateMachine, undoRedoManager, updateView } from "../../stateMachine";
 import { openPopupView } from "../../stateMachinePopup";
 import { ArtifactNotificationHandler, ArtifactsUpdated } from "../../utils/project-artifacts-handler";
@@ -302,5 +305,13 @@ export class VisualizerRpcManager implements VisualizerAPI {
                 view: MACHINE_VIEW.PackageOverview
             }
         );
+    }
+
+    handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
+        approvalViewManager.handlePopupClosed(params.requestId);
+    }
+
+    reopenApprovalView(params: ReopenApprovalViewRequest): void {
+        approvalViewManager.reopenApprovalViewPopup(params.requestId);
     }
 }
