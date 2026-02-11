@@ -210,7 +210,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
  */
 public class CodeAnalyzer extends NodeVisitor {
 
-    public static final String PARAMETERIZED_QUERY = "ParameterizedQuery";
+    public static final String PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String PARAMETERIZED_CALL_QUERY = "sql:ParameterizedCallQuery";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -1391,7 +1392,7 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
         } else {
             String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (ballerinaType != null && ballerinaType.contains(PARAMETERIZED_QUERY)) {
+            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY) || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
                 // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
                         .fieldType(Property.ValueType.SQL_QUERY)
