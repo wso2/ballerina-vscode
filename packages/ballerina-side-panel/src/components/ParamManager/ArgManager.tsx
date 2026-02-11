@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
  *
  * WSO2 LLC. licenses this file to you under the Apache License,
  * Version 2.0 (the "License"); you may not use this file except
@@ -21,37 +21,18 @@ import React, { useEffect, useState } from 'react';
 import styled from '@emotion/styled';
 import { ParamEditor } from './ParamEditor';
 import { ParamItem } from './ParamItem';
+import { ParamConfig, Parameter } from './ParamManager';
 import { Codicon, ErrorBanner, LinkButton, RequiredFormInput, ThemeColors } from '@wso2/ui-toolkit';
 import { FormField, FormValues } from '../Form/types';
 import { Controller } from 'react-hook-form';
 import { useFormContext } from '../../context';
-import { Imports, NodeKind } from '@wso2/ballerina-core';
+import { Imports, NodeKind, TriggerKind } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
 import { EditorFactory } from '../editors/EditorFactory';
-import { getFieldKeyForAdvanceProp } from '../editors/utils';
+import { getFieldKeyForAdvanceProp, getPropertyFromFormField } from '../editors/utils';
 
-export interface Parameter {
-    id: number;
-    formValues: FormValues;
-    key: string;
-    value: string;
-    icon: string;
-    identifierEditable: boolean;
-    identifierRange: any;
-    hidden?: boolean;
-    imports?: Imports;
-}
-
-
-export interface ParamConfig {
-    paramValues: Parameter[];
-    formFields: FormField[];
-    handleParameter: (parameter: Parameter) => Parameter;
-}
-
-export interface ParamManagerProps {
-    propertyKey: string;
-    paramConfigs: ParamConfig;
+export interface ArgManagerProps {
+    field: FormField;
     onChange?: (parameters: ParamConfig) => void,
     openRecordEditor?: (open: boolean) => void;
     readonly?: boolean;
@@ -63,7 +44,7 @@ const AddButtonWrapper = styled.div`
 	margin: 8px 0;
 `;
 
-const ParamContainer = styled.div`
+const ArgContainer = styled.div`
 	display: block;
     width: 100%;
 `;
@@ -108,7 +89,7 @@ const ButtonContainer = styled.div<{}>`
     justify-content: flex-end;
 `;
 
-export interface ParamManagerEditorProps {
+export interface ArgManagerEditorProps {
     field: FormField;
     handleOnFieldFocus?: (key: string) => void;
     openRecordEditor?: (open: boolean) => void;
@@ -116,24 +97,13 @@ export interface ParamManagerEditorProps {
     setSubComponentEnabled?: (isAdding: boolean) => void;
 }
 
-export function ParamManagerEditor(props: ParamManagerEditorProps) {
+export function ArgManagerEditor(props: ArgManagerEditorProps) {
     const { field, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
     const { form } = useFormContext();
-    const { control, setValue, getValues } = form;
-
-    const hasAdvancedFields = field.advanceProps?.length > 0;
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-
-    const handleOnShowAdvancedOptions = () => {
-        setShowAdvancedOptions(true);
-    }
-
-    const handleOnHideAdvancedOptions = () => {
-        setShowAdvancedOptions(false);
-    }
+    const { control } = form;
 
     return (
-        <ParamContainer>
+        <ArgContainer>
             <HeaderContainer>
                 <LabelContainer>
                     <Label>{field.label}</Label>
@@ -147,14 +117,13 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                 rules={{
                     required: {
                         value: !field.optional && !field.placeholder,
-                        message: `${selectedNode === "DATA_MAPPER_DEFINITION" ? 'Input type' : field.label} is required`
+                        message: "Arguments are required"
                     }
                 }}
                 render={({ field: { onChange }, fieldState: { error } }) => (
                     <>
-                        <ParamManager
-                            propertyKey={field.key}
-                            paramConfigs={field.paramManagerProps}
+                        <ArgManager
+                            field={field}
                             openRecordEditor={openRecordEditor}
                             onChange={async (config: ParamConfig) => {
                                 onChange(config.paramValues);
@@ -166,56 +135,59 @@ export function ParamManagerEditor(props: ParamManagerEditorProps) {
                     </>
                 )}
             />
-            {hasAdvancedFields && (
-                <Row>
-                    Optional Configurations
-                    <ButtonContainer>
-                        {!showAdvancedOptions && (
-                            <LinkButton
-                                onClick={handleOnShowAdvancedOptions}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-down"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Expand
-                            </LinkButton>
-                        )}
-                        {showAdvancedOptions && (
-                            <LinkButton
-                                onClick={handleOnHideAdvancedOptions}
-                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                            >
-                                <Codicon name={"chevron-up"} iconSx={{ fontSize: 12 }} sx={{ height: 12 }} />
-                                Collapse
-                            </LinkButton>
-                        )}
-                    </ButtonContainer>
-                </Row>
-            )}
-            {hasAdvancedFields && showAdvancedOptions && (
-                <EditorContainer>
-                    {field.advanceProps.map((advanceProp) => {
-                        advanceProp.key = getFieldKeyForAdvanceProp(field.key, advanceProp.key);
-                        if (getValues(advanceProp.key) === undefined) {
-                            setValue(advanceProp.key, advanceProp.value);
-                        }
-                        return <EditorFactory field={advanceProp} />
-                    })}
-                </EditorContainer>
-            )}
-        </ParamContainer>
+        </ArgContainer>
     );
 
 }
 
-export function ParamManager(props: ParamManagerProps) {
-    const { propertyKey, paramConfigs, readonly, onChange, openRecordEditor, selectedNode, setSubComponentEnabled } = props;
+export function ArgManager(props: ArgManagerProps) {
+    const { field, readonly, onChange, openRecordEditor, setSubComponentEnabled } = props;
+    const propertyKey = field.key;
+    const paramConfigs = field.paramManagerProps;
+
     const { rpcClient } = useRpcContext();
+    const { fileName, targetLineRange } = useFormContext();
 
     const [editingSegmentId, setEditingSegmentId] = useState<number>(-1);
     const [isNew, setIsNew] = useState(false);
     const [parameters, setParameters] = useState<Parameter[]>(paramConfigs.paramValues);
     const [paramComponents, setParamComponents] = useState<React.ReactElement[]>([]);
-    const [isGraphql, setIsGraphql] = useState<boolean>(false);
+
+    useEffect(() => {
+        renderParams();
+    }, [parameters, editingSegmentId, paramConfigs]);
+
+    const getTypeFromArg = async (
+        arg: string
+    ) => {
+        try {
+            const variableField = paramConfigs.formFields.find(f => f.key === "variable");
+            const property = getPropertyFromFormField(variableField);
+
+            const completionsResponse = await rpcClient.getBIDiagramRpcClient().getExpressionCompletions({
+                filePath: fileName,
+                context: {
+                    expression: arg,
+                    startLine: targetLineRange.startLine,
+                    lineOffset: 0,
+                    offset: arg.length,
+                    codedata: undefined,
+                    property: property
+                },
+                completionContext: {
+                    triggerKind: TriggerKind.INVOKED,
+                    triggerCharacter: undefined
+                }
+            });
+
+            const name = arg.split('.').pop();
+            const completionItem = completionsResponse.find(completion => completion.insertText === name);
+            return completionItem?.detail;
+        } catch (error) {
+            console.error(">>> Error getting type from FQN in ArgManager", error);
+            return undefined;
+        }
+    };
 
     const onEdit = (param: Parameter) => {
         setEditingSegmentId(param.id);
@@ -262,21 +234,24 @@ export function ParamManager(props: ParamManagerProps) {
         onChange({ ...paramConfigs, paramValues: reArrangedParameters });
     };
 
-    const onChangeParam = (updatedParams: Parameter) => {
+    const onChangeParam = (updatedParam: Parameter) => {
         const updatedParameters = [...parameters];
-        const index = updatedParameters.findIndex(param => param.id === updatedParams.id);
+        const index = updatedParameters.findIndex(param => param.id === updatedParam.id);
         if (index !== -1) {
-            updatedParameters[index] = paramConfigs.handleParameter(updatedParams);
+            updatedParameters[index] = handleArgChange(updatedParam, parameters);
         }
         setParameters(updatedParameters);
         onChange({ ...paramConfigs, paramValues: updatedParameters });
     };
 
     const onSaveParam = (paramConfig: Parameter) => {
-        onChangeParam(paramConfig);
-        setEditingSegmentId(-1);
-        setIsNew(false);
-        setSubComponentEnabled?.(false);
+        getTypeFromArg(paramConfig.formValues['variable']).then((type) => {
+            paramConfig.formValues['type'] = type;
+            onChangeParam(paramConfig);
+            setEditingSegmentId(-1);
+            setIsNew(false);
+            setSubComponentEnabled?.(false);
+        });
     };
 
     const onParamEditCancel = (param: Parameter) => {
@@ -287,15 +262,6 @@ export function ParamManager(props: ParamManagerProps) {
         }
         setIsNew(false);
     };
-
-    useEffect(() => {
-        rpcClient.getVisualizerLocation().then(context => {
-            if (context.view === "GraphQL Diagram") {
-                setIsGraphql(true);
-            }
-        });
-        renderParams();
-    }, [parameters, editingSegmentId, paramConfigs]);
 
     const renderParams = () => {
         const render: React.ReactElement[] = [];
@@ -312,9 +278,6 @@ export function ParamManager(props: ParamManagerProps) {
                             if (field.key === "variable") {
                                 field.editable = param.identifierEditable;
                                 field.lineRange = param.identifierRange;
-                            }
-                            if (field.key === "type" && field.type === "ACTION_TYPE" && param.formValues['isGraphqlId'] !== undefined) {
-                                field.isGraphqlId = param.formValues['isGraphqlId'];
                             }
                         }
                     })
@@ -351,10 +314,26 @@ export function ParamManager(props: ParamManagerProps) {
                 <AddButtonWrapper>
                     <LinkButton sx={readonly && { color: "var(--vscode-badge-background)" }} onClick={!readonly && onAddClick} >
                         <Codicon name="add" />
-                        <>{`Add ${selectedNode === "DATA_MAPPER_DEFINITION" ? "Input" : isGraphql ? "Argument" : "Parameter"}`}</>
+                        <>{"Add Argument"}</>
                     </LinkButton>
                 </AddButtonWrapper>
             )}
         </div>
     );
+}
+
+function handleArgChange(param: Parameter, allParams: Parameter[]) {
+    const arg = param.formValues["variable"];
+    const name = arg.split('.').pop();
+
+    let key = name;
+    let i = 1;
+    while (allParams.some(p => p.key === key && p.id !== param.id)) {
+        key = name + (i++);
+    }
+
+    return {
+        ...param,
+        key: key
+    };
 }
