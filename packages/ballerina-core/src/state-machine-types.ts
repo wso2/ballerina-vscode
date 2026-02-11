@@ -260,6 +260,7 @@ export interface EvalsetTrace {
     iterations: EvalIteration[];
     output: EvalChatAssistantMessage | any;
     tools: EvalToolSchema[];
+    toolCalls: EvalFunctionCall[];
     startTime: [number, number]; // [seconds, nanoseconds]
     endTime: [number, number]; // [seconds, nanoseconds]
 }
