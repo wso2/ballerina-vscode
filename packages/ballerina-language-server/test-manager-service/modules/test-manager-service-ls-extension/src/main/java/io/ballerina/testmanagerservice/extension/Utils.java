@@ -21,7 +21,14 @@ package io.ballerina.testmanagerservice.extension;
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.AnnotationSymbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionStatementNode;
+import io.ballerina.compiler.syntax.tree.FunctionArgumentNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.IdentifierToken;
 import io.ballerina.compiler.syntax.tree.ListConstructorExpressionNode;
@@ -29,8 +36,12 @@ import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.MappingFieldNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.Node;
+import io.ballerina.compiler.syntax.tree.NodeList;
+import io.ballerina.compiler.syntax.tree.PositionalArgumentNode;
+import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.SeparatedNodeList;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.testmanagerservice.extension.model.Annotation;
 import io.ballerina.testmanagerservice.extension.model.Codedata;
 import io.ballerina.testmanagerservice.extension.model.FunctionParameter;
@@ -71,7 +82,8 @@ public class Utils {
     }
 
     public static TestFunction getTestFunctionModel(FunctionDefinitionNode functionDefinitionNode,
-                                                    SemanticModel semanticModel) {
+                                                    SemanticModel semanticModel,
+                                                    ModulePartNode modulePartNode) {
         TestFunction.FunctionBuilder functionBuilder = new TestFunction.FunctionBuilder();
 
         functionBuilder.metadata(new Metadata("Test Function", "Test Function"))
@@ -84,7 +96,7 @@ public class Utils {
         functionDefinitionNode.metadata().ifPresent(metadata -> {
             List<Annotation> annotations = new ArrayList<>();
             for (AnnotationNode annotationNode : metadata.annotations()) {
-                annotations.add(getAnnotationModel(annotationNode, semanticModel));
+                annotations.add(getAnnotationModel(annotationNode, semanticModel, modulePartNode));
             }
             functionBuilder.annotations(annotations);
 
@@ -95,7 +107,8 @@ public class Utils {
         return functionBuilder.build();
     }
 
-    public static Annotation getAnnotationModel(AnnotationNode annotationNode, SemanticModel semanticModel) {
+    public static Annotation getAnnotationModel(AnnotationNode annotationNode, SemanticModel semanticModel,
+                                                ModulePartNode modulePartNode) {
         AnnotationSymbol annotationSymbol = (AnnotationSymbol) semanticModel.symbol(annotationNode).get();
         String annotName = annotationSymbol.getName().orElse("");
         if (annotName.isEmpty()) {
@@ -104,18 +117,20 @@ public class Utils {
         Optional<MappingConstructorExpressionNode> annotValue = annotationNode.annotValue();
         MappingConstructorExpressionNode mappingConstructor = annotValue.orElse(null);
         if (annotName.equals("Config")) {
-            return buildConfigAnnotation(mappingConstructor);
+            return buildConfigAnnotation(mappingConstructor, modulePartNode);
         }
         return null;
     }
 
-    private static Annotation buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor) {
+    private static Annotation buildConfigAnnotation(MappingConstructorExpressionNode mappingConstructor,
+                                                    ModulePartNode modulePartNode) {
         Annotation.ConfigAnnotationBuilder builder = new Annotation.ConfigAnnotationBuilder();
         builder.metadata(new Metadata("Config", "Test Function Configurations"));
         if (mappingConstructor == null) {
             return builder.build();
         }
         SeparatedNodeList<MappingFieldNode> fields = mappingConstructor.fields();
+        String dataProviderName = null;
         for (MappingFieldNode field : fields) {
             if (field instanceof SpecificFieldNode specificFieldNode) {
                 String fieldName = specificFieldNode.fieldName().toSourceCode().trim();
@@ -145,6 +160,7 @@ public class Utils {
                     case "dataProvider" -> {
                         if (expressionNode.isPresent()) {
                             String value = expressionNode.get().toSourceCode().trim();
+                            dataProviderName = value;
                             builder.dataProvider(value);
                         }
                     }
@@ -199,7 +215,96 @@ public class Utils {
                 }
             }
         }
+
+        // Extract evalSetFile from data provider function if present
+        if (dataProviderName != null) {
+            String evalSetPath = extractEvalSetFileFromDataProvider(modulePartNode, dataProviderName);
+            if (!evalSetPath.isEmpty()) {
+                builder.evalSetFile(evalSetPath);
+            }
+        }
+
         return builder.build();
+    }
+
+    private static String extractEvalSetFileFromDataProvider(ModulePartNode modulePartNode,
+                                                             String dataProviderFunctionName) {
+        if (dataProviderFunctionName == null || dataProviderFunctionName.isEmpty()) {
+            return "";
+        }
+
+        // Remove quotes if present in function name
+        final String functionName = dataProviderFunctionName.replaceAll("\"", "");
+
+        // Find the data provider function
+        Optional<FunctionDefinitionNode> dataProviderFunc = modulePartNode.members().stream()
+                .filter(mem -> mem instanceof FunctionDefinitionNode)
+                .map(mem -> (FunctionDefinitionNode) mem)
+                .filter(mem -> mem.functionName().text().trim().equals(functionName))
+                .findFirst();
+
+        if (dataProviderFunc.isEmpty()) {
+            return "";
+        }
+
+        // Extract the ai:loadConversationThreads() call from function body
+        FunctionBodyNode functionBody = dataProviderFunc.get().functionBody();
+        if (functionBody instanceof FunctionBodyBlockNode blockBody) {
+            // Handle block-based function body
+            return extractFromStatements(blockBody.statements());
+        } else if (functionBody instanceof ExpressionFunctionBodyNode exprBody) {
+            // Handle expression-based function body (return expr;)
+            return extractFromExpression(exprBody.expression());
+        }
+
+        return "";
+    }
+
+    private static String extractFromStatements(NodeList<StatementNode> statements) {
+        for (StatementNode statement : statements) {
+            if (statement instanceof ReturnStatementNode returnStmt) {
+                Optional<ExpressionNode> expr = returnStmt.expression();
+                if (expr.isPresent()) {
+                    String result = extractFromExpression(expr.get());
+                    if (!result.isEmpty()) {
+                        return result;
+                    }
+                }
+            } else if (statement instanceof ExpressionStatementNode exprStmt) {
+                String result = extractFromExpression(exprStmt.expression());
+                if (!result.isEmpty()) {
+                    return result;
+                }
+            }
+        }
+        return "";
+    }
+
+    private static String extractFromExpression(ExpressionNode expression) {
+        // Handle check expression: check ai:loadConversationThreads(...)
+        if (expression instanceof CheckExpressionNode checkExpr) {
+            return extractFromExpression(checkExpr.expression());
+        }
+
+        // Handle function call: ai:loadConversationThreads("path")
+        if (expression instanceof FunctionCallExpressionNode funcCall) {
+            String functionName = funcCall.functionName().toSourceCode().trim();
+
+            // Check if it's the ai:loadConversationThreads function
+            if (functionName.contains("loadConversationThreads")) {
+                // Extract first argument (the file path)
+                for (FunctionArgumentNode arg : funcCall.arguments()) {
+                    if (arg instanceof PositionalArgumentNode positionalArg) {
+                        ExpressionNode argExpr = positionalArg.expression();
+                        String argValue = argExpr.toSourceCode().trim();
+                        // Remove surrounding quotes
+                        return argValue.replaceAll("^\"|\"$", "");
+                    }
+                }
+            }
+        }
+
+        return "";
     }
 
     public static String getTestFunctionTemplate(TestFunction function) {

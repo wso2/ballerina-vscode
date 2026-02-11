@@ -158,7 +158,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
                         .findFirst();
 
                 return matchingFunc.map(functionDefinitionNode -> GetTestFunctionResponse.from(
-                                Utils.getTestFunctionModel(functionDefinitionNode, semanticModel.get())))
+                                Utils.getTestFunctionModel(functionDefinitionNode, semanticModel.get(),
+                                        modulePartNode)))
                         .orElseGet(GetTestFunctionResponse::get);
             } catch (Throwable e) {
                 return GetTestFunctionResponse.from(e);

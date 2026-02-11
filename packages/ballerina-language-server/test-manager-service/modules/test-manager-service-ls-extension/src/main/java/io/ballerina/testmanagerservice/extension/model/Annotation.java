@@ -123,37 +123,63 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
             }
             properties.add(enabled);
 
-            if (dataProvider != null) {
-                properties.add(dataProvider);
+            // Always add dataProvider (default to empty string)
+            if (dataProvider == null) {
+                dataProvider = value("Data Provider", "Data provider function", "",
+                        "EXPRESSION", "dataProvider");
             }
+            properties.add(dataProvider);
 
-            if (dataProviderMode != null) {
-                properties.add(dataProviderMode);
+            // Always add dataProviderMode (default to "function")
+            if (dataProviderMode == null) {
+                dataProviderMode = value("Data Provider Mode",
+                        "Mode of data provider (function or evalSet)", "function",
+                        "EXPRESSION", "dataProviderMode");
             }
+            properties.add(dataProviderMode);
 
-            if (evalSetFile != null) {
-                properties.add(evalSetFile);
+            // Always add evalSetFile (default to empty string)
+            if (evalSetFile == null) {
+                evalSetFile = value("EvalSet File", "Path to the evalSet data file", "",
+                        "EXPRESSION", "evalSetFile");
             }
+            properties.add(evalSetFile);
 
-            if (dependsOn != null) {
-                properties.add(dependsOn);
+            // Always add dependsOn (default to empty list)
+            if (dependsOn == null) {
+                dependsOn = value("Depends On", "Functions this test depends on", List.of(),
+                        "EXPRESSION_SET", "dependsOn");
             }
+            properties.add(dependsOn);
 
-            if (after != null) {
-                properties.add(after);
+            // Always add after (default to empty string)
+            if (after == null) {
+                after = value("After", "Function to run after this test", "",
+                        "EXPRESSION", "after");
             }
+            properties.add(after);
 
-            if (before != null) {
-                properties.add(before);
+            // Always add before (default to empty string)
+            if (before == null) {
+                before = value("Before", "Function to run before this test", "",
+                        "EXPRESSION", "before");
             }
+            properties.add(before);
 
-            if (runs != null) {
-                properties.add(runs);
+            // Always add runs (default to "1")
+            if (runs == null) {
+                runs = value("Runs", "Number of times to execute this test", "1",
+                        "EXPRESSION", "runs");
             }
+            properties.add(runs);
 
-            if (minPassRate != null) {
-                properties.add(minPassRate);
+            // Always add minPassRate (default to "1")
+            if (minPassRate == null) {
+                minPassRate = value("Minimum Pass Rate (%)",
+                        "Minimum percentage of runs that must pass (0-100)",
+                        "1", "SLIDER", "minPassRate");
             }
+            properties.add(minPassRate);
 
             String org = Constants.ORG_BALLERINA;
             String module = Constants.MODULE_TEST;
