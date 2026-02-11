@@ -67,6 +67,17 @@ const PopupPanel = (props: PopupPanelProps) => {
         fetchContext();
     }, []);
 
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[PopupPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
+
+        onClose();
+    };
+
     const fetchContext = () => {
         rpcClient.getPopupVisualizerState().then((machineState: PopupVisualizerLocation) => {
             switch (machineState?.view) {

@@ -34,6 +34,7 @@ import {
     DocGenerationType,
     FileChanges,
     CodeContext,
+    ApprovalOverlayState,
 } from "@wso2/ballerina-core";
 
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -48,7 +49,7 @@ import RoleContainer from "../RoleContainter";
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
 
-import { AIChatView, Header, HeaderButtons, ChatMessage, Badge } from "../../styles";
+import { AIChatView, Header, HeaderButtons, ChatMessage, Badge, ApprovalOverlay, OverlayMessage } from "../../styles";
 import ReferenceDropdown from "../ReferenceDropdown";
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import MarkdownRenderer from "../MarkdownRenderer";
@@ -136,6 +137,7 @@ const AIChat: React.FC = () => {
     const [availableCheckpointIds, setAvailableCheckpointIds] = useState<Set<string>>(new Set());
 
     const [approvalRequest, setApprovalRequest] = useState<TaskApprovalRequest | null>(null);
+    const [approvalOverlay, setApprovalOverlay] = useState<ApprovalOverlayState>({ show: false });
 
     const [currentFileArray, setCurrentFileArray] = useState<SourceFile[]>([]);
     const [codeContext, setCodeContext] = useState<CodeContext | undefined>(undefined);
@@ -275,6 +277,15 @@ const AIChat: React.FC = () => {
         };
 
         rpcClient.onHideReviewActions(handleHideReviewActions);
+    }, [rpcClient]);
+
+    useEffect(() => {
+        const handleApprovalOverlay = (data: ApprovalOverlayState) => {
+            console.log("[AIChat] Approval overlay notification:", data);
+            setApprovalOverlay(data);
+        };
+
+        rpcClient.onApprovalOverlayState(handleApprovalOverlay);
     }, [rpcClient]);
 
     /**
@@ -1331,7 +1342,12 @@ const AIChat: React.FC = () => {
     return (
         <>
             {!showSettings && (
-                <AIChatView>
+                <AIChatView style={{ position: "relative" }}>
+                    {approvalOverlay.show && (
+                        <ApprovalOverlay>
+                            <OverlayMessage>{approvalOverlay.message || 'Processing...'}</OverlayMessage>
+                        </ApprovalOverlay>
+                    )}
                     <Header>
                         <Badge>
                             Remaining Free Usage: {"Unlimited"}

@@ -59,3 +59,11 @@ export interface JoinProjectPathResponse {
     filePath: string;
     projectPath: string;
 }
+
+export interface HandleApprovalPopupCloseRequest {
+    requestId: string;
+}
+
+export interface ReopenApprovalViewRequest {
+    requestId: string;
+}
