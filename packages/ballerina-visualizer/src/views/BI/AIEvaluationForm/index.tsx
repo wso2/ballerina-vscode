@@ -96,7 +96,7 @@ interface TestFunctionDefProps {
     serviceType?: string;
 }
 
-export function TestFunctionForm(props: TestFunctionDefProps) {
+export function AIEvaluationForm(props: TestFunctionDefProps) {
     const { projectPath, functionName, filePath, serviceType } = props;
     const { rpcClient } = useRpcContext();
     const [formFields, setFormFields] = useState<FormField[]>([]);
