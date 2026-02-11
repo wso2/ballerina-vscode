@@ -247,8 +247,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(params.flowNode.codedata.node);
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange);
+                        const nodeKind = params.flowNode.codedata.node;
+                        const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
+                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
                         resolve({ artifacts });
                     }
                 })
