@@ -292,12 +292,14 @@ export interface ToolCall {
     type: "tool_call";
     toolName: string;
     toolInput?: any;
+    toolCallId?: string;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
     toolOutput?: any;
+    toolCallId?: string;
 }
 
 export interface EvalsToolResult {

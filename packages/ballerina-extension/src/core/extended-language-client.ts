@@ -232,6 +232,7 @@ import {
     McpToolsRequest,
     McpToolsResponse,
     CopilotCompactLibrariesResponse,
+    CopilotAllLibrariesRequest,
     CopilotFilterLibrariesResponse,
     CopilotFilterLibrariesRequest,
     GetConfigVariableNodeTemplateRequest,
@@ -281,7 +282,9 @@ import {
     PersistClientGenerateRequest,
     PersistClientGenerateResponse,
     WSDLApiClientGenerationRequest,
-    WSDLApiClientGenerationResponse
+    WSDLApiClientGenerationResponse,
+    CopilotSearchLibrariesBySearchRequest,
+    CopilotSearchLibrariesBySearchResponse
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -473,6 +476,7 @@ enum EXTENDED_APIS {
     PUBLISH_ARTIFACTS = 'designModelService/publishArtifacts',
     COPILOT_ALL_LIBRARIES = 'copilotLibraryManager/getLibrariesList',
     COPILOT_FILTER_LIBRARIES = 'copilotLibraryManager/getFilteredLibraries',
+    COPILOT_SEARCH_LIBRARIES = 'copilotLibraryManager/getLibrariesBySearch',
     GET_MIGRATION_TOOLS = 'projectService/getMigrationTools',
     TIBCO_TO_BI = 'projectService/importTibco',
     MULE_TO_BI = 'projectService/importMule',
@@ -1420,12 +1424,16 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
         return this.sendRequest<OpenAPIClientDeleteResponse>(EXTENDED_APIS.OPEN_API_CLIENT_DELETE, params);
     }
 
-    async getCopilotCompactLibraries(): Promise<CopilotCompactLibrariesResponse> {
-        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES);
+    async getCopilotCompactLibraries(params: CopilotAllLibrariesRequest): Promise<CopilotCompactLibrariesResponse> {
+        return this.sendRequest<CopilotCompactLibrariesResponse>(EXTENDED_APIS.COPILOT_ALL_LIBRARIES, params);
     }
 
     async getCopilotFilteredLibraries(params: CopilotFilterLibrariesRequest): Promise<CopilotFilterLibrariesResponse> {
         return this.sendRequest<CopilotFilterLibrariesResponse>(EXTENDED_APIS.COPILOT_FILTER_LIBRARIES, params);
+    }
+
+    async getCopilotLibrariesBySearch(params: CopilotSearchLibrariesBySearchRequest): Promise<CopilotSearchLibrariesBySearchResponse> {
+        return this.sendRequest<CopilotSearchLibrariesBySearchResponse>(EXTENDED_APIS.COPILOT_SEARCH_LIBRARIES, params);
     }
 
     async getMigrationTools(): Promise<GetMigrationToolsResponse> {
