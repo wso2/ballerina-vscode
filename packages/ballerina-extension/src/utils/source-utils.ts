@@ -41,7 +41,7 @@ export interface UpdateSourceCodeRequest {
     skipUpdateViewOnTomlUpdate?: boolean; // This is used to skip updating the view on toml updates in certain scenarios.
 }
 
-export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean): Promise<ProjectStructureArtifactResponse[]> {
+export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCodeRequest, isChangeFromHelperPane?: boolean, skipFormatting?: boolean): Promise<ProjectStructureArtifactResponse[]> {
     try {
         let tomlFilesUpdated = false;
         StateMachine.setEditMode();
@@ -135,33 +135,36 @@ export async function updateSourceCode(updateSourceCodeRequest: UpdateSourceCode
             await workspace.applyEdit(workspaceEdit);
 
             // <-------- Format the document after applying all changes using the native formatting API-------->
-            const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
-            for (const [fileUriString, request] of Object.entries(modificationRequests)) {
-                const fileUri = Uri.file(request.filePath);
-                const formattedSources: { newText: string, range: { start: { line: number, character: number }, end: { line: number, character: number } } }[] = await StateMachine.langClient().sendRequest("textDocument/formatting", {
-                    textDocument: { uri: fileUriString },
-                    options: {
-                        tabSize: 4,
-                        insertSpaces: true
+            if (!skipFormatting) {
+                const formattedWorkspaceEdit = new vscode.WorkspaceEdit();
+                for (const [fileUriString, request] of Object.entries(modificationRequests)) {
+                    const fileUri = Uri.file(request.filePath);
+                    const formattedSources: { newText: string, range: { start: { line: number, character: number }, end: { line: number, character: number } } }[] = await StateMachine.langClient().sendRequest("textDocument/formatting", {
+                        textDocument: { uri: fileUriString },
+                        options: {
+                            tabSize: 4,
+                            insertSpaces: true
+                        }
+                    });
+                    for (const formattedSource of formattedSources) {
+                        // Replace the entire document content with the formatted text to avoid duplication
+                        formattedWorkspaceEdit.replace(
+                            fileUri,
+                            new vscode.Range(
+                                new vscode.Position(0, 0),
+                                new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
+                            ),
+                            formattedSource.newText
+                        );
+                        undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
                     }
-                });
-                for (const formattedSource of formattedSources) {
-                    // Replace the entire document content with the formatted text to avoid duplication
-                    formattedWorkspaceEdit.replace(
-                        fileUri,
-                        new vscode.Range(
-                            new vscode.Position(0, 0),
-                            new vscode.Position(Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
-                        ),
-                        formattedSource.newText
-                    );
-                    undoRedoManager?.addFileToBatch(fileUri.fsPath, formattedSource.newText, formattedSource.newText);
                 }
+                // Apply all formatted changes at once
+                await workspace.applyEdit(formattedWorkspaceEdit);
             }
+
             undoRedoManager?.commitBatchOperation(updateSourceCodeRequest.description ? updateSourceCodeRequest.description : (updateSourceCodeRequest.artifactData ? `Change in ${updateSourceCodeRequest.artifactData?.artifactType} ${updateSourceCodeRequest.artifactData?.identifier}` : "Update Source Code"));
 
-            // Apply all formatted changes at once
-            await workspace.applyEdit(formattedWorkspaceEdit);
 
             // Handle missing dependencies after all changes are applied
             if (updateSourceCodeRequest.resolveMissingDependencies) {
