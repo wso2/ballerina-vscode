@@ -164,7 +164,7 @@ export async function getRelevantLibrariesAndFunctions(
 }
 
 export async function getSelectedLibraries(prompt: string, generationType: GenerationType): Promise<string[]> {
-    const allLibraries = await getAllLibraries(generationType);
+    const allLibraries = await getAllLibraries();
     if (allLibraries.length === 0) {
         return [];
     }

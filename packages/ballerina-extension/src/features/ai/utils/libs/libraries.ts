@@ -33,9 +33,7 @@ export enum GenerationType {
     HEALTHCARE_GENERATION = "HEALTHCARE_GENERATION",
 }
 
-export async function getAllLibraries(generationType: GenerationType): Promise<MinifiedLibrary[]> {
-    const result = (await langClient.getCopilotCompactLibraries({
-        mode: getGenerationMode(generationType),
-    })) as { libraries: MinifiedLibrary[] };
+export async function getAllLibraries(): Promise<MinifiedLibrary[]> {
+    const result = (await langClient.getCopilotCompactLibraries()) as { libraries: MinifiedLibrary[] };
     return result.libraries as MinifiedLibrary[];
 }
