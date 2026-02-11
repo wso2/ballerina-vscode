@@ -41,7 +41,7 @@
     "@projectstorm/react-canvas-core": "6.7.4",
     "@projectstorm/geometry": "6.7.4",
     "@projectstorm/react-diagrams-core": "6.7.4",
-    "html-to-image": "1.10.8",
+    "html-to-image": "1.11.11",
     "@emotion/css": "11.13.5"
   },
   "devDependencies": {
