@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
-import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, AddDevantTempConfigReq, AddDevantTempConfigResp } from "./interfaces";
+import { GetMarketplaceListReq,MarketplaceListResp, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq, CreateLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
+import { CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, RegisterAndCreateDevantConnectionReq, AddDevantTempConfigReq, AddDevantTempConfigResp, ReplaceDevantTempConfigValuesReq } from "./interfaces";
 export * from "./rpc-type"
 export * from "./utils"
 
@@ -30,7 +30,7 @@ export interface PlatformExtAPI {
     registerAndCreateDevantComponentConnection: (params: RegisterAndCreateDevantConnectionReq) => Promise<CreateDevantConnectionResp>
     addDevantTempConfig: (params: AddDevantTempConfigReq) => Promise<AddDevantTempConfigResp>
     deleteDevantTempConfigs: (params: DeleteDevantTempConfigReq) => Promise<void>
-
+    replaceDevantTempConfigValues: (params: ReplaceDevantTempConfigValuesReq) => Promise<void>
     // Platform ext proxies
     getMarketplaceItems: (params: GetMarketplaceListReq) => Promise<MarketplaceListResp>;
     getMarketplaceItem: (params: GetMarketplaceItemReq) => Promise<MarketplaceItem>;
@@ -45,4 +45,5 @@ export interface PlatformExtAPI {
     setSelectedEnv: (envId: string) => void;
     deployIntegrationInDevant: () => void;
     registerMarketplaceConnection: (params: RegisterMarketplaceConnectionReq) => Promise<MarketplaceItem>;
+    createConnectionConfig: (params: CreateLocalConnectionsConfigReq) => Promise<string>;
 }

@@ -52,7 +52,7 @@ import {
     StyledSearchBox,
 } from "../AddConnectionPopup/styles";
 import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
-import { DevantConnectionType } from "./utils";
+import { DevantConnectionType, getKnownAvailableNode, ProgressWrap } from "./utils";
 
 interface DevantConnectorListProps {
     showBiConnectors: () => void;
@@ -76,7 +76,7 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
         [],
     );
 
-    const { data: connectorList } = useQuery({
+    const { data: balOrgConnectors, isLoading: loadingBalOrgConnectors } = useQuery({
         queryKey: ["searchConnectors", fileName, target],
         queryFn: () =>
             rpcClient
@@ -84,19 +84,20 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 .search({ filePath: fileName, queryMap: { limit: 60, orgName: "ballerina" }, searchKind: "CONNECTOR" }),
     });
 
-    const getKnownAvailableNode = (org: string, module: string) => {
-        const networkConnectors = connectorList?.categories?.find((item) => item.metadata.label === "Network");
-        const matchingNode = networkConnectors.items.find(
-            (item) =>
-                (item as AvailableNode).codedata?.org === org && (item as AvailableNode).codedata?.module === module,
-        );
-        return matchingNode as AvailableNode | undefined;
-    };
 
     const handleMarketplaceItemClick = (item: MarketplaceItem, type: DevantConnectionType) => {
         // TODO: once we store the connector info in Devant side,
         // we should be able to open the correct form
         let availableNode: AvailableNode | undefined;
+        if (item.serviceType === "REST") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "http");
+        } else if (item.serviceType === "GRAPHQL") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "graphql");
+        } else if (item.serviceType === "SOAP") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "soap");
+        } else if (item.serviceType === "GRPC") {
+            availableNode = getKnownAvailableNode(balOrgConnectors?.categories, "ballerina", "grpc");
+        }
 
         if (type === DevantConnectionType.THIRD_PARTY) {
             if (item.serviceType === "REST") {
@@ -107,15 +108,6 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
                 onItemSelect(DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR, item, availableNode);
             }
         } else if (type === DevantConnectionType.INTERNAL) {
-            if (item.serviceType === "REST") {
-                availableNode = getKnownAvailableNode("ballerina", "http");
-            } else if (item.serviceType === "GRAPHQL") {
-                availableNode = getKnownAvailableNode("ballerina", "graphql");
-            } else if (item.serviceType === "SOAP") {
-                availableNode = getKnownAvailableNode("ballerina", "soap");
-            } else if (item.serviceType === "GRPC") {
-                availableNode = getKnownAvailableNode("ballerina", "grpc");
-            }
             if (item.serviceType === "REST") {
                 onItemSelect(DevantConnectionFlow.CREATE_INTERNAL_OAS, item, availableNode);
             } else if (availableNode) {
@@ -217,6 +209,11 @@ export function DevantConnectorList(props: DevantConnectorListProps) {
 
             {platformExtState?.isLoggedIn ? (
                 <>
+                    {loadingBalOrgConnectors && (
+                        <ProgressWrap>
+                            <ProgressRing />
+                        </ProgressWrap>
+                    )}
                     <ConnectionSection
                         emptyText="No API services deployed"
                         title="Services running in Devant"
@@ -298,16 +295,9 @@ const ConnectionSection = ({
                 </FilterButtons>
             </SectionHeader>
             {loading ? (
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        padding: "40px",
-                    }}
-                >
+                <ProgressWrap>
                     <ProgressRing />
-                </div>
+                </ProgressWrap>
             ) : (
                 <>
                     {filteredData?.length === 0 ? (

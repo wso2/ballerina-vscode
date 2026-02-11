@@ -172,44 +172,24 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const isCreatingNewDataLoader = useRef<boolean>(false);
     const isCreatingNewChunker = useRef<boolean>(false);
 
-    const { platformExtState, platformRpcClient, projectToml, onLinkDevantProject, initConnector } = usePlatformExtContext()
+    const { platformExtState, platformRpcClient, onLinkDevantProject,  importConnection: importDevantConn } = usePlatformExtContext()
 
     const enrichedCategories = useMemo(()=>{
-         return  enrichCategoryWithDevant(platformExtState?.isLoggedIn, platformExtState?.selectedContext, projectToml?.values, platformExtState?.devantConns?.list, categories, importingConn)
-    },[projectToml?.values, platformExtState, categories, importingConn])
+         return  enrichCategoryWithDevant(platformExtState?.devantConns?.list, categories, importingConn)
+    },[platformExtState, categories, importingConn])
 
-    const { mutate: importConnection } = useMutation({
-        mutationFn: async (data: ConnectionListItem) => {
-            const resp = await rpcClient.getCommonRpcClient().showInformationModal({
-                message: `By proceeding, a custom Ballerina connector will be generated from the openAPI specification of this API service running in Devant. ${data.resourceType ==="THIRD_PARTY_SERVICE" ? "Please initialize the connector with the necessary configurables" : ""}`,
-                items:["Proceed"]
-            })
-            if(resp === "Proceed"){
-                return platformRpcClient?.importDevantComponentConnection({ connectionListItem: data })
-            }
-        },
-        onMutate: (data)=>setImportingConn(data),
-        onSuccess: (data) => {
-            projectToml?.refresh();
-            platformRpcClient?.refreshConnectionList();
-            fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
-            if(data.connectionNode){
-                rpcClient.getVisualizerRpcClient().openView({
-                    type: EVENT_TYPE.OPEN_VIEW,
-                    location: {
-                        view: MACHINE_VIEW.AddConnectionWizard,
-                        documentUri: model.fileName,
-                        metadata: { target: targetRef.current.startLine },
-                    },
-                    isPopup: true,
-                });
-
-                initConnector?.setConnector(data.connectionNode);
-            }
-            
-        },
-        onSettled:() => setImportingConn(undefined)
-    });
+    const handleClickImportDevantConn = (data: ConnectionListItem) => {
+        rpcClient.getVisualizerRpcClient().openView({
+            type: EVENT_TYPE.OPEN_VIEW,
+            location: {
+                view: MACHINE_VIEW.AddConnectionWizard,
+                documentUri: model.fileName,
+                metadata: { target: targetRef.current.startLine },
+            },
+            isPopup: true,
+        });
+        importDevantConn.setConnection(data)
+    }
 
     useEffect(() => {
         debouncedGetFlowModelForBreakpoints();
@@ -242,7 +222,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 setShowProgressIndicator(true);
                 if (parent.artifactType === DIRECTORY_MAP.CONNECTION) {
                     updateConnectionWithNewItem(parent.recentIdentifier);
-                    projectToml?.refresh();
                     platformRpcClient?.refreshConnectionList();
                 }
                 fetchNodesAndAISuggestions(topNodeRef.current, targetRef.current, false, false);
@@ -2523,7 +2502,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 selectedMcpToolkitName={selectedMcpToolkitName}
                 onNavigateToPanel={handleOnNavigateToPanel}
                 // Devant specific callbacks
-                onImportDevantConn={importConnection}
+                onImportDevantConn={handleClickImportDevantConn}
                 onLinkDevantProject={!platformExtState?.selectedContext?.project ? onLinkDevantProject : undefined}
                 onRefreshDevantConnections={
                     platformExtState?.selectedContext?.project && !platformExtState?.devantConns?.loading

@@ -16,12 +16,12 @@
  * under the License.
  */
 
-import { useQueryClient, useQuery } from "@tanstack/react-query";
-import { AvailableNode, DIRECTORY_MAP, findDevantScopeByModule, PackageTomlValues } from "@wso2/ballerina-core";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { AvailableNode, DIRECTORY_MAP, EVENT_TYPE, findDevantScopeByModule, MACHINE_VIEW, PackageTomlValues } from "@wso2/ballerina-core";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
-import { ICmdParamsBase, ICreateDirCtxCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, ICmdParamsBase, ICreateDirCtxCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import React, { useContext, FC, ReactNode, useEffect, useState } from "react";
 
 const defaultPlatformExtContext: {
@@ -30,14 +30,15 @@ const defaultPlatformExtContext: {
     devantConsoleUrl: string;
     projectPath: string;
     workspacePath: string;
+    // todo: check if we need to refresh project toml?
     projectToml?: { values: Partial<PackageTomlValues>; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
     deployableArtifacts?: { exists: boolean; refetch: () => void };
     onLinkDevantProject: () => void;
-    initConnector: {
-        connector?: AvailableNode;
-        setConnector?: (node: AvailableNode) => void;
-    };
+    importConnection: {
+        connection?: ConnectionListItem;
+        setConnection: (item?: ConnectionListItem) => void;
+    }
 } = {
     platformExtState: { components: [], isLoggedIn: false, userInfo: null },
     refetchProjectInfo: () => {},
@@ -45,7 +46,7 @@ const defaultPlatformExtContext: {
     devantConsoleUrl: "",
     projectPath: "",
     workspacePath: "",
-    initConnector: {},
+    importConnection:{ setConnection: () => {} }
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -58,7 +59,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const queryClient = useQueryClient();
     const { rpcClient } = useRpcContext();
     const platformRpcClient = rpcClient.getPlatformRpcClient();
-    const [newConnectorNode, setNewConnectorNode] = useState<AvailableNode>();
+    const [importingConn, setImportingConn] = useState<ConnectionListItem>();
 
     const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery(
         {
@@ -176,7 +177,7 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                 platformRpcClient,
                 onLinkDevantProject,
                 projectToml: { values: projectToml, refresh: refetchToml },
-                initConnector: { connector: newConnectorNode, setConnector: setNewConnectorNode },
+                importConnection: { setConnection: (item) => setImportingConn(item), connection: importingConn },
             }}
         >
             {children}

@@ -18,7 +18,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { VSCodePanelTab, VSCodePanelView, VSCodePanels } from "@vscode/webview-ui-toolkit/react";
-import type { MarketplaceItem, Organization } from "@wso2/wso2-platform-core";
+import type { ConnectionListItem, MarketplaceItem, Organization } from "@wso2/wso2-platform-core";
 import { useEffect, type FC, type ReactNode } from "react";
 import styled from "@emotion/styled";
 import { Button, Badge, ProgressRing, Icon, Codicon, ThemeColors, Typography } from "@wso2/ui-toolkit";
@@ -97,6 +97,8 @@ type Props = {
     onFlowChange: (flow: DevantConnectionFlow | null) => void;
     onNextClick: () => void;
     loading: boolean;
+    importedConnection?: ConnectionListItem;
+    saveButtonText?: string;
 };
 
 const disableAuthorizeAndInfoPlugin = () => ({
@@ -116,7 +118,7 @@ const disableTryItOutPlugin = () => ({
     },
 });
 
-export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, onFlowChange, loading }) => {
+export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, onFlowChange, loading, importedConnection, saveButtonText = "Continue" }) => {
     const { platformRpcClient, platformExtState } = usePlatformExtContext();
 
     const {
@@ -142,12 +144,30 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, o
     });
 
     useEffect(() => {
-        if (serviceIdlError || (serviceIdl && serviceIdl?.idlType !== "OpenAPI")) {
-            onFlowChange(
-                item.isThirdParty
-                    ? DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER
-                    : DevantConnectionFlow.CREATE_INTERNAL_OTHER,
-            );
+        if (serviceIdlError || (serviceIdl && (serviceIdl?.idlType !== "OpenAPI" || !serviceIdl?.content))) {
+            let newFlow: DevantConnectionFlow;
+            if (importedConnection) {
+                if (item.isThirdParty) {
+                    if (serviceIdl?.idlType === "TCP") {
+                        newFlow = DevantConnectionFlow.IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR;
+                    } else {
+                        newFlow = DevantConnectionFlow.IMPORT_THIRD_PARTY_OTHER;
+                    }
+                } else {
+                    newFlow = DevantConnectionFlow.IMPORT_INTERNAL_OTHER;
+                }
+            } else {
+                if (item.isThirdParty) {
+                    if (serviceIdl?.idlType === "TCP") {
+                        newFlow = DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR;
+                    } else {
+                        newFlow = DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER;
+                    }
+                } else {
+                    newFlow = DevantConnectionFlow.CREATE_INTERNAL_OTHER;
+                }
+            }
+            onFlowChange(newFlow);            
         }
     }, [serviceIdl, serviceIdlError]);
 
@@ -236,7 +256,7 @@ export const DevantConnectorMarketplaceInfo: FC<Props> = ({ item, onNextClick, o
                     disabled={loading || isLoadingIdl}
                     buttonSx={{ width: "100%", height: "35px" }}
                 >
-                    {loading ? "Loading..." : "Continue"}
+                    {loading ? "Loading..." : saveButtonText}
                 </ActionButton>
             </FooterContainer>
         </ConnectorInfoContainer>
