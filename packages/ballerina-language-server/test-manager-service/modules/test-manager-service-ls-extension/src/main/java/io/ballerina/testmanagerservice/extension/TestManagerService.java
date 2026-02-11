@@ -218,8 +218,13 @@ public class TestManagerService implements ExtendedLanguageServerService {
                     );
 
                     // Generate the evalSet data provider function
+                    String evalSetFile = getEvalSetFile(request.function());
+                    if (evalSetFile == null || evalSetFile.isEmpty()) {
+                        evalSetFile = "session.json"; // Default fallback
+                    }
                     String dataProviderFunction = Utils.getEvalSetDataProviderFunctionTemplate(
-                            dataProviderFunctionName
+                            dataProviderFunctionName,
+                            evalSetFile
                     );
                     edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), dataProviderFunction));
 
@@ -249,6 +254,22 @@ public class TestManagerService implements ExtendedLanguageServerService {
             if ("Config".equals(annotation.name())) {
                 for (Property field : annotation.fields()) {
                     if ("dataProviderMode".equals(field.originalName())) {
+                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private String getEvalSetFile(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+        if (function.annotations() == null) {
+            return null;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (Property field : annotation.fields()) {
+                    if ("evalSetFile".equals(field.originalName())) {
                         return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
                     }
                 }

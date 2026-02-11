@@ -33,6 +33,7 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
         private Property enabled;
         private Property dataProvider;
         private Property dataProviderMode;
+        private Property evalSetFile;
         private Property dependsOn;
         private Property after;
         private Property before;
@@ -62,6 +63,11 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
         public void dataProviderMode(String mode) {
             dataProviderMode = value("Data Provider Mode", "Mode of data provider (function or evalSet)", mode,
                     "EXPRESSION", "dataProviderMode");
+        }
+
+        public void evalSetFile(String filePath) {
+            evalSetFile = value("EvalSet File", "Path to the evalSet data file", filePath,
+                    "EXPRESSION", "evalSetFile");
         }
 
         public void dependsOn(List<String> functionList) {
@@ -123,6 +129,10 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
 
             if (dataProviderMode != null) {
                 properties.add(dataProviderMode);
+            }
+
+            if (evalSetFile != null) {
+                properties.add(evalSetFile);
             }
 
             if (dependsOn != null) {

@@ -54,6 +54,7 @@ public class Constants {
     public static final String COLON = ":";
     public static final String DOUBLE_QUOTE = "\"";
 
+    public static final String KEYWORD_ISOLATED = "isolated";
     public static final String KEYWORD_FUNCTION = "function";
     public static final String KEYWORD_RETURNS = "returns";
     public static final String KEYWORD_DO = "do";

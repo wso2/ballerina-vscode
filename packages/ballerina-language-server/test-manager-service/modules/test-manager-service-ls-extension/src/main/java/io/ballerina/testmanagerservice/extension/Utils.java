@@ -154,6 +154,12 @@ public class Utils {
                             builder.dataProviderMode(value);
                         }
                     }
+                    case "evalSetFile" -> {
+                        if (expressionNode.isPresent()) {
+                            String value = expressionNode.get().toSourceCode().trim();
+                            builder.evalSetFile(value);
+                        }
+                    }
                     case "dependsOn" -> {
                         if (expressionNode.isPresent() &&
                                 expressionNode.get() instanceof ListConstructorExpressionNode expr) {
@@ -406,13 +412,16 @@ public class Utils {
     /**
      * Generate an evalSet data provider function template.
      *
-     * @param functionName the name of the data provider function
+     * @param functionName    the name of the data provider function
+     * @param evalSetFilePath the path to the evalSet file
      * @return the generated function template
      */
-    public static String getEvalSetDataProviderFunctionTemplate(String functionName) {
+    public static String getEvalSetDataProviderFunctionTemplate(String functionName, String evalSetFilePath) {
         StringBuilder builder = new StringBuilder();
         builder.append(Constants.LINE_SEPARATOR)
                 .append(Constants.LINE_SEPARATOR)
+                .append(Constants.KEYWORD_ISOLATED)
+                .append(Constants.SPACE)
                 .append(Constants.KEYWORD_FUNCTION)
                 .append(Constants.SPACE)
                 .append(functionName)
@@ -426,7 +435,7 @@ public class Utils {
                 .append(Constants.OPEN_CURLY_BRACE)
                 .append(Constants.LINE_SEPARATOR)
                 .append(Constants.TAB_SEPARATOR)
-                .append("return {};")
+                .append("return ai:loadConversationThreads(\"" + evalSetFilePath + "\");")
                 .append(Constants.LINE_SEPARATOR)
                 .append(Constants.CLOSE_CURLY_BRACE);
         return builder.toString();
