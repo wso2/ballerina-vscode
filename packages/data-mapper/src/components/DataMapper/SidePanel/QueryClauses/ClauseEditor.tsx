@@ -71,7 +71,7 @@ export function ClauseEditor(props: ClauseEditorProps) {
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Represents each record in the joined collection" : "Enter a name for the variable",
         value: clauseProps?.name ?? "",
-        types: [{ fieldType: "IDENTIFIER", scope: "Global", selected: false }],
+        types: [{ fieldType: "IDENTIFIER", scope: "Local", selected: false }],
         enabled: true,
     }
 
@@ -92,14 +92,14 @@ export function ClauseEditor(props: ClauseEditorProps) {
         label: clauseType === IntermediateClauseType.JOIN ? "Join With Collection" :
             clauseType === IntermediateClauseType.GROUP_BY ? "Grouping Key" :
                 "Expression",
-        type: "EXPRESSION",
+        type: "CLAUSE_EXPRESSION",
         optional: false,
         editable: true,
         documentation: clauseType === IntermediateClauseType.JOIN ? "Collection to be joined" :
             clauseType === IntermediateClauseType.GROUP_BY ? "Enter the grouping key expression" :
                 "Enter the expression of the clause",
         value: clauseProps?.expression ?? "",
-        types: [{ fieldType: "EXPRESSION", selected: false }],
+        types: [{ fieldType: "CLAUSE_EXPRESSION", selected: false }],
         enabled: true,
     }
 
@@ -119,12 +119,12 @@ export function ClauseEditor(props: ClauseEditorProps) {
     const lhsExpressionField: DMFormField = {
         key: "lhsExpression",
         label: "LHS Expression",
-        type: "EXPRESSION",
+        type: "CLAUSE_EXPRESSION",
         optional: false,
         editable: true,
         documentation: "Enter the LHS expression of join-on condition",
         value: clauseProps?.lhsExpression ?? "",
-        types: [{ fieldType: "EXPRESSION", selected: false }],
+        types: [{ fieldType: "CLAUSE_EXPRESSION", selected: false }],
         enabled: true,
     }
 
