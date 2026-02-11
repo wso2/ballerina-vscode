@@ -20,10 +20,12 @@
 import {
     AddToUndoStackRequest,
     ColorThemeKind,
+    HandleApprovalPopupCloseRequest,
     HistoryEntry,
     JoinProjectPathRequest,
     JoinProjectPathResponse,
     OpenViewRequest,
+    ReopenApprovalViewRequest,
     ProjectStructureArtifactResponse,
     UndoRedoStateResponse,
     UpdatedArtifactsResponse,
@@ -35,9 +37,11 @@ import {
     goBack,
     goHome,
     goSelected,
+    handleApprovalPopupClose,
     joinProjectPath,
     openView,
     redo,
+    reopenApprovalView,
     resetUndoRedoStack,
     undo,
     undoRedoState,
@@ -112,5 +116,13 @@ export class VisualizerRpcClient implements VisualizerAPI {
 
     reviewAccepted(): void {
         return this._messenger.sendNotification(reviewAccepted, HOST_EXTENSION);
+    }
+
+    handleApprovalPopupClose(params: HandleApprovalPopupCloseRequest): void {
+        return this._messenger.sendNotification(handleApprovalPopupClose, HOST_EXTENSION, params);
+    }
+
+    reopenApprovalView(params: ReopenApprovalViewRequest): void {
+        return this._messenger.sendNotification(reopenApprovalView, HOST_EXTENSION, params);
     }
 }

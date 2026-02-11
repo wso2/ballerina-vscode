@@ -33,6 +33,7 @@ import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from 
 import { useFormContext } from '../../context';
 import {
     ExpressionProperty,
+    FormDiagnostics,
     getPrimaryInputType,
     InputType,
     LineRange,
@@ -320,6 +321,23 @@ export const DataMapperJoinClauseRhsEditor = (props: ContextAwareExpressionEdito
         const expression = form.watch('expression');
         const prefixExpr = `from var ${varName} in ${expression} select `;
         return await expressionEditor.retrieveCompletions(prefixExpr + value, property, prefixExpr.length + offset, triggerCharacter);
+    }
+
+    modifiedExpressionEditor.getExpressionEditorDiagnostics = async (
+        showDiagnostics: boolean,
+        expression: string,
+        key: string,
+        property: ExpressionProperty
+    ) => {
+        const varName = form.watch('name');
+        const joinExpression = form.watch('expression');
+        const prefixExpr = `from var ${varName} in ${joinExpression} select `;
+        return await expressionEditor.getExpressionEditorDiagnostics(
+            showDiagnostics,
+            prefixExpr + expression,
+            key,
+            property
+        );
     }
 
     return (
