@@ -4,6 +4,28 @@ All notable changes to the **Ballerina** extension will be documented in this fi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **Event Integration** — Introduced CDC for PostgreSQL support.
+- **FTP Integration** — Added support for deprecated FTP functions.
+- **Expression Editor** — Added SQL support for expression editing.
+
+### Changed
+
+- **Project Creation** — Refactored form layout and validation.
+- **Service Management** — Improved Try-it flow and multiple Ballerina version detection; sorted HTTP resources in service designer and artifact views.
+- **Form Validation** — Ensured form validation runs before language server diagnostics.
+
+### Fixed
+
+- **Installation** — Added warning for conflicting Ballerina installations.
+- **UI Components** — Fixed resource configuration response reset, record config helper overflow, and Boolean/enum editor selection.
+- **Type Editor** — Fixed recursive type creation issue.
+- **Expression Editor** — Fixed completions for method access.
+- **Security** — Updated dependencies to address vulnerabilities (CVE-2026-25128, CVE-2025-50537, CVE-2025-13465, CVE-2026-25547).
+
 ## [5.7.3](https://github.com/wso2/vscode-extensions/compare/ballerina-5.7.2...ballerina-5.7.3) - 2026-01-23
 
 ### Fixed

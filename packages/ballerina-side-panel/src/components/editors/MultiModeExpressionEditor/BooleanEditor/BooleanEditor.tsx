@@ -16,28 +16,34 @@
  * under the License.
  */
 
-import React, { ChangeEvent, useEffect } from "react";
+import React, { ChangeEvent } from "react";
 import { Dropdown } from "@wso2/ui-toolkit";
 import { FormField } from "../../../Form/types";
 import { OptionProps } from "@wso2/ballerina-core";
-import { normalizeEditorValue } from "../ChipExpressionEditor/utils";
 
 interface BooleanEditorProps {
     value: string;
     field: FormField;
-    onChange: (value: string, cursorPosition: number) => void;
+    onChange: (value: string | undefined, cursorPosition: number) => void;
 }
 
-const initialDropdownItems: OptionProps[] = [
+const DEFAULT_NONE_SELECTED_VALUE = "__none__";
+
+const dropdownItems: OptionProps[] = [
     {
         id: "1",
         content: "True",
-        value: true
+        value: "true"
     },
     {
         id: "2",
         content: "False",
-        value: false
+        value: "false"
+    },
+    {
+        id: "default-option",
+        content: "No Selection",
+        value: DEFAULT_NONE_SELECTED_VALUE
     }
 ]
 
@@ -51,46 +57,34 @@ const parseBoolean = (value: unknown): boolean => {
     return false;
 };
 
-const isValueMatchBooleanValue = (value: unknown): boolean => {
-    if (typeof value === 'boolean') return true;
-    if (typeof value === 'string') {
-        const v = value.trim().toLowerCase();
-        if (v === 'true' || v === 'false') return true;
-    }
-    return false;
-};
-
-
 export const BooleanEditor: React.FC<BooleanEditorProps> = ({ value, onChange, field }) => {
-    const [dropdownOptions, setDropdownOptions] = React.useState<OptionProps[]>(initialDropdownItems);
-    const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        handleChangeWrapper(parseBoolean(e.target.value));
-    }
 
-    useEffect(() => {
-        if (!field.optional) return;
-        setDropdownOptions([...initialDropdownItems, {
-            id: "default-option",
-            content: "None Selected",
-            value: ""
-        },]);
-    }, [field]);
+    const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
+        let value = e.target.value;
+        if (value === DEFAULT_NONE_SELECTED_VALUE) {
+            onChange("", 0);
+        } else {
+            const bool = parseBoolean(value);
+            onChange(String(bool), String(bool).length);
+        }
+    }
 
     const getValidatedValue = (): string => {
         if (typeof value === 'boolean') return String(value);
-        if (isValueMatchBooleanValue(value)) return value;
-        return field.optional ? "" : "false"
+        if (value === undefined || value === "") return DEFAULT_NONE_SELECTED_VALUE;
+        if (typeof value === 'string') {
+            const v = value.trim().toLowerCase();
+            if (v === 'true' || v === 'false') return v;
+        }
+        return DEFAULT_NONE_SELECTED_VALUE;
     }
 
-    const handleChangeWrapper = (value: boolean | string) => {
-        onChange(String(value), String(value).length);
-    }
 
     return (
         <Dropdown
             id={field.key}
             value={getValidatedValue()}
-            items={dropdownOptions}
+            items={dropdownItems}
             onChange={handleChange}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}
