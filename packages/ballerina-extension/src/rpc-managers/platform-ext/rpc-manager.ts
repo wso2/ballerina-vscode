@@ -57,6 +57,7 @@ import {
     RegisterMarketplaceConfigMap,
     Project,
     Organization,
+    CreateLocalConnectionsConfigReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -72,6 +73,7 @@ import {
     ImportDevantConnectionReq,
     ImportDevantConnectionResp,
     RegisterAndCreateDevantConnectionReq,
+    ReplaceDevantTempConfigValuesReq,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
 import { StateMachine } from "../../stateMachine";
@@ -336,6 +338,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async createConnectionConfig(params: CreateLocalConnectionsConfigReq): Promise<string> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.createConnectionConfig(params);
+        } catch (err) {
+            log(`Failed to create connection config: ${err}`);
+        }
+    }
+
     async stopProxyServer(params: StopProxyServerReq): Promise<void> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -548,7 +559,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 platformExtStore.getState().state?.isLoggedIn &&
                 platformExtStore.getState().state?.selectedContext?.org &&
                 platformExtStore.getState().state?.selectedContext?.project &&
-                platformExtStore.getState().state?.devantConns?.list?.filter((item) => item.isUsed)?.length > 0 &&
+                // todo: check and fetch configs of only the connections used
+                // platformExtStore.getState().state?.devantConns?.list?.filter((item) => item.isUsed)?.length > 0 &&
                 platformExtStore.getState().state?.devantConns?.connectedToDevant
             ) {
                 // TODO: need to check whether at least one devant connection being used
@@ -597,59 +609,20 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 );
             });
 
-            if (matchingConnection) {
-                const moduleName: string = (matchingConnection as ModuleVarDecl)?.initializer?.typeData?.typeSymbol
-                    ?.moduleID?.moduleName;
-                const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
-                    (item) => item.projectPath === StateMachine.context().projectPath,
-                );
-                if (!matchingBalProj) {
-                    throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);
-                }
-                const balPackage = matchingBalProj?.projectName;
-                const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
-                const matchingTomlEntry = tomlValues?.tool?.openapi?.find(
-                    (item) => `${balPackage}.${item.targetModule}` === moduleName,
-                );
-                if (matchingTomlEntry && matchingTomlEntry?.remoteId) {
-                    const updatedToml: Partial<PackageTomlValues> = {
-                        ...tomlValues,
-                        tool: {
-                            ...tomlValues?.tool,
-                            openapi: tomlValues.tool?.openapi?.filter(
-                                (item) => `${balPackage}.${item.targetModule}` !== moduleName,
-                            ),
-                        },
-                    };
-
+            if (matchingConnection && STKindChecker.isModuleVarDecl(matchingConnection)) {
+                const connectionName = (matchingConnection.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value;
+                if (connectionName) {
                     const projectPath = StateMachine.context().projectPath;
-                    const balTomlPath = path.join(projectPath, "Ballerina.toml");
-                    const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
-                    fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
-
                     const devantUrl = await this.getDevantConsoleUrl();
-                    if (!platformExtStore.getState().state?.isLoggedIn) {
-                        window
-                            .showErrorMessage(
-                                "Unable to delete Devant connection as you are not logged into Devant. please head over to Devant console to delete the Devant connection",
-                                "Open Devant",
-                            )
-                            .then((resp) => {
-                                if (resp === "Open Devant") {
-                                    vscode.env.openExternal(Uri.parse(devantUrl));
-                                }
-                            });
-                        StateMachine.setReadyMode();
-                        return;
-                    }
+
                     const selected = platformExtStore.getState().state?.selectedContext;
                     const matchingConnListItem = platformExtStore
                         .getState()
-                        .state?.devantConns?.list.find((connItem) => connItem.name === matchingTomlEntry?.remoteId);
+                        .state?.devantConns?.list.find((connItem) => connItem.name?.replaceAll("-","_").replaceAll(" ","_") === connectionName);
                     if (matchingConnListItem) {
                         await this.deleteLocalConnectionsConfig({
                             componentDir: projectPath,
-                            connectionName: matchingTomlEntry?.remoteId,
+                            connectionName: matchingConnListItem.name,
                         });
                         if (matchingConnListItem?.componentId) {
                             await platformExt.deleteConnection({
@@ -744,6 +717,38 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setEditMode();
             const projectPath = StateMachine.context().projectPath;
 
+            // todo: check if this logic is valid
+            let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
+            if(params.importInternalConnectionParams?.connection?.visibilities?.some(item => item.componentUuid)){
+                visibility = ServiceInfoVisibilityEnum.Project;
+            } else if(params.importInternalConnectionParams?.connection?.visibilities?.some(item => item.projectUuid)){
+                visibility = ServiceInfoVisibilityEnum.Organization;
+            }
+
+            if ([ DevantConnectionFlow.IMPORT_INTERNAL_OAS].includes(params.flow)) {
+                await platformExt?.createConnectionConfig({
+                    componentDir: projectPath,
+                    marketplaceItem: params.marketplaceItem,
+                    name: params.importInternalConnectionParams.connection.name,
+                    visibility: visibility,
+                });
+
+                const securityType = params.importInternalConnectionParams?.connection?.schemaName?.toLowerCase()?.includes("oauth")
+                    ? "oauth"
+                    : "apikey";
+                const configurations = params.importInternalConnectionParams?.connection?.configurations;
+
+                const resp = await initializeDevantConnection({
+                    platformExt,
+                    name: params.importInternalConnectionParams.connection.name,
+                    marketplaceItem: params.marketplaceItem,
+                    visibility,
+                    configurations,
+                    securityType,
+                });
+
+                return resp;
+            }
             if (
                 [
                     DevantConnectionFlow.CREATE_INTERNAL_OAS,
@@ -796,10 +801,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
                     return resp;
                 } else {
-                    await this.replaceTempConfigValues(
-                        createdConnection,
-                        params.createInternalConnectionParams?.devantTempConfigs,
-                    );
+                    await this.replaceDevantTempConfigValues({ createdConnection, configs: params.createInternalConnectionParams?.devantTempConfigs, });
                     return {};
                 }
             }
@@ -839,10 +841,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     endpointRefs: params?.marketplaceItem?.endpointRefs,
                     sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
                 });
-                await this.replaceTempConfigValues(
-                    createdConnection,
-                    params.importThirdPartyConnectionParams?.devantTempConfigs,
-                );
+                await this.replaceDevantTempConfigValues({ createdConnection, configs: params.importThirdPartyConnectionParams?.devantTempConfigs, });
 
                 await platformExt?.createConnectionConfig({
                     componentDir: projectPath,
@@ -892,29 +891,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 openApiContractPath: filePath,
                 projectPath,
             });
-
-            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
-
-            const updatedToml: Partial<PackageTomlValues> = {
-                ...tomlValues,
-                tool: {
-                    ...tomlValues?.tool,
-                    openapi: tomlValues.tool?.openapi?.map((item) => {
-                        if (item.id === moduleName) {
-                            return {
-                                ...item,
-                                remoteId: params?.connectionName,
-                                filePath: `.choreo/${moduleName}-spec.yaml`,
-                            };
-                        }
-                        return item;
-                    }),
-                },
-            };
-
-            const balTomlPath = path.join(projectPath, "Ballerina.toml");
-            const updatedTomlContent = toml.stringify(JSON.parse(JSON.stringify(updatedToml)));
-            fs.writeFileSync(balTomlPath, updatedTomlContent, "utf-8");
 
             const connectors = await diagram.search({
                 filePath: StateMachine.context().documentUri,
@@ -1014,6 +990,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    // todo: break this down into  separate functions
     async registerAndCreateDevantComponentConnection(
         params: RegisterAndCreateDevantConnectionReq,
     ): Promise<CreateDevantConnectionResp> {
@@ -1086,19 +1063,9 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
             const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id;
 
-            const allConnections = platformExtStore.getState().state?.devantConns?.list || [];
-            const existingNames = new Set(allConnections.map((c) => c?.name ?? ""));
-            let baseName = (params.name ?? "").trim() || "connection";
-            let uniqueName = baseName;
-            let counter = 1;
-            while (existingNames.has(uniqueName)) {
-                uniqueName = `${baseName}-${counter}`;
-                counter++;
-            }
-
             const createdConnection = await platformExt?.createThirdPartyConnection({
                 componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                name: uniqueName,
+                name: params.name,
                 orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
                 orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
                 projectId: platformExtStore.getState().state?.selectedContext?.project.id,
@@ -1110,7 +1077,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     .map((item) => item.name),
             });
 
-            await this.replaceTempConfigValues(createdConnection, params.configs);
+            await this.replaceDevantTempConfigValues({ createdConnection, configs: params.configs });
 
             await platformExt?.createConnectionConfig({
                 componentDir: projectPath,
@@ -1129,19 +1096,19 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    async replaceTempConfigValues(createdConnection: ConnectionDetailed, configs: DevantTempConfig[]): Promise<void> {
+    async replaceDevantTempConfigValues(params: ReplaceDevantTempConfigValuesReq): Promise<void> {
         const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
             documentIdentifier: { uri: getConfigFileUri().toString() },
         })) as SyntaxTree;
 
-        const envIds = Object.keys(createdConnection.configurations || {});
-        const firstEnvConfig = envIds.length > 0 ? createdConnection.configurations[envIds[0]] : undefined;
+        const envIds = Object.keys(params.createdConnection.configurations || {});
+        const firstEnvConfig = envIds.length > 0 ? params.createdConnection.configurations[envIds[0]] : undefined;
         const connectionKeys = firstEnvConfig?.entries ?? {};
 
         let hasUpdatedConfig = false;
         const configBalEdits = new WorkspaceEdit();
 
-        for (const config of configs) {
+        for (const config of params.configs) {
             const matchingConfigEntry = Object.values(connectionKeys).find((item) => item.key === config.id);
             if (
                 matchingConfigEntry &&
@@ -1187,13 +1154,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
     async refreshConnectionList(): Promise<void> {
         try {
             platformExtStore.getState().setConnectionState({ loading: true });
-            const tomlValues = await new CommonRpcManager().getCurrentProjectTomlValues();
             const connections = await this.getAllConnections();
-            const connectionsUsed = connections.map((connItem) => ({
-                ...connItem,
-                isUsed: tomlValues?.tool?.openapi?.some((apiItem) => apiItem.remoteId === connItem.name),
-            }));
-            platformExtStore.getState().setConnectionState({ list: connectionsUsed, loading: false });
+            platformExtStore.getState().setConnectionState({ list: connections, loading: false });
 
             // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant
             /*

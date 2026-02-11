@@ -143,44 +143,18 @@ function convertDiagramCategoryToSidePanelCategory(category: Category, functionT
 
 /** Map devant connection details with BI connection and to figure out which Devant connection are not used */
 export function enrichCategoryWithDevant(
-    isLoggedIn: boolean,
-    selected: ContextItemEnriched,
-    tomlValues: Partial<PackageTomlValues>,
     connections: ConnectionListItem[] = [],
     panelCategories: PanelCategory[] = [],
     importingConn?: ConnectionListItem
 ): PanelCategory[] {
     const updated = panelCategories?.map((category) => {
-        if (category.title === "Connections" && tomlValues) {
+        if (category.title === "Connections") {
             const usedConnIds: string[] = [];
             const mappedCategoryItems = category.items?.map((categoryItem) => {
-                const matchingConn = tomlValues?.tool?.openapi?.find((openapiItem: any) => {
-                    return (categoryItem as PanelCategory)?.items?.some(
-                        (item) =>
-                            (item as Node)?.metadata?.codedata?.module ===
-                            `${tomlValues?.package?.name}.${openapiItem?.targetModule}`
-                    );
-                });
-                if (matchingConn?.remoteId) {
-                    if (!isLoggedIn) {
-                        return { ...categoryItem, tooltip: { icon: "info", text: "You are logged out of Devant" }};
-                    }
-                    if (!selected?.project) {
-                        return { ...categoryItem, tooltip: { icon: "info", text: "This directory is not associated with a Devant Project" }};
-                    }
-                    const matchingDevantConn = connections?.find(
-                        (conn) => conn.name === matchingConn?.remoteId
-                    );
-                    if (matchingDevantConn) {
-                        usedConnIds.push(matchingDevantConn.groupUuid);
-                        return {
-                            ...categoryItem,
-                            devant: matchingDevantConn,
-                            unusedDevantConn: false,
-                        };
-                    }  else {
-                        return { ...categoryItem, tooltip: { icon: "warning", text: "This connection does not exist in Devant", color: VSCodeColors.ERROR }};
-                    }
+                const matchingDevantConn = connections.find((conn) => conn.name?.replaceAll("-", "_").replaceAll(" ", "_") === (categoryItem as PanelCategory)?.title)
+                if(matchingDevantConn) {
+                    usedConnIds.push(matchingDevantConn.groupUuid);
+                    return { ...categoryItem, devant: matchingDevantConn, unusedDevantConn: false }
                 }
                 return categoryItem;
             });

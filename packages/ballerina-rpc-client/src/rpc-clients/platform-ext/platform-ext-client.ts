@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, createDevantComponentConnectionV2, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv } from "@wso2/ballerina-core";
+import { PlatformExtAPI, getMarketplaceItems, getMarketplaceItem, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, createDevantComponentConnectionV2, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv, createConnectionConfig, replaceDevantTempConfigValues } from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
-import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq } from "@wso2/wso2-platform-core"
-import { AddDevantTempConfigReq, AddDevantTempConfigResp, CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { ContextItemEnriched, GetMarketplaceListReq,MarketplaceListResp, ComponentKind, GetMarketplaceIdlReq, MarketplaceIdlResp, ConnectionListItem, GetConnectionsReq, DeleteLocalConnectionsConfigReq, GetMarketplaceItemReq, MarketplaceItem, GetConnectionItemReq, ConnectionDetailed, RegisterMarketplaceConnectionReq, CreateLocalConnectionsConfigReq } from "@wso2/wso2-platform-core"
+import { AddDevantTempConfigReq, AddDevantTempConfigResp, CreateDevantConnectionResp, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, GenerateCustomConnectorFromOASResp, ImportDevantConnectionReq, ImportDevantConnectionResp, PlatformExtState, RegisterAndCreateDevantConnectionReq, ReplaceDevantTempConfigValuesReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export class PlatformExtRpcClient implements PlatformExtAPI {
     private _messenger: Messenger;
@@ -61,6 +61,10 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
         return this._messenger.sendRequest(registerAndCreateDevantComponentConnection, HOST_EXTENSION, params);
     }
 
+    replaceDevantTempConfigValues(params: ReplaceDevantTempConfigValuesReq): Promise<void> {
+        return this._messenger.sendRequest(replaceDevantTempConfigValues, HOST_EXTENSION, params);
+    }
+
     addDevantTempConfig(params: AddDevantTempConfigReq): Promise<AddDevantTempConfigResp> {
         return this._messenger.sendRequest(addDevantTempConfig, HOST_EXTENSION, params);
     }
@@ -87,6 +91,10 @@ export class PlatformExtRpcClient implements PlatformExtAPI {
 
     getDevantConsoleUrl(): Promise<string> {
         return this._messenger.sendRequest(getDevantConsoleUrl, HOST_EXTENSION, undefined);
+    }
+
+    createConnectionConfig(params: CreateLocalConnectionsConfigReq): Promise<string> {
+        return this._messenger.sendRequest(createConnectionConfig, HOST_EXTENSION, params);
     }
 
     onPlatformExtStoreStateChange(callback: (state: PlatformExtState) => void) {

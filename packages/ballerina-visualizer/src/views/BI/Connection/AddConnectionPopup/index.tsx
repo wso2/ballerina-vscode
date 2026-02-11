@@ -61,7 +61,6 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 function AddBIConnectionPopup(props: AddConnectionPopupProps) {
     const { projectPath, fileName, target, onClose, onNavigateToOverview, isPopup } = props;
     const { rpcClient } = useRpcContext();
-    const { initConnector: initDevantConnector } = usePlatformExtContext();
     const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | null>(null);
     const [selectedConnector, setSelectedConnector] = useState<AvailableNode | null>(null);
     const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
@@ -115,14 +114,6 @@ function AddBIConnectionPopup(props: AddConnectionPopupProps) {
         }   
     };
 
-    useEffect(() => {
-        if(initDevantConnector?.connector) {
-            // todo: have a separate wizard for importing devant 3rd party connectors
-            setWizardStep("connector");
-            handleSelectConnector(initDevantConnector.connector);
-            initDevantConnector?.setConnector(null);
-        }
-    },[initDevantConnector])
 
     // Show configuration form when connector is selected
     if (wizardStep === "connector" && selectedConnector) {

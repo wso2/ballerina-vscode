@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { type MarketplaceItem } from "@wso2/wso2-platform-core";
-import React, { type FC } from "react";
+import { ConnectionListItem, type MarketplaceItem } from "@wso2/wso2-platform-core";
+import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
 import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
@@ -26,6 +26,7 @@ import { DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
 
 interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> {
+    importedConnection?: ConnectionListItem;
     selectedMarketplaceItem: MarketplaceItem;
     selectedFlow: DevantConnectionFlow;
     devantConfigs: DevantTempConfig[];
@@ -33,20 +34,58 @@ interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> 
     onAddDevantConfig: (name: string, value: string, isSecret: boolean) => Promise<void>;
     IDLFilePath?: string;
     biConnectionNames: string[];
+    onFlowChange: (flow: DevantConnectionFlow | null) => void;
+    projectPath: string;
 }
 
 export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
-    const { selectedMarketplaceItem, selectedFlow, devantConfigs, onAddDevantConfig, IDLFilePath, biConnectionNames, onClose, resetDevantConfigs } = props;
+    const { selectedMarketplaceItem, selectedFlow, devantConfigs, onAddDevantConfig, IDLFilePath, biConnectionNames, onClose, resetDevantConfigs, onFlowChange, importedConnection, projectPath } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
     let initialNameCandidate = selectedMarketplaceItem?.name?.replaceAll(" ", "_")?.replaceAll("-","_") || "my_connection";
     if ([ DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS].includes(selectedFlow) ){
         initialNameCandidate = `${props.selectedConnector?.codedata?.module}Connection`
     }
+    if(importedConnection){
+        initialNameCandidate = importedConnection?.name?.replaceAll(" ", "_")?.replaceAll("-","_") || "my_connection";
+    }
+
+    useEffect(() => {
+        if (selectedMarketplaceItem && !props.selectedConnector) {
+            if(importedConnection){
+                onFlowChange(
+                    selectedMarketplaceItem.isThirdParty
+                        ? DevantConnectionFlow.IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR
+                        : DevantConnectionFlow.IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
+                );
+            }else{
+                onFlowChange(
+                    selectedMarketplaceItem.isThirdParty
+                        ? DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR
+                        : DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
+                );
+            }
+        }
+    }, [props.selectedConnector]);
 
     const { mutate: createDevantInternalConnNonOAS, isPending: isCreating } = useMutation({
-        mutationFn: ({ recentIdentifier }: { recentIdentifier: string }) => {
-            if (devantConfigs?.length > 0) {
+        mutationFn: async ({ recentIdentifier }: { recentIdentifier: string }) => {
+            if(importedConnection){
+                const connectionDetailed = await platformRpcClient.getConnection({
+                    connectionGroupId: importedConnection.groupUuid,
+                    orgId: platformExtState?.selectedContext?.org?.id?.toString()
+                })
+                await platformRpcClient.replaceDevantTempConfigValues({
+                    configs: devantConfigs,
+                    createdConnection: connectionDetailed,
+                })
+                await platformRpcClient.createConnectionConfig({
+                    marketplaceItem: selectedMarketplaceItem,
+                    name: importedConnection.name,
+                    visibility: "PUBLIC",
+                    componentDir: projectPath
+                })
+            } else if (devantConfigs?.length > 0) {
                 if (
                     [
                         DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
@@ -90,6 +129,10 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
         },
     });
 
+    if(!props.selectedConnector){
+        return null;
+    }
+
     return (
         <ConnectionConfigurationForm
             {...props}
@@ -119,11 +162,14 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             }}
             overrideFlowNode={(node) => {
                 if(node.properties.variable){
-                    node.properties.variable.value = generateInitialConnectionName(
+                    node.properties.variable.value = importedConnection ? initialNameCandidate : generateInitialConnectionName(
                         biConnectionNames,
                         platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
                         initialNameCandidate
                     )
+                    if(importedConnection){
+                        node.properties.variable.editable = false;
+                    }
                 }
                 return node
             }}

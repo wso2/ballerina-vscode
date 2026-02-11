@@ -179,7 +179,11 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
 
     useEffect(() => {
         form.reset({
-            name: marketplaceItem?.name,
+            name: generateInitialConnectionName(
+                biConnectionNames,
+                platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                marketplaceItem?.name || ""
+            ),
             visibility: getInitialVisibility(marketplaceItem, visibilities),
             schemaId: "",
             isProjectLevel: false,
@@ -192,7 +196,6 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                 flow: devantFlow,
                 marketplaceItem: marketplaceItem,
                 createInternalConnectionParams: {
-                    // todo: need to check if name doesn't exist in ballerina
                     name: data.name,
                     schemaId: data.schemaId,
                     visibility: data.visibility,

@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionListItem, ContextItemEnriched, Environment, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes, UserInfo } from "@wso2/wso2-platform-core";
+import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, Environment, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes, UserInfo } from "@wso2/wso2-platform-core";
 import { AvailableNode, NodePosition } from "../../interfaces/bi";
 import { ModuleVarDecl } from "@wso2/syntax-tree/lib/syntax-tree-interfaces";
 
@@ -39,11 +39,15 @@ export interface CreateDevantConnectionV2Req {
         isProjectLevel?: boolean;
         devantTempConfigs?: DevantTempConfig[];
     }
+    // todo: rename as createThirdPartyConnectionParams
     importThirdPartyConnectionParams?: {
         name: string;
         schemaId: string;
         isProjectLevel?: boolean;
         devantTempConfigs?: DevantTempConfig[];
+    }
+    importInternalConnectionParams?: {
+        connection: ConnectionDetailed;
     }
     marketplaceItem: MarketplaceItem;
 }
@@ -73,6 +77,11 @@ export interface DeleteDevantTempConfigReq {
     nodes: ModuleVarDecl[];
 }
 
+export interface ReplaceDevantTempConfigValuesReq {
+    createdConnection: ConnectionDetailed;
+    configs: DevantTempConfig[];
+}
+
 export interface CreateDevantConnectionResp {
     connectionName?: string;
     connectionNode?: AvailableNode;
@@ -83,13 +92,9 @@ export interface ImportDevantConnectionResp {
     connectionNode?: AvailableNode;
 }
 
-export interface BiDevantConnectionListItem extends ConnectionListItem {
-    isUsed?: boolean;
-}
-
 export interface PlatformExtConnectionState {
     loading?: boolean;
-    list?: BiDevantConnectionListItem[];
+    list?: ConnectionListItem[];
     connectedToDevant?: boolean;
 }
 
@@ -107,6 +112,7 @@ export interface PlatformExtState {
 }
 
 export enum DevantConnectionFlow {
+    // Create related flows
     CREATE_INTERNAL_OAS = 'CREATE_INTERNAL_OAS',
     CREATE_INTERNAL_OTHER = 'CREATE_INTERNAL_OTHER',
     CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR = 'CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR',
@@ -115,6 +121,13 @@ export enum DevantConnectionFlow {
     CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = 'CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR',
     REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR = 'REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR',
     REGISTER_CREATE_THIRD_PARTY_FROM_OAS = 'REGISTER_CREATE_THIRD_PARTY_FROM_OAS',
+    // Import related flows
+    IMPORT_INTERNAL_OAS = 'IMPORT_INTERNAL_OAS',
+    IMPORT_INTERNAL_OTHER = 'IMPORT_INTERNAL_OTHER',
+    IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR = 'IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR',
+    IMPORT_THIRD_PARTY_OAS = 'IMPORT_THIRD_PARTY_OAS',
+    IMPORT_THIRD_PARTY_OTHER = 'IMPORT_THIRD_PARTY_OTHER',
+    IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR = 'IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR',
 }
 
 export interface DevantTempConfig {
