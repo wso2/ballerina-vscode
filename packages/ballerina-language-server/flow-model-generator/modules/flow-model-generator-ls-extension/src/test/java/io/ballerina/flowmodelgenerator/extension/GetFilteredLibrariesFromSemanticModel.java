@@ -131,7 +131,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
             for (JsonElement clientElement : clients) {
                 JsonObject client = clientElement.getAsJsonObject();
                 if (client.has("functions")) {
-                    if (!verifyLinksInFunctions(client.getAsJsonArray("functions"))) {
+                    if (verifyLinksInFunctions(client.getAsJsonArray("functions"))) {
                         return false;
                     }
                 }
@@ -140,7 +140,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
 
         // Verify links in functions
         if (library.has("functions")) {
-            if (!verifyLinksInFunctions(library.getAsJsonArray("functions"))) {
+            if (verifyLinksInFunctions(library.getAsJsonArray("functions"))) {
                 return false;
             }
         }
@@ -162,7 +162,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
                     if (field.has("type")) {
                         JsonObject typeObj = field.getAsJsonObject("type");
                         if (typeObj.has("links")) {
-                            if (!verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
+                            if (verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
                                 return false;
                             }
                         }
@@ -188,8 +188,8 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
                     if (param.has("type")) {
                         JsonObject typeObj = param.getAsJsonObject("type");
                         if (typeObj.has("links")) {
-                            if (!verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
-                                return false;
+                            if (verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
+                                return true;
                             }
                         }
                     }
@@ -202,14 +202,14 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
                 if (returnObj.has("type")) {
                     JsonObject typeObj = returnObj.getAsJsonObject("type");
                     if (typeObj.has("links")) {
-                        if (!verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
-                            return false;
+                        if (verifyLinkStructure(typeObj.getAsJsonArray("links"))) {
+                            return true;
                         }
                     }
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**
@@ -223,7 +223,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
 
             if (!link.has("category")) {
                 log.info("Link missing 'category' field");
-                return false;
+                return true;
             }
 
             String category = link.get("category").getAsString();
@@ -231,24 +231,24 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
             if ("internal".equals(category)) {
                 if (!link.has("recordName")) {
                     log.info("Internal link missing 'recordName' field");
-                    return false;
+                    return true;
                 }
                 if (link.has("libraryName")) {
                     log.info("Internal link should NOT have 'libraryName' field");
-                    return false;
+                    return true;
                 }
             } else if ("external".equals(category)) {
                 if (!link.has("recordName")) {
                     log.info("External link missing 'recordName' field");
-                    return false;
+                    return true;
                 }
                 if (!link.has("libraryName")) {
                     log.info("External link missing 'libraryName' field");
-                    return false;
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     /**
@@ -486,9 +486,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
 
         // Check in functions
         if (library.has("functions")) {
-            if (hasValidExternalLinksInFunctions(library.getAsJsonArray("functions"))) {
-                return true;
-            }
+            return hasValidExternalLinksInFunctions(library.getAsJsonArray("functions"));
         }
 
         return false;

@@ -49,7 +49,6 @@ import org.eclipse.lsp4j.MessageType;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Collections;
@@ -79,10 +78,11 @@ public class PackageUtil {
         // Obtain the Ballerina distribution path
         String ballerinaHome = System.getProperty(BALLERINA_HOME_PROPERTY);
         if (ballerinaHome == null || ballerinaHome.isEmpty()) {
-            Path currentPath = getPath(Paths.get(
-                    PackageUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath()));
-            Path distributionPath = getParentPath(getParentPath(getParentPath(currentPath)));
-            System.setProperty(BALLERINA_HOME_PROPERTY, distributionPath.toString());
+//            Path currentPath = getPath(Paths.get(
+//                    PackageUtil.class.getProtectionDomain().getCodeSource().getLocation().getPath()));
+//            Path distributionPath = getParentPath(getParentPath(getParentPath(currentPath)));
+            System.setProperty(BALLERINA_HOME_PROPERTY,
+                    "/Users/vinoth/.ballerina/ballerina-home/distributions/ballerina-2201.13.1");
         }
 
         try {
@@ -210,13 +210,13 @@ public class PackageUtil {
                 .orElse(false);
     }
 
-    private static Path getPath(Path path) {
-        return Objects.requireNonNull(path, "Path cannot be null");
-    }
-
-    private static Path getParentPath(Path path) {
-        return Objects.requireNonNull(path, "Path cannot be null").getParent();
-    }
+//    private static Path getPath(Path path) {
+//        return Objects.requireNonNull(path, "Path cannot be null");
+//    }
+//
+//    private static Path getParentPath(Path path) {
+//        return Objects.requireNonNull(path, "Path cannot be null").getParent();
+//    }
 
     /**
      * Load the project from the given file path.

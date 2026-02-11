@@ -79,7 +79,7 @@ public class CopilotInstructionAugmentationTest extends AbstractLSTest {
 
     private JsonObject fetchLibrary(String libraryName) {
         GetSelectedLibrariesRequest request = new GetSelectedLibrariesRequest(
-                new String[]{libraryName}, "CORE");
+                new String[]{libraryName});
         JsonElement response;
         try {
             response = getResponse(request);
