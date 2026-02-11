@@ -341,7 +341,18 @@ export async function getMaximizedSelectedLibs(libNames: string[]): Promise<Libr
     const result = (await langClient.getCopilotFilteredLibraries({
         libNames: libNames
     })) as { libraries: Library[] };
-    return result.libraries as Library[];
+    const normalizedLibraries: Library[] = result.libraries.map(lib => {
+            return {
+                name: lib.name,
+                description: lib.description,
+                clients: lib.clients ? lib.clients : [],
+                functions: lib.functions ? lib.functions : [],
+                typeDefs: lib.typeDefs ? lib.typeDefs : [],
+                services: lib.services ? lib.services : [],
+            };
+        });
+
+    return normalizedLibraries;
 }
 
 export async function toMaximizedLibrariesFromLibJson(
