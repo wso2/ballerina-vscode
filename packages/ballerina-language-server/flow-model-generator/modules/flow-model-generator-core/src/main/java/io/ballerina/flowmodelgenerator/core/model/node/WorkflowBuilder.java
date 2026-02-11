@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
+
 /**
  * Represents the properties of a workflow process function definition node.
  *
@@ -48,7 +51,10 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.WORKFLOW);
+        codedata()
+                .node(NodeKind.WORKFLOW)
+                .org(WORKFLOW_ORG)
+                .module(WORKFLOW_MODULE);
     }
 
     @Override
@@ -92,8 +98,8 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
             sourceBuilder.token().descriptionDoc(description);
         }
 
-        // Add @workflow:Process annotation
-        sourceBuilder.token().name("@workflow:Process");
+        // Add @workflow:Process annotation with newline
+        sourceBuilder.token().name("@workflow:Process").name(System.lineSeparator());;
 
         // Function keyword
         sourceBuilder.token().keyword(SyntaxKind.FUNCTION_KEYWORD);

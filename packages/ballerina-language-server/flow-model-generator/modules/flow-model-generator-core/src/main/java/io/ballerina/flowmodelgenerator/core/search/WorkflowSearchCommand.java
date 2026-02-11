@@ -104,9 +104,9 @@ class WorkflowSearchCommand extends SearchCommand {
                                 .flatMap(doc -> doc.description())
                                 .orElse("Workflow process function");
 
-                        // Build the codedata with WORKFLOW_CALL node kind
+                        // Build the codedata with WORKFLOW_START node kind
                         Codedata codedata = new Codedata.Builder<>(null)
-                                .node(NodeKind.WORKFLOW_CALL)
+                                .node(NodeKind.WORKFLOW_START)
                                 .org(orgName)
                                 .module(moduleName)
                                 .symbol(funcName)

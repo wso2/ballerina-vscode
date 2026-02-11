@@ -98,7 +98,7 @@ public class Constants {
         private Workflow() {
         }
 
-        public static final String BALLERINA_ORG = "ballerina";
+        public static final String WORKFLOW_ORG = "ballerina";
         public static final String WORKFLOW_MODULE = "workflow";
         public static final String CONTEXT_TYPE_NAME = "Context";
         public static final String CREATE_INSTANCE_METHOD_NAME = "createInstance";

@@ -12,6 +12,8 @@
     },
     "codedata": {
       "node": "WORKFLOW",
+      "org": "ballerina",
+      "module": "workflow",
       "isNew": true
     },
     "returning": false,

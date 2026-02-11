@@ -8,7 +8,9 @@
     },
     "codedata": {
       "isNew": true,
-      "node": "WORKFLOW"
+      "node": "WORKFLOW",
+      "org": "ballerina",
+      "module": "workflow"
     },
     "returning": false,
     "properties": {
@@ -82,28 +84,28 @@
       {
         "range": {
           "start": {
-            "line": 1,
+            "line": 0,
             "character": 0
           },
           "end": {
-            "line": 1,
+            "line": 0,
             "character": 0
           }
         },
-        "newText": "\nimport ballerina/workflow;"
+        "newText": "import ballerina/workflow;"
       },
       {
         "range": {
           "start": {
-            "line": 4,
-            "character": 1
+            "line": 0,
+            "character": 0
           },
           "end": {
-            "line": 4,
-            "character": 1
+            "line": 0,
+            "character": 0
           }
         },
-        "newText": "\n# Workflow that calls activities\n# \n# + return - Result of the workflow\n@workflow:Process\nfunction processWithActivity(workflow:Context ctx, record {| string id; string name; |} input) returns string|error {\n}\n"
+        "newText": "# Workflow that calls activities\n@workflow:Process\nfunction processWithActivity(workflow:Context ctx, record {|string id; string name;|} input) returns string|error {\n}"
       }
     ]
   }
