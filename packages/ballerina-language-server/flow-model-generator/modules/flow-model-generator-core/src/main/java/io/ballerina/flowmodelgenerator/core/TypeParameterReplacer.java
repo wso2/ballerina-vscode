@@ -22,6 +22,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Utility class to replace generic lang type parameters with their super types.
@@ -65,6 +66,12 @@ public class TypeParameterReplacer {
         // lang.value type parameter replacements
         TYPE_PARAMETER_REPLACEMENTS.put("value:AnydataType", "anydata");
         TYPE_PARAMETER_REPLACEMENTS.put("value:Type", "(any|error)");
+    }
+
+    public static List<String> getSortedPlaceholderValues() {
+        return Set.copyOf(TYPE_PARAMETER_REPLACEMENTS.values()).stream()
+                .sorted(Comparator.comparingInt(String::length).reversed())
+                .toList();
     }
 
     /**

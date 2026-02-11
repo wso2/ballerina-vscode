@@ -19,15 +19,26 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ArrayTypeSymbol;
+import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
+import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
+import io.ballerina.compiler.api.symbols.TypeSymbol;
+import io.ballerina.compiler.api.symbols.VariableSymbol;
 import io.ballerina.flowmodelgenerator.core.AiUtils;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
+import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
 import io.ballerina.flowmodelgenerator.core.utils.ParamUtils;
+import io.ballerina.projects.Document;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
@@ -42,6 +53,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -248,6 +262,121 @@ public abstract class CallBuilder extends NodeBuilder {
                 .hidden()
                 .stepOut()
                 .addProperty(Property.CONNECTION_KEY);
+    }
+
+    private static boolean isLangLibFunction(Codedata codedata) {
+        return codedata != null
+                && CommonUtil.BALLERINA_ORG_NAME.equals(codedata.org())
+                && codedata.module() != null
+                && codedata.module().startsWith("lang.");
+    }
+
+    protected static String resolveLangLibReturnType(WorkspaceManager workspaceManager, Path filePath,
+                                                     FlowNode flowNode) {
+        if (!isLangLibFunction(flowNode.codedata())) {
+            return null;
+        }
+
+        Optional<Property> typeProperty = flowNode.getProperty(Property.TYPE_KEY);
+        if (typeProperty.isEmpty()) {
+            return null;
+        }
+
+        String typeName = typeProperty.get().value().toString();
+
+        // Find the first (longest) placeholder present in the return type
+        String matchedPlaceholder = null;
+        for (String placeholder : TypeParameterReplacer.getSortedPlaceholderValues()) {
+            if (typeName.contains(placeholder)) {
+                matchedPlaceholder = placeholder;
+                break;
+            }
+        }
+        if (matchedPlaceholder == null) {
+            return null;
+        }
+
+        // Find a REQUIRED parameter whose ballerinaType template matches the placeholder structure
+        Map<String, Property> properties = flowNode.properties();
+        if (properties == null) {
+            return null;
+        }
+
+        final String placeholder = matchedPlaceholder;
+        for (Property prop : properties.values()) {
+            if (prop.codedata() == null || prop.codedata().kind() == null) {
+                continue;
+            }
+            if (!prop.codedata().kind().equals(ParameterData.Kind.REQUIRED.name())) {
+                continue;
+            }
+            if (prop.value() == null || prop.value().toString().isBlank()) {
+                continue;
+            }
+            if (prop.types() == null) {
+                continue;
+            }
+
+            for (PropertyType pt : prop.types()) {
+                String template = pt.ballerinaType();
+                if (template == null) {
+                    continue;
+                }
+                String varName = prop.value().toString().trim();
+                String resolved = resolveConcreteType(workspaceManager, filePath, flowNode,
+                        varName, template, placeholder);
+                if (resolved != null) {
+                    return typeName.replace(placeholder, resolved);
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String resolveConcreteType(WorkspaceManager workspaceManager, Path filePath,
+                                              FlowNode flowNode, String varName,
+                                              String template, String placeholder) {
+        try {
+            workspaceManager.loadProject(filePath);
+            SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+            Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+
+            LinePosition position = flowNode.codedata().lineRange().startLine();
+
+            List<Symbol> visibleSymbols = semanticModel.visibleSymbols(document, position);
+            Optional<Symbol> matchingSymbol = visibleSymbols.stream()
+                    .filter(s -> s.getName().map(name -> name.equals(varName)).orElse(false))
+                    .findFirst();
+
+            if (matchingSymbol.isEmpty() || !(matchingSymbol.get() instanceof VariableSymbol variableSymbol)) {
+                return null;
+            }
+
+            TypeSymbol typeSymbol = variableSymbol.typeDescriptor();
+            if (typeSymbol.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                typeSymbol = ((TypeReferenceTypeSymbol) typeSymbol).typeDescriptor();
+            }
+
+            ModuleInfo moduleInfo = ModuleInfo.from(document.module().descriptor());
+
+            // Case 1: template IS the placeholder — use the actual type directly
+            if (template.equals(placeholder)) {
+                return CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo);
+            }
+
+            // Case 2: template is placeholder + [] — extract the array element type
+            if (template.equals(placeholder + "[]")) {
+                if (typeSymbol.typeKind() != TypeDescKind.ARRAY) {
+                    return null;
+                }
+                TypeSymbol elementType = ((ArrayTypeSymbol) typeSymbol).memberTypeDescriptor();
+                return CommonUtils.getTypeSignature(semanticModel, elementType, true, moduleInfo);
+            }
+
+            return null;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     protected static boolean isLocalFunction(WorkspaceManager workspaceManager, Path filePath, Codedata codedata) {
