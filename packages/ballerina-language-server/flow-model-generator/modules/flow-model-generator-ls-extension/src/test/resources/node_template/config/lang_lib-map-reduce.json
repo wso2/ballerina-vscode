@@ -39,7 +39,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map<map:Type>",
+            "ballerinaType": "map<map<any|error>>",
             "selected": false
           }
         ],
@@ -61,7 +61,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "function (map:Type1 accum, map:Type val) returns map:Type1",
+            "ballerinaType": "function (map<any|error>1 accum, map<any|error> val) returns map<any|error>1",
             "selected": false
           }
         ],
@@ -83,7 +83,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "map:Type1",
+            "ballerinaType": "map<any|error>1",
             "selected": false
           }
         ],
@@ -108,7 +108,7 @@
             "selected": true
           }
         ],
-        "value": "map:Type1",
+        "value": "map<any|error>1",
         "placeholder": "var",
         "optional": false,
         "editable": false,

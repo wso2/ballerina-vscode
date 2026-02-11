@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
@@ -224,7 +225,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .codedata()
                     .stepOut()
                 .placeholder("var")
-                .value(typeName)
+                .value(TypeParameterReplacer.replaceTypeParameters(typeName))
                 .imports(importStatements)
                 .hidden(hidden)
                 .type()
@@ -244,7 +245,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.RETURN_TYPE_LABEL)
                     .description(Property.RETURN_TYPE_DOC)
                     .stepOut()
-                .value(value == null ? "" : value)
+                .value(TypeParameterReplacer.replaceTypeParameters(value == null ? "" : value))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .ballerinaType(typeConstraint)
