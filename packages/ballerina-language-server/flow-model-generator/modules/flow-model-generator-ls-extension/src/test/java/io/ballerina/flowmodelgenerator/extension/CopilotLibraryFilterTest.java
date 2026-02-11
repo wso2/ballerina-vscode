@@ -55,7 +55,7 @@ public class CopilotLibraryFilterTest extends AbstractLSTest {
 
         // Create request with library names to filter and mode
         GetSelectedLibrariesRequest request = new GetSelectedLibrariesRequest(
-                testConfig.libNames().toArray(new String[0]), testConfig.mode());
+                testConfig.libNames().toArray(new String[0]));
         JsonElement response = getResponse(request);
 
         JsonArray actualLibraries = response.getAsJsonObject().getAsJsonArray("libraries");

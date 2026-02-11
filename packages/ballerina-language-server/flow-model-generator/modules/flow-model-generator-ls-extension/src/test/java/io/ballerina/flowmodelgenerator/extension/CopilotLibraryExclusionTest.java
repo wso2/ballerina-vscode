@@ -18,10 +18,10 @@
 
 package io.ballerina.flowmodelgenerator.extension;
 
-import io.ballerina.flowmodelgenerator.core.CopilotLibraryManager;
-import io.ballerina.flowmodelgenerator.core.model.Client;
-import io.ballerina.flowmodelgenerator.core.model.Library;
-import io.ballerina.flowmodelgenerator.core.model.LibraryFunction;
+import io.ballerina.flowmodelgenerator.core.copilot.CopilotLibraryManager;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Client;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
+import io.ballerina.flowmodelgenerator.core.copilot.model.LibraryFunction;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

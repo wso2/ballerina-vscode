@@ -19,9 +19,11 @@
 package io.ballerina.flowmodelgenerator.extension;
 
 import com.google.gson.JsonArray;
-import io.ballerina.flowmodelgenerator.core.CopilotLibraryManager;
-import io.ballerina.flowmodelgenerator.core.model.Library;
-import io.ballerina.flowmodelgenerator.core.model.ModelToJsonConverter;
+import io.ballerina.flowmodelgenerator.core.copilot.CopilotLibraryManager;
+import io.ballerina.flowmodelgenerator.core.copilot.model.Library;
+import io.ballerina.flowmodelgenerator.core.copilot.model.ModelToJsonConverter;
+import io.ballerina.flowmodelgenerator.extension.request.GetAllLibrariesRequest;
+import io.ballerina.flowmodelgenerator.extension.request.GetLibrariesBySearchRequest;
 import io.ballerina.flowmodelgenerator.extension.request.GetSelectedLibrariesRequest;
 import io.ballerina.flowmodelgenerator.extension.response.GetAllLibrariesResponse;
 import org.ballerinalang.annotation.JavaSPIService;
@@ -36,14 +38,15 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Service for managing Copilot library operations.
- * Provides API endpoints for loading library information.
- * Works with POJOs internally and converts to JSON only at the API boundary.
+ * Provides streaming JSON processing for efficient memory usage.
  *
  * @since 1.0.1
  */
 @JavaSPIService("org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService")
 @JsonSegment("copilotLibraryManager")
 public class CopilotLibraryService implements ExtendedLanguageServerService {
+
+    private static final String MODE_ALL = "ALL";
 
     @Override
     public void init(LanguageServer langServer, WorkspaceManager workspaceManager) {
@@ -56,11 +59,12 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
     }
 
     @JsonRequest
-    public CompletableFuture<GetAllLibrariesResponse> getLibrariesList() {
+    public CompletableFuture<GetAllLibrariesResponse> getLibrariesList(GetAllLibrariesRequest request) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                String mode = request.mode() != null ? request.mode() : MODE_ALL;
                 CopilotLibraryManager manager = new CopilotLibraryManager();
-                List<Library> libraries = manager.loadLibrariesFromDatabase();
+                List<Library> libraries = manager.loadLibrariesFromDatabase(mode);
                 JsonArray librariesJson = ModelToJsonConverter.librariesToJson(libraries);
                 return createResponse(librariesJson);
             } catch (Exception e) {
@@ -83,6 +87,24 @@ public class CopilotLibraryService implements ExtendedLanguageServerService {
                 return createResponse(librariesJson);
             } catch (Exception e) {
                 throw new RuntimeException("Failed to load filtered libraries: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    @JsonRequest
+    public CompletableFuture<GetAllLibrariesResponse> getLibrariesBySearch(
+            GetLibrariesBySearchRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                if (request.keywords() == null || request.keywords().length == 0) {
+                    return createResponse(new JsonArray());
+                }
+                CopilotLibraryManager manager = new CopilotLibraryManager();
+                List<Library> libraries = manager.getLibrariesBySearch(request.keywords());
+                JsonArray librariesJson = ModelToJsonConverter.librariesToJson(libraries);
+                return createResponse(librariesJson);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to search libraries by keywords: " + e.getMessage(), e);
             }
         });
     }
