@@ -612,6 +612,12 @@
                 "enablement": "isSupportedProject"
             },
             {
+                "command": "BI.test.delete.function",
+                "title": "Delete test function",
+                "icon": "$(trash)",
+                "category": "BI"
+            },
+            {
                 "command": "BI.view.typeDiagram",
                 "title": "Type Diagram",
                 "category": "BI"
@@ -830,6 +836,11 @@
                     "command": "BI.test.edit.function",
                     "group": "inline",
                     "when": "testId not in testGroups"
+                },
+                {
+                    "command": "BI.test.delete.function",
+                    "group": "inline",
+                    "when": "testId not in testGroups"
                 }
             ],
             "view/title": [
@@ -979,6 +990,10 @@
                 },
                 {
                     "command": "BI.test.edit.function",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.test.delete.function",
                     "when": "false"
                 },
                 {
