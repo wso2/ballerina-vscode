@@ -59,13 +59,14 @@ interface ListenerConfigFormProps {
     onChange?: (data: ListenerModel) => void;
     onDirtyChange?: (isDirty: boolean) => void;
     onValidityChange?: (isValid: boolean) => void;
+    filePath?: string;
 }
 
 export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [listenerFields, setListenerFields] = useState<FormField[]>([]);
-    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange } = props;
+    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onDirtyChange, onValidityChange, filePath: targetFilePath } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -105,10 +106,14 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
             }, {} as Record<string, any>);
             onDirtyChange?.(false);
         }
-        rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
-            setFilePath(response.filePath);
-        });
-    }, [listenerModel]);
+        if (targetFilePath) {
+            setFilePath(targetFilePath);
+        } else {
+            rpcClient.getVisualizerRpcClient().joinProjectPath({ segments: ['main.bal'] }).then((response) => {
+                setFilePath(response.filePath);
+            });
+        }
+    }, [listenerModel, onDirtyChange, rpcClient, targetFilePath]);
 
     const handleListenerSubmit = async (data: FormValues, formImports: FormImports) => {
         listenerFields.forEach(val => {
