@@ -693,7 +693,7 @@ export function NodeList(props: NodeListProps) {
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
                                             shouldUseConnectionContainer(group.title) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[])
+                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(
