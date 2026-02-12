@@ -22,7 +22,12 @@ import io.ballerina.centralconnector.CentralAPI;
 import io.ballerina.centralconnector.RemoteCentral;
 import io.ballerina.centralconnector.response.SymbolResponse;
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.ClassSymbol;
+import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
+import io.ballerina.compiler.api.symbols.EnumSymbol;
+import io.ballerina.compiler.api.symbols.Qualifiable;
+import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.flowmodelgenerator.core.model.AvailableNode;
@@ -37,7 +42,10 @@ import io.ballerina.modelgenerator.commons.SearchResult;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.ModuleName;
 import io.ballerina.projects.Package;
+import io.ballerina.projects.PackageName;
 import io.ballerina.projects.Project;
+import io.ballerina.projects.directory.BuildProject;
+import io.ballerina.projects.directory.WorkspaceProject;
 import io.ballerina.tools.text.LineRange;
 
 import java.util.ArrayList;
@@ -47,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Represents a command to search for types within a module. This class extends SearchCommand and provides functionality
@@ -90,6 +99,7 @@ class TypeSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> defaultView() {
+        buildWorkspaceNodes();
         List<SearchResult> searchResults = new ArrayList<>();
         if (!moduleNames.isEmpty()) {
             searchResults.addAll(dbManager.searchTypesByPackages(moduleNames, limit, offset));
@@ -102,6 +112,7 @@ class TypeSearchCommand extends SearchCommand {
 
     @Override
     protected List<Item> search() {
+        buildWorkspaceNodes();
         List<SearchResult> typeSearchList = dbManager.searchTypes(query, limit, offset);
         buildLibraryNodes(typeSearchList);
         buildImportedLocalModules();
@@ -159,6 +170,103 @@ class TypeSearchCommand extends SearchCommand {
             buildLibraryNodes(organizationTypes);
         }
         return rootBuilder.build().items();
+    }
+
+    private List<Symbol> getTypes(Project project) {
+        Package currentPackage = project.currentPackage();
+        return PackageUtil.getCompilation(currentPackage)
+                .getSemanticModel(currentPackage.getDefaultModule().moduleId())
+                .moduleSymbols().stream()
+                .filter(symbol -> symbol instanceof TypeDefinitionSymbol || symbol instanceof ClassSymbol)
+                .toList();
+    }
+
+    private void buildWorkspaceNodes() {
+        Optional<WorkspaceProject> workspaceProject = project.workspaceProject();
+        if (workspaceProject.isEmpty()) {
+            Category.Builder projectBuilder = rootBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+            buildProjectNodes(project, projectBuilder);
+            return;
+        }
+
+        Category.Builder workspaceBuilder = rootBuilder.stepIn(Category.Name.CURRENT_WORKSPACE);
+
+        // Build current integration first to ensure it appears at the top
+        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+        buildProjectNodes(this.project, currIntProjBuilder);
+
+        List<BuildProject> projects = workspaceProject.get().projects();
+        for (BuildProject project : projects) {
+            PackageName packageName = project.currentPackage().packageName();
+            if (packageName.equals(this.project.currentPackage().packageName())) {
+                continue;
+            }
+
+            Category.Builder projectBuilder = workspaceBuilder.stepIn(packageName.value(), "", List.of());
+            buildProjectNodes(project, projectBuilder);
+        }
+    }
+
+    private void buildProjectNodes(Project project, Category.Builder projectBuilder) {
+        List<Symbol> types = getTypes(project);
+
+        boolean isCurrIntProject = this.project.currentPackage().packageName()
+                .equals(project.currentPackage().packageName());
+
+        List<Symbol> filteredTypes;
+        if (!isCurrIntProject) {
+            filteredTypes = types.stream()
+                    .filter(type -> type instanceof Qualifiable q
+                            && q.qualifiers().contains(Qualifier.PUBLIC))
+                    .toList();
+        } else {
+            filteredTypes = types;
+        }
+
+        List<ScoredType> scoredTypes = new ArrayList<>();
+        for (Symbol typeSymbol : filteredTypes) {
+            if (typeSymbol.getName().isEmpty()) {
+                continue;
+            }
+            String typeName = typeSymbol.getName().get();
+            String description = "";
+            if (typeSymbol instanceof Documentable documentable) {
+                Documentation documentation = documentable.documentation().orElse(null);
+                description = documentation != null ? documentation.description().orElse("") : "";
+            }
+
+            int score = RelevanceCalculator.calculateFuzzyRelevanceScore(typeName, description, query);
+            if (score > 0) {
+                scoredTypes.add(new ScoredType(typeSymbol, typeName, description, score));
+            }
+        }
+
+        scoredTypes.sort(Comparator.comparingInt(ScoredType::score).reversed());
+
+        String orgName = project.currentPackage().packageOrg().toString();
+        String packageName = project.currentPackage().packageName().toString();
+        String version = project.currentPackage().packageVersion().toString();
+
+        List<Item> availableNodes = new ArrayList<>();
+        for (ScoredType scoredType : scoredTypes) {
+            Metadata metadata = new Metadata.Builder<>(null)
+                    .label(scoredType.typeName())
+                    .description(scoredType.description())
+                    .build();
+
+            Codedata codedata = new Codedata.Builder<>(null)
+                    .node(NodeKind.TYPEDESC)
+                    .org(orgName)
+                    .module(packageName)
+                    .packageName(packageName)
+                    .symbol(scoredType.typeName())
+                    .version(version)
+                    .build();
+
+            availableNodes.add(new AvailableNode(metadata, codedata, true));
+        }
+
+        projectBuilder.items(availableNodes);
     }
 
     private void buildLibraryNodes(List<SearchResult> typeSearchList) {
@@ -220,39 +328,39 @@ class TypeSearchCommand extends SearchCommand {
             List<ScoredType> scoredTypes = new ArrayList<>();
 
             for (Symbol symbol : symbols) {
-                if (symbol instanceof TypeDefinitionSymbol typeDefinitionSymbol) {
-                    if (typeDefinitionSymbol.getName().isEmpty()) {
+                if (symbol instanceof TypeDefinitionSymbol || symbol instanceof ClassSymbol) {
+                    if (symbol.getName().isEmpty()) {
                         continue;
                     }
-                    String typeName = typeDefinitionSymbol.getName().get();
-                    Documentation documentation = typeDefinitionSymbol.documentation()
-                            .orElse(null);
-                    String description = documentation != null ? documentation.description().orElse("") : "";
-
+                    String typeName = symbol.getName().get();
+                    String description = "";
+                    Documentable documentable = (Documentable) symbol;
+                    Documentation documentation = documentable.documentation().orElse(null);
+                    description = documentation != null ? documentation.description().orElse("") : "";
 
                     // Calculate the relevance score, and filter out types with score 0 (no match)
                     int score = RelevanceCalculator.calculateFuzzyRelevanceScore(typeName, description, query);
                     if (score > 0) {
-                        scoredTypes.add(new ScoredType(typeDefinitionSymbol, typeName, description, score));
+                        scoredTypes.add(new ScoredType(symbol, typeName, description, score));
                     }
                 }
             }
 
             // Sort by score in descending order (highest score first)
-            scoredTypes.sort(Comparator.comparingInt(ScoredType::getScore).reversed());
+            scoredTypes.sort(Comparator.comparingInt(ScoredType::score).reversed());
 
             // Build nodes from sorted list
             for (ScoredType scoredType : scoredTypes) {
                 Metadata metadata = new Metadata.Builder<>(null)
-                        .label(scoredType.getTypeName())
-                        .description(scoredType.getDescription())
+                        .label(scoredType.typeName())
+                        .description(scoredType.description())
                         .build();
 
                 Codedata codedata = new Codedata.Builder<>(null)
                         .org(orgName)
                         .module(moduleName)
                         .packageName(packageName)
-                        .symbol(scoredType.getTypeName())
+                        .symbol(scoredType.typeName())
                         .version(version)
                         .build();
 
@@ -262,37 +370,10 @@ class TypeSearchCommand extends SearchCommand {
         }
     }
 
-    /**
-     * Helper class to store type symbols along with their relevance scores for ranking.
-     */
-    private static class ScoredType {
-        private final TypeDefinitionSymbol symbol;
-        private final String typeName;
-        private final String description;
-        private final int score;
-
-        ScoredType(TypeDefinitionSymbol symbol, String typeName, String description, int score) {
-            this.symbol = symbol;
-            this.typeName = typeName;
-            this.description = description;
-            this.score = score;
-        }
-
-        TypeDefinitionSymbol getSymbol() {
-            return symbol;
-        }
-
-        String getTypeName() {
-            return typeName;
-        }
-
-        String getDescription() {
-            return description;
-        }
-
-        int getScore() {
-            return score;
-        }
+        /**
+         * Helper record to store type definition and class symbols along with their relevance scores for ranking.
+         */
+        private record ScoredType(Symbol symbol, String typeName, String description, int score) {
     }
 
 
