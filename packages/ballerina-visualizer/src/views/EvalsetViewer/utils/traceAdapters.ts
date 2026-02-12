@@ -128,10 +128,7 @@ export const generateTraceId = (): string => {
  * Create a new empty trace
  */
 export const createNewTrace = (): EvalsetTrace => {
-    const nowMs = Date.now();
-    const seconds = Math.floor(nowMs / 1000);
-    const nanoseconds = (nowMs % 1000) * 1000000;
-    const timestamp: [number, number] = [seconds, nanoseconds];
+    const timestamp = new Date().toISOString();
 
     return {
         id: generateTraceId(),
