@@ -16,10 +16,10 @@
  * under the License.
  */
 
-import { useEffect, useState } from 'react';
-import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography } from '@wso2/ui-toolkit';
+import { useEffect, useMemo, useState } from 'react';
+import { ActionButtons, Divider, SidePanelBody, ProgressIndicator, Tooltip, CheckBoxGroup, CheckBox, Codicon, LinkButton, Dropdown, Typography, RadioButtonGroup, HeaderExpressionEditor } from '@wso2/ui-toolkit';
 import styled from '@emotion/styled';
-import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports } from '@wso2/ballerina-core';
+import { FunctionModel, ParameterModel, GeneralPayloadContext, Type, ServiceModel, Protocol, Imports, PropertyModel } from '@wso2/ballerina-core';
 import { EntryPointTypeCreator } from '../../../../../components/EntryPointTypeCreator';
 import { Parameters } from './Parameters/Parameters';
 
@@ -40,6 +40,87 @@ const AddButtonWrapper = styled.div`
     margin: 8px 0;
 `;
 
+const PostProcessSection = styled.div`
+    margin-top: 8px;
+    margin-bottom: 8px;
+`;
+
+const NestedFields = styled.div`
+    margin-left: 24px;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+`;
+
+const AdvancedConfigsHeader = styled.div`
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 0;
+    user-select: none;
+    &:hover {
+        opacity: 0.8;
+    }
+`;
+
+const AdvancedConfigsContent = styled.div<{ isExpanded: boolean }>`
+    display: ${({ isExpanded }: { isExpanded: boolean }) => (isExpanded ? 'block' : 'none')};
+    padding-left: 8px;
+    margin-top: 8px;
+`;
+
+const InfoBanner = styled.div`
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    border-left: 3px solid var(--vscode-focusBorder);
+    background: var(--vscode-inputValidation-infoBackground);
+    border-radius: 4px;
+    align-items: flex-start;
+`;
+
+/**
+ * Converts a PascalCase or camelCase type name to a camelCase parameter name.
+ * For CSV format, pluralizes the name since it represents an array of rows.
+ */
+const typeNameToParamName = (typeName: string, pluralize: boolean = false): string => {
+    if (!typeName) return "content";
+
+    let baseName = typeName.trim();
+    if (!baseName) return "content";
+
+    // Remove module qualifier and array suffix
+    if (baseName.includes(":")) {
+        baseName = baseName.split(":").pop() || baseName;
+    }
+    if (baseName.endsWith("[]")) {
+        baseName = baseName.slice(0, -2);
+    }
+    // Remove non-identifier characters
+    baseName = baseName.replace(/[^A-Za-z0-9_]/g, "");
+    if (!baseName || /^\d/.test(baseName)) return "content";
+
+    // Convert to camelCase (lowercase first letter)
+    const camelCase = baseName.charAt(0).toLowerCase() + baseName.slice(1);
+
+    if (!pluralize) return camelCase;
+
+    // Simple pluralization rules
+    const lastChar = camelCase.slice(-1);
+    const lastTwoChars = camelCase.slice(-2);
+
+    if (lastTwoChars === 'ss' || lastTwoChars === 'sh' || lastTwoChars === 'ch' || lastChar === 'x' || lastChar === 'z') {
+        return camelCase + 'es';
+    }
+    if (lastChar === 'y' && !['a', 'e', 'i', 'o', 'u'].includes(camelCase.slice(-2, -1))) {
+        return camelCase.slice(0, -1) + 'ies';
+    }
+    if (lastChar === 's') {
+        return camelCase;
+    }
+    return camelCase + 's';
+};
 export const EditorContentColumn = styled.div`
     display: flex;
     flex-direction: column;
@@ -75,40 +156,41 @@ export function FTPForm(props: FTPFormProps) {
     const [isTypeEditorOpen, setIsTypeEditorOpen] = useState<boolean>(false);
 
     // Filter non-enabled functions for dropdown options based on selected handler
-    const nonEnabledFunctions = serviceModel.functions?.filter(fn => {
-        if (!fn.enabled && selectedHandler && fn.metadata?.label === selectedHandler) {
-            return true;
-        }
-        // If no selectedHandler is provided, default to onCreate for backward compatibility
-        if (!fn.enabled && !selectedHandler && fn.metadata?.label === "onCreate") {
-            return true;
-        }
-        return false;
-    }) || [];
+    const nonEnabledFunctions = useMemo(() => {
+        return serviceModel.functions?.filter(fn => {
+            if (!fn.enabled && selectedHandler && fn.metadata?.label === selectedHandler) {
+                return true;
+            }
+            // If no selectedHandler is provided, default to onCreate for backward compatibility
+            if (!fn.enabled && !selectedHandler && fn.metadata?.label === "onCreate") {
+                return true;
+            }
+            return false;
+        }) || [];
+    }, [serviceModel.functions, selectedHandler]);
 
-    // Reset form state when model prop changes
     useEffect(() => {
         setServiceModel(model);
-        // Set initial function model based on first non-enabled function matching the selected handler
-        if (isNew && nonEnabledFunctions.length > 0) {
-            const initialFunction = nonEnabledFunctions[0];
-            setFunctionModel(initialFunction);
-            setSelectedFileFormat(initialFunction.name?.metadata?.label || '');
-        }
-        if (!isNew) {
-            setFunctionModel(props.functionModel);
-            setSelectedFileFormat(props.functionModel?.name?.metadata?.label || '');
-        }
-    }, [model, selectedHandler]);
+    }, [model]);
 
-    // Update function model when selectedHandler changes
+    // Initialize add-handler state from currently available FTP handler templates.
     useEffect(() => {
-        if (isNew && selectedHandler && nonEnabledFunctions.length > 0) {
-            const initialFunction = nonEnabledFunctions[0];
-            setFunctionModel(initialFunction);
-            setSelectedFileFormat(initialFunction.name?.metadata?.label || '');
+        if (!isNew || nonEnabledFunctions.length === 0) {
+            return;
         }
-    }, [selectedHandler]);
+        const initialFunction = nonEnabledFunctions[0];
+        setFunctionModel(initialFunction);
+        setSelectedFileFormat(initialFunction.name?.metadata?.label || '');
+    }, [isNew, nonEnabledFunctions]);
+
+    // Initialize edit state from the selected function model only.
+    useEffect(() => {
+        if (isNew) {
+            return;
+        }
+        setFunctionModel(props.functionModel || null);
+        setSelectedFileFormat(props.functionModel?.name?.metadata?.label || '');
+    }, [isNew, props.functionModel]);
 
     const handleParamChange = (params: ParameterModel[]) => {
         if (functionModel) {
@@ -326,15 +408,299 @@ export function FTPForm(props: FTPFormProps) {
     );
     // Check if properties exist for conditional rendering
     const hasStreamProperty = functionModel?.properties?.stream !== undefined;
+    const isOnCreateHandler = selectedHandler === 'onCreate' || functionModel?.metadata?.label === 'onCreate';
+    const isOnErrorHandler = selectedHandler === 'onError' || functionModel?.metadata?.label === 'onError';
+    const showOnErrorInfo = !!isNew && isOnErrorHandler;
+
+    // Post-processing action handling - nested structure under postProcessAction
+    const postProcessAction = functionModel?.properties?.postProcessAction as PropertyModel | undefined;
+    const postProcessActionOnSuccess = postProcessAction?.properties?.onSuccess as PropertyModel | undefined;
+    const postProcessActionOnError = postProcessAction?.properties?.onError as PropertyModel | undefined;
+
+    // Check if we have the two-action format
+    const hasSuccessAction = postProcessActionOnSuccess !== undefined && postProcessActionOnSuccess.choices !== undefined;
+    const hasErrorAction = postProcessActionOnError !== undefined && postProcessActionOnError.choices !== undefined;
+
+    const shouldShowAdvancedConfigsDivider = isOnCreateHandler || hasSuccessAction || hasErrorAction;
+
+    // State for Advanced Configs section
+    const [isAdvancedConfigsExpanded, setIsAdvancedConfigsExpanded] = useState<boolean>(false);
+
+    const getSelectedActionValue = (action: PropertyModel | undefined): string => {
+        if (!action?.choices || action.choices.length === 0) {
+            return '';
+        }
+        const enabledChoice = action.choices.find((choice: PropertyModel) => choice.enabled);
+        if (enabledChoice?.value) {
+            return enabledChoice.value;
+        }
+        const moveChoice = action.choices.find((choice: PropertyModel) => choice.value === 'MOVE');
+        return (moveChoice?.value || action.choices[0]?.value || '');
+    };
+
+    const getSelectedChoice = (action: PropertyModel | undefined, selectedValue?: string): PropertyModel | undefined => {
+        if (!action?.choices || action.choices.length === 0) {
+            return undefined;
+        }
+        const enabledChoice = action.choices.find((choice: PropertyModel) => choice.enabled);
+        if (enabledChoice) {
+            return enabledChoice;
+        }
+        if (selectedValue) {
+            const selectedChoice = action.choices.find((choice: PropertyModel) => choice.value === selectedValue);
+            if (selectedChoice) {
+                return selectedChoice;
+            }
+        }
+        return action.choices.find((choice: PropertyModel) => choice.value === 'MOVE') || action.choices[0];
+    };
+
+    const isMoveToRequiredAndEmpty = (action: PropertyModel | undefined, selectedValue?: string): boolean => {
+        if (!action?.choices) {
+            return false;
+        }
+        const isActionEnabled = action.enabled ?? true;
+        if (!isActionEnabled) {
+            return false;
+        }
+        const selectedChoice = getSelectedChoice(action, selectedValue);
+        if (!selectedChoice || selectedChoice.value !== 'MOVE') {
+            return false;
+        }
+        const moveToValue = selectedChoice.properties?.moveTo?.value || "";
+        const trimmedMoveTo = moveToValue.trim();
+        return !trimmedMoveTo || trimmedMoveTo === '""' || trimmedMoveTo === "''";
+    };
+
+    const selectedSuccessAction = getSelectedActionValue(postProcessActionOnSuccess);
+    const selectedErrorAction = getSelectedActionValue(postProcessActionOnError);
+    const hasInvalidMoveTo =
+        isMoveToRequiredAndEmpty(postProcessActionOnSuccess, selectedSuccessAction) ||
+        isMoveToRequiredAndEmpty(postProcessActionOnError, selectedErrorAction);
+
+    // Generic handler for post-process action change (nested under postProcessAction)
+    const handleActionChange = (propertyKey: string, action: PropertyModel | undefined, value: string) => {
+        if (!functionModel || !action?.choices || !postProcessAction) return;
+
+        const updatedChoices = action.choices.map((choice: PropertyModel) => ({
+            ...choice,
+            enabled: choice.value === value
+        }));
+
+        setFunctionModel({
+            ...functionModel,
+            properties: {
+                ...functionModel.properties,
+                postProcessAction: {
+                    ...postProcessAction,
+                    properties: {
+                        ...postProcessAction.properties,
+                        [propertyKey]: {
+                            ...action,
+                            enabled: true,
+                            choices: updatedChoices
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    const handleActionToggle = (
+        propertyKey: string,
+        action: PropertyModel | undefined,
+        checked: boolean,
+        selectedValue?: string
+    ) => {
+        if (!functionModel || !action?.choices || !postProcessAction) return;
+
+        let updatedChoices = action.choices;
+        if (checked) {
+            const selectedIndex = selectedValue
+                ? action.choices.findIndex((choice: PropertyModel) => choice.value === selectedValue)
+                : -1;
+            const moveIndex = action.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
+            const existingEnabledIndex = action.choices.findIndex((choice: PropertyModel) => choice.enabled);
+            const indexToEnable = existingEnabledIndex !== -1
+                ? existingEnabledIndex
+                : (selectedIndex >= 0 && selectedIndex < action.choices.length)
+                    ? selectedIndex
+                    : (moveIndex !== -1 ? moveIndex : 0);
+
+            updatedChoices = action.choices.map((choice: PropertyModel, index: number) => ({
+                ...choice,
+                enabled: index === indexToEnable
+            }));
+        }
+
+        setFunctionModel({
+            ...functionModel,
+            properties: {
+                ...functionModel.properties,
+                postProcessAction: {
+                    ...postProcessAction,
+                    properties: {
+                        ...postProcessAction.properties,
+                        [propertyKey]: {
+                            ...action,
+                            enabled: checked,
+                            choices: updatedChoices
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // Generic handler for Move To change (nested under postProcessAction)
+    const handleMoveToChangeGeneric = (propertyKey: string, action: PropertyModel | undefined, value: string) => {
+        if (!functionModel || !action?.choices || !postProcessAction) return;
+
+        const moveChoiceIndex = action.choices.findIndex((choice: PropertyModel) => choice.value === 'MOVE');
+        if (moveChoiceIndex === -1) return;
+
+        const updatedChoices = [...action.choices];
+        updatedChoices[moveChoiceIndex] = {
+            ...updatedChoices[moveChoiceIndex],
+            properties: {
+                ...updatedChoices[moveChoiceIndex].properties,
+                moveTo: {
+                    ...updatedChoices[moveChoiceIndex].properties?.moveTo,
+                    value: value
+                }
+            }
+        };
+
+        setFunctionModel({
+            ...functionModel,
+            properties: {
+                ...functionModel.properties,
+                postProcessAction: {
+                    ...postProcessAction,
+                    properties: {
+                        ...postProcessAction.properties,
+                        [propertyKey]: {
+                            ...action,
+                            choices: updatedChoices
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // Get the current MOVE choice properties for any action
+    const getMoveChoicePropertiesGeneric = (action: PropertyModel | undefined) => {
+        if (!action?.choices) return { moveTo: "" };
+        const moveChoice = action.choices.find((choice: PropertyModel) => choice.value === 'MOVE');
+        if (!moveChoice?.properties) return { moveTo: "" };
+
+        const moveToValue = moveChoice.properties.moveTo?.value || "";
+
+        return {
+            moveTo: moveToValue
+        };
+    };
+
+    // Render a post-processing action section
+    const renderPostProcessActionSection = (
+        subtitle: string,
+        propertyKey: string,
+        action: PropertyModel | undefined,
+        selectedValue: string
+    ) => {
+        if (!action?.choices) return null;
+
+        const isActionEnabled = action.enabled ?? true;
+        const moveProperties = getMoveChoicePropertiesGeneric(action);
+        const trimmedMoveTo = moveProperties.moveTo?.trim();
+        const isMoveToEmpty = !trimmedMoveTo || trimmedMoveTo === '""' || trimmedMoveTo === "''";
+
+        return (
+            <PostProcessSection>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <CheckBox
+                        label=""
+                        checked={isActionEnabled}
+                        onChange={(checked) => handleActionToggle(propertyKey, action, checked, selectedValue)}
+                        sx={{ marginTop: 0 }}
+                    />
+                    <Typography variant="body2">{subtitle}</Typography>
+                </div>
+                {action.metadata?.description && (
+                    <Typography
+                        variant="body3"
+                        sx={{ marginBottom: 8, color: 'var(--vscode-descriptionForeground)' }}
+                    >
+                        {action.metadata.description}
+                    </Typography>
+                )}
+                {isActionEnabled && (
+                    <RadioButtonGroup
+                        id={`post-process-action-${propertyKey}`}
+                        label=""
+                        value={selectedValue}
+                        options={action.choices?.map((choice: PropertyModel, index: number) => ({
+                            id: `${propertyKey}-${index}`,
+                            value: choice.value,
+                            content: choice.metadata?.label || choice.value
+                        })) || []}
+                        onChange={(e) => {
+                            handleActionChange(propertyKey, action, e.target.value);
+                        }}
+                    />
+                )}
+
+                {/* Show nested fields for MOVE action */}
+                {isActionEnabled && selectedValue === 'MOVE' && (
+                    <NestedFields>
+                        <div>
+                            <Typography variant="body3" sx={{ marginBottom: 4 }}>
+                                Move To
+                            </Typography>
+                            <HeaderExpressionEditor
+                                value={moveProperties.moveTo}
+                                placeholder='"/path/to/dir"'
+                                ariaLabel="Move To"
+                                completions={[]}
+                                onChange={(value) => handleMoveToChangeGeneric(propertyKey, action, value)}
+                                onSave={() => {}}
+                                onCancel={() => {}}
+                                onCompletionSelect={() => {}}
+                                onManualCompletionRequest={() => {}}
+                                onFunctionEdit={() => {}}
+                            />
+                            <Typography variant="body3" sx={{ marginTop: 4, color: 'var(--vscode-descriptionForeground)' }}>
+                                Destination path expression to move the file
+                            </Typography>
+                            {isMoveToEmpty && (
+                                <Typography variant="body3" sx={{ marginTop: 4, color: 'var(--vscode-errorForeground)' }}>
+                                    Move To is required
+                                </Typography>
+                            )}
+                        </div>
+                    </NestedFields>
+                )}
+            </PostProcessSection>
+        );
+    };
 
     return (
         <>
             {isSaving && <ProgressIndicator id="ftp-form-loading-bar" />}
             <SidePanelBody>
                 <EditorContentColumn>
+                    {showOnErrorInfo && (
+                        <InfoBanner>
+                            <Codicon name="info" sx={{ marginTop: 2 }} />
+                            <Typography variant="body3" sx={{ color: "var(--vscode-foreground)" }}>
+                                On Error runs only for errors when file content cannot be mapped to the Content Schema.
+                            </Typography>
+                        </InfoBanner>
+                    )}
 
                     {/* File Configuration Section - Only show for onCreate handler */}
-                    {(selectedHandler === 'onCreate'|| functionModel?.metadata?.label === 'onCreate') && (
+                    {isOnCreateHandler && (
                         <FileConfigContainer>
                             <FileConfigSection>
                                 <FileConfigContent>
@@ -437,50 +803,77 @@ export function FTPForm(props: FTPFormProps) {
                             </FileConfigSection>
                         </FileConfigContainer>
                     )}
-                    {(fileInfoParameter || callerParameter) && (selectedHandler === 'onCreate' || functionModel?.metadata?.label === 'onCreate') ? <Divider /> : null}
-                                
-                    {/* File Metadata Section */}
-                    {fileInfoParameter && (
+                    {/* Post-Processing Actions Section - Show two actions for all handlers */}
+                    {(hasSuccessAction || hasErrorAction) && (
                         <>
-
-                            <CheckBoxGroup direction="vertical">
-                                <CheckBox
-                                    label={parameterConfig.fileInfo.label}
-                                    checked={fileInfoParameter.enabled}
-                                    onChange={(checked) => {
-                                        const updatedParameters = functionModel.parameters.map((p) => {
-                                            if (p === fileInfoParameter) {
-                                                return { ...p, enabled: checked };
-                                            }
-                                            return p;
-                                        });
-                                        handleParamChange(updatedParameters);
-                                    }}
-                                    sx={{ marginTop: 0, description: parameterConfig.fileInfo.description}}
-                                />
-                            </CheckBoxGroup>
+                            {isOnCreateHandler && <Divider />}
+                            <Typography variant="body2" sx={{ marginBottom: 8 }}>
+                                After File Processing
+                            </Typography>
+                            {hasSuccessAction && renderPostProcessActionSection(
+                                "Success",
+                                "onSuccess",
+                                postProcessActionOnSuccess,
+                                selectedSuccessAction
+                            )}
+                            {hasErrorAction && renderPostProcessActionSection(
+                                "Error",
+                                "onError",
+                                postProcessActionOnError,
+                                selectedErrorAction
+                            )}
                         </>
                     )}
 
-                    {/* FTP Connection Section */}
-                    {callerParameter && (
+                    {/* Advanced Configs Section - Contains File Metadata and FTP Connection */}
+                    {(fileInfoParameter || callerParameter) && (
                         <>
-                            <CheckBoxGroup direction="vertical">
-                                <CheckBox
-                                    label={parameterConfig.caller.label}
-                                    checked={callerParameter.enabled}
-                                    onChange={(checked) => {
-                                        const updatedParameters = functionModel.parameters.map((p) => {
-                                            if (p === callerParameter) {
-                                                return { ...p, enabled: checked };
-                                            }
-                                            return p;
-                                        });
-                                        handleParamChange(updatedParameters);
-                                    }}
-                                    sx={{ marginTop: 0, description: parameterConfig.caller.description }}
-                                />
-                            </CheckBoxGroup>
+                            {shouldShowAdvancedConfigsDivider && <Divider />}
+                            <AdvancedConfigsHeader onClick={() => setIsAdvancedConfigsExpanded(!isAdvancedConfigsExpanded)}>
+                                <Codicon name={isAdvancedConfigsExpanded ? "chevron-down" : "chevron-right"} sx={{ marginRight: 4 }} />
+                                <Typography variant="body2">Advanced Configs</Typography>
+                            </AdvancedConfigsHeader>
+                            <AdvancedConfigsContent isExpanded={isAdvancedConfigsExpanded}>
+                                {/* File Metadata Section */}
+                                {fileInfoParameter && (
+                                    <CheckBoxGroup direction="vertical">
+                                        <CheckBox
+                                            label={parameterConfig.fileInfo.label}
+                                            checked={fileInfoParameter.enabled}
+                                            onChange={(checked) => {
+                                                const updatedParameters = functionModel.parameters.map((p) => {
+                                                    if (p === fileInfoParameter) {
+                                                        return { ...p, enabled: checked };
+                                                    }
+                                                    return p;
+                                                });
+                                                handleParamChange(updatedParameters);
+                                            }}
+                                            sx={{ marginTop: 0, description: parameterConfig.fileInfo.description}}
+                                        />
+                                    </CheckBoxGroup>
+                                )}
+
+                                {/* FTP Connection Section */}
+                                {callerParameter && (
+                                    <CheckBoxGroup direction="vertical">
+                                        <CheckBox
+                                            label={parameterConfig.caller.label}
+                                            checked={callerParameter.enabled}
+                                            onChange={(checked) => {
+                                                const updatedParameters = functionModel.parameters.map((p) => {
+                                                    if (p === callerParameter) {
+                                                        return { ...p, enabled: checked };
+                                                    }
+                                                    return p;
+                                                });
+                                                handleParamChange(updatedParameters);
+                                            }}
+                                            sx={{ marginTop: 8, description: parameterConfig.caller.description }}
+                                        />
+                                    </CheckBoxGroup>
+                                )}
+                            </AdvancedConfigsContent>
                         </>
                     )}
                 </EditorContentColumn>
@@ -488,8 +881,8 @@ export function FTPForm(props: FTPFormProps) {
                     primaryButton={{
                         text: isSaving ? "Saving..." : "Save",
                         onClick: handleSave,
-                        tooltip: isSaving ? "Saving..." : "Save",
-                        disabled: isSaving,
+                        tooltip: isSaving ? "Saving..." : hasInvalidMoveTo ? "Move To is required" : "Save",
+                        disabled: isSaving || hasInvalidMoveTo,
                         loading: isSaving,
                     }}
                     secondaryButton={{
@@ -513,6 +906,9 @@ export function FTPForm(props: FTPFormProps) {
                 defaultTab="create-from-scratch"
                 modalWidth={650}
                 modalHeight={600}
+                note={selectedFileFormat === 'CSV'
+                    ? "Define schema for one row -- file content will be array of row schema."
+                    : undefined}
             />
         </>
     );
