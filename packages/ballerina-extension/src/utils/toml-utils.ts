@@ -1,0 +1,331 @@
+// Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import * as fs from "fs";
+import * as path from "path";
+import { parse, stringify } from "@iarna/toml";
+
+export interface PlaceholderInfo {
+    key: string;
+    placeholder: string;
+    variableName: string;
+}
+
+export interface ConfigVariable {
+    name: string;
+    description: string;
+    type?: "string" | "int";
+}
+
+// Cache regex for performance
+const PLACEHOLDER_REGEX = /^\$\{([A-Z_0-9]+)\}$/;
+
+/**
+ * Parse Config.toml and identify placeholder variables with pattern ${VARIABLE_NAME}
+ */
+export function parseConfigPlaceholders(configPath: string): Map<string, PlaceholderInfo> {
+    const placeholders = new Map<string, PlaceholderInfo>();
+
+    if (!fs.existsSync(configPath)) {
+        return placeholders;
+    }
+
+    try {
+        const content = fs.readFileSync(configPath, "utf-8");
+        const config = parse(content) as Record<string, any>;
+
+        function findPlaceholders(obj: any, prefix: string = "") {
+            for (const [key, value] of Object.entries(obj)) {
+                const fullKey = prefix ? `${prefix}.${key}` : key;
+
+                if (typeof value === "string") {
+                    const match = value.match(PLACEHOLDER_REGEX);
+                    if (match) {
+                        const variableName = match[1];
+                        placeholders.set(variableName, {
+                            key: fullKey,
+                            placeholder: value,
+                            variableName,
+                        });
+                    }
+                } else if (typeof value === "object" && value !== null) {
+                    findPlaceholders(value, fullKey);
+                }
+            }
+        }
+
+        findPlaceholders(config);
+    } catch (error) {
+        console.error(`[TOML Utils] Error parsing config at ${configPath}:`, error);
+        throw error;
+    }
+
+    return placeholders;
+}
+
+/**
+ * Create or update Config.toml with placeholder variables
+ */
+export function createConfigWithPlaceholders(
+    configPath: string,
+    variables: ConfigVariable[],
+    overwrite: boolean = false
+): void {
+    let config: Record<string, any> = {};
+
+    // Read existing config if exists
+    if (fs.existsSync(configPath)) {
+        try {
+            const content = fs.readFileSync(configPath, "utf-8");
+            config = parse(content) as Record<string, any>;
+        } catch (error) {
+            console.error(`[TOML Utils] Error reading existing config:`, error);
+            throw error;
+        }
+    }
+
+    // Add placeholder variables (convert API_KEY to apikey)
+    for (const variable of variables) {
+        const tomlKey = toTomlKey(variable.name);
+
+        if (!config[tomlKey] || overwrite) {
+            config[tomlKey] = `\${${variable.name}}`;
+        }
+    }
+
+    // Write back to file
+    try {
+        const dirPath = path.dirname(configPath);
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        const tomlContent = stringify(config);
+        fs.writeFileSync(configPath, tomlContent, "utf-8");
+
+        console.log(`[TOML Utils] Created/updated Config.toml with ${variables.length} placeholder(s)`);
+    } catch (error) {
+        console.error(`[TOML Utils] Error writing config:`, error);
+        throw error;
+    }
+}
+
+/**
+ * Check configuration value status - returns metadata only, never actual values
+ */
+export function checkConfigurationStatus(
+    configPath: string,
+    variableNames: string[]
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+
+    if (!fs.existsSync(configPath)) {
+        for (const name of variableNames) {
+            status[name] = "missing";
+        }
+        return status;
+    }
+
+    try {
+        const content = fs.readFileSync(configPath, "utf-8");
+        const config = parse(content) as Record<string, any>;
+
+        for (const name of variableNames) {
+            const tomlKey = toTomlKey(name);
+            const value = getNestedValue(config, tomlKey);
+
+            if (value === undefined || value === null) {
+                status[name] = "missing";
+            } else if (typeof value === "string" && value.startsWith("${")) {
+                status[name] = "missing";
+            } else {
+                status[name] = "filled";
+            }
+        }
+    } catch (error) {
+        console.error(`[TOML Utils] Error checking configuration status:`, error);
+        for (const name of variableNames) {
+            status[name] = "missing";
+        }
+    }
+
+    return status;
+}
+
+/**
+ * Write configuration values to Config.toml - SECURITY: never logs values
+ */
+export function writeConfigValuesToConfig(
+    configPath: string,
+    configValues: Record<string, string>,
+    variables?: ConfigVariable[]
+): void {
+    let config: Record<string, any> = {};
+
+    if (fs.existsSync(configPath)) {
+        try {
+            const content = fs.readFileSync(configPath, "utf-8");
+            config = parse(content) as Record<string, any>;
+        } catch (error) {
+            console.error(`[TOML Utils] Error reading config for value write:`, error);
+            throw error;
+        }
+    }
+
+    // Create a map of variable types for quick lookup
+    const typeMap = new Map<string, string>();
+    if (variables) {
+        for (const variable of variables) {
+            typeMap.set(variable.name, variable.type || "string");
+        }
+    }
+
+    // Replace placeholders with actual values (convert API_KEY to apikey)
+    const intKeys = new Set<string>();
+    for (const [variableName, value] of Object.entries(configValues)) {
+        const tomlKey = toTomlKey(variableName);
+        const varType = typeMap.get(variableName) || "string";
+
+        // Convert value based on type
+        if (varType === "int") {
+            const intValue = parseInt(value, 10);
+            if (isNaN(intValue)) {
+                throw new Error(`Invalid integer value for ${variableName}: ${value}`);
+            }
+            config[tomlKey] = intValue;
+            intKeys.add(tomlKey);
+        } else {
+            config[tomlKey] = value;
+        }
+    }
+
+    try {
+        const dirPath = path.dirname(configPath);
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        let tomlContent = stringify(config);
+
+        // Fix TOML integer formatting - remove underscores from integer values
+        // The @iarna/toml library adds underscores to large numbers for readability (e.g., 8_080)
+        // We need to remove them for Ballerina compatibility
+        for (const intKey of intKeys) {
+            const intValue = config[intKey];
+            if (typeof intValue === 'number') {
+                // Replace formatted number (with underscores) with plain number
+                const formattedPattern = new RegExp(`${intKey}\\s*=\\s*[0-9_]+`, 'g');
+                tomlContent = tomlContent.replace(formattedPattern, `${intKey} = ${intValue}`);
+            }
+        }
+
+        fs.writeFileSync(configPath, tomlContent, "utf-8");
+
+        console.log(`[TOML Utils] Updated ${Object.keys(configValues).length} configuration value(s) in Config.toml`);
+    } catch (error) {
+        console.error(`[TOML Utils] Error writing configuration values:`, error);
+        throw error;
+    }
+}
+
+function getNestedValue(obj: any, key: string): any {
+    if (key.includes(".")) {
+        const parts = key.split(".");
+        let current = obj;
+        for (const part of parts) {
+            if (current && typeof current === "object") {
+                current = current[part];
+            } else {
+                return undefined;
+            }
+        }
+        return current;
+    }
+    return obj[key];
+}
+
+export function validateVariableName(name: string): boolean {
+    return /^[A-Z_0-9]+$/.test(name);
+}
+
+/**
+ * Converts configuration variable name to TOML key format
+ * Example: API_KEY -> apikey, DB_HOST -> dbhost
+ */
+export function toTomlKey(variableName: string): string {
+    return variableName.toLowerCase().replace(/_/g, "");
+}
+
+/**
+ * Read existing configuration values from Config.toml
+ * Returns actual values (to be shown in UI for editing)
+ */
+export function readExistingConfigValues(
+    configPath: string,
+    variableNames: string[]
+): Record<string, string> {
+    const existingValues: Record<string, string> = {};
+
+    if (!fs.existsSync(configPath)) {
+        return existingValues;
+    }
+
+    try {
+        const content = fs.readFileSync(configPath, "utf-8");
+        const config = parse(content) as Record<string, any>;
+
+        for (const name of variableNames) {
+            const tomlKey = toTomlKey(name);
+            const value = getNestedValue(config, tomlKey);
+
+            // Include the value if it exists and is not a placeholder
+            if (value !== undefined && value !== null) {
+                if (typeof value === "string") {
+                    // Don't include placeholder values like ${VARIABLE_NAME}
+                    if (!value.startsWith("${")) {
+                        existingValues[name] = value;
+                    }
+                } else if (typeof value === "number") {
+                    // Convert number to string for UI display
+                    existingValues[name] = value.toString();
+                }
+            }
+        }
+    } catch (error) {
+        console.error(`[TOML Utils] Error reading existing configuration values:`, error);
+    }
+
+    return existingValues;
+}
+
+/**
+ * Create status metadata from configuration values - returns only fill status, never values
+ */
+export function createStatusMetadata(
+    configValues: Record<string, string>
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
+
+    for (const [key, value] of Object.entries(configValues)) {
+        if (!value || value.trim() === "" || value.startsWith("${")) {
+            status[key] = "missing";
+        } else {
+            status[key] = "filled";
+        }
+    }
+
+    return status;
+}
