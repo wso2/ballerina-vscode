@@ -20,8 +20,8 @@ import { useEffect, useState } from "react";
 import { View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormField, FormImports, FormValues, Parameter, FormSectionConfig } from "@wso2/ballerina-side-panel";
-import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType, EvalsetItem } from "@wso2/ballerina-core";
+import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
+import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType } from "@wso2/ballerina-core";
 import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -39,54 +39,14 @@ const FormContainer = styled.div`
         overflow: visible;
         overflow-y: none;
     }
-
-    .radio-button-group {
-        margin-top: 8px;
-        margin-bottom: -12px;
-    }
-
-    .dropdown-container {
-        margin-top: 12px;
-    }
 `;
 
 const Container = styled.div`
     display: "flex";
     flex-direction: "column";
     gap: 10;
+    margin-bottom: 20px;
 `;
-
-const TEST_FORM_SECTIONS: FormSectionConfig = {
-    sections: [
-        {
-            id: 'data-provider',
-            title: 'Data Provider',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 1,
-            description: 'Configure test data sources',
-            fieldKeys: ['dataProvider']
-        },
-        {
-            id: 'repetition',
-            title: 'Repetition',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 2,
-            description: 'Configure run frequency and pass criteria',
-            fieldKeys: ['runs', 'minPassRate']
-        },
-        {
-            id: 'execution-organization',
-            title: 'Execution & Organization',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 3,
-            description: 'Manage test groups, dependencies, and lifecycle hooks',
-            fieldKeys: ['groups', 'dependsOn', 'before', 'after']
-        }
-    ]
-};
 
 interface TestFunctionDefProps {
     projectPath: string;
@@ -102,7 +62,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     const [testFunction, setTestFunction] = useState<TestFunction>();
     const [formTitle, setFormTitle] = useState<string>('Create New Test Case');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
-    const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
 
     const updateTargetLineRange = () => {
         rpcClient
@@ -117,10 +76,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     useEffect(() => {
-        loadEvalsets();
-    }, []);
-
-    useEffect(() => {
         if (serviceType === 'UPDATE_TEST') {
             setFormTitle('Update Test Case');
             loadFunction();
@@ -132,30 +87,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         updateTargetLineRange();
     }, [functionName]);
 
-    // Regenerate form fields when evalsetOptions changes
-    useEffect(() => {
-        if (testFunction && evalsetOptions.length > 0) {
-            let formFields = generateFormFields(testFunction);
-            setFormFields(formFields);
-        }
-    }, [evalsetOptions]);
-
-    const loadEvalsets = async () => {
-        try {
-            const res = await rpcClient.getTestManagerRpcClient().getEvalsets({ projectPath });
-            const options = res.evalsets.map((evalset: EvalsetItem) => ({
-                value: evalset.filePath,
-                content: `${evalset.name} (${evalset.threadCount} thread${evalset.threadCount !== 1 ? 's' : ''})`
-            }));
-            setEvalsetOptions(options);
-        } catch (error) {
-            console.error('Failed to load evalsets:', error);
-            setEvalsetOptions([]);
-        }
-    };
-
     const loadFunction = async () => {
         const res = await rpcClient.getTestManagerRpcClient().getTestFunction({ functionName, filePath });
+        console.log("Test Function: ", res);
         setTestFunction(res.function);
         let formFields = generateFormFields(res.function);
         setFormFields(formFields);
@@ -169,7 +103,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
     }
 
     const onFormSubmit = async (data: FormValues, formImports: FormImports) => {
+        console.log("Test Function Form Data: ", data);
         const updatedTestFunction = fillFunctionModel(data, formImports);
+        console.log("Test Function: ", updatedTestFunction);
         if (serviceType === 'UPDATE_TEST') {
             await rpcClient.getTestManagerRpcClient().updateTestFunction({ function: updatedTestFunction, filePath });
         } else {
@@ -183,7 +119,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
             endLine: res.function.codedata.lineRange.endLine.line,
             endColumn: res.function.codedata.lineRange.endLine.offset
         };
-        rpcClient.getVisualizerRpcClient().openView(
+        console.log("Node Position: ", nodePosition);
+        await rpcClient.getVisualizerRpcClient().openView(
             { type: EVENT_TYPE.OPEN_VIEW, location: { position: nodePosition, documentUri: filePath } })
     };
 
@@ -231,7 +168,65 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         if (testFunction.annotations) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
             if (configAnnotation && configAnnotation.fields) {
+                const minPassRateField = configAnnotation.fields.find(f => f.originalName === 'minPassRate');
+                if (minPassRateField) {
+                    const generatedField = generateFieldFromProperty('minPassRate', minPassRateField);
+                    fields.push({
+                        ...generatedField,
+                        type: 'SLIDER',
+                        advanced: true,
+                        sliderProps: {
+                            min: 0,
+                            max: 100,
+                            step: 1,
+                            showValue: true,
+                            showMarkers: true,
+                            valueFormatter: (value: number) => `${value}%`
+                        }
+                    });
+                }
+
                 for (const field of configAnnotation.fields) {
+                    // Skip fields already processed
+                    if (field.originalName === 'dataProviderMode' ||
+                        field.originalName === 'minPassRate' ||
+                        field.originalName === 'evalSetFile') {
+                        continue;
+                    }
+
+                    // Special handling for groups and dependsOn - use EXPRESSION_SET
+                    if (field.originalName === 'groups' || field.originalName === 'dependsOn') {
+                        fields.push({
+                            ...generateFieldFromProperty(field.originalName, field),
+                            type: 'EXPRESSION_SET',
+                            advanced: field.originalName === 'groups' ? false : true,
+                            types: [{ fieldType: 'EXPRESSION_SET', selected: false }]
+                        });
+                        continue;
+                    }
+
+                    // Special handling for expression fields - ensure they use EXPRESSION type
+                    if (field.originalName === 'before' || field.originalName === 'after' ||
+                        field.originalName === 'runs' || field.originalName === 'dataProvider') {
+                        fields.push({
+                            ...generateFieldFromProperty(field.originalName, field),
+                            type: 'EXPRESSION',
+                            advanced: true,
+                            types: [{ fieldType: 'EXPRESSION', selected: false }]
+                        });
+                        continue;
+                    }
+
+                    // Special handling for enabled - use FLAG
+                    if (field.originalName === 'enabled') {
+                        fields.push({
+                            ...generateFieldFromProperty(field.originalName, field),
+                            type: 'FLAG',
+                            types: [{ fieldType: 'FLAG', selected: false }]
+                        });
+                        continue;
+                    }
+
                     fields.push(generateFieldFromProperty(field.originalName, field));
                 }
             }
@@ -280,9 +275,9 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
 
         // Convert decimal (0-1) to percentage (0-100) for minPassRate display
         let displayValue = property.value;
-        if (key === 'minPassRate' && fieldType === 'SLIDER') {
-            const decimalValue = parseFloat(property.value) || 1;
-            displayValue = String(Math.round(decimalValue * 100));
+        if (key === 'minPassRate') {
+            const decimalValue = parseFloat(property.value);
+            displayValue = String(Math.round((isNaN(decimalValue) ? 1 : decimalValue) * 100));
         }
 
         const baseField: FormField = {
@@ -369,7 +364,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         field.value = formValues['after'] || "";
                     }
                     if (field.originalName == 'runs') {
-                        field.value = formValues['runs'] || "1";
+                        field.value = formValues['runs'] || "";
                     }
                     if (field.originalName == 'minPassRate') {
                         // Convert percentage (0-100) to decimal (0-1)
@@ -377,7 +372,11 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                         field.value = String(Number(percentageValue) / 100);
                     }
                     if (field.originalName == 'dataProvider') {
-                        field.value = formValues['dataProvider'] || "";
+                        if (formValues['dataProviderMode'] === 'function') {
+                            field.value = formValues['dataProvider'] || "";
+                        }
+                        // Preserve existing dataProvider value when in evalSet mode
+                        // (backend creates it from evalSetFile)
                     }
                 }
             }
@@ -420,8 +419,8 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         return {
             functionName: {
                 metadata: {
-                    label: "Test Name",
-                    description: "Name of the test function"
+                    label: "Test Function",
+                    description: "Test function"
                 },
                 value: "",
                 optional: false,
@@ -452,18 +451,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                     fields: [
                         {
                             metadata: {
-                                label: "Enabled",
-                                description: "Enable/Disable the test"
-                            },
-                            originalName: "enabled",
-                            value: true,
-                            optional: true,
-                            editable: true,
-                            advanced: false,
-                            types: [{ fieldType: "FLAG", selected: false }]
-                        },
-                        {
-                            metadata: {
                                 label: "Groups",
                                 description: "Groups to run"
                             },
@@ -473,6 +460,18 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             optional: true,
                             editable: true,
                             advanced: false
+                        },
+                        {
+                            metadata: {
+                                label: "Enabled",
+                                description: "Enable/Disable the test"
+                            },
+                            originalName: "enabled",
+                            value: true,
+                            optional: true,
+                            editable: true,
+                            advanced: false,
+                            types: [{ fieldType: "FLAG", selected: false }]
                         },
                         {
                             metadata: {
@@ -517,7 +516,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             },
                             types: [{ fieldType: "EXPRESSION", selected: false }],
                             originalName: "runs",
-                            value: "1",
+                            value: "",
                             optional: true,
                             editable: true,
                             advanced: true
@@ -545,7 +544,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             optional: true,
                             editable: true,
                             advanced: true
-                        }
+                        },
                     ]
                 }
             ],
@@ -602,7 +601,6 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                             <FormGeneratorNew
                                 fileName={filePath}
                                 fields={formFields}
-                                sections={TEST_FORM_SECTIONS}
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
@@ -614,4 +612,3 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         </View>
     );
 }
-
