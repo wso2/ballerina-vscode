@@ -1861,7 +1861,7 @@
                     "selected": true
                   }
                 ],
-                "value": "redis:error|error|http:error|error",
+                "value": "redis:Error|error|http:error|error",
                 "placeholder": "error",
                 "optional": false,
                 "editable": true,
