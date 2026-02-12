@@ -87,23 +87,6 @@ function safeJsonParse(jsonString: string | null): any {
     }
 }
 
-/**
- * Converts an ISO timestamp string to [seconds, nanoseconds] array format.
- */
-function convertTimestamp(isoString: string | undefined): [number, number] {
-    if (!isoString) {
-        const now = Date.now();
-        return [Math.floor(now / 1000), (now % 1000) * 1000000];
-    }
-
-    const date = new Date(isoString);
-    const milliseconds = date.getTime();
-    const seconds = Math.floor(milliseconds / 1000);
-    const nanoseconds = (milliseconds % 1000) * 1000000;
-
-    return [seconds, nanoseconds];
-}
-
 // --- Main Conversion Logic ---
 
 /**
@@ -290,8 +273,8 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         iterations.push({
             history: iterationHistory,
             output: output as ChatAssistantMessage,
-            startTime: convertTimestamp(chatSpan.startTime || startTime),
-            endTime: convertTimestamp(chatSpan.endTime || endTime)
+            startTime: chatSpan.startTime || startTime,
+            endTime: chatSpan.endTime || endTime
         } as any);
     }
 
@@ -328,8 +311,8 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         output: finalOutput,
         tools: tools,
         toolCalls: finalOutputToolCalls,
-        startTime: convertTimestamp(startTime) as any,
-        endTime: convertTimestamp(endTime) as any
+        startTime: startTime,
+        endTime: endTime
     };
 
     return evalsetTrace;
