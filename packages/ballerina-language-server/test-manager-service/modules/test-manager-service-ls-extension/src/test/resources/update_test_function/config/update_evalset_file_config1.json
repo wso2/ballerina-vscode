@@ -1,0 +1,172 @@
+{
+  "filePath": "sample_update_evalset/tests/test1.bal",
+  "description": "Test to update evalSetFile in an existing test function with evalSet mode",
+  "function": {
+    "metadata": {
+      "label": "Test Function",
+      "description": "Test Function"
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "tests/test1.bal",
+        "startLine": {
+          "line": 3,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 5,
+          "offset": 1
+        }
+      }
+    },
+    "functionName": {
+      "metadata": {
+        "label": "Test Function",
+        "description": "Test function"
+      },
+      "valueType": "IDENTIFIER",
+      "value": "testEvalSetFunction",
+      "optional": false,
+      "editable": true,
+      "advanced": false
+    },
+    "returnType": {
+      "metadata": {
+        "label": "Return Type",
+        "description": "Return type of the function"
+      },
+      "valueType": "TYPE",
+      "optional": true,
+      "editable": true,
+      "advanced": true
+    },
+    "parameters": [
+      {
+        "type": {
+          "valueType": "TYPE",
+          "value": "ai:Trace",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        },
+        "variable": {
+          "valueType": "IDENTIFIER",
+          "value": "thread",
+          "optional": false,
+          "editable": true,
+          "advanced": false
+        },
+        "optional": false,
+        "editable": true,
+        "advanced": false
+      }
+    ],
+    "annotations": [
+      {
+        "metadata": {
+          "label": "Config",
+          "description": "Test Function Configurations"
+        },
+        "org": "ballerina",
+        "module": "test",
+        "name": "Config",
+        "fields": [
+          {
+            "metadata": {
+              "label": "Groups",
+              "description": "Groups to run"
+            },
+            "valueType": "EXPRESSION_SET",
+            "originalName": "groups",
+            "value": [
+              "\"evalset\""
+            ],
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "Data Provider",
+              "description": "Data provider function"
+            },
+            "valueType": "EXPRESSION",
+            "originalName": "dataProvider",
+            "value": "loadEvalSetData",
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "Data Provider Mode",
+              "description": "Mode of data provider (function or evalSet)"
+            },
+            "valueType": "EXPRESSION",
+            "originalName": "dataProviderMode",
+            "value": "evalSet",
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          },
+          {
+            "metadata": {
+              "label": "EvalSet File",
+              "description": "Path to the evalSet data file"
+            },
+            "valueType": "EXPRESSION",
+            "originalName": "evalSetFile",
+            "value": "resources/updated_sessions.json",
+            "optional": true,
+            "editable": true,
+            "advanced": false
+          }
+        ]
+      }
+    ],
+    "editable": true
+  },
+  "output": {
+    "sample_update_evalset/tests/test1.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 28
+          },
+          "end": {
+            "line": 4,
+            "character": 45
+          }
+        },
+        "newText": "(ai:Trace thread)"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 65
+          }
+        },
+        "newText": "@test:Config{\ngroups: [\"evalset\"],\ndataProvider: loadEvalSetData\n}"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 9,
+            "character": 44
+          },
+          "end": {
+            "line": 9,
+            "character": 73
+          }
+        },
+        "newText": "\"resources/updated_sessions.json\""
+      }
+    ]
+  }
+}
