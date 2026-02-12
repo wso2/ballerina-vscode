@@ -17,9 +17,9 @@
  * under the License.
  */
 
-import { commands, TestItem, window } from "vscode";
+import { commands, TestItem, window, workspace, WorkspaceEdit, Uri, Range } from "vscode";
 import { openView, StateMachine, history } from "../../stateMachine";
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse } from "@wso2/ballerina-core";
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse, ComponentInfo } from "@wso2/ballerina-core";
 import { isTestFunctionItem } from "./discover";
 import path from "path";
 import { promises as fs } from 'fs';
@@ -154,6 +154,119 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
                 },
                 serviceType: 'UPDATE_TEST'
             });
+        }
+    });
+
+    commands.registerCommand(BI_COMMANDS.BI_DELETE_TEST_FUNCTION, async (entry: TestItem) => {
+        const projectPath = await findProjectPath(entry.uri?.fsPath);
+
+        if (!projectPath) {
+            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+            return;
+        }
+
+        if (!isTestFunctionItem(entry)) {
+            window.showErrorMessage('Invalid test item. Please select a test function to delete.');
+            return;
+        }
+
+        // Parse test ID: test:${projectPath}:${fileName}:${functionName}
+        const idParts = entry.id.split(":");
+        if (idParts.length < 4) {
+            window.showErrorMessage('Unable to parse test item ID.');
+            return;
+        }
+
+        const fileName = idParts[2];
+        const functionName = idParts[3];
+        const fileUri = path.resolve(projectPath, `tests`, fileName);
+
+        // Determine test type for confirmation message
+        let testType = "test function";
+        try {
+            const response = await ballerinaExtInstance.langClient?.getTestFunction({
+                functionName: entry.label,
+                filePath: fileUri
+            });
+
+            if (response && isValidTestFunctionResponse(response) && response.function) {
+                const isEvaluation = hasEvaluationGroup(response.function);
+                if (isEvaluation) {
+                    testType = "AI evaluation test";
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to determine test type, proceeding with default:', error);
+        }
+
+        // Confirmation dialog
+        const confirmation = await window.showWarningMessage(
+            `Are you sure you want to delete ${testType} '${functionName}'?`,
+            { modal: true },
+            'Delete'
+        );
+
+        if (confirmation !== 'Delete') {
+            return;
+        }
+
+        try {
+            if (!entry.range) {
+                window.showErrorMessage('Test function range not available. Cannot delete.');
+                return;
+            }
+
+            // Create ComponentInfo from TestItem range
+            const component: ComponentInfo = {
+                name: functionName,
+                filePath: fileUri,
+                startLine: entry.range.start.line,
+                startColumn: entry.range.start.character,
+                endLine: entry.range.end.line,
+                endColumn: entry.range.end.character
+            };
+
+            // Call language server to delete the component
+            const response = await ballerinaExtInstance.langClient?.deleteByComponentInfo({
+                filePath: fileUri,
+                component: component
+            });
+
+            if (!response || !response.textEdits) {
+                window.showErrorMessage('Failed to delete test function. No response from language server.');
+                return;
+            }
+
+            // Apply the text edits returned by language server
+            const edit = new WorkspaceEdit();
+
+            for (const [filePath, edits] of Object.entries(response.textEdits)) {
+                const uri = Uri.file(filePath);
+                for (const textEdit of edits) {
+                    edit.replace(
+                        uri,
+                        new Range(
+                            textEdit.range.start.line,
+                            textEdit.range.start.character,
+                            textEdit.range.end.line,
+                            textEdit.range.end.character
+                        ),
+                        textEdit.newText
+                    );
+                }
+            }
+
+            const success = await workspace.applyEdit(edit);
+
+            if (success) {
+                window.showInformationMessage(`Test function '${functionName}' deleted successfully.`);
+                // File watcher automatically triggers test rediscovery
+            } else {
+                window.showErrorMessage(`Failed to apply deletion edits for test function '${functionName}'.`);
+            }
+        } catch (error) {
+            window.showErrorMessage(`Error deleting test function: ${error}`);
+            console.error('Delete test function error:', error);
         }
     });
 }
