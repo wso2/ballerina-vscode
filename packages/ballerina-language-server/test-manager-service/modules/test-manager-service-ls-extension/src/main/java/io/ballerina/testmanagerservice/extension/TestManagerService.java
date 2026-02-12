@@ -260,35 +260,11 @@ public class TestManagerService implements ExtendedLanguageServerService {
     }
 
     private String getDataProviderMode(TestFunction function) {
-        if (function.annotations() == null) {
-            return null;
-        }
-        for (Annotation annotation : function.annotations()) {
-            if ("Config".equals(annotation.name())) {
-                for (Property field : annotation.fields()) {
-                    if ("dataProviderMode".equals(field.originalName())) {
-                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
-                    }
-                }
-            }
-        }
-        return null;
+        return Utils.getConfigFieldValue(function, "dataProviderMode");
     }
 
     private String getEvalSetFile(TestFunction function) {
-        if (function.annotations() == null) {
-            return null;
-        }
-        for (Annotation annotation : function.annotations()) {
-            if ("Config".equals(annotation.name())) {
-                for (Property field : annotation.fields()) {
-                    if ("evalSetFile".equals(field.originalName())) {
-                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
-                    }
-                }
-            }
-        }
-        return null;
+        return Utils.getConfigFieldValue(function, "evalSetFile");
     }
 
     private void addAiConversationThreadParameter(TestFunction function) {
@@ -468,14 +444,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @return the line range covering all annotations, or null if empty
      */
     private LineRange getAnnotationsRange(NodeList<AnnotationNode> annotations) {
-        if (annotations.isEmpty()) {
-            return null;
-        }
-
-        LinePosition startPos = annotations.get(0).lineRange().startLine();
-        LinePosition endPos = annotations.get(annotations.size() - 1).lineRange().endLine();
-
-        return LineRange.from(null, startPos, endPos);
+        return Utils.getAnnotationsRange(annotations);
     }
 
     /**
@@ -485,19 +454,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @return the data provider name, or null if not found
      */
     private String getDataProviderName(TestFunction function) {
-        if (function.annotations() == null) {
-            return null;
-        }
-        for (Annotation annotation : function.annotations()) {
-            if ("Config".equals(annotation.name())) {
-                for (Property field : annotation.fields()) {
-                    if ("dataProvider".equals(field.originalName())) {
-                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
-                    }
-                }
-            }
-        }
-        return null;
+        return Utils.getConfigFieldValue(function, "dataProvider");
     }
 
     /**
@@ -509,18 +466,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
      */
     private Optional<FunctionDefinitionNode> findDataProviderFunction(ModulePartNode modulePartNode,
                                                                       String dataProviderName) {
-        if (dataProviderName == null || dataProviderName.isEmpty()) {
-            return Optional.empty();
-        }
-
-        // Remove quotes if present in function name
-        final String functionName = dataProviderName.replaceAll("\"", "");
-
-        return modulePartNode.members().stream()
-                .filter(mem -> mem instanceof FunctionDefinitionNode)
-                .map(mem -> (FunctionDefinitionNode) mem)
-                .filter(mem -> mem.functionName().text().trim().equals(functionName))
-                .findFirst();
+        return Utils.findFunctionByName(modulePartNode, dataProviderName);
     }
 
     /**
@@ -549,25 +495,9 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @param statements the list of statements
      * @return the line range of the file path string, or empty if not found
      */
-    private Optional<LineRange> findFilePathInStatements(
-            NodeList<StatementNode> statements) {
-        for (StatementNode statement : statements) {
-            if (statement instanceof ReturnStatementNode returnStmt) {
-                Optional<ExpressionNode> expr = returnStmt.expression();
-                if (expr.isPresent()) {
-                    Optional<LineRange> result = findFilePathInExpression(expr.get());
-                    if (result.isPresent()) {
-                        return result;
-                    }
-                }
-            } else if (statement instanceof ExpressionStatementNode exprStmt) {
-                Optional<LineRange> result = findFilePathInExpression(exprStmt.expression());
-                if (result.isPresent()) {
-                    return result;
-                }
-            }
-        }
-        return Optional.empty();
+    private Optional<LineRange> findFilePathInStatements(NodeList<StatementNode> statements) {
+        return Utils.findLoadConversationThreadsArgumentInStatements(statements)
+                .map(ExpressionNode::lineRange);
     }
 
     /**
@@ -589,9 +519,6 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @return the file path without quotes
      */
     private String extractCurrentFilePath(TextDocument textDocument, LineRange range) {
-        int start = textDocument.textPositionFrom(range.startLine());
-        int end = textDocument.textPositionFrom(range.endLine());
-        String text = textDocument.toString().substring(start, end);
-        return text.replaceAll("^\"|\"$", "").trim();
+        return Utils.extractTextFromRange(textDocument, range);
     }
 }

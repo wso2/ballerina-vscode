@@ -229,19 +229,8 @@ public class Utils {
 
     private static String extractEvalSetFileFromDataProvider(ModulePartNode modulePartNode,
                                                              String dataProviderFunctionName) {
-        if (dataProviderFunctionName == null || dataProviderFunctionName.isEmpty()) {
-            return "";
-        }
-
-        // Remove quotes if present in function name
-        final String functionName = dataProviderFunctionName.replaceAll("\"", "");
-
         // Find the data provider function
-        Optional<FunctionDefinitionNode> dataProviderFunc = modulePartNode.members().stream()
-                .filter(mem -> mem instanceof FunctionDefinitionNode)
-                .map(mem -> (FunctionDefinitionNode) mem)
-                .filter(mem -> mem.functionName().text().trim().equals(functionName))
-                .findFirst();
+        Optional<FunctionDefinitionNode> dataProviderFunc = findFunctionByName(modulePartNode, dataProviderFunctionName);
 
         if (dataProviderFunc.isEmpty()) {
             return "";
@@ -260,22 +249,38 @@ public class Utils {
         return "";
     }
 
-    private static String extractFromStatements(NodeList<StatementNode> statements) {
+    /**
+     * Find the loadConversationThreads argument in statements.
+     *
+     * @param statements the list of statements
+     * @return the ExpressionNode of the file path argument, or empty if not found
+     */
+    public static Optional<ExpressionNode> findLoadConversationThreadsArgumentInStatements(
+            NodeList<StatementNode> statements) {
         for (StatementNode statement : statements) {
             if (statement instanceof ReturnStatementNode returnStmt) {
                 Optional<ExpressionNode> expr = returnStmt.expression();
                 if (expr.isPresent()) {
-                    String result = extractFromExpression(expr.get());
-                    if (!result.isEmpty()) {
+                    Optional<ExpressionNode> result = findLoadConversationThreadsArgument(expr.get());
+                    if (result.isPresent()) {
                         return result;
                     }
                 }
             } else if (statement instanceof ExpressionStatementNode exprStmt) {
-                String result = extractFromExpression(exprStmt.expression());
-                if (!result.isEmpty()) {
+                Optional<ExpressionNode> result = findLoadConversationThreadsArgument(exprStmt.expression());
+                if (result.isPresent()) {
                     return result;
                 }
             }
+        }
+        return Optional.empty();
+    }
+
+    private static String extractFromStatements(NodeList<StatementNode> statements) {
+        Optional<ExpressionNode> argExpr = findLoadConversationThreadsArgumentInStatements(statements);
+        if (argExpr.isPresent()) {
+            String argValue = argExpr.get().toSourceCode().trim();
+            return argValue.replaceAll("^\"|\"$", "");
         }
         return "";
     }
@@ -534,6 +539,82 @@ public class Utils {
                     Constants.ORG_BALLERINA.equals(importDeclarationNode.orgName().get().orgName().text()) &&
                     Constants.MODULE_AI.equals(moduleName);
         });
+    }
+
+    /**
+     * Get a field value from the Config annotation of a test function.
+     *
+     * @param function  the test function
+     * @param fieldName the field name to extract
+     * @return the field value without quotes, or null if not found
+     */
+    public static String getConfigFieldValue(TestFunction function, String fieldName) {
+        if (function.annotations() == null) {
+            return null;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (Property field : annotation.fields()) {
+                    if (fieldName.equals(field.originalName())) {
+                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find a function by name in the module.
+     *
+     * @param modulePartNode the module part node
+     * @param functionName   the function name (with or without quotes)
+     * @return the function definition node, or empty if not found
+     */
+    public static Optional<FunctionDefinitionNode> findFunctionByName(ModulePartNode modulePartNode,
+                                                                       String functionName) {
+        if (functionName == null || functionName.isEmpty()) {
+            return Optional.empty();
+        }
+        // Remove quotes if present in function name
+        final String cleanName = functionName.replaceAll("\"", "");
+
+        return modulePartNode.members().stream()
+                .filter(mem -> mem instanceof FunctionDefinitionNode)
+                .map(mem -> (FunctionDefinitionNode) mem)
+                .filter(mem -> mem.functionName().text().trim().equals(cleanName))
+                .findFirst();
+    }
+
+    /**
+     * Get the line range covering all annotations.
+     *
+     * @param annotations the list of annotation nodes
+     * @return the line range covering all annotations, or null if empty
+     */
+    public static LineRange getAnnotationsRange(NodeList<AnnotationNode> annotations) {
+        if (annotations.isEmpty()) {
+            return null;
+        }
+
+        LinePosition startPos = annotations.get(0).lineRange().startLine();
+        LinePosition endPos = annotations.get(annotations.size() - 1).lineRange().endLine();
+
+        return LineRange.from(null, startPos, endPos);
+    }
+
+    /**
+     * Extract text from a document at the given line range.
+     *
+     * @param textDocument the text document
+     * @param range        the line range
+     * @return the extracted text with quotes removed and trimmed
+     */
+    public static String extractTextFromRange(io.ballerina.tools.text.TextDocument textDocument, LineRange range) {
+        int start = textDocument.textPositionFrom(range.startLine());
+        int end = textDocument.textPositionFrom(range.endLine());
+        String text = textDocument.toString().substring(start, end);
+        return text.replaceAll("^\"|\"$", "").trim();
     }
 
     /**
