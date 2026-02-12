@@ -55,7 +55,7 @@ public class AgentRunBuilder extends CallBuilder {
     public static final String CONTEXT = "context";
 
     public static final String LABEL = "Agent";
-    public static final String DESCRIPTION = "Executes the agent for a given user query.";
+    public static final String DESCRIPTION = "Create or reuse an Agent.";
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
 
     @Override
