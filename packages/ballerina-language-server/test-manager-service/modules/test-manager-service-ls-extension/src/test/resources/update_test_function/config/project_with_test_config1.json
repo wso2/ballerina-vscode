@@ -133,6 +133,19 @@
       {
         "range": {
           "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 29
+          }
+        },
+        "newText": "@test:Config{\ngroups: [\"g1\"]\n}"
+      },
+      {
+        "range": {
+          "start": {
             "line": 4,
             "character": 9
           },

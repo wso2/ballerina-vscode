@@ -20,8 +20,13 @@ package io.ballerina.testmanagerservice.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -37,6 +42,7 @@ import io.ballerina.testmanagerservice.extension.request.UpdateTestFunctionReque
 import io.ballerina.testmanagerservice.extension.response.CommonSourceResponse;
 import io.ballerina.testmanagerservice.extension.response.GetTestFunctionResponse;
 import io.ballerina.testmanagerservice.extension.response.TestsDiscoveryResponse;
+import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
@@ -348,6 +354,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
                 }
 
                 List<TextEdit> edits = new ArrayList<>();
+
+                // Update function name if changed
                 String functionName = functionDefinitionNode.functionName().text().trim();
                 LineRange nameRange = functionDefinitionNode.functionName().lineRange();
                 if (!functionName.equals(request.function().functionName().value())) {
@@ -355,13 +363,254 @@ public class TestManagerService implements ExtendedLanguageServerService {
                             request.function().functionName().value().toString()));
                 }
 
+                // Update function signature
                 LineRange signatureRange = functionDefinitionNode.functionSignature().lineRange();
                 String functionSignature = Utils.buildFunctionSignature(request.function());
                 edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
+
+                // Update annotations if present
+                if (functionDefinitionNode.metadata().isPresent() &&
+                    request.function().annotations() != null &&
+                    !request.function().annotations().isEmpty()) {
+                    updateAnnotations(functionDefinitionNode, request.function(), edits);
+                }
+
+                // Update evalSetFile in data provider if present
+                updateEvalSetFile(textDocument, modulePartNode, request.function(), edits);
+
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
         });
+    }
+
+    /**
+     * Update the annotations of the function.
+     *
+     * @param functionDefinitionNode the function definition node
+     * @param function               the test function model
+     * @param edits                  list of text edits to add to
+     */
+    private void updateAnnotations(FunctionDefinitionNode functionDefinitionNode,
+                                    io.ballerina.testmanagerservice.extension.model.TestFunction function,
+                                    List<TextEdit> edits) {
+        if (functionDefinitionNode.metadata().isEmpty()) {
+            return;
+        }
+
+        MetadataNode metadataNode = functionDefinitionNode.metadata().get();
+        NodeList<AnnotationNode> annotations = metadataNode.annotations();
+
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        // Get the range of all annotations
+        LineRange annotationsRange = getAnnotationsRange(annotations);
+        if (annotationsRange == null) {
+            return;
+        }
+
+        // Build new annotation string
+        String newAnnotations = Utils.buildAnnotation(function.annotations());
+        if (!newAnnotations.isEmpty()) {
+            edits.add(new TextEdit(Utils.toRange(annotationsRange), newAnnotations));
+        }
+    }
+
+    /**
+     * Update the evalSetFile in the data provider function.
+     *
+     * @param textDocument    the text document
+     * @param modulePartNode  the module part node
+     * @param function        the test function model
+     * @param edits           list of text edits to add to
+     */
+    private void updateEvalSetFile(TextDocument textDocument, ModulePartNode modulePartNode,
+                                    io.ballerina.testmanagerservice.extension.model.TestFunction function,
+                                    List<TextEdit> edits) {
+        String newEvalSetFile = getEvalSetFile(function);
+        String dataProviderName = getDataProviderName(function);
+
+        if (newEvalSetFile == null || newEvalSetFile.isEmpty() ||
+            dataProviderName == null || dataProviderName.isEmpty()) {
+            return;
+        }
+
+        // Find the data provider function
+        Optional<FunctionDefinitionNode> dataProviderFunc = findDataProviderFunction(modulePartNode, dataProviderName);
+        if (dataProviderFunc.isEmpty()) {
+            return;
+        }
+
+        // Find the evalSetFile path location in the data provider function
+        Optional<LineRange> filePathRange = findEvalSetFilePathLocation(dataProviderFunc.get(), textDocument);
+        if (filePathRange.isEmpty()) {
+            return;
+        }
+
+        // Extract current file path from the source
+        String currentFilePath = extractCurrentFilePath(textDocument, filePathRange.get());
+
+        // If changed, add edit to update it
+        if (!currentFilePath.equals(newEvalSetFile)) {
+            edits.add(new TextEdit(Utils.toRange(filePathRange.get()), "\"" + newEvalSetFile + "\""));
+        }
+    }
+
+    /**
+     * Get the line range covering all annotations.
+     *
+     * @param annotations the list of annotation nodes
+     * @return the line range covering all annotations, or null if empty
+     */
+    private LineRange getAnnotationsRange(NodeList<AnnotationNode> annotations) {
+        if (annotations.isEmpty()) {
+            return null;
+        }
+
+        LinePosition startPos = annotations.get(0).lineRange().startLine();
+        LinePosition endPos = annotations.get(annotations.size() - 1).lineRange().endLine();
+
+        return LineRange.from(null, startPos, endPos);
+    }
+
+    /**
+     * Extract the dataProvider field value from annotations.
+     *
+     * @param function the test function model
+     * @return the data provider name, or null if not found
+     */
+    private String getDataProviderName(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+        if (function.annotations() == null) {
+            return null;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (Property field : annotation.fields()) {
+                    if ("dataProvider".equals(field.originalName())) {
+                        return field.value() != null ? field.value().toString().replaceAll("\"", "") : null;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the data provider function by name in the module.
+     *
+     * @param modulePartNode      the module part node
+     * @param dataProviderName    the data provider function name
+     * @return the function definition node, or empty if not found
+     */
+    private Optional<FunctionDefinitionNode> findDataProviderFunction(ModulePartNode modulePartNode,
+                                                                       String dataProviderName) {
+        if (dataProviderName == null || dataProviderName.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Remove quotes if present in function name
+        final String functionName = dataProviderName.replaceAll("\"", "");
+
+        return modulePartNode.members().stream()
+                .filter(mem -> mem instanceof FunctionDefinitionNode)
+                .map(mem -> (FunctionDefinitionNode) mem)
+                .filter(mem -> mem.functionName().text().trim().equals(functionName))
+                .findFirst();
+    }
+
+    /**
+     * Find the location of the evalSetFile path in the data provider function.
+     *
+     * @param dataProviderFunc the data provider function
+     * @param textDocument     the text document
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findEvalSetFilePathLocation(FunctionDefinitionNode dataProviderFunc,
+                                                            TextDocument textDocument) {
+        io.ballerina.compiler.syntax.tree.FunctionBodyNode functionBody = dataProviderFunc.functionBody();
+
+        if (functionBody instanceof FunctionBodyBlockNode blockBody) {
+            return findFilePathInStatements(blockBody.statements());
+        } else if (functionBody instanceof ExpressionFunctionBodyNode exprBody) {
+            return findFilePathInExpression(exprBody.expression());
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Find the file path location in statements.
+     *
+     * @param statements the list of statements
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findFilePathInStatements(
+            NodeList<io.ballerina.compiler.syntax.tree.StatementNode> statements) {
+        for (io.ballerina.compiler.syntax.tree.StatementNode statement : statements) {
+            if (statement instanceof io.ballerina.compiler.syntax.tree.ReturnStatementNode returnStmt) {
+                Optional<io.ballerina.compiler.syntax.tree.ExpressionNode> expr = returnStmt.expression();
+                if (expr.isPresent()) {
+                    Optional<LineRange> result = findFilePathInExpression(expr.get());
+                    if (result.isPresent()) {
+                        return result;
+                    }
+                }
+            } else if (statement instanceof io.ballerina.compiler.syntax.tree.ExpressionStatementNode exprStmt) {
+                Optional<LineRange> result = findFilePathInExpression(exprStmt.expression());
+                if (result.isPresent()) {
+                    return result;
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Find the file path location in an expression.
+     *
+     * @param expression the expression node
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findFilePathInExpression(
+            io.ballerina.compiler.syntax.tree.ExpressionNode expression) {
+        // Handle check expression: check ai:loadConversationThreads(...)
+        if (expression instanceof io.ballerina.compiler.syntax.tree.CheckExpressionNode checkExpr) {
+            return findFilePathInExpression(checkExpr.expression());
+        }
+
+        // Handle function call: ai:loadConversationThreads("path")
+        if (expression instanceof io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode funcCall) {
+            String functionName = funcCall.functionName().toSourceCode().trim();
+
+            // Check if it's the ai:loadConversationThreads function
+            if (functionName.contains("loadConversationThreads")) {
+                // Extract first argument (the file path)
+                for (io.ballerina.compiler.syntax.tree.FunctionArgumentNode arg : funcCall.arguments()) {
+                    if (arg instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode positionalArg) {
+                        io.ballerina.compiler.syntax.tree.ExpressionNode argExpr = positionalArg.expression();
+                        return Optional.of(argExpr.lineRange());
+                    }
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Extract the current file path from the source at the given range.
+     *
+     * @param textDocument the text document
+     * @param range        the line range of the file path
+     * @return the file path without quotes
+     */
+    private String extractCurrentFilePath(TextDocument textDocument, LineRange range) {
+        int start = textDocument.textPositionFrom(range.startLine());
+        int end = textDocument.textPositionFrom(range.endLine());
+        String text = textDocument.toString().substring(start, end);
+        return text.replaceAll("^\"|\"$", "").trim();
     }
 }

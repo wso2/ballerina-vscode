@@ -66,7 +66,7 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
         }
 
         public void evalSetFile(String filePath) {
-            evalSetFile = value("EvalSet File", "Path to the evalSet data file", filePath,
+            evalSetFile = value("Evalset File", "Path to the evalSet data file", filePath,
                     "EXPRESSION", "evalSetFile");
         }
 
