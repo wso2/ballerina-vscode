@@ -1,10 +1,6 @@
 {
-  "filePath": "test_pack2/records.bal",
-  "position": {
-    "line": 54,
-    "offset": 5
-  },
-  "description": "Get a record type with readonly fields",
+  "filePath": "test_pack1/types.bal",
+  "description": "Create a readonly and array type",
   "type": {
     "name": "User1",
     "editable": true,
@@ -13,18 +9,7 @@
       "description": "Record with readonly field"
     },
     "codedata": {
-      "node": "RECORD",
-      "lineRange": {
-        "fileName": "records.bal",
-        "startLine": {
-          "line": 54,
-          "offset": 5
-        },
-        "endLine": {
-          "line": 54,
-          "offset": 10
-        }
-      }
+      "node": "RECORD"
     },
     "properties": {
       "name": {
@@ -32,12 +17,7 @@
           "label": "Type name",
           "description": "Unique name to identify the type"
         },
-        "types": [
-          {
-            "fieldType": "IDENTIFIER",
-            "selected": true
-          }
-        ],
+        "valueType": "IDENTIFIER",
         "value": "User1",
         "optional": false,
         "editable": false,
@@ -49,13 +29,8 @@
           "label": "public",
           "description": "Is this public"
         },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": true
-          }
-        ],
-        "value": false,
+        "valueType": "FLAG",
+        "value": true,
         "optional": true,
         "editable": true,
         "advanced": false,
@@ -66,12 +41,7 @@
           "label": "Type description",
           "description": "Detailed description about the type"
         },
-        "types": [
-          {
-            "fieldType": "TEXT",
-            "selected": true
-          }
-        ],
+        "valueType": "STRING",
         "value": "Record with readonly field",
         "optional": false,
         "editable": true,
@@ -83,12 +53,7 @@
           "label": "Is array type",
           "description": "Is this type an array or list value"
         },
-        "types": [
-          {
-            "fieldType": "FLAG",
-            "selected": true
-          }
-        ],
+        "valueType": "FLAG",
         "value": "false",
         "optional": true,
         "editable": true,
@@ -100,12 +65,7 @@
           "label": "Size of the array",
           "description": "Array dimensions"
         },
-        "types": [
-          {
-            "fieldType": "TEXT",
-            "selected": true
-          }
-        ],
+        "valueType": "STRING",
         "value": "",
         "optional": true,
         "editable": true,
@@ -121,9 +81,7 @@
         "name": "uuid",
         "optional": false,
         "readonly": true,
-        "isGraphqlId": false,
-        "docs": "",
-        "annotationAttachments": []
+        "docs": ""
       },
       {
         "kind": "FIELD",
@@ -132,14 +90,27 @@
         "name": "name",
         "optional": false,
         "readonly": true,
-        "isGraphqlId": false,
-        "docs": "",
-        "annotationAttachments": []
+        "docs": ""
       }
     ],
     "includes": [],
-    "annotationAttachments": [],
     "allowAdditionalFields": false
   },
-  "refs": []
+  "output": {
+    "test_pack1/types.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 0
+          },
+          "end": {
+            "line": 37,
+            "character": 0
+          }
+        },
+        "newText": "\n# Record with readonly field\npublic type User1 record {|\n\treadonly int uuid;\n\treadonly string name;\n|};"
+      }
+    ]
+  }
 }
