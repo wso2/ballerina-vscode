@@ -20,7 +20,7 @@
 import { HistoryEntry } from "../../history";
 import { ProjectStructureArtifactResponse, UpdatedArtifactsResponse } from "../../interfaces/bi";
 import { ColorThemeKind } from "../../state-machine-types";
-import { AddToUndoStackRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, UndoRedoStateResponse } from "./interfaces";
+import { AddToUndoStackRequest, HandleApprovalPopupCloseRequest, JoinProjectPathRequest, JoinProjectPathResponse, OpenViewRequest, ReopenApprovalViewRequest, UndoRedoStateResponse } from "./interfaces";
 import { NotificationType, RequestType } from "vscode-messenger-common";
 
 const _preFix = "visualizer";
@@ -40,3 +40,5 @@ export const getThemeKind: RequestType<void, ColorThemeKind> = { method: `${_pre
 export const updateCurrentArtifactLocation: RequestType<UpdatedArtifactsResponse, ProjectStructureArtifactResponse> = { method: `${_preFix}/updateCurrentArtifactLocation` };
 export const reviewAccepted: NotificationType<void> = { method: `${_preFix}/reviewAccepted` };
 export const refreshReviewMode: NotificationType<void> = { method: `${_preFix}/refreshReviewMode` };
+export const handleApprovalPopupClose: NotificationType<HandleApprovalPopupCloseRequest> = { method: `${_preFix}/handleApprovalPopupClose` };
+export const reopenApprovalView: NotificationType<ReopenApprovalViewRequest> = { method: `${_preFix}/reopenApprovalView` };

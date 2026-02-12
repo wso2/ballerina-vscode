@@ -50,6 +50,8 @@ import {
     NodeProperties,
     VisualizerLocation,
     getPrimaryInputType,
+    MACHINE_VIEW,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -721,9 +723,13 @@ export const Form = forwardRef((props: FormProps) => {
     const expressionField = formFields.find((field) => field.key === "expression");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
-    const canOpenInDataMapper = selectedNode === "VARIABLE" &&
+
+    const canOpenInDataMapper = (selectedNode === "VARIABLE" &&
         expressionField &&
-        visualizableField?.isDataMapped;
+        visualizableField?.isDataMapped) || 
+        selectedNode === "DATA_MAPPER_CREATION";
+
+    const canOpenInFunctionEditor = selectedNode === "FUNCTION_CREATION";
 
     const contextValue: FormContext = {
         form: {
@@ -897,7 +903,26 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ ...data, openInDataMapper: true });
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: selectedNode === "VARIABLE" ? MACHINE_VIEW.InlineDataMapper : MACHINE_VIEW.DataMapper,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
+        })();
+    };
+
+    const handleOnOpenInFunctionEditor = () => {
+        setSavingButton('functionEditor');
+        handleSubmit((data) => {
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: MACHINE_VIEW.BIDiagram,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
         })();
     };
 
@@ -1058,7 +1083,7 @@ export const Form = forwardRef((props: FormProps) => {
                                             name={"chevron-up"}
                                             iconSx={{ fontSize: 12 }}
                                             sx={{ height: 12 }}
-                                        />Collapsed
+                                        />Collapse
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
@@ -1199,6 +1224,17 @@ export const Form = forwardRef((props: FormProps) => {
                                 ) : submitText || "Open in Data Mapper"}
                             </Button>
                         }
+                        {canOpenInFunctionEditor && (
+                            <Button
+                                appearance="secondary"
+                                onClick={handleOnOpenInFunctionEditor}
+                                disabled={isSaving}
+                            >
+                                {isSaving && savingButton === 'functionEditor' ? (
+                                    <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                ) : submitText || "Open in Function Editor"}
+                            </Button>
+                        )}
                         <Button
                             appearance="primary"
                             onClick={handleOnSaveClick}
