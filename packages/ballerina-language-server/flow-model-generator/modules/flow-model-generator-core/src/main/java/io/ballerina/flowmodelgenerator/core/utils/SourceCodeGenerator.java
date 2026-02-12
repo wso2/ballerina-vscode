@@ -136,9 +136,15 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%s%stype %s %s;";
+        // Check for public property to add `public` qualifier to the type definition
+        String publicQualifier = "";
+        if (isPublicFlagOn(typeData.properties())) {
+            publicQualifier = "public ";
+        }
 
-        return template.formatted(docs, annots, typeData.name(), typeDescriptor);
+        String template = "%s%s%stype %s %s;";
+
+        return template.formatted(docs, annots, publicQualifier, typeData.name(), typeDescriptor);
     }
 
     private String generateAnnotatedTypeDescriptor(Object typeData,
@@ -544,6 +550,12 @@ public class SourceCodeGenerator {
     private boolean isReadonlyFlagOn(Map<String, Property> properties) {
         Property readonlyProperty = properties.get(Property.IS_READ_ONLY_KEY);
         return readonlyProperty != null && readonlyProperty.value().equals("true");
+    }
+
+    private boolean isPublicFlagOn(Map<String, Property> properties) {
+        Property publicProperty = properties.get(Property.IS_PUBLIC_KEY);
+        return publicProperty != null &&
+                (publicProperty.value().equals("true") || publicProperty.value().equals(true));
     }
 
     /**
