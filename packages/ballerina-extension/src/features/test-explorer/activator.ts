@@ -116,7 +116,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     // Register the test controller and file watcher with the extension context
     ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand);
 
-    activateEditBiTest();
+    activateEditBiTest(ballerinaExtInstance);
 }
 
 

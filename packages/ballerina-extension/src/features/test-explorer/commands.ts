@@ -19,7 +19,7 @@
 
 import { commands, TestItem, window } from "vscode";
 import { openView, StateMachine, history } from "../../stateMachine";
-import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { BI_COMMANDS, EVENT_TYPE, MACHINE_VIEW, Annotation, ValueProperty, GetTestFunctionResponse } from "@wso2/ballerina-core";
 import { isTestFunctionItem } from "./discover";
 import path from "path";
 import { promises as fs } from 'fs';
@@ -28,9 +28,9 @@ import { VisualizerWebview } from "../../views/visualizer/webview";
 import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/project-utils";
 import { findBallerinaPackageRoot } from "../../utils";
 import { MESSAGES } from "../project";
-import { findWorkspaceTypeFromWorkspaceFolders } from "../../rpc-managers/common/utils";
+import { BallerinaExtension } from "../../core";
 
-export function activateEditBiTest() {
+export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
     // register run project tests handler
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION, async (entry: TestItem) => {
         const projectPath = await findProjectPath(entry.uri?.fsPath);
@@ -109,8 +109,41 @@ export function activateEditBiTest() {
         const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
+
+            // Fetch the test function to check if it belongs to the "Evaluation" group
+            let viewToOpen = MACHINE_VIEW.BITestFunctionForm; // Default to regular test form
+
+            try {
+                console.log('[TEST EDIT] Fetching test function:', entry.label, 'from file:', fileUri);
+                const response = await ballerinaExtInstance.langClient?.getTestFunction({
+                    functionName: entry.label,
+                    filePath: fileUri
+                });
+
+                console.log('[TEST EDIT] Response received:', response);
+
+                if (response && isValidTestFunctionResponse(response) && response.function) {
+                    console.log('[TEST EDIT] Valid response, checking for Evaluation group');
+                    const isEvaluation = hasEvaluationGroup(response.function);
+                    console.log('[TEST EDIT] Is Evaluation test?', isEvaluation);
+                    if (isEvaluation) {
+                        viewToOpen = MACHINE_VIEW.BIAIEvaluationForm;
+                        console.log('[TEST EDIT] Opening AI Evaluation Form');
+                    } else {
+                        console.log('[TEST EDIT] Opening regular Test Function Form');
+                    }
+                } else {
+                    console.log('[TEST EDIT] Invalid response or no function data, using default form');
+                }
+            } catch (error) {
+                console.warn('Failed to fetch test function, defaulting to regular test form:', error);
+                // Continue with default form if fetching fails
+            }
+
+            console.log('[TEST EDIT] Final view to open:', viewToOpen);
+
             openView(EVENT_TYPE.OPEN_VIEW, {
-                view: MACHINE_VIEW.BITestFunctionForm,
+                view: viewToOpen,
                 documentUri: fileUri,
                 identifier: entry.label,
                 position: {
@@ -123,6 +156,69 @@ export function activateEditBiTest() {
             });
         }
     });
+}
+
+/**
+ * Type guard to check if response is a valid GetTestFunctionResponse
+ * @param response The response to check
+ * @returns true if response is GetTestFunctionResponse, false if NOT_SUPPORTED_TYPE
+ */
+function isValidTestFunctionResponse(response: any): response is GetTestFunctionResponse {
+    return 'function' in response || 'errorMsg' in response || 'stacktrace' in response;
+}
+
+/**
+ * Check if a test function belongs to the "Evaluation" group
+ * @param testFunction The test function to check
+ * @returns true if the function has "Evaluation" in its groups, false otherwise
+ */
+function hasEvaluationGroup(testFunction: any): boolean {
+    console.log('[HAS_EVAL_GROUP] Checking test function:', testFunction?.functionName?.value);
+
+    if (!testFunction?.annotations) {
+        console.log('[HAS_EVAL_GROUP] No annotations found');
+        return false;
+    }
+
+    console.log('[HAS_EVAL_GROUP] Found annotations:', testFunction.annotations.map((a: any) => a.name));
+
+    // Find the Config annotation
+    const configAnnotation = testFunction.annotations.find(
+        (annotation: Annotation) => annotation.name === 'Config'
+    );
+
+    if (!configAnnotation?.fields) {
+        console.log('[HAS_EVAL_GROUP] No Config annotation or fields found');
+        return false;
+    }
+
+    console.log('[HAS_EVAL_GROUP] Config annotation fields:', configAnnotation.fields.map((f: any) => f.originalName));
+
+    // Find the groups field
+    const groupsField = configAnnotation.fields.find(
+        (field: ValueProperty) => field.originalName === 'groups'
+    );
+
+    if (!groupsField?.value) {
+        console.log('[HAS_EVAL_GROUP] No groups field found or empty');
+        return false;
+    }
+
+    console.log('[HAS_EVAL_GROUP] Groups field value:', groupsField.value, 'Type:', typeof groupsField.value, 'IsArray:', Array.isArray(groupsField.value));
+
+    if (!Array.isArray(groupsField.value)) {
+        console.log('[HAS_EVAL_GROUP] Groups value is not an array');
+        return false;
+    }
+
+    // Check if "Evaluation" is in the groups array
+    // Note: The values may include quotes, so we need to strip them
+    const hasEvaluation = groupsField.value.some((group: string) => {
+        const cleanedGroup = group.replace(/^["']|["']$/g, ''); // Remove leading/trailing quotes
+        return cleanedGroup === 'Evaluation';
+    });
+    console.log('[HAS_EVAL_GROUP] Contains "Evaluation"?', hasEvaluation, 'Groups:', groupsField.value);
+    return hasEvaluation;
 }
 
 async function ensureFileExists(filePath: string) {

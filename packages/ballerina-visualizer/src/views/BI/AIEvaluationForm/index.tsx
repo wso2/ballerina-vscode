@@ -102,6 +102,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [formFields, setFormFields] = useState<FormField[]>([]);
     const [testFunction, setTestFunction] = useState<TestFunction>();
     const [formTitle, setFormTitle] = useState<string>('Create New AI Evaluation');
+    const [formSubtitle, setFormSubtitle] = useState<string>('Create a new AI evaluation for your integration');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [dataProviderMode, setDataProviderMode] = useState<string>('evalSet');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
@@ -147,9 +148,11 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     useEffect(() => {
         if (serviceType === 'UPDATE_TEST') {
             setFormTitle('Update AI Evaluation');
+            setFormSubtitle('Update an existing AI evaluation');
             loadFunction();
         } else {
             setFormTitle('Create New AI Evaluation');
+            setFormSubtitle('Create a new AI evaluation for your integration');
             loadEmptyForm();
         }
 
@@ -320,17 +323,67 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         if (testFunction.annotations) {
             const configAnnotation = getTestConfigAnnotation(testFunction.annotations);
             if (configAnnotation && configAnnotation.fields) {
+                const minPassRateField = configAnnotation.fields.find(f => f.originalName === 'minPassRate');
+                if (minPassRateField) {
+                    const generatedField = generateFieldFromProperty('minPassRate', minPassRateField);
+                    fields.push({
+                        ...generatedField,
+                        type: 'SLIDER',
+                        sliderProps: {
+                            min: 0,
+                            max: 100,
+                            step: 1,
+                            showValue: true,
+                            showMarkers: true,
+                            valueFormatter: (value: number) => `${value}%`
+                        }
+                    });
+                }
+
+                const evalSetFileField = configAnnotation.fields.find(f => f.originalName === 'evalSetFile');
+                if (evalSetFileField) {
+                    fields.push({
+                        ...generateFieldFromProperty('evalSetFile', evalSetFileField),
+                        type: 'SINGLE_SELECT',
+                        itemOptions: evalsetOptions
+                    });
+                }
+
                 for (const field of configAnnotation.fields) {
-                    // Skip dataProviderMode - it will be rendered as CardSelector
-                    if (field.originalName === 'dataProviderMode') {
+                    // Skip fields already processed
+                    if (field.originalName === 'dataProviderMode' ||
+                        field.originalName === 'minPassRate' ||
+                        field.originalName === 'evalSetFile') {
                         continue;
                     }
 
-                    if (field.originalName === 'evalSetFile') {
+                    // Special handling for groups and dependsOn - use EXPRESSION_SET
+                    if (field.originalName === 'groups' || field.originalName === 'dependsOn') {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
-                            type: 'SINGLE_SELECT',
-                            itemOptions: evalsetOptions
+                            type: 'EXPRESSION_SET',
+                            types: [{ fieldType: 'EXPRESSION_SET', selected: false }]
+                        });
+                        continue;
+                    }
+
+                    // Special handling for expression fields - ensure they use EXPRESSION type
+                    if (field.originalName === 'before' || field.originalName === 'after' ||
+                        field.originalName === 'runs' || field.originalName === 'dataProvider') {
+                        fields.push({
+                            ...generateFieldFromProperty(field.originalName, field),
+                            type: 'EXPRESSION',
+                            types: [{ fieldType: 'EXPRESSION', selected: false }]
+                        });
+                        continue;
+                    }
+
+                    // Special handling for enabled - use FLAG
+                    if (field.originalName === 'enabled') {
+                        fields.push({
+                            ...generateFieldFromProperty(field.originalName, field),
+                            type: 'FLAG',
+                            types: [{ fieldType: 'FLAG', selected: false }]
                         });
                         continue;
                     }
@@ -383,9 +436,9 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
 
         // Convert decimal (0-1) to percentage (0-100) for minPassRate display
         let displayValue = property.value;
-        if (key === 'minPassRate' && fieldType === 'SLIDER') {
-            const decimalValue = parseFloat(property.value) || 1;
-            displayValue = String(Math.round(decimalValue * 100));
+        if (key === 'minPassRate') {
+            const decimalValue = parseFloat(property.value);
+            displayValue = String(Math.round((isNaN(decimalValue) ? 1 : decimalValue) * 100));
         }
 
         const baseField: FormField = {
@@ -485,16 +538,15 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     if (field.originalName == 'dataProvider') {
                         if (formValues['dataProviderMode'] === 'function') {
                             field.value = formValues['dataProvider'] || "";
-                        } else {
-                            field.value = "";
                         }
+                        // Preserve existing dataProvider value when in evalSet mode
+                        // (backend creates it from evalSetFile)
                     }
                     if (field.originalName == 'evalSetFile') {
                         if (formValues['dataProviderMode'] === 'evalSet') {
                             field.value = formValues['evalSetFile'] || "";
-                        } else {
-                            field.value = "";
                         }
+                        // Preserve existing evalSetFile value when in function mode
                     }
                 }
             }
@@ -754,7 +806,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     return (
         <View>
             <TopNavigationBar projectPath={projectPath} />
-            <TitleBar title="AI Evaluation" subtitle="Create a new AI evaluation for your integration" />
+            <TitleBar title="AI Evaluation" subtitle={formSubtitle} />
             <ViewContent padding>
                 <Container>
                     <FormHeader title={formTitle} />
