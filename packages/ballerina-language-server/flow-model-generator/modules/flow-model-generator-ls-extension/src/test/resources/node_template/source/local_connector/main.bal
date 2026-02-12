@@ -77,6 +77,7 @@ function customFnWithImportedType(http:ClientConfiguration config, Address addre
 function function1(string a1) {
     do {
         stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`SELECT * from users`);
+        sql:ProcedureCallResult sqlProcedurecallresult = check mysqlClient->call(`Call get_user()`);
 
     } on fail {
 
