@@ -206,16 +206,15 @@ class FunctionSearchCommand extends SearchCommand {
 
         Category.Builder workspaceBuilder = rootBuilder.stepIn(Category.Name.CURRENT_WORKSPACE);
 
-        List<BuildProject> projects = workspaceProject.get().projects();
-        for (BuildProject project: projects) {
-            PackageName packageName = project.currentPackage().packageName();
-            boolean isCurrentProject = packageName
-                    .equals(this.project.currentPackage().packageName());
+        // Build current integration first to ensure it appears at the top
+        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+        Category.Builder currIntAgtToolsBuilder = agentToolsBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+        buildProjectNodes(this.project, currIntProjBuilder, currIntAgtToolsBuilder);
 
-            if (isCurrentProject) {
-                Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
-                Category.Builder currIntAgtToolsBuilder = agentToolsBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
-                buildProjectNodes(this.project, currIntProjBuilder, currIntAgtToolsBuilder);
+        List<BuildProject> projects = workspaceProject.get().projects();
+        for (BuildProject project : projects) {
+            PackageName packageName = project.currentPackage().packageName();
+            if (packageName.equals(this.project.currentPackage().packageName())) {
                 continue;
             }
 
