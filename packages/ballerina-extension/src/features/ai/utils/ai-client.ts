@@ -20,6 +20,7 @@ import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
 import { getAccessToken, getLoginMethod, getRefreshedAccessToken, getAwsBedrockCredentials, getVertexAiCredentials } from "../../../utils/ai/auth";
 import { AIStateMachine } from "../../../views/ai-panel/aiMachine";
 import { BACKEND_URL } from "../utils";
+import { LLM_API_BASE_PATH } from "../constants";
 import { AIMachineEventType, AnthropicKeySecrets, LoginMethod, BIIntelSecrets } from "@wso2/ballerina-core";
 
 export const ANTHROPIC_HAIKU = "claude-3-5-haiku-20241022";
@@ -158,8 +159,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
 
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
-        // let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
-        let url = BACKEND_URL + "/intel/claude";
+        let url = BACKEND_URL + LLM_API_BASE_PATH + "/claude";
         if (loginMethod === LoginMethod.BI_INTEL) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,
