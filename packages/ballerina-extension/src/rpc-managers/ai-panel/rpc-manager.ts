@@ -583,6 +583,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
         approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
     }
 
+    async provideConfiguration(params: { requestId: string; configValues: Record<string, string> }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, true, params.configValues);
+    }
+
+    async cancelConfiguration(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, false, undefined, params.comment);
+    }
+
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {
         // Get workspace and thread identifiers
         const workspaceId = StateMachine.context().projectPath;
