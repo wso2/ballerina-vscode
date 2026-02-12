@@ -310,6 +310,7 @@ const stateMachine = createMachine<MachineContext>(
                                 type: (context, event) => event.viewLocation?.type,
                                 isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                 metadata: (context, event) => event.viewLocation?.metadata,
+                                agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                 addType: (context, event) => event.viewLocation?.addType,
                                 dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                 artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
@@ -375,6 +376,7 @@ const stateMachine = createMachine<MachineContext>(
                                     position: (context, event) => event.data.position,
                                     syntaxTree: (context, event) => event.data.syntaxTree,
                                     focusFlowDiagramView: (context, event) => event.data.focusFlowDiagramView,
+                                    agentMetadata: (context, event) => event.data.agentMetadata,
                                     dataMapperMetadata: (context, event) => event.data.dataMapperMetadata,
                                     reviewData: (context, event) => event.data.reviewData,
                                     isViewUpdateTransition: false
@@ -399,6 +401,7 @@ const stateMachine = createMachine<MachineContext>(
                                         type: (context, event) => event.viewLocation?.type,
                                         isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                         metadata: (context, event) => event.viewLocation?.metadata,
+                                        agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         artifactInfo: (context, event) => event.viewLocation?.artifactInfo,
@@ -424,6 +427,7 @@ const stateMachine = createMachine<MachineContext>(
                                         identifier: (context, event) => event.viewLocation.identifier,
                                         serviceType: (context, event) => event.viewLocation.serviceType,
                                         type: (context, event) => event.viewLocation?.type,
+                                        agentMetadata: (context, event) => event.viewLocation?.agentMetadata,
                                         isGraphql: (context, event) => event.viewLocation?.isGraphql,
                                         addType: (context, event) => event.viewLocation?.addType,
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
@@ -652,6 +656,7 @@ const stateMachine = createMachine<MachineContext>(
                             type: context?.type,
                             isGraphql: context?.isGraphql,
                             addType: context?.addType,
+                            agentMetadata: context?.agentMetadata,
                             dataMapperMetadata: context?.dataMapperMetadata,
                             reviewData: context?.reviewData
                         }

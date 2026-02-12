@@ -142,6 +142,7 @@ export interface VisualizerLocation {
     isGraphql?: boolean;
     rootDiagramId?: string;
     metadata?: VisualizerMetadata;
+    agentMetadata?: AgentMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
     org?: string;
@@ -163,6 +164,14 @@ export interface ArtifactInfo {
 export interface ArtifactData {
     artifactType: DIRECTORY_MAP;
     identifier?: string;
+}
+
+export interface AgentMetadata {
+}
+
+export interface ApprovalOverlayState {
+    show: boolean;
+    message?: string;
 }
 
 export interface VisualizerMetadata {
@@ -284,12 +293,14 @@ export interface ToolCall {
     type: "tool_call";
     toolName: string;
     toolInput?: any;
+    toolCallId?: string;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
     toolOutput?: any;
+    toolCallId?: string;
 }
 
 export interface EvalsToolResult {
@@ -380,6 +391,7 @@ export const popupStateChanged: NotificationType<PopupMachineStateValue> = { met
 export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation> = { method: 'getPopupVisualizerState' };
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
+export const approvalOverlayState: NotificationType<ApprovalOverlayState> = { method: 'approvalOverlayState' };
 
 // ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
@@ -568,7 +580,7 @@ export enum TaskTypes {
 export interface Task {
     description: string;
     status: TaskStatus;
-    type : TaskTypes;
+    type: TaskTypes;
 }
 
 export interface Plan {

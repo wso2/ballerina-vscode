@@ -32,9 +32,10 @@ import {
 import { CopilotEventHandler } from "../../utils/events";
 import { langClient } from "../../activator";
 import { applyTextEdits } from "../utils";
-import { LIBRARY_PROVIDER_TOOL } from "../../utils/libs/libraries";
+import { LIBRARY_GET_TOOL } from "./library-get";
 import { approvalManager } from '../../state/ApprovalManager';
 import { sendAiSchemaDidOpen } from "../../utils/project/ls-schema-notifications";
+import { LIBRARY_SEARCH_TOOL } from "./library-search";
 
 export const CONNECTOR_GENERATOR_TOOL = "ConnectorGeneratorTool";
 
@@ -43,14 +44,19 @@ const SpecFetcherInputSchema = z.object({
     serviceDescription: z.string().optional().describe("Optional description of what the service is for"),
 });
 
+
+
 export function createConnectorGeneratorTool(eventHandler: CopilotEventHandler, tempProjectPath: string, projectName?: string, modifiedFiles?: string[]) {
     return tool({
+        // TODO: Since LIBRARY_SEARCH_TOOL and LIBRARY_GET_TOOL workflow changed, verify this tool's use case ordering aligns with agent behavior
         description: `
-Generates a connector for an external service by deriving the service contract from user-provided specifications. Use this tool only when the service contract is unclear or missing, and the target service is not a well-established platform with an existing SDK or connector
+Generates a connector for an external service by deriving the service contract from user-provided OpenAPI specifications.
 
 Use this tool when:
-1. The target service is custom, internal, or niche, and unlikely to be covered by existing libraries.
-2. When the ${LIBRARY_PROVIDER_TOOL} does not have a connector for the target service.
+1. Target service is custom, internal, or niche
+2. User request is ambiguous and needs a SaaS connector
+3. User explicitly requests to create a SaaS connector
+4. After searching with ${LIBRARY_SEARCH_TOOL}, no suitable connector is found
 
 The tool will:
 1. Request OpenAPI spec from user (supports JSON and YAML formats)
