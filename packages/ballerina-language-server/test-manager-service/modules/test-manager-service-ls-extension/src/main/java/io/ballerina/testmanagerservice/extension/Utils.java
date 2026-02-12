@@ -422,6 +422,14 @@ public class Utils {
                     if (value instanceof List<?> valueList && !valueList.isEmpty()
                             && valueList.getFirst() instanceof String) {
                         List<String> groupList = valueList.stream()
+                                .filter(group -> {
+                                    String groupStr = group.toString().trim();
+                                    if (groupStr.isEmpty() || groupStr.equals("\"\"")) {
+                                        return false;
+                                    }
+                                    String unquoted = groupStr.replaceAll("^\"|\"$", "");
+                                    return !unquoted.isEmpty();
+                                })
                                 .map(group -> {
                                     String groupStr = group.toString();
                                     if (!groupStr.startsWith(Constants.DOUBLE_QUOTE)) {
