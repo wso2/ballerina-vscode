@@ -1,0 +1,89 @@
+{
+  "source": "workflow_function/functions.bal",
+  "description": "Generate workflow:createInstance call",
+  "diagram": {
+    "id": "1",
+    "metadata": {
+      "label": "orderWorkflow",
+      "description": "Start a workflow process instance"
+    },
+    "codedata": {
+      "node": "WORKFLOW_START",
+      "org": "ballerina",
+      "module": "workflow",
+      "symbol": "orderWorkflow",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "input": {
+        "metadata": {
+          "label": "Input",
+          "description": "Input data for the workflow"
+        },
+        "valueType": "EXPRESSION",
+        "valueTypeConstraint": "anydata",
+        "value": "{orderId: \"123\"}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Workflow ID Variable Name",
+          "description": "Variable name to receive the started workflow ID."
+        },
+        "valueType": "IDENTIFIER",
+        "value": "workflowId",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "valueType": "FLAG",
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 1
+  },
+  "output": {
+    "workflow_function/functions.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 1,
+            "character": 0
+          },
+          "end": {
+            "line": 1,
+            "character": 0
+          }
+        },
+        "newText": "\nimport ballerina/workflow;"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 4,
+            "character": 1
+          },
+          "end": {
+            "line": 4,
+            "character": 1
+          }
+        },
+        "newText": "\nstring workflowId = check workflow:createInstance(orderWorkflow, {orderId: \"123\"});\n"
+      }
+    ]
+  }
+}

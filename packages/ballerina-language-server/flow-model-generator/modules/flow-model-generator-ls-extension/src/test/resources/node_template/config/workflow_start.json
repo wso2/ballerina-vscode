@@ -1,0 +1,87 @@
+{
+  "source": "workflow_function/functions.bal",
+  "position": {
+    "line": 3,
+    "offset": 0
+  },
+  "description": "Workflow start node template",
+  "codedata": {
+    "node": "WORKFLOW_START",
+    "org": "test",
+    "module": "workflow_function",
+    "symbol": "orderWorkflow",
+    "version": "0.1.0"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "orderWorkflow",
+      "description": "Start a workflow process instance"
+    },
+    "codedata": {
+      "node": "WORKFLOW_START",
+      "org": "test",
+      "module": "workflow_function",
+      "symbol": "orderWorkflow",
+      "version": "0.1.0",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "input": {
+        "metadata": {
+          "label": "Input",
+          "description": "Input data for the workflow"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "OrderInput",
+            "selected": false
+          }
+        ],
+        "value": "",
+        "placeholder": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "variable": {
+        "metadata": {
+          "label": "Workflow ID Variable Name",
+          "description": "Variable name to receive the started workflow ID."
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": false
+          }
+        ],
+        "value": "workflowId",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": false
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}
