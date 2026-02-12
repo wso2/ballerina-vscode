@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 import { Icon, View, ViewContent } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { FormField, FormImports, FormValues, Parameter, FormSectionConfig } from "@wso2/ballerina-side-panel";
+import { FormField, FormImports, FormValues, Parameter } from "@wso2/ballerina-side-panel";
 import { LineRange, FunctionParameter, TestFunction, ValueProperty, Annotation, getPrimaryInputType, EvalsetItem } from "@wso2/ballerina-core";
 import { EVENT_TYPE } from "@wso2/ballerina-core";
 import { TitleBar } from "../../../components/TitleBar";
@@ -56,38 +56,6 @@ const Container = styled.div`
     flex-direction: "column";
     gap: 10;
 `;
-
-const TEST_FORM_SECTIONS: FormSectionConfig = {
-    sections: [
-        {
-            id: 'data-provider',
-            title: 'Data Provider',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 1,
-            description: 'Configure test data sources',
-            fieldKeys: ['dataProviderMode', 'dataProvider']
-        },
-        {
-            id: 'repetition',
-            title: 'Repetition',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 2,
-            description: 'Configure run frequency',
-            fieldKeys: ['runs']
-        },
-        {
-            id: 'execution-organization',
-            title: 'Execution & Organization',
-            isCollapsible: true,
-            defaultCollapsed: true,
-            order: 3,
-            description: 'Manage test groups, dependencies, and lifecycle hooks',
-            fieldKeys: ['groups', 'dependsOn', 'before', 'after', 'enabled']
-        }
-    ]
-};
 
 interface TestFunctionDefProps {
     projectPath: string;
@@ -362,6 +330,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
                             type: 'EXPRESSION_SET',
+                            advanced: true,
                             types: [{ fieldType: 'EXPRESSION_SET', selected: false }]
                         });
                         continue;
@@ -373,6 +342,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
                             type: 'EXPRESSION',
+                            advanced: true,
                             types: [{ fieldType: 'EXPRESSION', selected: false }]
                         });
                         continue;
@@ -383,6 +353,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                         fields.push({
                             ...generateFieldFromProperty(field.originalName, field),
                             type: 'FLAG',
+                            advanced: true,
                             types: [{ fieldType: 'FLAG', selected: false }]
                         });
                         continue;
@@ -628,7 +599,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             value: true,
                             optional: true,
                             editable: true,
-                            advanced: false,
+                            advanced: true,
                             types: [{ fieldType: "FLAG", selected: false }]
                         },
                         {
@@ -641,7 +612,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             value: ["Evaluation"],
                             optional: true,
                             editable: true,
-                            advanced: false
+                            advanced: true
                         },
                         {
                             metadata: {
@@ -699,7 +670,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             types: [{ fieldType: "SLIDER", selected: false }],
                             originalName: "minPassRate",
                             value: "1.0",
-                            optional: false,
+                            optional: true,
                             editable: true,
                             advanced: false
                         },
@@ -713,7 +684,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             value: "function",
                             optional: true,
                             editable: true,
-                            advanced: false
+                            advanced: true
                         },
                         {
                             metadata: {
@@ -735,7 +706,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             types: [{ fieldType: "STRING", selected: false }],
                             originalName: "evalSetFile",
                             value: "",
-                            optional: false,
+                            optional: true,
                             editable: true,
                             advanced: false
                         }
@@ -816,7 +787,6 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             <FormGeneratorNew
                                 fileName={filePath}
                                 fields={formFields}
-                                sections={TEST_FORM_SECTIONS}
                                 targetLineRange={targetLineRange}
                                 onSubmit={onFormSubmit}
                                 preserveFieldOrder={true}
