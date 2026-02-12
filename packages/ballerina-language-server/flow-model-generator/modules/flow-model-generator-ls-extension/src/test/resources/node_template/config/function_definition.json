@@ -85,6 +85,23 @@
         "advanced": false,
         "hidden": false
       },
+      "isPublic": {
+        "metadata": {
+          "label": "public",
+          "description": "Is this public"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": false,
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
       "parameters": {
         "metadata": {
           "label": "Parameters",
