@@ -276,6 +276,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
         TEXT,
+        DOC_TEXT,
         TYPE,
         ENUM,
         VIEW,
