@@ -191,19 +191,24 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
             };
 
             if (msg.name) { base.name = msg.name; }
-            if (msg.tool_calls) {
-                base.toolCalls = msg.tool_calls.map((tc: any) => ({
-                    id: tc.id,
-                    name: tc.function?.name || tc.name,
-                    arguments: typeof tc.function?.arguments === 'string'
-                        ? safeJsonParse(tc.function.arguments)
-                        : tc.function?.arguments || tc.arguments
-                }));
-            } else if (msg.toolCalls) {
-                base.toolCalls = msg.toolCalls;
-            } else {
-                base.toolCalls = null;
+
+            // Only include toolCalls for assistant messages
+            if (msg.role === 'assistant') {
+                if (msg.tool_calls) {
+                    base.toolCalls = msg.tool_calls.map((tc: any) => ({
+                        id: tc.id,
+                        name: tc.function?.name || tc.name,
+                        arguments: typeof tc.function?.arguments === 'string'
+                            ? safeJsonParse(tc.function.arguments)
+                            : tc.function?.arguments || tc.arguments
+                    }));
+                } else if (msg.toolCalls) {
+                    base.toolCalls = msg.toolCalls;
+                } else {
+                    base.toolCalls = null;
+                }
             }
+
             if (msg.id) { base.id = msg.id; }
 
             return base as ChatMessage;
@@ -230,19 +235,24 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
             };
 
             if (rawMessage.name) { base.name = rawMessage.name; }
-            if (rawMessage.tool_calls) {
-                base.toolCalls = rawMessage.tool_calls.map((tc: any) => ({
-                    id: tc.id,
-                    name: tc.function?.name || tc.name,
-                    arguments: typeof tc.function?.arguments === 'string'
-                        ? safeJsonParse(tc.function.arguments)
-                        : tc.function?.arguments || tc.arguments
-                }));
-            } else if (rawMessage.toolCalls) {
-                base.toolCalls = rawMessage.toolCalls;
-            } else {
-                base.toolCalls = null;
+
+            // Only include toolCalls for assistant messages
+            if (rawMessage.role === 'assistant') {
+                if (rawMessage.tool_calls) {
+                    base.toolCalls = rawMessage.tool_calls.map((tc: any) => ({
+                        id: tc.id,
+                        name: tc.function?.name || tc.name,
+                        arguments: typeof tc.function?.arguments === 'string'
+                            ? safeJsonParse(tc.function.arguments)
+                            : tc.function?.arguments || tc.arguments
+                    }));
+                } else if (rawMessage.toolCalls) {
+                    base.toolCalls = rawMessage.toolCalls;
+                } else {
+                    base.toolCalls = null;
+                }
             }
+
             if (rawMessage.id) { base.id = rawMessage.id; }
 
             return base as ChatMessage;
