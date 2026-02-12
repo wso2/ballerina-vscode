@@ -111,8 +111,8 @@
           },
           {
             "metadata": {
-              "label": "EvalSet File",
-              "description": "Path to the evalSet data file"
+              "label": "Evalset File",
+              "description": "Path to the evalset data file"
             },
             "valueType": "EXPRESSION",
             "originalName": "evalSetFile",

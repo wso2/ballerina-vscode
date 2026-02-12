@@ -73,6 +73,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.CONNECTOR_TYPE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST;
 import static io.ballerina.modelgenerator.commons.CommonUtils.PERSIST_MODEL_FILE;
 import static io.ballerina.modelgenerator.commons.CommonUtils.getPersistModelFilePath;
+import static io.ballerina.modelgenerator.commons.CommonUtils.isAgentClass;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiEmbeddingProvider;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiKnowledgeBase;
 import static io.ballerina.modelgenerator.commons.CommonUtils.isAiModelProvider;
@@ -417,7 +418,7 @@ public class AvailableNodesGenerator {
                     FunctionData.Kind kind = methodFunction.kind();
                     if (kind == FunctionData.Kind.REMOTE) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.REMOTE_ACTION_CALL);
-                    } else if (className.equals("Agent") && label.equals("run")) {
+                    } else if (isAgentClass(classSymbol) && label.equals(Ai.AGENT_RUN_METHOD_NAME)) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.AGENT_RUN);
                     } else if (kind == FunctionData.Kind.FUNCTION && isAiKnowledgeBase(classSymbol)) {
                         nodeBuilder = NodeBuilder.getNodeFromKind(NodeKind.KNOWLEDGE_BASE_CALL);
@@ -466,7 +467,7 @@ public class AvailableNodesGenerator {
     private Optional<Category> getAgent(Symbol symbol) {
         return getCategory(symbol, classSymbol -> {
             try {
-                return classSymbol.getName().orElse("").equals(Ai.AGENT_TYPE_NAME);
+                return isAgentClass(classSymbol);
             } catch (Exception e) {
                 return false;
             }

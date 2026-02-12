@@ -140,7 +140,7 @@ public record Annotation(Metadata metadata, Codedata codedata, String org, Strin
 
             // Always add evalSetFile (default to empty string)
             if (evalSetFile == null) {
-                evalSetFile = value("EvalSet File", "Path to the evalSet data file", "",
+                evalSetFile = value("Evalset File", "Path to the evalset data file", "",
                         "EXPRESSION", "evalSetFile");
             }
             properties.add(evalSetFile);

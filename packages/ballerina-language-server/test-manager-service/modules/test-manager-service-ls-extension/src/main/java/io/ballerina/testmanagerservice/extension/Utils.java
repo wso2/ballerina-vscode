@@ -280,10 +280,16 @@ public class Utils {
         return "";
     }
 
-    private static String extractFromExpression(ExpressionNode expression) {
+    /**
+     * Find the argument expression for the file path in ai:loadConversationThreads() call.
+     *
+     * @param expression the expression node to search
+     * @return the ExpressionNode of the file path argument, or empty if not found
+     */
+    public static Optional<ExpressionNode> findLoadConversationThreadsArgument(ExpressionNode expression) {
         // Handle check expression: check ai:loadConversationThreads(...)
         if (expression instanceof CheckExpressionNode checkExpr) {
-            return extractFromExpression(checkExpr.expression());
+            return findLoadConversationThreadsArgument(checkExpr.expression());
         }
 
         // Handle function call: ai:loadConversationThreads("path")
@@ -291,19 +297,27 @@ public class Utils {
             String functionName = funcCall.functionName().toSourceCode().trim();
 
             // Check if it's the ai:loadConversationThreads function
-            if (functionName.contains("loadConversationThreads")) {
+            if (functionName.equals(Constants.LOAD_CONVERSATION_THREADS) ||
+                    functionName.equals(Constants.MODULE_AI + Constants.COLON + Constants.LOAD_CONVERSATION_THREADS)) {
                 // Extract first argument (the file path)
                 for (FunctionArgumentNode arg : funcCall.arguments()) {
                     if (arg instanceof PositionalArgumentNode positionalArg) {
-                        ExpressionNode argExpr = positionalArg.expression();
-                        String argValue = argExpr.toSourceCode().trim();
-                        // Remove surrounding quotes
-                        return argValue.replaceAll("^\"|\"$", "");
+                        return Optional.of(positionalArg.expression());
                     }
                 }
             }
         }
 
+        return Optional.empty();
+    }
+
+    private static String extractFromExpression(ExpressionNode expression) {
+        Optional<ExpressionNode> argExpr = findLoadConversationThreadsArgument(expression);
+        if (argExpr.isPresent()) {
+            String argValue = argExpr.get().toSourceCode().trim();
+            // Remove surrounding quotes
+            return argValue.replaceAll("^\"|\"$", "");
+        }
         return "";
     }
 

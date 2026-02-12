@@ -22,12 +22,17 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.ExpressionStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
 import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
@@ -35,6 +40,7 @@ import io.ballerina.projects.Project;
 import io.ballerina.testmanagerservice.extension.model.Annotation;
 import io.ballerina.testmanagerservice.extension.model.FunctionParameter;
 import io.ballerina.testmanagerservice.extension.model.Property;
+import io.ballerina.testmanagerservice.extension.model.TestFunction;
 import io.ballerina.testmanagerservice.extension.request.AddTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.GetTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.TestsDiscoveryRequest;
@@ -235,7 +241,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
                     );
                     edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), dataProviderFunction));
 
-                    // Add ai:Trace parameter to the test function
+                    // Add ai:ConversationThread parameter to the test function
                     addAiConversationThreadParameter(request.function());
 
                     // Update the dataProvider field with the generated function name
@@ -253,7 +259,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         });
     }
 
-    private String getDataProviderMode(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+    private String getDataProviderMode(TestFunction function) {
         if (function.annotations() == null) {
             return null;
         }
@@ -269,7 +275,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         return null;
     }
 
-    private String getEvalSetFile(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+    private String getEvalSetFile(TestFunction function) {
         if (function.annotations() == null) {
             return null;
         }
@@ -285,8 +291,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         return null;
     }
 
-    private void addAiConversationThreadParameter(
-            io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+    private void addAiConversationThreadParameter(TestFunction function) {
         if (function.parameters() == null) {
             return;
         }
@@ -296,8 +301,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         function.parameters().add(paramBuilder.build());
     }
 
-    private void updateDataProviderField(io.ballerina.testmanagerservice.extension.model.TestFunction function,
-                                         String functionName) {
+    private void updateDataProviderField(TestFunction function, String functionName) {
         if (function.annotations() == null) {
             return;
         }
@@ -370,8 +374,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
 
                 // Update annotations if present
                 if (functionDefinitionNode.metadata().isPresent() &&
-                    request.function().annotations() != null &&
-                    !request.function().annotations().isEmpty()) {
+                        request.function().annotations() != null &&
+                        !request.function().annotations().isEmpty()) {
                     updateAnnotations(functionDefinitionNode, request.function(), edits);
                 }
 
@@ -392,9 +396,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @param function               the test function model
      * @param edits                  list of text edits to add to
      */
-    private void updateAnnotations(FunctionDefinitionNode functionDefinitionNode,
-                                    io.ballerina.testmanagerservice.extension.model.TestFunction function,
-                                    List<TextEdit> edits) {
+    private void updateAnnotations(FunctionDefinitionNode functionDefinitionNode, TestFunction function,
+                                   List<TextEdit> edits) {
         if (functionDefinitionNode.metadata().isEmpty()) {
             return;
         }
@@ -422,19 +425,18 @@ public class TestManagerService implements ExtendedLanguageServerService {
     /**
      * Update the evalSetFile in the data provider function.
      *
-     * @param textDocument    the text document
-     * @param modulePartNode  the module part node
-     * @param function        the test function model
-     * @param edits           list of text edits to add to
+     * @param textDocument   the text document
+     * @param modulePartNode the module part node
+     * @param function       the test function model
+     * @param edits          list of text edits to add to
      */
-    private void updateEvalSetFile(TextDocument textDocument, ModulePartNode modulePartNode,
-                                    io.ballerina.testmanagerservice.extension.model.TestFunction function,
-                                    List<TextEdit> edits) {
+    private void updateEvalSetFile(TextDocument textDocument, ModulePartNode modulePartNode, TestFunction function,
+                                   List<TextEdit> edits) {
         String newEvalSetFile = getEvalSetFile(function);
         String dataProviderName = getDataProviderName(function);
 
         if (newEvalSetFile == null || newEvalSetFile.isEmpty() ||
-            dataProviderName == null || dataProviderName.isEmpty()) {
+                dataProviderName == null || dataProviderName.isEmpty()) {
             return;
         }
 
@@ -482,7 +484,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @param function the test function model
      * @return the data provider name, or null if not found
      */
-    private String getDataProviderName(io.ballerina.testmanagerservice.extension.model.TestFunction function) {
+    private String getDataProviderName(TestFunction function) {
         if (function.annotations() == null) {
             return null;
         }
@@ -501,12 +503,12 @@ public class TestManagerService implements ExtendedLanguageServerService {
     /**
      * Find the data provider function by name in the module.
      *
-     * @param modulePartNode      the module part node
-     * @param dataProviderName    the data provider function name
+     * @param modulePartNode   the module part node
+     * @param dataProviderName the data provider function name
      * @return the function definition node, or empty if not found
      */
     private Optional<FunctionDefinitionNode> findDataProviderFunction(ModulePartNode modulePartNode,
-                                                                       String dataProviderName) {
+                                                                      String dataProviderName) {
         if (dataProviderName == null || dataProviderName.isEmpty()) {
             return Optional.empty();
         }
@@ -530,7 +532,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
      */
     private Optional<LineRange> findEvalSetFilePathLocation(FunctionDefinitionNode dataProviderFunc,
                                                             TextDocument textDocument) {
-        io.ballerina.compiler.syntax.tree.FunctionBodyNode functionBody = dataProviderFunc.functionBody();
+        FunctionBodyNode functionBody = dataProviderFunc.functionBody();
 
         if (functionBody instanceof FunctionBodyBlockNode blockBody) {
             return findFilePathInStatements(blockBody.statements());
@@ -548,17 +550,17 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @return the line range of the file path string, or empty if not found
      */
     private Optional<LineRange> findFilePathInStatements(
-            NodeList<io.ballerina.compiler.syntax.tree.StatementNode> statements) {
-        for (io.ballerina.compiler.syntax.tree.StatementNode statement : statements) {
-            if (statement instanceof io.ballerina.compiler.syntax.tree.ReturnStatementNode returnStmt) {
-                Optional<io.ballerina.compiler.syntax.tree.ExpressionNode> expr = returnStmt.expression();
+            NodeList<StatementNode> statements) {
+        for (StatementNode statement : statements) {
+            if (statement instanceof ReturnStatementNode returnStmt) {
+                Optional<ExpressionNode> expr = returnStmt.expression();
                 if (expr.isPresent()) {
                     Optional<LineRange> result = findFilePathInExpression(expr.get());
                     if (result.isPresent()) {
                         return result;
                     }
                 }
-            } else if (statement instanceof io.ballerina.compiler.syntax.tree.ExpressionStatementNode exprStmt) {
+            } else if (statement instanceof ExpressionStatementNode exprStmt) {
                 Optional<LineRange> result = findFilePathInExpression(exprStmt.expression());
                 if (result.isPresent()) {
                     return result;
@@ -574,30 +576,9 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * @param expression the expression node
      * @return the line range of the file path string, or empty if not found
      */
-    private Optional<LineRange> findFilePathInExpression(
-            io.ballerina.compiler.syntax.tree.ExpressionNode expression) {
-        // Handle check expression: check ai:loadConversationThreads(...)
-        if (expression instanceof io.ballerina.compiler.syntax.tree.CheckExpressionNode checkExpr) {
-            return findFilePathInExpression(checkExpr.expression());
-        }
-
-        // Handle function call: ai:loadConversationThreads("path")
-        if (expression instanceof io.ballerina.compiler.syntax.tree.FunctionCallExpressionNode funcCall) {
-            String functionName = funcCall.functionName().toSourceCode().trim();
-
-            // Check if it's the ai:loadConversationThreads function
-            if (functionName.contains("loadConversationThreads")) {
-                // Extract first argument (the file path)
-                for (io.ballerina.compiler.syntax.tree.FunctionArgumentNode arg : funcCall.arguments()) {
-                    if (arg instanceof io.ballerina.compiler.syntax.tree.PositionalArgumentNode positionalArg) {
-                        io.ballerina.compiler.syntax.tree.ExpressionNode argExpr = positionalArg.expression();
-                        return Optional.of(argExpr.lineRange());
-                    }
-                }
-            }
-        }
-
-        return Optional.empty();
+    private Optional<LineRange> findFilePathInExpression(ExpressionNode expression) {
+        return Utils.findLoadConversationThreadsArgument(expression)
+                .map(ExpressionNode::lineRange);
     }
 
     /**

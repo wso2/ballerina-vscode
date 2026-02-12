@@ -37,6 +37,7 @@ public class Constants {
     public static final String DATA_PROVIDER_MODE_FUNCTION = "function";
     public static final String DATA_PROVIDER_MODE_EVALSET = "evalSet";
     public static final String DEFAULT_EVALSET_FUNCTION_NAME = "loadEvalsetData";
+    public static final String LOAD_CONVERSATION_THREADS = "loadConversationThreads";
 
     public static final String TEST_ANNOTATION = "@test:";
     public static final String CONFIG_GROUPS = "groups";
