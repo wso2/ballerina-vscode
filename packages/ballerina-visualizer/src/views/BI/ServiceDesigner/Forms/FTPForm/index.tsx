@@ -79,7 +79,6 @@ const InfoBanner = styled.div`
     border-radius: 4px;
     align-items: flex-start;
 `;
-
 /**
  * Converts a PascalCase or camelCase type name to a camelCase parameter name.
  * For CSV format, pluralizes the name since it represents an array of rows.
@@ -242,7 +241,7 @@ export function FTPForm(props: FTPFormProps) {
 
         if ( selectedFileFormat === 'RAW'){
             if (isStreamEnabled){
-                return `stream<byte[], error>`;
+                return `stream<byte[], error?>`;
             } else {
                 return `byte[]`;
             }
@@ -253,7 +252,9 @@ export function FTPForm(props: FTPFormProps) {
             baseType = baseType.slice(0, -2);
         }
         else if (baseType.startsWith("stream<")) {
-            if (baseType.endsWith(", error>")) {
+            if (baseType.endsWith(", error?>")) {
+                baseType = baseType.slice(7, -9);
+            } else if (baseType.endsWith(", error>")) {
                 baseType = baseType.slice(7, -8);
             } else if (baseType.endsWith(">")) {
                 baseType = baseType.slice(7, -1);
@@ -262,7 +263,7 @@ export function FTPForm(props: FTPFormProps) {
 
         // Apply the correct wrapper based on stream state
         if (isStreamEnabled) {
-            return `stream<${baseType}, error>`;
+            return `stream<${baseType}, error?>`;
         } else {
             return `${baseType}[]`;
         }
@@ -283,7 +284,9 @@ export function FTPForm(props: FTPFormProps) {
             baseType = baseType.slice(0, -2);
         }
         else if (baseType.startsWith("stream<")) {
-            if (baseType.endsWith(", error>")) {
+            if (baseType.endsWith(", error?>")) {
+                baseType = baseType.slice(7, -9);
+            } else if (baseType.endsWith(", error>")) {
                 baseType = baseType.slice(7, -8);
             } else if (baseType.endsWith(">")) {
                 baseType = baseType.slice(7, -1);
@@ -299,6 +302,10 @@ export function FTPForm(props: FTPFormProps) {
         if (payloadParam) {
             const typeValue = typeof type === 'string' ? type : type.name;
 
+            // Derive param name from type name (pluralize for CSV since it's an array of rows)
+            const shouldPluralize = selectedFileFormat === 'CSV';
+            const paramName = typeNameToParamName(typeValue, shouldPluralize);
+
             // Update all parameters in one pass
             const updatedParameters = functionModel.parameters.map(param => {
                 // Enable DATA_BINDING parameter with new type
@@ -312,7 +319,7 @@ export function FTPForm(props: FTPFormProps) {
                     }
                     return {
                         ...param,
-                        name: { ...param.name, value: "content" },
+                        name: { ...param.name, value: paramName },
                         type: updatedType,
                         enabled: true
                     };
@@ -367,9 +374,6 @@ export function FTPForm(props: FTPFormProps) {
         setFunctionModel(updatedFunctionModel);
     };
 
-    const handleEditContentSchema = () => {
-        setIsTypeEditorOpen(true);
-    };
 
     // Define parameter configuration from frontend
     const parameterConfig = {
@@ -742,7 +746,6 @@ export function FTPForm(props: FTPFormProps) {
                                                             handleParamChange(params);
                                                         }
                                                     }}
-                                                    onEditClick={handleEditContentSchema}
                                                     showPayload={true}
                                                     streamEnabled={hasStreamProperty ? functionModel.properties.stream.enabled : undefined}
                                                 />
@@ -900,7 +903,7 @@ export function FTPForm(props: FTPFormProps) {
                 isOpen={isTypeEditorOpen}
                 onClose={handleTypeEditorClose}
                 onTypeCreate={handleTypeCreated}
-                initialTypeName={"ContentSchema"}
+                initialTypeName={"Content"}
                 modalTitle={"Define Content Schema"}
                 payloadContext={payloadContext}
                 defaultTab="create-from-scratch"
