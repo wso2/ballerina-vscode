@@ -71,6 +71,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
     public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
     };
     public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
 
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
@@ -709,7 +710,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
         private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
             // Check for SQL query types first
-            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType)) {
+            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType) || SQL_CALL_QUERY.equals(ballerinaType)) {
                 type().fieldType(ValueType.SQL_QUERY).ballerinaType(ballerinaType).selected(true).stepOut();
                 return true;
             }
