@@ -18,8 +18,8 @@
   "categories": [
     {
       "metadata": {
-        "label": "Current Integration",
-        "description": "Functions defined within the current integration",
+        "label": "Agent Tools",
+        "description": "Functions used as agent tools",
         "keywords": [
           "Project",
           "Local",
@@ -30,8 +30,8 @@
     },
     {
       "metadata": {
-        "label": "Agent Tools",
-        "description": "Functions used as agent tools",
+        "label": "Current Integration",
+        "description": "Functions defined within the current integration",
         "keywords": [
           "Project",
           "Local",
