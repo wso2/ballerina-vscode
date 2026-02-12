@@ -169,13 +169,13 @@ export const isDevantUserLoggedIn = async (): Promise<boolean> => {
 export const exchangeStsToCopilotToken = async (stsToken: string): Promise<BIIntelSecrets> => {
     try {
         const response = await axios.post(DEVANT_TOKEN_EXCHANGE_URL, {
-            choreo_sts_token: stsToken
+            subjectToken: stsToken
         }, {
             headers: { 'Content-Type': 'application/json' },
             validateStatus: () => true
         });
 
-        if (response.status === 201) {
+        if (response.status === 201 || response.status === 200) {
             const { access_token, expires_in } = response.data;
             return {
                 accessToken: access_token,

@@ -33,7 +33,7 @@ import {
 } from '../../utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core/lib/state-machine-types';
-import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
+import { CONFIG_FILE_NAME, ERROR_NO_BALLERINA_SOURCES, LLM_API_BASE_PATH, PROGRESS_BAR_MESSAGE_FROM_WSO2_DEFAULT_MODEL } from './constants';
 import { getCurrentBallerinaProjectFromContext } from '../config-generator/configGenerator';
 import { BallerinaProject, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { BallerinaExtension } from 'src/core';
@@ -41,10 +41,7 @@ import { BallerinaExtension } from 'src/core';
 const config = workspace.getConfiguration('ballerina');
 export const BACKEND_URL: string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
 
-export const DEVANT_TOKEN_EXCHANGE_URL: string =
-    config.get('devantTokenExchangeUrl') ||
-    process.env.DEVANT_TOKEN_EXCHANGE_URL ||
-    'http://localhost:9091/auth/token-exchange';
+export const DEVANT_TOKEN_EXCHANGE_URL: string = BACKEND_URL + "/auth-api/v1.0/auth/token-exchange";
 
 // This refers to old backend before FE Migration. We need to eventually remove this.
 export const OLD_BACKEND_URL: string = BACKEND_URL + "/v2.0";
@@ -175,11 +172,7 @@ export async function getTokenForDefaultModel() {
     throw new Error(TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
 }
 
-export async function getBackendURL(): Promise<string> {
-    return new Promise(async (resolve) => {
-        resolve(OLD_BACKEND_URL);
-    });
-}
+// `getBackendURL` was redundant — callers should use a local computed value.
 
 // Function to find a file in a case-insensitive way
 function findFileCaseInsensitive(directory: string, fileName: string): string {
@@ -278,7 +271,8 @@ export async function addConfigFile(configPath: string): Promise<boolean> {
                     AIStateMachine.service().send(AIMachineEventType.LOGOUT);
                     throw new Error(TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
                 }
-                const success = addDefaultModelConfig(configPath, token, await getBackendURL());
+                const openAiEpUrl = BACKEND_URL + LLM_API_BASE_PATH + "/openai";
+                const success = addDefaultModelConfig(configPath, token, openAiEpUrl);
                 if (success) {
                     return true;
                 }
