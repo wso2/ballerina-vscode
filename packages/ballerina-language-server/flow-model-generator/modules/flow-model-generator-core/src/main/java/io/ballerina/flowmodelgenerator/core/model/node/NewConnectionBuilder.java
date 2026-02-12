@@ -187,6 +187,15 @@ public class NewConnectionBuilder extends CallBuilder {
                 .checkError(true, CHECK_ERROR_DOC, false);
     }
 
+    @Override
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context, String label, String doc,
+                                           boolean hidden) {
+        properties()
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden,
+                        Property.RESULT_TYPE_LABEL)
+                .data(functionData.returnType(), context.getAllModuleSymbolNames(), label, doc);
+    }
+
     protected void setParameterProperties(FunctionData function) {
         boolean hasOnlyRestParams = function.parameters().size() == 1;
 
