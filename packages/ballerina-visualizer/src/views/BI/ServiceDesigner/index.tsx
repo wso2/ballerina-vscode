@@ -244,20 +244,22 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
         }
     }
 
-    // Check if there are any available FTP handlers (onCreate or onDelete) that are not yet enabled
+    // Check if there are any available FTP handlers (onCreate, onDelete, onError) that are not yet enabled
     const hasAvailableFTPHandlers = () => {
         if (!serviceModel?.functions) return false;
 
         const onCreateFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onCreate');
         const onDeleteFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onDelete');
+        const onErrorFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onError');
         const deprecatedFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'EVENT');
 
         const hasAvailableOnCreate = onCreateFunctions.length > 0 && onCreateFunctions.some(fn => !fn.enabled);
         const hasAvailableOnDelete = onDeleteFunctions.length > 0 && onDeleteFunctions.some(fn => !fn.enabled);
+        const hasAvailableOnError = onErrorFunctions.length > 0 && onErrorFunctions.some(fn => !fn.enabled);
         const hasDeprecatedFunctions = deprecatedFunctions.length > 0 && deprecatedFunctions.some(fn => fn.enabled);
 
         // Remove the add handler option if deprecated APIs present
-        return (hasAvailableOnCreate || hasAvailableOnDelete) && !hasDeprecatedFunctions;
+        return (hasAvailableOnCreate || hasAvailableOnDelete || hasAvailableOnError) && !hasDeprecatedFunctions;
     };
 
     useEffect(() => {
@@ -785,6 +787,18 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
             return serviceModel.name;
         }
         return `${serviceModel.name} - ${displayPath}`;
+    };
+
+    const getFtpHandlerTitle = () => {
+        const handlerKey = (selectedFTPHandler || functionModel?.metadata?.label || "").toLowerCase();
+        const handlerLabelMap: Record<string, string> = {
+            "oncreate": "On Create",
+            "ondelete": "On Delete",
+            "onerror": "On Error"
+        };
+        const handlerLabel = handlerLabelMap[handlerKey] || "Handler";
+        const prefix = isNew ? "New " : "";
+        return `${prefix}${handlerLabel} Handler Configuration`;
     };
 
     const openInit = async (resource: ProjectStructureArtifactResponse) => {
@@ -1380,7 +1394,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
                             {isFtpService && serviceModel  && (
                                 <PanelContainer
-                                    title={"On Create Handler Configuration"}
+                                    title={getFtpHandlerTitle()}
                                     show={showForm}
                                     onClose={handleNewFunctionClose}
                                     width={400}
