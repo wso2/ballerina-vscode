@@ -1,0 +1,181 @@
+{
+  "source": "empty.bal",
+  "description": "Workflow process function template",
+  "codedata": {
+    "node": "ACTIVITY"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "Workflow Activity",
+      "description": "Define a workflow activity function"
+    },
+    "codedata": {
+      "node": "ACTIVITY",
+      "org": "ballerina",
+      "module": "workflow",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "functionName": {
+        "metadata": {
+          "label": "Activity Name",
+          "description": "Name of the activity function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "scope": "Global",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "annotations": {
+        "metadata": {
+          "label": "Annotations",
+          "description": "Annotations of the function"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "\"@workflow:Activity\"",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "functionNameDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the function"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "type": {
+        "metadata": {
+          "label": "Return Type",
+          "description": "Type of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "anydata",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "typeDescription": {
+        "metadata": {
+          "label": "Description",
+          "description": "Description of the return value"
+        },
+        "types": [
+          {
+            "fieldType": "TEXT",
+            "selected": true
+          }
+        ],
+        "value": "",
+        "optional": true,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "parameters": {
+        "metadata": {
+          "label": "Parameters",
+          "description": "Function parameters"
+        },
+        "types": [
+          {
+            "fieldType": "REPEATABLE_PROPERTY",
+            "template": {
+              "metadata": {
+                "label": "Parameter",
+                "description": "Function parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "FIXED_PROPERTY",
+                  "selected": false
+                }
+              ],
+              "value": {
+                "type": {
+                  "metadata": {
+                    "label": "Type",
+                    "description": "Type of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "TYPE",
+                      "ballerinaType": "anydata",
+                      "selected": false
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                },
+                "variable": {
+                  "metadata": {
+                    "label": "Name",
+                    "description": "Name of the parameter"
+                  },
+                  "types": [
+                    {
+                      "fieldType": "IDENTIFIER",
+                      "selected": true
+                    }
+                  ],
+                  "value": "",
+                  "optional": false,
+                  "editable": true,
+                  "advanced": false,
+                  "hidden": false
+                }
+              },
+              "optional": false,
+              "editable": false,
+              "advanced": false,
+              "hidden": false
+            },
+            "selected": false
+          }
+        ],
+        "value": {},
+        "optional": true,
+        "editable": false,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

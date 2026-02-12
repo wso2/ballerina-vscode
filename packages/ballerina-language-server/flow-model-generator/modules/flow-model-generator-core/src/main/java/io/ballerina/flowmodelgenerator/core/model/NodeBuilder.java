@@ -24,6 +24,7 @@ import io.ballerina.compiler.api.symbols.ModuleSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.flowmodelgenerator.core.model.node.ActivityBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.ActivityCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AgentCallBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.AssignBuilder;
@@ -182,6 +183,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.EVENT, EventBuilder::new);
         put(NodeKind.WAIT_EVENT, WaitEventBuilder::new);
         put(NodeKind.WORKFLOW_START, WorkflowStartBuilder::new);
+        put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);
     }};
 
     public static NodeBuilder getNodeFromKind(NodeKind kind) {

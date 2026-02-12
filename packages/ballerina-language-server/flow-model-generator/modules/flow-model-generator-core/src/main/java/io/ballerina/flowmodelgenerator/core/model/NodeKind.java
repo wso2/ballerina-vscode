@@ -99,6 +99,7 @@ public enum NodeKind {
     MEMORY_STORE,
     MCP_TOOL_KIT,
     ACTIVITY,
+    ACTIVITY_CALL,
     EVENT,
     WORKFLOW,
     WAIT_EVENT,

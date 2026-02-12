@@ -18,23 +18,83 @@
 
 package io.ballerina.flowmodelgenerator.core.model.node;
 
+import io.ballerina.compiler.syntax.tree.SyntaxKind;
+import io.ballerina.compiler.syntax.tree.Token;
+import io.ballerina.flowmodelgenerator.core.model.Codedata;
+import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.FormBuilder;
+import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
+import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import org.eclipse.lsp4j.TextEdit;
+
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
- * Represents a workflow activity call node.
- * This is a specialized remote action call for workflow:Context.callActivity().
+ * Represents a workflow activity function.
  *
  * @since 2.0.0
  */
-public class ActivityBuilder extends RemoteActionCallBuilder {
+public class ActivityBuilder extends FunctionDefinitionBuilder {
 
-    public static final String LABEL = "Call Activity";
-    public static final String DESCRIPTION = "Call a workflow activity function";
+    public static final String LABEL = "Workflow Activity";
+    public static final String DESCRIPTION = "Define a workflow activity function";
+    public static final String ANYDATA_TYPE = "anydata";
+    public static final String ACTIVITY_LABEL = "Activity Name";
+    public static final String ACTIVITY_DESCRIPTION = "Name of the activity function";
+    public static final String ACTIVITY_ANNOTATION = "\"@workflow:Activity\"";
+
+    public Property getParamSchema() {
+        return ActivityBuilder.ParameterSchemaHolder.PARAMETER_SCHEMA;
+    }
 
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.ACTIVITY);
+        codedata().
+                node(NodeKind.ACTIVITY)
+                .org(WORKFLOW_ORG)
+                .module(WORKFLOW_MODULE);
+    }
+
+    @Override
+    public void setConcreteTemplateData(TemplateContext context) {
+        properties().functionNameTemplate("", context.getAllVisibleSymbolNames(),
+                ACTIVITY_LABEL,
+                ACTIVITY_DESCRIPTION);
+        setMandatoryProperties(this, null, "", "");
+        properties()
+                .endNestedProperty(Property.ValueType.REPEATABLE_PROPERTY, Property.PARAMETERS_KEY, PARAMETERS_LABEL,
+                        PARAMETERS_DOC, getParamSchema(), true, false);
+    }
+
+    public static void setMandatoryProperties(NodeBuilder nodeBuilder, String returnType, String description,
+                                              String returnDescription) {
+        nodeBuilder.properties()
+                .annotations(ACTIVITY_ANNOTATION)
+                .functionDescription(description)
+                .returnType(returnType, ANYDATA_TYPE, true)
+                .returnDescription(returnDescription)
+                .nestedProperty();
+    }
+
+    private static class ParameterSchemaHolder {
+
+        private static final Property PARAMETER_SCHEMA = initParameterSchema();
+
+        private static Property initParameterSchema() {
+            FormBuilder<?> formBuilder = new FormBuilder<>(null, null, null, null);
+            formBuilder.parameter("", "", null, Property.ValueType.TYPE, ANYDATA_TYPE);
+            Map<String, Property> nodeProperties = formBuilder.build();
+            return nodeProperties.get("");
+        }
     }
 }
-
