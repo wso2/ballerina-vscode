@@ -783,7 +783,7 @@ public final class Utils {
     }
 
     private static String getAnnotationModule(Codedata codedata, String module) {
-        if (codedata == null) {
+        if (codedata == null || codedata.getModuleName() == null || codedata.getModuleName().isEmpty()) {
             return getProtocol(module);
         }
         return getProtocol(codedata.getModuleName());
