@@ -18,12 +18,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { parse, stringify } from "@iarna/toml";
 
-export interface PlaceholderInfo {
-    key: string;
-    placeholder: string;
-    variableName: string;
-}
-
 export interface ConfigVariable {
     name: string;
     description: string;
@@ -34,46 +28,41 @@ export interface ConfigVariable {
 const PLACEHOLDER_REGEX = /^\$\{([A-Z_0-9]+)\}$/;
 
 /**
- * Parse Config.toml and identify placeholder variables with pattern ${VARIABLE_NAME}
+ * Read all keys from Config.toml and return their status — filled or placeholder.
+ * Returns empty object if file doesn't exist.
  */
-export function parseConfigPlaceholders(configPath: string): Map<string, PlaceholderInfo> {
-    const placeholders = new Map<string, PlaceholderInfo>();
+export function getAllConfigStatus(
+    configPath: string
+): Record<string, "filled" | "missing"> {
+    const status: Record<string, "filled" | "missing"> = {};
 
     if (!fs.existsSync(configPath)) {
-        return placeholders;
+        return status;
     }
 
     try {
         const content = fs.readFileSync(configPath, "utf-8");
         const config = parse(content) as Record<string, any>;
 
-        function findPlaceholders(obj: any, prefix: string = "") {
+        function collectStatus(obj: any, prefix: string = "") {
             for (const [key, value] of Object.entries(obj)) {
                 const fullKey = prefix ? `${prefix}.${key}` : key;
-
-                if (typeof value === "string") {
-                    const match = value.match(PLACEHOLDER_REGEX);
-                    if (match) {
-                        const variableName = match[1];
-                        placeholders.set(variableName, {
-                            key: fullKey,
-                            placeholder: value,
-                            variableName,
-                        });
-                    }
-                } else if (typeof value === "object" && value !== null) {
-                    findPlaceholders(value, fullKey);
+                if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+                    collectStatus(value, fullKey);
+                } else if (typeof value === "string" && PLACEHOLDER_REGEX.test(value)) {
+                    status[fullKey] = "missing";
+                } else {
+                    status[fullKey] = "filled";
                 }
             }
         }
 
-        findPlaceholders(config);
+        collectStatus(config);
     } catch (error) {
-        console.error(`[TOML Utils] Error parsing config at ${configPath}:`, error);
-        throw error;
+        console.error(`[TOML Utils] Error reading config status:`, error);
     }
 
-    return placeholders;
+    return status;
 }
 
 /**
@@ -101,7 +90,7 @@ export function createConfigWithPlaceholders(
     for (const variable of variables) {
         const tomlKey = toTomlKey(variable.name);
 
-        if (!config[tomlKey] || overwrite) {
+        if (!Object.prototype.hasOwnProperty.call(config, tomlKey) || overwrite) {
             config[tomlKey] = `\${${variable.name}}`;
         }
     }
@@ -203,7 +192,7 @@ export function writeConfigValuesToConfig(
         if (varType === "int") {
             const intValue = parseInt(value, 10);
             if (isNaN(intValue)) {
-                throw new Error(`Invalid integer value for ${variableName}: ${value}`);
+                throw new Error(`Invalid integer value for ${variableName}`);
             }
             config[tomlKey] = intValue;
             intKeys.add(tomlKey);
