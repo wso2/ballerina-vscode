@@ -35,6 +35,7 @@ import {
     isNPSupported,
     openExternalUrl,
     OpenExternalUrlRequest,
+    publishToCentral,
     runBackgroundTerminalCommand,
     RunExternalCommandRequest,
     SampleDownloadRequest,
@@ -65,4 +66,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
+    messenger.onRequest(publishToCentral, () => rpcManger.publishToCentral());
 }

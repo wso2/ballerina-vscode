@@ -34,7 +34,8 @@ import {
     WorkspaceRootResponse,
     ShowErrorMessageRequest,
     WorkspaceTypeResponse,
-    SampleDownloadRequest
+    SampleDownloadRequest,
+    PublishToCentralResponse
 } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
@@ -55,3 +56,4 @@ export const showErrorMessage: NotificationType<ShowErrorMessageRequest> = { met
 export const getCurrentProjectTomlValues: RequestType<void, void> = { method: `${_preFix}/getCurrentProjectTomlValues` };
 export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { method: `${_preFix}/getWorkspaceType` };
 export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
+export const publishToCentral: RequestType<void, PublishToCentralResponse> = { method: `${_preFix}/publishToCentral` };

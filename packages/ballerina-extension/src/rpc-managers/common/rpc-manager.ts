@@ -32,6 +32,7 @@ import {
     GoToSourceRequest,
     OpenExternalUrlRequest,
     PackageTomlValues,
+    PublishToCentralResponse,
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
@@ -414,5 +415,10 @@ export class CommonRpcManager implements CommonRPCAPI {
             );
         }
         return isSuccess;
+    }
+
+    async publishToCentral(): Promise<PublishToCentralResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }
