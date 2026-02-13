@@ -39,6 +39,5 @@ export interface VisualizerAPI {
     reviewAccepted: () => void;
     handleApprovalPopupClose: (params: HandleApprovalPopupCloseRequest) => void;
     reopenApprovalView: (params: ReopenApprovalViewRequest) => void;
-    saveEvalCase: (params: SaveEvalCaseRequest) => Promise<SaveEvalCaseResponse>;
     saveEvalThread: (params: SaveEvalThreadRequest) => Promise<SaveEvalThreadResponse>;
 }

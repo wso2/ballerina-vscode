@@ -152,7 +152,7 @@ async function getContext(): Promise<VisualizerLocation> {
             dataMapperMetadata: context.dataMapperMetadata,
             artifactInfo: context.artifactInfo,
             reviewData: context.reviewData,
-            agentMetadata: context.agentMetadata
+            agentMetadata: context.agentMetadata,
             evalsetData: context.evalsetData
         });
     });

@@ -154,7 +154,7 @@ export type FormFieldInputType = "TEXT" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
-    "CLAUSE_EXPRESSION";
+    "CLAUSE_EXPRESSION" |
     "SLIDER";
 
 export interface BaseType {
