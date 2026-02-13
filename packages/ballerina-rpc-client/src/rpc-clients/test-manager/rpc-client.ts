@@ -15,10 +15,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { TestManagerServiceAPI, GetTestFunctionRequest, AddOrUpdateTestFunctionRequest, 
-    TestSourceEditResponse, GetTestFunctionResponse, 
-    getTestFunction, addTestFunction, updateTestFunction,  
-    SourceUpdateResponse} from "@wso2/ballerina-core";
+import { TestManagerServiceAPI, GetTestFunctionRequest, AddOrUpdateTestFunctionRequest,
+    TestSourceEditResponse, GetTestFunctionResponse,
+    getTestFunction, addTestFunction, updateTestFunction,
+    SourceUpdateResponse, GetEvalsetsRequest, GetEvalsetsResponse, getEvalsets} from "@wso2/ballerina-core";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
@@ -39,6 +39,10 @@ export class TestManagerServiceRpcClient implements TestManagerServiceAPI {
 
     updateTestFunction(params: AddOrUpdateTestFunctionRequest): Promise<SourceUpdateResponse> {
         return this._messenger.sendRequest(updateTestFunction, HOST_EXTENSION, params);
+    }
+
+    getEvalsets(params: GetEvalsetsRequest): Promise<GetEvalsetsResponse> {
+        return this._messenger.sendRequest(getEvalsets, HOST_EXTENSION, params);
     }
 }
 
