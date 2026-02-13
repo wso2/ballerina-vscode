@@ -191,15 +191,18 @@ const formatArgs = (args: any) => {
 
 interface SortableToolCallItemProps {
     toolCall: EvalFunctionCall;
+    index: number;
     onEdit: () => void;
     onDelete: () => void;
 }
 
 const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
     toolCall,
+    index,
     onEdit,
     onDelete,
 }) => {
+    const sortableId = `${toolCall.id ?? toolCall.name}-${index}`;
     const {
         attributes,
         listeners,
@@ -207,7 +210,7 @@ const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: toolCall.id || toolCall.name });
+    } = useSortable({ id: sortableId });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -271,11 +274,12 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
+            // Extract index from composite ID: "id-index" or "name-index"
             const oldIndex = toolCalls.findIndex(
-                tc => (tc.id || tc.name) === active.id
+                (tc, idx) => `${tc.id ?? tc.name}-${idx}` === active.id
             );
             const newIndex = toolCalls.findIndex(
-                tc => (tc.id || tc.name) === over.id
+                (tc, idx) => `${tc.id ?? tc.name}-${idx}` === over.id
             );
 
             const reorderedToolCalls = arrayMove(toolCalls, oldIndex, newIndex);
@@ -316,17 +320,21 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
                 onDragEnd={handleDragEnd}
             >
                 <SortableContext
-                    items={toolCalls.map(tc => tc.id || tc.name)}
+                    items={toolCalls.map((tc, idx) => `${tc.id ?? tc.name}-${idx}`)}
                     strategy={verticalListSortingStrategy}
                 >
-                    {toolCalls.map((toolCall, index) => (
-                        <SortableToolCallItem
-                            key={toolCall.id || `${toolCall.name}-${index}`}
-                            toolCall={toolCall}
-                            onEdit={() => onEditToolCall(traceId, index)}
-                            onDelete={() => handleDeleteRequest(index)}
-                        />
-                    ))}
+                    {toolCalls.map((toolCall, index) => {
+                        const sortableId = `${toolCall.id ?? toolCall.name}-${index}`;
+                        return (
+                            <SortableToolCallItem
+                                key={sortableId}
+                                toolCall={toolCall}
+                                index={index}
+                                onEdit={() => onEditToolCall(traceId, index)}
+                                onDelete={() => handleDeleteRequest(index)}
+                            />
+                        );
+                    })}
                 </SortableContext>
             </DndContext>
 
