@@ -25,6 +25,7 @@ import { generateText } from 'ai';
 import { extension } from '../../BalExtensionContext';
 import {
     getAccessToken,
+    getLoginMethod,
     clearAuthCredentials,
     storeAuthCredentials,
     isPlatformExtensionAvailable,
@@ -96,8 +97,16 @@ const cleanupLegacyTokens = async (): Promise<void> => {
 };
 
 export const logout = async (_isUserLogout: boolean = true) => {
-    // For BI_INTEL with Devant, we just clear credentials
-    // The platform extension manages the Devant session separately
+    // Sign out from the WSO2 Platform extension if logged in via BI_INTEL
+    const loginMethod = await getLoginMethod();
+    if (loginMethod === LoginMethod.BI_INTEL && isPlatformExtensionAvailable()) {
+        try {
+            await vscode.commands.executeCommand('wso2.wso2-platform.sign.out');
+        } catch (error) {
+            console.error('Error signing out from WSO2 Platform extension:', error);
+        }
+    }
+
     // Always clear stored credentials
     await clearAuthCredentials();
 };

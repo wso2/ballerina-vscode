@@ -25,7 +25,7 @@ import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-co
 export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
 export const PLATFORM_EXTENSION_ID = 'wso2.wso2-platform';
 export const TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL = "Token refresh is only supported for BI Intelligence authentication";
-export const AUTH_CREDENTIALS_SECRET_KEY = 'BallerinaAuthCredentials';
+export const AUTH_CREDENTIALS_SECRET_KEY = 'CopilotAuthCredentials';
 
 //TODO: What if user doesnt have github copilot.
 //TODO: Where does auth git get triggered
