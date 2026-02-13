@@ -37,7 +37,7 @@ const FormContainer = styled.div`
 
     .side-panel-body {
         overflow: visible;
-        overflow-y: none;
+        overflow-y: hidden;
     }
 `;
 
@@ -159,7 +159,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
                 value: '',
                 paramManagerProps: {
                     paramValues: generateParamFields(testFunction.parameters),
-                    formFields: paramFiels,
+                    formFields: paramFields,
                     handleParameter: handleParamChange
                 },
                 types: [{ fieldType: "PARAM_MANAGER", selected: false }]
@@ -552,7 +552,7 @@ export function TestFunctionForm(props: TestFunctionDefProps) {
         }
     }
 
-    const paramFiels: FormField[] = [
+    const paramFields: FormField[] = [
         {
             key: `variable`,
             label: 'Name',

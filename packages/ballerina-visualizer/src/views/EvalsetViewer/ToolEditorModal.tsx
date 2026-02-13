@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import { EvalFunctionCall, EvalToolSchema } from '@wso2/ballerina-core';
@@ -225,6 +225,22 @@ export const ToolEditorModal: React.FC<ToolEditorModalProps> = ({
 
     const selectedTool = availableTools.find(t => t.name === name);
     const parametersSchema = selectedTool?.parametersSchema;
+
+    // Reset arguments when the selected tool changes
+    useEffect(() => {
+        // Initialize with defaults from schema if available, otherwise empty object
+        const newArguments: Record<string, any> = {};
+
+        if (parametersSchema?.properties) {
+            Object.entries(parametersSchema.properties).forEach(([fieldName, fieldSchema]: [string, any]) => {
+                if (fieldSchema.default !== undefined) {
+                    newArguments[fieldName] = fieldSchema.default;
+                }
+            });
+        }
+
+        setArgumentsValue(newArguments);
+    }, [name, selectedTool, parametersSchema]);
 
     const handleArgumentChange = (fieldName: string, value: any) => {
         setArgumentsValue(prev => ({ ...prev, [fieldName]: value }));

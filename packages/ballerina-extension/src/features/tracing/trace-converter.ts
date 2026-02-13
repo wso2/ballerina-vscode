@@ -133,18 +133,22 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
     const toolSpan = spans.find((s: SpanData) =>
         s.attributes?.some((a: AttributeData) => a.key === 'gen_ai.input.tools')
     );
-    const toolsStr = getAttribute(toolSpan, 'gen_ai.input.tools');
-    const toolsData = safeJsonParse(toolsStr);
     const tools: ToolSchema[] = [];
 
-    if (Array.isArray(toolsData)) {
-        toolsData.forEach((t: any) => {
-            tools.push({
-                name: t.name,
-                description: t.description,
-                parametersSchema: t.parameters
-            });
-        });
+    if (toolSpan) {
+        const toolsStr = getAttribute(toolSpan, 'gen_ai.input.tools');
+        if (toolsStr && toolsStr.trim() !== '') {
+            const toolsData = safeJsonParse(toolsStr);
+            if (Array.isArray(toolsData)) {
+                toolsData.forEach((t: any) => {
+                    tools.push({
+                        name: t.name,
+                        description: t.description,
+                        parametersSchema: t.parameters
+                    });
+                });
+            }
+        }
     }
 
     // Helper function to parse messages
@@ -275,11 +279,10 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
             output: output as ChatAssistantMessage,
             startTime: chatSpan.startTime || startTime,
             endTime: chatSpan.endTime || endTime
-        } as any);
+        });
     }
 
     // Determine User Message (Trigger)
-    // Get the first user message from the first chat span
     const firstChatInputStr = getAttribute(chatSpans[0], 'gen_ai.input.messages');
     const firstInputMessages = parseMessages(firstChatInputStr);
     const lastUserMsg = [...firstInputMessages].reverse().find(m => m.role === 'user');

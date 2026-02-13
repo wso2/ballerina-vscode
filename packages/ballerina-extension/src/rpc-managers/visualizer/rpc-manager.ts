@@ -38,6 +38,7 @@ import {
     VisualizerLocation
 } from "@wso2/ballerina-core";
 import fs from "fs";
+import path from "path";
 import { commands, Range, Uri, window, workspace, WorkspaceEdit } from "vscode";
 import { URI, Utils } from "vscode-uri";
 import { notifyCurrentWebview } from "../../RPCLayer";
@@ -316,31 +317,59 @@ export class VisualizerRpcManager implements VisualizerAPI {
     reopenApprovalView(params: ReopenApprovalViewRequest): void {
         approvalViewManager.reopenApprovalViewPopup(params.requestId);
     }
-    
+
     async saveEvalThread(params: SaveEvalThreadRequest): Promise<SaveEvalThreadResponse> {
         try {
             const { filePath, updatedEvalSet } = params;
 
-            // Write the updated evalset back to the file
+            // Validate and canonicalize the file path to prevent path traversal attacks
+            const normalizedPath = path.normalize(filePath);
+            const resolvedPath = path.resolve(normalizedPath);
+
+            // Get workspace folders to validate the path is within an allowed workspace
+            const workspaceFolders = workspace.workspaceFolders;
+            if (!workspaceFolders || workspaceFolders.length === 0) {
+                const errorMsg = 'No workspace folder is open';
+                console.error('saveEvalThread error:', errorMsg);
+                window.showErrorMessage(`Failed to save evalset: ${errorMsg}`);
+                return { success: false, error: errorMsg };
+            }
+
+            // Check if the resolved path starts with any of the workspace roots
+            const isPathInWorkspace = workspaceFolders.some(folder => {
+                const workspaceRoot = folder.uri.fsPath;
+                const resolvedWorkspaceRoot = path.resolve(workspaceRoot);
+                return resolvedPath.startsWith(resolvedWorkspaceRoot + path.sep) ||
+                    resolvedPath === resolvedWorkspaceRoot;
+            });
+
+            if (!isPathInWorkspace) {
+                const errorMsg = `Path is outside workspace: ${resolvedPath}`;
+                console.error('saveEvalThread error:', errorMsg);
+                window.showErrorMessage(`Failed to save evalset: Path must be within workspace`);
+                return { success: false, error: errorMsg };
+            }
+
+            // Write the updated evalset back to the file using the validated path
             await fs.promises.writeFile(
-                filePath,
+                resolvedPath,
                 JSON.stringify(updatedEvalSet, null, 2),
                 'utf-8'
             );
 
             // Read back the file to get fresh data
-            const savedContent = await fs.promises.readFile(filePath, 'utf-8');
+            const savedContent = await fs.promises.readFile(resolvedPath, 'utf-8');
             const savedEvalSet = JSON.parse(savedContent);
 
             // Get the current threadId from context
             const currentContext = StateMachine.context();
             const threadId = currentContext.evalsetData?.threadId;
 
-            // Reload the view with fresh data from disk
+            // Reload the view with fresh data from disk using the validated path
             openView(EVENT_TYPE.OPEN_VIEW, {
                 view: MACHINE_VIEW.EvalsetViewer,
                 evalsetData: {
-                    filePath,
+                    filePath: resolvedPath,
                     content: savedEvalSet,
                     threadId
                 }

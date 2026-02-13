@@ -55,8 +55,8 @@ export const updateTraceAgentOutput = (trace: EvalsetTrace, content: string): Ev
  * Get tool calls from a trace output
  */
 export const getToolCallsFromTrace = (trace: EvalsetTrace): EvalFunctionCall[] => {
-    if (trace.output?.toolCalls) {
-        return trace.output.toolCalls as EvalFunctionCall[];
+    if (trace.toolCalls) {
+        return trace.toolCalls as EvalFunctionCall[];
     }
     return [];
 };
@@ -70,7 +70,7 @@ export const updateToolCallsInTrace = (
 ): EvalsetTrace => {
     return {
         ...trace,
-        toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+        toolCalls: toolCalls || [],
     };
 };
 

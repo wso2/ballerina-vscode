@@ -53,7 +53,8 @@ import {
     getContentType,
     deserializeContent,
     generateToolCallId,
-    createNewTrace
+    createNewTrace,
+    getToolCallsFromTrace
 } from "./utils/traceAdapters";
 
 // --- LAYOUT COMPONENTS ---
@@ -459,10 +460,6 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         })
     );
 
-    const extractToolCalls = (trace: EvalsetTrace): EvalFunctionCall[] => {
-        return (trace.toolCalls as EvalFunctionCall[]) || [];
-    };
-
     const handleEnterEditMode = () => {
         setOriginalEvalThread(cloneEvalThread(evalThread));
         setWorkingEvalThread(cloneEvalThread(evalThread));
@@ -523,9 +520,18 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             if (response.success) {
                 setHasUnsavedChanges(false);
                 handleExitEditMode();
+            } else {
+                // Show error when save was unsuccessful
+                rpcClient.getCommonRpcClient().showErrorMessage({
+                    message: response.error || 'Failed to save evaluation thread.'
+                });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving evalThread:', error);
+            // Show error for RPC failures
+            rpcClient.getCommonRpcClient().showErrorMessage({
+                message: error?.message || 'An unexpected error occurred while saving.'
+            });
         } finally {
             setIsSaving(false);
         }
@@ -563,7 +569,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         const trace = workingEvalThread.traces.find(t => t.id === traceId);
         if (!trace) return;
 
-        const currentToolCalls = extractToolCalls(trace);
+        const currentToolCalls = getToolCallsFromTrace(trace);
         let updatedToolCalls: EvalFunctionCall[];
 
         if (toolCallIndex === -1) {
@@ -672,7 +678,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                             <SortableContext items={displayCase.traces.map(t => t.id)} strategy={verticalListSortingStrategy}>
                                 {displayCase.traces.map((trace, traceIdx) => {
-                                    const toolCalls = extractToolCalls(trace);
+                                    const toolCalls = getToolCallsFromTrace(trace);
                                     return (
                                         <React.Fragment key={trace.id}>
                                             <SortableTraceWrapper
@@ -747,7 +753,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                 if (!trace) return null;
                 const toolCall = selectedToolCall.toolCallIndex === -1
                     ? { name: trace.tools[0]?.name || '', arguments: {} }
-                    : extractToolCalls(trace)[selectedToolCall.toolCallIndex];
+                    : getToolCallsFromTrace(trace)[selectedToolCall.toolCallIndex];
 
                 return (
                     <ToolEditorModal

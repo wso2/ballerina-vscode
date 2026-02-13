@@ -38,7 +38,7 @@ const FormContainer = styled.div`
 
     .side-panel-body {
         overflow: visible;
-        overflow-y: none;
+        overflow-y: hidden;
     }
 
     .radio-button-group {
@@ -54,7 +54,7 @@ const FormContainer = styled.div`
 const Container = styled.div`
     display: "flex";
     flex-direction: "column";
-    gap: 10;
+    gap: 10px;
 `;
 
 const FullHeightView = styled(View)`
@@ -114,15 +114,9 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
     const [dataProviderMode, setDataProviderMode] = useState<string>('evalSet');
     const [evalsetOptions, setEvalsetOptions] = useState<Array<{ value: string; content: string }>>([]);
 
-    const handleFieldChange = (fieldKey: string, value: any) => {
-        if (fieldKey === 'dataProviderMode') {
-            setDataProviderMode(value);
-            updateFieldVisibility(value);
-        }
-    };
-
-    const updateFieldVisibility = (mode: string) => {
-        setFormFields(prevFields => prevFields.map(field => {
+    // Helper function to apply field visibility rules based on data provider mode
+    const applyFieldVisibility = (fields: FormField[], mode: string): FormField[] => {
+        return fields.map(field => {
             if (field.key === 'dataProvider') {
                 return { ...field, hidden: mode !== 'function' };
             }
@@ -133,7 +127,18 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 return { ...field, hidden: mode === 'evalSet' };
             }
             return field;
-        }));
+        });
+    };
+
+    const handleFieldChange = (fieldKey: string, value: any) => {
+        if (fieldKey === 'dataProviderMode') {
+            setDataProviderMode(value);
+            updateFieldVisibility(value);
+        }
+    };
+
+    const updateFieldVisibility = (mode: string) => {
+        setFormFields(prevFields => applyFieldVisibility(prevFields, mode));
     };
 
     const updateTargetLineRange = () => {
@@ -177,18 +182,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
             setDataProviderMode(mode);
 
             // Set field visibility based on mode
-            formFields = formFields.map(field => {
-                if (field.key === 'dataProvider') {
-                    return { ...field, hidden: mode !== 'function' };
-                }
-                if (field.key === 'evalSetFile') {
-                    return { ...field, hidden: mode !== 'evalSet' };
-                }
-                if (field.key === 'runs') {
-                    return { ...field, hidden: mode === 'evalSet' };
-                }
-                return field;
-            });
+            formFields = applyFieldVisibility(formFields, mode);
 
             setFormFields(formFields);
         }
@@ -219,18 +213,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         setDataProviderMode(mode);
 
         // Set initial field visibility
-        formFields = formFields.map(field => {
-            if (field.key === 'dataProvider') {
-                return { ...field, hidden: mode !== 'function' };
-            }
-            if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
-            }
-            if (field.key === 'runs') {
-                return { ...field, hidden: mode === 'evalSet' };
-            }
-            return field;
-        });
+        formFields = applyFieldVisibility(formFields, mode);
 
         setFormFields(formFields);
     }
@@ -246,18 +229,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         setDataProviderMode(mode);
 
         // Set initial field visibility (default is 'evalSet' mode)
-        formFields = formFields.map(field => {
-            if (field.key === 'dataProvider') {
-                return { ...field, hidden: mode !== 'function' };
-            }
-            if (field.key === 'evalSetFile') {
-                return { ...field, hidden: mode !== 'evalSet' };
-            }
-            if (field.key === 'runs') {
-                return { ...field, hidden: mode === 'evalSet' };
-            }
-            return field;
-        });
+        formFields = applyFieldVisibility(formFields, mode);
 
         setFormFields(formFields);
     }
@@ -321,7 +293,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                 value: '',
                 paramManagerProps: {
                     paramValues: generateParamFields(testFunction.parameters),
-                    formFields: paramFiels,
+                    formFields: paramFields,
                     handleParameter: handleParamChange
                 },
                 types: [{ fieldType: "PARAM_MANAGER", selected: false }]
@@ -539,7 +511,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                     }
                     if (field.originalName == 'minPassRate') {
                         // Convert percentage (0-100) to decimal (0-1)
-                        const percentageValue = formValues['minPassRate'] || 100;
+                        const percentageValue = formValues['minPassRate'] ?? 100;
                         field.value = String(Number(percentageValue) / 100);
                     }
                     if (field.originalName == 'dataProviderMode') {
@@ -756,7 +728,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         }
     }
 
-    const paramFiels: FormField[] = [
+    const paramFields: FormField[] = [
         {
             key: `variable`,
             label: 'Name',

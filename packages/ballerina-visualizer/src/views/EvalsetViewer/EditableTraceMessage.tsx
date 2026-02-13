@@ -127,7 +127,7 @@ const CancelButton = styled.button`
 interface EditableTraceMessageProps {
     traceId: string;
     isUser: boolean;
-    content: string | any;
+    content: unknown;
     isEditMode: boolean;
     onSave: (traceId: string, content: string) => void;
 }
