@@ -24,7 +24,7 @@ import { approvalManager } from "../../state/ApprovalManager";
 import {
     ConfigVariable,
     createConfigWithPlaceholders,
-    checkConfigurationStatus,
+    getAllConfigStatus,
     validateVariableName,
     writeConfigValuesToConfig,
     createStatusMetadata,
@@ -68,8 +68,8 @@ export interface ConfigCollectorResult {
 }
 
 export interface ConfigCollectorPaths {
-    tempPath: string;      // Where files are created/modified during execution
-    workspacePath: string; // Original workspace for reading existing configs
+    tempPath: string;
+    workspacePath: string;
 }
 
 // Helper functions
@@ -119,10 +119,12 @@ IMPORTANT: Before calling COLLECT or CREATE_AND_COLLECT modes, briefly tell the 
 
 Operation Modes:
 1. CREATE: Create Config.toml with placeholder variables only
+   - If file already exists, returns current variable status (same as check mode) instead of overwriting
    - Use when you need to set up config structure before collecting configuration values
    - Example: { mode: "create", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
 
 2. CREATE_AND_COLLECT: Create config AND immediately request configuration values (most efficient)
+   - If file already exists, skips create and goes straight to collect
    - Use for new integrations that need configuration values right away
    - Tell user first what you need
    - Example: { mode: "create_and_collect", variables: [{ name: "API_KEY", description: "Stripe API key", type: "string" }] }
@@ -275,7 +277,8 @@ export async function ConfigCollectorTool(
                 return await handleCheckMode(
                     input.variableNames,
                     input.filePath,
-                    paths
+                    paths,
+                    input.isTestConfig
                 );
 
             default:
@@ -299,13 +302,22 @@ async function handleCreateMode(
     const validationError = validateConfigVariables(variables);
     if (validationError) { return validationError; }
 
-    // Determine output path based on isTestConfig flag
     const configPath = getConfigPath(paths.tempPath, isTestConfig);
     const configFileName = getConfigFileName(isTestConfig);
 
+    // If file already exists, delegate to check mode to inform the agent of current status
+    if (fs.existsSync(configPath)) {
+        console.log(`[ConfigCollector] CREATE mode - ${configFileName} already exists, delegating to check mode`);
+        const variableNames = variables.map((v) => v.name);
+        const checkResult = await handleCheckMode(variableNames, undefined, paths, isTestConfig);
+        return {
+            ...checkResult,
+            message: `${configFileName} already exists. ${checkResult.message}. Use collect mode to update values.`,
+        };
+    }
+
     console.log(`[ConfigCollector] CREATE mode - Creating ${configFileName} with placeholders`);
 
-    // Emit creating_file stage
     eventHandler({
         type: "configuration_collection_event",
         requestId,
@@ -316,17 +328,12 @@ async function handleCreateMode(
         isTestConfig,
     });
 
-    // Create config with placeholder values
     createConfigWithPlaceholders(configPath, variables, false);
 
-    // Track modified file
-    if (modifiedFiles) {
-        if (!modifiedFiles.includes(configFileName)) {
-            modifiedFiles.push(configFileName);
-        }
+    if (modifiedFiles && !modifiedFiles.includes(configFileName)) {
+        modifiedFiles.push(configFileName);
     }
 
-    // Emit done stage
     eventHandler({
         type: "configuration_collection_event",
         requestId,
@@ -351,22 +358,23 @@ async function handleCreateAndCollectMode(
     isTestConfig?: boolean,
     modifiedFiles?: string[]
 ): Promise<ConfigCollectorResult> {
-    // First create the config in temp
-    const createResult = await handleCreateMode(
-        variables,
-        paths,
-        eventHandler,
-        requestId,
-        isTestConfig,
-        modifiedFiles
-    );
+    const configPath = getConfigPath(paths.tempPath, isTestConfig);
 
-    if (!createResult.success) {
-        return createResult;
+    // If file already exists, skip create and go straight to collect
+    if (!fs.existsSync(configPath)) {
+        const createResult = await handleCreateMode(
+            variables,
+            paths,
+            eventHandler,
+            requestId,
+            isTestConfig,
+            modifiedFiles
+        );
+        if (!createResult.success) {
+            return createResult;
+        }
     }
 
-    // Then immediately collect configuration values and write to temp
-    // Temp files are automatically synced to workspace by agent system
     return await handleCollectMode(
         variables,
         paths,
@@ -391,9 +399,12 @@ async function handleCollectMode(
 
     // Determine paths based on isTestConfig flag
     const configPath = getConfigPath(paths.tempPath, isTestConfig);
+
+    // Priority: tests/Config.toml → Config.toml → empty
+    const mainConfigPath = path.join(paths.tempPath, "Config.toml");
     const sourceConfigPath = isTestConfig
-        ? path.join(paths.tempPath, "Config.toml")  // Read from main config
-        : configPath;  // Read from same file
+        ? (fs.existsSync(configPath) ? configPath : mainConfigPath)
+        : configPath;
 
     // Create config file if it doesn't exist
     if (!fs.existsSync(configPath)) {
@@ -436,9 +447,12 @@ async function handleCollectMode(
     console.log(`[ConfigCollector] ${isTestConfig ? 'Test' : 'Main'} configuration: ${analysis.filledCount} filled`);
 
     // Determine the message to show to user
+    const testConfigExists = isTestConfig && fs.existsSync(configPath);
     const userMessage = isTestConfig
         ? (analysis.hasActualValues
-            ? "Found existing values. You can reuse or update them for testing."
+            ? (testConfigExists
+                ? "Found existing test values. You can update them."
+                : "Found values from main config. You can reuse or update them for testing.")
             : "Test configuration values needed")
         : (analysis.hasActualValues
             ? "Update configuration values"
@@ -513,27 +527,44 @@ async function handleCollectMode(
 async function handleCheckMode(
     variableNames: string[],
     filePath: string | undefined,
-    paths: ConfigCollectorPaths
+    paths: ConfigCollectorPaths,
+    isTestConfig?: boolean
 ): Promise<ConfigCollectorResult> {
-    // Determine config path (use provided path or default)
     let configPath: string;
     if (filePath) {
-        // Use provided path relative to workspace
-        configPath = path.join(paths.workspacePath, filePath);
+        configPath = path.join(paths.tempPath, filePath);
     } else {
-        // Default to workspace Config.toml
-        configPath = path.join(paths.workspacePath, "Config.toml");
+        configPath = getConfigPath(paths.tempPath, isTestConfig);
     }
 
-    // Check configuration value status
-    const status = checkConfigurationStatus(configPath, variableNames);
+    const configFileName = getConfigFileName(isTestConfig);
+
+    if (!fs.existsSync(configPath)) {
+        return {
+            success: false,
+            message: `${configFileName} not found. Use create or collect mode to create it.`,
+            error: "FILE_NOT_FOUND",
+            errorCode: "FILE_NOT_FOUND",
+        };
+    }
+
+    // Read all variables from the file
+    const status = getAllConfigStatus(configPath);
+
+    // Any requested variable names not found in file → mark as missing
+    for (const name of variableNames) {
+        if (!(name in status)) {
+            status[name] = "missing";
+        }
+    }
 
     const filledCount = Object.values(status).filter((s) => s === "filled").length;
     const missingCount = Object.values(status).filter((s) => s === "missing").length;
+    const totalCount = filledCount + missingCount;
 
     return {
         success: true,
-        message: `Checked ${variableNames.length} configuration value(s): ${filledCount} filled, ${missingCount} missing`,
+        message: `${configFileName} has ${totalCount} variable(s): ${filledCount} filled, ${missingCount} with placeholder`,
         status,
     };
 }
@@ -543,23 +574,26 @@ function handleError(
     requestId: string,
     eventHandler: CopilotEventHandler
 ): ConfigCollectorResult {
+    const message = (error && typeof error.message === "string" && error.message) || String(error) || "Unknown error";
+    const code = (error && error.code) || "UNKNOWN_ERROR";
+
     console.error("[ConfigCollector] Error:", error);
 
     eventHandler({
         type: "configuration_collection_event",
         requestId,
         stage: "error",
-        message: `Error: ${error.message}`,
+        message: `Error: ${message}`,
         error: {
-            message: error.message,
-            code: error.code || "UNKNOWN_ERROR",
+            message,
+            code,
         },
     });
 
     return {
         success: false,
-        message: `Failed to manage configuration: ${error.message}`,
-        error: error.message,
-        errorCode: error.code || "UNKNOWN_ERROR",
+        message: `Failed to manage configuration: ${message}`,
+        error: message,
+        errorCode: code,
     };
 }
