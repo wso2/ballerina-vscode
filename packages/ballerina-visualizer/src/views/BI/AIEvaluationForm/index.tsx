@@ -609,7 +609,7 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
                             },
                             types: [{ fieldType: "EXPRESSION_SET", selected: false }],
                             originalName: "groups",
-                            value: ["Evaluation"],
+                            value: ["evaluations"],
                             optional: true,
                             editable: true,
                             advanced: true
