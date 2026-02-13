@@ -146,7 +146,6 @@ export interface ModelState {
 
 export interface IORoot extends IOTypeField {
     category?: InputCategory;
-    convertedRoot?: IORoot;
 }
 
 export interface RecordType {
@@ -175,6 +174,7 @@ export interface IOTypeField {
     isIterationVariable?: boolean;
     isGroupingKey?: boolean;
     typeInfo?: TypeInfo;
+    convertedVariable?: IOTypeField;
 }
 
 export interface EnumMember {
