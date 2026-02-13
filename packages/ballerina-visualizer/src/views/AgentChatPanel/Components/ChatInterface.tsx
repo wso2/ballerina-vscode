@@ -22,9 +22,15 @@ import React, { useState, useEffect, useRef } from "react";
 import styled from "@emotion/styled";
 import ChatInput from "./ChatInput";
 import LoadingIndicator from "./LoadingIndicator";
+import { ExecutionTimeline } from "./ExecutionTimeline";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
+import { Icon, Button, ThemeColors } from "@wso2/ui-toolkit";
 import ReactMarkdown from "react-markdown";
+import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+import { ExecutionStep } from "@wso2/ballerina-core";
 
 enum ChatMessageType {
     MESSAGE = "message",
@@ -36,6 +42,7 @@ interface ChatMessage {
     text: string;
     isUser: boolean;
     traceId?: string;
+    executionSteps?: ExecutionStep[];
 }
 
 // ---------- WATER MARK ----------
@@ -106,6 +113,8 @@ const MessageContainer = styled.div<{ isUser: boolean }>`
 `;
 
 const ProfilePic = styled.div`
+    padding: 4px;
+    border: 1px solid var(--vscode-panel-border);
     width: 18px;
     height: 18px;
     border-radius: 50%;
@@ -127,14 +136,24 @@ const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading
         content: "";
         position: absolute;
         inset: 0;
-        background-color: ${({ isUser }: { isUser: boolean }) =>
-        isUser ? "var(--vscode-button-background)" : "var(--vscode-tab-inactiveBackground)"};
-        opacity: ${({ isUser }: { isUser: boolean }) => (isUser ? "0.3" : "1")};
+        background-color: ${({ isUser, isError }: { isUser: boolean; isError?: boolean }) =>
+        isError ? "var(--vscode-errorForeground)" : isUser ? "var(--vscode-button-background)" : "var(--vscode-input-background)"};
+        opacity: ${({ isUser, isError }: { isUser: boolean; isError?: boolean }) => (isUser ? "0.3" : isError ? "0.05" : "1")};
         border-radius: inherit;
+        border: 1px solid ${({ isUser }: { isUser: boolean }) =>
+        isUser ? "var(--vscode-peekView-border)" : "var(--vscode-panel-border)"};
         z-index: -1;
     }
 
     border-radius: ${({ isUser }: { isUser: boolean }) => (isUser ? "12px 12px 0px 12px" : "12px 12px 12px 0px")};
+`;
+
+const MessageActionsContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: -4px 0 0 36px;
+    flex-wrap: wrap;
 `;
 
 // ---------- CHAT FOOTER ----------
@@ -149,9 +168,8 @@ const ShowLogsButton = styled.button`
     background: none;
     border: none;
     color: var(--vscode-textLink-foreground);
-    font-size: 11px;
-    padding: 0;
-    margin: -4px 0 8px 24px;
+    font-size: 12px;
+    padding: 4px 0;
     cursor: pointer;
     text-decoration: none;
     display: inline-flex;
@@ -280,6 +298,19 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
     );
 };
 
+// Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
+function preprocessLatex(text: string): string {
+    if (!text || typeof text !== 'string') return text;
+
+    // Convert display math \[...\] to $$...$$
+    let processed = text.replace(/\\\[(.*?)\\\]/gs, (_, math) => `$$${math}$$`);
+
+    // Convert inline math \(...\) to $...$
+    processed = processed.replace(/\\\((.*?)\\\)/gs, (_, math) => `$${math}$`);
+
+    return processed;
+}
+
 const ChatInterface: React.FC = () => {
     const { rpcClient } = useRpcContext();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -302,7 +333,8 @@ const ChatInterface: React.FC = () => {
                         type: msg.type === 'error' ? ChatMessageType.ERROR : ChatMessageType.MESSAGE,
                         text: msg.text,
                         isUser: msg.isUser,
-                        traceId: msg.traceId
+                        traceId: msg.traceId,
+                        executionSteps: msg.executionSteps
                     }));
                     setMessages(chatMessages);
                 }
@@ -342,15 +374,46 @@ const ChatInterface: React.FC = () => {
 
             setMessages((prev) => [
                 ...prev,
-                { type: ChatMessageType.MESSAGE, text: chatResponse.message, isUser: false },
+                {
+                    type: ChatMessageType.MESSAGE,
+                    text: chatResponse.message,
+                    isUser: false,
+                    traceId: chatResponse.traceId,
+                    executionSteps: chatResponse.executionSteps
+                },
             ]);
         } catch (error) {
-            const errorMessage =
-                error && typeof error === "object" && "message" in error
-                    ? String(error.message)
-                    : "An unknown error occurred";
+            let errorMessage = "An unknown error occurred";
+            let traceId: string | undefined;
+            let executionSteps: ExecutionStep[] | undefined;
 
-            setMessages((prev) => [...prev, { type: ChatMessageType.ERROR, text: errorMessage, isUser: false }]);
+            // Try to parse structured error with trace information
+            if (error && typeof error === "object" && "message" in error) {
+                try {
+                    const parsedError = JSON.parse(String(error.message));
+                    if (parsedError.message && parsedError.traceInfo) {
+                        errorMessage = parsedError.message;
+                        traceId = parsedError.traceInfo.traceId;
+                        executionSteps = parsedError.traceInfo.executionSteps;
+                    } else {
+                        // Fallback to regular error message
+                        errorMessage = String(error.message);
+                    }
+                } catch (parseError) {
+                    // If JSON parsing fails, use the original error message
+                    errorMessage = String(error.message);
+                }
+            }
+
+            console.error("Chat message error:", error);
+
+            setMessages((prev) => [...prev, {
+                type: ChatMessageType.ERROR,
+                text: errorMessage,
+                isUser: false,
+                traceId,
+                executionSteps
+            }]);
         } finally {
             setIsLoading(false);
         }
@@ -363,24 +426,16 @@ const ChatInterface: React.FC = () => {
 
     const handleShowLogs = async (messageIndex: number) => {
         try {
-            // Find the corresponding user message
-            // Look backwards from the current index to find the last user message
-            let userMessage = '';
+            // Get the trace ID from the agent's response message
+            const message = messages[messageIndex];
 
-            for (let i = messageIndex - 1; i >= 0; i--) {
-                if (messages[i].isUser) {
-                    userMessage = messages[i].text;
-                    break;
-                }
-            }
-
-            if (!userMessage) {
-                console.error('Could not find user message for this response');
+            if (!message || message.isUser || !message.traceId) {
+                console.error('No trace ID found for this message');
                 return;
             }
 
-            // Call the RPC method to show the trace view
-            await rpcClient.getAgentChatRpcClient().showTraceView({ message: userMessage });
+            // Call the RPC method to show the trace view using the traceId
+            await rpcClient.getAgentChatRpcClient().showTraceView({ traceId: message.traceId });
         } catch (error) {
             console.error('Failed to show trace view:', error);
         }
@@ -409,6 +464,18 @@ const ChatInterface: React.FC = () => {
         setShowClearWarning(false);
     };
 
+    const handleViewInTrace = async (traceId: string, spanId: string) => {
+        try {
+            await rpcClient.getAgentChatRpcClient().showTraceView({
+                traceId,
+                focusSpanId: spanId,
+                openWithSidebarCollapsed: true
+            });
+        } catch (error) {
+            console.error('Failed to show trace view:', error);
+        }
+    };
+
     return (
         <ChatWrapper>
             {messages.length > 0 && (
@@ -434,6 +501,13 @@ const ChatInterface: React.FC = () => {
                     {/* Render each message */}
                     {messages.map((msg, idx) => (
                         <React.Fragment key={idx}>
+                            {!msg.isUser && isTracingEnabled && msg?.executionSteps && msg.executionSteps.length > 0 && msg.traceId && (
+                                <ExecutionTimeline
+                                    steps={msg.executionSteps}
+                                    traceId={msg.traceId}
+                                    onViewInTrace={handleViewInTrace}
+                                />
+                            )}
                             <MessageContainer isUser={msg.isUser}>
                                 {!msg.isUser && (
                                     <ProfilePic>
@@ -442,19 +516,24 @@ const ChatInterface: React.FC = () => {
                                             sx={{ width: 18, height: 18 }}
                                             iconSx={{
                                                 fontSize: "18px",
-                                                color: "var(--vscode-foreground)",
+                                                color: "var(--vscode-terminal-ansiBrightCyan)",
                                                 cursor: "default",
                                             }}
                                         />
                                     </ProfilePic>
                                 )}
                                 <MessageBubble isUser={msg.isUser} isError={msg.type === ChatMessageType.ERROR}>
-                                    <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkMath, remarkGfm]}
+                                        rehypePlugins={[rehypeKatex]}
+                                    >
+                                        {preprocessLatex(msg.text)}
+                                    </ReactMarkdown>
                                 </MessageBubble>
                                 {msg.isUser && (
                                     <ProfilePic>
-                                        <Codicon
-                                            name="account"
+                                        <Icon
+                                            name="bi-user"
                                             sx={{ width: 18, height: 18 }}
                                             iconSx={{
                                                 fontSize: "18px",
@@ -465,11 +544,12 @@ const ChatInterface: React.FC = () => {
                                     </ProfilePic>
                                 )}
                             </MessageContainer>
-                            {/* Show "Show logs" button after agent responses (not user messages) */}
-                            {!msg.isUser && isTracingEnabled && (
-                                <ShowLogsButton onClick={() => handleShowLogs(idx)}>
-                                    Show logs
-                                </ShowLogsButton>
+                            {!msg.isUser && isTracingEnabled && msg.traceId && (
+                                <MessageActionsContainer>
+                                    <ShowLogsButton onClick={() => handleShowLogs(idx)}>
+                                        View Logs
+                                    </ShowLogsButton>
+                                </MessageActionsContainer>
                             )}
                         </React.Fragment>
                     ))}

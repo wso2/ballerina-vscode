@@ -55,8 +55,12 @@
     "yup": "1.6.1",
     "@hookform/resolvers": "5.0.1",
     "highlight.js": "11.11.1",
-    "rehype-raw": "7.0.0",
-    "remark-breaks": "4.0.0"
+    "rehype-raw": "^7.0.0",
+    "remark-breaks": "~4.0.0",
+    "rehype-katex": "^7.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
+    "katex": "^0.16.27"
   },
   "devDependencies": {
     "@types/react": "18.2.0",
