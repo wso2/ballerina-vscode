@@ -40,7 +40,8 @@ export enum TypeKind {
     Unknown = "$CompilationError$",
     Anydata = "anydata",
     Byte = "byte",
-    Json = "json"
+    Json = "json",
+    Xml = "xml",
 }
 
 export enum InputCategory {
@@ -91,6 +92,7 @@ export interface IOType {
     isDeepNested?: boolean;
     ref?: string;
     typeInfo?: TypeInfo;
+    convertedField?: IOType;
 }
 
 export interface Mapping {
@@ -144,6 +146,7 @@ export interface ModelState {
 
 export interface IORoot extends IOTypeField {
     category?: InputCategory;
+    convertedRoot?: IORoot;
 }
 
 export interface RecordType {
