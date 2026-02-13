@@ -16,16 +16,17 @@
  * under the License.
  */
 
-import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse } from "./interfaces";
+import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput } from "./interfaces";
 
 export interface AgentChatAPI {
     getChatMessage: (params: ChatReqMessage) => Promise<ChatRespMessage>;
     abortChatRequest: () => void;
     getTracingStatus: () => Promise<TraceStatus>;
     showTraceView: (params: TraceInput) => Promise<void>;
+    showSessionOverview: (params: SessionInput) => Promise<void>;
     getChatHistory: () => Promise<ChatHistoryResponse>;
     clearChatHistory: () => Promise<ClearChatResponse>;
     getAgentStatus: () => Promise<AgentStatusResponse>;
 }
 
-export type { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse };
+export type { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, ExecutionStep, SessionInput };
