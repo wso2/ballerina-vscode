@@ -41,6 +41,7 @@ import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
+import { PublishToCentralButton } from "./PublishToCentralButton";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -780,6 +781,21 @@ export function PackageOverview(props: PackageOverviewProps) {
         rpcClient.getBIDiagramRpcClient().buildProject(BuildMode.JAR);
     };
 
+    const handlePublishToCentral = () => {
+        // rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.BI_PUBLISH_TO_CENTRAL] });
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
+        });
+    };
+
+    const handlePublishLearnMore = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
+        });
+    };
+
     const goToDevant = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
@@ -837,6 +853,14 @@ export function PackageOverview(props: PackageOverviewProps) {
                         <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug
                     </Button>
                 </>
+            )}
+            {isLibrary && (
+                <PublishToCentralButton
+                    onClick={handlePublishToCentral}
+                    onLearnMoreClick={handlePublishLearnMore}
+                    disabled={false}
+                    tooltipMessage="Publish this library to Ballerina Central."
+                />
             )}
         </>
     );
