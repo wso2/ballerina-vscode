@@ -77,14 +77,14 @@ const WatermarkSubTitle = styled.div`
 `;
 
 // ---------- CHAT AREA ----------
-const ChatWrapper = styled.div`
+export const ChatWrapper = styled.div`
     display: flex;
     flex-direction: column;
     height: 100vh;
     width: 100%;
 `;
 
-const ChatContainer = styled.div`
+export const ChatContainer = styled.div`
     position: relative;
     display: flex;
     flex-direction: column;
@@ -93,38 +93,51 @@ const ChatContainer = styled.div`
     margin: 20px 0 32px 0;
 `;
 
-const Messages = styled.div`
+export const Messages = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 8px 0;
     display: flex;
     flex-direction: column;
     gap: 8px;
     position: relative;
     z-index: 1;
     padding: 8px 20px;
+    height: 100%;
+
+    @media (min-width: 1000px) {
+        padding: 8px 10%;
+    }
+
+    @media (min-width: 1600px) {
+        padding: 8px 15%;
+    }
+
+    @media (min-width: 2000px) {
+        padding: 8px 20%;
+    }
 `;
 
-const MessageContainer = styled.div<{ isUser: boolean }>`
+export const MessageContainer = styled.div<{ isUser: boolean }>`
     display: flex;
     align-items: flex-end;
     justify-content: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     gap: 6px;
 `;
 
-const ProfilePic = styled.div`
+export const ProfilePic = styled.div`
     padding: 4px;
     border: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
     width: 18px;
     height: 18px;
     border-radius: 50%;
     object-fit: cover;
 `;
 
-const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
+export const MessageBubble = styled.div<{ isUser: boolean; isError?: boolean; isLoading?: boolean }>`
     position: relative;
-    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "0 14px")};
-    max-width: 55%;
+    padding: ${({ isLoading }: { isLoading?: boolean }) => (isLoading ? "10px 14px" : "2px 14px")};
+    max-width: 100%;
     align-self: ${({ isUser }: { isUser: boolean }) => (isUser ? "flex-end" : "flex-start")};
     overflow-wrap: break-word;
     word-break: break-word;
@@ -187,9 +200,11 @@ const ChatHeader = styled.div`
     top: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
     padding: 12px 8px 8px;
     z-index: 2;
     border-bottom: 1px solid var(--vscode-panel-border);
+    gap: 8px;
 `;
 
 const ClearChatButton = styled.button`
@@ -299,7 +314,7 @@ const ClearChatWarningPopup: React.FC<ClearChatWarningPopupProps> = ({ isOpen, o
 };
 
 // Preprocess LaTeX delimiters to convert \(...\) and \[...\] to $...$ and $$...$$
-function preprocessLatex(text: string): string {
+export function preprocessLatex(text: string): string {
     if (!text || typeof text !== 'string') return text;
 
     // Convert display math \[...\] to $$...$$
@@ -319,6 +334,9 @@ const ChatInterface: React.FC = () => {
     const [showClearWarning, setShowClearWarning] = useState(false);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Check if we have any traces (to enable/disable Session Logs button)
+    const hasTraces = messages.some(msg => !msg.isUser && msg.traceId);
 
     // Load chat history and check tracing status on mount
     useEffect(() => {
@@ -434,8 +452,9 @@ const ChatInterface: React.FC = () => {
                 return;
             }
 
-            // Call the RPC method to show the trace view using the traceId
-            await rpcClient.getAgentChatRpcClient().showTraceView({ traceId: message.traceId });
+            await rpcClient.getAgentChatRpcClient().showTraceView({
+                traceId: message.traceId
+            });
         } catch (error) {
             console.error('Failed to show trace view:', error);
         }
@@ -468,11 +487,18 @@ const ChatInterface: React.FC = () => {
         try {
             await rpcClient.getAgentChatRpcClient().showTraceView({
                 traceId,
-                focusSpanId: spanId,
-                openWithSidebarCollapsed: true
+                focusSpanId: spanId
             });
         } catch (error) {
             console.error('Failed to show trace view:', error);
+        }
+    };
+
+    const handleShowSessionLogs = async () => {
+        try {
+            await rpcClient.getAgentChatRpcClient().showSessionOverview({});
+        } catch (error) {
+            console.error('Failed to show session overview:', error);
         }
     };
 
@@ -480,8 +506,16 @@ const ChatInterface: React.FC = () => {
         <ChatWrapper>
             {messages.length > 0 && (
                 <ChatHeader>
+                    <div>
+                        {isTracingEnabled && hasTraces && (
+                            <ClearChatButton onClick={handleShowSessionLogs} disabled={isLoading} title="View traces for the entire conversation">
+                                <span className="codicon codicon-list-tree" />
+                                Session Logs
+                            </ClearChatButton>
+                        )}
+                    </div>
                     <ClearChatButton onClick={handleClearChat} disabled={isLoading}>
-                        <span className="codicon codicon-clear-all" />
+                        <Icon name="bi-delete" sx={{ fontSize: 16, width: 16, height: 16 }} iconSx={{ fontSize: "16px" }} />
                         Clear Chat
                     </ClearChatButton>
                 </ChatHeader>
@@ -546,7 +580,7 @@ const ChatInterface: React.FC = () => {
                             </MessageContainer>
                             {!msg.isUser && isTracingEnabled && msg.traceId && (
                                 <MessageActionsContainer>
-                                    <ShowLogsButton onClick={() => handleShowLogs(idx)}>
+                                    <ShowLogsButton onClick={() => handleShowLogs(idx)} title="View trace logs for this message">
                                         View Logs
                                     </ShowLogsButton>
                                 </MessageActionsContainer>

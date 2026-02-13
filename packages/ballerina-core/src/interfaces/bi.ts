@@ -154,7 +154,8 @@ export type FormFieldInputType = "TEXT" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
-    "CLAUSE_EXPRESSION";
+    "CLAUSE_EXPRESSION" |
+    "SLIDER";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -466,8 +467,10 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"
     | "BODY"

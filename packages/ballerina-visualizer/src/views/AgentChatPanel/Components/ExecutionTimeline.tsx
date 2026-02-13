@@ -167,7 +167,10 @@ const Duration = styled.span`
 export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTimelineProps) {
     const [open, setOpen] = useState(false);
 
-    if (!steps || steps.length === 0) {
+    // Filter out steps with invoke operation type
+    const filteredSteps = steps.filter(step => step.operationType !== 'invoke');
+
+    if (!filteredSteps || filteredSteps.length === 0) {
         return null;
     }
 
@@ -199,16 +202,16 @@ export function ExecutionTimeline({ steps, traceId, onViewInTrace }: ExecutionTi
     return (
         <TimelineContainer>
             <TimelineHeader onClick={() => setOpen(!open)} aria-expanded={open}>
-                <TimelineTitle>Execution Steps ({steps.length})</TimelineTitle>
+                <TimelineTitle>Execution Steps ({filteredSteps.length})</TimelineTitle>
                 <ToggleIcon isOpen={open}>
                     <Codicon name="chevron-right" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
                 </ToggleIcon>
             </TimelineHeader>
             {open && (
                 <TimelineList>
-                    {steps.map((step, index) => (
+                    {filteredSteps.map((step, index) => (
                         <TimelineItem key={step.spanId}>
-                            <ConnectorColumn isLast={index === steps.length - 1}>
+                            <ConnectorColumn isLast={index === filteredSteps.length - 1}>
                                 <Dot operationType={step.operationType} />
                             </ConnectorColumn>
                             <ContentCard

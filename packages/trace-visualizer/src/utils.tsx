@@ -386,3 +386,92 @@ export function getSpanColor(type: string): string {
       return 'var(--vscode-badge-background)';
   }
 }
+
+/**
+ * Extracts the session ID from a trace
+ */
+export function getSessionId(span: SpanData): string | undefined {
+  return getAttributeValue(span.attributes, 'gen_ai.conversation.id');
+}
+
+/**
+ * Extracts the user message from an invoke_agent span
+ */
+export function extractUserMessage(span: SpanData): string {
+  const inputMessages = getAttributeValue(span.attributes, 'gen_ai.input.messages');
+  if (!inputMessages) return '';
+  return inputMessages;
+}
+
+/**
+ * Extracts the agent response from an invoke_agent span
+ */
+export function extractAgentResponse(span: SpanData): string {
+  const outputMessages = getAttributeValue(span.attributes, 'gen_ai.output.messages');
+  if (!outputMessages) return '';
+  return outputMessages;
+}
+
+/**
+ * Calculates total input tokens from all spans with "Chat" operation
+ */
+export function calculateTotalInputTokens(spans: SpanData[]): number {
+  return spans.reduce((total, span) => {
+    const operationName = getAttributeValue(span.attributes, 'gen_ai.operation.name');
+    if (operationName?.toLowerCase().includes('chat')) {
+      const inputRaw = getAttributeValue(span.attributes, 'gen_ai.usage.input_tokens') || '0';
+      const inputTokens = Number.parseInt(inputRaw);
+      const safeInput = Number.isFinite(inputTokens) && !Number.isNaN(inputTokens) ? inputTokens : 0;
+      return total + safeInput;
+    }
+    return total;
+  }, 0);
+}
+
+/**
+ * Calculates total output tokens from all spans with "Chat" operation
+ */
+export function calculateTotalOutputTokens(spans: SpanData[]): number {
+  return spans.reduce((total, span) => {
+    const operationName = getAttributeValue(span.attributes, 'gen_ai.operation.name');
+    if (operationName?.toLowerCase().includes('chat')) {
+      const outputRaw = getAttributeValue(span.attributes, 'gen_ai.usage.output_tokens') || '0';
+      const outputTokens = Number.parseInt(outputRaw);
+      const safeOutput = Number.isFinite(outputTokens) && !Number.isNaN(outputTokens) ? outputTokens : 0;
+      return total + safeOutput;
+    }
+    return total;
+  }, 0);
+}
+
+/**
+ * Calculates the total latency of a trace (from first span start to last span end)
+ */
+export function calculateTraceLatency(spans: SpanData[]): number | null {
+  if (spans.length === 0) return null;
+
+  let earliestStart: number | null = null;
+  let latestEnd: number | null = null;
+
+  for (const span of spans) {
+    const range = getSpanTimeRange(span);
+    if (range) {
+      if (earliestStart === null || range.start < earliestStart) {
+        earliestStart = range.start;
+      }
+      if (latestEnd === null || range.end > latestEnd) {
+        latestEnd = range.end;
+      }
+    }
+  }
+
+  if (earliestStart === null || latestEnd === null) return null;
+  return latestEnd - earliestStart;
+}
+
+/**
+ * Formats a number with comma separators for thousands
+ */
+export function formatNumber(num: number): string {
+  return num.toLocaleString('en-US');
+}

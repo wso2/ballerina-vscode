@@ -37,6 +37,8 @@ import {
     reopenApprovalView,
     ReopenApprovalViewRequest,
     resetUndoRedoStack,
+    saveEvalThread,
+    SaveEvalThreadRequest,
     undo,
     undoRedoState,
     updateCurrentArtifactLocation,
@@ -65,4 +67,5 @@ export function registerVisualizerRpcHandlers(messenger: Messenger) {
     messenger.onNotification(reviewAccepted, () => rpcManger.reviewAccepted());
     messenger.onNotification(handleApprovalPopupClose, (args: HandleApprovalPopupCloseRequest) => rpcManger.handleApprovalPopupClose(args));
     messenger.onNotification(reopenApprovalView, (args: ReopenApprovalViewRequest) => rpcManger.reopenApprovalView(args));
+    messenger.onRequest(saveEvalThread, (args: SaveEvalThreadRequest) => rpcManger.saveEvalThread(args));
 }
