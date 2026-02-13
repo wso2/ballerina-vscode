@@ -436,6 +436,10 @@ const stateMachine = createMachine<MachineContext>(
                                         dataMapperMetadata: (context, event) => event.viewLocation?.dataMapperMetadata,
                                         reviewData: (context, event) => event.viewLocation?.reviewData,
                                         evalsetData: (context, event) => event.viewLocation?.evalsetData,
+                                        metadata: (context, event) => event.viewLocation?.metadata ? {
+                                            ...context.metadata,
+                                            ...event.viewLocation.metadata
+                                        } : context.metadata,
                                         isViewUpdateTransition: true
                                     }),
                                     (context, event) => notifyTreeView(

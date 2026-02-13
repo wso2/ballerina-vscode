@@ -29,8 +29,17 @@ import { getCurrentProjectRoot, tryGetCurrentBallerinaFile } from "../../utils/p
 import { findBallerinaPackageRoot } from "../../utils";
 import { MESSAGES } from "../project";
 import { BallerinaExtension } from "../../core";
+import { isSupportedSLVersion, createVersionNumber } from "../../utils/config";
 
 export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
+    // Check if AI Evaluation features are supported
+    const isAIEvaluationSupported = isSupportedSLVersion(
+        ballerinaExtInstance,
+        createVersionNumber(2201, 13, 2)
+    );
+
+    // Set VS Code context for UI visibility control
+    commands.executeCommand('setContext', 'ballerina.ai.evaluationSupported', isAIEvaluationSupported);
     // register run project tests handler
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION, async (entry: TestItem) => {
         const projectPath = await findProjectPath(entry.uri?.fsPath);
@@ -89,7 +98,14 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
         ensureFileExists(fileUri);
         openView(EVENT_TYPE.OPEN_VIEW, {
             view: MACHINE_VIEW.BIAIEvaluationForm,
-            documentUri: fileUri, identifier: '', serviceType: 'ADD_NEW_TEST'
+            documentUri: fileUri,
+            identifier: '',
+            serviceType: 'ADD_NEW_TEST',
+            metadata: {
+                featureSupport: {
+                    aiEvaluation: isAIEvaluationSupported
+                }
+            }
         });
     });
 
@@ -139,7 +155,12 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
                     endLine: range.end.line,
                     endColumn: range.end.character
                 },
-                serviceType: 'UPDATE_TEST'
+                serviceType: 'UPDATE_TEST',
+                metadata: {
+                    featureSupport: {
+                        aiEvaluation: isAIEvaluationSupported
+                    }
+                }
             });
         }
     });
@@ -273,22 +294,22 @@ function isValidTestFunctionResponse(response: any): response is GetTestFunction
  * @returns true if the function has "evaluations" in its groups, false otherwise
  */
 function hasEvaluationGroup(testFunction: any): boolean {
-    if (!testFunction?.annotations) return false;
+    if (!testFunction?.annotations) { return false; }
 
     // Find the Config annotation
     const configAnnotation = testFunction.annotations.find(
         (annotation: Annotation) => annotation.name === 'Config'
     );
 
-    if (!configAnnotation?.fields) return false;
+    if (!configAnnotation?.fields) { return false; }
 
     // Find the groups field
     const groupsField = configAnnotation.fields.find(
         (field: ValueProperty) => field.originalName === 'groups'
     );
 
-    if (!groupsField?.value) return false;
-    if (!Array.isArray(groupsField.value)) return false;
+    if (!groupsField?.value) { return false; }
+    if (!Array.isArray(groupsField.value)) { return false; }
 
     // Check if "evaluations" is in the groups array
     // Note: The values may include quotes, so we need to strip them

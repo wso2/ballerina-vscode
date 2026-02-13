@@ -143,7 +143,8 @@ async function getContext(): Promise<VisualizerLocation> {
                 haveLS: StateMachine.langClient() && true,
                 recordFilePath: context.projectPath ? path.join(context.projectPath, "types.bal") : undefined,
                 enableSequenceDiagram: extension.ballerinaExtInstance.enableSequenceDiagramView(),
-                target: context.metadata?.target
+                target: context.metadata?.target,
+                featureSupport: context.metadata?.featureSupport
             },
             scope: context.scope,
             org: context.org,
