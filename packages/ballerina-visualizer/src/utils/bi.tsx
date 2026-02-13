@@ -751,6 +751,17 @@ export function convertToVisibleTypes(types: VisibleTypeItem[], isFetchingTypesF
     }));
 }
 
+export function convertItemsToCompletionItems(items: Item[]): CompletionItem[] {
+    items = items.filter(item => item !== null) as Item[];
+    //TODO: Need labelDetails from the LS for proper conversion
+    return items.map((item) => ({
+        label: item.metadata.label,
+        value: item.metadata.label,
+        kind: COMPLETION_ITEM_KIND.TypeParameter,
+        insertText: item.metadata.label
+    }));
+}
+
 export function convertRecordTypeToCompletionItem(type: Type): CompletionItem {
     const label = type?.name ?? "";
     const value = label;
