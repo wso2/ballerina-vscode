@@ -103,7 +103,7 @@ import DynamicModal from "../../../../components/Modal";
 import React from "react";
 import { SidePanelView } from "../../FlowDiagram/PanelManager";
 import { ConnectionKind } from "../../../../components/ConnectionSelector";
-import { getImportedTypes } from "../../TypeEditor/utils";
+import { getFilteredTypesByKind } from "../../TypeEditor/utils";
 import { useModalStack } from "../../../../Context";
 
 interface TypeEditorState {
@@ -1210,7 +1210,7 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 searchKind: 'TYPE'
             })
             .then((response) => {
-                return getImportedTypes(response.categories);
+                return getFilteredTypesByKind(response.categories, "IMPORTED");
             })
             .finally(() => {
 
