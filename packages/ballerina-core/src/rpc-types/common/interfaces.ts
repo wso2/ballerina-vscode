@@ -118,3 +118,8 @@ export interface WorkspaceTypeResponse {
 export interface SampleDownloadRequest {
     zipFileName: string;
 }
+
+export interface PublishToCentralResponse {
+    success: boolean;
+    message?: string;
+}
