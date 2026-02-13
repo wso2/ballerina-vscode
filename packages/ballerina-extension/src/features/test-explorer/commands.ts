@@ -110,37 +110,24 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
         if (fileUri) {
             const range = entry.range;
 
-            // Fetch the test function to check if it belongs to the "Evaluation" group
+            // Fetch the test function to check if it belongs to the "evaluations" group
             let viewToOpen = MACHINE_VIEW.BITestFunctionForm; // Default to regular test form
 
             try {
-                console.log('[TEST EDIT] Fetching test function:', entry.label, 'from file:', fileUri);
                 const response = await ballerinaExtInstance.langClient?.getTestFunction({
                     functionName: entry.label,
                     filePath: fileUri
                 });
-
-                console.log('[TEST EDIT] Response received:', response);
-
                 if (response && isValidTestFunctionResponse(response) && response.function) {
-                    console.log('[TEST EDIT] Valid response, checking for Evaluation group');
                     const isEvaluation = hasEvaluationGroup(response.function);
-                    console.log('[TEST EDIT] Is Evaluation test?', isEvaluation);
                     if (isEvaluation) {
                         viewToOpen = MACHINE_VIEW.BIAIEvaluationForm;
-                        console.log('[TEST EDIT] Opening AI Evaluation Form');
-                    } else {
-                        console.log('[TEST EDIT] Opening regular Test Function Form');
                     }
-                } else {
-                    console.log('[TEST EDIT] Invalid response or no function data, using default form');
                 }
             } catch (error) {
                 console.warn('Failed to fetch test function, defaulting to regular test form:', error);
                 // Continue with default form if fetching fails
             }
-
-            console.log('[TEST EDIT] Final view to open:', viewToOpen);
 
             openView(EVENT_TYPE.OPEN_VIEW, {
                 view: viewToOpen,
@@ -281,56 +268,34 @@ function isValidTestFunctionResponse(response: any): response is GetTestFunction
 }
 
 /**
- * Check if a test function belongs to the "Evaluation" group
+ * Check if a test function belongs to the "evaluations" group
  * @param testFunction The test function to check
- * @returns true if the function has "Evaluation" in its groups, false otherwise
+ * @returns true if the function has "evaluations" in its groups, false otherwise
  */
 function hasEvaluationGroup(testFunction: any): boolean {
-    console.log('[HAS_EVAL_GROUP] Checking test function:', testFunction?.functionName?.value);
-
-    if (!testFunction?.annotations) {
-        console.log('[HAS_EVAL_GROUP] No annotations found');
-        return false;
-    }
-
-    console.log('[HAS_EVAL_GROUP] Found annotations:', testFunction.annotations.map((a: any) => a.name));
+    if (!testFunction?.annotations) return false;
 
     // Find the Config annotation
     const configAnnotation = testFunction.annotations.find(
         (annotation: Annotation) => annotation.name === 'Config'
     );
 
-    if (!configAnnotation?.fields) {
-        console.log('[HAS_EVAL_GROUP] No Config annotation or fields found');
-        return false;
-    }
-
-    console.log('[HAS_EVAL_GROUP] Config annotation fields:', configAnnotation.fields.map((f: any) => f.originalName));
+    if (!configAnnotation?.fields) return false;
 
     // Find the groups field
     const groupsField = configAnnotation.fields.find(
         (field: ValueProperty) => field.originalName === 'groups'
     );
 
-    if (!groupsField?.value) {
-        console.log('[HAS_EVAL_GROUP] No groups field found or empty');
-        return false;
-    }
+    if (!groupsField?.value) return false;
+    if (!Array.isArray(groupsField.value)) return false;
 
-    console.log('[HAS_EVAL_GROUP] Groups field value:', groupsField.value, 'Type:', typeof groupsField.value, 'IsArray:', Array.isArray(groupsField.value));
-
-    if (!Array.isArray(groupsField.value)) {
-        console.log('[HAS_EVAL_GROUP] Groups value is not an array');
-        return false;
-    }
-
-    // Check if "Evaluation" is in the groups array
+    // Check if "evaluations" is in the groups array
     // Note: The values may include quotes, so we need to strip them
     const hasEvaluation = groupsField.value.some((group: string) => {
         const cleanedGroup = group.replace(/^["']|["']$/g, ''); // Remove leading/trailing quotes
-        return cleanedGroup === 'Evaluation';
+        return cleanedGroup === 'evaluations';
     });
-    console.log('[HAS_EVAL_GROUP] Contains "Evaluation"?', hasEvaluation, 'Groups:', groupsField.value);
     return hasEvaluation;
 }
 
