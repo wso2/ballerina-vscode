@@ -581,6 +581,13 @@ function processTypeKind(
                 return processTypeReference(type.ref, parentId, model, visitedRefs);
             }
             break;
+        case TypeKind.Json:
+        case TypeKind.Xml:
+            if (type.convertedVariable) {
+                return {
+                    convertedField: processConvertedVariable(type.convertedVariable, model, visitedRefs)
+                };
+            }
     }
     return {};
 }
@@ -719,6 +726,29 @@ function processUnion(
             ...typeSpecificProps
         };
     });
+}
+
+/**
+ * Processes a converted variable for JSON/XML types
+ */
+function processConvertedVariable(
+    convertedVariable: IOTypeField,
+    model: DMModel,
+    visitedRefs: Set<string>
+): IOType {
+    const fieldId = convertedVariable.name;
+    const isFocused = true;
+    return {
+        id: fieldId,
+        name: fieldId,
+        displayName: convertedVariable.displayName,
+        typeName: convertedVariable.typeName,
+        kind: convertedVariable.kind,
+        ...(isFocused && { isFocused }),
+        ...(convertedVariable.optional && { optional: convertedVariable.optional }),
+        ...(convertedVariable.typeInfo && { typeInfo: convertedVariable.typeInfo }),
+        ...processTypeKind(convertedVariable, fieldId, model, visitedRefs)
+    };
 }
 
 /**
