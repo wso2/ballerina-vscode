@@ -41,7 +41,9 @@ export class InputNodeFactory extends AbstractReactFactory<InputNode, DiagramEng
         } else if (event.model.filteredInputType &&
                 (event.model.filteredInputType.kind === TypeKind.Record ||
                     event.model.filteredInputType.kind === TypeKind.Array ||
-                    event.model.filteredInputType.kind === TypeKind.Enum
+                    event.model.filteredInputType.kind === TypeKind.Enum ||
+                    event.model.filteredInputType.kind === TypeKind.Json ||
+                    event.model.filteredInputType.kind === TypeKind.Xml
                 )
             ) {
             return (
