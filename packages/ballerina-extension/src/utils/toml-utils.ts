@@ -47,7 +47,22 @@ export function getAllConfigStatus(
         function collectStatus(obj: any, prefix: string = "") {
             for (const [key, value] of Object.entries(obj)) {
                 const fullKey = prefix ? `${prefix}.${key}` : key;
-                if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+                if (Array.isArray(value)) {
+                    // Arrays of tables [[...]] or primitive arrays
+                    value.forEach((item, index) => {
+                        if (item !== null && typeof item === "object") {
+                            collectStatus(item, `${fullKey}[${index}]`);
+                        } else if (typeof item === "string" && PLACEHOLDER_REGEX.test(item)) {
+                            status[`${fullKey}[${index}]`] = "missing";
+                        } else {
+                            status[`${fullKey}[${index}]`] = "filled";
+                        }
+                    });
+                    // Also mark the array key itself if empty
+                    if (value.length === 0) {
+                        status[fullKey] = "filled";
+                    }
+                } else if (value !== null && typeof value === "object") {
                     collectStatus(value, fullKey);
                 } else if (typeof value === "string" && PLACEHOLDER_REGEX.test(value)) {
                     status[fullKey] = "missing";

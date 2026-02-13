@@ -531,13 +531,14 @@ async function handleCheckMode(
     isTestConfig?: boolean
 ): Promise<ConfigCollectorResult> {
     let configPath: string;
+    let configFileName: string;
     if (filePath) {
         configPath = path.join(paths.tempPath, filePath);
+        configFileName = path.basename(filePath);
     } else {
         configPath = getConfigPath(paths.tempPath, isTestConfig);
+        configFileName = getConfigFileName(isTestConfig);
     }
-
-    const configFileName = getConfigFileName(isTestConfig);
 
     if (!fs.existsSync(configPath)) {
         return {
