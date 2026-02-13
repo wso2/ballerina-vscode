@@ -73,7 +73,7 @@ const CreateConnectorOptions = styled.div`
     gap: 12px;
 `;
 
-const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
+const ConnectorOptionCard = styled.div`
     position: relative;
     display: flex;
     align-items: center;
@@ -82,15 +82,12 @@ const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 8px;
     background-color: ${ThemeColors.SURFACE_DIM};
-    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "not-allowed" : "pointer")};
+    cursor: pointer;
     transition: all 0.2s ease;
-    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
 
     &:hover {
-        background-color: ${(props: { disabled?: boolean }) =>
-        props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
-        border-color: ${(props: { disabled?: boolean }) =>
-        props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
+        background-color: ${ThemeColors.PRIMARY_CONTAINER};
+        border-color: ${ThemeColors.PRIMARY};
     }
 `;
 
