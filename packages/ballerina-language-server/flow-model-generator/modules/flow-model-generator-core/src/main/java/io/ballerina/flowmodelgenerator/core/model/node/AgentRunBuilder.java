@@ -31,8 +31,6 @@ import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +48,14 @@ public class AgentRunBuilder extends CallBuilder {
     private static final String BALLERINA = "ballerina";
 
     // Agent Call Properties
-    public static final String QUERY = "query";
-    public static final String SESSION_ID = "sessionId";
-    public static final String CONTEXT = "context";
+    private static final String QUERY = "query";
+    private static final String SESSION_ID = "sessionId";
+    private static final String CONTEXT = "context";
 
     public static final String LABEL = "Agent";
     public static final String DESCRIPTION = "Create or reuse an Agent.";
     static final Set<String> AGENT_CALL_PARAMS_TO_SHOW = Set.of(QUERY, SESSION_ID, CONTEXT);
+    private static final String STRING = "string";
 
     @Override
     protected NodeKind getFunctionNodeKind() {
@@ -105,7 +104,7 @@ public class AgentRunBuilder extends CallBuilder {
         if (variableProp == null) {
             return;
         }
-        String uniqueVarName = NameUtil.generateVariableName("string", context.getAllVisibleSymbolNames());
+        String uniqueVarName = NameUtil.generateVariableName(STRING, context.getAllVisibleSymbolNames());
         props.put(Property.VARIABLE_KEY, AiUtils.createUpdatedProperty(variableProp, uniqueVarName));
     }
 
@@ -129,10 +128,10 @@ public class AgentRunBuilder extends CallBuilder {
             if (inferredParam.isPresent()) {
                 String returnType = flowNode.codedata().inferredReturnType();
                 Object inferredValue = inferredParam.get().value();
-                // Default to "string" when the inferred type value is null or empty
+                // Default to STRING when the inferred type value is null or empty
                 String inferredType = (inferredValue != null && !inferredValue.toString().isEmpty())
                         ? inferredValue.toString()
-                        : "string";
+                        : STRING;
                 String inferredTypeDef = inferredParam.get()
                         .codedata().originalName();
                 typeName = returnType.replace(inferredTypeDef, inferredType);
@@ -144,22 +143,16 @@ public class AgentRunBuilder extends CallBuilder {
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
-        // Use custom variable declaration with inferred type handling and default to "string"
+        // Use custom variable declaration with inferred type handling and default to STRING
         newVariableWithInferredTypeAndDefault(sourceBuilder);
-
         FlowNode agentRunNode = sourceBuilder.flowNode;
-        Map<Path, List<TextEdit>> allTextEdits = new HashMap<>();
-
-        generateAgentCallSource(sourceBuilder, agentRunNode, allTextEdits);
-
-        return allTextEdits;
+        return generateAgentCallSource(sourceBuilder, agentRunNode);
     }
 
-    private void generateAgentCallSource(SourceBuilder sourceBuilder, FlowNode agentRunNode,
-                                         Map<Path, List<TextEdit>> allTextEdits) {
+    private Map<Path, List<TextEdit>> generateAgentCallSource(SourceBuilder sourceBuilder, FlowNode agentRunNode) {
         Optional<Property> connection = agentRunNode.getProperty(Property.CONNECTION_KEY);
         if (connection.isEmpty()) {
-            throw new IllegalStateException("Agent variable must be defined for an agent call node");
+            throw new IllegalStateException("Agent variable must be defined for an agent run node");
         }
 
         if (FlowNodeUtil.hasCheckKeyFlagSet(agentRunNode)) {
@@ -167,7 +160,7 @@ public class AgentRunBuilder extends CallBuilder {
         }
 
         Set<String> excludeKeys = getExcludeKeys(agentRunNode);
-        Map<Path, List<TextEdit>> callTextEdits = sourceBuilder.token()
+        return sourceBuilder.token()
                 .name(connection.get().toSourceCode())
                 .keyword(BALLERINA.equals(agentRunNode.codedata().org()) ?
                         SyntaxKind.DOT_TOKEN : SyntaxKind.RIGHT_ARROW_TOKEN)
@@ -176,13 +169,6 @@ public class AgentRunBuilder extends CallBuilder {
                 .functionParameters(agentRunNode, excludeKeys)
                 .textEdit()
                 .build();
-
-        callTextEdits.forEach((path, textEdits) ->
-                allTextEdits.merge(path, textEdits, (existing, incoming) -> {
-                    List<TextEdit> merged = new ArrayList<>(existing);
-                    merged.addAll(incoming);
-                    return merged;
-                }));
     }
 
     private Set<String> getExcludeKeys(FlowNode agentRunNode) {
