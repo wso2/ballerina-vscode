@@ -406,6 +406,9 @@ async function handleCollectMode(
         ? (fs.existsSync(configPath) ? configPath : mainConfigPath)
         : configPath;
 
+    // Capture whether the test config already existed
+    const testConfigPreExisted = isTestConfig && fs.existsSync(configPath);
+
     // Create config file if it doesn't exist
     if (!fs.existsSync(configPath)) {
         console.log(`[ConfigCollector] Creating ${getConfigFileName(isTestConfig)}`);
@@ -447,10 +450,9 @@ async function handleCollectMode(
     console.log(`[ConfigCollector] ${isTestConfig ? 'Test' : 'Main'} configuration: ${analysis.filledCount} filled`);
 
     // Determine the message to show to user
-    const testConfigExists = isTestConfig && fs.existsSync(configPath);
     const userMessage = isTestConfig
         ? (analysis.hasActualValues
-            ? (testConfigExists
+            ? (testConfigPreExisted
                 ? "Found existing test values. You can update them."
                 : "Found values from main config. You can reuse or update them for testing.")
             : "Test configuration values needed")

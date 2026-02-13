@@ -231,7 +231,8 @@ export function writeConfigValuesToConfig(
             const intValue = config[intKey];
             if (typeof intValue === 'number') {
                 // Replace formatted number (with underscores) with plain number
-                const formattedPattern = new RegExp(`${intKey}\\s*=\\s*[0-9_]+`, 'g');
+                const escapedKey = intKey.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const formattedPattern = new RegExp(`^\\s*${escapedKey}\\s*=\\s*[0-9_]+`, 'gm');
                 tomlContent = tomlContent.replace(formattedPattern, `${intKey} = ${intValue}`);
             }
         }
