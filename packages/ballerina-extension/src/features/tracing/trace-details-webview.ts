@@ -18,6 +18,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as os from 'os';
 import { Uri, ViewColumn, Webview } from 'vscode';
 import { extension } from '../../BalExtensionContext';
 import { Trace } from './trace-server';
@@ -66,6 +67,8 @@ export class TraceDetailsWebview {
     private _disposables: vscode.Disposable[] = [];
     private _trace: Trace | undefined;
     private _isAgentChat: boolean = false;
+    private _focusSpanId: string | undefined;
+    private _openWithSidebarCollapsed: boolean = false;
 
     private constructor() {
         this._panel = TraceDetailsWebview.createWebview();
@@ -79,7 +82,7 @@ export class TraceDetailsWebview {
         }
 
         this._panel.webview.onDidReceiveMessage(
-            (message) => {
+            async (message) => {
                 switch (message.command) {
                     case 'requestTraceData':
                         if (this._trace) {
@@ -88,7 +91,14 @@ export class TraceDetailsWebview {
                                 command: 'traceData',
                                 data: traceData,
                                 isAgentChat: this._isAgentChat,
+                                focusSpanId: this._focusSpanId,
+                                openWithSidebarCollapsed: this._openWithSidebarCollapsed,
                             });
+                        }
+                        break;
+                    case 'exportTrace':
+                        if (message.data) {
+                            await this.exportTrace(message.data);
                         }
                         break;
                 }
@@ -102,7 +112,7 @@ export class TraceDetailsWebview {
         const panel = vscode.window.createWebviewPanel(
             'ballerina.trace-details',
             'Trace Details',
-            ViewColumn.Active,
+            ViewColumn.One,
             {
                 enableScripts: true,
                 localResourceRoots: [
@@ -119,7 +129,7 @@ export class TraceDetailsWebview {
         return panel;
     }
 
-    public static show(trace: Trace, isAgentChat: boolean = false): void {
+    public static show(trace: Trace, isAgentChat: boolean = false, focusSpanId?: string, openWithSidebarCollapsed?: boolean): void {
         if (!TraceDetailsWebview.instance || !TraceDetailsWebview.instance._panel) {
             // Create new instance if it doesn't exist or was disposed
             TraceDetailsWebview.instance = new TraceDetailsWebview();
@@ -129,13 +139,17 @@ export class TraceDetailsWebview {
         const instance = TraceDetailsWebview.instance;
         instance._trace = trace;
         instance._isAgentChat = isAgentChat;
+        instance._focusSpanId = focusSpanId;
+        instance._openWithSidebarCollapsed = openWithSidebarCollapsed;
 
         // Update title based on isAgentChat flag
         if (instance._panel) {
-            instance._panel.title = isAgentChat ? 'Agent Chat Logs' : 'Trace Details';
+            instance._panel.title = 'Trace Logs';
         }
 
-        instance._panel!.reveal();
+        vscode.commands.executeCommand('workbench.action.closeSidebar');
+
+        instance._panel!.reveal(ViewColumn.One);
         instance.updateWebview();
     }
 
@@ -153,6 +167,8 @@ export class TraceDetailsWebview {
             command: 'traceData',
             data: traceData,
             isAgentChat: this._isAgentChat,
+            focusSpanId: this._focusSpanId,
+            openWithSidebarCollapsed: this._openWithSidebarCollapsed,
         });
     }
 
@@ -183,6 +199,46 @@ export class TraceDetailsWebview {
         };
     }
 
+    private async exportTrace(traceData: TraceData): Promise<void> {
+        try {
+            const fileName = `trace-${traceData.traceId}.json`;
+            // Default to ./traces inside the first workspace folder; fallback to home directory
+            const wf = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0];
+            let defaultUri: vscode.Uri;
+
+            if (wf) {
+                const tracesDirPath = path.join(wf.uri.fsPath, 'traces');
+                const tracesDirUri = vscode.Uri.file(tracesDirPath);
+                try {
+                    // Ensure the traces directory exists (create if missing)
+                    await vscode.workspace.fs.createDirectory(tracesDirUri);
+                } catch (e) {
+                    // Ignore errors and fall back to workspace root below
+                }
+
+                defaultUri = vscode.Uri.file(path.join(tracesDirPath, fileName));
+            } else {
+                defaultUri = vscode.Uri.file(path.join(os.homedir(), fileName));
+            }
+
+            const fileUri = await vscode.window.showSaveDialog({
+                defaultUri,
+                filters: {
+                    'JSON Files': ['json'],
+                    'All Files': ['*']
+                }
+            });
+
+            if (fileUri) {
+                const jsonContent = JSON.stringify(traceData, null, 2);
+                await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+                vscode.window.showInformationMessage(`Trace exported to ${fileUri.fsPath}`);
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to export trace: ${error}`);
+        }
+    }
+
     private getWebviewContent(trace: Trace, webView: Webview): string {
         const body = `<div class="container" id="webview-container"></div>`;
         const bodyCss = ``;
@@ -195,14 +251,17 @@ export class TraceDetailsWebview {
         `;
         const scripts = `
             const vscode = acquireVsCodeApi();
+            window.vscode = vscode; // Make vscode API available globally
             let traceData = null;
             let isAgentChat = false;
+            let focusSpanId = undefined;
+            let openWithSidebarCollapsed = false;
 
             function renderTraceDetails() {
                 if (window.traceVisualizer && window.traceVisualizer.renderWebview && traceData) {
                     const container = document.getElementById("webview-container");
                     if (container) {
-                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container);
+                        window.traceVisualizer.renderWebview(traceData, isAgentChat, container, focusSpanId, openWithSidebarCollapsed);
                     }
                 } else if (!traceData) {
                     // Request trace data from extension
@@ -220,8 +279,20 @@ export class TraceDetailsWebview {
                     case 'traceData':
                         traceData = message.data;
                         isAgentChat = message.isAgentChat || false;
+                        focusSpanId = message.focusSpanId;
+                        openWithSidebarCollapsed = message.openWithSidebarCollapsed || false;
                         renderTraceDetails();
                         break;
+                }
+            });
+
+            // Listen for export requests from React component
+            window.addEventListener('exportTrace', (event) => {
+                if (event.detail && event.detail.traceData) {
+                    vscode.postMessage({
+                        command: 'exportTrace',
+                        data: event.detail.traceData
+                    });
                 }
             });
 
@@ -255,7 +326,7 @@ export class TraceDetailsWebview {
 
         this._panel = undefined;
         this._trace = undefined;
-        
+
         // Clear the static instance when disposed
         if (TraceDetailsWebview.instance === this) {
             TraceDetailsWebview.instance = undefined;
