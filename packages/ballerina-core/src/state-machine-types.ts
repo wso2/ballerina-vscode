@@ -90,7 +90,7 @@ export enum MACHINE_VIEW {
     BIFunctionForm = "Add Function SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
-    BIAIEvaluationForm = "AI Evaluation",
+    BIAIEvaluationForm = "AI Evaluation SKIP",
     BIServiceWizard = "Service Wizard SKIP",
     BIServiceConfigView = "Service Config View",
     BIListenerConfigView = "Listener Config View",
@@ -103,7 +103,7 @@ export enum MACHINE_VIEW {
     ServiceFunctionForm = "Service Function Form",
     BISamplesView = "BI Samples View",
     ReviewMode = "Review Mode SKIP",
-    EvalsetViewer = "Evalset Viewer"
+    EvalsetViewer = "Evalset Viewer SKIP"
 }
 
 export interface MachineEvent {
