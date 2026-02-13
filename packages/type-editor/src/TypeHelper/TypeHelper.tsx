@@ -54,6 +54,7 @@ type TypeHelperComponentProps = {
     referenceTypes: TypeHelperCategory[];
     basicTypes: TypeHelperCategory[];
     importedTypes: TypeHelperCategory[];
+    workspaceTypes: TypeHelperCategory[];
     operators: TypeHelperOperator[];
     typeBrowserTypes: TypeHelperCategory[];
     typeBrowserRef: React.RefObject<HTMLDivElement>;
@@ -151,7 +152,6 @@ const FunctionItemLabel = styled.span`
 export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
     const {
         open,
-        typeHelperHeight = "full",
         currentType,
         currentCursorPosition,
         typeBrowserRef,
@@ -160,6 +160,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         referenceTypes,
         basicTypes,
         importedTypes,
+        workspaceTypes,
         operators,
         typeBrowserTypes,
         onChange,
@@ -298,10 +299,50 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                     <HelperPane.Loader />
                                 ) : (
                                     <ScrollableContainer style={{ margin: '8px 0px' }}>
-                                        {basicTypes.map((category, index) => (
+                                        {workspaceTypes?.[0]?.subCategory?.length > 0 && (
+                                            <ExpandableList>
+                                                {workspaceTypes.map((category, index) => (
+                                                    <ExpandableList.Section
+                                                         sx={{ marginTop: index === 0 ? '0px' : '20px' }}
+                                                        key={category.category}
+                                                        title={
+                                                            <span style={{ padding: '10px' }}>{category.category}</span>
+                                                        }
+                                                        level={0}
+                                                    >
+                                                        {category.subCategory?.map((subCategory) => (
+                                                            <ExpandableList.Section
+                                                                sx={{ marginTop: '10px' }}
+                                                                key={subCategory.category}
+                                                                title={
+                                                                    <span style={{ padding: '10px', color: ThemeColors.ON_SURFACE_VARIANT }}>
+                                                                        {subCategory.category}
+                                                                    </span>}
+                                                                level={0}
+                                                            >
+                                                                <div style={{ marginTop: '10px' }}>
+                                                                    {subCategory.items?.map((item) => (
+                                                                        <SlidingPaneNavContainer
+                                                                            onClick={() => handleTypeBrowserItemClick(item)}>
+                                                                            <ExpandableList.Item
+                                                                                key={`${subCategory.category}-${item.name}`}
+                                                                            >
+                                                                                <Icon name="bi-type" sx={{ fontSize: '16px' }} />
+                                                                                <FunctionItemLabel>{item.name}</FunctionItemLabel>
+                                                                            </ExpandableList.Item>
+                                                                        </SlidingPaneNavContainer>
+                                                                    ))}
+                                                                </div>
+                                                            </ExpandableList.Section>
+                                                        ))}
+                                                    </ExpandableList.Section>
+                                                ))}
+                                            </ExpandableList>
+                                        )}
+                                        {basicTypes.map((category) => (
                                             <ExpandableList key={category.category}>
                                                 <ExpandableList.Section
-                                                    sx={{ marginTop: index === 0 ? '0px' : '20px' }}
+                                                    sx={{ marginTop: '20px' }}
                                                     title={
                                                         <span style={{ padding: '10px' }}>{category.category}</span>
                                                     }
@@ -412,41 +453,3 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
         </HelperPaneCustom>
     );
 };
-
-// const InvisibleButton = styled.button`
-//     background: none;
-//     border: none;
-//     padding: 0;
-//     margin: 0;
-//     text-align: inherit;
-//     color: inherit;
-//     font: inherit;
-//     cursor: pointer;
-//     outline: none;
-//     box-shadow: none;
-//     appearance: none;
-//     display: inline-flex;
-//     align-items: center;
-// `;
-
-// type FooterButtonProps = {
-//     onClick?: () => void;
-//     startIcon: string;
-//     title: string;
-//     sx?: React.CSSProperties;
-//     disabled?: boolean;
-// }
-
-// const FooterButtons = (props: FooterButtonProps) => {
-//     const { onClick, startIcon, title, sx } = props;
-//     return (
-//         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", margin: "5px", ...sx }}>
-//             <InvisibleButton
-//                 disabled={props.disabled}
-//                 onClick={onClick}>
-//                 <Codicon name={startIcon} sx={{ color: ThemeColors.PRIMARY }} />
-//                 <span style={{ color: ThemeColors.PRIMARY, marginLeft: "10px" }}>{title}</span>
-//             </InvisibleButton>
-//         </div>
-//     )
-// }
