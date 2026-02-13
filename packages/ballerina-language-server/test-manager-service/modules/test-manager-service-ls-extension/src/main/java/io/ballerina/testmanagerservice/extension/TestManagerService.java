@@ -23,7 +23,6 @@ import io.ballerina.compiler.api.symbols.Symbol;
 import io.ballerina.compiler.syntax.tree.AnnotationNode;
 import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.ExpressionNode;
-import io.ballerina.compiler.syntax.tree.ExpressionStatementNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
 import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
@@ -31,7 +30,6 @@ import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
 import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
-import io.ballerina.compiler.syntax.tree.ReturnStatementNode;
 import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
@@ -48,7 +46,6 @@ import io.ballerina.testmanagerservice.extension.request.UpdateTestFunctionReque
 import io.ballerina.testmanagerservice.extension.response.CommonSourceResponse;
 import io.ballerina.testmanagerservice.extension.response.GetTestFunctionResponse;
 import io.ballerina.testmanagerservice.extension.response.TestsDiscoveryResponse;
-import io.ballerina.tools.text.LinePosition;
 import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
@@ -156,7 +153,6 @@ public class TestManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
@@ -207,7 +203,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
 
                 // Check if dataProviderMode is evalSet
                 String dataProviderMode = getDataProviderMode(request.function());
-                String dataProviderFunctionName = null;
+                String dataProviderFunctionName;
 
                 if (Constants.DATA_PROVIDER_MODE_EVALSET.equals(dataProviderMode)) {
                     // Add AI import if needed
@@ -423,7 +419,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         }
 
         // Find the evalSetFile path location in the data provider function
-        Optional<LineRange> filePathRange = findEvalSetFilePathLocation(dataProviderFunc.get(), textDocument);
+        Optional<LineRange> filePathRange = findEvalSetFilePathLocation(dataProviderFunc.get());
         if (filePathRange.isEmpty()) {
             return;
         }
@@ -473,11 +469,9 @@ public class TestManagerService implements ExtendedLanguageServerService {
      * Find the location of the evalSetFile path in the data provider function.
      *
      * @param dataProviderFunc the data provider function
-     * @param textDocument     the text document
      * @return the line range of the file path string, or empty if not found
      */
-    private Optional<LineRange> findEvalSetFilePathLocation(FunctionDefinitionNode dataProviderFunc,
-                                                            TextDocument textDocument) {
+    private Optional<LineRange> findEvalSetFilePathLocation(FunctionDefinitionNode dataProviderFunc) {
         FunctionBodyNode functionBody = dataProviderFunc.functionBody();
 
         if (functionBody instanceof FunctionBodyBlockNode blockBody) {
