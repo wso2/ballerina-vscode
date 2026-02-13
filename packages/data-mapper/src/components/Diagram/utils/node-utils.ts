@@ -39,7 +39,7 @@ export function findInputNode(field: string, outputNode: DataMapperNodeModel, vi
     let inputNode = findNodeByField(fieldStartsWith);
     
     // if not found, try with parentSourceField
-    if (!inputNode && views && lastViewIndex) {
+    if (!inputNode) {
         inputNode = findNodeByField(outputNode.context.model.focusInputRootMap?.[fieldStartsWith]);
     }
 

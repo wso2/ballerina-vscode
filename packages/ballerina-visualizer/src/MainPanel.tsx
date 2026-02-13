@@ -46,7 +46,8 @@ import {
     PopupMessage,
     FunctionForm,
     SetupView,
-    TestFunctionForm
+    TestFunctionForm,
+    AIEvaluationForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
@@ -85,6 +86,7 @@ import { SamplesView } from "./views/BI/SamplesView";
 import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
+import { EvalsetViewer } from "./views/EvalsetViewer/EvalsetViewer";
 
 const globalStyles = css`
     *,
@@ -592,10 +594,22 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm
+                                key={value?.identifier} // Force remount when switching between different tests
                                 projectPath={value.projectPath}
                                 functionName={value?.identifier}
                                 filePath={value?.documentUri}
                                 serviceType={value?.serviceType}
+                            />);
+                        break;
+                    case MACHINE_VIEW.BIAIEvaluationForm:
+                        setViewComponent(
+                            <AIEvaluationForm
+                                key={value?.identifier} // Force remount when switching between different tests
+                                projectPath={value.projectPath}
+                                functionName={value?.identifier}
+                                filePath={value?.documentUri}
+                                serviceType={value?.serviceType}
+                                isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
                             />);
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:
@@ -629,6 +643,16 @@ const MainPanel = () => {
                     case MACHINE_VIEW.ReviewMode:
                         setViewComponent(
                             <ReviewMode />
+                        );
+                        break;
+                    case MACHINE_VIEW.EvalsetViewer:
+                        setViewComponent(
+                            <EvalsetViewer
+                                projectPath={value.projectPath}
+                                filePath={value?.evalsetData.filePath}
+                                content={value?.evalsetData.content}
+                                threadId={value?.evalsetData?.threadId}
+                            />
                         );
                         break;
                     default:
@@ -666,6 +690,15 @@ const MainPanel = () => {
 
     const handleNavigateToOverview = () => {
         rpcClient.getVisualizerRpcClient().goHome();
+    };
+
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[MainPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
     };
 
     const handlePopupClose = (id: string) => {

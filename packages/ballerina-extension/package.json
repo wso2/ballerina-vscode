@@ -589,7 +589,7 @@
             {
                 "command": "BI.test.edit.function",
                 "title": "View test flow",
-                "icon": "$(distro-design-view)",
+                "icon": "$(type-hierarchy)",
                 "category": "BI"
             },
             {
@@ -600,10 +600,22 @@
             },
             {
                 "command": "BI.test.add.function",
-                "title": "Add test case",
+                "title": "Add New Test",
                 "icon": "$(add)",
                 "category": "BI",
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "BI.test.add.ai.evaluation",
+                "title": "Add AI Evaluation",
+                "category": "BI",
+                "enablement": "isSupportedProject"
+            },
+            {
+                "command": "BI.test.delete.function",
+                "title": "Delete test function",
+                "icon": "$(trash)",
+                "category": "BI"
             },
             {
                 "command": "BI.view.typeDiagram",
@@ -723,20 +735,20 @@
             },
             {
                 "command": "ballerina.enableTracing",
-                "title": "Enable Tracing (Experimental)",
+                "title": "Enable Tracing",
                 "category": "Ballerina",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.disableTracing",
-                "title": "Disable Tracing (Experimental)",
+                "title": "Disable Tracing",
                 "category": "Ballerina",
                 "icon": "$(circle-slash)",
                 "enablement": "isSupportedProject"
             },
             {
                 "command": "ballerina.clearTraces",
-                "title": "Clear Traces (Experimental)",
+                "title": "Clear Traces",
                 "category": "Ballerina",
                 "icon": "$(clear-all)",
                 "hidden": true,
@@ -744,6 +756,13 @@
             }
         ],
         "views": {
+            "test": [
+                {
+                    "id": "ballerina-evalsets",
+                    "name": "Evalsets",
+                    "when": "isBIProject || isBallerinaProject"
+                }
+            ],
             "ballerina-traceView": [
                 {
                     "id": "ballerina-traceView",
@@ -777,6 +796,11 @@
                 "view": "testing",
                 "contents": "[Add Unit Test](command:BI.test.add.function)",
                 "when": "isBIProject || isBallerinaProject"
+            },
+            {
+                "view": "testing",
+                "contents": "[Add AI Evaluation](command:BI.test.add.ai.evaluation)",
+                "when": "isBIProject || isBallerinaProject"
             }
         ],
         "viewsContainers": {
@@ -794,6 +818,13 @@
                 }
             ]
         },
+        "submenus": [
+            {
+                "id": "BI.test.add.submenu",
+                "label": "Add Test",
+                "icon": "$(add)"
+            }
+        ],
         "menus": {
             "testing/item/context": [
                 {
@@ -807,9 +838,9 @@
                     "when": "testId not in testGroups"
                 },
                 {
-                    "command": "BI.test.add.function",
+                    "command": "BI.test.delete.function",
                     "group": "inline",
-                    "when": "testId in testGroups"
+                    "when": "testId not in testGroups"
                 }
             ],
             "view/title": [
@@ -819,7 +850,7 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "BI.test.add.function",
+                    "submenu": "BI.test.add.submenu",
                     "when": "(isBIProject || isBallerinaProject) && view == workbench.view.testing",
                     "group": "navigation"
                 },
@@ -834,6 +865,16 @@
                     "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
                     "group": "navigation",
                     "title": "Clear Traces"
+                }
+            ],
+            "BI.test.add.submenu": [
+                {
+                    "command": "BI.test.add.function",
+                    "group": "1@1"
+                },
+                {
+                    "command": "BI.test.add.ai.evaluation",
+                    "group": "1@2"
                 }
             ],
             "editor/title": [
@@ -949,6 +990,10 @@
                 },
                 {
                     "command": "BI.test.edit.function",
+                    "when": "false"
+                },
+                {
+                    "command": "BI.test.delete.function",
                     "when": "false"
                 },
                 {

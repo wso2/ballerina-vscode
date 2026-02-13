@@ -25,7 +25,9 @@ import {
     getChatMessage,
     getTracingStatus,
     showTraceView,
+    showSessionOverview,
     TraceInput,
+    SessionInput,
     TraceStatus,
     ChatHistoryResponse,
     AgentStatusResponse,
@@ -58,6 +60,10 @@ export class AgentChatRpcClient implements AgentChatAPI {
 
     showTraceView(params: TraceInput): Promise<void> {
         return this._messenger.sendRequest(showTraceView, HOST_EXTENSION, params);
+    }
+
+    showSessionOverview(params: SessionInput): Promise<void> {
+        return this._messenger.sendRequest(showSessionOverview, HOST_EXTENSION, params);
     }
 
     getChatHistory(): Promise<ChatHistoryResponse> {
