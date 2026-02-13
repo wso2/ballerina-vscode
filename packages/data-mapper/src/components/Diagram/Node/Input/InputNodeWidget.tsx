@@ -32,7 +32,7 @@ import { getTypeName } from "../../utils/type-utils";
 import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
 import { isGroupHeaderPort } from "../../utils/common-utils";
-import ConvertWidget from "../commons/ConvertWidget";
+import ArrowWidget from "../commons/ArrowWidget";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
@@ -187,7 +187,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             </TreeContainer>
             {expanded && dmType.convertedField &&
                 <>
-                    <ConvertWidget direction="down" />
+                    <ArrowWidget direction="down" />
                     <InputNodeWidget
                         id={dmType.convertedField.name}
                         dmType={dmType.convertedField}
