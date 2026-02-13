@@ -230,7 +230,8 @@ public class Utils {
     private static String extractEvalSetFileFromDataProvider(ModulePartNode modulePartNode,
                                                              String dataProviderFunctionName) {
         // Find the data provider function
-        Optional<FunctionDefinitionNode> dataProviderFunc = findFunctionByName(modulePartNode, dataProviderFunctionName);
+        Optional<FunctionDefinitionNode> dataProviderFunc =
+                findFunctionByName(modulePartNode, dataProviderFunctionName);
 
         if (dataProviderFunc.isEmpty()) {
             return "";
@@ -572,7 +573,7 @@ public class Utils {
      * @return the function definition node, or empty if not found
      */
     public static Optional<FunctionDefinitionNode> findFunctionByName(ModulePartNode modulePartNode,
-                                                                       String functionName) {
+                                                                      String functionName) {
         if (functionName == null || functionName.isEmpty()) {
             return Optional.empty();
         }
