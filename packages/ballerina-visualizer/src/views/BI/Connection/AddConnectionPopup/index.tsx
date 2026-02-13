@@ -20,7 +20,7 @@ import React, { useEffect, useState, useMemo, useCallback } from "react";
 import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition, MACHINE_VIEW, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";
+import { Codicon, Icon, SearchBox, ThemeColors, Typography, ProgressRing } from "@wso2/ui-toolkit";
 import { cloneDeep, debounce } from "lodash";
 import ButtonCard from "../../../../components/ButtonCard";
 import { ConnectorIcon } from "@wso2/bi-diagram";
@@ -127,16 +127,6 @@ const ConnectorOptionTitle = styled(Typography)`
     margin: 0;
 `;
 
-const ExperimentalBadge = styled(Typography)`
-    font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE_VARIANT};
-    padding: 4px;
-    border-radius: 4px;
-    background-color: ${ThemeColors.SURFACE_CONTAINER};
-    margin: 0;
-    display: inline-block;
-`;
-
 const ConnectorOptionDescription = styled(Typography)`
     font-size: 12px;
     color: ${ThemeColors.ON_SURFACE_VARIANT};
@@ -227,45 +217,6 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
     const [filterType, setFilterType] = useState<"All" | "Standard" | "Organization">("All");
     const [wizardStep, setWizardStep] = useState<"database" | "api" | "connector" | null>(null);
     const [selectedConnector, setSelectedConnector] = useState<AvailableNode | null>(null);
-    const [experimentalEnabled, setExperimentalEnabled] = useState<boolean>(false);
-    const [hasPersistConnection, setHasPersistConnection] = useState<boolean>(false);
-
-    useEffect(() => {
-        rpcClient
-            ?.getCommonRpcClient()
-            .experimentalEnabled()
-            .then((enabled) => setExperimentalEnabled(enabled))
-            .catch((err) => {
-                console.error(">>> error checking experimental flag", err);
-                setExperimentalEnabled(false);
-            });
-    }, [rpcClient]);
-
-    // Temporary fix to check for existing database Persist connection till the backend is updated to support this.
-    useEffect(() => {
-        const checkExistingDatabaseConnection = async () => {
-            if (!rpcClient || !experimentalEnabled) {
-                return;
-            }
-            try {
-                const res = await rpcClient.getBIDiagramRpcClient().getModuleNodes();
-
-                const hasDatabaseConnection = res.flowModel.connections?.some((connection) => {
-                    const metadataData = connection.metadata?.data as any;
-                    return metadataData?.connectorType === "persist";
-                });
-
-                setHasPersistConnection(hasDatabaseConnection || false);
-            } catch (error) {
-                console.error(">>> Error checking for existing database connection", error);
-                setHasPersistConnection(false);
-            }
-        };
-
-        if (experimentalEnabled) {
-            checkExistingDatabaseConnection();
-        }
-    }, [rpcClient, experimentalEnabled]);
 
     const fetchConnectors = useCallback((filter?: boolean) => {
         setFetchingInfo(true);
@@ -544,8 +495,8 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
     const getConnectorCreationOptions = () => {
         if (!searchText || searchText.trim() === "") {
-            // No search - show both options (database shown disabled if hasPersistConnection)
-            return { showApiSpec: true, showDatabase: experimentalEnabled };
+            // No search - show both options
+            return { showApiSpec: true, showDatabase: true };
         }
 
         const lowerSearchText = searchText.toLowerCase().trim();
@@ -569,7 +520,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
 
         // If search matches database keywords, show only database option
         if (isDatabaseSearch && !isApiSearch) {
-            return { showApiSpec: false, showDatabase: experimentalEnabled };
+            return { showApiSpec: false, showDatabase: true };
         }
 
         // If search matches API keywords, show only API spec option
@@ -578,7 +529,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
         }
 
         // If both or neither match, show both options
-        return { showApiSpec: true, showDatabase: experimentalEnabled };
+        return { showApiSpec: true, showDatabase: true };
     };
 
     const connectorOptions = getConnectorCreationOptions();
@@ -595,21 +546,10 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 </PopupHeader>
                 <PopupContent>
                     <IntroText>
-                        {experimentalEnabled ? (
-                            <>
-                                To establish your connection, first define a connector. You may create a custom connector using
-                                an API specification or by introspecting a database. Alternatively, you can select one of the
-                                pre-built connectors below. You will then be guided to provide the required details to complete
-                                the connection setup.
-                            </>
-                        ) : (
-                            <>
-                                To establish your connection, first define a connector. You may create a custom connector using
-                                an API specification. Alternatively, you can select one of the pre-built connectors below. You will then be guided to provide the required details to complete
-                                the connection setup.
-                            </>
-                        )}
-
+                        To establish your connection, first define a connector. You may create a custom connector using
+                        an API specification or by introspecting a database. Alternatively, you can select one of the
+                        pre-built connectors below. You will then be guided to provide the required details to complete
+                        the connection setup.
                     </IntroText>
 
                     <SearchContainer>
@@ -649,66 +589,36 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                                         </ArrowIcon>
                                     </ConnectorOptionCard>
                                 )}
-                                {/* Temporary disable DB connection option if persist connection exists */}
-                                {connectorOptions.showDatabase && (() => {
-                                    const databaseCardContent = (
-                                        <>
-                                            <ConnectorOptionIcon>
-                                                <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
-                                            </ConnectorOptionIcon>
-                                            <ConnectorOptionContent>
-                                                <ConnectorOptionTitleContainer>
-                                                    <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
-                                                    <ExperimentalBadge>Experimental</ExperimentalBadge>
-                                                </ConnectorOptionTitleContainer>
-                                                <ConnectorOptionDescription>
-                                                    Enter credentials to introspect and discover database tables
-                                                </ConnectorOptionDescription>
-                                                <ConnectorOptionButtons>
-                                                    <ConnectorTypeLabel>
-                                                        MySQL
-                                                    </ConnectorTypeLabel>
-                                                    <ConnectorTypeLabel>
-                                                        MSSQL
-                                                    </ConnectorTypeLabel>
-                                                    <ConnectorTypeLabel>
-                                                        PostgreSQL
-                                                    </ConnectorTypeLabel>
-                                                </ConnectorOptionButtons>
-                                            </ConnectorOptionContent>
-                                            <ArrowIcon>
-                                                <Codicon name="chevron-right" />
-                                            </ArrowIcon>
-                                        </>
-                                    );
-
-                                    const databaseCard = (
-                                        <ConnectorOptionCard
-                                            disabled={hasPersistConnection}
-                                            onClick={(e) => {
-                                                if (hasPersistConnection) {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    return;
-                                                }
-                                                handleDatabaseConnection();
-                                            }}
-                                        >
-                                            {databaseCardContent}
-                                        </ConnectorOptionCard>
-                                    );
-
-                                    return hasPersistConnection ? (
-                                        <Tooltip
-                                            content="Currently, only one database connection with schema introspection is supported per project. Use pre-built connectors to connect to other databases."
-                                            position="top"
-                                        >
-                                            {databaseCard}
-                                        </Tooltip>
-                                    ) : (
-                                        databaseCard
-                                    );
-                                })()}
+                                {/* Database connection option */}
+                                {connectorOptions.showDatabase && (
+                                    <ConnectorOptionCard onClick={handleDatabaseConnection}>
+                                        <ConnectorOptionIcon>
+                                            <Icon name="bi-db" sx={{ fontSize: 24, width: 24, height: 24 }} />
+                                        </ConnectorOptionIcon>
+                                        <ConnectorOptionContent>
+                                            <ConnectorOptionTitleContainer>
+                                                <ConnectorOptionTitle>Connect to a Database</ConnectorOptionTitle>
+                                            </ConnectorOptionTitleContainer>
+                                            <ConnectorOptionDescription>
+                                                Enter credentials to introspect and discover database tables
+                                            </ConnectorOptionDescription>
+                                            <ConnectorOptionButtons>
+                                                <ConnectorTypeLabel>
+                                                    MySQL
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
+                                                    MSSQL
+                                                </ConnectorTypeLabel>
+                                                <ConnectorTypeLabel>
+                                                    PostgreSQL
+                                                </ConnectorTypeLabel>
+                                            </ConnectorOptionButtons>
+                                        </ConnectorOptionContent>
+                                        <ArrowIcon>
+                                            <Codicon name="chevron-right" />
+                                        </ArrowIcon>
+                                    </ConnectorOptionCard>
+                                )}
                             </CreateConnectorOptions>
                         </Section>
                     )}
