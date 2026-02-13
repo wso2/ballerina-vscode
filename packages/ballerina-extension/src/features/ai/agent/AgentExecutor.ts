@@ -44,6 +44,7 @@ import {
 } from "../../telemetry";
 import { extension } from "../../../BalExtensionContext";
 import { getProjectMetrics } from "../../telemetry/common/project-metrics";
+import { getHashedProjectId } from "../../telemetry/common/project-id";
 import { workspace } from 'vscode';
 
 /**
@@ -148,6 +149,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
         const params = this.config.params; // Access params from config
         const modifiedFiles: string[] = [];
         const generationStartTime = Date.now();
+        const projectId = await getHashedProjectId(this.config.executionContext.projectPath);
 
         try {
             // 1. Get project sources from temp directory
@@ -231,6 +233,7 @@ export class AgentExecutor extends AICommandExecutor<GenerateAgentCodeRequest> {
                 usage,
                 ctx: this.config.executionContext,
                 generationStartTime,
+                projectId,
             };
 
             // Process stream events - NATIVE V6 PATTERN
@@ -294,6 +297,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
                         CMP_BALLERINA_AI_GENERATION,
                         {
                             'message.id': this.config.generationId,
+                            'project.id': projectId,
                             'generation.start_time': generationStartTime.toString(),
                             'generation.abort_time': abortTime.toString(),
                             'generation.modified_files_count': modifiedFiles.length.toString(),
@@ -403,6 +407,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             {
                 'event.name': TM_EVENT_BALLERINA_AI_GENERATION_FAILED,
                 'message.id': context.messageId,
+                'project.id': context.projectId,
                 'error.message': getErrorMessage(error),
                 'error.type': error.name || 'Unknown',
                 'error.code': (error as any)?.code || 'N/A',
@@ -451,6 +456,7 @@ Generation stopped by user. The last in-progress task was not saved. Files have 
             CMP_BALLERINA_AI_GENERATION,
             {
                 'message.id': context.messageId,
+                'project.id': context.projectId,
                 'generation.modified_files_count': context.modifiedFiles.length.toString(),
                 'generation.start_time': context.generationStartTime.toString(),
                 'generation.end_time': generationEndTime.toString(),

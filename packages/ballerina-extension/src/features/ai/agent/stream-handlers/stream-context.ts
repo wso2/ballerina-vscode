@@ -46,4 +46,5 @@ export interface StreamContext {
 
     // Telemetry tracking
     generationStartTime: number;
+    projectId: string;
 }

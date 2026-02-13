@@ -16,7 +16,9 @@
 
 import { SubmitFeedbackRequest } from "@wso2/ballerina-core";
 import { extension } from "../../../BalExtensionContext";
+import { StateMachine } from "../../../stateMachine";
 import { sendTelemetryEvent, TM_EVENT_BALLERINA_AI_GENERATION_FEEDBACK, CMP_BALLERINA_AI_GENERATION } from "../../telemetry";
+import { getHashedProjectId } from "../../telemetry/common/project-id";
 
 /**
  * Submits user feedback for AI-generated content to the backend.
@@ -26,11 +28,15 @@ import { sendTelemetryEvent, TM_EVENT_BALLERINA_AI_GENERATION_FEEDBACK, CMP_BALL
  */
 export async function submitFeedback(content: SubmitFeedbackRequest): Promise<boolean> {
     try {
+        const projectPath = StateMachine.context()?.projectPath || '';
+        const projectId = await getHashedProjectId(projectPath);
+
         sendTelemetryEvent(
             extension.ballerinaExtInstance,
             TM_EVENT_BALLERINA_AI_GENERATION_FEEDBACK,
             CMP_BALLERINA_AI_GENERATION,
             {
+                'project.id': projectId,
                 'feedback.type': content.positive ? 'positive' : 'negative',
                 'feedback.message': content.feedbackText || '',
                 'feedback.has_text': content.feedbackText ? 'true' : 'false',

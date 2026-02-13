@@ -15,25 +15,31 @@
 // under the License.
 
 import { extension } from "../../../BalExtensionContext";
+import { StateMachine } from "../../../stateMachine";
 import {
     sendTelemetryEvent,
     TM_EVENT_BALLERINA_AI_GENERATION_KEPT,
     TM_EVENT_BALLERINA_AI_GENERATION_DISCARD,
     CMP_BALLERINA_AI_GENERATION
 } from "../../telemetry";
+import { getHashedProjectId } from "../../telemetry/common/project-id";
 
 /**
  * Sends a telemetry event when the user keeps an AI-generated response.
  *
  * @param messageId - The message identifier for the kept generation
  */
-export function sendGenerationKeptTelemetry(messageId: string): void {
+export async function sendGenerationKeptTelemetry(messageId: string): Promise<void> {
+    const projectPath = StateMachine.context()?.projectPath || '';
+    const projectId = await getHashedProjectId(projectPath);
+
     sendTelemetryEvent(
         extension.ballerinaExtInstance,
         TM_EVENT_BALLERINA_AI_GENERATION_KEPT,
         CMP_BALLERINA_AI_GENERATION,
         {
             'message.id': messageId,
+            'project.id': projectId,
         }
     );
 }
@@ -43,13 +49,17 @@ export function sendGenerationKeptTelemetry(messageId: string): void {
  *
  * @param messageId - The message identifier for the discarded generation
  */
-export function sendGenerationDiscardTelemetry(messageId: string): void {
+export async function sendGenerationDiscardTelemetry(messageId: string): Promise<void> {
+    const projectPath = StateMachine.context()?.projectPath || '';
+    const projectId = await getHashedProjectId(projectPath);
+
     sendTelemetryEvent(
         extension.ballerinaExtInstance,
         TM_EVENT_BALLERINA_AI_GENERATION_DISCARD,
         CMP_BALLERINA_AI_GENERATION,
         {
             'message.id': messageId,
+            'project.id': projectId,
         }
     );
 }

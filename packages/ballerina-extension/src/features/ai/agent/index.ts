@@ -28,6 +28,7 @@ import {
 } from "../../telemetry";
 import { extension } from "../../../BalExtensionContext";
 import { getProjectMetrics } from "../../telemetry/common/project-metrics";
+import { getHashedProjectId } from "../../telemetry/common/project-id";
 
 // ==================================
 // Agent Generation Functions
@@ -90,8 +91,9 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             existingTempPath: pendingReview?.reviewState.tempProjectPath
         });
 
-        // Get project metrics and chat history for telemetry
+        // Get project metrics, project ID, and chat history for telemetry
         const projectMetrics = await getProjectMetrics(workspaceId);
+        const projectId = await getHashedProjectId(workspaceId);
         const chatHistory = chatStateStorage.getChatHistoryForLLM(workspaceId, threadId);
 
         // Send telemetry event for query submission
@@ -102,6 +104,7 @@ export async function generateAgent(params: GenerateAgentCodeRequest): Promise<b
             {
                 'message.id': config.generationId,
                 'command': Command.Agent,
+                'project.id': projectId,
                 'plan_mode': (params.isPlanMode ?? false).toString(),
                 'project.files_before': projectMetrics.fileCount.toString(),
                 'project.lines_before': projectMetrics.lineCount.toString(),
