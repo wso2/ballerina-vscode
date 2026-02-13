@@ -398,7 +398,6 @@ function preprocessLatex(text: string): string {
 // Check if text might contain markdown syntax
 function mightContainMarkdown(text: string): boolean {
     if (!text || typeof text !== 'string') return false;
-
     // Check for common markdown patterns with more lenient matching
     const markdownPatterns = [
         /^#{1,6}\s+.+/m,           // Headers (# Header)

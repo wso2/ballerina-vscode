@@ -25,6 +25,7 @@ import { WaterfallView } from "./components/WaterfallView";
 import { TraceEmptyState } from "./components/TraceEmptyState";
 import { SpanTree, AISpanTreeContainer } from "./components/SpanTree";
 import { SearchInput } from "./components/SearchInput";
+import { ExportDropdown } from "./components/ExportDropdown";
 import {
     timeContainsSpan,
     sortSpansByUmbrellaFirst,
@@ -38,14 +39,14 @@ import {
 const MIN_SIDEBAR_WIDTH = 260;
 const SNAP_THRESHOLD = 100;
 const MIN_DETAILS_PANEL_WIDTH = 250;
-const MAX_INITIAL_SIDEBAR_WIDTH = 350;
+const MAX_INITIAL_SIDEBAR_WIDTH = 300;
 const MAX_SIDEBAR_PERCENTAGE = 0.6;
 
 interface TraceDetailsProps {
     traceData: TraceData;
     isAgentChat: boolean;
     focusSpanId?: string;
-    openWithSidebarCollapsed?: boolean;
+    onViewSession?: () => void;
 }
 
 // ============================================================================
@@ -156,6 +157,58 @@ const DetailsPanel = styled.div`
     background-color: var(--vscode-editor-background);
     height: 100%;
     overflow-y: auto;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+`;
+
+const BreadcrumbContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+`;
+
+const BreadcrumbItem = styled.button<{ isClickable?: boolean }>`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: none;
+    padding: 0;
+    color: ${(props: { isClickable: boolean; }) => props.isClickable ? 'var(--vscode-textLink-foreground)' : 'var(--vscode-foreground)'};
+    cursor: ${(props: { isClickable: boolean; }) => props.isClickable ? 'pointer' : 'default'};
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+
+    &:hover {
+        ${(props: { isClickable: boolean; }) => props.isClickable && `
+            text-decoration: underline;
+            color: var(--vscode-textLink-activeForeground);
+        `}
+
+        i::before {
+            text-decoration: none;
+        }
+    }
+`;
+
+const BreadcrumbSeparator = styled.span`
+    color: var(--vscode-descriptionForeground);
+    font-size: 12px;
+`;
+
+const DetailsPanelContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
     padding: 24px 16px;
 `;
 
@@ -201,7 +254,7 @@ const ActionButton = styled.button`
 // COMPONENT DEFINITIONS
 // ============================================================================
 
-export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSidebarCollapsed }: TraceDetailsProps) {
+export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSession }: TraceDetailsProps) {
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
     const [showFullTrace] = useState<boolean>(false);
 
@@ -209,7 +262,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
     const [userAdvancedModePreference, setUserAdvancedModePreference] = useState<boolean>(false);
 
     const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
-    const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(!openWithSidebarCollapsed);
+    const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(!(isAgentChat && focusSpanId !== undefined));
 
     const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
     const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
@@ -220,7 +273,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
     const [isResizing, setIsResizing] = useState<boolean>(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const hasAutoExpandedRef = useRef<boolean>(false);
-    const hasFocusedRef = useRef<boolean>(false);
+    const lastFocusedSpanIdRef = useRef<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
 
     // Calculate total span counts (memoized for immediate availability)
@@ -537,7 +590,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
 
     // Auto-focus on specific span if focusSpanId is provided
     useEffect(() => {
-        if (focusSpanId && traceData.spans.length > 0 && !hasFocusedRef.current) {
+        // If focusSpanId is undefined, clear the last focused ref to allow normal auto-selection
+        if (!focusSpanId) {
+            lastFocusedSpanIdRef.current = null;
+            return;
+        }
+
+        if (traceData.spans.length > 0 && focusSpanId !== lastFocusedSpanIdRef.current) {
             setExpandedSpans(prev => {
                 // Expand all parent spans to make the focused span visible FIRST
                 const span = traceData.spans.find(s => s.spanId === focusSpanId);
@@ -558,7 +617,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                 return newExpanded;
             });
             setSelectedSpanId(focusSpanId);
-            setTimeout(() => {
+            const timeoutId = setTimeout(() => {
                 const spanElement = document.querySelector(`[data-span-id="${focusSpanId}"]`);
                 if (spanElement) {
                     spanElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -566,11 +625,33 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                     console.error('[TraceDetails] Could not find span element to scroll to');
                 }
             }, 500);
-            hasFocusedRef.current = true;
+            lastFocusedSpanIdRef.current = focusSpanId;
+
+            return () => clearTimeout(timeoutId);
         }
     }, [focusSpanId, traceData.spans.length]);
 
     const selectedSpan = selectedSpanId ? spanMap.get(selectedSpanId) : null;
+
+    // Extract session ID from trace data
+    const sessionId = useMemo(() => {
+        for (const span of traceData.spans) {
+            const conversationId = span.attributes?.find(attr => attr.key === 'gen_ai.conversation.id')?.value;
+            if (conversationId) {
+                return conversationId;
+            }
+        }
+        return null;
+    }, [traceData.spans]);
+
+    // Check if there's an invoke_agent span with gen_ai.conversation.id attribute
+    const hasInvokeAgentWithConversationId = useMemo(() => {
+        return traceData.spans.some(span => {
+            const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
+            const hasConversationId = span.attributes?.some(attr => attr.key === 'gen_ai.conversation.id');
+            return operationName.startsWith('invoke_agent') && hasConversationId;
+        });
+    }, [traceData.spans]);
 
     // Handle resize drag
     const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -692,7 +773,7 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
     // Select first AI span when in agent chat view, or fallback to first generic span
     useEffect(() => {
         // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
-        if (focusSpanId || hasFocusedRef.current) {
+        if (focusSpanId || lastFocusedSpanIdRef.current) {
             return;
         }
 
@@ -725,6 +806,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
         window.dispatchEvent(new CustomEvent('exportTrace', {
             detail: { traceData }
         }));
+    };
+
+    const handleExportAsEvalset = () => {
+        // Use the traceVisualizerAPI if available
+        if (window.traceVisualizerAPI?.exportTraceAsEvalset) {
+            window.traceVisualizerAPI.exportTraceAsEvalset(traceData);
+        }
     };
 
     const renderTraceLogs = () => {
@@ -767,15 +855,13 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                                     >
                                         Timeline
                                     </ModeToggleButton>
-                                    <ModeToggleButton onClick={handleExportTrace} title="Export trace as JSON">
-                                        <Icon name="bi-download"
-                                            sx={{ fontSize: '16px', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                            iconSx={{ fontSize: "16px", display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
-                                    </ModeToggleButton>
-                                    {/* Only show the toggle button in agent chat context with AI spans.
-                                        When opened from trace tree view (!isAgentChat), always show all spans
-                                        and hide the toggle button.
-                                    */}
+                                    <ExportDropdown
+                                        onExportJson={handleExportTrace}
+                                        onExportEvalset={handleExportAsEvalset}
+                                        buttonText=""
+                                        showIcon={true}
+                                        compact={true}
+                                    />
                                     {isAgentChat && hasAISpans && (
                                         <ModeToggleButton
                                             onClick={() => setUserAdvancedModePreference(!userAdvancedModePreference)}
@@ -846,18 +932,30 @@ export function TraceDetails({ traceData, isAgentChat, focusSpanId, openWithSide
                     )}
                 </SpanViewContainer>
                 {selectedSpan && (
-                    <>
-                        <DetailsPanelContainer>
-                            <DetailsPanel>
+                    <DetailsPanelContainer>
+                        <DetailsPanel>
+                            {onViewSession && hasInvokeAgentWithConversationId && (
+                                <BreadcrumbContainer>
+                                    <BreadcrumbItem isClickable onClick={onViewSession}>
+                                        <Icon name="bi-back" sx={{ fontSize: '12px', width: '12px', height: '12px' }} iconSx={{ fontSize: "12px" }} />
+                                        Session Traces
+                                    </BreadcrumbItem>
+                                    <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                                    <BreadcrumbItem isClickable={false}>
+                                        Trace: {traceData.traceId}
+                                    </BreadcrumbItem>
+                                </BreadcrumbContainer>
+                            )}
+                            <DetailsPanelContent>
                                 <SpanDetails
                                     spanData={selectedSpan}
                                     spanName={selectedSpan.name}
                                     totalInputTokens={totalInputTokens}
                                     totalOutputTokens={totalOutputTokens}
                                 />
-                            </DetailsPanel>
-                        </DetailsPanelContainer>
-                    </>
+                            </DetailsPanelContent>
+                        </DetailsPanel>
+                    </DetailsPanelContainer>
                 )}
             </TraceLogsContainer>
         );
