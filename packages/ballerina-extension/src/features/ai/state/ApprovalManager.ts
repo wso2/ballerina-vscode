@@ -18,7 +18,7 @@
 
 import { Task, MACHINE_VIEW } from "@wso2/ballerina-core/lib/state-machine-types";
 import { CopilotEventHandler } from "../utils/events";
-import { ConfigVariable } from "src/utils/toml-utils";
+import { ConfigVariable } from "../../../utils/toml-utils";
 import { StateMachine } from "../../../stateMachine";
 import { approvalViewManager } from './ApprovalViewManager';
 
