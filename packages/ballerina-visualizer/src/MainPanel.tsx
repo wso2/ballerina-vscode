@@ -609,6 +609,7 @@ const MainPanel = () => {
                                 functionName={value?.identifier}
                                 filePath={value?.documentUri}
                                 serviceType={value?.serviceType}
+                                isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
                             />);
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:

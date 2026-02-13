@@ -57,15 +57,54 @@ const Container = styled.div`
     gap: 10;
 `;
 
+const FullHeightView = styled(View)`
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+`;
+
+const FullHeightViewContent = styled(ViewContent)`
+    display: flex;
+    flex: 1;
+`;
+
+const UpgradeMessageContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    width: 100%;
+    padding: 40px;
+    text-align: center;
+`;
+
+const UpgradeTitle = styled.h2`
+    color: var(--vscode-foreground);
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0 0 12px 0;
+    line-height: 1.4;
+`;
+
+const UpgradeMessage = styled.p`
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+    margin: 0;
+    max-width: 500px;
+    line-height: 1.6;
+`;
+
 interface TestFunctionDefProps {
     projectPath: string;
     functionName?: string;
     filePath?: string;
     serviceType?: string;
+    isVersionSupported?: boolean;
 }
 
 export function AIEvaluationForm(props: TestFunctionDefProps) {
-    const { projectPath, functionName, filePath, serviceType } = props;
+    const { projectPath, functionName, filePath, serviceType, isVersionSupported = true } = props;
     const { rpcClient } = useRpcContext();
     const [formFields, setFormFields] = useState<FormField[]>([]);
     const [testFunction, setTestFunction] = useState<TestFunction>();
@@ -773,6 +812,25 @@ export function AIEvaluationForm(props: TestFunctionDefProps) {
         setDataProviderMode(value);
         updateFieldVisibility(value);
     };
+
+    // Show upgrade message if version is not supported
+    if (isVersionSupported === false) {
+        return (
+            <FullHeightView>
+                <TopNavigationBar projectPath={projectPath} />
+                <TitleBar title="AI Evaluation" subtitle="Version upgrade required" />
+                <FullHeightViewContent padding>
+                    <UpgradeMessageContainer>
+                        <UpgradeTitle>Please upgrade your Ballerina version</UpgradeTitle>
+                        <UpgradeMessage>
+                            AI Evaluation features require Ballerina version 2201.13.2 or higher.
+                            Please upgrade your Ballerina installation to use this feature.
+                        </UpgradeMessage>
+                    </UpgradeMessageContainer>
+                </FullHeightViewContent>
+            </FullHeightView>
+        );
+    }
 
     return (
         <View>
