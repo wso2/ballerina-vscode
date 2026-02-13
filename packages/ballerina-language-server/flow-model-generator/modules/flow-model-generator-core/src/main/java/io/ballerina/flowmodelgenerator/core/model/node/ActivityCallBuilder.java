@@ -19,110 +19,72 @@
 package io.ballerina.flowmodelgenerator.core.model.node;
 
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
-import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.flowmodelgenerator.core.utils.FlowNodeUtil;
+import io.ballerina.modelgenerator.commons.FunctionData;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
  * Represents a workflow activity call node.
- * This is a specialized remote action call for workflow:Context.callActivity().
+ * This generates code like: int result = check ctx->callActivity(myActivity, input);
  *
  * @since 2.0.0
  */
-public class ActivityCallBuilder extends RemoteActionCallBuilder {
+public class ActivityCallBuilder extends CallBuilder {
 
     public static final String LABEL = "Activity Call";
     public static final String DESCRIPTION = "Call a workflow activity function";
 
+    private static final String CALL_ACTIVITY_METHOD = "callActivity";
+    private static final String DEFAULT_RETURN_TYPE = "anydata";
+
     @Override
-    public void setConcreteConstData() {
-        metadata().label(LABEL).description(DESCRIPTION);
-        codedata().
-                node(NodeKind.ACTIVITY_CALL)
-                .org(WORKFLOW_ORG)
-                .module(WORKFLOW_MODULE);
+    protected NodeKind getFunctionNodeKind() {
+        return NodeKind.ACTIVITY_CALL;
     }
 
     @Override
-    public void setConcreteTemplateData(TemplateContext context) {
-        Codedata codedata = context.codedata();
-
-        // Set metadata from codedata if available (from search result)
-        if (codedata != null && codedata.symbol() != null) {
-            metadata().label(codedata.symbol()).description(DESCRIPTION);
-            codedata()
-                    .node(NodeKind.WORKFLOW_START)
-                    .org(codedata.org())
-                    .module(codedata.module())
-                    .symbol(codedata.symbol())
-                    .version(codedata.version());
-        }
-
-        // Input property with the actual type from the workflow function
-//        properties().custom()
-//                .metadata()
-//                .label(INPUT_LABEL)
-//                .description(INPUT_DOC)
-//                .stepOut()
-//                .type(Property.ValueType.EXPRESSION, inputType)
-//                .placeholder("")
-//                .value("")
-//                .editable(true)
-//                .stepOut()
-//                .addProperty(INPUT_KEY);
-
-        // Variable property for result
-        properties().custom()
-                .metadata()
-                .label("Workflow ID Variable Name")
-                .description("Variable name to receive the started workflow ID.")
-                .stepOut()
-                .type(Property.ValueType.IDENTIFIER)
-                .value("workflowId")
-                .editable(true)
-                .stepOut()
-                .addProperty(Property.VARIABLE_KEY);
-
-        // Check error property
-        properties().custom()
-                .metadata()
-                .label("Check Error")
-                .description("Trigger error flow")
-                .stepOut()
-                .type(Property.ValueType.FLAG)
-                .value(true)
-                .editable(true)
-                .advanced(true)
-                .hidden(true)
-                .stepOut()
-                .addProperty(Property.CHECK_ERROR_KEY);
+    protected FunctionData.Kind getFunctionResultKind() {
+        return FunctionData.Kind.ACTIVITY;
     }
 
     @Override
     public Map<Path, List<TextEdit>> toSource(SourceBuilder sourceBuilder) {
         FlowNode flowNode = sourceBuilder.flowNode;
 
-        // Get variable name property
+        // Get properties
+        Optional<Property> typeProp = sourceBuilder.getProperty(Property.TYPE_KEY);
         Optional<Property> variableProp = sourceBuilder.getProperty(Property.VARIABLE_KEY);
+
+        String resultType = typeProp
+                .map(p -> p.value().toString())
+                .orElse(DEFAULT_RETURN_TYPE);
         String variableName = variableProp
                 .map(p -> p.value().toString())
-                .orElse("workflowId");
+                .orElse("result");
 
-        // Generate: string workflowId = check workflow:createInstance(workflowFunction, input);
+        // Get activity function from codedata.symbol()
+        String activityFunction = flowNode.codedata().symbol();
+        if (activityFunction == null) {
+            activityFunction = "";
+        }
+
+        // Generate: int result = check ctx->callActivity(myActivity, input);
         sourceBuilder.token()
-                .keyword(SyntaxKind.STRING_KEYWORD)
+                .name(resultType)
+                .whiteSpace()
                 .name(variableName)
                 .whiteSpace()
                 .keyword(SyntaxKind.EQUAL_TOKEN);
@@ -130,32 +92,53 @@ public class ActivityCallBuilder extends RemoteActionCallBuilder {
         if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
+        //Todo: ctx value should be dynamic based on the context variable name
+        //Todo: handle activity function from imported modules with module prefix
+        sourceBuilder.token()
+                .name("ctx")
+                .keyword(SyntaxKind.RIGHT_ARROW_TOKEN)
+                .name(CALL_ACTIVITY_METHOD)
+                .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
+                .name(activityFunction)
+                .keyword(SyntaxKind.COMMA_TOKEN);
 
-        // Get workflow function from codedata.symbol()
-        String workflowFunction = flowNode.codedata().symbol();
-        if (workflowFunction == null) {
-            workflowFunction = "";
+        // Add function parameters (excluding variable, type, checkError)
+        Set<String> excludedKeys = Set.of(Property.VARIABLE_KEY, Property.TYPE_KEY,
+                Property.CHECK_ERROR_KEY);
+        // Include the parameters as a map of key-value pairs in of the function call.
+        sourceBuilder.token().keyword(SyntaxKind.OPEN_BRACE_TOKEN);
+        Map<String, Property> properties = flowNode.properties();
+        if (properties != null) {
+            boolean isFirstArg = true;
+            for (Map.Entry<String, Property> entry : properties.entrySet()) {
+                if (excludedKeys.contains(entry.getKey())) {
+                    continue;
+                }
+
+                Object value = entry.getValue().value();
+                if (value == null) {
+                    continue;
+                }
+
+                if (!isFirstArg) {
+                    sourceBuilder.token()
+                            .keyword(SyntaxKind.COMMA_TOKEN);
+                } else {
+                    isFirstArg = false;
+                }
+                sourceBuilder.token()
+                        .whiteSpace()
+                        .name(entry.getKey())
+                        .keyword(SyntaxKind.COLON_TOKEN)
+                        .name(value.toString());
+            }
         }
 
-        // Get input property
-//        Optional<Property> inputProp = sourceBuilder.getProperty(INPUT_KEY);
-//        String input = inputProp
-//                .map(p -> p.value().toString())
-//                .orElse("{}");
-
-        // Build: workflow:createInstance(workflowFunction, input)
-//        sourceBuilder.token()
-//                .name(WORKFLOW_MODULE)
-//                .keyword(SyntaxKind.COLON_TOKEN)
-//                .name(CREATE_INSTANCE_METHOD)
-//                .keyword(SyntaxKind.OPEN_PAREN_TOKEN)
-//                .name(workflowFunction)
-//                .keyword(SyntaxKind.COMMA_TOKEN)
-//                .whiteSpace()
-//                .name(input)
-//                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
-//                .endOfStatement()
-//                .stepOut();
+        sourceBuilder.token()
+                .keyword(SyntaxKind.CLOSE_BRACE_TOKEN)
+                .keyword(SyntaxKind.CLOSE_PAREN_TOKEN)
+                .endOfStatement()
+                .stepOut();
 
         return sourceBuilder
                 .textEdit()
@@ -163,4 +146,3 @@ public class ActivityCallBuilder extends RemoteActionCallBuilder {
                 .build();
     }
 }
-

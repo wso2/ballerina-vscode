@@ -1,6 +1,6 @@
 {
   "source": "workflow_function/functions.bal",
-  "description": "Create a workflow process function with record input and custom return type",
+  "description": "Create a workflow activity function",
   "diagram": {
     "metadata": {
       "label": "Workflow Activity",
