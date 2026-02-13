@@ -18,15 +18,16 @@
 
 import React from 'react';
 import { css } from "@emotion/css";
+import { Icon } from "@wso2/ui-toolkit";
 import { IO_NODE_FIELD_HEIGHT, GAP_BETWEEN_INPUT_NODES } from "../../utils/constants";
 
-interface ConvertWidgetProps {
+interface ArrowWidgetProps {
     direction: 'up' | 'down';
     height?: number;
     className?: string;
 }
 
-const useConvertWidgetStyles = (height: number) => ({
+const useArrowWidgetStyles = (height: number) => ({
     container: css({
         display: 'flex',
         alignItems: 'center',
@@ -35,39 +36,25 @@ const useConvertWidgetStyles = (height: number) => ({
         width: '100%',
         backgroundColor: 'transparent'
     }),
-    arrowUp: css({
-        width: 0,
-        height: 0,
-        borderLeft: '8px solid transparent',
-        borderRight: '8px solid transparent',
-        borderBottom: '12px solid var(--vscode-foreground)',
+    arrow: css({
+        color: 'var(--vscode-foreground)',
         opacity: 0.8,
-        '&:hover': {
-            opacity: 1
-        }
-    }),
-    arrowDown: css({
-        width: 0,
-        height: 0,
-        borderLeft: '8px solid transparent',
-        borderRight: '8px solid transparent',
-        borderTop: '12px solid var(--vscode-foreground)',
-        opacity: 0.8,
+        fontSize: '16px',
         '&:hover': {
             opacity: 1
         }
     })
 });
 
-export default function ConvertWidget({ direction, height = IO_NODE_FIELD_HEIGHT - GAP_BETWEEN_INPUT_NODES, className = '' }: ConvertWidgetProps) {
-    const styles = useConvertWidgetStyles(height);
+export default function ArrowWidget({ direction, height = IO_NODE_FIELD_HEIGHT - GAP_BETWEEN_INPUT_NODES, className = '' }: ArrowWidgetProps) {
+    const styles = useArrowWidgetStyles(height);
     
-    const arrowClass = direction === 'up' ? styles.arrowUp : styles.arrowDown;
+    const arrowIcon = direction === 'up' ? 'arrow-up-solid' : 'arrow-down-solid';
     const containerClass = className ? `${styles.container} ${className}` : styles.container;
 
     return (
         <div className={containerClass}>
-            <div className={arrowClass} />
+            <Icon name={arrowIcon} className={styles.arrow} />
         </div>
     );
 }
