@@ -27,7 +27,7 @@ interface ArrowWidgetProps {
     className?: string;
 }
 
-const useArrowWidgetStyles = (height: number) => ({
+const useArrowWidgetStyles = (height: number, direction: 'up' | 'down') => ({
     container: css({
         display: 'flex',
         alignItems: 'center',
@@ -40,6 +40,7 @@ const useArrowWidgetStyles = (height: number) => ({
         color: 'var(--vscode-foreground)',
         opacity: 0.8,
         fontSize: '16px',
+        transform: direction === 'up' && 'rotate(180deg)' || 'none',
         '&:hover': {
             opacity: 1
         }
@@ -47,14 +48,13 @@ const useArrowWidgetStyles = (height: number) => ({
 });
 
 export default function ArrowWidget({ direction, height = IO_NODE_FIELD_HEIGHT - GAP_BETWEEN_INPUT_NODES, className = '' }: ArrowWidgetProps) {
-    const styles = useArrowWidgetStyles(height);
+    const styles = useArrowWidgetStyles(height, direction);
     
-    const arrowIcon = direction === 'up' ? 'arrow-up-solid' : 'arrow-down-solid';
     const containerClass = className ? `${styles.container} ${className}` : styles.container;
 
     return (
         <div className={containerClass}>
-            <Icon name={arrowIcon} className={styles.arrow} />
+            <Icon name="arrow-down-solid" className={styles.arrow} />
         </div>
     );
 }
