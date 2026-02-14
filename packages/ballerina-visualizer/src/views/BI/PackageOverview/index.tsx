@@ -781,21 +781,6 @@ export function PackageOverview(props: PackageOverviewProps) {
         rpcClient.getBIDiagramRpcClient().buildProject(BuildMode.JAR);
     };
 
-    const handlePublishToCentral = () => {
-        // rpcClient.getCommonRpcClient().executeCommand({ commands: [BI_COMMANDS.BI_PUBLISH_TO_CENTRAL] });
-        rpcClient.getCommonRpcClient().openExternalUrl({
-            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
-        });
-    };
-
-    const handlePublishLearnMore = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        rpcClient.getCommonRpcClient().openExternalUrl({
-            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
-        });
-    };
-
     const goToDevant = () => {
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
@@ -855,12 +840,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                 </>
             )}
             {isLibrary && (
-                <PublishToCentralButton
-                    onClick={handlePublishToCentral}
-                    onLearnMoreClick={handlePublishLearnMore}
-                    disabled={false}
-                    tooltipMessage="Publish this library to Ballerina Central."
-                />
+                <PublishToCentralButton />
             )}
         </>
     );

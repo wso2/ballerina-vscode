@@ -418,7 +418,56 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async publishToCentral(): Promise<PublishToCentralResponse> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        const result: PublishToCentralResponse = {
+            success: false,
+            message: ''
+        };
+
+        await window.withProgress(
+            {
+                location: ProgressLocation.Notification,
+                title: 'Publishing project to Ballerina Central',
+                cancellable: true
+            },
+            async (progress) => {
+                try {
+                    // first pack the current project using bal pack command running it in the background
+                    progress.report({ message: 'Packing...' });
+                    const packCommand = `bal pack ${StateMachine.context().projectPath}`;
+                    const packResult = await this.runBackgroundTerminalCommand({ command: packCommand });
+                    if (packResult.error) {
+                        result.message = packResult.message;
+                        return;
+                    }
+
+                    // then publish the packed artifact to ballerina central
+                    progress.report({ message: 'Publishing...' });
+                    const balaDirPath = path.join(StateMachine.context().projectPath, 'target', 'bala');
+                    const balaFiles = fs.readdirSync(balaDirPath;
+                    if (balaFiles.length === 0) {
+                        result.message = 'No publishable artifact found at the target/bala directory';
+                        return;
+                    }
+
+                    const balaFilePath = path.join(balaDirPath, balaFiles[0]);
+                    const pushCommand = `bal push ${balaFilePath}`;
+                    const pushResult = await this.runBackgroundTerminalCommand({ command: pushCommand });
+                    if (pushResult.error) {
+                        result.message = pushResult.message;
+                        return;
+                    }
+                    result.success = true;
+                } catch (error) {
+                    console.error('Failed to publish project to Ballerina Central:', error);
+                    return;
+                }
+            }
+        );
+        if (result.success) {
+            window.showInformationMessage('Project published to ballerina central successfully');
+        } else {
+            window.showErrorMessage(result.message || 'Failed to publish project to Ballerina Central');
+        }
+        return result;
     }
 }
