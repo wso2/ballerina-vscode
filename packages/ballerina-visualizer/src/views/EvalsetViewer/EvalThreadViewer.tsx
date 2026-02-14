@@ -537,6 +537,14 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         }
     };
 
+    const handleDiscardClick = () => {
+        if (hasUnsavedChanges) {
+            setShowDiscardConfirmation(true);
+        } else {
+            handleExitEditMode();
+        }
+    };
+
     const handleDiscard = () => {
         setWorkingEvalThread(cloneEvalThread(originalEvalThread));
         setHasUnsavedChanges(false);
@@ -638,7 +646,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                 {hasUnsavedChanges && (
                                     <UnsavedIndicator><Dot /><span>Unsaved changes</span></UnsavedIndicator>
                                 )}
-                                <Button appearance="secondary" onClick={() => setShowDiscardConfirmation(true)} disabled={isSaving}>
+                                <Button appearance="secondary" onClick={handleDiscardClick} disabled={isSaving}>
                                     <Icon name="bi-close" sx={{ marginRight: "4px" }} iconSx={{ fontSize: "16px" }} />
                                     Discard
                                 </Button>
