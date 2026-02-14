@@ -161,6 +161,7 @@ export const getAnthropicClient = async (model: AnthropicModel): Promise<any> =>
     // Recreate client if login method has changed or no cached instance
     if (!cachedAnthropic || cachedAuthMethod !== loginMethod) {
         let url = BACKEND_URL + "/intelligence-api/v1.0/claude";
+        // let url = "http://localhost:9090/intel/claude"
         if (loginMethod === LoginMethod.BI_INTEL || loginMethod === LoginMethod.DEVANT_ENV) {
             cachedAnthropic = createAnthropic({
                 baseURL: url,
