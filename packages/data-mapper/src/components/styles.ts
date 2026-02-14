@@ -292,6 +292,38 @@ export const useIONodesStyles = () => ({
         transform: 'translateY(-50%)',
         marginLeft: '8px'
     }),
+    nodeActionButton: css({
+        "& > vscode-button": {
+            height: "40px",
+            width: `${IO_NODE_DEFAULT_WIDTH}px`,
+            border: "1.8px solid var(--vscode-dropdown-border)",
+            borderRadius: "6px",
+            background: "var(--vscode-sideBar-background)",
+            color: "var(--vscode-textLink-foreground)"
+        },
+        "& > vscode-button > *": {
+            margin: "0px 6px"
+        },
+        "& > vscode-button::part(control)": {
+            justifyContent: "flex-start"
+        },
+        "& > vscode-button:active": {
+            background: "var(--vscode-button-background)",
+            color: "var(--vscode-button-foreground)",
+            "& p": {
+                color: "var(--vscode-button-foreground) !important"
+            },
+            "& .action-icon": {
+                color: "var(--vscode-button-foreground) !important"
+            }
+        },
+        "& .action-icon": {
+            color: "var(--vscode-textLink-foreground)"
+        },
+        "& p": {
+            color: "var(--vscode-textLink-foreground)"
+        }
+    })
 });
 
 export const useIntermediateNodeStyles = () => ({
