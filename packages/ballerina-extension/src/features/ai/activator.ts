@@ -30,6 +30,7 @@ import {
 } from './constants';
 import {
     TOKEN_NOT_AVAILABLE_ERROR_MESSAGE,
+    NO_AUTH_CREDENTIALS_FOUND,
     TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL
 } from '../..//utils/ai/auth';
 import { AIStateMachine } from '../../views/ai-panel/aiMachine';
@@ -163,9 +164,26 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
                     window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
                 }
             } catch (error) {
-                if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL) {
+                if ((error as Error).message === TOKEN_NOT_AVAILABLE_ERROR_MESSAGE || (error as Error).message === TOKEN_REFRESH_ONLY_SUPPORTED_FOR_BI_INTEL || (error as Error).message === NO_AUTH_CREDENTIALS_FOUND) {
                     window.showWarningMessage(LOGIN_REQUIRED_WARNING_FOR_DEFAULT_MODEL, SIGN_IN_BI_COPILOT).then(selection => {
                         if (selection === SIGN_IN_BI_COPILOT) {
+                            // Subscribe to state changes to auto-retry after successful login
+                            const subscription = AIStateMachine.service().subscribe((state) => {
+                                if (state.value === 'Authenticated') {
+                                    // Unsubscribe immediately to avoid duplicate retries
+                                    subscription.unsubscribe();
+                                    // Retry the configuration automatically
+                                    addConfigFile(configPath).then(result => {
+                                        if (result) {
+                                            window.showInformationMessage(DEFAULT_PROVIDER_ADDED);
+                                        }
+                                    }).catch(retryError => {
+                                        window.showErrorMessage(`Failed to configure default model: ${(retryError as Error).message}`);
+                                    });
+                                }
+                            });
+
+                            // Trigger the login flow
                             AIStateMachine.service().send(AIMachineEventType.LOGIN);
                         }
                     });
