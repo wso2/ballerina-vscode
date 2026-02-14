@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
 import {
     DndContext,
@@ -37,7 +37,6 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { EvalFunctionCall, EvalToolSchema } from '@wso2/ballerina-core';
 import { Icon } from '@wso2/ui-toolkit';
-import { ConfirmationModal } from './ConfirmationModal';
 
 // --- STYLES ---
 
@@ -252,6 +251,7 @@ interface EditableToolCallsListProps {
     availableTools: EvalToolSchema[];
     onUpdate: (traceId: string, toolCalls: EvalFunctionCall[]) => void;
     onEditToolCall: (traceId: string, toolCallIndex: number) => void;
+    onDeleteRequest: (traceId: string, toolCallIndex: number) => void;
 }
 
 export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
@@ -260,9 +260,8 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
     availableTools,
     onUpdate,
     onEditToolCall,
+    onDeleteRequest,
 }) => {
-    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
-
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -285,22 +284,6 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
             const reorderedToolCalls = arrayMove(toolCalls, oldIndex, newIndex);
             onUpdate(traceId, reorderedToolCalls);
         }
-    };
-
-    const handleDeleteRequest = (index: number) => {
-        setDeleteIndex(index);
-    };
-
-    const handleDeleteConfirm = () => {
-        if (deleteIndex !== null) {
-            const updatedToolCalls = toolCalls.filter((_, i) => i !== deleteIndex);
-            onUpdate(traceId, updatedToolCalls);
-            setDeleteIndex(null);
-        }
-    };
-
-    const handleDeleteCancel = () => {
-        setDeleteIndex(null);
     };
 
     if (toolCalls.length === 0) {
@@ -331,23 +314,12 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
                                 toolCall={toolCall}
                                 index={index}
                                 onEdit={() => onEditToolCall(traceId, index)}
-                                onDelete={() => handleDeleteRequest(index)}
+                                onDelete={() => onDeleteRequest(traceId, index)}
                             />
                         );
                     })}
                 </SortableContext>
             </DndContext>
-
-            {deleteIndex !== null && (
-                <ConfirmationModal
-                    title="Delete Tool Execution"
-                    message="Are you sure you want to delete this tool call? This action cannot be undone."
-                    confirmLabel="Delete"
-                    cancelLabel="Cancel"
-                    onConfirm={handleDeleteConfirm}
-                    onCancel={handleDeleteCancel}
-                />
-            )}
         </TimelineContainer>
     );
 };

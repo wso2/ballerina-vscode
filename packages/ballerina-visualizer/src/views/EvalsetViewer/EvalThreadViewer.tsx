@@ -18,7 +18,7 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace } from "@wso2/ballerina-core";
+import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace, EvalToolSchema, AvailableNode } from "@wso2/ballerina-core";
 import { MessageContainer, ProfilePic } from "../AgentChatPanel/Components/ChatInterface";
 import { ToolCallsTimeline } from "./ToolCallsTimeline";
 import { Button, Icon } from "@wso2/ui-toolkit";
@@ -452,6 +452,8 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     } | null>(null);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [deleteTraceIndex, setDeleteTraceIndex] = useState<number | null>(null);
+    const [deleteToolCall, setDeleteToolCall] = useState<{ traceId: string; toolCallIndex: number } | null>(null);
+    const [availableToolsCache, setAvailableToolsCache] = useState<EvalToolSchema[] | null>(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -459,6 +461,50 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+
+    const fetchAvailableTools = async (): Promise<EvalToolSchema[]> => {
+        if (availableToolsCache !== null) {
+            return availableToolsCache;
+        }
+
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: projectPath,
+                queryMap: { q: "", limit: 50 },
+                searchKind: "AGENT_TOOL"
+            });
+
+            const tools: EvalToolSchema[] = response.categories
+                .flatMap(category => category.items as AvailableNode[])
+                .map(node => {
+                    const metadataData = node.metadata?.data as any;
+                    const inputParameters = metadataData?.inputParameters || [];
+
+                    // Transform inputParameters array to JSON Schema properties format
+                    const properties: { [key: string]: any } = {};
+                    inputParameters.forEach((param: any) => {
+                        if (param.name) {
+                            properties[param.name] = {
+                                type: param.type === 'int' ? 'number' : param.type,
+                                description: param.description || ''
+                            };
+                        }
+                    });
+
+                    return {
+                        name: node.metadata?.label || node.codedata?.symbol || 'unknown',
+                        description: node.metadata?.description || '',
+                        parametersSchema: inputParameters.length > 0 ? { properties } : undefined
+                    };
+                });
+
+            setAvailableToolsCache(tools);
+            return tools;
+        } catch (error) {
+            console.error('Error fetching available tools:', error);
+            return [];
+        }
+    };
 
     const handleEnterEditMode = () => {
         setOriginalEvalThread(cloneEvalThread(evalThread));
@@ -597,10 +643,11 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         setSelectedToolCall(null);
     };
 
-    const handleAddTurnAtIndex = (index: number) => {
+    const handleAddTurnAtIndex = async (index: number) => {
+        const tools = await fetchAvailableTools();
         setWorkingEvalThread(prev => {
             const newTraces = [...prev.traces];
-            newTraces.splice(index, 0, createNewTrace());
+            newTraces.splice(index, 0, createNewTrace(tools));
             return { ...prev, traces: newTraces };
         });
         setHasUnsavedChanges(true);
@@ -626,6 +673,23 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             }));
             setHasUnsavedChanges(true);
             setDeleteTraceIndex(null);
+        }
+    };
+
+    const handleDeleteToolCallRequest = (traceId: string, toolCallIndex: number) => {
+        setDeleteToolCall({ traceId, toolCallIndex });
+    };
+
+    const handleDeleteToolCallConfirm = () => {
+        if (deleteToolCall) {
+            const { traceId, toolCallIndex } = deleteToolCall;
+            const trace = workingEvalThread.traces.find(t => t.id === traceId);
+            if (trace) {
+                const currentToolCalls = getToolCallsFromTrace(trace);
+                const updatedToolCalls = currentToolCalls.filter((_, i) => i !== toolCallIndex);
+                handleUpdateToolCalls(traceId, updatedToolCalls);
+            }
+            setDeleteToolCall(null);
         }
     };
 
@@ -719,12 +783,25 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                                 availableTools={trace.tools}
                                                                 onUpdate={handleUpdateToolCalls}
                                                                 onEditToolCall={handleEditToolCall}
+                                                                onDeleteRequest={handleDeleteToolCallRequest}
                                                             />
                                                         ) : (
                                                             <ToolCallsTimeline toolCalls={toolCalls} />
                                                         )}
                                                         {isEditMode && (
-                                                            <AddToolButton className="add-tool-button" onClick={() => handleEditToolCall(trace.id, -1)}>
+                                                            <AddToolButton className="add-tool-button" onClick={async () => {
+                                                                const tools = await fetchAvailableTools();
+                                                                // Update trace with fetched tools if it has an empty tools array
+                                                                if (trace.tools.length === 0 && tools.length > 0) {
+                                                                    setWorkingEvalThread(prev => ({
+                                                                        ...prev,
+                                                                        traces: prev.traces.map(t =>
+                                                                            t.id === trace.id ? { ...t, tools } : t
+                                                                        )
+                                                                    }));
+                                                                }
+                                                                handleEditToolCall(trace.id, -1);
+                                                            }}>
                                                                 <Icon name="bi-plus" iconSx={{ fontSize: "16px" }} />
                                                                 Add Tool Execution
                                                             </AddToolButton>
@@ -790,6 +867,16 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                     confirmLabel="Delete"
                     onConfirm={handleDeleteTraceConfirm}
                     onCancel={() => setDeleteTraceIndex(null)}
+                />
+            )}
+
+            {deleteToolCall !== null && (
+                <ConfirmationModal
+                    title="Delete Tool Execution"
+                    message="Are you sure you want to delete this tool call? This action cannot be undone."
+                    confirmLabel="Delete"
+                    onConfirm={handleDeleteToolCallConfirm}
+                    onCancel={() => setDeleteToolCall(null)}
                 />
             )}
         </PageWrapper>
