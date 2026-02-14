@@ -24,9 +24,9 @@ import {
 } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
-import { EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
+import { EVENT_TYPE, MACHINE_VIEW, ValidateProjectFormErrorField } from "@wso2/ballerina-core";
 import { ProjectFormFields, ProjectFormData } from "./ProjectFormFields";
-import { isFormValid } from "./utils";
+import { validatePackageName } from "./utils";
 
 const PageWrapper = styled.div`
     display: flex;
@@ -61,6 +61,7 @@ const ScrollableContent = styled.div`
 
 const ButtonWrapper = styled.div`
     margin-top: 20px;
+    margin-right: 8px;
     padding-top: 16px;
     display: flex;
     justify-content: flex-end;
@@ -90,22 +91,94 @@ export function ProjectForm() {
         orgName: "",
         version: "",
     });
+    const [isValidating, setIsValidating] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
+    const [pathError, setPathError] = useState<string | null>(null);
+    const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+        // Clear validation errors when form data changes
+        if (integrationNameError) {
+            setIntegrationNameError(null);
+        }
+        if (pathError) {
+            setPathError(null);
+        }
+        if (packageNameValidationError) {
+            setPackageNameValidationError(null);
+        }
     };
 
-    const handleCreateProject = () => {
-        rpcClient.getBIDiagramRpcClient().createProject({
-            projectName: formData.integrationName,
-            packageName: formData.packageName,
-            projectPath: formData.path,
-            createDirectory: formData.createDirectory,
-            createAsWorkspace: formData.createAsWorkspace,
-            workspaceName: formData.workspaceName,
-            orgName: formData.orgName || undefined,
-            version: formData.version || undefined,
-        });
+    const handleCreateProject = async () => {
+        setIsValidating(true);
+        setIntegrationNameError(null);
+        setPathError(null);
+        setPackageNameValidationError(null);
+
+        // Validate required fields first
+        let hasError = false;
+
+        if (formData.integrationName.length < 2) {
+            setIntegrationNameError("Integration name must be at least 2 characters");
+            hasError = true;
+        }
+
+        if (formData.packageName.length < 2) {
+            setPackageNameValidationError("Package name must be at least 2 characters");
+            hasError = true;
+        } else {
+            const packageNameError = validatePackageName(formData.packageName, formData.integrationName);
+            if (packageNameError) {
+                setPackageNameValidationError(packageNameError);
+                hasError = true;
+            }
+        }
+
+        if (formData.path.length < 2) {
+            setPathError("Please select a path for your project");
+            hasError = true;
+        }
+
+        if (hasError) {
+            setIsValidating(false);
+            return;
+        }
+
+        try {
+            // Validate the project path
+            const validationResult = await rpcClient.getBIDiagramRpcClient().validateProjectPath({
+                projectPath: formData.path,
+                projectName: formData.createAsWorkspace ? formData.workspaceName : formData.packageName,
+                createDirectory: formData.createDirectory,
+            });
+
+            if (!validationResult.isValid) {
+                // Show error on the appropriate field
+                if (validationResult.errorField === ValidateProjectFormErrorField.PATH) {
+                    setPathError(validationResult.errorMessage || "Invalid project path");
+                } else if (validationResult.errorField === ValidateProjectFormErrorField.NAME) {
+                    setPackageNameValidationError(validationResult.errorMessage || "Invalid project name");
+                }
+                setIsValidating(false);
+                return;
+            }
+
+            // If validation passes, create the project
+            rpcClient.getBIDiagramRpcClient().createProject({
+                projectName: formData.integrationName,
+                packageName: formData.packageName,
+                projectPath: formData.path,
+                createDirectory: formData.createDirectory,
+                createAsWorkspace: formData.createAsWorkspace,
+                workspaceName: formData.workspaceName,
+                orgName: formData.orgName || undefined,
+                version: formData.version || undefined,
+            });
+        } catch (error) {
+            setPathError("An error occurred during validation");
+            setIsValidating(false);
+        }
     };
 
     const gotToWelcome = () => {
@@ -142,16 +215,23 @@ export function ProjectForm() {
                     <ProjectFormFields
                         formData={formData}
                         onFormDataChange={handleFormDataChange}
+                        integrationNameError={integrationNameError || undefined}
+                        pathError={pathError || undefined}
+                        packageNameValidationError={packageNameValidationError || undefined}
                     />
                 </ScrollableContent>
 
                 <ButtonWrapper>
                     <Button
-                        disabled={!isFormValid(formData)}
+                        disabled={isValidating}
                         onClick={handleCreateProject}
                         appearance="primary"
                     >
-                        {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                        {isValidating 
+                            ? "Validating..." 
+                            : formData.createAsWorkspace 
+                                ? "Create Workspace" 
+                                : "Create Integration"}
                     </Button>
                 </ButtonWrapper>
             </FormContainer>
