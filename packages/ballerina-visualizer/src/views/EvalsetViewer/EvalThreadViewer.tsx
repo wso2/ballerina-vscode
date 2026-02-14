@@ -123,12 +123,28 @@ const BannerDescription = styled.div`
 
 const HeaderLeft = styled.div`
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 `;
 
 const HeaderRight = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+`;
+
+const IconButton = styled.div`
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
 `;
 
 const UnsavedIndicator = styled.div`
@@ -456,6 +472,13 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     const [deleteToolCall, setDeleteToolCall] = useState<{ traceId: string; toolCallIndex: number } | null>(null);
     const [availableToolsCache, setAvailableToolsCache] = useState<EvalToolSchema[] | null>(null);
 
+    // Handle back navigation to thread list view
+    const handleBack = () => {
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ['ballerina.openEvalsetViewer', { fsPath: filePath }]
+        });
+    };
+
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -702,8 +725,14 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             <Container>
                 <Header>
                     <HeaderLeft>
-                        <Title>{evalSet.name}</Title>
-                        <Subtitle>{displayCase.name}</Subtitle>
+                        <IconButton onClick={handleBack} title="Back to thread list">
+                            <Icon name="chevron-left" isCodicon sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                                iconSx={{ display: "flex", fontSize: "20px", color: "var(--vscode-foreground)" }} />
+                        </IconButton>
+                        <div>
+                            <Title>{evalSet.name}</Title>
+                            <Subtitle>{displayCase.name}</Subtitle>
+                        </div>
                     </HeaderLeft>
                     <HeaderRight>
                         {isEditMode ? (
