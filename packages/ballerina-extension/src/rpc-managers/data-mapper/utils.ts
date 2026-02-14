@@ -585,7 +585,12 @@ function processTypeKind(
         case TypeKind.Xml:
             if (type.convertedVariable) {
                 return {
+                    fields: [],
                     convertedField: processConvertedVariable(type.convertedVariable, model, visitedRefs)
+                };
+            } else {
+                return {
+                    fields: processTypeFields(type as RecordType, parentId, model, visitedRefs)
                 };
             }
     }
