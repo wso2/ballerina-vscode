@@ -46,7 +46,7 @@ type FormTypeEditorProps = {
     newTypeValue?: string;
     onCloseCompletions?: () => void;
     onTypeCreate: (typeName?: string) => void;
-    getNewTypeCreateForm: (typeName?: string) => void;
+    getNewTypeCreateForm: (fieldIndex?: number, typeName?: string) => void;
     onSaveType: (type: Type | string, imports?: Imports) => void
     refetchTypes: boolean;
     isPopupTypeForm: boolean;
@@ -244,8 +244,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
         return await addFunction(item);
     };
 
-    const handleTypeCreate = (typeName?: string) => {
-        getNewTypeCreateForm(typeName);
+    const handleTypeCreate = (fieldIndex: number, typeName?: string) => {
+        getNewTypeCreateForm(fieldIndex, typeName);
     };
 
     return (

@@ -27,6 +27,33 @@ interface ComponentViewProps {
 }
 
 
+function iconNameTranslator(type: string) {
+    switch (type) {
+        case 'functions':
+            return 'function-icon';
+        case 'services':
+            return 'service-icon';
+        case 'records':
+            return 'record-icon';
+        case 'objects':
+            return 'record-icon';
+        case 'classes':
+            return 'class-icon';
+        case 'types':
+            return 'record-icon';
+        case 'constants':
+            return 'constant-icon';
+        case 'enums':
+            return 'enum-icon';
+        case 'listeners':
+            return 'listener-icon';
+        case 'moduleVariables':
+            return 'variable-icon';
+        default:
+            return 'record-icon';
+    }
+}
+
 export function ComponentView(props: ComponentViewProps) {
     const { info, type, updateSelection } = props;
 
@@ -57,17 +84,17 @@ export function ComponentView(props: ComponentViewProps) {
     // `;
 
     return (
-        // <ComponentContainer
-        //     onClick={isComponentAllowed(props.type) ? handleComponentClick : undefined}
-        //     title={info.name.length ? info.name : '/'}
-        // >
-        //     <div className="icon">
-        //        Icon XX
-        //     </div>
-        //     <h2>
-        //         {info.name.length ? info.name : '/'}
-        //     </h2>
-        // </ComponentContainer>
+    // <ComponentContainer
+    //     onClick={isComponentAllowed(props.type) ? handleComponentClick : undefined}
+    //     title={info.name.length ? info.name : '/'}
+    // >
+    //     <div className="icon">
+    //        Icon XX
+    //     </div>
+    //     <h2>
+    //         {info.name.length ? info.name : '/'}
+    //     </h2>
+    // </ComponentContainer>
 
         <ComponentCard
             id="Test"
@@ -99,33 +126,5 @@ export function ComponentView(props: ComponentViewProps) {
             </Typography>
         </ComponentCard>
     )
-}
-
-
-function iconNameTranslator(type: string) {
-    switch (type) {
-        case 'functions':
-            return 'function-icon';
-        case 'services':
-            return 'service-icon';
-        case 'records':
-            return 'record-icon';
-        case 'objects':
-            return 'record-icon';
-        case 'classes':
-            return 'class-icon';
-        case 'types':
-            return 'record-icon';
-        case 'constants':
-            return 'constant-icon';
-        case 'enums':
-            return 'enum-icon';
-        case 'listeners':
-            return 'listener-icon';
-        case 'moduleVariables':
-            return 'variable-icon';
-        default:
-            return 'record-icon';
-    }
 }
 

@@ -47,4 +47,8 @@ export class ChipExpressionEditorDefaultConfiguration {
     getIsValueCompatible(value: string): boolean {
         return true;
     }
+
+    getIsToggleHelperAvailable(): boolean {
+        return true;
+    }
 }
