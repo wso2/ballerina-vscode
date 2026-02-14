@@ -68,7 +68,7 @@ export async function createNewEvalset(): Promise<void> {
     }
 }
 
-export async function createNewThread(evalsetFileNode?: any): Promise<void> {
+export async function createNewThread(evalsetFileNode?: any, autoRefresh?: boolean): Promise<void> {
     try {
         // Validate that this was called from tree view with proper node
         if (!evalsetFileNode || !evalsetFileNode.uri) {
@@ -142,14 +142,30 @@ export async function createNewThread(evalsetFileNode?: any): Promise<void> {
 
         await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
 
-        // 7. Success message with Open option
-        const action = await vscode.window.showInformationMessage(
-            `Thread "${threadName}" added to evalset`,
-            'Open'
-        );
+        // 7. Handle UI refresh based on where the command was called from
+        if (autoRefresh) {
+            // Called from evalset viewer - refresh immediately to show new thread in list
+            vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri);
 
-        if (action === 'Open') {
-            vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, newThread.id);
+            // Show non-blocking notification
+            vscode.window.showInformationMessage(
+                `Thread "${threadName}" added to evalset`,
+                'Open'
+            ).then((action) => {
+                if (action === 'Open') {
+                    vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, newThread.id);
+                }
+            });
+        } else {
+            // Called from tree view - use original behavior with blocking notification
+            const action = await vscode.window.showInformationMessage(
+                `Thread "${threadName}" added to evalset`,
+                'Open'
+            );
+
+            if (action === 'Open') {
+                vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri, newThread.id);
+            }
         }
 
     } catch (error) {
@@ -191,7 +207,7 @@ export async function deleteEvalset(evalsetFileNode?: any): Promise<void> {
     }
 }
 
-export async function deleteThread(threadNode?: any): Promise<void> {
+export async function deleteThread(threadNode?: any, autoRefresh?: boolean): Promise<void> {
     try {
         // Validate that this was called from tree view with proper node
         if (!threadNode || !threadNode.parentUri || !threadNode.threadId) {
@@ -239,6 +255,10 @@ export async function deleteThread(threadNode?: any): Promise<void> {
         const fileUri = vscode.Uri.file(filePath);
         await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
+        // Handle UI refresh based on where the command was called from
+        if (autoRefresh) {
+            vscode.commands.executeCommand('ballerina.openEvalsetViewer', fileUri);
+        }
         vscode.window.showInformationMessage(`Thread "${threadToDelete.name}" deleted successfully`);
 
     } catch (error) {
