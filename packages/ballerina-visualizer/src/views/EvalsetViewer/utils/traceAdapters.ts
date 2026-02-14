@@ -134,11 +134,11 @@ export const createNewTrace = (tools: EvalToolSchema[] = []): EvalsetTrace => {
         id: generateTraceId(),
         userMessage: {
             role: 'user',
-            content: 'User Query',
+            content: 'User message',
         },
         output: {
             role: 'assistant',
-            content: 'Agent Response',
+            content: 'Agent response',
         },
         tools: tools,
         toolCalls: [],
