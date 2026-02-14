@@ -22,6 +22,7 @@ import { Icon } from "@wso2/ui-toolkit";
 import { VSCodeLink, VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { useHoverWithDelay } from "./useHoverWithDelay";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { useQuery } from "@tanstack/react-query";
 
 const Wrapper = styled.div`
     position: relative;
@@ -72,10 +73,6 @@ export function PublishToCentralButton({
     const [isTooltipVisible, hoverHandlers] = useHoverWithDelay(200);
     const [isPublishing, setIsPublishing] = useState(false);
 
-    const tooltipMessage = "Publish this library to Ballerina Central.";
-    const learnMoreLabel = "Learn more";
-    const publishingLabel = isPublishing ? "Publishing..." : "Publish";
-
     const handlePublishToCentral = async () => {
         setIsPublishing(true);
         await rpcClient.getCommonRpcClient().publishToCentral();
@@ -85,14 +82,31 @@ export function PublishToCentralButton({
     const handlePublishLearnMore = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        const url = hasCentralPATConfigured
+            ? "https://ballerina.io/learn/publish-packages-to-ballerina-central/"
+            : "https://ballerina.io/learn/publish-packages-to-ballerina-central/#obtain-an-access-token";
         rpcClient.getCommonRpcClient().openExternalUrl({
-            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
+            url: url,
         });
     };
 
+    const { data: hasCentralPATConfigured } = useQuery({
+        queryKey: ["has-central-pat-configured"],
+        queryFn: () => rpcClient.getCommonRpcClient().hasCentralPATConfigured(),
+        refetchInterval: 10000
+    });
+
+    const tooltipMessage = hasCentralPATConfigured
+        ? "Publish this library to Ballerina Central."
+        : "No central PAT configured. Please try again after configuring the central PAT.";
+    const learnMoreLabel = "Learn more";
+    const publishingLabel = isPublishing ? "Publishing..." : "Publish";
+
+    const isDisabled = disabled || !hasCentralPATConfigured || isPublishing;
+
     return (
         <Wrapper {...hoverHandlers}>
-            <StyledButton appearance="icon" onClick={handlePublishToCentral} disabled={disabled || undefined}>
+            <StyledButton appearance="icon" onClick={handlePublishToCentral} disabled={isDisabled || undefined}>
                 <Icon name="ballerina" sx={{ marginRight: 5, fontSize: "16px" }} /> {publishingLabel}
             </StyledButton>
             {isTooltipVisible && (
