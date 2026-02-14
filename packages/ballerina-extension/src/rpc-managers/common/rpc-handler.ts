@@ -32,6 +32,7 @@ import {
     getWorkspaceType,
     goToSource,
     GoToSourceRequest,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
     OpenExternalUrlRequest,
@@ -67,4 +68,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
     messenger.onRequest(publishToCentral, () => rpcManger.publishToCentral());
+    messenger.onRequest(hasCentralPATConfigured, () => rpcManger.hasCentralPATConfigured());
 }
