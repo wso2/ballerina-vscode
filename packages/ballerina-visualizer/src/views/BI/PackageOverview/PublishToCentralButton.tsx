@@ -16,11 +16,12 @@
  * under the License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { Icon } from "@wso2/ui-toolkit";
 import { VSCodeLink, VSCodeButton } from "@vscode/webview-ui-toolkit/react";
 import { useHoverWithDelay } from "./useHoverWithDelay";
+import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
 const Wrapper = styled.div`
     position: relative;
@@ -61,31 +62,43 @@ const TooltipBubble = styled.div`
 `;
 
 export interface PublishToCentralButtonProps {
-    onClick: () => void;
-    onLearnMoreClick: (e: React.MouseEvent) => void;
     disabled?: boolean;
-    tooltipMessage?: string;
-    learnMoreLabel?: string;
 }
 
 export function PublishToCentralButton({
-    onClick,
-    onLearnMoreClick,
-    disabled = false,
-    tooltipMessage = "Publish this library to Ballerina Central.",
-    learnMoreLabel = "Learn more",
+    disabled = false
 }: PublishToCentralButtonProps) {
+    const { rpcClient } = useRpcContext();
     const [isTooltipVisible, hoverHandlers] = useHoverWithDelay(200);
+    const [isPublishing, setIsPublishing] = useState(false);
+
+    const tooltipMessage = "Publish this library to Ballerina Central.";
+    const learnMoreLabel = "Learn more";
+    const publishingLabel = isPublishing ? "Publishing..." : "Publish";
+
+    const handlePublishToCentral = async () => {
+        setIsPublishing(true);
+        await rpcClient.getCommonRpcClient().publishToCentral();
+        setIsPublishing(false);
+    };
+
+    const handlePublishLearnMore = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        rpcClient.getCommonRpcClient().openExternalUrl({
+            url: "https://ballerina.io/learn/publish-packages-to-ballerina-central/",
+        });
+    };
 
     return (
         <Wrapper {...hoverHandlers}>
-            <StyledButton appearance="icon" onClick={onClick} disabled={disabled || undefined}>
-                <Icon name="ballerina" sx={{ marginRight: 5, fontSize: "16px" }} /> Publish
+            <StyledButton appearance="icon" onClick={handlePublishToCentral} disabled={disabled || undefined}>
+                <Icon name="ballerina" sx={{ marginRight: 5, fontSize: "16px" }} /> {publishingLabel}
             </StyledButton>
             {isTooltipVisible && (
                 <TooltipBubble {...hoverHandlers}>
                     <span>{tooltipMessage}</span>
-                    <VSCodeLink href="#" onClick={onLearnMoreClick}>
+                    <VSCodeLink href="#" onClick={handlePublishLearnMore}>
                         {learnMoreLabel}
                     </VSCodeLink>
                 </TooltipBubble>
