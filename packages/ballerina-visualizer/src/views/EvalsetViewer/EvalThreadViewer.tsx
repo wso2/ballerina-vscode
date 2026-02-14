@@ -76,7 +76,7 @@ const Container = styled.div`
     overflow: hidden;
 
     *, *::before, *::after {
-        box-sizing: content-box; /* Fixed: standard box-sizing prevents width math errors */
+        box-sizing: border-box;
     }
 `;
 
@@ -409,6 +409,7 @@ const SortableTraceWrapper: React.FC<SortableTraceWrapperProps> = ({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
+        width: '100%',
     };
 
     return (
