@@ -36,6 +36,7 @@ import {
     RunExternalCommandRequest,
     RunExternalCommandResponse,
     SampleDownloadRequest,
+    SettingsTomlValues,
     ShowErrorMessageRequest,
     SyntaxTree,
     TypeResponse,
@@ -51,6 +52,7 @@ import fs from "fs";
 import * as unzipper from 'unzipper';
 import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
+import { parse } from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
 import {
@@ -443,7 +445,7 @@ export class CommonRpcManager implements CommonRPCAPI {
                     // then publish the packed artifact to ballerina central
                     progress.report({ message: 'Publishing...' });
                     const balaDirPath = path.join(StateMachine.context().projectPath, 'target', 'bala');
-                    const balaFiles = fs.readdirSync(balaDirPath;
+                    const balaFiles = fs.readdirSync(balaDirPath);
                     if (balaFiles.length === 0) {
                         result.message = 'No publishable artifact found at the target/bala directory';
                         return;
@@ -472,7 +474,25 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async hasCentralPATConfigured(): Promise<boolean> {
-        // ADD YOUR IMPLEMENTATION HERE
-        throw new Error('Not implemented');
+        // check if the central PAT is configured in the environment variable
+        const token = process.env.BALLERINA_CENTRAL_ACCESS_TOKEN;
+        if (token !== undefined && token !== '') {
+            return true;
+        }
+
+        // check if the central PAT is configured in the settings.toml
+        const settingsTomlFilePath = path.join(os.homedir(), '.ballerina', 'settings.toml');
+        if (fs.existsSync(settingsTomlFilePath)) {
+            const tomlContent = await fs.promises.readFile(settingsTomlFilePath, 'utf-8');
+            try {
+                const tomlValues = parse(tomlContent) as Partial<SettingsTomlValues>;
+                const token = tomlValues.central?.accesstoken;
+                return token !== undefined && token !== '';
+            } catch (error) {
+                return false;
+            }
+        }
+
+        return false;
     }
 }
