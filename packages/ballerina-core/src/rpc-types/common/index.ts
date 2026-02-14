@@ -55,4 +55,5 @@ export interface CommonRPCAPI {
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
     publishToCentral: () => Promise<PublishToCentralResponse>;
+    hasCentralPATConfigured: () => Promise<boolean>;
 }

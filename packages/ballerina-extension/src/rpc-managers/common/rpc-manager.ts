@@ -470,4 +470,9 @@ export class CommonRpcManager implements CommonRPCAPI {
         }
         return result;
     }
+
+    async hasCentralPATConfigured(): Promise<boolean> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
+    }
 }

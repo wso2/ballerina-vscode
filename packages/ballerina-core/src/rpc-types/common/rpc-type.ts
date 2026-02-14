@@ -57,3 +57,4 @@ export const getCurrentProjectTomlValues: RequestType<void, void> = { method: `$
 export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { method: `${_preFix}/getWorkspaceType` };
 export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
 export const publishToCentral: RequestType<void, PublishToCentralResponse> = { method: `${_preFix}/publishToCentral` };
+export const hasCentralPATConfigured: RequestType<void, boolean> = { method: `${_preFix}/hasCentralPATConfigured` };

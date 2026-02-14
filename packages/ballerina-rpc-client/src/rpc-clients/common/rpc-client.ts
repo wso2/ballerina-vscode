@@ -48,6 +48,7 @@ import {
     getWorkspaceRoot,
     getWorkspaceType,
     goToSource,
+    hasCentralPATConfigured,
     isNPSupported,
     openExternalUrl,
     publishToCentral,
@@ -132,5 +133,9 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     publishToCentral(): Promise<PublishToCentralResponse> {
         return this._messenger.sendRequest(publishToCentral, HOST_EXTENSION);
+    }
+
+    hasCentralPATConfigured(): Promise<boolean> {
+        return this._messenger.sendRequest(hasCentralPATConfigured, HOST_EXTENSION);
     }
 }
