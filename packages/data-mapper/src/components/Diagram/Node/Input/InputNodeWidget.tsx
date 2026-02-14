@@ -18,7 +18,7 @@
 // tslint:disable: jsx-no-multiline-js
 import React, { useState } from "react";
 
-import { Button, Codicon, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
+import { Button, Codicon, Icon, TruncatedLabel, TruncatedLabelGroup } from "@wso2/ui-toolkit";
 import { DiagramEngine } from '@projectstorm/react-diagrams';
 import { IOType, TypeKind } from "@wso2/ballerina-core";
 
@@ -64,15 +64,18 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
     const typeName = getTypeName(dmType);
 
     const portOut = getPort(`${id}.OUT`);
-    const isUnknownType = dmType.kind === TypeKind.Unknown;
+    
+    const typeKind = dmType.kind;
+    const isUnknownType = typeKind === TypeKind.Unknown;
+    const isConvertibleType = (typeKind === TypeKind.Json || typeKind === TypeKind.Xml) && !dmType.fields;
 
     let fields: IOType[];
 
-    if (dmType.kind === TypeKind.Record) {
+    if (typeKind === TypeKind.Record) {
         fields = dmType.fields;
-    } else if (dmType.kind === TypeKind.Array) {
+    } else if (typeKind === TypeKind.Array) {
         fields = [ dmType.member ];
-    } else if (dmType.kind === TypeKind.Enum) {
+    } else if (typeKind === TypeKind.Enum) {
         fields = dmType.members;
     }
 
@@ -142,7 +145,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     onMouseLeave={onMouseLeave}
                 >
                     <span className={classes.label}>
-                        {(fields || dmType.convertedField) && (
+                        {(fields || dmType.convertedField || isConvertibleType) && (
                             <Button
                                 id={"expand-or-collapse-" + id}
                                 appearance="icon"
@@ -194,6 +197,20 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                         engine={engine}
                         getPort={getPort}
                     />
+                </>
+            }
+            {expanded && isConvertibleType && !dmType.convertedField &&
+                <>
+                    <ArrowWidget direction="down" />
+                    <Button
+                        className={classes.nodeActionButton}
+                        onClick={() => { }}
+                    >
+                        <Icon name="convert" className="action-icon" />
+                        <p 
+                        style={{ margin: 0 }} 
+                        title={`Create type to access fields in ${headerLabel}`}>Create type for mapping</p>
+                    </Button>
                 </>
             }
         </>

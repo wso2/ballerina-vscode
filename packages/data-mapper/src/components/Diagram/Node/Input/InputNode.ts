@@ -146,7 +146,7 @@ export class InputNode extends DataMapperNodeModel {
                         });
                     }
                 } else if (!parentPort.attributes.collapsed) {
-                    this.numberOfFields += 1; // This is for converting button
+                    this.numberOfFields += 2; // This is for converting button and arrow
                 }
             } else {
                 await this.addPortsForInputField({
