@@ -183,8 +183,6 @@ function convertToReviewView(diff: SemanticDiff, projectPath: string, packageNam
     const changeTypeStr = getChangeTypeString(diff.changeType);
     const nodeKindStr = getNodeKindString(diff.nodeKind);
 
-    console.log(`[ReviewMode DEBUG] convertToReviewView: uri=${diff.uri}, changeType=${diff.changeType} (${changeTypeStr}), nodeKind=${diff.nodeKind} (${nodeKindStr}), lineRange=${JSON.stringify(diff.lineRange)}`);
-
     // Include package name in label if provided (for multi-package scenarios)
     const changeLabel = packageName
         ? `${changeTypeStr}: ${nodeKindStr} in ${packageName}/${fileName}`
@@ -326,14 +324,6 @@ export function ReviewMode(): JSX.Element {
                 : await fetchSemanticDiff(rpcClient, tempDirPath);
 
             console.log("[ReviewMode] Combined semanticDiff Response:", JSON.stringify(semanticDiffResponse, null, 2));
-            console.log("[ReviewMode DEBUG] Raw semanticDiffs from API:", semanticDiffResponse.semanticDiffs.map((d: SemanticDiff) => ({
-                uri: d.uri,
-                changeType: d.changeType,
-                changeTypeLabel: getChangeTypeString(d.changeType),
-                nodeKind: d.nodeKind,
-                nodeKindLabel: getNodeKindString(d.nodeKind),
-                lineRange: d.lineRange,
-            })));
             setSemanticDiffData(semanticDiffResponse);
 
             const allViews: ReviewView[] = [];
@@ -501,10 +491,7 @@ export function ReviewMode(): JSX.Element {
         // Create a unique key for each diagram to force re-mount when switching views
         const diagramKey = `${currentView.type}-${currentIndex}-${currentView.filePath}`;
 
-        // For DELETION views, always show old version
-        console.log(`[ReviewMode DEBUG] renderDiagram: type=${currentView.type}, changeType=${currentView.changeType} (${getChangeTypeString(currentView.changeType)}), showOldVersion=${showOldVersion}, isDeletion=${currentView.changeType === ChangeTypeEnum.DELETION}, isModification=${currentView.changeType === ChangeTypeEnum.MODIFICATION}`);
         const effectiveShowOld = currentView.changeType === ChangeTypeEnum.DELETION ? true : showOldVersion;
-        console.log(`[ReviewMode DEBUG] effectiveShowOld=${effectiveShowOld}, canToggleVersion=${currentView.changeType === ChangeTypeEnum.MODIFICATION}`);
 
         switch (currentView.type) {
             case "component":
