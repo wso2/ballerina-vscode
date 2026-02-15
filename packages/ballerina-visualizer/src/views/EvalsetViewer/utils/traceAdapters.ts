@@ -68,10 +68,13 @@ export const updateToolCallsInTrace = (
     trace: EvalsetTrace,
     toolCalls: EvalFunctionCall[]
 ): EvalsetTrace => {
-    return {
-        ...trace,
-        toolCalls: toolCalls || [],
-    };
+    const updated = { ...trace };
+    if (toolCalls && toolCalls.length > 0) {
+        updated.toolCalls = toolCalls;
+    } else {
+        delete updated.toolCalls;
+    }
+    return updated;
 };
 
 /**
@@ -141,7 +144,6 @@ export const createNewTrace = (tools: EvalToolSchema[] = []): EvalsetTrace => {
             content: 'Agent response',
         },
         tools: tools,
-        toolCalls: [],
         iterations: [],
         startTime: timestamp,
         endTime: timestamp,

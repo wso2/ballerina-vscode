@@ -797,13 +797,13 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                         onSave={handleSaveUserMessage}
                                                     />
                                                     <ProfilePic>
-                                                        <Icon name="bi-user" iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)" }} />
+                                                        <Icon name="bi-user" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)" }} />
                                                     </ProfilePic>
                                                 </StyledMessageContainer>
 
                                                 <StyledMessageContainer isUser={false}>
                                                     <ProfilePic>
-                                                        <Icon name="bi-ai-agent" iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
+                                                        <Icon name="bi-ai-agent" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
                                                     </ProfilePic>
                                                     <AgentContentWrapper>
                                                         {isEditMode ? (

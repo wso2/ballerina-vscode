@@ -122,7 +122,6 @@ export async function createNewThread(evalsetFileNode?: any, autoRefresh?: boole
                 content: 'Agent response'
             },
             tools: [],
-            toolCalls: [],
             startTime: now,
             endTime: now
         };
