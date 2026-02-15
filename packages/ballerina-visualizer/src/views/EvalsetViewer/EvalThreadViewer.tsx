@@ -20,12 +20,11 @@ import React, { useState } from "react";
 import styled from "@emotion/styled";
 import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace, EvalToolSchema, AvailableNode } from "@wso2/ballerina-core";
 import { MessageContainer, ProfilePic } from "../AgentChatPanel/Components/ChatInterface";
-import { ToolCallsTimeline } from "./ToolCallsTimeline";
 import { Button, Icon } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EditableTraceMessage } from "./EditableTraceMessage";
-import { EditableToolCallsList } from "./EditableToolCallsList";
+import { ToolCallsList } from "./ToolCallsList";
 import { ToolEditorModal } from "./ToolEditorModal";
 import { ConfirmationModal } from "./ConfirmationModal";
 import {
@@ -813,18 +812,15 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                         <Icon name="bi-ai-agent" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
                                                     </ProfilePic>
                                                     <AgentContentWrapper>
-                                                        {isEditMode ? (
-                                                            <EditableToolCallsList
-                                                                traceId={trace.id}
-                                                                toolCalls={toolCalls}
-                                                                availableTools={trace.tools}
-                                                                onUpdate={handleUpdateToolCalls}
-                                                                onEditToolCall={handleEditToolCall}
-                                                                onDeleteRequest={handleDeleteToolCallRequest}
-                                                            />
-                                                        ) : (
-                                                            <ToolCallsTimeline toolCalls={toolCalls} />
-                                                        )}
+                                                        <ToolCallsList
+                                                            traceId={trace.id}
+                                                            toolCalls={toolCalls}
+                                                            availableTools={trace.tools}
+                                                            isEditMode={isEditMode}
+                                                            onUpdate={handleUpdateToolCalls}
+                                                            onEditToolCall={handleEditToolCall}
+                                                            onDeleteRequest={handleDeleteToolCallRequest}
+                                                        />
                                                         {isEditMode && (
                                                             <AddToolButton className="add-tool-button" onClick={async () => {
                                                                 const tools = await fetchAvailableTools();
