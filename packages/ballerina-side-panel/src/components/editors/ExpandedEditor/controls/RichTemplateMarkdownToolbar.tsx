@@ -180,6 +180,9 @@ interface RichTemplateMarkdownToolbarProps {
         isOpen: boolean;
         onClick: () => void;
     };
+    onEnhanceClick: () => void;
+    isEnhancing: boolean;
+    isInPreviewMode?: boolean;
 }
 
 export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, RichTemplateMarkdownToolbarProps>(({
@@ -187,7 +190,10 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
     isSourceView = false,
     onToggleView,
     hideHelperPaneToggle = false,
-    helperPaneToggle
+    helperPaneToggle,
+    onEnhanceClick,
+    isEnhancing,
+    isInPreviewMode = false
 }, ref) => {
     const [, forceUpdate] = React.useReducer(x => x + 1, 0);
     const [currentHeadingLevel, setCurrentHeadingLevel] = useState(1);
@@ -281,7 +287,6 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
 
     const isBoldActive = editorView && schema ? isMarkActive(editorView.state, schema.marks.strong) : false;
     const isItalicActive = editorView && schema ? isMarkActive(editorView.state, schema.marks.em) : false;
-    // const isCodeActive = editorView && schema ? isMarkActive(editorView.state, schema.marks.code) : false; // Inline code formatting disabled for now
     const isLinkActive = editorView && schema ? isMarkActive(editorView.state, schema.marks.link) : false;
 
     const isCurrentHeadingActive = editorView && schema
@@ -353,16 +358,6 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
                 >
                     <Icon name="bi-italic" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                 </ToolbarButton>
-
-                {/* <ToolbarButton
-                    title="Inline Code"
-                    disabled={!editorView}
-                    isActive={isCodeActive}
-                    onClick={() => executeCommand(toggleCode)}
-                    onMouseDown={handleMouseDown}
-                >
-                    <Icon name="bi-code" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
-                </ToolbarButton> */}
 
                 <ToolbarButton
                     title="Insert Link"
@@ -439,13 +434,24 @@ export const RichTemplateMarkdownToolbar = React.forwardRef<HTMLDivElement, Rich
                 >
                     <Icon name="bi-numbered" sx={{ width: "20px", height: "20px", fontSize: "20px" }} />
                 </ToolbarButton>
+
+                <ToolbarDivider />
+
+                <ToolbarButton
+                    title="Enhance Prompt with AI"
+                    disabled={!editorView || isEnhancing || isInPreviewMode}
+                    onClick={onEnhanceClick}
+                    onMouseDown={handleMouseDown}
+                >
+                    <Icon name="wand-magic-sparkles-solid" sx={{ width: "16px", height: "16px", fontSize: "16px" }} />
+                </ToolbarButton>
             </ToolbarButtonGroup>
 
             {onToggleView && (
                 <Switch
                     checked={isSourceView}
-                    leftLabel="Rich Text"
-                    rightLabel="Raw"
+                    leftLabel="Preview"
+                    rightLabel="Source"
                     onChange={onToggleView}
                     checkedColor="var(--vscode-button-background)"
                     checkedBorder="1px solid color-mix(in srgb, var(--vscode-dropdown-border) 75%, transparent)"

@@ -84,7 +84,7 @@ const ModalBox = styled.div`
     max-width: 95vw;
     min-width: 800px;
     height: 80vh;
-    max-height: 90vh;
+    max-height: 95vh;
     min-height: 600px;
     position: relative;
     display: flex;

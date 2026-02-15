@@ -33,4 +33,82 @@ export const FlexExpressionContainer = styled.div`
     flex-direction: column;
     box-sizing: border-box;
     overflow: hidden;
+    position: relative;
+`;
+
+export const AIEnhancedEditorContainer = styled.div`
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+    padding: 1px;
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--vscode-button-background) 90%, var(--vscode-button-background) 10%) 0%,
+        color-mix(in srgb, var(--vscode-button-background) 80%, var(--vscode-button-background) 30%) 25%,
+        color-mix(in srgb, var(--vscode-button-background) 60%, var(--vscode-button-background) 20%) 50%,
+        color-mix(in srgb, var(--vscode-button-background) 40%, var(--vscode-button-background) 15%) 75%,
+        color-mix(in srgb, var(--vscode-button-background) 30%, var(--vscode-button-background) 10%) 100%
+    );
+    background-size: 300% 300%;
+    border-radius: 2px;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: 1px;
+        z-index: 0;
+    }
+
+    .ProseMirror, .cm-editor {
+        background: color-mix(in srgb, var(--vscode-button-background) 3%, var(--vscode-editor-background));
+    }
+
+    > * {
+        position: relative;
+        z-index: 1;
+    }
+`;
+
+export const ConditionalEditorContainer = styled.div<{ isEnhanced?: boolean }>`
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+
+    ${props => props.isEnhanced && `
+        padding: 2px;
+        background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--vscode-button-background) 90%, var(--vscode-button-background) 10%) 0%,
+            color-mix(in srgb, var(--vscode-button-background) 80%, var(--vscode-button-background) 30%) 25%,
+            color-mix(in srgb, var(--vscode-button-background) 60%, var(--vscode-button-background) 20%) 50%,
+            color-mix(in srgb, var(--vscode-button-background) 40%, var(--vscode-button-background) 15%) 75%,
+            color-mix(in srgb, var(--vscode-button-background) 30%, var(--vscode-button-background) 10%) 100%
+        );
+        background-size: 300% 300%;
+        border-radius: 2px;
+
+        &::before {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            z-index: 0;
+        }
+
+        .ProseMirror, .cm-editor {
+            background: color-mix(in srgb, var(--vscode-button-background) 3%, var(--vscode-editor-background));
+        }
+
+        > * {
+            position: relative;
+            z-index: 1;
+        }
+    `}
 `;

@@ -48,7 +48,7 @@ import { calculateHelperPanePosition, processFunctionWithArguments } from "../Ch
 import { useHelperPaneClickOutside, useHelperPane } from "../ChipExpressionEditor/hooks/useHelperPane";
 import { ChipExpressionEditorDefaultConfiguration } from "../ChipExpressionEditor/ChipExpressionDefaultConfig";
 
-const EditorContainer = styled.div`
+const EditorContainer = styled.div<{ readOnly?: boolean }>`
     flex: 1;
     overflow: auto;
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
@@ -65,6 +65,7 @@ const EditorContainer = styled.div`
         font-size: 13px;
         color: ${ThemeColors.ON_SURFACE};
         line-height: 1.6;
+        ${props => props.readOnly && 'cursor: default;'}
     }
 
     .ProseMirror p {
@@ -152,14 +153,14 @@ const sanitizeText = (text: string): string => {
 // Create chip schema once
 const chipSchema = createChipSchema();
 
-const customMarkdownParser = new MarkdownParser(
+export const customMarkdownParser = new MarkdownParser(
     chipSchema,
     markdownTokenizer,
     defaultMarkdownParser.tokens
 );
 
 // Create custom serializer that handles chip nodes
-const customMarkdownSerializer = new MarkdownSerializer(
+export const customMarkdownSerializer = new MarkdownSerializer(
     {
         ...defaultMarkdownSerializer.nodes,
         chip(state: any, node: any) {
@@ -172,7 +173,7 @@ const customMarkdownSerializer = new MarkdownSerializer(
 
 interface RichTextTemplateEditorProps {
     value: string;
-    onChange: (value: string, cursorPosition: number) => void;
+    onChange?: (value: string, cursorPosition: number) => void;
     completions?: CompletionItem[];
     placeholder?: string;
     fileName?: string;
@@ -195,6 +196,7 @@ interface RichTextTemplateEditorProps {
         ref: React.RefObject<HTMLButtonElement>;
         toggle: () => void;
     }) => void;
+    readOnly?: boolean;
 }
 
 export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
@@ -208,6 +210,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     getHelperPane,
     onHelperPaneStateChange,
     extractArgsFromFunction,
+    readOnly = false,
 }) => {
     const editorRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
@@ -489,12 +492,13 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
             transformPastedText(text) {
                 return sanitizeText(text);
             },
+            editable: () => !readOnly,
             dispatchTransaction(transaction) {
                 const newState = view.state.apply(transaction);
                 view.updateState(newState);
 
                 // Check if we should fetch tokens based on what was typed
-                if ((transaction as any).docChanged) {
+                if ((transaction as any).docChanged && !readOnly) {
                     // Check if this is undo/redo
                     const meta = (transaction as any).getMeta('history$');
                     if (meta) {
@@ -557,6 +561,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
     // Fetch tokens when value changes from parent
     useEffect(() => {
         if (viewRef.current) {
+            pendingTokenFetchRef.current = true;
             fetchAndUpdateTokens(viewRef.current);
         }
     }, [value]);
@@ -580,7 +585,7 @@ export const RichTextTemplateEditor: React.FC<RichTextTemplateEditorProps> = ({
 
     return (
         <>
-            <EditorContainer ref={editorRef}>
+            <EditorContainer ref={editorRef} readOnly={readOnly}>
                 {helperPaneState.isOpen && getHelperPane && (
                     <HelperPane
                         ref={helperPaneRef}
