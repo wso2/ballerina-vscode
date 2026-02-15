@@ -1,0 +1,105 @@
+// Copyright (c) 2025, WSO2 LLC. (https://www.wso2.com/) All Rights Reserved.
+
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+
+// http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the License for the
+// specific language governing permissions and limitations
+// under the License.
+
+import { generateText } from "ai";
+import { getEnhancerSystemPrompt } from "./prompts";
+import { ANTHROPIC_HAIKU, getAnthropicClient } from "../../utils/ai-client";
+import { PromptMode, AIMachineEventType } from "@wso2/ballerina-core";
+import { window } from "vscode";
+import { AIStateMachine } from "../../../../views/ai-panel/aiMachine";
+import { LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT } from "../../constants";
+
+export interface PromptEnhancementRequest {
+    originalPrompt: string;
+    additionalInstructions?: string;
+    mode: PromptMode;
+}
+
+export interface PromptEnhancementResponse {
+    enhancedPrompt: string;
+}
+
+export async function enhancePrompt(
+    params: PromptEnhancementRequest
+): Promise<PromptEnhancementResponse> {
+    const systemPrompt = getEnhancerSystemPrompt(params.mode);
+    const userPrompt = buildUserPrompt(params);
+
+    try {
+        const result = await generateText({
+            model: await getAnthropicClient(ANTHROPIC_HAIKU),
+            maxOutputTokens: 4000,
+            temperature: 0,
+            messages: [
+                {
+                    role: "system",
+                    content: systemPrompt,
+                },
+                {
+                    role: "user",
+                    content: userPrompt,
+                },
+            ],
+            maxRetries: 0, // Disable retries for quota errors (429)
+        });
+
+        return {
+            enhancedPrompt: result.text.trim()
+        };
+    } catch (error: any) {
+        console.error("Error during prompt enhancement:", error);
+
+        // Handle specific error types
+        if (error.name === "UsageLimitError" || error.statusCode === 429) {
+            const errorMsg = "Usage limit exceeded. Please try again later or set your own API key.";
+            window.showErrorMessage(errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        if (error.message?.includes("TOKEN_EXPIRED") || error.message?.includes("Unsupported login method")) {
+            window.showWarningMessage(LOGIN_REQUIRED_WARNING, SIGN_IN_BI_COPILOT).then(selection => {
+                if (selection === SIGN_IN_BI_COPILOT) {
+                    AIStateMachine.service().send(AIMachineEventType.LOGIN);
+                }
+            });
+            throw new Error("Authentication expired. Please log in again.");
+        }
+
+        if (error.message?.includes("Network") || error.message?.includes("timeout") || error.message?.includes("Cannot connect to API")) {
+            const errorMsg = "Network error. Please check your connection and try again.";
+            window.showErrorMessage(errorMsg);
+            throw new Error(errorMsg);
+        }
+
+        // Generic error
+        const errorMsg = "Failed to enhance prompt. Please try again.";
+        window.showErrorMessage(errorMsg);
+        throw new Error(errorMsg);
+    }
+}
+
+/**
+ * Builds the user prompt for enhancement
+ */
+function buildUserPrompt(params: PromptEnhancementRequest): string {
+    let prompt = `Please enhance the following prompt:\n\n${params.originalPrompt}`;
+
+    if (params.additionalInstructions && params.additionalInstructions.trim()) {
+        prompt += `\n\n<additional-instructions>${params.additionalInstructions}</additional-instructions>`;
+    }
+
+    return prompt;
+}
