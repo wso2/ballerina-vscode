@@ -5,6 +5,38 @@
     "loadDesignDiagrams": true,
     "semanticDiffs": [
       {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 29,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 35,
+            "offset": 5
+          }
+        }
+      },
+      {
+        "changeType": "DELETION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 21,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 27,
+            "offset": 5
+          }
+        }
+      },
+      {
         "changeType": "MODIFICATION",
         "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///main.bal",

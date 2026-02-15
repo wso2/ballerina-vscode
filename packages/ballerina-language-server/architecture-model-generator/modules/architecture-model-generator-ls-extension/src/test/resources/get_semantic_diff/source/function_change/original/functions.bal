@@ -37,3 +37,6 @@ function power(decimal baseNumber, int exponent) returns decimal {
     return result;
 }
 
+function foo() returns string {
+    return "foo";
+}
