@@ -404,11 +404,6 @@ export class AiPanelRpcManager implements AIPanelAPI {
         try {
             const res: SemanticDiffResponse = await context.langClient.getSemanticDiff(params);
             console.log(">>> semantic diff response from ls", JSON.stringify(res));
-            if (res?.semanticDiffs) {
-                for (const diff of res.semanticDiffs) {
-                    console.log(`>>> [SemanticDiff DEBUG] uri=${diff.uri}, changeType=${diff.changeType} (ADDITION=0, MODIFICATION=1, DELETION=2), nodeKind=${diff.nodeKind}, lineRange=${JSON.stringify(diff.lineRange)}`);
-                }
-            }
             return res;
         } catch (error) {
             console.log(">>> error in getting semantic diff", error);
