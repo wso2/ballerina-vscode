@@ -128,8 +128,6 @@ export const ProfilePic = styled.div`
     padding: 4px;
     border: 1px solid var(--vscode-panel-border);
     background-color: var(--vscode-editor-background);
-    width: 28px;
-    height: 28px;
     border-radius: 50%;
     object-fit: cover;
 `;
