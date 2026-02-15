@@ -355,11 +355,13 @@ const StyledMessageContainer = styled(MessageContainer)`
         padding-bottom: 4px;
         margin-bottom: 8px;
         border-width: 1px;
+        transition-delay: 0.2s;
     }
     
     &:hover .edit-button {
         opacity: 1;
         transform: translate(0, 0);
+        transition-delay: 0.2s;
     }
 `;
 
@@ -392,11 +394,16 @@ const AddToolButton = styled.button`
     max-height: 0;
     overflow: hidden;
     transition: all 0.2s ease;
+    pointer-events: none;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
         border-color: var(--vscode-focusBorder);
         color: var(--vscode-foreground);
+    }
+
+    .message-container:hover & {
+        pointer-events: auto;
     }
 `;
 
@@ -801,7 +808,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                     </ProfilePic>
                                                 </StyledMessageContainer>
 
-                                                <StyledMessageContainer isUser={false}>
+                                                <StyledMessageContainer isUser={false} className="message-container">
                                                     <ProfilePic>
                                                         <Icon name="bi-ai-agent" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
                                                     </ProfilePic>
