@@ -29,6 +29,7 @@ import io.ballerina.flowmodelgenerator.core.CodeAnalyzer;
 import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.model.Codedata;
 import io.ballerina.flowmodelgenerator.core.model.FlowNode;
+import io.ballerina.flowmodelgenerator.core.model.Metadata;
 import io.ballerina.flowmodelgenerator.core.model.NodeBuilder;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
@@ -66,6 +67,7 @@ import java.util.stream.Collectors;
 public class AgentCallBuilder extends CallBuilder {
 
     private static final String BALLERINA = "ballerina";
+    private Set<String> cachedVisibleSymbolNames;
 
     // Agent Properties
     public static final String AGENT = "AGENT";
@@ -98,6 +100,9 @@ public class AgentCallBuilder extends CallBuilder {
     // Cache for agent templates to avoid expensive repeated creation
     private static final Map<String, FlowNode> agentTemplateCache = new ConcurrentHashMap<>();
 
+    // Cache for agent call function templates to avoid repeated FunctionDataBuilder.build() calls
+    private static final Map<String, FlowNode> agentCallFnCache = new ConcurrentHashMap<>();
+
     @Override
     protected NodeKind getFunctionNodeKind() {
         return NodeKind.AGENT_CALL;
@@ -118,10 +123,59 @@ public class AgentCallBuilder extends CallBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         setAgentProperties(this, context, null);
         setAdditionalAgentProperties(this, null);
-        super.setConcreteTemplateData(context);
+
+        FlowNode callTemplate = getOrCreateCallFunctionTemplate(context);
+        restoreFromTemplate(callTemplate);
+
+        Codedata contextCd = context.codedata();
+        codedata().lineRange(contextCd.lineRange()).sourceCode(contextCd.sourceCode());
+
         // TODO: This is a temporary solution until we have a proper plan for handling all generic types.
         makeInferredTypePropertyOptional();
         overrideVariableName(context);
+    }
+
+    private FlowNode getOrCreateCallFunctionTemplate(TemplateContext context) {
+        Codedata cd = context.codedata();
+        String cacheKey = String.format("%s|%s|%s|%s|%s",
+                cd.org(), cd.packageName(), cd.version(), cd.symbol(), cd.object());
+        return agentCallFnCache.computeIfAbsent(cacheKey, k -> {
+            AgentCallBuilder temp = new AgentCallBuilder();
+            temp.defaultModuleName(moduleInfo);
+            temp.callSuperSetConcreteTemplateData(context);
+            return temp.build();
+        });
+    }
+
+    void callSuperSetConcreteTemplateData(TemplateContext context) {
+        super.setConcreteTemplateData(context);
+    }
+
+    private void restoreFromTemplate(FlowNode template) {
+        Metadata md = template.metadata();
+        if (md != null) {
+            metadata().label(md.label()).description(md.description());
+            if (md.icon() != null) {
+                metadata().icon(md.icon());
+            }
+        }
+
+        Codedata cd = template.codedata();
+        if (cd != null) {
+            codedata().node(cd.node()).org(cd.org()).module(cd.module())
+                    .packageName(cd.packageName()).object(cd.object())
+                    .version(cd.version()).symbol(cd.symbol())
+                    .inferredReturnType(cd.inferredReturnType());
+        }
+
+        if (template.properties() != null) {
+            Map<String, Property> currentProps = properties().build();
+            template.properties().forEach(currentProps::put);
+        }
+
+        if (template.flags() != 0) {
+            flag(template.flags());
+        }
     }
 
     private void makeInferredTypePropertyOptional() {
@@ -138,6 +192,22 @@ public class AgentCallBuilder extends CallBuilder {
         }
     }
 
+    private Set<String> getVisibleSymbolNames(TemplateContext context) {
+        if (cachedVisibleSymbolNames == null) {
+            cachedVisibleSymbolNames = context.getAllVisibleSymbolNames();
+        }
+        return cachedVisibleSymbolNames;
+    }
+
+    @Override
+    protected void setReturnTypeProperties(FunctionData functionData, TemplateContext context,
+                                           String label, String doc, boolean hidden) {
+        properties()
+                .type(functionData.returnType(), false, functionData.importStatements(), hidden,
+                        Property.RESULT_TYPE_LABEL)
+                .data(functionData.returnType(), getVisibleSymbolNames(context), label, doc);
+    }
+
     private void overrideVariableName(TemplateContext context) {
         if (formBuilder == null) {
             return;
@@ -147,7 +217,7 @@ public class AgentCallBuilder extends CallBuilder {
         if (variableProp == null) {
             return;
         }
-        String uniqueVarName = NameUtil.generateVariableName("string", context.getAllVisibleSymbolNames());
+        String uniqueVarName = NameUtil.generateVariableName("string", getVisibleSymbolNames(context));
         props.put(Property.VARIABLE_KEY, AiUtils.createUpdatedProperty(variableProp, uniqueVarName));
     }
 

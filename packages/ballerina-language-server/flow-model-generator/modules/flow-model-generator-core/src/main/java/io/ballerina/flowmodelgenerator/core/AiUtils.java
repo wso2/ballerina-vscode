@@ -265,26 +265,25 @@ public class AiUtils {
         Object valueToUse = customValue != null ? customValue : property.value();
         boolean hidden = isHidden || property.hidden();
 
-        nodeBuilder.properties().custom()
-                .metadata()
-                    .label(property.metadata().label())
-                    .description(property.metadata().description())
-                    .stepOut()
-                .types(property.types())
-                .placeholder(property.placeholder())
-                .value(valueToUse)
-                .defaultValue(property.defaultValue())
-                .imports(property.imports() != null ? property.imports().toString() : null)
-                .optional(property.optional())
-                .editable(property.editable())
-                .advanced(property.advanced())
-                .hidden(hidden)
-                .modified(property.modified())
-                .codedata()
-                    .kind(property.codedata() != null ? property.codedata().kind() : "")
-                    .stepOut()
-                .stepOut()
-                .addProperty(key);
+        Property copied = new Property(
+                property.metadata(),
+                property.types(),
+                valueToUse,
+                property.oldValue(),
+                property.placeholder(),
+                property.optional(),
+                property.editable(),
+                property.advanced(),
+                hidden,
+                property.modified(),
+                property.diagnostics(),
+                property.codedata(),
+                property.advancedValue(),
+                property.imports(),
+                property.defaultValue(),
+                property.comment()
+        );
+        nodeBuilder.properties().build().put(key, copied);
     }
 
     /**
