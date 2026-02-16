@@ -28,7 +28,7 @@ import {
 } from "./styles";
 import { CollapsibleSection, ProjectTypeSelector, PackageInfoSection } from "./components";
 import { ProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { ProjectFormData } from "./types";
@@ -43,6 +43,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
     const [isWorkspaceSupported, setIsWorkspaceSupported] = useState(false);
     const [isProjectStructureExpanded, setIsProjectStructureExpanded] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
@@ -98,6 +99,12 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         setPackageNameError(error);
         onValidationChange?.(error === null);
     }, [formData.packageName, onValidationChange]);
+
+    // Real-time validation for organization name
+    useEffect(() => {
+        const error = validateOrgName(formData.orgName);
+        setOrgNameError(error);
+    }, [formData.orgName]);
 
     return (
         <>
