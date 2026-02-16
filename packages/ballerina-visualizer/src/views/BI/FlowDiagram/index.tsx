@@ -44,12 +44,13 @@ import {
     ParentMetadata,
     NodeMetadata,
     SearchKind,
-    DataMapperDisplayMode,
+    EditorConfig,
     CodeData,
     JoinProjectPathRequest,
     CodeContext,
     AIPanelPrompt,
     LinePosition,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 
 import {
@@ -160,6 +161,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const updatedNodeRef = useRef<FlowNode>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange>(targetRef?.current);
 
+    const isCreatingAgent = useRef<boolean>(false);
     const isCreatingNewModelProvider = useRef<boolean>(false);
     const isCreatingNewVectorStore = useRef<boolean>(false);
     const isCreatingNewEmbeddingProvider = useRef<boolean>(false);
@@ -1103,6 +1105,29 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
+            case "AGENTS":
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getAvailableAgents({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                    })
+                    .then((response) => {
+                        setCategories(
+                            convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            )
+                        );
+                        setSidePanelView(SidePanelView.AGENT_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
             case "MODEL_PROVIDERS":
                 setShowProgressIndicator(true);
                 rpcClient
@@ -1281,7 +1306,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
 
     const handleOnFormSubmit = (
         updatedNode?: FlowNode,
-        dataMapperMode?: DataMapperDisplayMode,
+        editorConfig?: EditorConfig,
         options?: FormSubmitOptions
     ) => {
         if (!updatedNode) {
@@ -1318,7 +1343,11 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             updatedNode.codedata.lineRange.endLine = targetLine;
         }
 
-        if (dataMapperMode && dataMapperMode !== DataMapperDisplayMode.NONE) {
+        if (
+            editorConfig &&
+            editorConfig.view === MACHINE_VIEW.InlineDataMapper &&
+            editorConfig.displayMode !== EditorDisplayMode.NONE
+        ) {
             rpcClient
                 .getDataMapperRpcClient()
                 .getInitialIDMSource({
@@ -1348,12 +1377,12 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                                     codeData: response.codedata,
                                 }
                             },
-                            isPopup: dataMapperMode === DataMapperDisplayMode.POPUP
+                            isPopup: editorConfig.displayMode === EditorDisplayMode.POPUP
                         });
                     }
                 })
                 .finally(() => {
-                    if (dataMapperMode !== DataMapperDisplayMode.POPUP) setShowSidePanel(false);
+                    if (editorConfig.displayMode !== EditorDisplayMode.POPUP) setShowSidePanel(false);
                     if (options?.postUpdateCallBack) {
                         options.postUpdateCallBack();
                     }
@@ -1361,16 +1390,30 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 });
             return;
         }
+
         rpcClient
             .getBIDiagramRpcClient()
             .getSourceCode({
                 filePath: model.fileName,
                 flowNode: updatedNode,
-                isFunctionNodeUpdate: dataMapperMode !== DataMapperDisplayMode.NONE,
+                isFunctionNodeUpdate: editorConfig?.displayMode !== EditorDisplayMode.NONE,
                 isHelperPaneChange: options?.isChangeFromHelperPane,
+                artifactData: editorConfig &&
+                    editorConfig.displayMode !== EditorDisplayMode.NONE &&
+                    editorConfig.view === MACHINE_VIEW.DataMapper ?
+                    { artifactType: DIRECTORY_MAP.DATA_MAPPER } : undefined,
             })
             .then(async (response) => {
                 if (response.artifacts.length > 0) {
+
+                    if (editorConfig && editorConfig.displayMode !== EditorDisplayMode.NONE) {
+                        const newArtifact = response.artifacts.find(res => res.isNew);
+                        if (newArtifact) {
+                            rpcClient.getVisualizerRpcClient().openView({ type: EVENT_TYPE.OPEN_VIEW, location: { documentUri: newArtifact.path, position: newArtifact.position } });
+                            return;
+                        }
+                    }
+                
                     if (updatedNode?.codedata?.symbol === GET_DEFAULT_MODEL_PROVIDER
                         || (updatedNode?.codedata?.node === "AGENT_CALL" && updatedNode?.properties?.model?.value === "")) {
                         await rpcClient.getAIAgentRpcClient().configureDefaultModelProvider();
@@ -1450,16 +1493,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
         });
         if (deleteNodeResponse.artifacts.length === 0) {
             console.error(">>> Error updating source code", deleteNodeResponse);
-        }
-
-        if (node.codedata.node === "AGENT_CALL") {
-            const agentNodeDeleteResponse = await removeAgentNode(node, rpcClient);
-            if (!agentNodeDeleteResponse) {
-                console.error(">>> Error deleting agent node", node);
-                setShowProgressIndicator(false);
-                debouncedGetFlowModel();
-                return;
-            }
         }
 
         await updateArtifactLocation(deleteNodeResponse);
@@ -1665,14 +1698,26 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddFunction = () => {
-        rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.OPEN_VIEW,
-            location: {
-                view: MACHINE_VIEW.BIFunctionForm,
-                artifactType: DIRECTORY_MAP.FUNCTION,
-            },
-            isPopup: true,
-        });
+        setShowProgressIndicator(true);
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: { node: "FUNCTION_CREATION" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
     };
 
     const handleOnAddNPFunction = () => {
@@ -1687,14 +1732,27 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     };
 
     const handleOnAddDataMapper = () => {
-        rpcClient.getVisualizerRpcClient().openView({
-            type: EVENT_TYPE.OPEN_VIEW,
-            location: {
-                view: MACHINE_VIEW.BIDataMapperForm,
-                artifactType: DIRECTORY_MAP.DATA_MAPPER,
-            },
-            isPopup: true,
-        });
+
+        setShowProgressIndicator(true);
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: { node: "DATA_MAPPER_CREATION" },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+            });
     };
 
     // Common function to handle progress message with timeout
@@ -1710,6 +1768,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const cleanupProgressMessage = (messageTimeout: number) => {
         clearTimeout(messageTimeout);
         setProgressMessage(LOADING_MESSAGE);
+    };
+
+    const handleOnAddNewAgent = () => {
+        isCreatingAgent.current = true;
+        setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+
+        // Push current state to navigation stack
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: {
+                    node: "AGENT_CALL",
+                    org: "ballerina",
+                    symbol: "run",
+                    module: "ai",
+                    packageName: "ai",
+                    object: "Agent"
+                },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+            });
     };
 
     const handleOnAddNewModelProvider = () => {
@@ -2468,6 +2561,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchChunker={handleSearchChunker}
                 onUpdateNodeWithConnection={updateNodeWithConnection}
                 // AI Agent specific callbacks
+                onAddAgent={handleOnAddNewAgent}
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}
                 onDeleteTool={handleOnDeleteTool}

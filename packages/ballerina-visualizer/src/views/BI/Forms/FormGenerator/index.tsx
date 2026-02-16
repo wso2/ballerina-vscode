@@ -39,7 +39,7 @@ import {
     Member,
     TypeNodeKind,
     NodeKind,
-    DataMapperDisplayMode,
+    EditorConfig,
     InputType,
     getPrimaryInputType,
     functionKinds
@@ -125,7 +125,7 @@ interface FormProps {
     editForm?: boolean;
     isGraphql?: boolean;
     submitText?: string;
-    onSubmit: (node?: FlowNode, dataMapperMode?: DataMapperDisplayMode, formImports?: FormImports, rawFormValues?: FormValues) => void;
+    onSubmit: (node?: FlowNode, editorConfig?: EditorConfig, formImports?: FormImports, rawFormValues?: FormValues) => void;
     showProgressIndicator?: boolean;
     subPanelView?: SubPanelView;
     openSubPanel?: (subPanel: SubPanel) => void;
@@ -137,7 +137,7 @@ interface FormProps {
         description?: string; // Optional description explaining what the action button does
         callback: () => void;
     };
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void;
     isInModal?: boolean;
     scopeFieldAddon?: React.ReactNode;
     onChange?: (fieldKey: string, value: any, allValues: FormValues) => void;
@@ -262,14 +262,17 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
 
     const skipFormValidation = useMemo(() => {
         const isAgentNode = node && (
-            node.codedata.node === "AGENT_CALL" &&
+            (node.codedata.node === "AGENT_CALL" || node.codedata.node === "AGENT_RUN") &&
             node.codedata.org === "ballerina" &&
             node.codedata.module === "ai" &&
             node.codedata.packageName === "ai" &&
             node.codedata.object === "Agent" &&
             node.codedata.symbol === "run"
         );
-        return isAgentNode;
+        const isDataMapperCreationNode = node && node.codedata.node === "DATA_MAPPER_CREATION";
+        const isFunctionCreationNode = node && node.codedata.node === "FUNCTION_CREATION";
+        
+        return isAgentNode || isDataMapperCreationNode || isFunctionCreationNode;
     }, [node]);
 
     const importsCodedataRef = useRef<any>(null); // To store codeData for getVisualizableFields
@@ -492,8 +495,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
         console.log(">>> FormGenerator handleOnSubmit", data);
         if (node && targetLineRange) {
             const updatedNode = mergeFormDataWithFlowNode(data, targetLineRange, dirtyFields);
-            const dataMapperMode = data["openInDataMapper"] ? DataMapperDisplayMode.VIEW : DataMapperDisplayMode.NONE;
-            onSubmit(updatedNode, dataMapperMode, formImports);
+            const editorConfig = data["editorConfig"];
+            onSubmit(updatedNode, editorConfig, formImports);
         }
     };
 

@@ -154,7 +154,8 @@ export type FormFieldInputType = "TEXT" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
-    "CLAUSE_EXPRESSION";
+    "CLAUSE_EXPRESSION" |
+    "SLIDER";
 
 export interface BaseType {
     fieldType: FormFieldInputType;
@@ -466,8 +467,10 @@ export type FieldScope = "Global" | "Local" | "Object";
 
 export type NodeKind =
     | "ACTION_OR_EXPRESSION"
+    | "AGENTS"
     | "AGENT"
     | "AGENT_CALL"
+    | "AGENT_RUN"
     | "ASSIGN"
     | "AUTOMATION"
     | "BODY"
@@ -481,6 +484,7 @@ export type NodeKind =
     | "CONTINUE"
     | "DATA_MAPPER_CALL"
     | "DATA_MAPPER_DEFINITION"
+    | "DATA_MAPPER_CREATION"
     | "DRAFT"
     | "ELSE"
     | "EMPTY"
@@ -493,6 +497,7 @@ export type NodeKind =
     | "FUNCTION"
     | "FUNCTION_CALL"
     | "FUNCTION_DEFINITION"
+    | "FUNCTION_CREATION"
     | "IF"
     | "INCLUDED_FIELD"
     | "LOCK"
