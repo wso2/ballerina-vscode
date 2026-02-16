@@ -131,11 +131,12 @@ function buildHashMap(content: string): Map<string, string> {
 }
 
 function applyHashMap(content: string, hashMap: Map<string, string>): string {
-    let result = content;
-    for (const [original, stable] of hashMap) {
-        result = result.split(original).join(stable);
-    }
-    return result;
+    if (hashMap.size === 0) return content;
+    const pattern = new RegExp(
+        [...hashMap.keys()].sort((a, b) => b.length - a.length).map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+        'g'
+    );
+    return content.replace(pattern, (m) => hashMap.get(m) ?? m);
 }
 
 async function renderAndCheckSnapshot(model: CDModel, testName: string) {
