@@ -342,21 +342,6 @@ public class Utils {
         builder.append(Constants.SPACE)
                 .append(Constants.OPEN_CURLY_BRACE)
                 .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.KEYWORD_DO)
-                .append(Constants.SPACE)
-                .append(Constants.OPEN_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.CLOSE_CURLY_BRACE)
-                .append(Constants.SPACE)
-                .append(Constants.ON_FAIL_ERROR_STMT)
-                .append(Constants.SPACE)
-                .append(Constants.OPEN_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
-                .append(Constants.TAB_SEPARATOR)
-                .append(Constants.CLOSE_CURLY_BRACE)
-                .append(Constants.LINE_SEPARATOR)
                 .append(Constants.CLOSE_CURLY_BRACE);
         return builder.toString();
     }
@@ -392,7 +377,7 @@ public class Utils {
 
     public static String buildReturnType(Property returnType) {
         if (returnType == null || returnType.value() == null || returnType.value().toString().trim().isEmpty()) {
-            return "";
+            return Constants.SPACE + Constants.KEYWORD_RETURNS + Constants.SPACE + "error?";
         }
         return Constants.SPACE + Constants.KEYWORD_RETURNS + Constants.SPACE + returnType.value().toString().trim();
     }
