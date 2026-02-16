@@ -437,6 +437,16 @@ export interface ConnectorSpecCancelRequest {
     comment?: string;
 }
 
+export interface ConfigurationProvideRequest {
+    requestId: string;
+    configValues: Record<string, string>;
+}
+
+export interface ConfigurationCancelRequest {
+    requestId: string;
+    comment?: string;
+}
+
 export type ErrorCode = {
     code: number;
     message: string;
