@@ -48,7 +48,7 @@
           "label": "sqlQuery",
           "description": "The SQL query such as `` `SELECT * from Album WHERE name=${albumName}` ``"
         },
-        "valueType": "EXPRESSION",
+        "valueType": "SQL_QUERY",
         "valueTypeConstraint": "sql:ParameterizedQuery",
         "placeholder": "``",
         "optional": false,
@@ -59,6 +59,12 @@
           "originalName": "sqlQuery"
         },
         "typeMembers": [
+          {
+            "type": "SQL_QUERY",
+            "packageInfo": "ballerina:sql:1.15.0",
+            "kind": "FIELD_TYPE",
+            "selected": true
+          },
           {
             "type": "ParameterizedQuery",
             "packageInfo": "ballerina:sql:1.15.0",

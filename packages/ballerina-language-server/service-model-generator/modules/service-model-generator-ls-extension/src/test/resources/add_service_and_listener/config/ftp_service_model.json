@@ -96,7 +96,7 @@
                   "type": "IDENTIFIER"
                 },
                 "placeholder": "",
-                "value": "\"testUser\"",
+                "value": "string `asasj \" dsad \n jans \r\n`",
                 "enabled": true,
                 "editable": true,
                 "optional": true,
@@ -169,7 +169,7 @@
             "character": 3
           }
         },
-        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host= \"127.0.0.1\", auth= { credentials: { username: \"testUser\", password: \"testpwd\" } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
+        "newText": "\nlistener ftp:Listener ftpListener = new(protocol= ftp:FTP, host= \"127.0.0.1\", auth= { credentials: { username: string `asasj \" dsad \n jans \n`, password: \"testpwd\" } }, port= 21, path= \"/\" );\n\nservice on ftpListener {\n}\n"
       }
     ]
   }

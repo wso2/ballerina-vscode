@@ -213,8 +213,23 @@ public class DesignModelGenerator {
                                       IntermediateModel.FunctionModel functionModel,
                                       IntermediateModel.ServiceModel serviceModel) {
         Set<String> connections = new HashSet<>();
+        Set<String> dependentServiceClasses = new HashSet<>();
         if (!functionModel.visited && !functionModel.analyzed) {
             functionModel.visited = true;
+            functionModel.usedClasses.forEach(usedClass -> {
+                IntermediateModel.ServiceClassModel serviceClassModel = intermediateModel.serviceClassModelMap
+                        .get(usedClass);
+                if (serviceClassModel != null) {
+                    serviceClassModel.functionModels.forEach(serviceClassFunctionModel -> {
+                        if (!serviceClassFunctionModel.analyzed) {
+                            buildConnectionGraph(intermediateModel, serviceClassFunctionModel, serviceModel);
+                        }
+                        connections.addAll(serviceClassFunctionModel.allDependentConnections);
+                        connections.addAll(serviceClassFunctionModel.connections);
+                        dependentServiceClasses.addAll(serviceClassFunctionModel.usedClasses);
+                    });
+                }
+            });
             functionModel.dependentFuncs.forEach(dependentFunc -> {
                 IntermediateModel.FunctionModel dependentFunctionModel = intermediateModel.functionModelMap
                         .get(dependentFunc);
@@ -226,6 +241,7 @@ public class DesignModelGenerator {
                 }
                 connections.addAll(dependentFunctionModel.allDependentConnections);
                 connections.addAll(dependentFunctionModel.connections);
+                dependentServiceClasses.addAll(dependentFunctionModel.usedClasses);
             });
 
             functionModel.dependentObjFuncs.forEach(dependentObjFunc -> {
@@ -242,10 +258,12 @@ public class DesignModelGenerator {
                 }
                 connections.addAll(dependentFunctionModel.allDependentConnections);
                 connections.addAll(dependentFunctionModel.connections);
+                dependentServiceClasses.addAll(dependentFunctionModel.usedClasses);
             });
         }
         functionModel.visited = true;
         functionModel.allDependentConnections.addAll(functionModel.connections);
+        functionModel.usedClasses.addAll(dependentServiceClasses);
         // Also add transitive dependent connections
         for (String connectionUuid : functionModel.connections) {
             Connection connection = intermediateModel.uuidToConnectionMap.get(connectionUuid);

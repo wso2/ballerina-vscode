@@ -191,7 +191,7 @@
                                 "selected": true
                               }
                             ],
-                            "value": "()",
+                            "value": "var",
                             "placeholder": "var",
                             "optional": false,
                             "editable": true,
@@ -271,7 +271,7 @@
                         "selected": true
                       }
                     ],
-                    "value": "()",
+                    "value": "var",
                     "placeholder": "var",
                     "optional": false,
                     "editable": true,

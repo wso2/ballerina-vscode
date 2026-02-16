@@ -26,7 +26,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
-import io.ballerina.compiler.syntax.tree.MappingConstructorExpressionNode;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
 import io.ballerina.modelgenerator.commons.CommonUtils;
@@ -71,6 +70,8 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static final TypeToken<List<Property>> LIST_PROPERTY_TYPE_TOKEN = new TypeToken<List<Property>>() {
     };
+    public static final String SQL_PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String SQL_CALL_QUERY = "sql:ParameterizedCallQuery";
 
     @SuppressWarnings("unchecked")
     public <T> T valueAsType(TypeToken<T> typeToken) {
@@ -276,6 +277,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         ACTION_OR_EXPRESSION,
         IDENTIFIER,
         TEXT,
+        DOC_TEXT,
         TYPE,
         ENUM,
         VIEW,
@@ -285,7 +287,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         DATA_MAPPING_EXPRESSION,
         RECORD_MAP_EXPRESSION,
         PROMPT,
-        CLAUSE_EXPRESSION
+        SQL_QUERY
     }
 
     public static class Builder<T> extends FacetedBuilder<T> implements DiagnosticHandler.DiagnosticCapable {
@@ -549,11 +551,11 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo) {
-            return typeWithExpression(typeSymbol, moduleInfo, null, null);
+            return typeWithExpression(typeSymbol, moduleInfo, null, null, null);
         }
 
         public Builder<T> typeWithExpression(TypeSymbol typeSymbol, ModuleInfo moduleInfo,
-                                             Node value, SemanticModel semanticModel) {
+                                             Node value, SemanticModel semanticModel, Property.Builder<?> builder) {
             if (typeSymbol == null) {
                 return this;
             }
@@ -634,13 +636,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 if (matchingValueType == ValueType.MAPPING_EXPRESSION_SET) {
                     Optional<TypeSymbol> paramType = semanticModel.typeOf(value);
                     if (paramType.isPresent()) {
-                        if (paramType.get().typeKind() == TypeDescKind.MAP) {
-                            matchingValueType = ValueType.MAPPING_EXPRESSION;
-                            // convert string to a Map<String, Object>
-                            Map<String, Object> mapValue = CommonUtils.convertMappingExprToMap(
-                                    (MappingConstructorExpressionNode) value);
-                            value(mapValue);
-                        } else if (paramType.get().typeKind() == TypeDescKind.RECORD) {
+                        if (paramType.get().typeKind() == TypeDescKind.RECORD) {
                             matchingValueType = ValueType.RECORD_MAP_EXPRESSION;
                         }
                     }
@@ -685,6 +681,12 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                             .filter(propType -> propType.fieldType() == finalMatchingValueType)
                             .findFirst()
                             .ifPresent(propType -> propType.selected(true));
+                    if (finalMatchingValueType.equals(ValueType.TEXT)) {
+                        String valueStr = value.toSourceCode().strip();
+                        if (builder != null) {
+                            builder.value(CommonUtils.unescapeContent(valueStr));
+                        }
+                    }
                 }
             }
             return this;
@@ -707,14 +709,18 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         private boolean handlePrimitiveType(TypeSymbol typeSymbol, String ballerinaType) {
+            // Check for SQL query types first
+            if (SQL_PARAMETERIZED_QUERY.equals(ballerinaType) || SQL_CALL_QUERY.equals(ballerinaType)) {
+                type().fieldType(ValueType.SQL_QUERY).ballerinaType(ballerinaType).selected(true).stepOut();
+                return true;
+            }
+
             TypeSymbol rawType = CommonUtil.getRawType(typeSymbol);
             switch (rawType.typeKind()) {
                 case INT, INT_SIGNED8, INT_UNSIGNED8, INT_SIGNED16, INT_UNSIGNED16,
                      INT_SIGNED32, INT_UNSIGNED32, BYTE, FLOAT, DECIMAL -> type(ValueType.NUMBER, ballerinaType);
                 case STRING, STRING_CHAR -> type(ValueType.TEXT, ballerinaType);
                 case BOOLEAN -> type(ValueType.FLAG, ballerinaType);
-                case ARRAY -> type(ValueType.EXPRESSION_SET, ballerinaType);
-                case MAP -> type(ValueType.MAPPING_EXPRESSION, ballerinaType);
                 case RECORD -> {
                     if (typeSymbol.typeKind() != TypeDescKind.RECORD && typeSymbol.getModule().isPresent()) {
                         // not an anonymous record
@@ -748,7 +754,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 case STRING_TEMPLATE_EXPRESSION, STRING_LITERAL -> ValueType.TEXT;
                 case NUMERIC_LITERAL -> ValueType.NUMBER;
                 case TRUE_KEYWORD, FALSE_KEYWORD, BOOLEAN_LITERAL -> ValueType.FLAG;
-                case LIST_BINDING_PATTERN, LIST_CONSTRUCTOR -> ValueType.EXPRESSION_SET;
                 case MAPPING_BINDING_PATTERN, MAPPING_CONSTRUCTOR -> ValueType.MAPPING_EXPRESSION_SET;
                 default -> ValueType.EXPRESSION;
             };

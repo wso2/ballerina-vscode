@@ -30,7 +30,7 @@
         "displayName": "d1",
         "typeName": "Department",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-954444226"
       },
       {
@@ -39,7 +39,7 @@
         "displayName": "d2",
         "typeName": "Department",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-954444226"
       },
       {
@@ -55,7 +55,7 @@
         "displayName": "deptList",
         "typeName": "Department[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-352594850"
       },
       {
@@ -64,7 +64,7 @@
         "displayName": "p1",
         "typeName": "Person",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "887620673"
       },
       {
@@ -73,7 +73,7 @@
         "displayName": "p2",
         "typeName": "Person",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "887620673"
       },
       {
@@ -82,7 +82,7 @@
         "displayName": "p3",
         "typeName": "Person",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "887620673"
       },
       {
@@ -98,7 +98,7 @@
         "displayName": "personList",
         "typeName": "Person[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1587755484"
       },
       {

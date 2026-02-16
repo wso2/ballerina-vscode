@@ -1,0 +1,8 @@
+[package]
+org = "wso2"
+name = "kafka_action"
+version = "0.1.0"
+title = "kafka_action"
+
+[build-options]
+sticky = true

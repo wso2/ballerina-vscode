@@ -356,11 +356,6 @@
                     },
                     "types": [
                       {
-                        "fieldType": "MAPPING_EXPRESSION",
-                        "ballerinaType": "map<string|string[]>",
-                        "selected": false
-                      },
-                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "map<string|string[]>?",
                         "selected": false
@@ -1822,19 +1817,12 @@
                             },
                             "types": [
                               {
-                                "fieldType": "EXPRESSION_SET",
-                                "ballerinaType": "mime:Entity[]",
-                                "selected": false
-                              },
-                              {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "http:RequestMessage",
                                 "selected": false
                               }
                             ],
-                            "value": {
-                              "body": "e.message()"
-                            },
+                            "value": "{body: e.message()}",
                             "placeholder": "{}",
                             "optional": false,
                             "editable": true,
@@ -1851,11 +1839,6 @@
                               "description": "The entity headers"
                             },
                             "types": [
-                              {
-                                "fieldType": "MAPPING_EXPRESSION",
-                                "ballerinaType": "map<string|string[]>",
-                                "selected": false
-                              },
                               {
                                 "fieldType": "EXPRESSION",
                                 "ballerinaType": "map<string|string[]>?",

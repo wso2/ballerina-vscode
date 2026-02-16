@@ -851,9 +851,7 @@ public class SourceBuilder {
                     .append(WHITE_SPACE);
 
             appendDescription(description.split(System.lineSeparator()));
-            if (!sb.toString().endsWith(System.lineSeparator())) {
-                sb.append(System.lineSeparator());
-            }
+            sb.append(System.lineSeparator());
             return this;
         }
 
@@ -869,9 +867,7 @@ public class SourceBuilder {
                         .append(WHITE_SPACE);
 
                 appendDescription(description.split(System.lineSeparator()));
-                if (!description.endsWith(System.lineSeparator())) {
-                    sb.append(System.lineSeparator());
-                }
+                sb.append(System.lineSeparator());
             }
             return this;
         }
@@ -888,9 +884,7 @@ public class SourceBuilder {
                         .append(WHITE_SPACE);
 
                 appendDescription(returnDescription.split(System.lineSeparator()));
-                if (!returnDescription.endsWith(System.lineSeparator())) {
-                    sb.append(System.lineSeparator());
-                }
+                sb.append(System.lineSeparator());
             }
             return this;
         }
