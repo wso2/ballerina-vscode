@@ -113,11 +113,14 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                         const threadCount = evalsetData.threads.length;
                         const name = evalsetData.name || path.basename(uri.fsPath, '.evalset.json');
                         const description = evalsetData.description || '';
+                        const filePath = params.projectPath
+                            ? path.relative(params.projectPath, uri.fsPath)
+                            : uri.fsPath;
 
                         evalsets.push({
                             id: evalsetData.id || uri.fsPath,
                             name: name,
-                            filePath: uri.fsPath,
+                            filePath: filePath,
                             threadCount: threadCount,
                             description: description
                         });

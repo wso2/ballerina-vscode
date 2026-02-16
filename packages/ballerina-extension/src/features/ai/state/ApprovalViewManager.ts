@@ -23,7 +23,7 @@ import { openView as openMainView, StateMachine } from '../../../stateMachine';
 import { openPopupView, StateMachinePopup } from '../../../stateMachinePopup';
 import { notifyApprovalOverlayState } from '../../../RPCLayer';
 
-export type ApprovalType = 'credential' | 'task' | 'plan' | 'connector_spec';
+export type ApprovalType = 'configuration' | 'task' | 'plan' | 'connector_spec';
 
 interface OpenedApprovalView {
     requestId: string;
@@ -129,7 +129,7 @@ export class ApprovalViewManager {
 
     private getOverlayMessage(approvalType: ApprovalType): string {
         const messages: Record<ApprovalType, string> = {
-            'credential': 'Waiting for credentials...',
+            'configuration': 'Waiting for configuration...',
             'task': 'Waiting for task approval...',
             'plan': 'Waiting for plan approval...',
             'connector_spec': 'Waiting for connector spec approval...'

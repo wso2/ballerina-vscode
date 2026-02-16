@@ -41,6 +41,8 @@ import {
     TaskDeclineRequest,
     ConnectorSpecRequest,
     ConnectorSpecCancelRequest,
+    ConfigurationProvideRequest,
+    ConfigurationCancelRequest,
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
@@ -85,6 +87,8 @@ export const approveTask: RequestType<ApproveTaskRequest, void> = { method: `${_
 export const declineTask: RequestType<TaskDeclineRequest, void> = { method: `${_preFix}/declineTask` };
 export const provideConnectorSpec: RequestType<ConnectorSpecRequest, void> = { method: `${_preFix}/provideConnectorSpec` };
 export const cancelConnectorSpec: RequestType<ConnectorSpecCancelRequest, void> = { method: `${_preFix}/cancelConnectorSpec` };
+export const provideConfiguration: RequestType<ConfigurationProvideRequest, void> = { method: `${_preFix}/provideConfiguration` };
+export const cancelConfiguration: RequestType<ConfigurationCancelRequest, void> = { method: `${_preFix}/cancelConfiguration` };
 export const getChatMessages: NotificationType<void> = { method: `${_preFix}/getChatMessages` };
 export const getCheckpoints: NotificationType<void> = { method: `${_preFix}/getCheckpoints` };
 export const restoreCheckpoint: RequestType<RestoreCheckpointRequest, void> = { method: `${_preFix}/restoreCheckpoint` };

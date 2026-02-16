@@ -313,7 +313,7 @@ export function convertTraceToEvalset(traceData: TraceData): EvalsetTrace {
         iterations: iterations,
         output: finalOutput,
         tools: tools,
-        toolCalls: finalOutputToolCalls,
+        ...(finalOutputToolCalls.length > 0 && { toolCalls: finalOutputToolCalls }),
         startTime: startTime,
         endTime: endTime
     };
