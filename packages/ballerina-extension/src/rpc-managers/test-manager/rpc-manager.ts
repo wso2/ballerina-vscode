@@ -24,12 +24,17 @@ import {
     SyntaxTree,
     TestManagerServiceAPI,
     TestSourceEditResponse,
+    GetEvalsetsRequest,
+    GetEvalsetsResponse,
+    EvalsetItem,
 } from "@wso2/ballerina-core";
 import { ModulePart, NodePosition, STKindChecker } from "@wso2/syntax-tree";
 import * as fs from 'fs';
 import { existsSync, writeFileSync } from "fs";
 import { StateMachine } from "../../stateMachine";
 import { updateSourceCode } from "../../utils/source-utils";
+import * as vscode from 'vscode';
+import * as path from 'path';
 
 export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
 
@@ -82,6 +87,52 @@ export class TestServiceManagerRpcManager implements TestManagerServiceAPI {
                 resolve(res);
             } catch (error) {
                 console.log(error);
+            }
+        });
+    }
+
+    async getEvalsets(params: GetEvalsetsRequest): Promise<GetEvalsetsResponse> {
+        return new Promise(async (resolve) => {
+            try {
+                const pattern = params.projectPath
+                    ? new vscode.RelativePattern(vscode.Uri.file(params.projectPath), '**/evalsets/**/*.evalset.json')
+                    : '**/evalsets/**/*.evalset.json';
+                const evalsetFiles = await vscode.workspace.findFiles(pattern);
+                const evalsets: EvalsetItem[] = [];
+
+                for (const uri of evalsetFiles) {
+                    try {
+                        const content = await fs.promises.readFile(uri.fsPath, 'utf-8');
+                        const evalsetData = JSON.parse(content);
+
+                        // Validate the evalset structure
+                        if (!evalsetData.threads || !Array.isArray(evalsetData.threads)) {
+                            continue;
+                        }
+
+                        const threadCount = evalsetData.threads.length;
+                        const name = evalsetData.name || path.basename(uri.fsPath, '.evalset.json');
+                        const description = evalsetData.description || '';
+                        const filePath = params.projectPath
+                            ? path.relative(params.projectPath, uri.fsPath)
+                            : uri.fsPath;
+
+                        evalsets.push({
+                            id: evalsetData.id || uri.fsPath,
+                            name: name,
+                            filePath: filePath,
+                            threadCount: threadCount,
+                            description: description
+                        });
+                    } catch (error) {
+                        console.error(`Failed to parse evalset file ${uri.fsPath}:`, error);
+                    }
+                }
+
+                resolve({ evalsets });
+            } catch (error) {
+                console.error('Failed to get evalsets:', error);
+                resolve({ evalsets: [] });
             }
         });
     }

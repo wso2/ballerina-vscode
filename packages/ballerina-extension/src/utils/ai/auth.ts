@@ -21,6 +21,7 @@ import { extension } from "../../BalExtensionContext";
 import { DEVANT_TOKEN_EXCHANGE_URL } from '../../features/ai/utils';
 import axios from 'axios';
 import { AuthCredentials, BIIntelSecrets, LoginMethod } from '@wso2/ballerina-core';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 
 export const TOKEN_NOT_AVAILABLE_ERROR_MESSAGE = "Access token is not available.";
 export const PLATFORM_EXTENSION_ID = 'wso2.wso2-platform';
@@ -100,7 +101,7 @@ vscode.authentication.onDidChangeSessions(async e => {
             await extension.context.secrets.delete('GITHUB_COPILOT_TOKEN');
             await extension.context.secrets.delete('GITHUB_TOKEN');
         } else {
-            //it could be a login(which we havent captured) or a logout 
+            //it could be a login(which we havent captured) or a logout
             // vscode.window.showInformationMessage(
             //     'WSO2 Integrator: BI supports completions with GitHub Copilot.',
             //     'Login with GitHub Copilot'
@@ -249,7 +250,7 @@ export const getAccessToken = async (): Promise<AuthCredentials | undefined> => 
         try {
             // Priority 1: Check Anthropic API key from environment
             if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.trim() !== "") {
-                resolve({loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: {apiKey: process.env.ANTHROPIC_API_KEY.trim()}});
+                resolve({ loginMethod: LoginMethod.ANTHROPIC_KEY, secrets: { apiKey: process.env.ANTHROPIC_API_KEY.trim() } });
                 return;
             }
             // Priority 2: Check stored credentials
@@ -330,6 +331,26 @@ export const getAwsBedrockCredentials = async (): Promise<{
     }
     return credentials.secrets;
 };
+
+// ==================================
+// Unique user identifier for BIIntel
+// ==================================
+export const getBiIntelId = async (): Promise<string | undefined> => {
+    try {
+        const credentials = await getAuthCredentials();
+        if (!credentials || credentials.loginMethod !== LoginMethod.BI_INTEL) {
+            return undefined;
+        }
+
+        const { accessToken } = credentials.secrets;
+        const decoded = jwtDecode<JwtPayload>(accessToken);
+        return decoded.sub;
+    } catch (error) {
+        console.error('Error decoding JWT token:', error);
+        return undefined;
+    }
+};
+
 
 export const getVertexAiCredentials = async (): Promise<{
     projectId: string;

@@ -20,9 +20,28 @@ import { RequestType } from "vscode-messenger-common";
 import { SourceUpdateResponse } from "../service-designer/interfaces";
 
 const _preFix = "test-manager";
-export const getTestFunction: RequestType<GetTestFunctionRequest, GetTestFunctionResponse> = 
+export const getTestFunction: RequestType<GetTestFunctionRequest, GetTestFunctionResponse> =
 { method: `${_preFix}/getTestFunction` };
-export const addTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> = 
+export const addTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> =
 { method: `${_preFix}/addTestFunction` };
-export const updateTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> = 
+export const updateTestFunction: RequestType<AddOrUpdateTestFunctionRequest, SourceUpdateResponse> =
 { method: `${_preFix}/updateTestFunction` };
+
+export interface EvalsetItem {
+    id: string;
+    name: string;
+    filePath: string;
+    threadCount: number;
+    description?: string;
+}
+
+export interface GetEvalsetsRequest {
+    projectPath?: string;
+}
+
+export interface GetEvalsetsResponse {
+    evalsets: EvalsetItem[];
+}
+
+export const getEvalsets: RequestType<GetEvalsetsRequest, GetEvalsetsResponse> =
+{ method: `${_preFix}/getEvalsets` };

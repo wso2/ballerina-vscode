@@ -27,6 +27,8 @@ import {
     CheckpointInfo,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -51,6 +53,7 @@ import {
     approvePlan,
     approveTask,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
@@ -84,6 +87,7 @@ import {
     openChatWindowWithCommand,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
@@ -250,6 +254,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    provideConfiguration(params: ConfigurationProvideRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConfiguration, HOST_EXTENSION, params);
+    }
+
+    cancelConfiguration(params: ConfigurationCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConfiguration, HOST_EXTENSION, params);
     }
 
     getChatMessages(): Promise<UIChatMessage[]> {

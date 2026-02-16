@@ -116,12 +116,12 @@ export function activateAIFeatures(ballerinaExternalInstance: BallerinaExtension
             getSelectedLibraries,
             getRelevantLibrariesAndFunctions,
             GenerationType
-        } = require('./utils/libraries');
+        } = require('./utils/libs/libraries');
         const {
             selectRequiredFunctions,
             getMaximizedSelectedLibs,
             toMaximizedLibrariesFromLibJson
-        } = require('./utils/function-registry');
+        } = require('./utils/libs/function-registry');
 
         commands.registerCommand('ballerina.test.ai.getAllLibraries', async (generationType: typeof GenerationType) => {
             return await getAllLibraries(generationType);
