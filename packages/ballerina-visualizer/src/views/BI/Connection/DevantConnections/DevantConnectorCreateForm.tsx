@@ -149,6 +149,7 @@ interface DevantConnectorCreateFormProps {
     marketplaceItem: MarketplaceItem | undefined,
     devantConfigs: DevantTempConfig[];
     devantFlow: DevantConnectionFlow,
+    existingDevantConnNames?: string[],
     biConnectionNames?: string[],
     onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void,
 }
@@ -156,6 +157,7 @@ interface DevantConnectorCreateFormProps {
 export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     biConnectionNames,
     marketplaceItem,
+    existingDevantConnNames,
     devantFlow,
     onSuccess,
     devantConfigs,
@@ -170,7 +172,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
         defaultValues: {
             name: generateInitialConnectionName(
                 biConnectionNames,
-                platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                existingDevantConnNames,
                 marketplaceItem?.name || ""
             ),
             visibility: getInitialVisibility(marketplaceItem, visibilities),
@@ -184,7 +186,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
         form.reset({
             name: generateInitialConnectionName(
                 biConnectionNames,
-                platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                existingDevantConnNames,
                 marketplaceItem?.name || ""
             ),
             visibility: getInitialVisibility(marketplaceItem, visibilities),
@@ -338,7 +340,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                                 validate: (value) =>
                                     isValidDevantConnName(
                                         value,
-                                        platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                                        existingDevantConnNames,
                                         biConnectionNames,
                                     ),
                             })}

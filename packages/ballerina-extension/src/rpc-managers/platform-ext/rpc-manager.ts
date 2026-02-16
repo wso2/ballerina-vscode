@@ -59,6 +59,7 @@ import {
     CreateLocalConnectionsConfigReq,
     CreateThirdPartyConnectionReq,
     CreateComponentConnectionReq,
+    GetComponentsReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
@@ -316,6 +317,15 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return platformExt?.getConnection(params);
         } catch (err) {
             log(`Failed to invoke getConnection: ${err}`);
+        }
+    }
+
+    async getComponentList(params: GetComponentsReq): Promise<ComponentKind[]> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return platformExt?.getComponentList(params);
+        } catch (err) {
+            log(`Failed to invoke getComponentList: ${err}`);
         }
     }
 

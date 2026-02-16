@@ -259,6 +259,36 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
         },
     });
 
+    const { data: existingDevantConnNames = devantConfigs?.map((conn) => conn.name) || [] } = useQuery(
+        {
+            queryKey: ["devant-connection-names-in-project", platformExtState?.selectedContext?.project.id],
+            queryFn: async () => {
+                const allConnNamesSet = new Set<string>();
+                const connections = await platformRpcClient?.getConnections({
+                    projectId: platformExtState?.selectedContext?.project.id,
+                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                    componentId: "",
+                });
+                if (connections && connections.length > 0) {
+                    connections.forEach(conn => allConnNamesSet.add(conn.name));
+                }
+                const components = await platformRpcClient?.getComponentList({
+                    projectId: platformExtState?.selectedContext?.project.id,
+                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                    orgHandle: platformExtState?.selectedContext?.org.handle || "",
+                    projectHandle: platformExtState?.selectedContext?.project.handler || "",
+                });
+                const allConns = await Promise.all(components.map(comp=>platformRpcClient.getConnections({
+                    projectId: platformExtState?.selectedContext?.project.id,
+                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                    componentId: comp.metadata.id || "",
+                })))
+                allConns.forEach(conns => conns.forEach(conn => allConnNamesSet.add(conn.name)));
+                return Array.from(allConnNamesSet)
+            },
+        }
+    );
+
     const { mutate: initializeOASConn, isPending: initializingOASConn } = useMutation({
         mutationFn: async () => {
                 const connectionDetailed = await platformRpcClient.getConnection({
@@ -312,7 +342,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                 marketplaceItem: selectedMarketplaceItem!,
                 connectionName: generateInitialConnectionName(
                     biConnectionNames,
-                    platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                    existingDevantConnNames,
                     selectedMarketplaceItem?.name,
                 ),
             });
@@ -425,6 +455,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                     selectedConnector={availableNode}
                                                     IDLFilePath={IDLFilePath}
                                                     biConnectionNames={biConnectionNames}
+                                                    existingDevantConnNames={existingDevantConnNames}
                                                     onFlowChange={(flow) => setSelectedFlow(flow)}
                                                     importedConnection={importingConn}
                                                     projectPath={projectPath}
