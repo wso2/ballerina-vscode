@@ -60,7 +60,7 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
             },
             {
                 type: 'function',
-                tooltip: "Create Natural Function", 
+                tooltip: "Create Natural Function",
                 emptyStateLabel: "Create Natural Function",
                 handlerKey: 'onAddFunction',
                 condition: (title) => title === "Natural Functions"
@@ -77,11 +77,17 @@ export const CATEGORY_CONFIGS: Record<string, CategoryConfig> = {
         useConnectionContainer: false,
         fixed: true
     },
-    "Agents": {
-        title: "Agents", 
-        actions: [],
+    "Agent": {
+        title: "Agents",
+        actions: [{
+            type: 'add',
+            tooltip: "Add Agent", // Will use addButtonLabel from props
+            emptyStateLabel: "", // Will use addButtonLabel from props
+            handlerKey: 'onAdd'
+        }],
         showWhenEmpty: true,
-        useConnectionContainer: false
+        useConnectionContainer: true,
+        fixed: true
     },
     "Model Providers": {
         title: "Model Providers",

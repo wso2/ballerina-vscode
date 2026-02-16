@@ -18,7 +18,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import styled from "@emotion/styled";
-import { ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
+import { ConfigProperties, ConfigVariable, DIRECTORY_MAP, getPrimaryInputType, LineRange, ListenerModel, NodePosition, ProjectStructureArtifactResponse, ServiceModel } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Button, Codicon, Icon, LinkButton, ProgressRing, SidePanelBody, SplitView, TabPanel, ThemeColors, TreeView, TreeViewItem, Typography, View, ViewContent } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -202,6 +202,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
+    const [existingListenerType, setExistingListenerType] = useState<string>(""); // Example: "Listener", "CdcListener"
 
     const [selectedListener, setSelectedListener] = useState<string | null>(null);
 
@@ -558,6 +559,12 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
         setIsSaving(false);
     }
 
+    const handleSetListenerType = (type: string) => {
+        if (!existingListenerType) {
+            setExistingListenerType(type);
+        }
+    }
+
     return (
         <View>
             <TopNavigationBar projectPath={props.projectPath} />
@@ -687,7 +694,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                             {configTitle}
                                                         </Typography>
 
-                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges}>
+                                                        <Button appearance="primary" onClick={handleSave} disabled={isSaving || !hasChanges} id="save-changes-btn">
                                                             {isSaving ? <Typography variant="progress">Saving...</Typography> : <>Save Changes</>}
                                                         </Button>
                                                     </TitleContent>
@@ -733,6 +740,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 filePath={listener.path}
                                                                                 position={listener.position}
                                                                                 onChange={handleListenerChange}
+                                                                                setListenerType={handleSetListenerType}
                                                                             />
                                                                         </div>
                                                                     </AccordionContainer>
@@ -747,6 +755,7 @@ export function ServiceConfigureView(props: ServiceConfigureProps) {
                                                                                 packageName={serviceModel.packageName}
                                                                                 version={serviceModel.version}
                                                                                 moduleName={serviceModel.moduleName}
+                                                                                type={existingListenerType}
                                                                                 onAttachListener={handleOnAttachListener}
                                                                                 attachedListeners={listeners.map(listener => listener.name)}
                                                                             />
@@ -776,10 +785,11 @@ interface ServiceConfigureListenerEditViewProps {
     filePath: string;
     position: NodePosition;
     onChange?: (data: ListenerModel, filePath: string, position: NodePosition) => void;
+    setListenerType?: (type: string) => void;
 }
 
 function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditViewProps) {
-    const { filePath, position, onChange } = props;
+    const { filePath, position, onChange, setListenerType } = props;
     const { rpcClient } = useRpcContext();
     const [listenerModel, setListenerModel] = useState<ListenerModel>(undefined);
 
@@ -792,8 +802,22 @@ function ServiceConfigureListenerEditView(props: ServiceConfigureListenerEditVie
         rpcClient.getServiceDesignerRpcClient().getListenerModelFromCode({ filePath, codedata: { lineRange } }).then(res => {
             console.log("Editing Listener Model: ", res.listener)
             setListenerModel(res.listener);
+            setListenerTypeFromProperties(res.listener.properties);
         })
     }, [position]);
+
+    const setListenerTypeFromProperties = (properties: ConfigProperties) => {
+        // The canonical key for the listener type property in config is "listenerType"
+        // Find the object key where the property is for listenerType or label "Listener Type"
+        const listenerTypeKey = Object.keys(properties).find(
+            key =>
+                (properties[key] as any).name === "listenerType" ||
+                (properties[key] as any).metadata?.label === "Listener Type"
+        );
+        if (listenerTypeKey && properties[listenerTypeKey]?.value) {
+            setListenerType(properties[listenerTypeKey].value);
+        }
+    };
 
     const onSubmit = async (value: ListenerModel) => {
         setSaving(true);
@@ -858,6 +882,7 @@ interface AttachListenerModalProps {
     moduleName: string;
     packageName: string;
     version: string;
+    type: string;
     attachedListeners: string[];
     onAttachListener: (listenerName: string) => void;
 }
@@ -895,6 +920,7 @@ function AttachListenerModal(props: AttachListenerModalProps) {
                 packageName: props.packageName,
                 moduleName: props.moduleName,
                 version: props.version,
+                type: props.type,
             },
             filePath: props.filePath
         };
