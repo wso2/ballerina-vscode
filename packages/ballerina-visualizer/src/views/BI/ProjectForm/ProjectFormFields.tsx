@@ -85,6 +85,17 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                 const currentDir = await commonRpcClient.getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
+
+            // Set default org name if not already set
+            if (!formData.orgName) {
+                try {
+                    const { orgName } = await commonRpcClient.getDefaultOrgName();
+                    onFormDataChange({ orgName });
+                } catch (error) {
+                    console.error("Failed to fetch default org name:", error);
+                }
+            }
+
             const isWorkspaceSupported = await rpcClient
                 .getLangClientRpcClient()
                 .isSupportedSLVersion({ major: 2201, minor: 13, patch: 0 })
@@ -199,6 +210,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );

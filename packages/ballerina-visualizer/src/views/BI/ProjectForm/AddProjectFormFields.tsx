@@ -26,7 +26,7 @@ import {
 } from "./styles";
 import { ProjectTypeSelector, PackageInfoSection } from "./components";
 import { AddProjectFormData } from "./types";
-import { sanitizePackageName, validatePackageName } from "./utils";
+import { sanitizePackageName, validatePackageName, validateOrgName } from "./utils";
 
 // Re-export for backwards compatibility
 export type { AddProjectFormData } from "./types";
@@ -45,6 +45,7 @@ export function AddProjectFormFields({
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [isPackageInfoExpanded, setIsPackageInfoExpanded] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
+    const [orgNameError, setOrgNameError] = useState<string | null>(null);
 
     const handleIntegrationName = (value: string) => {
         onFormDataChange({ integrationName: value });
@@ -69,6 +70,12 @@ export function AddProjectFormFields({
         const error = validatePackageName(formData.packageName, formData.integrationName);
         setPackageNameError(error);
     }, [formData.packageName]);
+
+    // Real-time validation for organization name
+    useEffect(() => {
+        const error = validateOrgName(formData.orgName);
+        setOrgNameError(error);
+    }, [formData.orgName]);
 
     return (
         <>
@@ -119,6 +126,7 @@ export function AddProjectFormFields({
                 onToggle={() => setIsPackageInfoExpanded(!isPackageInfoExpanded)}
                 data={{ orgName: formData.orgName, version: formData.version }}
                 onChange={(data) => onFormDataChange(data)}
+                orgNameError={orgNameError}
             />
         </>
     );
