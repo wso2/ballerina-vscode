@@ -299,7 +299,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                     <HelperPane.Loader />
                                 ) : (
                                     <ScrollableContainer style={{ margin: '8px 0px' }}>
-                                        {workspaceTypes?.[0]?.subCategory?.length > 0 && (
+                                        {workspaceTypes?.some(cat => cat.subCategory?.length > 0) && (
                                             <ExpandableList>
                                                 {workspaceTypes.map((category, index) => (
                                                     <ExpandableList.Section
@@ -366,7 +366,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                 </ExpandableList.Section>
                                             </ExpandableList>
                                         ))}
-                                        {importedTypes?.[0]?.subCategory?.length > 0 && (
+                                       {importedTypes?.some(cat => cat.subCategory?.length > 0) && (
                                             <ExpandableList>
                                                 {importedTypes.map((category) => (
                                                     <ExpandableList.Section

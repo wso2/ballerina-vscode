@@ -20,7 +20,7 @@ import { FormExpressionEditorRef, HelperPaneHeight, Overlay, ThemeColors } from 
 
 import { RefObject, useRef } from 'react';
 
-import { debounce, transform } from 'lodash';
+import { debounce } from 'lodash';
 import { useCallback, useState } from 'react';
 import { CodeData, InputType, LineRange, functionKinds, getPrimaryInputType } from '@wso2/ballerina-core';
 import {
