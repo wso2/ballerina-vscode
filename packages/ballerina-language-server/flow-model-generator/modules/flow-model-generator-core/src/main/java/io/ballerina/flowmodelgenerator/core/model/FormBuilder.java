@@ -33,6 +33,7 @@ import io.ballerina.compiler.syntax.tree.Token;
 import io.ballerina.compiler.syntax.tree.TypedBindingPatternNode;
 import io.ballerina.flowmodelgenerator.core.Constants;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FunctionDefinitionBuilder;
@@ -216,6 +217,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
 
     public FormBuilder<T> type(String typeName, String label, boolean editable, Boolean modified, LineRange lineRange,
                                String importStatements, boolean hidden) {
+        String replacedTypeName = TypeParameterReplacer.replaceTypeParameters(typeName);
         propertyBuilder
                 .metadata()
                     .label(label)
@@ -224,9 +226,9 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .codedata()
                     .stepOut()
                 .placeholder("var")
-                .value(typeName)
+                .value(replacedTypeName)
                 .imports(importStatements)
-                .hidden(hidden)
+                .hidden(hidden || !replacedTypeName.equals(typeName))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .selected(true)
@@ -244,7 +246,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                     .label(Property.RETURN_TYPE_LABEL)
                     .description(Property.RETURN_TYPE_DOC)
                     .stepOut()
-                .value(value == null ? "" : value)
+                .value(TypeParameterReplacer.replaceTypeParameters(value == null ? "" : value))
                 .type()
                     .fieldType(Property.ValueType.TYPE)
                     .ballerinaType(typeConstraint)
@@ -265,7 +267,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .stepOut()
                 .value(value == null ? "" : value)
                 .type()
-                    .fieldType(Property.ValueType.TEXT)
+                    .fieldType(Property.ValueType.DOC_TEXT)
                     .selected(true)
                     .stepOut()
                 .optional(true)
@@ -283,7 +285,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .stepOut()
                 .value(value == null ? "" : value)
                 .type()
-                    .fieldType(Property.ValueType.TEXT)
+                    .fieldType(Property.ValueType.DOC_TEXT)
                     .selected(true)
                     .stepOut()
                 .optional(true)
@@ -317,9 +319,16 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         data(node == null ? null : node.bindingPattern(), variableLabel, variableDoc,
                 NameUtil.generateTypeName("var", names), false);
 
-        String typeName = node == null ? "" : CommonUtils.getTypeSymbol(semanticModel, node)
-                .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
-                .orElse(CommonUtils.getVariableName(node));
+        String typeName;
+        if (node == null) {
+            typeName = "";
+        } else if (node.typeDescriptor().kind() == SyntaxKind.VAR_TYPE_DESC) {
+            typeName = "var";
+        } else {
+            typeName = CommonUtils.getTypeSymbol(semanticModel, node)
+                    .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
+                    .orElse(CommonUtils.getVariableName(node));
+        }
         return type(typeName, typeDoc, editable, null, node == null ? null : node.typeDescriptor().lineRange(), hidden);
     }
 
@@ -1290,7 +1299,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .label(Property.DESCRIPTION_LABEL)
                 .description(Property.PARAMETER_DESCRIPTION_TYPE_DOC)
                 .stepOut()
-                .type(Property.ValueType.TEXT)
+                .type(Property.ValueType.DOC_TEXT)
                 .value(description)
                 .optional(true)
                 .editable();

@@ -61,7 +61,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -95,7 +95,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -166,7 +166,7 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT",
+                      "fieldType": "DOC_TEXT",
                       "selected": false
                     }
                   ],
@@ -252,7 +252,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],
@@ -334,7 +334,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],

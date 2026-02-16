@@ -28,12 +28,14 @@ public class PropertyTypeMemberInfo {
 
     private final String type;
     private final String packageInfo;
+    private final String packageName;
     private final String kind;
     private boolean selected;
 
-    public PropertyTypeMemberInfo(String type, String packageInfo, String kind, boolean selected) {
+    public PropertyTypeMemberInfo(String type, String packageInfo, String packageName, String kind, boolean selected) {
         this.type = type;
         this.packageInfo = packageInfo;
+        this.packageName = packageName;
         this.kind = kind;
         this.selected = selected;
     }
@@ -50,6 +52,10 @@ public class PropertyTypeMemberInfo {
         return kind;
     }
 
+    public String packageName() {
+        return packageName;
+    }
+
     public boolean selected() {
         return selected;
     }
@@ -62,6 +68,7 @@ public class PropertyTypeMemberInfo {
 
         private String type;
         private String packageInfo;
+        private String packageName;
         private String kind;
         private boolean selected = false;
 
@@ -88,8 +95,13 @@ public class PropertyTypeMemberInfo {
             return this;
         }
 
+        public Builder packageName(String packageName) {
+            this.packageName = packageName;
+            return this;
+        }
+
         public PropertyTypeMemberInfo build() {
-            return new PropertyTypeMemberInfo(type, packageInfo, kind, selected);
+            return new PropertyTypeMemberInfo(type, packageInfo, packageName, kind, selected);
         }
     }
 }

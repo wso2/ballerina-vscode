@@ -4,7 +4,8 @@
     "orgName": "ballerina",
     "packageName": "graphql",
     "moduleName": "graphql",
-    "version": "1.17.0"
+    "version": "1.17.0",
+    "type": "Listener"
   },
   "filePath": "sample1/main.bal",
   "response": {
@@ -37,6 +38,23 @@
           ],
           "enabled": true,
           "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
@@ -115,6 +133,7 @@
                 {
                   "type": "ListenerHttp1Settings",
                   "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -151,6 +170,7 @@
                 {
                   "type": "ListenerSecureSocket",
                   "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -285,6 +305,7 @@
                 {
                   "type": "RequestLimitConfigs",
                   "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -349,6 +370,7 @@
                 {
                   "type": "ServerSocketConfig",
                   "packageInfo": "ballerina:http:2.15.0",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }

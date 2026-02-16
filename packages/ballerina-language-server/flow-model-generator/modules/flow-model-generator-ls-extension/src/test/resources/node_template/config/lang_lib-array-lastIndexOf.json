@@ -57,7 +57,7 @@
           },
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType[]",
+            "ballerinaType": "(anydata|error)[]",
             "selected": false
           }
         ],
@@ -79,7 +79,7 @@
         "types": [
           {
             "fieldType": "EXPRESSION",
-            "ballerinaType": "array:AnydataType",
+            "ballerinaType": "(anydata|error)",
             "selected": false
           }
         ],

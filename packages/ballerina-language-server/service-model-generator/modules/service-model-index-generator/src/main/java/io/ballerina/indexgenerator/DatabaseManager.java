@@ -115,10 +115,10 @@ class DatabaseManager {
                         parameterKind.name(), optional, importStatements});
     }
 
-    public static void insertParameterMemberType(int parameterId, String type, String kind, String packageIdentifier) {
-        String sql = "INSERT INTO ParameterMemberType (parameter_id, type, kind, package) " +
+    public static void insertParameterMemberType(int parameterId, String type, String kind, String packageInfo) {
+        String sql = "INSERT INTO ParameterMemberType (parameter_id, type, kind, packageInfo) " +
                 "VALUES (?, ?, ?, ?)";
-        insertEntry(sql, new Object[]{parameterId, type, kind, packageIdentifier});
+        insertEntry(sql, new Object[]{parameterId, type, kind, packageInfo});
     }
 
     public static void insertServiceDeclaration(int packageId,
@@ -167,11 +167,11 @@ class DatabaseManager {
     }
 
     public static void insertAnnotation(int packageId, String annotName, String attachmentPoints,
-                                        String displayName, String description, String typeConstraint, String pkg) {
+                                        String displayName, String description, String typeConstraint, String pkgInfo) {
         String sql = "INSERT INTO Annotation (package_id, annot_name, attachment_points, display_name, description, " +
-                "type_constraint, package) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                "type_constraint, packageInfo) VALUES (?, ?, ?, ?, ?, ?, ?)";
         insertEntry(sql, new Object[]{packageId, annotName, attachmentPoints, displayName, description, typeConstraint,
-                pkg});
+                pkgInfo});
     }
 
     public static int insertServiceInitializerProperty(int packageId, String keyName, String label, String description,

@@ -4,7 +4,8 @@
     "orgName": "ballerinax",
     "packageName": "kafka",
     "moduleName": "kafka",
-    "version": "4.6.0"
+    "version": "4.6.0",
+    "type": "Listener"
   },
   "filePath": "sample1/main.bal",
   "response": {
@@ -37,6 +38,23 @@
           ],
           "enabled": true,
           "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
           "optional": false,
           "advanced": false
         },
@@ -1412,6 +1430,7 @@
                 {
                   "type": "SecureSocket",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -1448,6 +1467,7 @@
                 {
                   "type": "AuthenticationConfiguration",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }

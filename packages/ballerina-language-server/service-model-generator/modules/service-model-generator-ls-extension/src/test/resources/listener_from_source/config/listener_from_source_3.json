@@ -52,6 +52,23 @@
           "optional": false,
           "advanced": false
         },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
         "port": {
           "metadata": {
             "label": "Port",
@@ -99,6 +116,7 @@
                 {
                   "type": "ListenerConfiguration",
                   "packageInfo": "ballerina:http:2.15.4",
+                  "packageName": "http",
                   "kind": "RECORD_TYPE",
                   "selected": true
                 }

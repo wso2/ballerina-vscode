@@ -1,0 +1,9 @@
+{
+  "description": "Sample Model providers",
+  "kind": "CONNECTOR",
+  "source": "empty.bal",
+  "queryMap": {
+    "q": "ModelProvider"
+  },
+  "categories": []
+}

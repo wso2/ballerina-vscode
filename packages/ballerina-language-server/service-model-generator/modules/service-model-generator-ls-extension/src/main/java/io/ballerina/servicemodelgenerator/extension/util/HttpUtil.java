@@ -668,6 +668,7 @@ public final class HttpUtil {
                 .name("", editable)
                 .mediaType(mediaType, editable)
                 .editable(editable)
+                .enabled(true)
                 .build();
     }
 

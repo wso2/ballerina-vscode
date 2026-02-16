@@ -119,7 +119,7 @@
                         "selected": true
                       }
                     ],
-                    "value": "()",
+                    "value": "var",
                     "placeholder": "var",
                     "optional": false,
                     "editable": true,

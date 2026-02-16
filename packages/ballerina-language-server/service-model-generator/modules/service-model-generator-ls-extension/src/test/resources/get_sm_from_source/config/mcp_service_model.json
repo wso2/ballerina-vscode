@@ -179,6 +179,7 @@
               {
                 "type": "ServiceConfiguration",
                 "packageInfo": "ballerina:mcp:1.0.0",
+                "packageName": "mcp",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }

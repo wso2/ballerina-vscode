@@ -1631,7 +1631,7 @@
                 "selected": true
               }
             ],
-            "value": "json",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": false,

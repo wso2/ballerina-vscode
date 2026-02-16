@@ -38,6 +38,7 @@ import io.ballerina.compiler.api.values.ConstantValue;
 import io.ballerina.compiler.syntax.tree.AssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.BlockStatementNode;
 import io.ballerina.compiler.syntax.tree.CheckExpressionNode;
+import io.ballerina.compiler.syntax.tree.ClassDefinitionNode;
 import io.ballerina.compiler.syntax.tree.ClientResourceAccessActionNode;
 import io.ballerina.compiler.syntax.tree.CompoundAssignmentStatementNode;
 import io.ballerina.compiler.syntax.tree.DoStatementNode;
@@ -110,6 +111,8 @@ public class CodeAnalyzer extends NodeVisitor {
     private IntermediateModel.ServiceModel currentServiceModel;
     private final Path rootPath;
     private final ConnectionFinder connectionFinder;
+    private IntermediateModel.ServiceClassModel currentServiceClass;
+    private String serviceClassName;
 
     public CodeAnalyzer(SemanticModel semanticModel, IntermediateModel intermediateModel, Path rootPath,
                         ConnectionFinder connectionFinder) {
@@ -117,11 +120,29 @@ public class CodeAnalyzer extends NodeVisitor {
         this.intermediateModel = intermediateModel;
         this.rootPath = rootPath;
         this.connectionFinder = connectionFinder;
+        this.currentFunctionModel = null;
+        this.currentServiceModel = null;
+        this.currentServiceClass = null;
     }
 
     @Override
     public void visit(ModulePartNode modulePartNode) {
         modulePartNode.members().forEach(member -> member.accept(this));
+    }
+
+    @Override
+    public void visit(ClassDefinitionNode classDefinitionNode) {
+        classDefinitionNode.classTypeQualifiers().stream()
+                .filter(qualifier -> qualifier.kind() == SyntaxKind.SERVICE_KEYWORD)
+                .findAny()
+                .ifPresent(qualifier -> {
+                    serviceClassName = classDefinitionNode.className().text();
+                    currentServiceClass = new IntermediateModel.ServiceClassModel(serviceClassName);
+                    intermediateModel.serviceClassModelMap.put(serviceClassName, currentServiceClass);
+                });
+        classDefinitionNode.members().forEach(member -> member.accept(this));
+        serviceClassName = null;
+        currentServiceClass = null;
     }
 
     @Override
@@ -217,6 +238,9 @@ public class CodeAnalyzer extends NodeVisitor {
             }
         }
         functionDefinitionNode.functionBody().accept(this);
+        if (currentServiceClass != null) {
+            currentServiceClass.functionModels.add(this.currentFunctionModel);
+        }
         this.currentFunctionModel = null;
     }
 
@@ -327,11 +351,21 @@ public class CodeAnalyzer extends NodeVisitor {
         implicitNewExpressionNode.parenthesizedArgList()
                 .ifPresent(parenthesizedArgList -> parenthesizedArgList.arguments()
                         .forEach(expr -> expr.accept(this)));
+        if (currentFunctionModel != null) {
+            semanticModel.symbol(implicitNewExpressionNode).ifPresent(symbol -> {
+                if (symbol instanceof ClassSymbol classSymbol) {
+                    classSymbol.getName().ifPresent(name -> currentFunctionModel.usedClasses.add(name));
+                }
+            });
+        }
     }
 
     @Override
     public void visit(ExplicitNewExpressionNode explicitNewExpressionNode) {
         explicitNewExpressionNode.parenthesizedArgList().arguments().forEach(expr -> expr.accept(this));
+        if (currentFunctionModel != null) {
+            currentFunctionModel.usedClasses.add(explicitNewExpressionNode.typeDescriptor().toSourceCode().trim());
+        }
     }
 
     @Override
