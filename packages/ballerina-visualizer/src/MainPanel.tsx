@@ -87,6 +87,7 @@ import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
 import { EvalsetViewer } from "./views/EvalsetViewer/EvalsetViewer";
+import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
 
 const globalStyles = css`
     *,
@@ -655,6 +656,15 @@ const MainPanel = () => {
                             />
                         );
                         break;
+                    case MACHINE_VIEW.ConfigurationCollector:
+                        setViewComponent(
+                            <ConfigurationCollector
+                                data={value.agentMetadata?.configurationCollector}
+                                onClose={() => handleApprovalClose(value.agentMetadata?.configurationCollector)}
+                            />
+                        );
+                        break;
+
                     default:
                         setNavActive(false);
                         setViewComponent(<LoadingRing />);
