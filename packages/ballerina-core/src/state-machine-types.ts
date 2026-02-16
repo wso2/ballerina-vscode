@@ -90,6 +90,7 @@ export enum MACHINE_VIEW {
     BIFunctionForm = "Add Function SKIP",
     BINPFunctionForm = "Add Natural Function SKIP",
     BITestFunctionForm = "Add Test Function SKIP",
+    BIAIEvaluationForm = "AI Evaluation SKIP",
     BIServiceWizard = "Service Wizard SKIP",
     BIServiceConfigView = "Service Config View",
     BIListenerConfigView = "Listener Config View",
@@ -101,7 +102,8 @@ export enum MACHINE_VIEW {
     ResolveMissingDependencies = "Resolve Missing Dependencies",
     ServiceFunctionForm = "Service Function Form",
     BISamplesView = "BI Samples View",
-    ReviewMode = "Review Mode SKIP"
+    ReviewMode = "Review Mode SKIP",
+    EvalsetViewer = "Evalset Viewer SKIP"
 }
 
 export interface MachineEvent {
@@ -141,6 +143,7 @@ export interface VisualizerLocation {
     isGraphql?: boolean;
     rootDiagramId?: string;
     metadata?: VisualizerMetadata;
+    agentMetadata?: AgentMetadata;
     scope?: SCOPE;
     projectStructure?: ProjectStructureResponse;
     org?: string;
@@ -150,6 +153,7 @@ export interface VisualizerLocation {
     dataMapperMetadata?: DataMapperMetadata;
     artifactInfo?: ArtifactInfo;
     reviewData?: ReviewModeData;
+    evalsetData?: EvalsetData;
 }
 
 export interface ArtifactInfo {
@@ -164,12 +168,23 @@ export interface ArtifactData {
     identifier?: string;
 }
 
+export interface AgentMetadata {
+}
+
+export interface ApprovalOverlayState {
+    show: boolean;
+    message?: string;
+}
+
 export interface VisualizerMetadata {
     haveLS?: boolean;
     isBISupported?: boolean;
     recordFilePath?: string;
     enableSequenceDiagram?: boolean; // Enable sequence diagram view
     target?: LinePosition;
+    featureSupport?: {
+        aiEvaluation?: boolean;
+    };
 }
 
 export interface DataMapperMetadata {
@@ -190,6 +205,88 @@ export interface ReviewModeData {
     currentIndex: number;
     onAccept?: string;
     onReject?: string;
+}
+
+// --- Evalset Trace Types ---
+export type EvalRole = 'system' | 'user' | 'assistant' | 'function';
+
+export interface EvalChatUserMessage {
+    role: 'user';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatSystemMessage {
+    role: 'system';
+    content: string | any;
+    name?: string;
+}
+
+export interface EvalChatAssistantMessage {
+    role: 'assistant';
+    content?: string | null;
+    name?: string;
+    toolCalls?: EvalFunctionCall[];
+}
+
+export interface EvalChatFunctionMessage {
+    role: 'function';
+    content?: string | null;
+    name: string;
+    id?: string;
+}
+
+export type EvalChatMessage = EvalChatUserMessage | EvalChatSystemMessage | EvalChatAssistantMessage | EvalChatFunctionMessage;
+
+export interface EvalFunctionCall {
+    name: string;
+    arguments?: { [key: string]: any };
+    id?: string;
+}
+
+export interface EvalToolSchema {
+    name: string;
+    description: string;
+    parametersSchema?: { [key: string]: any };
+}
+
+export interface EvalIteration {
+    history: EvalChatMessage[];
+    output: EvalChatAssistantMessage | EvalChatFunctionMessage | any;
+    startTime: string;
+    endTime: string;
+}
+
+export interface EvalsetTrace {
+    id: string;
+    userMessage: EvalChatUserMessage;
+    iterations: EvalIteration[];
+    output: EvalChatAssistantMessage | any;
+    tools: EvalToolSchema[];
+    toolCalls: EvalFunctionCall[];
+    startTime: string;
+    endTime: string;
+}
+
+export interface EvalThread {
+    id: string;
+    name: string;
+    traces: EvalsetTrace[];
+    created_on: string;
+}
+
+export interface EvalSet {
+    id: string;
+    name?: string;
+    description?: string;
+    threads: EvalThread[];
+    created_on: string;
+}
+
+export interface EvalsetData {
+    filePath: string;
+    content: EvalSet;
+    threadId?: string;
 }
 
 export interface PopupVisualizerLocation extends VisualizerLocation {
@@ -283,12 +380,14 @@ export interface ToolCall {
     type: "tool_call";
     toolName: string;
     toolInput?: any;
+    toolCallId?: string;
 }
 
 export interface ToolResult {
     type: "tool_result";
     toolName: string;
     toolOutput?: any;
+    toolCallId?: string;
 }
 
 export interface EvalsToolResult {
@@ -379,6 +478,7 @@ export const popupStateChanged: NotificationType<PopupMachineStateValue> = { met
 export const getPopupVisualizerState: RequestType<void, PopupVisualizerLocation> = { method: 'getPopupVisualizerState' };
 
 export const breakpointChanged: NotificationType<boolean> = { method: 'breakpointChanged' };
+export const approvalOverlayState: NotificationType<ApprovalOverlayState> = { method: 'approvalOverlayState' };
 
 // ------------------> AI Related state types <-----------------------
 export type AIMachineStateValue =
@@ -567,7 +667,7 @@ export enum TaskTypes {
 export interface Task {
     description: string;
     status: TaskStatus;
-    type : TaskTypes;
+    type: TaskTypes;
 }
 
 export interface Plan {

@@ -41,11 +41,13 @@ import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
+import { SliderEditor } from "./SliderEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
 import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { ArgManagerEditor } from "../ParamManager/ArgManager";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -98,12 +100,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
             type.fieldType === "MAPPING_EXPRESSION" ||
             (type.fieldType === "SINGLE_SELECT" && isDropDownType(type)) ||
             type.fieldType === "RECORD_MAP_EXPRESSION" ||
-            (field.type === "FLAG" && field.types?.length > 1)
+            (field.type === "FLAG" && field.types?.length > 1) ||
+            type.fieldType === "CLAUSE_EXPRESSION"
         );
     });
 
     if (!field.enabled || field.hidden) {
         return <></>;
+    } else if (field.type === "SLIDER") {
+        return <SliderEditor field={field} />;
     } else if (field.type === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
     } else if (field.type === "HEADER_SET") {
@@ -196,7 +201,9 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (field.type === "VIEW") {
         // Skip this property
         return <></>;
-    } else if (
+    } else if(field.type === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
+        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+    }else if (
         (field.type === "PARAM_MANAGER") ||
         (field.type === "REPEATABLE_PROPERTY" && isTemplateType(getPrimaryInputType(field.types)))
     ) {
@@ -225,9 +232,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         );
     } else if (field.type === "DM_JOIN_CLAUSE_RHS_EXPRESSION") {
         // Expression field for Data Mapper join on condition RHS
+        const clauseExpressionField: FormField = {
+            ...field,
+            type: "CLAUSE_EXPRESSION",
+            types: [{ fieldType: "CLAUSE_EXPRESSION", selected: false }]
+        }; // Transforming to CLAUSE_EXPRESSION type to support diagnostics
+
         return (
             <DataMapperJoinClauseRhsEditor
-                field={field}
+                field={clauseExpressionField}
                 openSubPanel={openSubPanel}
                 subPanelView={subPanelView}
                 handleOnFieldFocus={handleOnFieldFocus}

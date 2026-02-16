@@ -89,7 +89,7 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
 
         // Check if service is already running BEFORE we potentially start it
         // This will be used to determine if we should reuse the session ID for AI Agent service
-        const wasServiceAlreadyRunning = await isServiceAlreadyRunning(projectPath);
+        let wasServiceAlreadyRunning = await isServiceAlreadyRunning(projectPath);
 
         if (withNotice) {
             const selection = await vscode.window.showInformationMessage(
@@ -101,6 +101,8 @@ async function openTryItView(withNotice: boolean = false, resourceMetadata?: Res
             if (selection !== "Test") {
                 return;
             }
+
+            wasServiceAlreadyRunning = false;
         } else {
             const processesRunning = await checkBallerinaProcessRunning(projectPath);
             if (!processesRunning) {

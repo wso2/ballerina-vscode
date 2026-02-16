@@ -634,7 +634,7 @@ export function FormGeneratorNew(props: FormProps) {
                 shouldUpdateNode?: boolean,
                 variableType?: string
             ) => {
-                if (!showDiagnostics || isDataMapperEditor) {
+                if (!showDiagnostics) {
                     setDiagnosticsInfo({ key, diagnostics: [] });
                     return;
                 }
