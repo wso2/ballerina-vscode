@@ -108,7 +108,7 @@ export function ArrayEditor(props: ArrayEditorProps) {
                 updatedValue = Array.isArray(field.value) ? field.value[index] : "";
                 setValue(`${field.key}-${index}`, updatedValue ?? "");
             }
-            // HACK: When using expression editor and if the user deleted whole text then the value becomes
+            // HACK: When using expression editor and if the user deletes whole text then the value becomes
             // an empty value. 
             if (updatedValue === "") {
                 setValue(`${field.key}-${index}`, " ");

@@ -112,7 +112,7 @@ export function FunctionForm(props: FunctionFormProps) {
         fields.forEach((field) => {
             const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
-                field.type = "TEXTAREA";
+                field.type = "DOC_TEXT";
             }
             if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
                 if ((primaryInputType.template as any).value.parameterDescription) {

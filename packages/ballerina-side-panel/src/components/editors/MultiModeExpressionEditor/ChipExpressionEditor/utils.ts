@@ -41,7 +41,7 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (inputType: InputType): InputMode => {
+export const getInputModeFromTypes = (inputType: InputType): InputMode | undefined => {
     if (!inputType) return;
 
     if (inputType.fieldType === "SQL_QUERY") {
