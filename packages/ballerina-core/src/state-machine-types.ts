@@ -277,7 +277,7 @@ export interface EvalsetTrace {
     iterations: EvalIteration[];
     output: EvalChatAssistantMessage | any;
     tools: EvalToolSchema[];
-    toolCalls: EvalFunctionCall[];
+    toolCalls?: EvalFunctionCall[];
     startTime: string;
     endTime: string;
 }
