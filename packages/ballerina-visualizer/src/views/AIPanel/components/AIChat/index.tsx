@@ -470,7 +470,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        if (!taskOutput.success || !taskOutput.allTasks || taskOutput.allTasks.length === 0) {
+                        if (!taskOutput.success || !taskOutput.tasks || taskOutput.tasks.length === 0) {
                             const isInternalError = taskOutput.message &&
                                 taskOutput.message.includes("ERROR: Missing");
 
@@ -501,7 +501,7 @@ const AIChat: React.FC = () => {
                             }
                         } else {
                             const todoData = {
-                                tasks: taskOutput.allTasks,
+                                tasks: taskOutput.tasks,
                                 message: taskOutput.message
                             };
                             const todoJson = JSON.stringify(todoData);
