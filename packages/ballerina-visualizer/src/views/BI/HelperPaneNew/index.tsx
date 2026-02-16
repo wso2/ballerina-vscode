@@ -101,8 +101,6 @@ const HelperPaneNewEl = ({
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
 
-    const { addModal } = useModalStack()
-
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -167,13 +165,6 @@ const HelperPaneNewEl = ({
             return insertText;
         }
         return insertText.value;
-    };
-
-    const getCursorOffset = (insertText: string | CompletionInsertText): number => {
-        if (typeof insertText === 'string') {
-            return 0;
-        }
-        return insertText.cursorOffset ?? 0;
     };
 
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
@@ -265,24 +256,6 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={300} paneHeight='170px'>
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
-
-                                {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
-                                        <>
-                                            {valueCreationOptions.length > 0 && (
-                                                <SlidingPaneNavContainer
-                                                    ref={el => menuItemRefs.current[0] = el}
-                                                    to="CREATE_VALUE"
-                                                    data={recordTypeField}
-                                                >
-                                                    <ExpandableList.Item>
-                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                            Create Value
-                                                        </Typography>
-                                                    </ExpandableList.Item>
-                                                </SlidingPaneNavContainer>
-                                            )}</>
-                                )}
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[2] = el}
                                     to="INPUTS"
