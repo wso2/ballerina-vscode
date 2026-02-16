@@ -19,7 +19,7 @@
 import { ConnectionListItem, getTypeForDisplayType, ServiceInfoVisibilityEnum, type MarketplaceItem } from "@wso2/wso2-platform-core";
 import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { ConnectionConfigurationForm, ConnectionConfigurationFormProps } from "../ConnectionConfigurationPopup";
 import { DIRECTORY_MAP } from "@wso2/ballerina-core";
@@ -35,6 +35,7 @@ interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> 
     onAddDevantConfig: (name: string, value: string, isSecret: boolean) => Promise<void>;
     IDLFilePath?: string;
     biConnectionNames: string[];
+    existingDevantConnNames: string[];
     onFlowChange: (flow: DevantConnectionFlow | null) => void;
     projectPath: string;
 }
@@ -52,6 +53,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
         onFlowChange,
         importedConnection,
         projectPath,
+        existingDevantConnNames,
     } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
@@ -266,7 +268,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
                 if (fieldKey === "variable") {
                     return isValidDevantConnName(
                         value,
-                        devantConfigs?.map((conn) => conn.name) || [],
+                        existingDevantConnNames,
                         biConnectionNames,
                     );
                 }
@@ -278,7 +280,7 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
                         ? initialNameCandidate
                         : generateInitialConnectionName(
                               biConnectionNames,
-                              platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                              existingDevantConnNames,
                               initialNameCandidate,
                           );
                     if (importedConnection) {
