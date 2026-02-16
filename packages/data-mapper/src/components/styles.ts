@@ -307,7 +307,7 @@ export const useIONodesStyles = () => ({
         "& > vscode-button::part(control)": {
             justifyContent: "flex-start"
         },
-        "& > vscode-button:active": {
+        "& > vscode-button:not([disabled]):active": {
             background: "var(--vscode-button-background)",
             color: "var(--vscode-button-foreground)",
             "& p": {
@@ -316,6 +316,14 @@ export const useIONodesStyles = () => ({
             "& .action-icon": {
                 color: "var(--vscode-button-foreground) !important"
             }
+        },
+        "& > vscode-button[disabled]": {
+            opacity: 0.8,
+            cursor: "not-allowed",
+        },
+        "& > vscode-button[disabled]::part(control)": {
+            cursor: "not-allowed",
+            background: "var(--vscode-sideBar-background)"
         },
         "& .action-icon": {
             color: "var(--vscode-textLink-foreground)"

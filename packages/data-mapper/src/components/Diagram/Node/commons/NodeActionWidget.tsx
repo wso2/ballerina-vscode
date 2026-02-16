@@ -16,24 +16,42 @@
  * under the License.
  */
 
-import React from "react";
-import { Button, Icon } from "@wso2/ui-toolkit";
+import React, { useState } from "react";
+import { Button, Icon, ProgressRing } from "@wso2/ui-toolkit";
 import { useIONodesStyles } from "../../../styles";
 
 export interface NodeActionWidgetProps {
     onClick: () => void | Promise<void>;
     iconName: string;
-    tooltip: string;
+    tooltip?: string;
     label: string;
 }
 
 export function NodeActionWidget(props: NodeActionWidgetProps) {
     const { onClick, iconName, tooltip, label } = props;
     const classes = useIONodesStyles();
+    const [inProgress, setInProgress] = useState(false);
+
+    const handleOnClick = async () => {
+        setInProgress(true);
+        try {
+            await onClick();
+        } finally {
+            setInProgress(false);
+        }
+    };
 
     return (
-        <Button className={classes.nodeActionButton} onClick={onClick}>
-            <Icon name={iconName} className="action-icon" />
+        <Button 
+            className={classes.nodeActionButton} 
+            onClick={handleOnClick}
+            disabled={inProgress}
+        >
+            {inProgress ? (
+                <ProgressRing sx={{ height: '16px', width: '16px' }} />
+            ) : (
+                <Icon name={iconName} className="action-icon" />
+            )}
             <p style={{ margin: 0 }} title={tooltip}>
                 {label}
             </p>
