@@ -21,47 +21,14 @@ import styled from "@emotion/styled";
 import { Button, Codicon } from "@wso2/ui-toolkit";
 import type { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 
-const Container = styled.div<{ variant: string }>`
+const Container = styled.div`
     padding: 12px;
     border-radius: 4px;
     margin: 8px 0;
     font-family: var(--vscode-font-family);
     font-size: var(--vscode-font-size);
-
-    ${(props: { variant: string }) =>
-        props.variant === "error" &&
-        `
-        background-color: var(--vscode-inputValidation-errorBackground);
-        border: 1px solid var(--vscode-inputValidation-errorBorder);
-    `}
-
-    ${(props: { variant: string }) =>
-        props.variant === "done" &&
-        `
-        background-color: var(--vscode-editorWidget-background);
-        border: 1px solid var(--vscode-testing-iconPassed);
-    `}
-
-    ${(props: { variant: string }) =>
-        props.variant === "skipped" &&
-        `
-        background-color: var(--vscode-editorWidget-background);
-        border: 1px solid var(--vscode-testing-iconFailed);
-    `}
-
-    ${(props: { variant: string }) =>
-        props.variant === "creating_file" &&
-        `
-        background-color: var(--vscode-editorWidget-background);
-        border: 1px solid var(--vscode-focusBorder);
-    `}
-
-    ${(props: { variant: string }) =>
-        props.variant === "collecting" &&
-        `
-        background-color: var(--vscode-editor-background);
-        border: 1px solid var(--vscode-panel-border);
-    `}
+    border: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-textCodeBlock-background);
 `;
 
 const Header = styled.div`
@@ -76,16 +43,6 @@ const Title = styled.span`
     color: var(--vscode-foreground);
 `;
 
-const TestBadge = styled.span`
-    display: inline-block;
-    padding: 2px 8px;
-    margin-left: 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    font-weight: 600;
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-`;
 
 const ErrorContainer = styled.div`
     display: flex;
@@ -158,11 +115,10 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
 
     if (currentStage === "creating_file") {
         return (
-            <Container variant="creating_file">
+            <Container>
                 <Header>
                     <Codicon name="file" />
                     <Title>{data.message}</Title>
-                    {data.isTestConfig && <TestBadge>Test Configuration</TestBadge>}
                 </Header>
             </Container>
         );
@@ -170,11 +126,10 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
 
     if (currentStage === "collecting") {
         return (
-            <Container variant="collecting">
+            <Container>
                 <Header>
                     <Codicon name="key" />
                     <Title>{data.message}</Title>
-                    {data.isTestConfig && <TestBadge>Test Configuration</TestBadge>}
                 </Header>
                 <ButtonGroup>
                     <Button appearance="secondary" onClick={handleSkip}>
@@ -190,7 +145,7 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
 
     if (currentStage === "error" && data.error) {
         return (
-            <Container variant="error">
+            <Container>
                 <Header>
                     <Codicon name="warning" />
                     <Title>Configuration Collection Failed</Title>
@@ -205,11 +160,10 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
 
     if (currentStage === "done") {
         return (
-            <Container variant="done">
+            <Container>
                 <Header>
                     <Codicon name="pass" />
                     <Title>{data.message}</Title>
-                    {data.isTestConfig && <TestBadge>Test Configuration</TestBadge>}
                 </Header>
             </Container>
         );
@@ -217,11 +171,10 @@ export const ConfigurationCollectorSegment: React.FC<ConfigurationCollectorSegme
 
     if (currentStage === "skipped") {
         return (
-            <Container variant="skipped">
+            <Container>
                 <Header>
                     <Codicon name="error" />
                     <Title>{data.message}</Title>
-                    {data.isTestConfig && <TestBadge>Test Configuration</TestBadge>}
                 </Header>
             </Container>
         );
