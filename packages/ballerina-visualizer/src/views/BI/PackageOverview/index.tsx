@@ -846,7 +846,7 @@ export function PackageOverview(props: PackageOverviewProps) {
             {!isLibrary && (
                 <>
                     <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
-                        <Codicon name="plat" sx={{ marginRight: 5 }} /> Run
+                        <Codicon name="play" sx={{ marginRight: 5 }} /> Run
                     </Button>
                     <Button appearance="icon" onClick={handleLocalDebug} buttonSx={{ padding: "4px 8px" }}>
                         <Codicon name="debug" sx={{ marginRight: 5 }} /> Debug

@@ -48,12 +48,14 @@ export interface CreateDevantConnectionV2Req {
     }
     importInternalConnectionParams?: {
         connection: ConnectionDetailed;
+        configs: DevantTempConfig[];
     }
     marketplaceItem: MarketplaceItem;
 }
 
 export interface ImportDevantConnectionReq {
     connectionListItem: ConnectionListItem;
+    configs: DevantTempConfig[];
 }
 
 export interface RegisterAndCreateDevantConnectionReq {

@@ -21,6 +21,7 @@ import { PersistOptions, createJSONStorage } from "zustand/middleware";
 import { platformExtStore } from "./platform-store";
 import Handlebars from "handlebars";
 import { updateSourceCode } from "../../utils";
+import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
@@ -304,6 +305,7 @@ export const initializeDevantConnection = async (params: {
     marketplaceItem: MarketplaceItem;
     configurations: ConnectionConfigurations;
     platformExt: IWso2PlatformExtensionAPI;
+    devantConfigs: DevantTempConfig[];
 }): Promise<{ connectionName?: string; connectionNode?: AvailableNode }> => {
     const projectPath = StateMachine.context().projectPath;
 
@@ -358,27 +360,31 @@ export const initializeDevantConnection = async (params: {
         ConsumerSecret?: IkeyVal;
     }
     const keys: Ikeys = {};
-    const syntaxTree = (await StateMachine.context().langClient.getSyntaxTree({
-        documentIdentifier: { uri: configFileUri.toString() },
-    })) as SyntaxTree;
-    for (const entry in connectionKeys) {
-        let baseName = connectionKeys[entry].key?.toLowerCase();
-        let candidate = baseName;
-        let counter = 1;
-        while (
-            (syntaxTree.syntaxTree as ModulePart)?.members?.some(
-                (k) =>
-                    (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === candidate
-            )
-        ) {
-            candidate = `${baseName}${counter}`;
-            counter++;
+
+    const deleteTempConfigBalEdits = new WorkspaceEdit();
+    const configBalFileUri = getConfigFileUri();
+
+    for (const entry of params.devantConfigs) {
+        if(entry.node){
+            deleteTempConfigBalEdits.delete(
+                configBalFileUri,
+                new vscode.Range(
+                    new vscode.Position(entry.node.position.startLine, entry.node.position.startColumn),
+                    new vscode.Position(entry.node.position.endLine, entry.node.position.endColumn),
+                ),
+            );
         }
 
-        keys[entry] = {
-            keyname: candidate,
-            envName: getInjectedEnvVarNames(connectionKeys[entry].envVariableName),
+        keys[entry.id] = {
+            keyname: entry.name,
+            envName: getInjectedEnvVarNames(connectionKeys[entry.id].envVariableName),
         };
+    }
+    if(deleteTempConfigBalEdits.size > 0){
+        await updateSourceCode({
+            textEdits: { [configBalFileUri.toString()]: deleteTempConfigBalEdits.get(configBalFileUri) || [] },
+            skipPayloadCheck: true,
+        });
     }
 
     await addConfigurable(

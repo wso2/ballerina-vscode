@@ -378,6 +378,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         platformExtStore.getState().setConnectionState({ connectedToDevant: connected });
     }
 
+    // remove registerMarketplaceConnection
     async registerMarketplaceConnection(params: RegisterMarketplaceConnectionReq): Promise<MarketplaceItem> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -655,11 +656,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setReadyMode();
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage("Failed to delete Devant connection");
+            window.showErrorMessage(`Failed to delete Devant connection: ${(err as Error).message}`);
             log(`Failed to invoke deleteDevantConnection: ${err}`);
         }
     }
 
+    // todo: delete if not used
     async importDevantComponentConnection(params: ImportDevantConnectionReq): Promise<ImportDevantConnectionResp> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -699,6 +701,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 configurations: connectionItem?.configurations,
                 // todo: handle third party
                 securityType,
+                devantConfigs: params.configs
             });
 
             StateMachine.setReadyMode();
@@ -706,7 +709,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return resp;
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage("Failed to import Devant connection");
+            window.showErrorMessage(`Failed to import Devant connection: ${(err as Error).message}`);
             log(`Failed to invoke importDevantComponentConnection: ${err}`);
         }
     }
@@ -745,6 +748,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                     visibility,
                     configurations,
                     securityType,
+                    devantConfigs: params.importInternalConnectionParams.configs
                 });
 
                 return resp;
@@ -797,6 +801,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                         visibility: params.createInternalConnectionParams.visibility!,
                         configurations,
                         securityType,
+                        devantConfigs: params.createInternalConnectionParams.devantTempConfigs
                     });
 
                     return resp;
@@ -856,7 +861,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return { connectionName: "", connectionNode: null };
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage("Failed to create Devant connection");
+            window.showErrorMessage(`Failed to create Devant connection: ${(err as Error).message}`);
             log(`Failed to invoke createDevantComponentConnectionV2: ${err}`);
         }
     }
@@ -911,7 +916,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return { connectionNode: null };
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage("Failed to invoke generateCustomConnectorFromOAS");
+            window.showErrorMessage(`Failed to invoke generateCustomConnectorFromOAS: ${(err as Error).message}`);
             log(`Failed to invoke generateCustomConnectorFromOAS: ${err}`);
         }
     }
@@ -1091,7 +1096,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             return { connectionName: "", connectionNode: null };
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage("Failed to create Devant connection");
+            window.showErrorMessage(`Failed to create Devant connection: ${(err as Error).message}`);
             log(`Failed to invoke registerAndCreateDevantComponentConnection: ${err}`);
         }
     }

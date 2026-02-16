@@ -31,7 +31,7 @@ import styled from "@emotion/styled";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
 import { ActionButton, ConnectorContentContainer, ConnectorInfoContainer, FooterContainer } from "../styles";
-import { DevantConnectionFlow } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
 
 
@@ -146,6 +146,7 @@ interface CreateConnectionForm {
 
 interface DevantConnectorCreateFormProps {
     marketplaceItem: MarketplaceItem | undefined,
+    devantConfigs: DevantTempConfig[];
     devantFlow: DevantConnectionFlow,
     biConnectionNames?: string[],
     onSuccess?: (data: { connectionNode?: any; connectionName?: string }) => void,
@@ -156,6 +157,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     marketplaceItem,
     devantFlow,
     onSuccess,
+    devantConfigs,
 }) => {
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
     const [showAdvancedSection, setShowAdvancedSection] = useState(false);
@@ -200,6 +202,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
                     schemaId: data.schemaId,
                     visibility: data.visibility,
                     isProjectLevel: data.isProjectLevel,
+                    devantTempConfigs: devantConfigs,
                 },
             }),
         onSuccess: (data) => {
