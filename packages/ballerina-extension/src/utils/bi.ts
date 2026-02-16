@@ -41,7 +41,7 @@ import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
 
-export const README_FILE = "readme.md";
+export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
 export const DATA_MAPPING_FILE = "data_mappings.bal";
 

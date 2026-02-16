@@ -22,12 +22,15 @@ import { Position, Progress, Range, Uri, window, workspace, WorkspaceEdit } from
 import { PROJECT_KIND, ProjectInfo, TextEdit, WorkspaceTypeResponse } from "@wso2/ballerina-core";
 import axios from 'axios';
 import fs from 'fs';
+import * as path from 'path';
+
 import {
     checkIsBallerinaPackage,
     checkIsBallerinaWorkspace,
     getBallerinaPackages,
     hasMultipleBallerinaPackages
 } from '../../utils';
+import { resolveReadmePath } from '../bi-diagram/utils';
 
 export const BALLERINA_INTEGRATOR_ISSUES_URL = "https://github.com/wso2/product-ballerina-integrator/issues";
 
@@ -249,4 +252,9 @@ export async function findWorkspaceTypeFromWorkspaceFolders(): Promise<Workspace
     }
 
     return { type: "UNKNOWN" };
+}
+
+export function isReadmeExists(projectPath: string): boolean {
+    const existingReadmePath = resolveReadmePath(projectPath);
+    return existingReadmePath !== undefined;
 }

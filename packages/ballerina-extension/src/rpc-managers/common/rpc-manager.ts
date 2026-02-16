@@ -50,7 +50,7 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, Uri, ViewColumn, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { parse } from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
@@ -67,9 +67,12 @@ import {
     findWorkspaceTypeFromWorkspaceFolders,
     getUpdatedSource,
     handleDownloadFile,
+    isReadmeExists,
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
+import { readOrWriteReadmeContent, resolveReadmePath } from "../bi-diagram/utils";
+import { README_FILE } from "../../utils/bi";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -424,6 +427,65 @@ export class CommonRpcManager implements CommonRPCAPI {
             success: false,
             message: ''
         };
+
+        const projectPath = StateMachine.context().projectPath;
+        const projectStructure = StateMachine.context().projectStructure;
+
+        const targetProjectStructure = projectStructure?.projects.find(project => project.projectPath === projectPath);
+        if (!targetProjectStructure) {
+            return result;
+        }
+
+        const projectName = targetProjectStructure.projectTitle || targetProjectStructure.projectName;
+        const isLibrary = targetProjectStructure.isLibrary;
+
+        const readmeExists = isReadmeExists(projectPath);
+        const isEmptyReadme = readmeExists &&
+            (await readOrWriteReadmeContent({ projectPath, read: true })).content === '';
+
+        const artifactType = isLibrary ? 'library' : 'integration';
+        let confirmationMessage: string;
+        let primaryButton: string;
+        if (!readmeExists) {
+            confirmationMessage = `"${projectName}" requires a README.md before it can be published to Ballerina Central. Please try again after creating the README.md file.`;
+            primaryButton = 'Create README';
+        } else if (isEmptyReadme) {
+            confirmationMessage = `"${projectName}" contains an empty README.md file. Please enter a description for your ${artifactType} and try again.`;
+            primaryButton = 'Edit README';
+        } else {
+            confirmationMessage = `Publish "${projectName}" to Ballerina Central? Your ${artifactType} will be made available to the Ballerina community.`;
+            primaryButton = 'Publish to Central';
+        }
+
+        const confirmPublish = await window.showInformationMessage(
+            confirmationMessage,
+            { modal: true },
+            primaryButton
+        );
+        if (!confirmPublish) {
+            return result;
+        }
+
+        if (!readmeExists) {
+            // Create a new README.md file with the default content
+            const readmeContent = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
+            await readOrWriteReadmeContent({ projectPath: projectPath, content: readmeContent, read: false });
+
+            // Open readme file in the editor
+            workspace.openTextDocument(path.join(projectPath, README_FILE)).then((doc) => {
+                window.showTextDocument(doc, ViewColumn.Beside);
+            });
+
+            return result;
+        } else if (isEmptyReadme) {
+            // Open readme file in the editor
+            const readmePath = resolveReadmePath(projectPath);
+            workspace.openTextDocument(readmePath ?? path.join(projectPath, README_FILE)).then((doc) => {
+                window.showTextDocument(doc, ViewColumn.Beside);
+            });
+
+            return result;
+        }
 
         await window.withProgress(
             {
