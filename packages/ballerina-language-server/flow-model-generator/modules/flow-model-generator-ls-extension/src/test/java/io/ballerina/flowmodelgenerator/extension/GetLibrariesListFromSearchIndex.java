@@ -51,7 +51,7 @@ public class GetLibrariesListFromSearchIndex extends AbstractLSTest {
         Path configJsonPath = configDir.resolve(config);
         TestConfig testConfig = gson.fromJson(Files.newBufferedReader(configJsonPath), TestConfig.class);
 
-        GetAllLibrariesRequest request = new GetAllLibrariesRequest(null);
+        GetAllLibrariesRequest request = new GetAllLibrariesRequest("ALL");
         JsonElement response = getResponse(request);
 
         JsonArray actualLibraries = response.getAsJsonObject().getAsJsonArray("libraries");
@@ -117,7 +117,7 @@ public class GetLibrariesListFromSearchIndex extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "getLibrariesListFromSearchIndex";
+        return "getLibrariesList";
     }
 
     @Override

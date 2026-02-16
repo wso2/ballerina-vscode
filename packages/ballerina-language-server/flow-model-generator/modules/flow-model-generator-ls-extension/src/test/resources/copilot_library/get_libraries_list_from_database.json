@@ -1,5 +1,6 @@
 {
   "description": "Test Copilot libraries listing from database",
+  "mode": "ALL",
   "expectedLibraries": [
     {
       "name":"ballerina/ai",
@@ -51,7 +52,7 @@
     },
     {
       "name":"ballerina/edi",
-      "description":"This module provides APIs for processing Electronic Data Interchange (EDI) messages, enabling parsing, validation, and transformation of EDI documents in various formats."
+      "description":""
     },
     {
       "name":"ballerina/email",

@@ -42,8 +42,8 @@ public class CopilotLibraryListTest extends AbstractLSTest {
     @Override
     protected Object[] getConfigsList() {
         return new Object[][]{
-//                {Path.of("get_libraries_list.json")},
-                {Path.of("get_libraries_list_healthcare.json")},
+                {Path.of("get_libraries_list_from_database.json")},
+//                {Path.of("get_libraries_list_healthcare.json")},
         };
     }
 

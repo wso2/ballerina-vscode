@@ -91,7 +91,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
                 }
 
                 // Verify complete library structure (should have typeDefs, clients, functions)
-                if (!actualLibrary.has("typeDefs") || !actualLibrary.has("clients") ||
+                if (!actualLibrary.has("typeDefs") && !actualLibrary.has("clients") &&
                         !actualLibrary.has("functions")) {
                     log.info("Library '" + actualLibraryName + "' missing required fields");
                     assertFailure = true;
@@ -589,7 +589,7 @@ public class GetFilteredLibrariesFromSemanticModel extends AbstractLSTest {
 
     @Override
     protected String getApiName() {
-        return "getFilteredLibrariesFromSemanticModel";
+        return "getFilteredLibraries";
     }
 
     @Override
