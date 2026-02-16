@@ -18,7 +18,7 @@
  */
 
 import { exec } from 'child_process';
-import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind } from 'vscode';
+import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window, env } from 'vscode';
 import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
@@ -205,7 +205,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -214,7 +220,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -239,7 +251,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -248,7 +266,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -274,7 +298,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -283,7 +313,13 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 const endTime = Date.now();
                 const timeElapsed = calculateTimeElapsed(startTime, endTime, testItems);
 
-                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(() => {
+                reportTestResults(run, testItems, timeElapsed, projectPath, true).then(async () => {
+                    if (isAiEvaluations(test)) {
+                        const reportUri = await findLatestEvaluationReport(workingDirectory);
+                        if (reportUri) {
+                            await openEvaluationReport(reportUri);
+                        }
+                    }
                     endGroup(test, true, run);
                 }).catch(() => {
                     endGroup(test, false, run);
@@ -412,6 +448,49 @@ export async function readTestJson(file): Promise<JSON | undefined> {
         return JSON.parse(rawdata);
     } catch {
         return undefined;
+    }
+}
+
+async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri | undefined> {
+    const reportsDir = path.join(workingDirectory, 'evaluation-reports');
+
+    if (!fs.existsSync(reportsDir)) {
+        return undefined;
+    }
+
+    try {
+        const files = fs.readdirSync(reportsDir);
+        const htmlFiles = files
+            .filter((file: string) => file.endsWith('.html'))
+            .map((file: string) => ({
+                name: file,
+                path: path.join(reportsDir, file),
+                mtime: fs.statSync(path.join(reportsDir, file)).mtime
+            }))
+            .sort((a: { mtime: Date }, b: { mtime: Date }) => b.mtime.getTime() - a.mtime.getTime());
+
+        if (htmlFiles.length > 0) {
+            return Uri.file(htmlFiles[0].path);
+        }
+    } catch (error) {
+        console.error('Error finding evaluation report:', error);
+    }
+
+    return undefined;
+}
+
+async function openEvaluationReport(reportUri: Uri): Promise<void> {
+    try {
+        const action = await window.showInformationMessage(
+            'Evaluation report generated',
+            'Open in Browser'
+        );
+
+        if (action === 'Open in Browser') {
+            await env.openExternal(reportUri);
+        }
+    } catch (error) {
+        console.error('Failed to open evaluation report:', error);
     }
 }
 
