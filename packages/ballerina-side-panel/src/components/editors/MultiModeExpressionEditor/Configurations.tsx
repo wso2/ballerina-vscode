@@ -212,6 +212,10 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
 
     }
 
+    getIsToggleHelperAvailable(): boolean {
+        return false;
+    }
+
     getIsValueCompatible(value: string): boolean {
         return this.DECIMAL_INPUT_REGEX.test(value);
     }
