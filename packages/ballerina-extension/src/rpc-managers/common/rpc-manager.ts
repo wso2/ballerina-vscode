@@ -50,7 +50,7 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, ViewColumn, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { parse } from "@iarna/toml";
 import { extension } from "../../BalExtensionContext";
@@ -65,14 +65,16 @@ import {
     askProjectPath,
     BALLERINA_INTEGRATOR_ISSUES_URL,
     findWorkspaceTypeFromWorkspaceFolders,
+    getFirstBalaPath,
+    getPublishConfirmation,
+    getReadmeStatus,
+    getTargetProjectForPublish,
     getUpdatedSource,
     handleDownloadFile,
-    isReadmeExists,
+    handleReadmeSetup,
     selectSampleDownloadPath
 } from "./utils";
 import { VisualizerWebview } from "../../views/visualizer/webview";
-import { readOrWriteReadmeContent, resolveReadmePath } from "../bi-diagram/utils";
-import { README_FILE } from "../../utils/bi";
 
 export class CommonRpcManager implements CommonRPCAPI {
     async getTypeCompletions(): Promise<TypeResponse> {
@@ -423,69 +425,38 @@ export class CommonRpcManager implements CommonRPCAPI {
     }
 
     async publishToCentral(): Promise<PublishToCentralResponse> {
-        const result: PublishToCentralResponse = {
-            success: false,
-            message: ''
-        };
+        const failResponse = (): PublishToCentralResponse => ({ success: false, message: '' });
 
-        const projectPath = StateMachine.context().projectPath;
-        const projectStructure = StateMachine.context().projectStructure;
-
-        const targetProjectStructure = projectStructure?.projects.find(project => project.projectPath === projectPath);
-        if (!targetProjectStructure) {
-            return result;
+        const project = getTargetProjectForPublish();
+        if (!project) {
+            return failResponse();
         }
 
-        const projectName = targetProjectStructure.projectTitle || targetProjectStructure.projectName;
-        const isLibrary = targetProjectStructure.isLibrary;
+        const { projectPath, projectName, artifactType } = project;
+        const readmeStatus = await getReadmeStatus(projectPath);
+        const confirmation = getPublishConfirmation(projectName, artifactType, readmeStatus);
 
-        const readmeExists = isReadmeExists(projectPath);
-        const isEmptyReadme = readmeExists &&
-            (await readOrWriteReadmeContent({ projectPath, read: true })).content === '';
-
-        const artifactType = isLibrary ? 'library' : 'integration';
-        let confirmationMessage: string;
-        let primaryButton: string;
-        if (!readmeExists) {
-            confirmationMessage = `"${projectName}" requires a README.md before it can be published to Ballerina Central. Please try again after creating the README.md file.`;
-            primaryButton = 'Create README';
-        } else if (isEmptyReadme) {
-            confirmationMessage = `"${projectName}" contains an empty README.md file. Please enter a description for your ${artifactType} and try again.`;
-            primaryButton = 'Edit README';
-        } else {
-            confirmationMessage = `Publish "${projectName}" to Ballerina Central? Your ${artifactType} will be made available to the Ballerina community.`;
-            primaryButton = 'Publish to Central';
-        }
-
-        const confirmPublish = await window.showInformationMessage(
-            confirmationMessage,
+        const confirmed = await window.showInformationMessage(
+            confirmation.message,
             { modal: true },
-            primaryButton
+            confirmation.primaryButton
         );
-        if (!confirmPublish) {
-            return result;
+        if (!confirmed) {
+            return failResponse();
         }
 
-        if (!readmeExists) {
-            // Create a new README.md file with the default content
-            const readmeContent = `# ${projectName} ${artifactType}\n\nAdd your ${artifactType} description here.`;
-            await readOrWriteReadmeContent({ projectPath: projectPath, content: readmeContent, read: false });
-
-            // Open readme file in the editor
-            workspace.openTextDocument(path.join(projectPath, README_FILE)).then((doc) => {
-                window.showTextDocument(doc, ViewColumn.Beside);
-            });
-
-            return result;
-        } else if (isEmptyReadme) {
-            // Open readme file in the editor
-            const readmePath = resolveReadmePath(projectPath);
-            workspace.openTextDocument(readmePath ?? path.join(projectPath, README_FILE)).then((doc) => {
-                window.showTextDocument(doc, ViewColumn.Beside);
-            });
-
-            return result;
+        const readmeHandled = await handleReadmeSetup(readmeStatus, projectPath, projectName, artifactType);
+        if (readmeHandled) {
+            return failResponse();
         }
+
+        const result = await this.packAndPushToCentral(projectPath);
+        this.showPublishResult(result);
+        return result;
+    }
+
+    private async packAndPushToCentral(projectPath: string): Promise<PublishToCentralResponse> {
+        const result: PublishToCentralResponse = { success: false, message: '' };
 
         await window.withProgress(
             {
@@ -495,44 +466,49 @@ export class CommonRpcManager implements CommonRPCAPI {
             },
             async (progress) => {
                 try {
-                    // first pack the current project using bal pack command running it in the background
                     progress.report({ message: 'Packing...' });
-                    const packCommand = `bal pack ${StateMachine.context().projectPath}`;
-                    const packResult = await this.runBackgroundTerminalCommand({ command: packCommand });
+                    const packResult = await this.runPackCommand(projectPath);
                     if (packResult.error) {
-                        result.message = packResult.message;
+                        result.message = packResult.message ?? '';
                         return;
                     }
 
-                    // then publish the packed artifact to ballerina central
                     progress.report({ message: 'Publishing...' });
-                    const balaDirPath = path.join(StateMachine.context().projectPath, 'target', 'bala');
-                    const balaFiles = fs.readdirSync(balaDirPath);
-                    if (balaFiles.length === 0) {
+                    const balaFilePath = getFirstBalaPath(projectPath);
+                    if (!balaFilePath) {
                         result.message = 'No publishable artifact found at the target/bala directory';
                         return;
                     }
 
-                    const balaFilePath = path.join(balaDirPath, balaFiles[0]);
-                    const pushCommand = `bal push ${balaFilePath}`;
-                    const pushResult = await this.runBackgroundTerminalCommand({ command: pushCommand });
+                    const pushResult = await this.runPushCommand(balaFilePath);
                     if (pushResult.error) {
-                        result.message = pushResult.message;
+                        result.message = pushResult.message ?? '';
                         return;
                     }
                     result.success = true;
                 } catch (error) {
                     console.error('Failed to publish project to Ballerina Central:', error);
-                    return;
                 }
             }
         );
+
+        return result;
+    }
+
+    private async runPackCommand(projectPath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal pack ${projectPath}` });
+    }
+
+    private async runPushCommand(balaFilePath: string): Promise<RunExternalCommandResponse> {
+        return this.runBackgroundTerminalCommand({ command: `bal push ${balaFilePath}` });
+    }
+
+    private showPublishResult(result: PublishToCentralResponse): void {
         if (result.success) {
             window.showInformationMessage('Project published to ballerina central successfully');
         } else {
             window.showErrorMessage(result.message || 'Failed to publish project to Ballerina Central');
         }
-        return result;
     }
 
     async hasCentralPATConfigured(): Promise<boolean> {
