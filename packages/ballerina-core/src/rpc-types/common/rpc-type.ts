@@ -17,6 +17,7 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
+import { QuickPickItem } from "vscode";
 import {
     BallerinaDiagnosticsRequest,
     BallerinaDiagnosticsResponse,
@@ -56,7 +57,7 @@ export const isNPSupported: RequestType<void, boolean> = { method: `${_preFix}/i
 export const getWorkspaceRoot: RequestType<void, WorkspaceRootResponse> = { method: `${_preFix}/getWorkspaceRoot` };
 export const showErrorMessage: NotificationType<ShowErrorMessageRequest> = { method: `${_preFix}/showErrorMessage` };
 export const showInformationModal: RequestType<ShowInfoModalRequest, string> = { method: `${_preFix}/showInformationModal` };
-export const showQuickPick: RequestType<ShowQuickPickRequest, string> = { method: `${_preFix}/showQuickPick` };
+export const showQuickPick: RequestType<ShowQuickPickRequest, QuickPickItem | undefined> = { method: `${_preFix}/showQuickPick` };
 export const getCurrentProjectTomlValues: RequestType<void, void> = { method: `${_preFix}/getCurrentProjectTomlValues` };
 export const getWorkspaceType: RequestType<void, WorkspaceTypeResponse> = { method: `${_preFix}/getWorkspaceType` };
 export const SetWebviewCache: RequestType<SetWebviewCacheRequestParam, void> = { method: `${_preFix}/setWebviewCache` };
