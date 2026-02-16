@@ -139,7 +139,7 @@ exports[`Sequence Diagram - Snapshot Tests renders endpoint call 1 correctly: en
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-17 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -149,7 +149,7 @@ exports[`Sequence Diagram - Snapshot Tests renders endpoint call 1 correctly: en
 /* DOM */
 <div>
   <div
-    class="css-17"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -830,7 +830,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 1 correctly: fu
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -841,7 +841,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 1 correctly: fu
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -1793,7 +1793,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 2 correctly: fu
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -1804,7 +1804,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 2 correctly: fu
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -2757,7 +2757,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 3 correctly: fu
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-18 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 276px;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -2767,7 +2767,7 @@ exports[`Sequence Diagram - Snapshot Tests renders function call 3 correctly: fu
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -3940,7 +3940,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 1 correctly: if-node-
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -3950,7 +3950,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 1 correctly: if-node-
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -4927,7 +4927,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 4 correctly: if-node-
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -4937,7 +4937,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 4 correctly: if-node-
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -5372,7 +5372,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 5 correctly: if-node-
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -5382,7 +5382,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 5 correctly: if-node-
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -6040,7 +6040,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 8 correctly: if-node-
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
 .css-18 {display: flex; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; -webkit-align-items: center; -webkit-box-align: center; -ms-flex-align: center; align-items: center; width: 20px; height: 352px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -6051,7 +6051,7 @@ exports[`Sequence Diagram - Snapshot Tests renders if node 8 correctly: if-node-
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -7544,7 +7544,7 @@ exports[`Sequence Diagram - Snapshot Tests renders sequence model correctly: seq
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-15 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -7554,7 +7554,7 @@ exports[`Sequence Diagram - Snapshot Tests renders sequence model correctly: seq
 /* DOM */
 <div>
   <div
-    class="css-15"
+    class="css-0"
   >
     <div
       class="css-1"
@@ -8013,7 +8013,7 @@ exports[`Sequence Diagram - Snapshot Tests renders while node 1 correctly: while
 .css-3>*:not(:last-child) {border-bottom: 1px solid var(--vscode-dropdown-border);}
 .css-9 {position: absolute; top: -16px; left: 50%; -webkit-transform: translateX(-50%); -moz-transform: translateX(-50%); -ms-transform: translateX(-50%); transform: translateX(-50%); width: 240px; height: 100%; border-radius: 24px; -webkit-transition: background-color 0.2s ease,opacity 0.2s ease; transition: background-color 0.2s ease,opacity 0.2s ease; background-color: var(--vscode-contrastBorder, var(--vscode-button-background)); opacity: 0; pointer-events: none;}
 .css-2 {height: 16px; width: 16px; cursor: pointer; font-size: 16px;}
-.css-16 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
+.css-0 {display: flex; -webkit-flex-direction: column; -ms-flex-direction: column; flex-direction: column; -webkit-box-pack: center; -ms-flex-pack: center; -webkit-justify-content: center; justify-content: center; gap: 8px; position: fixed; bottom: 20px; left: 20px; z-index: 1000;}
 .css-7 {position: absolute; -webkit-touch-callout: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; cursor: move; pointer-events: all;}
 .css-4 >* {height: 100%; min-height: 100%; width: 100%;}
 .css-4 {height: 100%; -webkit-background-size: 16px 16px; background-size: 16px 16px; display: flex; background-image: radial-gradient(var(--vscode-editor-inactiveSelectionBackground) 10%, transparent 0px); background-color: var(--vscode-editor-background); font-family: "GilmerRegular";}
@@ -8023,7 +8023,7 @@ exports[`Sequence Diagram - Snapshot Tests renders while node 1 correctly: while
 /* DOM */
 <div>
   <div
-    class="css-16"
+    class="css-0"
   >
     <div
       class="css-1"
