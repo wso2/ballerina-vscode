@@ -82,6 +82,7 @@ public abstract class CallBuilder extends NodeBuilder {
         Package resolvedPackage;
         boolean isLocalFunction = PackageUtil.isLocalFunction(context.workspaceManager(), context.filePath(),
                 codedata.org(), codedata.module());
+         // TODO: Remove this resolvePackage logic
         if (isLocalFunction) {
             resolvedPackage = context.workspaceManager().project(context.filePath()).get().currentPackage();
             Module defaultModule = resolvedPackage.getDefaultModule();
