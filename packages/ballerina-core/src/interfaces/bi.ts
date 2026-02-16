@@ -166,7 +166,8 @@ export type FormFieldInputType = "TEXT" |
     "ACTION_PATH" |
     "NUMBER" |
     "REPEATABLE_LIST" |
-    "CONDITIONAL_FIELDS"
+    "CONDITIONAL_FIELDS" |
+    "DOC_TEXT"
     ;
 
 export interface BaseType {

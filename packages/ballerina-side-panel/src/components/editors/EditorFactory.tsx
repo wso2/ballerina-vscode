@@ -106,7 +106,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
     if (!field.enabled || field.hidden) {
         return <></>;
-    } else if (field.type === "SLIDER") {
+    } else if (fieldInputType.fieldType === "SLIDER") {
         return <SliderEditor field={field} />;
     } else if (fieldInputType.fieldType === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
@@ -116,7 +116,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <ChoiceForm field={field} recordTypeFields={recordTypeFields} />;
     } else if (fieldInputType.fieldType === "DROPDOWN_CHOICE") {
         return <DropdownChoiceForm field={field} />;
-    } else if (fieldInputType.fieldType === "TEXTAREA" || fieldInputType.fieldType === "STRING" || field.type === "DOC_TEXT") {
+    } else if (fieldInputType.fieldType === "TEXTAREA" || fieldInputType.fieldType === "STRING" || fieldInputType.fieldType === "DOC_TEXT") {
         return <TextAreaEditor field={field} inputMode={InputMode.SIMPLE_TEXT} />;
     } else if (fieldInputType.fieldType === "FLAG" && !showWithExpressionEditor) {
         return <CheckBoxEditor field={field} />;
@@ -203,7 +203,7 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (fieldInputType.fieldType === "VIEW") {
         // Skip this property
         return <></>;
-    } else if(field.type === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
+    } else if(fieldInputType.fieldType === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
         return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
     }else if (
         (fieldInputType.fieldType === "PARAM_MANAGER") ||
