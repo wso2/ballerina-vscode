@@ -367,4 +367,30 @@ public class PackageUtil {
             return Optional.empty();
         }
     }
+
+    /**
+     * Determines if a function is local to the current workspace project.
+     *
+     * @param workspaceManager The workspace manager
+     * @param filePath         The path to the current file
+     * @param org              The organization name
+     * @param moduleName       The module name
+     * @return true if the function is local to the current project, false otherwise
+     */
+    public static boolean isLocalFunction(WorkspaceManager workspaceManager, Path filePath, String org,
+                                          String moduleName) {
+        if (org == null || moduleName == null) {
+            return false;
+        }
+        try {
+            Project project = workspaceManager.loadProject(filePath);
+            PackageDescriptor descriptor = project.currentPackage().descriptor();
+            String packageOrg = descriptor.org().value();
+            String packageName = descriptor.name().value();
+
+            return packageOrg.equals(org) && packageName.equals(moduleName);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            return false;
+        }
+    }
 }

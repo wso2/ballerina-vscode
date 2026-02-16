@@ -14,10 +14,10 @@ import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
+import io.ballerina.projects.Document;
+import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
-
-import java.util.Optional;
 
 public class NPFunctionCall extends FunctionCall {
 
@@ -92,18 +92,28 @@ public class NPFunctionCall extends FunctionCall {
         Codedata codedata = context.codedata();
 
         // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
-                codedata.org(), codedata.packageName(), codedata.version());
+        Document document = null;
+        Package resolvedPackage;
+        boolean isLocalFunction = PackageUtil.isLocalFunction(context.workspaceManager(), context.filePath(),
+                codedata.org(), codedata.module());
+        if (isLocalFunction) {
+            resolvedPackage = context.workspaceManager().project(context.filePath()).get().currentPackage();
+            Module defaultModule = resolvedPackage.getDefaultModule();
+            document = defaultModule.document(resolvedPackage.project().documentId(context.filePath()));
+        } else {
+            resolvedPackage = PackageUtil.resolveModulePackage(codedata.org(), codedata.packageName(),
+                    codedata.version()).orElse(null);
+        }
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
                 .moduleInfo(new ModuleInfo(codedata.org(), codedata.module(), codedata.module(), codedata.version()))
                 .functionResultKind(getFunctionResultKind())
                 .userModuleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage.orElse(null));
+                .resolvedPackage(resolvedPackage)
+                .document(document);
 
         // Set the semantic model if the function is local
-        boolean isLocalFunction = isLocalFunction(context.workspaceManager(), context.filePath(), codedata);
         if (isLocalFunction) {
             WorkspaceManager workspaceManager = context.workspaceManager();
             PackageUtil.loadProject(context.workspaceManager(), context.filePath());

@@ -44,11 +44,8 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Document;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Package;
-import io.ballerina.projects.PackageDescriptor;
-import io.ballerina.projects.Project;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -57,9 +54,9 @@ import org.ballerinalang.langserver.commons.workspace.WorkspaceDocumentException
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 
 import java.nio.file.Path;
-import java.util.Optional;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Abstract base class for function-like builders (functions, methods, resource actions).
@@ -83,7 +80,9 @@ public abstract class CallBuilder extends NodeBuilder {
 
         Document document = null;
         Package resolvedPackage;
-        if (isLocalFunction(context.workspaceManager(), context.filePath(), codedata)) {
+        boolean isLocalFunction = PackageUtil.isLocalFunction(context.workspaceManager(), context.filePath(),
+                codedata.org(), codedata.module());
+        if (isLocalFunction) {
             resolvedPackage = context.workspaceManager().project(context.filePath()).get().currentPackage();
             Module defaultModule = resolvedPackage.getDefaultModule();
             document = defaultModule.document(resolvedPackage.project().documentId(context.filePath()));
@@ -108,7 +107,6 @@ public abstract class CallBuilder extends NodeBuilder {
         }
 
         // Set the semantic model if the function is local
-        boolean isLocalFunction = isLocalFunction(context.workspaceManager(), context.filePath(), codedata);
         if (isLocalFunction) {
             WorkspaceManager workspaceManager = context.workspaceManager();
             PackageUtil.loadProject(context.workspaceManager(), context.filePath());
@@ -396,20 +394,4 @@ public abstract class CallBuilder extends NodeBuilder {
         }
     }
 
-    protected static boolean isLocalFunction(WorkspaceManager workspaceManager, Path filePath, Codedata codedata) {
-        if (codedata.org() == null || codedata.module() == null) {
-            return false;
-        }
-        try {
-            Project project = workspaceManager.loadProject(filePath);
-            PackageDescriptor descriptor = project.currentPackage().descriptor();
-            String packageOrg = descriptor.org().value();
-            String packageName = descriptor.name().value();
-
-            return packageOrg.equals(codedata.org())
-                    && packageName.equals(codedata.module());
-        } catch (WorkspaceDocumentException | EventSyncException e) {
-            return false;
-        }
-    }
 }
