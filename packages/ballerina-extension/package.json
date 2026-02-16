@@ -753,6 +753,30 @@
                 "icon": "$(clear-all)",
                 "hidden": true,
                 "enablement": "isSupportedProject"
+            },
+            {
+                "command": "ballerina.createNewEvalset",
+                "title": "Create New Evalset",
+                "category": "Ballerina",
+                "icon": "$(add)"
+            },
+            {
+                "command": "ballerina.createNewThread",
+                "title": "Add Thread",
+                "category": "Ballerina",
+                "icon": "$(add)"
+            },
+            {
+                "command": "ballerina.deleteEvalset",
+                "title": "Delete Evalset",
+                "category": "Ballerina",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "ballerina.deleteThread",
+                "title": "Delete Thread",
+                "category": "Ballerina",
+                "icon": "$(trash)"
             }
         ],
         "views": {
@@ -865,6 +889,28 @@
                     "when": "view == ballerina-traceView && ballerina.tracingEnabled && !ballerina.tracesEmpty",
                     "group": "navigation",
                     "title": "Clear Traces"
+                },
+                {
+                    "command": "ballerina.createNewEvalset",
+                    "when": "view == ballerina-evalsets",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "ballerina.createNewThread",
+                    "when": "view == ballerina-evalsets && viewItem == evalsetFile",
+                    "group": "inline"
+                },
+                {
+                    "command": "ballerina.deleteEvalset",
+                    "when": "view == ballerina-evalsets && viewItem == evalsetFile",
+                    "group": "inline"
+                },
+                {
+                    "command": "ballerina.deleteThread",
+                    "when": "view == ballerina-evalsets && viewItem == evalsetThread",
+                    "group": "inline"
                 }
             ],
             "BI.test.add.submenu": [
