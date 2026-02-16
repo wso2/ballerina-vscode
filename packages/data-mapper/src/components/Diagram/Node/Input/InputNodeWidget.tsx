@@ -25,6 +25,7 @@ import { IOType, TypeKind } from "@wso2/ballerina-core";
 import { DataMapperPortWidget, PortState, InputOutputPortModel } from '../../Port';
 import { InputSearchHighlight } from '../commons/Search';
 import { TreeBody, TreeContainer, TreeHeader } from '../commons/Tree/Tree';
+import { NodeActionWidget } from '../commons/NodeActionWidget';
 import { InputNodeTreeItemWidget } from "./InputNodeTreeItemWidget";
 import { useIONodesStyles } from "../../../styles";
 import { useDMCollapsedFieldsStore, useDMExpandedFieldsStore, useDMIOConfigPanelStore } from '../../../../store/store';
@@ -209,18 +210,12 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
             {expanded && isConvertibleType && !dmType.convertedField &&
                 <>
                     <ArrowWidget direction="down" />
-                    <Button
-                        className={classes.nodeActionButton}
+                    <NodeActionWidget
                         onClick={handleCreateConvertedVariable}
-                    >
-                        <Icon name="convert" className="action-icon" />
-                        <p
-                            style={{ margin: 0 }}
-                            title={`Create type defined variable to access fields in ${headerLabel}`}
-                        >
-                            Create type defined variable
-                        </p>
-                    </Button>
+                        iconName="convert"
+                        tooltip={`Create type defined variable to access fields in ${headerLabel}`}
+                        label="Create type defined variable"
+                    />
                 </>
             }
         </>
