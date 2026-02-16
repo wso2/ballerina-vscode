@@ -53,4 +53,5 @@ export interface CommonRPCAPI {
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
+    getDefaultOrgName: () => Promise<{ orgName: string }>;
 }

@@ -78,8 +78,11 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
 
     useEffect(() => {
         (async () => {
+            const commonRpcClient = rpcClient.getCommonRpcClient();
+
+            // Set default path if not already set
             if (!formData.path) {
-                const currentDir = await rpcClient.getCommonRpcClient().getWorkspaceRoot();
+                const currentDir = await commonRpcClient.getWorkspaceRoot();
                 onFormDataChange({ path: currentDir.path });
             }
             const isWorkspaceSupported = await rpcClient

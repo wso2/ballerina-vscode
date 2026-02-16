@@ -26,6 +26,7 @@ import {
     FileOrDirRequest,
     getBallerinaDiagnostics,
     getCurrentProjectTomlValues,
+    getDefaultOrgName,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
@@ -65,4 +66,5 @@ export function registerCommonRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getCurrentProjectTomlValues, () => rpcManger.getCurrentProjectTomlValues());
     messenger.onRequest(getWorkspaceType, () => rpcManger.getWorkspaceType());
     messenger.onRequest(downloadSelectedSampleFromGithub, (args: SampleDownloadRequest) => rpcManger.downloadSelectedSampleFromGithub(args));
+    messenger.onRequest(getDefaultOrgName, () => rpcManger.getDefaultOrgName());
 }
