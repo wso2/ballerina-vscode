@@ -102,7 +102,8 @@ public class IdentifierDiagnosticsRequest extends DiagnosticsRequest {
             }
             symbolStream = semanticModel.get()
                     .visibleSymbols(document.get(), context.info().startLine()).parallelStream()
-                    .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE);
+                    .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE
+                            || symbol.kind() == SymbolKind.WORKER);
         }
 
         // Check for redeclared symbols
