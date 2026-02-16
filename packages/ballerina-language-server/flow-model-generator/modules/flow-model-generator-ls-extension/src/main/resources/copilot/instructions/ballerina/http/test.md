@@ -41,4 +41,3 @@ Generated test code following these strict guidelines:
 - Use direct data binding for positive test cases based on source code or type schemas.
 - For negative test cases, use `http:Response` variables and check status codes.
 - Always assign responses to variables with specific types.
-

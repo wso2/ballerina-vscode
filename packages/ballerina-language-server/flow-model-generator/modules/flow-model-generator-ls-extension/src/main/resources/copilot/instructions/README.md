@@ -33,4 +33,3 @@ Instructions specific to generating tests for the library service usage.
 - You should only add the instructions if the copilot doesn't already provide satisfactory results without them.
 - Keep in mind that all these information will be sent to the LLM if the library was selected for the usecase. 
 - So things like Best practices can be included here but make sure to keep the instructions to the minimum to avoid cognitive overload.
-
