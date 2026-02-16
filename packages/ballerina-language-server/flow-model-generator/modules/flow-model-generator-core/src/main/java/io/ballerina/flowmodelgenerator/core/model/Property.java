@@ -28,6 +28,7 @@ import io.ballerina.compiler.api.symbols.TypeSymbol;
 import io.ballerina.compiler.api.symbols.UnionTypeSymbol;
 import io.ballerina.compiler.syntax.tree.Node;
 import io.ballerina.flowmodelgenerator.core.DiagnosticHandler;
+import io.ballerina.flowmodelgenerator.core.TypeParameterReplacer;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.ParameterMemberTypeData;
@@ -455,7 +456,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
             }
 
             public TypeBuilder ballerinaType(String ballerinaType) {
-                this.ballerinaType = ballerinaType;
+                this.ballerinaType = TypeParameterReplacer.replaceTypeParameters(ballerinaType);
                 return this;
             }
 

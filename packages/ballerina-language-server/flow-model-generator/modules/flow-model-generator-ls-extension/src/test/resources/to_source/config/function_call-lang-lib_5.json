@@ -1,23 +1,11 @@
 {
-  "source": "data_mapper/main.bal",
-  "position": {
-    "line": 14,
-    "offset": 0
-  },
+  "source": "function_call/main.bal",
   "description": "Sample diagram node",
-  "codedata": {
-    "node": "FUNCTION_CALL",
-    "org": "ballerina",
-    "module": "lang.array",
-    "packageName": "lang.array",
-    "symbol": "'map",
-    "version": "0.0.0"
-  },
-  "output": {
+  "diagram": {
     "id": "31",
     "metadata": {
-      "label": "'map",
-      "description": "Applies a function to each member of an array and returns an array of the results.\n\n```ballerina\nint[] numbers = [0, 1, 2];\nnumbers.map(n => n * 2) ⇒ [0,2,4]\n```\n",
+      "label": "enumerate",
+      "description": "Returns a new array consisting of index and member pairs.\n\n```ballerina\n[1, 2, 3, 4].enumerate() ⇒ [[0,1],[1,2],[2,3],[3,4]]\n```\n",
       "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_lang.array_0.0.0.png"
     },
     "codedata": {
@@ -25,9 +13,19 @@
       "org": "ballerina",
       "module": "lang.array",
       "packageName": "lang.array",
-      "symbol": "'map",
+      "symbol": "enumerate",
       "version": "0.0.0",
-      "isNew": true
+      "isNew": true,
+      "lineRange": {
+        "startLine": {
+          "line": 14,
+          "offset": 10
+        },
+        "endLine": {
+          "line": 14,
+          "offset": 10
+        }
+      }
     },
     "returning": false,
     "properties": {
@@ -51,29 +49,9 @@
         "codedata": {
           "kind": "REQUIRED",
           "originalName": "arr"
-        }
-      },
-      "func": {
-        "metadata": {
-          "label": "Func",
-          "description": "a function to apply to each member"
         },
-        "types": [
-          {
-            "fieldType": "EXPRESSION",
-            "ballerinaType": "function ((any|error) val) returns (any|error)",
-            "selected": false
-          }
-        ],
-        "placeholder": "",
-        "optional": false,
-        "editable": true,
-        "advanced": false,
-        "hidden": false,
-        "codedata": {
-          "kind": "REQUIRED",
-          "originalName": "func"
-        }
+        "value": "records",
+        "modified": true
       },
       "type": {
         "metadata": {
@@ -86,13 +64,14 @@
             "selected": true
           }
         ],
-        "value": "(any|error)[]",
+        "value": "[int, (any|error)][]",
         "placeholder": "var",
         "optional": false,
         "editable": false,
         "advanced": false,
         "hidden": true,
-        "codedata": {}
+        "codedata": {},
+        "modified": false
       },
       "variable": {
         "metadata": {
@@ -105,13 +84,31 @@
             "selected": true
           }
         ],
-        "value": "arrayType1",
+        "value": "intArrayType",
         "optional": false,
         "editable": true,
         "advanced": false,
-        "hidden": false
+        "hidden": false,
+        "modified": false
       }
     },
     "flags": 0
+  },
+  "output": {
+    "function_call/main.bal": [
+      {
+        "range": {
+          "start": {
+            "line": 14,
+            "character": 10
+          },
+          "end": {
+            "line": 14,
+            "character": 10
+          }
+        },
+        "newText": "\n[int, CSV][] intArrayType = array:enumerate(records);"
+      }
+    ]
   }
 }

@@ -49,7 +49,13 @@ public class FunctionCall extends CallBuilder {
             sourceBuilder.token().keyword(SyntaxKind.FINAL_KEYWORD);
         }
 
-        sourceBuilder.newVariableWithInferredType();
+        String resolvedReturnType = resolveLangLibReturnType(sourceBuilder.workspaceManager,
+                sourceBuilder.filePath, flowNode);
+        if (resolvedReturnType != null) {
+            sourceBuilder.newVariableWithType(resolvedReturnType);
+        } else {
+            sourceBuilder.newVariableWithInferredType();
+        }
         if (FlowNodeUtil.hasCheckKeyFlagSet(flowNode)) {
             sourceBuilder.token().keyword(SyntaxKind.CHECK_KEYWORD);
         }
