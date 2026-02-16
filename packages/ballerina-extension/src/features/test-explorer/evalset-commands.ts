@@ -50,7 +50,7 @@ export async function createNewEvalset(): Promise<void> {
         const jsonContent = JSON.stringify(evalset, null, 2);
         const fileUri = vscode.Uri.file(filePath);
 
-        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+        await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
         // 5. Success message with Open option
         const action = await vscode.window.showInformationMessage(
@@ -79,7 +79,7 @@ export async function createNewThread(evalsetFileNode?: any, autoRefresh?: boole
         const filePath = evalsetFileNode.uri.fsPath;
 
         // 1. Read existing evalset file
-        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const fileContent = await fs.promises.readFile(filePath, 'utf8');
         let evalset: EvalSet;
 
         try {
@@ -139,7 +139,7 @@ export async function createNewThread(evalsetFileNode?: any, autoRefresh?: boole
         const jsonContent = JSON.stringify(evalset, null, 2);
         const fileUri = vscode.Uri.file(filePath);
 
-        await vscode.workspace.fs.writeFile(fileUri, Buffer.from(jsonContent, 'utf8'));
+        await vscode.workspace.fs.writeFile(fileUri, new TextEncoder().encode(jsonContent));
 
         // 7. Handle UI refresh based on where the command was called from
         if (autoRefresh) {
@@ -218,7 +218,7 @@ export async function deleteThread(threadNode?: any, autoRefresh?: boolean): Pro
         const threadId = threadNode.threadId;
 
         // Read existing evalset file
-        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const fileContent = await fs.promises.readFile(filePath, 'utf8');
         let evalset: EvalSet;
 
         try {
