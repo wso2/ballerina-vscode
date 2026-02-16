@@ -187,7 +187,12 @@ public class AgentCallBuilder extends CallBuilder {
             Property prop = entry.getValue();
             if (prop.codedata() != null &&
                     ParameterData.Kind.PARAM_FOR_TYPE_INFER.name().equals(prop.codedata().kind())) {
-                props.put(entry.getKey(), AiUtils.copyAsOptionalAdvanced(prop));
+                Property updatedProp = AiUtils.copyAsOptionalAdvanced(prop);
+                // Update the label to "Type Descriptor" for better clarity
+                if ("td".equals(entry.getKey()) && updatedProp.metadata() != null) {
+                    updatedProp = AiUtils.createPropertyWithUpdatedLabel(updatedProp, "Type Descriptor");
+                }
+                props.put(entry.getKey(), updatedProp);
             }
         }
     }

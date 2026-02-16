@@ -542,7 +542,7 @@
           },
           "td": {
             "metadata": {
-              "label": "Td",
+              "label": "Type Descriptor",
               "description": "Type descriptor specifying the expected return type format"
             },
             "types": [
