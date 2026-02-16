@@ -1,0 +1,1129 @@
+{
+  "filePath": "sample16/main.bal",
+  "description": "Test the generation of service model for an FTP service",
+  "start": {
+    "line": 15,
+    "offset": 0
+  },
+  "end": {
+    "line": 19,
+    "offset": 1
+  },
+  "response": {
+    "id": "0",
+    "name": "FTP Integration",
+    "type": "ftp",
+    "moduleName": "ftp",
+    "orgName": "ballerina",
+    "version": "2.15.1",
+    "packageName": "ftp",
+    "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_ftp_2.15.1.png",
+    "properties": {
+      "listener": {
+        "metadata": {
+          "label": "Listeners",
+          "description": ""
+        },
+        "codedata": {
+          "type": "LISTENER"
+        },
+        "placeholder": "",
+        "value": "ftpListener",
+        "values": [],
+        "properties": {
+          "ftpListener": {
+            "codedata": {
+              "lineRange": {
+                "fileName": "main.bal",
+                "startLine": {
+                  "line": 15,
+                  "offset": 11
+                },
+                "endLine": {
+                  "line": 15,
+                  "offset": 22
+                }
+              }
+            },
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        },
+        "types": [
+          {
+            "fieldType": "MULTIPLE_SELECT_LISTENER",
+            "options": [
+              {
+                "label": "ftpListener",
+                "value": "ftpListener"
+              }
+            ],
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
+      "readOnlyMetadata": {
+        "codedata": {
+          "type": "READONLY"
+        },
+        "placeholder": "false",
+        "value": {
+          "Protocol": []
+        },
+        "types": [
+          {
+            "fieldType": "SINGLE_SELECT",
+            "selected": true
+          }
+        ],
+        "enabled": true,
+        "editable": true,
+        "optional": false,
+        "advanced": false
+      }
+    },
+    "codedata": {
+      "lineRange": {
+        "fileName": "main.bal",
+        "startLine": {
+          "line": 15,
+          "offset": 0
+        },
+        "endLine": {
+          "line": 19,
+          "offset": 1
+        }
+      },
+      "orgName": "ballerina",
+      "packageName": "ftp",
+      "moduleName": "ftp"
+    },
+    "functions": [
+      {
+        "metadata": {
+          "label": "onCreate",
+          "description": "onCreate Category"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "CSV",
+            "description": "CSV file creation handler"
+          },
+          "placeholder": "",
+          "value": "onFileCsv",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Content",
+              "description": "CSV file content"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "placeholder": "string[][]",
+              "value": "string[][]",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "content",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "File Metadata (fileInfo)",
+              "description": "Additional file properties"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:FileInfo",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "fileInfo",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        },
+        "properties": {
+          "stream": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          },
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "onCreate",
+          "description": "onCreate Category"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "JSON",
+            "description": "JSON file creation handler"
+          },
+          "placeholder": "",
+          "value": "onFileJson",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Content",
+              "description": "Parsed JSON file content"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "placeholder": "json",
+              "value": "json",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "content",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "File Metadata (fileInfo)",
+              "description": "Additional file properties"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:FileInfo",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "fileInfo",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        },
+        "properties": {
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "onCreate",
+          "description": "onCreate Category"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "XML",
+            "description": "XML file creation handler"
+          },
+          "placeholder": "xml",
+          "value": "onFileXml",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Content",
+              "description": "Parsed XML file content"
+            },
+            "kind": "DATA_BINDING",
+            "type": {
+              "placeholder": "xml",
+              "value": "xml",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "content",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "File Metadata (fileInfo)",
+              "description": "Additional file properties"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:FileInfo",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "fileInfo",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        },
+        "properties": {
+          "canDataBind": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "onCreate",
+          "description": "onCreate Category"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "TEXT",
+            "description": "Text file creation handler"
+          },
+          "placeholder": "",
+          "value": "onFileText",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Content",
+              "description": "Text file content"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "string",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "content",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "File Metadata (fileInfo)",
+              "description": "Additional file properties"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:FileInfo",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "fileInfo",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        }
+      },
+      {
+        "metadata": {
+          "label": "onCreate",
+          "description": "onCreate Category"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "RAW",
+            "description": "Raw file creation handler"
+          },
+          "placeholder": "",
+          "value": "onFile",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "Content",
+              "description": "Raw file content as byte array"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "byte[]",
+              "value": "byte[]",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "content",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "File Metadata (fileInfo)",
+              "description": "Additional file properties"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:FileInfo",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "fileInfo",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        },
+        "properties": {
+          "stream": {
+            "value": "true",
+            "enabled": false,
+            "editable": false,
+            "optional": false,
+            "advanced": false
+          }
+        }
+      },
+      {
+        "metadata": {
+          "label": "onDelete",
+          "description": "Handle file deletion on remote server"
+        },
+        "kind": "REMOTE",
+        "name": {
+          "metadata": {
+            "label": "onFileDelete",
+            "description": "Handle file deletion events"
+          },
+          "placeholder": "",
+          "value": "onFileDelete",
+          "enabled": true,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "deleteFiles",
+              "description": "The FTP Payload"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "string",
+              "value": "string",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "",
+              "value": "deleteFiles",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": false,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          },
+          {
+            "metadata": {
+              "label": "FTP Connection (caller)",
+              "description": "FTP connection for further operations"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "placeholder": "",
+              "value": "ftp:Caller",
+              "enabled": true,
+              "editable": false,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "placeholder": "request",
+              "value": "caller",
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": true,
+            "advanced": true,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return type",
+            "description": "Return type of the function"
+          },
+          "placeholder": "json",
+          "value": "error?",
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": false,
+        "optional": true,
+        "editable": true,
+        "canAddParameters": false,
+        "codedata": {
+          "moduleName": "ftp"
+        }
+      },
+      {
+        "metadata": {
+          "label": "EVENT",
+          "description": ""
+        },
+        "kind": "REMOTE",
+        "accessor": {
+          "metadata": {
+            "label": "Accessor",
+            "description": "The accessor of the function"
+          },
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "name": {
+          "metadata": {
+            "label": "Function Name",
+            "description": "The name of the function"
+          },
+          "value": "onFileChange",
+          "types": [
+            {
+              "fieldType": "IDENTIFIER",
+              "selected": false
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": false,
+          "advanced": false
+        },
+        "parameters": [
+          {
+            "metadata": {
+              "label": "fileEvent",
+              "description": "fileEvent"
+            },
+            "kind": "REQUIRED",
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "value": "ftp:WatchEvent",
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "value": "fileEvent",
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        ],
+        "schema": {
+          "parameter": {
+            "type": {
+              "metadata": {
+                "label": "Parameter Type",
+                "description": "The type of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TYPE",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "name": {
+              "metadata": {
+                "label": "Parameter Name",
+                "description": "The name of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "IDENTIFIER",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": false,
+              "advanced": false
+            },
+            "defaultValue": {
+              "metadata": {
+                "label": "Default Value",
+                "description": "The default value of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "EXPRESSION",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "documentation": {
+              "metadata": {
+                "label": "Description",
+                "description": "The description of the parameter"
+              },
+              "types": [
+                {
+                  "fieldType": "TEXT",
+                  "selected": true
+                }
+              ],
+              "enabled": true,
+              "editable": true,
+              "optional": true,
+              "advanced": false
+            },
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false,
+            "hidden": false,
+            "isGraphqlId": false
+          }
+        },
+        "returnType": {
+          "hasError": false,
+          "isGraphqlId": false,
+          "metadata": {
+            "label": "Return Type",
+            "description": "The return type of the function"
+          },
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": true,
+          "editable": true,
+          "optional": true,
+          "advanced": false
+        },
+        "enabled": true,
+        "optional": true,
+        "editable": false,
+        "canAddParameters": true,
+        "codedata": {
+          "lineRange": {
+            "fileName": "main.bal",
+            "startLine": {
+              "line": 16,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 18,
+              "offset": 5
+            }
+          }
+        },
+        "properties": {}
+      }
+    ]
+  }
+}

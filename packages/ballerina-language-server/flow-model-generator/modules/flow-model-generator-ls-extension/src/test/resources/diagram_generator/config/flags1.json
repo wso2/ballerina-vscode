@@ -552,7 +552,7 @@
                 "selected": true
               }
             ],
-            "value": "boolean",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": false,
@@ -676,7 +676,7 @@
                 "selected": true
               }
             ],
-            "value": "boolean",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": false,

@@ -583,6 +583,73 @@
           "enabled": true,
           "editable": false,
           "advanced": false
+        },
+        {
+          "statusCode": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "200",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "string",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "type": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "http:Ok",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "headers": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "values": [
+              {
+                "name": "usr",
+                "type": "string",
+                "optional": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
         }
       ],
       "schema": {
@@ -747,7 +814,7 @@
             "character": 62
           }
         },
-        "newText": "(http:Request req) returns json|http:Response|CustomInternalServerError|http:NotFound "
+        "newText": "(http:Request req) returns json|http:Response|CustomInternalServerError|http:NotFound|record {|\n\t*http:Ok;\tstring body;\n\trecord {|\n\t\tstring usr;\n\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t|} headers?;\n|} "
       }
     ]
   }

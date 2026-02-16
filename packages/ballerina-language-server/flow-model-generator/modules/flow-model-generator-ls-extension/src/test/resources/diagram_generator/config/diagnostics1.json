@@ -469,14 +469,9 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<json>",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<json>",
-                "selected": false
+                "selected": true
               }
             ],
             "value": "[]",

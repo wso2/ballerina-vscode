@@ -79,6 +79,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ASB_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_ITEM_LABEL;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_VAR_NAME;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.DEFAULT_LISTENER_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FILE_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.FTP;
@@ -95,6 +96,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.MQTT_DEFAULT_LISTENER_EXPR;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.NEW_LINE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_DEFAULT_LISTENER;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.RABBITMQ_DEFAULT_LISTENER_EXPR;
@@ -317,6 +319,7 @@ public class ListenerUtil {
                 .setProperties(properties);
 
         properties.put(PROP_KEY_VARIABLE_NAME, nameProperty());
+        properties.put(PROP_KEY_LISTENER_TYPE, listenerTypeProperty());
         return listenerBuilder.build();
     }
 
@@ -328,9 +331,9 @@ public class ListenerUtil {
 
     public static Optional<Listener> getListenerModelByName(Codedata codedata, SemanticModel semanticModel,
                                                             ModuleInfo moduleInfo) {
-
+        String listenerType = codedata.getType() == null ? "Listener" : codedata.getType();
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
-                .parentSymbolType("Listener")
+                .parentSymbolType(listenerType)
                 .name("init")
                 .moduleInfo(new ModuleInfo(codedata.getOrgName(), codedata.getPackageName(), codedata.getModuleName(),
                         codedata.getVersion()))
@@ -340,6 +343,7 @@ public class ListenerUtil {
 
         FunctionData functionData = functionDataBuilder.build();
         Listener listener = createBaseListenerModel(functionData);
+        listener.getListenerTypeProperty().setValue(listenerType);
         setParameterProperties(functionData, listener.getProperties(), semanticModel, moduleInfo);
         return Optional.of(listener);
     }
@@ -430,11 +434,12 @@ public class ListenerUtil {
             return createHttpDefaultListenerModel(orgName, listenerNode).get();
         }
 
-        Optional<Symbol> symbol = semanticModel.symbol(listenerNode.typeDescriptor().orElse(null));
-        if (symbol.isEmpty() || !(symbol.get() instanceof TypeSymbol typeSymbol)
-                || !(CommonUtils.getRawType(typeSymbol) instanceof ClassSymbol classSymbol)) {
+        Optional<Symbol> symbol = semanticModel.symbol(listenerNode.variableName());
+        if (symbol.isEmpty() || !(symbol.get() instanceof VariableSymbol variableSymbol)
+                || !(CommonUtils.getRawType(variableSymbol.typeDescriptor()) instanceof ClassSymbol classSymbol)) {
             return null;
         }
+        TypeSymbol typeSymbol = variableSymbol.typeDescriptor();
 
         Node initializer = listenerNode.initializer();
         NewExpressionNode newExpressionNode;
@@ -444,8 +449,11 @@ public class ListenerUtil {
             newExpressionNode = (NewExpressionNode) initializer;
         }
 
-        return createListenerModelFromNewExpressionNode(listenerNode.lineRange(), newExpressionNode, semanticModel,
+        Listener listener = createListenerModelFromNewExpressionNode(listenerNode.lineRange(), newExpressionNode,
+                semanticModel,
                 classSymbol, moduleInfo);
+        listener.getListenerTypeProperty().setValue(typeSymbol.getName().orElse(DEFAULT_LISTENER_TYPE));
+        return listener;
     }
 
     private static void processListenerName(Listener listener, ListenerDeclarationNode listenerDeclarationNode) {
@@ -473,6 +481,7 @@ public class ListenerUtil {
 
         Listener listener = createBaseListenerModel(functionData);
         listener.getProperties().put(PROP_KEY_DEFAULT_LISTENER, getHttpDefaultListenerValue());
+        listener.getListenerTypeProperty().setValue(DEFAULT_LISTENER_TYPE);
         listener.setCodedata(new Codedata(listenerNode.lineRange()));
 
         return Optional.of(listener);
@@ -497,7 +506,16 @@ public class ListenerUtil {
         Listener listenerModel = createListenerModelFromNewExpressionNode(newExpressionNode.lineRange(),
                 newExpressionNode, semanticModel, classSymbol, moduleInfo);
         listenerModel.getProperties().remove(PROP_KEY_VARIABLE_NAME);
+        listenerModel.getListenerTypeProperty().setValue(getListenerTypeName(newExpressionNode));
         return listenerModel;
+    }
+
+    private static String getListenerTypeName(ExplicitNewExpressionNode explicitNewExpressionNode) {
+        String typeName = explicitNewExpressionNode.typeDescriptor().toSourceCode().trim();
+        if (typeName.contains(":")) {
+            return typeName.substring(typeName.lastIndexOf(":") + 1);
+        }
+        return typeName;
     }
 
     /**
@@ -612,6 +630,14 @@ public class ListenerUtil {
                 .setAdvanced(false);
 
         return valueBuilder.build();
+    }
+
+    public static Value listenerTypeProperty() {
+        return new Value.ValueBuilder()
+                .setMetadata(new MetaData("Listener Type", "The type of the listener"))
+                .value("")
+                .types(List.of(PropertyType.types(Value.FieldType.TYPE)))
+                .build();
     }
 
     /**

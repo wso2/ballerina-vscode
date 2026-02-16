@@ -81,10 +81,16 @@
         },
         "typeMembers": [
           {
+            "type": "SQL_QUERY",
+            "packageInfo": "ballerina:sql:1.15.0",
+            "kind": "FIELD_TYPE",
+            "selected": true
+          },
+          {
             "type": "ParameterizedQuery",
             "packageInfo": "ballerina:sql:1.15.0",
             "kind": "OBJECT_TYPE",
-            "selected": true
+            "selected": false
           }
         ]
       },

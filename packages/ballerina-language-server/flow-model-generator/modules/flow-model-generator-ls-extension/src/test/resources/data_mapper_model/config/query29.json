@@ -37,7 +37,7 @@
         "displayName": "sales",
         "typeName": "Sale[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1849278691"
       },
       {

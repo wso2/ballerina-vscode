@@ -29,12 +29,14 @@ import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Option;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.PropertyType;
+import io.ballerina.servicemodelgenerator.extension.model.PropertyTypeMemberInfo;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
 import io.ballerina.servicemodelgenerator.extension.model.Value;
 import io.ballerina.servicemodelgenerator.extension.model.context.AddServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.GetServiceInitModelContext;
 import io.ballerina.servicemodelgenerator.extension.model.context.ModelFromSourceContext;
+import io.ballerina.servicemodelgenerator.extension.model.context.UpdateModelContext;
 import io.ballerina.servicemodelgenerator.extension.util.ListenerUtil;
 import io.ballerina.servicemodelgenerator.extension.util.Utils;
 import org.ballerinalang.formatter.core.FormatterException;
@@ -47,6 +49,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -59,6 +62,7 @@ import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TY
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.ARG_TYPE_LISTENER_PARAM_REQUIRED;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.AT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.BALLERINAX;
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.CD_TYPE_ANNOTATION_ATTACHMENT;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.COLON;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.DATA_BINDING;
@@ -130,6 +134,10 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
 
     // Validation pattern
     protected final Pattern emptyStringTemplate = Pattern.compile("^string\\s*`\\s*`$|^\"\"$");
+
+    private static final String SERVICE_CONFIG_ANNOTATION = "ServiceConfig";
+    private static final String SERVICE_CONFIG_ANNOTATION_KEY = "annotServiceConfig";
+    private static final String SERVICE_CONFIG_ANNOTATION_CONSTRAINT = "cdc:CdcServiceConfig";
 
     /**
      * Data holder for listener information.
@@ -518,8 +526,86 @@ public abstract class AbstractCdcServiceBuilder extends AbstractServiceBuilder {
         // After all consolidation and databinding processing is complete,
         // apply onUpdate parameter combining to all functions
         applyOnUpdateCombining(serviceModel);
+        updateServiceConfigAnnotation(serviceModel);
 
         return serviceModel;
+    }
+
+    private void updateServiceConfigAnnotation(Service serviceModel) {
+        Codedata codedata = new Codedata.Builder()
+                .setType(CD_TYPE_ANNOTATION_ATTACHMENT)
+                .setOriginalName(SERVICE_CONFIG_ANNOTATION)
+                .setModuleName("cdc")
+                .build();
+
+        Value property = new Value.ValueBuilder()
+                .metadata("Service Config", "Advanced CDC configuration")
+                .types(getAnnotationConfigTypes())
+                .value("")
+                .setCodedata(codedata)
+                .enabled(true)
+                .editable(true)
+                .build();
+
+        Map<String, Value> properties = serviceModel.getProperties();
+        Value annotationProperty = properties.get(SERVICE_CONFIG_ANNOTATION_KEY);
+        if (annotationProperty != null) {
+            property.setValue(annotationProperty.getValue());
+        } else {
+            properties.put(SERVICE_CONFIG_ANNOTATION_KEY, property);
+        }
+        serviceModel.getProperties().put(SERVICE_CONFIG_ANNOTATION_KEY, property);
+    }
+
+    private List<PropertyType> getAnnotationConfigTypes() {
+
+        PropertyType recordType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.RECORD_MAP_EXPRESSION)
+                .ballerinaType(SERVICE_CONFIG_ANNOTATION_CONSTRAINT)
+                .setMembers(List.of(new PropertyTypeMemberInfo(
+                        SERVICE_CONFIG_ANNOTATION_CONSTRAINT,
+                        "ballerinax:cdc:1.1.0", // TODO: resolve the correct version when there is a value
+                        CDC_MODULE_NAME,
+                        "RECORD_TYPE",
+                        true
+                )))
+                .selected(true)
+                .build();
+
+        PropertyType expressionType = new PropertyType.Builder()
+                .fieldType(Value.FieldType.EXPRESSION)
+                .ballerinaType(SERVICE_CONFIG_ANNOTATION_CONSTRAINT)
+                .selected(false)
+                .build();
+
+        return List.of(recordType, expressionType);
+    }
+
+    @Override
+    public Map<String, List<TextEdit>> updateModel(UpdateModelContext context) {
+        Map<String, List<TextEdit>> editsMap = super.updateModel(context);
+
+        Service service = context.service();
+
+        Value property = service.getProperties().get(SERVICE_CONFIG_ANNOTATION_KEY);
+        if (property == null || property.getValue() == null || property.getValue().isBlank()) {
+            return editsMap;
+        }
+
+        if (!importExists(context.document().syntaxTree().rootNode(), BALLERINAX, CDC_MODULE_NAME)) {
+            ModulePartNode modulePartNode = context.document().syntaxTree().rootNode();
+            String importText = getImportStmt(BALLERINAX, CDC_MODULE_NAME);
+            TextEdit importEdit = new TextEdit(Utils.toRange(modulePartNode.lineRange().startLine()), importText);
+            Map<String, List<TextEdit>> newEdit = new LinkedHashMap<>(editsMap);
+            newEdit.merge(context.filePath(), List.of(importEdit), (existingEdits, newEdits) -> {
+                List<TextEdit> merged = new ArrayList<>(existingEdits);
+                merged.addFirst(newEdits.getFirst());
+                return merged;
+            });
+            return newEdit;
+        }
+
+        return editsMap;
     }
 
     /**

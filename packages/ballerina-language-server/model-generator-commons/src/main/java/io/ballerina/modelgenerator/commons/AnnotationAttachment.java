@@ -31,9 +31,10 @@ import java.util.List;
  * @param description The description of the annotation
  * @param typeName The type name of the annotation
  * @param packageInfo The package information of the annotation
+ * @param packageName The package name of the annotation
  *
  * @since 1.0.0
  */
 public record AnnotationAttachment(String annotName, List<AnnotationAttachPoint> attachmentPoints, String displayName,
-                                   String description, String typeName, String packageInfo) {
+                                   String description, String typeName, String packageInfo, String packageName) {
 }

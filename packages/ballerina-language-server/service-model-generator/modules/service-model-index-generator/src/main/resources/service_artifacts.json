@@ -343,8 +343,8 @@
         "path": {
           "label": "Path",
           "description": "Directory path to be monitored",
-          "defaultValue": "",
-          "placeholder": "\"/tmp\"",
+          "defaultValue": "/tmp",
+          "placeholder": "/tmp",
           "types": [
             {
               "fieldType": "TEXT",

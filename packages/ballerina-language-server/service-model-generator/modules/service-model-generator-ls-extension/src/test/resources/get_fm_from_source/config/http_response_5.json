@@ -402,7 +402,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
@@ -416,7 +416,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
@@ -430,7 +430,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": false,
             "advanced": false
           },
@@ -444,7 +444,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
@@ -457,7 +457,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
@@ -465,9 +465,9 @@
             "imports": {},
             "value": [
               {
-                "type": "string",
                 "optional": false,
-                "name": "x\\-path"
+                "name": "x\\-path",
+                "type": "string"
               }
             ],
             "types": [
@@ -477,7 +477,7 @@
               }
             ],
             "enabled": true,
-            "editable": false,
+            "editable": true,
             "optional": true,
             "advanced": false
           },
@@ -657,6 +657,7 @@
               {
                 "type": "HttpResourceConfig",
                 "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }

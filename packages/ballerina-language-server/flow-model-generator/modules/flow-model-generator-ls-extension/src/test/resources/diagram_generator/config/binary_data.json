@@ -461,7 +461,7 @@
                 "selected": true
               }
             ],
-            "value": "byte[3]",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": true,

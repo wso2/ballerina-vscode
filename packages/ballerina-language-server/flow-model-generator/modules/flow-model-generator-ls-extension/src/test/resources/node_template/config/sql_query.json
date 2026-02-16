@@ -1,0 +1,153 @@
+{
+  "source": "local_connector/main.bal",
+  "position": {
+    "line": 78,
+    "offset": 8
+  },
+  "description": "Resource function with single path parameter and inferred type - get album by id",
+  "codedata": {
+    "node": "REMOTE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "mssql",
+    "packageName": "mssql",
+    "object": "Client",
+    "symbol": "query",
+    "version": "1.16.1",
+    "parentSymbol": "dbClient",
+    "resourcePath": "/albums/[albumId]"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "query",
+      "description": "Executes a SQL query and returns multiple results as a stream.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "mssql",
+      "packageName": "mssql",
+      "object": "Client",
+      "symbol": "query",
+      "version": "1.16.1",
+      "isNew": true,
+      "inferredReturnType": "stream<rowType, sql:Error?>"
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "mssql:Client",
+            "selected": false
+          }
+        ],
+        "value": "dbClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "sqlQuery": {
+        "metadata": {
+          "label": "SQL Query",
+          "description": "SQL query with optional parameters (e.g., `SELECT * FROM users WHERE id=${userId}`)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "sqlQuery"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        }
+      },
+      "rowType": {
+        "metadata": {
+          "label": "Row Type",
+          "description": "Record type to map query results to"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "ballerinaType": "record {|anydata...;|}",
+            "selected": false
+          }
+        ],
+        "value": "record {|anydata...;|}",
+        "placeholder": "record {|anydata...;|}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "PARAM_FOR_TYPE_INFER",
+          "originalName": "rowType"
+        },
+        "defaultValue": "record {|anydata...;|}"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "stream<rowType, sql:Error?>",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "imports": {
+          "sql": "ballerina/sql"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "streamRowtypeSqlError",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      }
+    },
+    "flags": 0
+  }
+}

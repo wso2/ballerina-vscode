@@ -645,7 +645,7 @@
                 "selected": true
               }
             ],
-            "value": "int",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": true,
@@ -737,7 +737,7 @@
                 "selected": true
               }
             ],
-            "value": "int",
+            "value": "var",
             "placeholder": "var",
             "optional": false,
             "editable": true,

@@ -30,7 +30,7 @@
         "displayName": "info",
         "typeName": "Info",
         "kind": "record",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "1372788890"
       },
       {
@@ -46,7 +46,7 @@
         "displayName": "newSecondaryPhones",
         "typeName": "SecondaryPhones[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "-1392347127"
       },
       {

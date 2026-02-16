@@ -184,6 +184,7 @@
               {
                 "type": "GraphqlServiceConfig",
                 "packageInfo": "ballerina:graphql:1.16.0",
+                "packageName": "graphql",
                 "kind": "RECORD_TYPE",
                 "selected": true
               }
@@ -387,6 +388,7 @@
                   {
                     "type": "GraphqlResourceConfig",
                     "packageInfo": "ballerina:graphql:1.16.0",
+                    "packageName": "graphql",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
@@ -809,6 +811,7 @@
                   {
                     "type": "GraphqlResourceConfig",
                     "packageInfo": "ballerina:graphql:1.16.0",
+                    "packageName": "graphql",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
@@ -1359,6 +1362,7 @@
                   {
                     "type": "GraphqlResourceConfig",
                     "packageInfo": "ballerina:graphql:1.16.0",
+                    "packageName": "graphql",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }
@@ -1752,6 +1756,7 @@
                   {
                     "type": "GraphqlResourceConfig",
                     "packageInfo": "ballerina:graphql:1.16.0",
+                    "packageName": "graphql",
                     "kind": "RECORD_TYPE",
                     "selected": false
                   }

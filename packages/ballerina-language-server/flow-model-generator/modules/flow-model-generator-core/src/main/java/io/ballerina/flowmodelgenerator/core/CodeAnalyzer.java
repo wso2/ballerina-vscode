@@ -210,6 +210,8 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.isPersistClient;
  */
 public class CodeAnalyzer extends NodeVisitor {
 
+    public static final String PARAMETERIZED_QUERY = "sql:ParameterizedQuery";
+    public static final String PARAMETERIZED_CALL_QUERY = "sql:ParameterizedCallQuery";
     // Readonly fields
     private final Project project;
     private final SemanticModel semanticModel;
@@ -287,7 +289,8 @@ public class CodeAnalyzer extends NodeVisitor {
             } else {
                 kind = FunctionKind.RESOURCE;
             }
-        } else if (hasQualifier(functionDefinitionNode.qualifierList(), SyntaxKind.REMOTE_KEYWORD)) {
+        } else if (functionDefinitionNode.qualifierList().stream()
+                .anyMatch(qualifier -> qualifier.kind() == SyntaxKind.REMOTE_KEYWORD)) {
             kind = FunctionKind.REMOTE_FUNCTION;
         } else {
             kind = FunctionKind.FUNCTION;
@@ -1047,16 +1050,23 @@ public class CodeAnalyzer extends NodeVisitor {
                 List<String> restArgs = new ArrayList<>();
                 for (int i = 0; i < paramsList.size(); i++) {
                     ParameterSymbol parameterSymbol = paramsList.get(i);
-                    String escapedParamName = parameterSymbol.getName().get();
+                    Optional<String> nameOptional = parameterSymbol.getName();
+                    if (nameOptional.isEmpty()) {
+                        continue;
+                    }
+                    String escapedParamName = nameOptional.get();
                     ParameterData paramResult = funcParamMap.get(escapedParamName);
                     if (paramResult == null) {
-                        escapedParamName = CommonUtil.escapeReservedKeyword(parameterSymbol.getName().get());
+                        escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     }
                     paramResult = funcParamMap.get(escapedParamName);
+                    if (paramResult == null) {
+                        continue;
+                    }
                     Node paramValue = i < argCount ? positionalArgs.poll()
                             : namedArgValueMap.get(paramResult.name());
 
-                    funcParamMap.remove(parameterSymbol.getName().get());
+                    funcParamMap.remove(escapedParamName);
                     Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                             nodeBuilder.properties().custom();
                     String unescapedParamName = ParamUtils.removeLeadingSingleQuote(paramResult.name());
@@ -1088,13 +1098,21 @@ public class CodeAnalyzer extends NodeVisitor {
                 }
                 Property.Builder<FormBuilder<NodeBuilder>> customPropBuilder =
                         nodeBuilder.properties().custom();
-                String escapedParamName = restParamSymbol.getName().get();
-                ParameterData restParamResult = funcParamMap.get(escapedParamName);
-                if (restParamResult == null) {
-                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
-                            restParamSymbol.getName().get()));
+                Optional<String> restNameOptional = restParamSymbol.getName();
+                if (restNameOptional.isEmpty()) {
+                    return;
                 }
-                funcParamMap.remove(restParamSymbol.getName().get());
+                String escapedParamName = restNameOptional.get();
+                ParameterData restParamResult = funcParamMap.get(escapedParamName);
+                Optional<String> restParamName = restParamSymbol.getName();
+                if (restParamResult == null && restParamName.isPresent()) {
+                    restParamResult = funcParamMap.get(CommonUtil.escapeReservedKeyword(
+                            restParamName.get()));
+                }
+                restParamName.ifPresent(funcParamMap::remove);
+                if (restParamResult == null) {
+                    return;
+                }
                 String unescapedParamName = ParamUtils.removeLeadingSingleQuote(restParamResult.name());
                 buildPropertyType(customPropBuilder, restParamResult);
                 customPropBuilder
@@ -1128,7 +1146,11 @@ public class CodeAnalyzer extends NodeVisitor {
             final List<LinkedHashMap<String, String>> includedRecordRestArgs = new ArrayList<>();
             for (int i = 0; i < paramsList.size(); i++) {
                 ParameterSymbol parameterSymbol = paramsList.get(i);
-                String escapedParamName = parameterSymbol.getName().get();
+                Optional<String> paramNameOptional = parameterSymbol.getName();
+                if (paramNameOptional.isEmpty()) {
+                    continue;
+                }
+                String escapedParamName = paramNameOptional.get();
                 if (!funcParamMap.containsKey(escapedParamName)) {
                     escapedParamName = CommonUtil.escapeReservedKeyword(escapedParamName);
                     if (!funcParamMap.containsKey(escapedParamName)) {
@@ -1368,25 +1390,41 @@ public class CodeAnalyzer extends NodeVisitor {
             builder.type(Property.ValueType.EXPRESSION_SET);
         } else if (kind == ParameterData.Kind.INCLUDED_RECORD_REST) {
             builder.type(Property.ValueType.MAPPING_EXPRESSION_SET);
-        } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
-            String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
-            if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
-                boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+        } else {
+            String ballerinaType = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+            if (ballerinaType != null && (ballerinaType.contains(PARAMETERIZED_QUERY)
+                    || ballerinaType.contains(PARAMETERIZED_CALL_QUERY))) {
+                // Handle SQL query parameters with SQL_QUERY as primary option
                 builder.type()
-                        .fieldType(Property.ValueType.PROMPT)
-                        .ballerinaType(AiUtils.AI_PROMPT_TYPE)
-                        .selected(isPromptSelected)
+                        .fieldType(Property.ValueType.SQL_QUERY)
+                        .ballerinaType(ballerinaType)
+                        .selected(true)
                         .stepOut();
                 builder.type()
                         .fieldType(Property.ValueType.EXPRESSION)
-                        .ballerinaType(typeSignature)
-                        .selected(!isPromptSelected)
+                        .ballerinaType(ballerinaType)
+                        .selected(false)
                         .stepOut();
+            } else if (isSubTypeOfRawTemplate(paramData.typeSymbol())) {
+                String typeSignature = CommonUtils.getTypeSignature(paramData.typeSymbol(), moduleInfo);
+                if (AiUtils.AI_PROMPT_TYPE.equals(typeSignature)) {
+                    boolean isPromptSelected = value != null && value.kind() == SyntaxKind.RAW_TEMPLATE_EXPRESSION;
+                    builder.type()
+                            .fieldType(Property.ValueType.PROMPT)
+                            .ballerinaType(AiUtils.AI_PROMPT_TYPE)
+                            .selected(isPromptSelected)
+                            .stepOut();
+                    builder.type()
+                            .fieldType(Property.ValueType.EXPRESSION)
+                            .ballerinaType(typeSignature)
+                            .selected(!isPromptSelected)
+                            .stepOut();
+                } else {
+                    builder.type(Property.ValueType.RAW_TEMPLATE);
+                }
             } else {
-                builder.type(Property.ValueType.RAW_TEMPLATE);
+                builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel, builder);
             }
-        } else {
-            builder.typeWithExpression(paramData.typeSymbol(), moduleInfo, value, semanticModel);
         }
     }
 
@@ -2267,9 +2305,14 @@ public class CodeAnalyzer extends NodeVisitor {
 
     @Override
     public void visit(RetryStatementNode retryStatementNode) {
-        int retryCount = retryStatementNode.arguments().isEmpty() ? 3 :
-                Integer.parseInt(retryStatementNode.arguments()
-                        .map(arg -> arg.arguments().get(0)).get().toString());
+        int retryCount;
+        if (retryStatementNode.arguments().isEmpty()) {
+            retryCount = 3;
+        } else {
+            Optional<Node> argumentOptional = retryStatementNode.arguments()
+                    .map(arg -> arg.arguments().get(0));
+            retryCount = argumentOptional.map(node -> Integer.parseInt(node.toString())).orElse(3);
+        }
 
         StatementNode statementNode = retryStatementNode.retryBody();
         if (statementNode.kind() == SyntaxKind.BLOCK_STATEMENT) {
@@ -2718,8 +2761,12 @@ public class CodeAnalyzer extends NodeVisitor {
 
         // TODO: Once https://github.com/ballerina-platform/ballerina-lang/pull/43871 is merged,
         //  we can use `typeSymbol.subtypeOf(semanticModel.types().RAW_TEMPLATE)` to check the subtyping
-        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol)
-                semanticModel.types().getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate").get();
+        Optional<Symbol> rawSymbolOptional = semanticModel.types()
+                .getTypeByName(BALLERINA_ORG_NAME, "lang.object", "0.0.0", "RawTemplate");
+        if (rawSymbolOptional.isEmpty()) {
+            return false;
+        }
+        TypeDefinitionSymbol rawTypeDefSymbol = (TypeDefinitionSymbol) rawSymbolOptional.get();
 
         TypeSymbol rawTemplateTypeDesc = rawTypeDefSymbol.typeDescriptor();
         return typeSymbol.subtypeOf(rawTemplateTypeDesc);
@@ -2768,9 +2815,6 @@ public class CodeAnalyzer extends NodeVisitor {
                 .collect(Collectors.joining());
     }
 
-    private static boolean hasQualifier(NodeList<Token> qualifierList, SyntaxKind kind) {
-        return qualifierList.stream().anyMatch(qualifier -> qualifier.kind() == kind);
-    }
 
     private boolean isAgent(ServiceDeclarationNode serviceDeclarationNode) {
         SeparatedNodeList<ExpressionNode> expressions = serviceDeclarationNode.expressions();

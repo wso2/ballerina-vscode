@@ -136,7 +136,7 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT",
+                      "fieldType": "DOC_TEXT",
                       "selected": false
                     }
                   ],
@@ -198,7 +198,7 @@
                 ],
                 "value": "genre",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -222,7 +222,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],
@@ -280,7 +280,7 @@
                 ],
                 "value": "n",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -304,7 +304,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],

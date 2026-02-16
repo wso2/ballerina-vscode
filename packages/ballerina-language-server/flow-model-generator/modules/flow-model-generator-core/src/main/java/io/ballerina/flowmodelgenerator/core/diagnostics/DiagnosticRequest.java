@@ -103,19 +103,35 @@ public class DiagnosticRequest implements Callable<JsonElement> {
         List<io.ballerina.tools.text.TextEdit> ballerinaEdits = new ArrayList<>();
         List<TextEdit> lspEdits = textEdits.get(path);
         int start = 0;
+        int cumulativeLength = 0;
         LinePosition endLinePosition = null;
         if (lspEdits != null) {
+            int numTotalEdits = lspEdits.size();
             // Transform every LSP TextEdit to a Ballerina TextEdit
-            for (TextEdit edit : lspEdits) {
+            for (int editIndex = 0; editIndex < numTotalEdits; editIndex++) {
+                TextEdit edit = lspEdits.get(editIndex);
                 // Generate the Ballerina TextEdit from the LSP TextEdit
                 Range editRange = edit.getRange();
                 int startLine = editRange.getStart().getLine();
                 int endLine = editRange.getEnd().getLine();
                 int startCharacter = editRange.getStart().getCharacter();
                 int endCharacter = editRange.getEnd().getCharacter();
-                start = textDocument.textPositionFrom(LinePosition.from(startLine, startCharacter));
+                int startPos = textDocument.textPositionFrom(LinePosition.from(startLine, startCharacter));
                 int end = textDocument.textPositionFrom(LinePosition.from(endLine, endCharacter));
-                ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(TextRange.from(start, end - start),
+
+
+                // Calculate the start position for the final edit
+                // TODO: The algorithm assumes the cursor is always at the most recent text edit, and there are
+                //  currently no known cases where this assumption breaks. However, this makes the approach
+                //  algorithmically incomplete. Ideally, the algorithm should consider the line range of the flow
+                //  node and compute the corresponding start and end ranges accordingly.
+                if (editIndex == numTotalEdits - 1) {
+                    start = cumulativeLength + startPos;
+                } else {
+                    cumulativeLength += edit.getNewText().length();
+                }
+
+                ballerinaEdits.add(io.ballerina.tools.text.TextEdit.from(TextRange.from(startPos, end - startPos),
                         edit.getNewText()));
 
                 // Calculate the end position after the edit:
