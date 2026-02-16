@@ -39,7 +39,8 @@ import { BallerinaProject, LoginMethod, AuthCredentials } from '@wso2/ballerina-
 import { BallerinaExtension } from 'src/core';
 
 const config = workspace.getConfiguration('ballerina');
-export const BACKEND_URL: string = config.get('rootUrl') || process.env.BALLERINA_ROOT_URL;
+const isDevantDev = process.env.CLOUD_ENV === "dev";
+export const BACKEND_URL: string = config.get('rootUrl') || isDevantDev ? process.env.BALLERINA_DEV_COPLIOT_ROOT_URL : process.env.BALLERINA_ROOT_URL;
 
 export const DEVANT_TOKEN_EXCHANGE_URL: string = BACKEND_URL + "/auth-api/v1.0/auth/token-exchange";
 
@@ -171,8 +172,6 @@ export async function getTokenForDefaultModel() {
 
     throw new Error(TOKEN_NOT_AVAILABLE_ERROR_MESSAGE);
 }
-
-// `getBackendURL` was redundant — callers should use a local computed value.
 
 // Function to find a file in a case-insensitive way
 function findFileCaseInsensitive(directory: string, fileName: string): string {
