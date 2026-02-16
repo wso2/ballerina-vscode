@@ -107,18 +107,16 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         })();
     }, []);
 
-    // Effect to trigger validation when requested by parent
+    // Combined validation effect for package name and org name
     useEffect(() => {
-        const error = validatePackageName(formData.packageName, formData.integrationName);
-        setPackageNameError(error);
-        onValidationChange?.(error === null);
-    }, [formData.packageName, onValidationChange]);
-
-    // Real-time validation for organization name
-    useEffect(() => {
-        const error = validateOrgName(formData.orgName);
-        setOrgNameError(error);
-    }, [formData.orgName]);
+        const packageError = validatePackageName(formData.packageName, formData.integrationName);
+        const orgError = validateOrgName(formData.orgName);
+        
+        setPackageNameError(packageError);
+        setOrgNameError(orgError);
+        
+        onValidationChange?.(packageError === null && orgError === null);
+    }, [formData.packageName, formData.integrationName, formData.orgName, onValidationChange]);
 
     return (
         <>
