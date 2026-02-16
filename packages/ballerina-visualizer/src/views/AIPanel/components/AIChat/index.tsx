@@ -579,6 +579,14 @@ const AIChat: React.FC = () => {
                 });
             }
         } else if (type === "task_approval_request") {
+            // Auto-approve task completions if enabled
+            if (isAutoApproveEnabled && response.approvalType === "completion") {
+                await rpcClient.getAiPanelRpcClient().approveTask({
+                    requestId: response.requestId,
+                });
+                return;
+            }
+
             setApprovalRequest({
                 type: "task_approval_request",
                 requestId: response.requestId,
@@ -1412,26 +1420,6 @@ const AIChat: React.FC = () => {
                             {/* <ResetsInBadge>{`Resets in: 30 days`}</ResetsInBadge> */}
                         </Badge>
                         <HeaderButtons>
-                            {isPlanModeFeatureEnabled && (
-                                <Button
-                                    appearance="icon"
-                                    onClick={handleTogglePlanMode}
-                                    tooltip={isPlanModeEnabled ? "Switch to Edit mode (direct edits)" : "Switch to Plan mode (review before applying)"}
-                                >
-                                    <Codicon name={isPlanModeEnabled ? "list-tree" : "edit"} />
-                                    &nbsp;&nbsp;{isPlanModeEnabled ? "Mode: Plan" : "Mode: Edit"}
-                                </Button>
-                            )}
-                            {isPlanModeFeatureEnabled && (
-                                <Button
-                                    appearance="icon"
-                                    onClick={handleToggleAutoApprove}
-                                    tooltip={isAutoApproveEnabled ? "Disable auto-approval for tasks" : "Enable auto-approval for tasks"}
-                                >
-                                    <Codicon name={isAutoApproveEnabled ? "check-all" : "inspect"} />
-                                    &nbsp;&nbsp;{isAutoApproveEnabled ? "Auto-Approve: On" : "Auto-Approve: Off"}
-                                </Button>
-                            )}
                             <Button
                                 appearance="icon"
                                 onClick={() => handleClearChat()}
@@ -1740,6 +1728,10 @@ const AIChat: React.FC = () => {
                             showSuggestedCommands={Array.isArray(otherMessages) && otherMessages.length === 0}
                             codeContext={codeContext}
                             onRemoveCodeContext={() => setCodeContext(undefined)}
+                            isPlanModeEnabled={isPlanModeEnabled}
+                            onTogglePlanMode={isPlanModeFeatureEnabled ? handleTogglePlanMode : undefined}
+                            isAutoApproveEnabled={isAutoApproveEnabled}
+                            onDisableAutoApprove={handleToggleAutoApprove}
                         />
                     )}
                 </AIChatView>

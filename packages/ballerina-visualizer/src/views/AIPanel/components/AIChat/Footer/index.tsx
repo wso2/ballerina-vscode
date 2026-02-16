@@ -129,6 +129,10 @@ type FooterProps = {
     showSuggestedCommands: boolean;
     codeContext?: CodeContext;
     onRemoveCodeContext?: () => void;
+    isPlanModeEnabled?: boolean;
+    onTogglePlanMode?: (value: boolean) => void;
+    isAutoApproveEnabled?: boolean;
+    onDisableAutoApprove?: () => void;
 };
 
 const Footer: React.FC<FooterProps> = ({
@@ -142,6 +146,10 @@ const Footer: React.FC<FooterProps> = ({
     showSuggestedCommands,
     codeContext,
     onRemoveCodeContext,
+    isPlanModeEnabled,
+    onTogglePlanMode,
+    isAutoApproveEnabled,
+    onDisableAutoApprove,
 }) => {
     const [generatingText, setGeneratingText] = useState("Generating.");
 
@@ -187,6 +195,10 @@ const Footer: React.FC<FooterProps> = ({
                 onSend={onSend}
                 onStop={onStop}
                 isLoading={isLoading}
+                isPlanModeEnabled={isPlanModeEnabled}
+                onTogglePlanMode={onTogglePlanMode}
+                isAutoApproveEnabled={isAutoApproveEnabled}
+                onDisableAutoApprove={onDisableAutoApprove}
             />
         </FooterContainer>
     );
