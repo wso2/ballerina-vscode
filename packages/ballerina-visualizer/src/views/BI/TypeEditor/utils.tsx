@@ -58,7 +58,7 @@ export const getTypes = (types: VisibleTypeItem[], filterDMTypes?: boolean, payl
         }
 
         // Skip User-Defined types since they will again fetched 
-        // from search API alogn with other integrations types
+        // from search API align with other integrations types
         if (type.labelDetails?.detail === "User-Defined") {
             continue;
         }
@@ -121,6 +121,7 @@ export const transformTypesFromSearchToHelperCategory = (types: Category[]): Typ
     return types.map((category) => {
         const items: TypeHelperItem[] = [];
         const subCategories: TypeHelperCategory[] = [];
+        const categoryKind = getFunctionItemKind(category.metadata.label);
         for (const categoryItem of category.items) {
             if (isCategoryType(categoryItem)) {
                 subCategories.push({
@@ -130,7 +131,7 @@ export const transformTypesFromSearchToHelperCategory = (types: Category[]): Typ
                         insertText: item.metadata.label,
                         type: COMPLETION_ITEM_KIND.TypeParameter,
                         codedata: (item as AvailableNode).codedata,
-                        kind: getFunctionItemKind(item.metadata.label)
+                        kind: categoryKind
                     }))
                 });
             } else {
@@ -139,7 +140,7 @@ export const transformTypesFromSearchToHelperCategory = (types: Category[]): Typ
                     insertText: categoryItem.metadata.label,
                     type: COMPLETION_ITEM_KIND.TypeParameter,
                     codedata: categoryItem.codedata,
-                    kind: getFunctionItemKind(categoryItem.metadata.label)
+                    kind: categoryKind
                 });
             }
         }

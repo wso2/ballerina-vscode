@@ -22,7 +22,7 @@ import { RefObject, useRef } from 'react';
 
 import { debounce, transform } from 'lodash';
 import { useCallback, useState } from 'react';
-import { CodeData, InputType, LineRange, getPrimaryInputType } from '@wso2/ballerina-core';
+import { CodeData, InputType, LineRange, functionKinds, getPrimaryInputType } from '@wso2/ballerina-core';
 import {
     TypeHelperCategory,
     TypeHelperComponent,
@@ -142,8 +142,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                             searchKind: 'TYPE'
                         });
 
-                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, "IMPORTED");
-                        const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, "CURRENT");
+                        const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
+                        const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
                         setImportedTypes(importedTypes);
                         setWorkspaceTypes(workspaceTypes);
                     }
@@ -168,8 +168,8 @@ const TypeHelperEl = (props: TypeHelperProps) => {
                         searchKind: 'TYPE'
                     });
 
-                    const importedTypes = getFilteredTypesByKind(response.categories, "IMPORTED");
-                    const workspaceTypes = getFilteredTypesByKind(response.categories, "CURRENT");
+                    const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                    const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
                     setImportedTypes(importedTypes);
                     setWorkspaceTypes(workspaceTypes);
                 } catch (error) {

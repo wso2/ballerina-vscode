@@ -323,6 +323,7 @@ export const TypeHelperComponent = (props: TypeHelperComponentProps) => {
                                                                 <div style={{ marginTop: '10px' }}>
                                                                     {subCategory.items?.map((item) => (
                                                                         <SlidingPaneNavContainer
+                                                                            key={`${subCategory.category}-${item.name}`}
                                                                             onClick={() => handleTypeBrowserItemClick(item)}>
                                                                             <ExpandableList.Item
                                                                                 key={`${subCategory.category}-${item.name}`}

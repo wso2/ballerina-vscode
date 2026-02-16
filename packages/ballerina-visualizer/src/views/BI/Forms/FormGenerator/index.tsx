@@ -41,7 +41,8 @@ import {
     NodeKind,
     DataMapperDisplayMode,
     InputType,
-    getPrimaryInputType
+    getPrimaryInputType,
+    functionKinds
 } from "@wso2/ballerina-core";
 import {
     FieldDerivation,
@@ -1235,13 +1236,16 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                 searchKind: 'TYPE'
             })
             .then((response) => {
-                return getFilteredTypesByKind(response.categories, "IMPORTED");
+                return getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
             })
             .finally(() => {
 
             });
 
         let type: TypeHelperItem | undefined;
+        if (!newTypes.length || !newTypes[0].subCategory) {
+            return undefined;
+        }
         for (const category of newTypes[0].subCategory) {
             const matchedType = findMatchedType(category.items, typeName);
             if (matchedType) {
