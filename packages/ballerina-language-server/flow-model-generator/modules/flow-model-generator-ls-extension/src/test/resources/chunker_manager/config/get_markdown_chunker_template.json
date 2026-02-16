@@ -95,7 +95,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxChunkSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "200"
         },
         "maxOverlapSize": {
           "metadata": {
@@ -123,7 +123,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "maxOverlapSize"
           },
-          "defaultValue": "0"
+          "defaultValue": "40"
         },
         "strategy": {
           "metadata": {
@@ -134,6 +134,10 @@
             {
               "fieldType": "SINGLE_SELECT",
               "options": [
+                {
+                  "label": "MARKDOWN_HEADER",
+                  "value": "\"MARKDOWN_HEADER\""
+                },
                 {
                   "label": "CHARACTER",
                   "value": "\"CHARACTER\""
@@ -161,10 +165,6 @@
                 {
                   "label": "CODE_BLOCK",
                   "value": "\"CODE_BLOCK\""
-                },
-                {
-                  "label": "MARKDOWN_HEADER",
-                  "value": "\"MARKDOWN_HEADER\""
                 }
               ],
               "selected": false
@@ -184,7 +184,7 @@
             "kind": "DEFAULTABLE",
             "originalName": "strategy"
           },
-          "defaultValue": "\"CHARACTER\""
+          "defaultValue": "MARKDOWN_HEADER"
         },
         "scope": {
           "metadata": {

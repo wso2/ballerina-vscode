@@ -232,6 +232,10 @@ class IndexGenerator {
         // Create ModuleInfo for the function
         ModuleInfo moduleInfo = ModuleInfo.from(module.descriptor());
 
+        // Create and set the resolved package for the function
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
+                moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version());
+
         // Determine function kind based on function type
         FunctionData.Kind functionKind = mapFunctionTypeToKind(functionType);
 
@@ -241,6 +245,7 @@ class IndexGenerator {
                 .semanticModel(semanticModel)
                 .functionSymbol(functionSymbol)
                 .moduleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null))
                 .functionResultKind(functionKind);
 
         // Handle special cases for connectors and class symbols

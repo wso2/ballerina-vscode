@@ -355,7 +355,6 @@ public class PackageUtil {
      * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
      */
     public static Optional<Package> resolveModulePackage(String org, String packageName, String version) {
-        // TODO: remove this logic after resolving the package without using the buildProject
         try {
             if (version == null) {
                 return getModulePackage(org, packageName);

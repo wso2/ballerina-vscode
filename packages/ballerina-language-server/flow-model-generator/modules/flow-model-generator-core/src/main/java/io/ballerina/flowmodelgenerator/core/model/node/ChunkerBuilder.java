@@ -27,11 +27,14 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
+import io.ballerina.modelgenerator.commons.PackageUtil;
+import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -83,8 +86,13 @@ public class ChunkerBuilder extends CallBuilder {
         ModuleInfo codedataModuleInfo = new ModuleInfo(codedata.org(), codedata.packageName(),
                 codedata.module(), codedata.version());
 
+        // Create and set the resolved package for the function
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
+                codedata.org(), codedata.packageName(), codedata.version());
+
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(codedata.object())
                 .name(codedata.symbol()).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
+                .resolvedPackage(resolvedPackage.orElse(null))
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.CHUNKER)
                 .build();
 

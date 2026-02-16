@@ -1456,10 +1456,11 @@ public class CommonUtils {
         if (resolvedPackage == null || symbolLocation.isEmpty()) {
             return defaultValue;
         }
-
-        document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName(), document);
         if (document == null) {
-            return defaultValue;
+            document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
+            if (document == null) {
+                return defaultValue;
+            }
         }
 
         ModulePartNode rootNode = document.syntaxTree().rootNode();
@@ -1493,12 +1494,9 @@ public class CommonUtils {
     /**
      * Helper method to find a document in a package by file path.
      */
-    private static Document findDocument(Package pkg, String path, Document document) {
+    private static Document findDocument(Package pkg, String path) {
         if (pkg == null) {
             return null;
-        }
-        if (document != null) {
-            return document;
         }
         Project project = pkg.project();
         Module defaultModule = pkg.getDefaultModule();
@@ -1543,9 +1541,11 @@ public class CommonUtils {
             return null;
         }
 
-        Document enumDocument = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName(), document);
-        if (enumDocument == null) {
-            return null;
+        if (document == null) {
+            document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
+            if (document == null) {
+                return null;
+            }
         }
 
         ModulePartNode rootNode = document.syntaxTree().rootNode();
