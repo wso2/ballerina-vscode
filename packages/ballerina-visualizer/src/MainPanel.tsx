@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     KeyboardNavigationManager,
     MachineStateValue,
@@ -46,7 +46,8 @@ import {
     PopupMessage,
     FunctionForm,
     SetupView,
-    TestFunctionForm
+    TestFunctionForm,
+    AIEvaluationForm
 } from "./views/BI";
 import { handleRedo, handleUndo } from "./utils/utils";
 import { STKindChecker } from "@wso2/syntax-tree";
@@ -85,6 +86,8 @@ import { SamplesView } from "./views/BI/SamplesView";
 import { ReviewMode } from "./views/ReviewMode";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
+import { EvalsetViewer } from "./views/EvalsetViewer/EvalsetViewer";
+import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
 
 const globalStyles = css`
     *,
@@ -203,13 +206,8 @@ const MainPanel = () => {
     const [navActive, setNavActive] = useState<boolean>(true);
     const [showHome, setShowHome] = useState<boolean>(true);
     const [popupState, setPopupState] = useState<PopupMachineStateValue>("initialize");
-    const [breakpointState, setBreakpointState] = useState<boolean>(false);
-
-    rpcClient?.onStateChanged((newState: MachineStateValue) => {
-        if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
-            debounceFetchContext();
-        }
-    });
+    const [breakpointState, setBreakpointState] = useState<number>(0);
+    const breakpointStateRef = useRef<number>(0);
 
     const debounceFetchContext = useCallback(
         debounce(() => {
@@ -217,16 +215,26 @@ const MainPanel = () => {
         }, 200), []
     );
 
-    rpcClient?.onPopupStateChanged((newState: PopupMachineStateValue) => {
-        setPopupState(newState);
-    });
-
-    rpcClient?.onBreakpointChanges((state: boolean) => {
-        setBreakpointState(pre => {
-            return !pre;
+    useEffect(() => {
+        rpcClient?.onStateChanged((newState: MachineStateValue) => {
+            if (typeof newState === "object" && "viewActive" in newState && newState.viewActive === "viewReady") {
+                debounceFetchContext();
+            }
         });
-        console.log("Breakpoint changes");
-    });
+
+        rpcClient?.onPopupStateChanged((newState: PopupMachineStateValue) => {
+            setPopupState(newState);
+        });
+
+        rpcClient?.onBreakpointChanges((state: boolean) => {
+            console.log("Breakpoint changes - updating state");
+            setBreakpointState(prev => {
+                const newValue = prev + 1;
+                breakpointStateRef.current = newValue;
+                return newValue;
+            });
+        });
+    }, [rpcClient]);
 
     // TODO: Need to refactor this function. use util apply modifications function
     const applyModifications = async (modifications: STModification[], isRecordModification?: boolean) => {
@@ -341,7 +349,7 @@ const MainPanel = () => {
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointState}
+                                    breakpointState={breakpointStateRef.current}
                                 />
                             );
                         }).catch((error) => {
@@ -353,7 +361,7 @@ const MainPanel = () => {
                                     projectPath={value?.projectPath}
                                     filePath={value?.documentUri}
                                     view={value?.focusFlowDiagramView}
-                                    breakpointState={breakpointState}
+                                    breakpointState={breakpointStateRef.current}
                                 />
                             );
                         });
@@ -587,10 +595,22 @@ const MainPanel = () => {
                     case MACHINE_VIEW.BITestFunctionForm:
                         setViewComponent(
                             <TestFunctionForm
+                                key={value?.identifier} // Force remount when switching between different tests
                                 projectPath={value.projectPath}
                                 functionName={value?.identifier}
                                 filePath={value?.documentUri}
                                 serviceType={value?.serviceType}
+                            />);
+                        break;
+                    case MACHINE_VIEW.BIAIEvaluationForm:
+                        setViewComponent(
+                            <AIEvaluationForm
+                                key={value?.identifier} // Force remount when switching between different tests
+                                projectPath={value.projectPath}
+                                functionName={value?.identifier}
+                                filePath={value?.documentUri}
+                                serviceType={value?.serviceType}
+                                isVersionSupported={value?.metadata?.featureSupport?.aiEvaluation}
                             />);
                         break;
                     case MACHINE_VIEW.ViewConfigVariables:
@@ -626,6 +646,25 @@ const MainPanel = () => {
                             <ReviewMode />
                         );
                         break;
+                    case MACHINE_VIEW.EvalsetViewer:
+                        setViewComponent(
+                            <EvalsetViewer
+                                projectPath={value.projectPath}
+                                filePath={value?.evalsetData.filePath}
+                                content={value?.evalsetData.content}
+                                threadId={value?.evalsetData?.threadId}
+                            />
+                        );
+                        break;
+                    case MACHINE_VIEW.ConfigurationCollector:
+                        setViewComponent(
+                            <ConfigurationCollector
+                                data={value.agentMetadata?.configurationCollector}
+                                onClose={() => handleApprovalClose(value.agentMetadata?.configurationCollector)}
+                            />
+                        );
+                        break;
+
                     default:
                         setNavActive(false);
                         setViewComponent(<LoadingRing />);
@@ -661,6 +700,15 @@ const MainPanel = () => {
 
     const handleNavigateToOverview = () => {
         rpcClient.getVisualizerRpcClient().goHome();
+    };
+
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[MainPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
     };
 
     const handlePopupClose = (id: string) => {

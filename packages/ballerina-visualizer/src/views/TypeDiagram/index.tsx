@@ -66,9 +66,25 @@ export function TypeDiagram(props: TypeDiagramProps) {
         editingType: undefined,
     });
 
+    const createNewType = (): Type => ({
+        name: "",
+        members: [] as Member[],
+        editable: true,
+        metadata: {
+            description: "",
+            label: ""
+        },
+        properties: {},
+        codedata: {
+            node: "RECORD" as TypeNodeKind
+        },
+        includes: [] as string[],
+        allowAdditionalFields: false
+    });
+
     const [stack, setStack] = useState<StackItem[]>([{
         isDirty: false,
-        type: undefined
+        type: createNewType()
     }]);
 
     const [refetchStates, setRefetchStates] = useState<boolean[]>([false]);
@@ -109,9 +125,13 @@ export function TypeDiagram(props: TypeDiagramProps) {
     };
 
     const replaceTop = (item: StackItem) => {
-        if (stack.length <= 1) return;
+        if (stack.length === 0) return;
         setStack((prev) => {
             const newStack = [...prev];
+            //preserve fieldIndex if exists
+            if (newStack[newStack.length - 1].fieldIndex) {
+                item.fieldIndex = newStack[newStack.length - 1].fieldIndex;
+            }
             newStack[newStack.length - 1] = item;
             return newStack;
         });
@@ -194,8 +214,19 @@ export function TypeDiagram(props: TypeDiagramProps) {
 
     const onSaveType = () => {
         if (stack.length > 0) {
+            if (stack.length > 1) {
+                const newStack = [...stack]
+                const currentTop = newStack[newStack.length - 1];
+                const newTop = newStack[newStack.length - 2];
+                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                newStack[newStack.length - 2] = newTop;
+                newStack.pop();
+                setStack(newStack);
+            }
+            else {
+                popTypeStack();
+            }
             setRefetchForCurrentModal(true);
-            popTypeStack();
         }
         setTypeEditorState({
             ...typeEditorState,
@@ -203,26 +234,17 @@ export function TypeDiagram(props: TypeDiagramProps) {
         });
     }
 
-    const createNewType = (): Type => ({
-        name: "",
-        members: [] as Member[],
-        editable: true,
-        metadata: {
-            description: "",
-            label: ""
-        },
-        properties: {},
-        codedata: {
-            node: "RECORD" as TypeNodeKind
-        },
-        includes: [] as string[],
-        allowAdditionalFields: false
-    });
 
-    const getNewTypeCreateForm = () => {
+    const getNewTypeCreateForm = (fieldIndex?: number, typeName?: string) => {
+        const currentTop = peekTypeStack();
+        if (currentTop) {
+            currentTop.fieldIndex = fieldIndex;
+            replaceTop(currentTop);
+        }
         pushTypeStack({
             type: createNewType(),
-            isDirty: false
+            isDirty: false,
+            fieldIndex: fieldIndex
         });
         setTypeEditorState({
             ...typeEditorState,
@@ -504,30 +526,30 @@ export function TypeDiagram(props: TypeDiagramProps) {
                     </>
                 </ViewContent>
             </View>
-            {/* Panel for editing and creating types */}
-            <PanelContainer
-                title={typeEditorState.editingTypeId ?
-                    `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
-                        ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
-                        ''}` :
-                    "New Type"
-                }
-                show={typeEditorState.isTypeCreatorOpen}
-                onClose={onTypeEditorClosed}
-            >
-                <FormTypeEditor
-                    key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
-                    type={findSelectedType(typeEditorState.editingTypeId)}
-                    newType={typeEditorState.editingTypeId ? false : true}
-                    onTypeChange={onTypeChange}
-                    onTypeCreate={() => { }}
-                    isPopupTypeForm={false}
-                    onSaveType={onSaveType}
-                    getNewTypeCreateForm={getNewTypeCreateForm}
-                    refetchTypes={true}
-                />
-            </PanelContainer>
             <EditorContext.Provider value={{ stack, push: pushTypeStack, pop: popTypeStack, peek: peekTypeStack, replaceTop: replaceTop }}>
+                {/* Panel for editing and creating types */}
+                <PanelContainer
+                    title={typeEditorState.editingTypeId ?
+                        `Edit Type${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node) ?
+                            ` : ${getTypeKindDisplayName(typeEditorState.editingType?.codedata?.node)}` :
+                            ''}` :
+                        "New Type"
+                    }
+                    show={typeEditorState.isTypeCreatorOpen}
+                    onClose={onTypeEditorClosed}
+                >
+                    <FormTypeEditor
+                        key={typeEditorState.editingTypeId ?? typeEditorState.newTypeName ?? 'new-type'}
+                        type={findSelectedType(typeEditorState.editingTypeId)}
+                        newType={typeEditorState.editingTypeId ? false : true}
+                        onTypeChange={onTypeChange}
+                        onTypeCreate={() => { }}
+                        isPopupTypeForm={false}
+                        onSaveType={onSaveType}
+                        getNewTypeCreateForm={getNewTypeCreateForm}
+                        refetchTypes={true}
+                    />
+                </PanelContainer>
 
                 {stack.slice(1).map((item, i) => {
                     return (

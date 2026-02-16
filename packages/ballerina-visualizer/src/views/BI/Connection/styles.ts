@@ -30,8 +30,9 @@ export const PopupContainer = styled.div`
     transform: translate(-50%, -50%);
     width: 80%;
     max-width: 800px;
-    height: 80%;
+    height: 80vh;
     max-height: 800px;
+    min-height: 480px;
     z-index: 2000;
     background-color: ${ThemeColors.SURFACE_BRIGHT};
     border-radius: 10px;
@@ -45,7 +46,7 @@ export const PopupHeader = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 24px 32px;
+    padding: 16px 20px;
     gap: 16px;
     border-bottom: 1px solid ${ThemeColors.OUTLINE_VARIANT};
 `;
@@ -80,4 +81,19 @@ export const CloseButton = styled(Button)`
     padding: 4px;
 `;
 
+export const PopupContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
 
+export const PopupFooter = styled.div`
+    padding: 16px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;

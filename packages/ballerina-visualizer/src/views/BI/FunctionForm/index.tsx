@@ -112,7 +112,7 @@ export function FunctionForm(props: FunctionFormProps) {
         fields.forEach((field) => {
             const primaryInputType = getPrimaryInputType(field.types)
             if (field.key === "functionNameDescription" || field.key === "typeDescription") {
-                field.type = "TEXTAREA";
+                field.type = "DOC_TEXT";
             }
             if (field.key === "parameters" && primaryInputType && isTemplateType(primaryInputType)) {
                 if ((primaryInputType.template as any).value.parameterDescription) {
@@ -225,6 +225,7 @@ export function FunctionForm(props: FunctionFormProps) {
             // Handle advance properties
             const enrichFlowNodeForAdvanceProperties = (data: FormValues) => {
                 for (const value of Object.values(data)) {
+                    if (!value) continue;
                     const nestedData = value.advanceProperties;
                     if (nestedData) {
                         for (const [advanceKey, advanceValue] of Object.entries(nestedData)) {

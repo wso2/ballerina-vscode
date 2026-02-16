@@ -75,3 +75,26 @@ export const Badge = styled.div`
 export const ResetsInBadge = styled.div`
     font-size: 10px;
 `;
+
+export const ApprovalOverlay = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: all;
+`;
+
+export const OverlayMessage = styled.div`
+    color: var(--vscode-foreground);
+    font-size: 14px;
+    padding: 16px 24px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+`;

@@ -159,6 +159,7 @@ export const completionTheme = EditorView.theme({
         borderRadius: "3px",
         padding: "2px 0px",
         maxHeight: "300px",
+        maxWidth: "300px",
         overflow: "auto",
         zIndex: "3000",
         boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",

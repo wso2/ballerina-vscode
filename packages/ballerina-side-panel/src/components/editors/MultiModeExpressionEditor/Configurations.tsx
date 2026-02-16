@@ -64,6 +64,7 @@ const customSqlHighlightStyle = HighlightStyle.define([
 export class StringTemplateEditorConfig extends ChipExpressionEditorDefaultConfiguration {
     getHelperValue(value: string, token?: ParsedToken): string {
         if (token?.type === TokenType.FUNCTION) return value;
+        if (value === "\"TEXT_HERE\"") return "TEXT_HERE";
         return `\$\{${value}\}`;
     }
     getSerializationPrefix() {
@@ -149,7 +150,7 @@ export class SQLExpressionEditorConfig extends ChipExpressionEditorDefaultConfig
         return () => null;
     }
     getSerializationPrefix(): string {
-        return "sql `";
+        return "`";
     }
     getSerializationSuffix(): string {
         return "`";
@@ -211,7 +212,17 @@ export class NumberExpressionEditorConfig extends ChipExpressionEditorDefaultCon
 
     }
 
+    getIsToggleHelperAvailable(): boolean {
+        return false;
+    }
+
     getIsValueCompatible(value: string): boolean {
         return this.DECIMAL_INPUT_REGEX.test(value);
     }
+}
+
+export class RecordConfigExpressionEditorConfig extends ChipExpressionEditorDefaultConfiguration {
+   getIsToggleHelperAvailable(): boolean {
+        return false;
+   }
 }

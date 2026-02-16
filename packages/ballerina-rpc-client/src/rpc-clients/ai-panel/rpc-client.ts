@@ -27,6 +27,8 @@ import {
     CheckpointInfo,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     DocGenerationRequest,
     GenerateAgentCodeRequest,
     GenerateOpenAPIRequest,
@@ -51,6 +53,7 @@ import {
     approvePlan,
     approveTask,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     createTestDirecoryIfNotExists,
@@ -72,6 +75,8 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
+    getAffectedPackages,
+    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
@@ -81,6 +86,7 @@ import {
     openChatWindowWithCommand,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     restoreCheckpoint,
     showSignInAlert,
     submitFeedback,
@@ -205,6 +211,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
         return this._messenger.sendRequest(getSemanticDiff, HOST_EXTENSION, params);
     }
 
+    getAffectedPackages(): Promise<string[]> {
+        return this._messenger.sendRequest(getAffectedPackages, HOST_EXTENSION);
+    }
+
+    isWorkspaceProject(): Promise<boolean> {
+        return this._messenger.sendRequest(isWorkspaceProject, HOST_EXTENSION);
+    }
+
     acceptChanges(): Promise<void> {
         return this._messenger.sendRequest(acceptChanges, HOST_EXTENSION);
     }
@@ -235,6 +249,14 @@ export class AiPanelRpcClient implements AIPanelAPI {
 
     cancelConnectorSpec(params: ConnectorSpecCancelRequest): Promise<void> {
         return this._messenger.sendRequest(cancelConnectorSpec, HOST_EXTENSION, params);
+    }
+
+    provideConfiguration(params: ConfigurationProvideRequest): Promise<void> {
+        return this._messenger.sendRequest(provideConfiguration, HOST_EXTENSION, params);
+    }
+
+    cancelConfiguration(params: ConfigurationCancelRequest): Promise<void> {
+        return this._messenger.sendRequest(cancelConfiguration, HOST_EXTENSION, params);
     }
 
     getChatMessages(): Promise<UIChatMessage[]> {
