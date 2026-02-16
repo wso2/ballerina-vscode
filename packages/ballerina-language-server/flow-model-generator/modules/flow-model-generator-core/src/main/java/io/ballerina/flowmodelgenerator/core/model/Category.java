@@ -55,6 +55,8 @@ public record Category(Metadata metadata, List<Item> items) implements Item {
                 List.of("Project", "Local", "Function")),
         CURRENT_WORKFLOWS("Current Integration", "Workflows defined within the current integration",
                 List.of("Project", "Local", "Workflow")),
+        CURRENT_ACTIVITIES("Current Integration", "Activities defined within the current integration",
+                List.of("Project", "Local", "Activity")),
         AGENT_TOOLS("Agent Tools", "Functions used as agent tools", List.of("Project", "Local", "Function")),
         CURRENT_ORGANIZATION("Current Organization", "Components in the current organization",
                 List.of("Organization", "Function", "Library")),

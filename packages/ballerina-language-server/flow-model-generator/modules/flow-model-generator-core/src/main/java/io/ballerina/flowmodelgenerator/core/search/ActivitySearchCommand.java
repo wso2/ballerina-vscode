@@ -39,36 +39,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.PROCESS_ANNOTATION;
+import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.ACTIVITY_ANNOTATION;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_MODULE;
 import static io.ballerina.flowmodelgenerator.core.Constants.Workflow.WORKFLOW_ORG;
 
 /**
- * Represents a command to search for workflow process functions within a project.
+ * Represents a command to search for workflow activity functions within a project.
  * This class extends SearchCommand and provides functionality to search for functions
- * annotated with @workflow:Process.
+ * annotated with @workflow:Activity.
  *
- * <p>The search results include workflow functions from the current project that can be
- * called using workflow:createInstance().</p>
+ * <p>The search results include activity functions from the current project that can be
+ * called using ctx->callActivity().</p>
  *
  * @see SearchCommand
  * @since 2.0.0
  */
-class WorkflowSearchCommand extends SearchCommand {
+class ActivitySearchCommand extends SearchCommand {
 
-    public WorkflowSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
+    public ActivitySearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
         super(project, position, queryMap);
     }
 
     @Override
     protected List<Item> defaultView() {
-        buildWorkflowNodes();
+        buildActivityNodes();
         return rootBuilder.build().items();
     }
 
     @Override
     protected List<Item> search() {
-        buildWorkflowNodes();
+        buildActivityNodes();
         return rootBuilder.build().items();
     }
 
@@ -78,9 +78,9 @@ class WorkflowSearchCommand extends SearchCommand {
     }
 
     /**
-     * Builds the list of workflow process functions from the current project.
+     * Builds the list of activity functions from the current project.
      */
-    private void buildWorkflowNodes() {
+    private void buildActivityNodes() {
         Package currentPackage = project.currentPackage();
         PackageUtil.getCompilation(currentPackage);
 
@@ -89,25 +89,25 @@ class WorkflowSearchCommand extends SearchCommand {
         String moduleName = currentPackage.packageName().value();
         String version = currentPackage.packageVersion().value().toString();
 
-        // Create the category for current integration workflows
-        Category.Builder workflowCategory = rootBuilder.stepIn(Category.Name.CURRENT_WORKFLOWS);
+        // Create the category for current integration activities
+        Category.Builder activityCategory = rootBuilder.stepIn(Category.Name.CURRENT_ACTIVITIES);
 
-        // Search for functions with @workflow:Process annotation in all modules
+        // Search for functions with @workflow:Activity annotation in all modules
         currentPackage.modules().forEach(module -> {
             module.getCompilation().getSemanticModel().moduleSymbols().stream()
                     .filter(symbol -> symbol.kind() == SymbolKind.FUNCTION)
                     .map(symbol -> (FunctionSymbol) symbol)
-                    .filter(this::hasWorkflowProcessAnnotation)
+                    .filter(this::hasActivityAnnotation)
                     .filter(funcSymbol -> matchesQuery(funcSymbol.getName().orElse("")))
                     .forEach(funcSymbol -> {
                         String funcName = funcSymbol.getName().orElse("");
                         String description = funcSymbol.documentation()
                                 .flatMap(doc -> doc.description())
-                                .orElse("Workflow process function");
+                                .orElse("Workflow activity function");
 
-                        // Build the codedata with WORKFLOW_START node kind
+                        // Build the codedata with ACTIVITY_CALL node kind
                         Codedata codedata = new Codedata.Builder<>(null)
-                                .node(NodeKind.WORKFLOW_START)
+                                .node(NodeKind.ACTIVITY_CALL)
                                 .org(orgName)
                                 .module(moduleName)
                                 .symbol(funcName)
@@ -120,18 +120,18 @@ class WorkflowSearchCommand extends SearchCommand {
                                 .build();
 
                         AvailableNode node = new AvailableNode(metadata, codedata, true);
-                        workflowCategory.node(node);
+                        activityCategory.node(node);
                     });
         });
     }
 
     /**
-     * Checks if the given function symbol has the @workflow:Process annotation.
+     * Checks if the given function symbol has the @workflow:Activity annotation.
      *
      * @param funcSymbol The function symbol to check
-     * @return true if the function has @workflow:Process annotation, false otherwise
+     * @return true if the function has @workflow:Activity annotation, false otherwise
      */
-    private boolean hasWorkflowProcessAnnotation(FunctionSymbol funcSymbol) {
+    private boolean hasActivityAnnotation(FunctionSymbol funcSymbol) {
         List<AnnotationAttachmentSymbol> annotations = funcSymbol.annotAttachments();
         for (AnnotationAttachmentSymbol attachment : annotations) {
             AnnotationSymbol annotation = attachment.typeDescriptor();
@@ -142,7 +142,7 @@ class WorkflowSearchCommand extends SearchCommand {
                 String name = annotationName.get();
                 String moduleName = moduleSymbol.get().id().moduleName();
                 String orgName = moduleSymbol.get().id().orgName();
-                if (PROCESS_ANNOTATION.equals(name) && WORKFLOW_MODULE.equals(moduleName)
+                if (ACTIVITY_ANNOTATION.equals(name) && WORKFLOW_MODULE.equals(moduleName)
                         && WORKFLOW_ORG.equals(orgName)) {
                     return true;
                 }

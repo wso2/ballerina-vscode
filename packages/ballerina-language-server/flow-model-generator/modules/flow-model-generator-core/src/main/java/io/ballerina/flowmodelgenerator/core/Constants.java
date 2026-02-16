@@ -113,6 +113,7 @@ public class Constants {
         public static final String WAIT_EVENT_LABEL = "Wait for Event";
         public static final String WAIT_EVENT_DESCRIPTION = "Wait for a workflow event to be received";
         public static final String PROCESS_ANNOTATION = "Process";
+        public static final String ACTIVITY_ANNOTATION = "Activity";
     }
 
     // Constants used for AI

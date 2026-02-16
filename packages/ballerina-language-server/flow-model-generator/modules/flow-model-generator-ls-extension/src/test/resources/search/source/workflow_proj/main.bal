@@ -38,6 +38,8 @@ function sendNotification(string message) returns boolean|error {
     return true;
 }
 
-public function main() {
-    io:println("Workflow project");
+@workflow:Activity
+function sendEmail(string message) returns boolean|error {
+    io:println("Sending email: " + message);
+    return true;
 }
