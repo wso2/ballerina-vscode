@@ -184,6 +184,15 @@ Rules:
                         }
                     } else if (taskCategories.inProgress.length > 0) {
                         console.log(`[TaskWrite Tool] Task in progress: ${taskCategories.inProgress[0].description}`);
+                        eventHandler({
+                            type: "tool_result",
+                            toolName: TASK_WRITE_TOOL_NAME,
+                            toolOutput: {
+                                success: true,
+                                message: `Started working on: ${taskCategories.inProgress[0].description}`,
+                                tasks: allTasks
+                            }
+                        });
                     }
                 }
 
