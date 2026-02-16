@@ -289,7 +289,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
         }
     );
 
-    const { mutate: initializeOASConn, isPending: initializingOASConn } = useMutation({
+    const { mutateAsync: importInternalOASConnection, isPending: initializingOASConn } = useMutation({
         mutationFn: async () => {
                 const connectionDetailed = await platformRpcClient.getConnection({
                     connectionGroupId: importingConn?.groupUuid,
@@ -338,18 +338,19 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
 
     const { mutate: generateCustomConnectorFromOAS, isPending: generatingCustomConnectorFromOAS } = useMutation({
         mutationFn: async () => {
-            const resp = await platformRpcClient?.generateCustomConnectorFromOAS({
-                marketplaceItem: selectedMarketplaceItem!,
-                connectionName: generateInitialConnectionName(
-                    biConnectionNames,
-                    existingDevantConnNames,
-                    selectedMarketplaceItem?.name,
-                ),
-            });
             if(selectedFlow === DevantConnectionFlow.IMPORT_INTERNAL_OAS) {
-                initializeOASConn();
+                await importInternalOASConnection();
+            } else {
+                const resp = await platformRpcClient?.generateCustomConnectorFromOAS({
+                    marketplaceItem: selectedMarketplaceItem!,
+                    connectionName: generateInitialConnectionName(
+                        biConnectionNames,
+                        existingDevantConnNames,
+                        selectedMarketplaceItem?.name,
+                    ),
+                });
+                return resp;
             }
-            return resp;
         },
         onSuccess: (data) => {
             setAvailableNode(data.connectionNode);

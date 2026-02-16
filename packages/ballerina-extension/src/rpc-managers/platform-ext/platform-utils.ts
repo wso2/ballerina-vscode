@@ -286,18 +286,6 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
     }
 };
 
-export const getInjectedEnvVarNames = (key: string): string => {
-    const parts = key.split("_");
-    if (parts.length > 1) {
-        let lastPart = parts[parts.length - 1];
-        if (lastPart.startsWith("CHOREO")) {
-            lastPart = lastPart.slice("CHOREO".length);
-        }
-        parts[parts.length - 1] = lastPart;
-    }
-    return parts.join("_");
-};
-
 export const getWorkspaceStateStore = (storeName: string): PersistOptions<any, any> => {
     const version = "v1";
     return {
