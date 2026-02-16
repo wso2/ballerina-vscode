@@ -73,8 +73,8 @@ export function ObjectOutputWidget(props: ObjectOutputWidgetProps) {
 		}))
 	);
 
-	const fields = outputType.fields.filter(t => t !== null);
-	const hasFields = fields.length > 0;
+	const fields = outputType.fields?.filter(t => t !== null);
+	const hasFields = fields?.length > 0;
 
 	const portIn = getPort(`${id}.IN`);
 
