@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { motion } from 'framer-motion';
 import { EvalFunctionCall, EvalToolSchema } from '@wso2/ballerina-core';
-import { Icon } from '@wso2/ui-toolkit';
+import { Button, Icon } from '@wso2/ui-toolkit';
 
 const Overlay = styled.div`
     position: fixed;
@@ -174,35 +174,7 @@ const ModalFooter = styled.div`
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 12px;
-`;
-
-const CancelButton = styled.button`
-    background: none;
-    border: none;
-    padding: 8px 16px;
-    font-size: 13px;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    opacity: 0.8;
-
-    &:hover {
-        opacity: 1;
-    }
-`;
-
-const SaveButton = styled.button`
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 3px;
-    padding: 8px 16px;
-    font-size: 13px;
-    cursor: pointer;
-
-    &:hover {
-        background-color: var(--vscode-button-hoverBackground);
-    }
+    gap: 6px;
 `;
 
 interface ToolEditorModalProps {
@@ -222,13 +194,20 @@ export const ToolEditorModal: React.FC<ToolEditorModalProps> = ({
     const [argumentsValue, setArgumentsValue] = useState<Record<string, any>>(
         toolCall.arguments || {}
     );
+    const isInitialMount = useRef(true);
 
     const selectedTool = availableTools.find(t => t.name === name);
     const parametersSchema = selectedTool?.parametersSchema;
 
-    // Reset arguments when the selected tool changes
+    // Reset arguments when the selected tool changes (but not on initial mount)
     useEffect(() => {
-        // Initialize with defaults from schema if available, otherwise empty object
+        // Skip reset on initial mount to preserve existing argument values
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        // When tool changes, initialize with defaults from schema
         const newArguments: Record<string, any> = {};
 
         if (parametersSchema?.properties) {
@@ -368,8 +347,8 @@ export const ToolEditorModal: React.FC<ToolEditorModalProps> = ({
                 </ModalBody>
 
                 <ModalFooter>
-                    <CancelButton onClick={onClose}>Cancel</CancelButton>
-                    <SaveButton onClick={handleSave}>Save Changes</SaveButton>
+                    <Button appearance="secondary" onClick={onClose}>Cancel</Button>
+                    <Button appearance="primary" onClick={handleSave}>Save Changes</Button>
                 </ModalFooter>
             </ModalContainer>
         </Overlay>
