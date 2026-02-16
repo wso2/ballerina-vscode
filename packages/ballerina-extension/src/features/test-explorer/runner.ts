@@ -18,7 +18,7 @@
  */
 
 import { exec } from 'child_process';
-import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window, env } from 'vscode';
+import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind, commands, window } from 'vscode';
 import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
@@ -26,6 +26,7 @@ import { extension } from '../../BalExtensionContext';
 import { constructDebugConfig } from "../debugger";
 const fs = require('fs');
 import path from 'path';
+import { EvaluationReportWebview } from '../../views/evaluation-report/webview';
 
 /**
  * Extract project path from a test item
@@ -117,8 +118,9 @@ function isAiEvaluations(test: TestItem): boolean {
 function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
     if (isAiEvaluations(test)) {
         // Evaluations tests use group-based execution with test report
+        const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
         const projectPart = projectName ? ` ${projectName}` : '';
-        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${projectPart}`;
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${testsPart}${projectPart}`;
     } else {
         // Standard tests use code coverage and optional test filtering
         const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
@@ -481,16 +483,14 @@ async function findLatestEvaluationReport(workingDirectory: string): Promise<Uri
 
 async function openEvaluationReport(reportUri: Uri): Promise<void> {
     try {
-        const action = await window.showInformationMessage(
-            'Evaluation report generated',
-            'Open in Browser'
-        );
+        // Show notification (non-blocking, no button)
+        window.showInformationMessage('Evaluation report generated');
 
-        if (action === 'Open in Browser') {
-            await env.openExternal(reportUri);
-        }
+        // Open report in webview
+        await EvaluationReportWebview.createOrShow(reportUri);
     } catch (error) {
         console.error('Failed to open evaluation report:', error);
+        window.showErrorMessage('Failed to open evaluation report');
     }
 }
 
