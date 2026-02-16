@@ -82,22 +82,6 @@ function applyHashMap(content: string, hashMap: Map<string, string>): string {
     return result;
 }
 
-function buildSnapshot(container: HTMLElement, prettyDom: string, attrPattern: RegExp): string {
-    const emotionStyles = getEmotionStyles(container);
-    const hashMap = buildHashMap(prettyDom);
-
-    let sanitizedDom = prettyDom
-        .replaceAll(attrPattern, "")
-        .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
-
-    sanitizedDom = applyHashMap(sanitizedDom, hashMap);
-    const normalizedStyles = applyHashMap(emotionStyles, hashMap);
-
-    return normalizedStyles.trim()
-        ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
-        : sanitizedDom;
-}
-
 async function renderAndCheckSnapshot(types: Type[], testName: string) {
     const mockProps = {
         goToSource: jest.fn(),
@@ -119,6 +103,9 @@ async function renderAndCheckSnapshot(types: Type[], testName: string) {
         { timeout: 10000 }
     );
 
+    // Extract Emotion CSS styles relevant to this render
+    const emotionStyles = getEmotionStyles(dom.container);
+
     const prettyDom = prettyDOM(dom.container, 1000000, {
         highlight: false,
         filterNode(_node) {
@@ -128,11 +115,23 @@ async function renderAndCheckSnapshot(types: Type[], testName: string) {
 
     expect(prettyDom).toBeTruthy();
 
-    const snapshot = buildSnapshot(
-        dom.container,
-        prettyDom as string,
-        /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g
-    );
+    // Build deterministic hash mapping from DOM (order of first appearance)
+    const hashMap = buildHashMap(prettyDom as string);
+
+    // Sanitization: remove dynamic IDs and non-deterministic attributes
+    let sanitizedDom = (prettyDom as string)
+        .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
+        .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
+        .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
+
+    // Apply deterministic hash normalization to both DOM and styles
+    sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+    const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+    // Combine styles + DOM for comprehensive snapshot that captures both structure and styling
+    const snapshot = normalizedStyles.trim()
+        ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+        : sanitizedDom;
     expect(snapshot).toMatchSnapshot(testName);
 }
 
@@ -180,6 +179,9 @@ describe("Type Diagram - Snapshot Tests", () => {
             { timeout: 5000 }
         );
 
+        // Extract Emotion CSS styles relevant to this render
+        const emotionStyles = getEmotionStyles(dom.container);
+
         const prettyDom = prettyDOM(dom.container, 1000000, {
             highlight: false,
             filterNode(_node) {
@@ -189,11 +191,97 @@ describe("Type Diagram - Snapshot Tests", () => {
 
         expect(prettyDom).toBeTruthy();
 
-        const snapshot = buildSnapshot(
-            dom.container,
-            prettyDom as string,
-            /\s+(marker-end|id|data-linkid|data-nodeid|appearance|aria-label|current-value)="[^"]*"/g
-        );
+        // Build deterministic hash mapping from DOM (order of first appearance)
+        const hashMap = buildHashMap(prettyDom as string);
+
+        // Sanitization: remove dynamic IDs and non-deterministic attributes
+        let sanitizedDom = (prettyDom as string)
+            .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
+            .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
+            .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
+
+        // Apply deterministic hash normalization to both DOM and styles
+        sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+        const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+        // Combine styles + DOM for comprehensive snapshot that captures both structure and styling
+        const snapshot = normalizedStyles.trim()
+            ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+            : sanitizedDom;
         expect(snapshot).toMatchSnapshot("empty-types");
+    }, 15000);
+
+    test("renders GraphQL service with no operations correctly", async () => {
+        // Create a mock GraphQL service type with no operations
+        const graphqlService: Type = {
+            name: "",
+            editable: true,
+            metadata: {
+                label: "GraphQL Service",
+                description: "GraphQL service root",
+            },
+            codedata: {
+                node: "SERVICE_DECLARATION",
+                lineRange: {
+                    fileName: "main.bal",
+                    startLine: { line: 1, offset: 0 },
+                    endLine: { line: 10, offset: 0 },
+                },
+            },
+            properties: {},
+            functions: [], // Empty operations list
+        };
+
+        const dom = render(
+            <TypeDiagram
+                typeModel={[]}
+                rootService={graphqlService}
+                isGraphql={true}
+                goToSource={jest.fn()}
+                onTypeEdit={jest.fn()}
+                onTypeDelete={jest.fn()}
+                verifyTypeDelete={jest.fn().mockResolvedValue(true)}
+            />
+        );
+
+        // Wait for diagram to render
+        await waitFor(
+            () => {
+                const diagramElements = dom.container.querySelectorAll('[class*="diagram"], svg, canvas, [data-testid="type-diagram"]');
+                expect(diagramElements.length).toBeGreaterThan(0);
+            },
+            { timeout: 10000 }
+        );
+
+        // Extract Emotion CSS styles relevant to this render
+        const emotionStyles = getEmotionStyles(dom.container);
+
+        const prettyDom = prettyDOM(dom.container, 1000000, {
+            highlight: false,
+            filterNode(_node) {
+                return true;
+            },
+        });
+
+        expect(prettyDom).toBeTruthy();
+
+        // Build deterministic hash mapping from DOM (order of first appearance)
+        const hashMap = buildHashMap(prettyDom as string);
+
+        // Sanitization: remove dynamic IDs and non-deterministic attributes
+        let sanitizedDom = (prettyDom as string)
+            .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
+            .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
+            .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
+
+        // Apply deterministic hash normalization to both DOM and styles
+        sanitizedDom = applyHashMap(sanitizedDom, hashMap);
+        const normalizedStyles = applyHashMap(emotionStyles, hashMap);
+
+        // Combine styles + DOM for comprehensive snapshot that captures both structure and styling
+        const snapshot = normalizedStyles.trim()
+            ? `/* Emotion Styles */\n${normalizedStyles}\n\n/* DOM */\n${sanitizedDom}`
+            : sanitizedDom;
+        expect(snapshot).toMatchSnapshot("graphql-empty-operations");
     }, 15000);
 });

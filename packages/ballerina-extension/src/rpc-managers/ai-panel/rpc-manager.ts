@@ -57,6 +57,8 @@ import { openChatWindowWithCommand } from "../../features/ai/data-mapper/index";
 import { generateDocumentationForService } from "../../features/ai/documentation/generator";
 import { generateOpenAPISpec } from "../../features/ai/openapi/index";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
+import { submitFeedback as submitFeedbackUtil } from "../../features/ai/utils/feedback";
+import { sendGenerationKeptTelemetry, sendGenerationDiscardTelemetry } from "../../features/ai/utils/generation-response";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { getLLMDiagnosticArrayAsString } from "../../features/natural-programming/utils";
 import { StateMachine, updateView } from "../../stateMachine";
@@ -92,7 +94,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async getDefaultPrompt(): Promise<AIPanelPrompt> {
         let defaultPrompt: AIPanelPrompt = extension.aiChatDefaultPrompt;
-        
+
         // Normalize code context to use relative paths
         if (defaultPrompt && 'codeContext' in defaultPrompt && defaultPrompt.codeContext) {
             defaultPrompt = {
@@ -100,7 +102,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
                 codeContext: normalizeCodeContext(defaultPrompt.codeContext)
             };
         }
-        
+
         return new Promise((resolve) => {
             resolve(defaultPrompt);
         });
@@ -236,34 +238,7 @@ export class AiPanelRpcManager implements AIPanelAPI {
     }
 
     async submitFeedback(content: SubmitFeedbackRequest): Promise<boolean> {
-        return new Promise(async (resolve) => {
-            try {
-                const payload = {
-                    feedback: content.feedbackText,
-                    positive: content.positive,
-                    messages: content.messages,
-                    diagnostics: cleanDiagnosticMessages(content.diagnostics)
-                };
-
-                const response = await fetchWithAuth(`${OLD_BACKEND_URL}/feedback`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok) {
-                    resolve(true);
-                } else {
-                    console.error("Failed to submit feedback");
-                    resolve(false);
-                }
-            } catch (error) {
-                console.error("Error submitting feedback:", error);
-                resolve(false);
-            }
-        });
+        return await submitFeedbackUtil(content);
     }
 
     async generateOpenAPI(params: GenerateOpenAPIRequest): Promise<void> {
@@ -488,6 +463,9 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.acceptAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as accepted");
 
+            // Send telemetry for generation kept
+            sendGenerationKeptTelemetry(latestReview.id);
+
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
                 chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
@@ -540,6 +518,10 @@ export class AiPanelRpcManager implements AIPanelAPI {
             chatStateStorage.declineAllReviews(workspaceId, threadId);
             console.log("[Review Actions] Marked all under_review generations as declined");
 
+            // Send telemetry for generation discard
+            const latestReview = underReviewGenerations[underReviewGenerations.length - 1];
+            sendGenerationDiscardTelemetry(latestReview.id);
+
             // Clear affectedPackagePaths from all completed reviews to prevent stale data
             for (const generation of underReviewGenerations) {
                 chatStateStorage.updateReviewState(workspaceId, threadId, generation.id, {
@@ -581,6 +563,14 @@ export class AiPanelRpcManager implements AIPanelAPI {
 
     async cancelConnectorSpec(params: { requestId: string; comment?: string }): Promise<void> {
         approvalManager.resolveConnectorSpec(params.requestId, false, undefined, params.comment);
+    }
+
+    async provideConfiguration(params: { requestId: string; configValues: Record<string, string> }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, true, params.configValues);
+    }
+
+    async cancelConfiguration(params: { requestId: string; comment?: string }): Promise<void> {
+        approvalManager.resolveConfiguration(params.requestId, false, undefined, params.comment);
     }
 
     async restoreCheckpoint(params: RestoreCheckpointRequest): Promise<void> {

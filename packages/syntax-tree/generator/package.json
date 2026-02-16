@@ -15,24 +15,24 @@
   },
   "dependencies": {
     "@wso2/ballerina-core": "workspace:*",
-    "dts-generator": "^3.0.0",
-    "gitly": "^2.2.2",
-    "glob": "^7.1.3",
+    "dts-generator": "3.0.0",
+    "gitly": "2.2.2",
+    "glob": "7.1.3",
     "lodash": "4.17.23",
-    "prettier": "^2.6.1",
-    "prettier-eslint": "^15.0.1",
-    "vscode-uri": "^1.0.6"
+    "prettier": "2.6.1",
+    "prettier-eslint": "15.0.1",
+    "vscode-uri": "1.0.6"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.117",
-    "@typescript-eslint/eslint-plugin": "^5.46.1",
-    "@typescript-eslint/parser": "^5.46.1",
-    "copyfiles": "^2.1.0",
-    "eslint": "^9.27.0",
-    "eslint-plugin-react": "^7.31.11",
-    "rimraf": "^3.0.2",
-    "tslint": "^6.1.3",
-    "typescript": "^4.1.3"
+    "@types/lodash": "4.14.117",
+    "@typescript-eslint/eslint-plugin": "5.46.1",
+    "@typescript-eslint/parser": "5.46.1",
+    "copyfiles": "2.1.0",
+    "eslint": "9.27.0",
+    "eslint-plugin-react": "7.31.11",
+    "rimraf": "3.0.2",
+    "tslint": "6.1.3",
+    "typescript": "4.1.3"
   },
   "author": "",
   "license": "Apache-2.0"

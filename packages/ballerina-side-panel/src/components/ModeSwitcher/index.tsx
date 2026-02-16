@@ -35,7 +35,7 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
         [types, isRecordTypeField]
     );
 
-     const secondaryMode = useMemo(
+    const secondaryMode = useMemo(
         () => isRecordTypeField ? InputMode.EXP : getSecondaryMode(types),
         [types, isRecordTypeField]
     );
@@ -46,11 +46,11 @@ const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ value, isRecordTypeField, o
 
     return (
         <SwitchWrapper>
-                <Slider checked={isChecked}>
-                    <Label active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
-                    <Label active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
-                </Slider>
-            </SwitchWrapper>
+            <Slider checked={isChecked}>
+                <Label data-testid="primary-mode" active={!isChecked} onClick={() => handleModeSwitch(defaultMode)}>{defaultMode}</Label>
+                <Label data-testid="expression-mode" active={isChecked} onClick={() => handleModeSwitch(secondaryMode)}>{secondaryMode}</Label>
+            </Slider>
+        </SwitchWrapper>
     );
 };
 
