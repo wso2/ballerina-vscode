@@ -107,7 +107,7 @@
             "character": 22
           }
         },
-        "newText": "@test:Config{\ngroups: [\"stability\"],\nruns: 10,\nminPassRate: 80\n}\nfunction testWithMinPassRate() {\n\tdo {\n\t} on fail error err {\n\t}\n}"
+        "newText": "@test:Config{\ngroups: [\"stability\"],\nruns: 10,\nminPassRate: 80\n}\nfunction testWithMinPassRate() returns error? {\n}"
       }
     ]
   }

@@ -133,19 +133,6 @@
       {
         "range": {
           "start": {
-            "line": 3,
-            "character": 0
-          },
-          "end": {
-            "line": 3,
-            "character": 29
-          }
-        },
-        "newText": "@test:Config{\ngroups: [\"g1\"]\n}"
-      },
-      {
-        "range": {
-          "start": {
             "line": 4,
             "character": 9
           },
@@ -167,7 +154,20 @@
             "character": 54
           }
         },
-        "newText": "(string a, string b = \"default\")"
+        "newText": "(string a, string b = \"default\") returns error?"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 3,
+            "character": 0
+          },
+          "end": {
+            "line": 3,
+            "character": 29
+          }
+        },
+        "newText": "@test:Config{\ngroups: [\"g1\"]\n}"
       }
     ]
   }

@@ -139,7 +139,7 @@
             "character": 45
           }
         },
-        "newText": "(ai:Trace thread)"
+        "newText": "(ai:Trace thread) returns error?"
       },
       {
         "range": {
