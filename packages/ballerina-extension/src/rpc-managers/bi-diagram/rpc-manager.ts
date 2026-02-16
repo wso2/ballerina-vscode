@@ -152,7 +152,11 @@ import * as fs from "fs";
 import * as path from 'path';
 import * as vscode from "vscode";
 
-import { ICreateComponentCmdParams, IWso2PlatformExtensionAPI, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import {
+    ICreateComponentCmdParams,
+    IWso2PlatformExtensionAPI,
+    CommandIds as PlatformExtCommandIds
+} from "@wso2/wso2-platform-core";
 import {
     ShellExecution,
     Task,
@@ -164,7 +168,6 @@ import {
 } from "vscode";
 import { DebugProtocol } from "vscode-debugprotocol";
 import { extension } from "../../BalExtensionContext";
-import { notifyBreakpointChange } from "../../RPCLayer";
 import { OLD_BACKEND_URL } from "../../features/ai/utils";
 import { fetchWithAuth } from "../../features/ai/utils/ai-client";
 import { cleanAndValidateProject, getCurrentBIProject } from "../../features/config-generator/configGenerator";
@@ -172,14 +175,23 @@ import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode } from "../../utils/bi";
+import {
+    addProjectToExistingWorkspace,
+    convertProjectToWorkspace,
+    createBIAutomation,
+    createBIFunction,
+    createBIProjectPure,
+    createBIWorkspace,
+    deleteProjectFromWorkspace,
+    openInVSCode
+} from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
 import { openAIPanelWithPrompt } from "../../views/ai-panel/aiMachine";
-import { chatStateStorage } from "../../views/ai-panel/chatStateStorage";
 import { checkProjectDiagnostics, removeUnusedImports } from "../ai-panel/repair-utils";
 import { getCurrentBallerinaProject } from "../../utils/project-utils";
+import { readOrWriteReadmeContent } from "./utils";
 
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
@@ -877,31 +889,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
     }
 
     async handleReadmeContent(params: ReadmeContentRequest): Promise<ReadmeContentResponse> {
-        return new Promise((resolve) => {
-            const projectPath = params.projectPath;
-            const readmePath = projectPath ? path.join(projectPath, README_FILE) : undefined;
-            if (!readmePath) {
-                resolve({ content: "" });
-                return;
-            }
-            if (params.read) {
-                if (!fs.existsSync(readmePath)) {
-                    resolve({ content: "" });
-                } else {
-                    const content = fs.readFileSync(readmePath, "utf8");
-                    console.log(">>> Read content:", content);
-                    resolve({ content });
-                }
-            } else {
-                if (!fs.existsSync(readmePath)) {
-                    fs.writeFileSync(readmePath, params.content);
-                    console.log(">>> Created and saved readme.md with content:", params.content);
-                } else {
-                    fs.writeFileSync(readmePath, params.content);
-                    console.log(">>> Updated readme.md with content:", params.content);
-                }
-            }
-        });
+        return readOrWriteReadmeContent(params);
     }
 
     async getExpressionCompletions(params: ExpressionCompletionsRequest): Promise<ExpressionCompletionsResponse> {
