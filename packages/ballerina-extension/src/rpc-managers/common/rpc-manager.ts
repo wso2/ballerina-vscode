@@ -26,6 +26,7 @@ import {
     CommonRPCAPI,
     Completion,
     CompletionParams,
+    DefaultOrgNameResponse,
     DiagnosticData,
     FileOrDirRequest,
     FileOrDirResponse,
@@ -417,7 +418,7 @@ export class CommonRpcManager implements CommonRPCAPI {
         return isSuccess;
     }
 
-    async getDefaultOrgName(): Promise<{ orgName: string }> {
+    async getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
         return { orgName: getUsername() };
     }
 }

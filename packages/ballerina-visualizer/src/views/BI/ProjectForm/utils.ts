@@ -121,7 +121,7 @@ export const validateOrgName = (orgName: string): string | null => {
         if (orgName.endsWith("_")) {
             return "Organization name cannot end with an underscore";
         }
-        if (/_[^a-zA-Z0-9]/.test(orgName) || /_$/.test(orgName)) {
+        if (/_[^a-zA-Z0-9]/.test(orgName)) {
             return "Underscore must be followed by at least one letter or digit";
         }
         return "Organization name can only contain letters (a-z, A-Z), digits (0-9), and underscores";
