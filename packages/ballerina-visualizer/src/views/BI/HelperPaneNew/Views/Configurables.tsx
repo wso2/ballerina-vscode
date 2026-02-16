@@ -110,7 +110,7 @@ export const Configurables = (props: ConfigurablesPageProps) => {
         };
 
         fetchTomlValues();
-    }, [])
+    }, [excludedConfigs])
 
     const getProjectInfo = async () => {
         const visualizerContext = await rpcClient.getVisualizerLocation();

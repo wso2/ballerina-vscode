@@ -74,7 +74,7 @@ interface AddConnectionPopupProps {
 export function DevantConnectorPopup(props: AddConnectionPopupProps) {
     const { onClose, onNavigateToOverview, isPopup, fileName, target } = props;
     const { platformRpcClient, projectPath, projectToml, platformExtState, importConnection } = usePlatformExtContext();
-    const [isCreating, setIsCreating] = useState<boolean>(false);
+    const [isCreating, setIsCreating] = useState<boolean>(true);
     const { rpcClient } = useRpcContext();
     const [selectedFlow, setSelectedFlow] = useState<DevantConnectionFlow | null>(null);
     const [selectedMarketplaceItem, setSelectedMarketplaceItem] = useState<MarketplaceItem | null>(null);
@@ -269,7 +269,8 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                     flow: selectedFlow,
                     marketplaceItem: selectedMarketplaceItem!,
                     importInternalConnectionParams: {
-                        connection: connectionDetailed
+                        connection: connectionDetailed,
+                        configs: devantConfigs,
                     },
                 })
         },
@@ -380,6 +381,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                     biConnectionNames={biConnectionNames}
                                                     marketplaceItem={selectedMarketplaceItem}
                                                     devantFlow={selectedFlow!}
+                                                    devantConfigs={devantConfigs}
                                                     onSuccess={(data) => {
                                                         if (data.connectionNode) {
                                                             rpcClient
