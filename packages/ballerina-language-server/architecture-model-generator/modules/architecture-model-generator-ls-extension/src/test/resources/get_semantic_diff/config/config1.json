@@ -53,6 +53,22 @@
         }
       },
       {
+        "changeType": "ADDITION",
+        "nodeKind": "OBJECT_FUNCTION",
+        "uri": "ai:///main.bal",
+        "lineRange": {
+          "fileName": "main.bal",
+          "startLine": {
+            "line": 90,
+            "offset": 4
+          },
+          "endLine": {
+            "line": 92,
+            "offset": 5
+          }
+        }
+      },
+      {
         "changeType": "MODIFICATION",
         "nodeKind": "OBJECT_FUNCTION",
         "uri": "ai:///main.bal",
