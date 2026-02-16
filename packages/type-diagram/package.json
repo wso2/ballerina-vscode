@@ -15,7 +15,7 @@
 	},
 	"keywords": [],
 	"dependencies": {
-		"@emotion/react": "11.9.3",
+		"@emotion/react": "11.14.0",
 		"@emotion/styled": "11.14.0",
 		"@projectstorm/geometry": "7.0.3",
 		"@projectstorm/react-canvas-core": "7.0.3",
@@ -52,9 +52,9 @@
 		"style-loader": "4.0.0",
 		"ts-loader": "9.4.1",
 		"@types/uuid": "10.0.0",
-		"webpack": "5.99.9",
+		"webpack": "5.104.1",
 		"webpack-cli": "6.0.1",
-		"webpack-dev-server": "5.2.1"
+		"webpack-dev-server": "5.2.3"
 	},
 	"author": "wso2",
 	"license": "UNLICENSED"

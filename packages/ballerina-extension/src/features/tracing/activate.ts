@@ -92,8 +92,8 @@ export function activateTracing(ballerinaExtInstance: BallerinaExtension) {
 
     const showTraceDetailsCommand = vscode.commands.registerCommand(
         SHOW_TRACE_DETAILS_COMMAND,
-        (trace: Trace) => {
-            showTraceDetails(trace);
+        (trace: Trace, focusSpanId?: string) => {
+            showTraceDetails(trace, focusSpanId);
         }
     );
 
@@ -192,9 +192,9 @@ async function showTraceWindow(): Promise<void> {
 /**
  * Show trace details in a webview
  */
-function showTraceDetails(trace: Trace): void {
+function showTraceDetails(trace: Trace, focusSpanId?: string): void {
     try {
-        TraceDetailsWebview.show(trace);
+        TraceDetailsWebview.show(trace, false, focusSpanId);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(`Failed to show trace details: ${message}`);

@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import { Codicon } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 
-import { DataMapperDisplayMode, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
+import { EditorConfig, FlowNode, LineRange, SubPanel, SubPanelView } from "@wso2/ballerina-core";
 import {
     FormValues,
     ExpressionFormField,
@@ -83,7 +83,7 @@ interface KnowledgeBaseFormProps {
     showProgressIndicator?: boolean;
     onSubmit: (
         node?: FlowNode,
-        dataMapperMode?: DataMapperDisplayMode,
+        editorConfig?: EditorConfig,
         formImports?: FormImports,
         rawFormValues?: FormValues
     ) => void;
@@ -200,7 +200,7 @@ export function KnowledgeBaseForm(props: KnowledgeBaseFormProps) {
         try {
             setSaving(true);
             const knowledgeBaseNode = mergeFormDataWithFlowNode(knowledgeBaseFormValues, targetLineRange);
-            onSubmit(knowledgeBaseNode, DataMapperDisplayMode.NONE, formImports);
+            onSubmit(knowledgeBaseNode, undefined, formImports);
         } catch (error) {
             console.error("Error creating vector knowledge base:", error);
         } finally {

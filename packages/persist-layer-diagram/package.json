@@ -15,8 +15,8 @@
 	},
 	"keywords": [],
 	"dependencies": {
-		"@emotion/react": "11.9.3",
-		"@emotion/styled": "11.10.5",
+		"@emotion/react": "11.14.0",
+		"@emotion/styled": "11.14.0",
 		"@projectstorm/geometry": "7.0.3",
 		"@projectstorm/react-canvas-core": "7.0.3",
 		"@projectstorm/react-diagrams": "7.0.4",
@@ -28,7 +28,7 @@
 		"closest": "0.0.1",
 		"dagre": "0.8.5",
 		"file-loader": "6.2.0",
-		"html-to-image": "1.10.8",
+		"html-to-image": "1.11.11",
 		"lodash": "4.17.23",
 		"pathfinding": "0.4.18",
 		"paths-js": "0.4.11",
@@ -50,9 +50,9 @@
 		"source-map-loader": "5.0.0",
 		"style-loader": "4.0.0",
 		"ts-loader": "9.4.1",
-		"webpack": "5.99.9",
+		"webpack": "5.104.1",
 		"webpack-cli": "6.0.1",
-		"webpack-dev-server": "5.2.1"
+		"webpack-dev-server": "5.2.3"
 	},
 	"author": "wso2",
 	"license": "UNLICENSED"

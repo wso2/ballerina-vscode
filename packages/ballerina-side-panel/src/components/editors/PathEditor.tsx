@@ -21,7 +21,7 @@ import { FormField } from "../Form/types";
 import { TextField } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
 import { parseBasePath, parseResourceActionPath } from "../../utils/path-validations";
-import { capitalize } from "./utils";
+import { buildRequiredRule, capitalize } from "./utils";
 import { debounce } from "lodash";
 
 interface PathEditorProps {
@@ -55,7 +55,10 @@ export function PathEditor(props: PathEditorProps) {
         <TextField
             id={field.key}
             name={field.key}
-            {...register(field.key, { required: !field.optional && !field.placeholder, value: field.value })}
+            {...register(field.key, {
+                required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+                value: field.value
+            })}
             label={capitalize(field.label)}
             required={!field.optional}
             description={field.documentation}

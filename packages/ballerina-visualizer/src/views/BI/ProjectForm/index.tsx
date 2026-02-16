@@ -30,7 +30,6 @@ import {
 } from "./styles";
 import { ProjectFormFields } from "./ProjectFormFields";
 import { ProjectFormData } from "./types";
-import { isFormValid } from "./utils";
 
 export function ProjectForm() {
     const { rpcClient } = useRpcContext();
@@ -45,9 +44,23 @@ export function ProjectForm() {
         version: "",
         isLibrary: false,
     });
+    const [isValidating, setIsValidating] = useState(false);
+    const [integrationNameError, setIntegrationNameError] = useState<string | null>(null);
+    const [pathError, setPathError] = useState<string | null>(null);
+    const [packageNameValidationError, setPackageNameValidationError] = useState<string | null>(null);
 
     const handleFormDataChange = (data: Partial<ProjectFormData>) => {
         setFormData(prev => ({ ...prev, ...data }));
+        // Clear validation errors when form data changes
+        if (integrationNameError) {
+            setIntegrationNameError(null);
+        }
+        if (pathError) {
+            setPathError(null);
+        }
+        if (packageNameValidationError) {
+            setPackageNameValidationError(null);
+        }
     };
 
     const handleCreateProject = () => {
@@ -98,16 +111,23 @@ export function ProjectForm() {
                     <ProjectFormFields
                         formData={formData}
                         onFormDataChange={handleFormDataChange}
+                        integrationNameError={integrationNameError || undefined}
+                        pathError={pathError || undefined}
+                        packageNameValidationError={packageNameValidationError || undefined}
                     />
                 </ScrollableContent>
 
                 <ButtonWrapper>
                     <Button
-                        disabled={!isFormValid(formData)}
+                        disabled={isValidating}
                         onClick={handleCreateProject}
                         appearance="primary"
                     >
-                        {formData.createAsWorkspace ? "Create Workspace" : "Create Integration"}
+                        {isValidating 
+                            ? "Validating..." 
+                            : formData.createAsWorkspace 
+                                ? "Create Workspace" 
+                                : "Create Integration"}
                     </Button>
                 </ButtonWrapper>
             </FormContainer>

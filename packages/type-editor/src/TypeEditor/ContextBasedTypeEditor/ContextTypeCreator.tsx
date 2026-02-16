@@ -191,6 +191,7 @@ export function ContextTypeCreatorTab(props: ContextTypeCreatorProps) {
     }, [editingType?.name, newType]);
 
     const handleSetType = (type: Type) => {
+        onTypeChange(type);
         replaceTop({
             type: type,
             isDirty: true

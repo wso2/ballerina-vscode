@@ -36,6 +36,7 @@ interface FieldEditorProps {
     onRecordValidation: (hasError: boolean) => void;
     onDelete: () => void;
     isGraphql?: boolean;
+    index: number;
 }
 
 const ButtonDeactivated = styled.div<{}>`
@@ -73,7 +74,7 @@ const CheckBoxGroup = styled.div`
 `;
 
 export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
-    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation, isGraphql } = props;
+    const { member, onChange, onDelete, type, onValidationError, onFieldValidation, onRecordValidation, isGraphql, index } = props;
     const [panelOpened, setPanelOpened] = useState<boolean>(false);
     const recordEditorRef = useRef<{ addMember: () => void }>(null);
     const currentImports = useRef<Imports | undefined>();
@@ -166,6 +167,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                 </div>
                 <div style={{ width: '100%' }}>
                     <TypeField
+                        fieldIndex={index}
                         type={member.type}
                         memberName={typeToSource(member.type)}
                         onChange={handleTypeChange}
@@ -204,7 +206,7 @@ export const FieldEditor: React.FC<FieldEditorProps> = (props) => {
                                 onChange({
                                     ...member,
                                     readonly: checked
-                                    }
+                                }
                                 );
                             }}
                         />

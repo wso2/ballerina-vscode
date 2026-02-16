@@ -333,7 +333,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 autocompletion({
                     override: [completionSource],
                     activateOnTyping: true,
-                    closeOnBlur: true
+                    closeOnBlur: true,
+                    compareCompletions: () => 0
                 }),
                 tooltips({ position: "absolute" }),
                 chipPlugin,
@@ -476,7 +477,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     return (
         <>
-            {showToggle && (
+            {showToggle && configuration.getIsToggleHelperAvailable() && (
                 <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
                     isOpen={helperPaneState.isOpen}
@@ -512,7 +513,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     }
                     {!props.disabled && (
                         <FloatingButtonContainer>
-                            {!props.isExpandedVersion &&
+                            {!props.isExpandedVersion && configuration.getIsToggleHelperAvailable() &&
                                 <FloatingToggleButton
                                     ref={helperPaneToggleButtonRef}
                                     onClick={handleManualToggle}
