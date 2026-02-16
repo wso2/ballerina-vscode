@@ -42,6 +42,7 @@ import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 import { PublishToCentralButton } from "./PublishToCentralButton";
+import { LibraryOverview } from "./LibraryOverview";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -869,117 +870,120 @@ export function PackageOverview(props: PackageOverviewProps) {
                     </HeaderRow>
                 )}
                 <MainContent fullWidth={isLibrary}>
-                    <LeftContent>
-                        <DiagramPanel noPadding={true}>
-                            {showAlert && (
-                                <AlertBoxWithClose
-                                    subTitle={
-                                        "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
-                                    }
-                                    title={"Login to WSO2 AI Platform"}
+                    {!isLibrary && (
+                        <>
+                            <LeftContent>
+                                <DiagramPanel noPadding={true}>
+                                    {showAlert && (
+                                        <AlertBoxWithClose
+                                            subTitle={
+                                                "Please log in to WSO2 AI Platform to access AI features. You won't be able to use AI features until you log in."
+                                            }
+                                            title={"Login to WSO2 AI Platform"}
 
-                                    btn1Title="Manage Accounts"
-                                    btn1IconName="settings-gear"
-                                    btn1OnClick={() => handleSettings()}
-                                    btn1Id="settings"
+                                            btn1Title="Manage Accounts"
+                                            btn1IconName="settings-gear"
+                                            btn1OnClick={() => handleSettings()}
+                                            btn1Id="settings"
 
-                                    btn2Title="Close"
-                                    btn2IconName="close"
-                                    btn2OnClick={() => handleClose()}
-                                    btn2Id="Close"
-                                />
-                            )}
-                            <DiagramHeaderContainer withPadding={true}>
-                                <Title variant="h2">Design</Title>
-                                {!isEmptyProject() && (<ActionContainer>
-                                    <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
-                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
-                                    </Button>
-                                    <Button appearance="primary" onClick={handleAddConstruct}>
-                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
-                                    </Button>
-                                </ActionContainer>)}
-                            </DiagramHeaderContainer>
-                            <DiagramContent>
-                                {isEmptyProject() ? (
-                                    <EmptyStateContainer>
-                                        <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                            {isLibrary ? "Your library is empty" : "Your integration is empty"}
-                                        </Typography>
-                                        <Typography
-                                            variant="body1"
-                                            sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
-                                        >
-                                            Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
-                                        </Typography>
-                                        <ButtonContainer>
+                                            btn2Title="Close"
+                                            btn2IconName="close"
+                                            btn2OnClick={() => handleClose()}
+                                            btn2Id="Close"
+                                        />
+                                    )}
+                                    <DiagramHeaderContainer withPadding={true}>
+                                        <Title variant="h2">Design</Title>
+                                        {!isEmptyProject() && (<ActionContainer>
+                                            <Button appearance="icon" onClick={handleGenerate} buttonSx={{ padding: "2px 8px" }}>
+                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate
+                                            </Button>
                                             <Button appearance="primary" onClick={handleAddConstruct}>
                                                 <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
                                             </Button>
-                                            <Button appearance="secondary" onClick={handleGenerate}>
-                                                <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                        </ActionContainer>)}
+                                    </DiagramHeaderContainer>
+                                    <DiagramContent>
+                                        {isEmptyProject() ? (
+                                            <EmptyStateContainer>
+                                                <Typography variant="h3" sx={{ marginBottom: "16px" }}>
+                                                    {isLibrary ? "Your library is empty" : "Your integration is empty"}
+                                                </Typography>
+                                                <Typography
+                                                    variant="body1"
+                                                    sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
+                                                >
+                                                    Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
+                                                </Typography>
+                                                <ButtonContainer>
+                                                    <Button appearance="primary" onClick={handleAddConstruct}>
+                                                        <Codicon name="add" sx={{ marginRight: 8 }} /> Add Artifact
+                                                    </Button>
+                                                    <Button appearance="secondary" onClick={handleGenerate}>
+                                                        <Codicon name="wand" sx={{ marginRight: 8 }} /> Generate with AI
+                                                    </Button>
+                                                </ButtonContainer>
+                                            </EmptyStateContainer>
+                                        ) : (
+                                            <ComponentDiagram projectStructure={projectStructure} />
+                                        )}
+                                    </DiagramContent>
+                                </DiagramPanel>
+                                <FooterPanel>
+                                    <ReadmeHeaderContainer>
+                                        <Title variant="h2">README</Title>
+                                        <ReadmeButtonContainer>
+                                            {readmeContent && isEmptyProject() && (
+                                                <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
+                                                    <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
+                                                </Button>
+                                            )}
+                                            <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
+                                                <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
                                             </Button>
-                                        </ButtonContainer>
-                                    </EmptyStateContainer>
-                                ) : (
-                                    <ComponentDiagram projectStructure={projectStructure} />
-                                )}
-                            </DiagramContent>
-                        </DiagramPanel>
-                        <FooterPanel>
-                            <ReadmeHeaderContainer>
-                                <Title variant="h2">README</Title>
-                                <ReadmeButtonContainer>
-                                    {readmeContent && isEmptyProject() && (
-                                        <Button appearance="icon" onClick={handleGenerateWithReadme} buttonSx={{ padding: "4px 8px" }}>
-                                            <Codicon name="wand" sx={{ marginRight: 4, fontSize: 16 }} /> Generate with Readme
-                                        </Button>
-                                    )}
-                                    <Button appearance="icon" onClick={handleEditReadme} buttonSx={{ padding: "4px 8px" }}>
-                                        <Icon name="bi-edit" sx={{ marginRight: 8, fontSize: 16 }} /> Edit
-                                    </Button>
-                                </ReadmeButtonContainer>
-                            </ReadmeHeaderContainer>
-                            <ReadmeContent>
-                                {readmeContent ? (
-                                    <ReactMarkdown>{readmeContent}</ReactMarkdown>
-                                ) : (
-                                    <EmptyReadmeContainer>
-                                        <Description variant="body2">
-                                            Describe your integration and generate your artifacts with AI
-                                        </Description>
-                                        <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
-                                    </EmptyReadmeContainer>
-                                )}
-                            </ReadmeContent>
-                        </FooterPanel>
-                    </LeftContent>
-                    {!isLibrary && (
-                        <SidePanel>
-                            {!isInDevant &&
-                                <>
-                                    <DeploymentOptions
-                                        handleDockerBuild={handleDockerBuild}
-                                        handleJarBuild={handleJarBuild}
+                                        </ReadmeButtonContainer>
+                                    </ReadmeHeaderContainer>
+                                    <ReadmeContent>
+                                        {readmeContent ? (
+                                            <ReactMarkdown>{readmeContent}</ReactMarkdown>
+                                        ) : (
+                                            <EmptyReadmeContainer>
+                                                <Description variant="body2">
+                                                    Describe your integration and generate your artifacts with AI
+                                                </Description>
+                                                <VSCodeLink onClick={handleEditReadme}>Add a README</VSCodeLink>
+                                            </EmptyReadmeContainer>
+                                        )}
+                                    </ReadmeContent>
+                                </FooterPanel>
+                            </LeftContent>
+                            <SidePanel>
+                                {!isInDevant &&
+                                    <>
+                                        <DeploymentOptions
+                                            handleDockerBuild={handleDockerBuild}
+                                            handleJarBuild={handleJarBuild}
+                                            handleDeploy={handleDeploy}
+                                            goToDevant={goToDevant}
+                                            devantMetadata={devantMetadata}
+                                            hasDeployableIntegration={deployableIntegrationTypes.length > 0}
+                                        />
+                                        <Divider sx={{ margin: "16px 0" }} />
+                                        <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
+                                    </>
+                                }
+                                {isInDevant &&
+                                    <DevantDashboard
+                                        projectStructure={projectStructure}
                                         handleDeploy={handleDeploy}
                                         goToDevant={goToDevant}
                                         devantMetadata={devantMetadata}
-                                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                                     />
-                                    <Divider sx={{ margin: "16px 0" }} />
-                                    <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />
-                                </>
-                            }
-                            {isInDevant &&
-                                <DevantDashboard
-                                    projectStructure={projectStructure}
-                                    handleDeploy={handleDeploy}
-                                    goToDevant={goToDevant}
-                                    devantMetadata={devantMetadata}
-                                />
-                            }
-                        </SidePanel>
+                                }
+                            </SidePanel>
+                        </>
                     )}
+                    {isLibrary && projectStructure && <LibraryOverview projectStructure={projectStructure} />}
                 </MainContent>
             </PageLayout>
         </>
