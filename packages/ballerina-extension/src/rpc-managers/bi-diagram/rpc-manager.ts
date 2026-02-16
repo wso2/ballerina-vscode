@@ -249,7 +249,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
+                        const nodeKind = params.flowNode.codedata.node;
+                        const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
+                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
                         resolve({ artifacts });
                     }
                 })
@@ -2109,6 +2112,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available agents from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableAgents(params)
+                .then((model) => {
+                    console.log(">>> bi available agents from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available agents from ls", error);
+                    resolve(undefined);
+                });
+        });
+    }
 }
 
 export function getRepoRoot(projectRoot: string): string | undefined {

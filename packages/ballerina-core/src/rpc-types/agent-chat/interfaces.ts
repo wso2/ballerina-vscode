@@ -22,6 +22,19 @@ export interface ChatReqMessage {
 
 export interface ChatRespMessage {
     message: string;
+    traceId?: string;
+    executionSteps?: ExecutionStep[];
+}
+
+export interface ExecutionStep {
+    spanId: string;
+    operationType: 'invoke' | 'chat' | 'tool' | 'other';
+    name: string;
+    fullName: string;
+    duration: number;
+    startTime?: string;
+    endTime?: string;
+    hasError?: boolean;
 }
 
 export interface TraceStatus {
@@ -29,7 +42,10 @@ export interface TraceStatus {
 }
 
 export interface TraceInput {
-    message: string;
+    message?: string;
+    traceId?: string;
+    focusSpanId?: string;
+    sessionId?: string;
 }
 
 export interface ChatHistoryMessage {
@@ -37,6 +53,7 @@ export interface ChatHistoryMessage {
     text: string;
     isUser: boolean;
     traceId?: string;
+    executionSteps?: ExecutionStep[];
 }
 
 export interface ChatHistoryResponse {
@@ -50,4 +67,8 @@ export interface AgentStatusResponse {
 
 export interface ClearChatResponse {
     newSessionId: string;
+}
+
+export interface SessionInput {
+    sessionId?: string;
 }
