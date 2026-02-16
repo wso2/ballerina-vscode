@@ -59,7 +59,7 @@ export function PackageInfoSection({
                     value={data.orgName}
                     label="Organization Name"
                     description="The organization that owns this Ballerina package."
-                    errorMsg={orgNameError || ""}
+                    errorMsg={orgNameError || undefined}
                 />
             </FieldGroup>
             <FieldGroup>

@@ -33,7 +33,8 @@ import {
     WorkspaceRootResponse,
     ShowErrorMessageRequest,
     WorkspaceTypeResponse,
-    SampleDownloadRequest
+    SampleDownloadRequest,
+    DefaultOrgNameResponse
 } from "./interfaces";
 
 export interface CommonRPCAPI {
@@ -53,5 +54,5 @@ export interface CommonRPCAPI {
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
     downloadSelectedSampleFromGithub: (params: SampleDownloadRequest) => Promise<boolean>;
-    getDefaultOrgName: () => Promise<{ orgName: string }>;
+    getDefaultOrgName: () => Promise<DefaultOrgNameResponse>;
 }

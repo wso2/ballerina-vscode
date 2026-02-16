@@ -23,6 +23,7 @@ import {
     CommandsRequest,
     CommandsResponse,
     CommonRPCAPI,
+    DefaultOrgNameResponse,
     FileOrDirRequest,
     FileOrDirResponse,
     GoToSourceRequest,
@@ -129,7 +130,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
     }
 
-    getDefaultOrgName(): Promise<{ orgName: string }> {
+    getDefaultOrgName(): Promise<DefaultOrgNameResponse> {
         return this._messenger.sendRequest(getDefaultOrgName, HOST_EXTENSION);
     }
 }
