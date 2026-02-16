@@ -53,26 +53,23 @@ import {
     ComponentKind,
     ICmdParamsBase,
     ConnectionConfigurations,
-    RegisterMarketplaceConnectionReq,
     RegisterMarketplaceConfigMap,
     Project,
     Organization,
     CreateLocalConnectionsConfigReq,
+    CreateThirdPartyConnectionReq,
+    CreateComponentConnectionReq,
 } from "@wso2/wso2-platform-core";
 import { log } from "../../utils/logger";
 import {
     AddDevantTempConfigReq,
     AddDevantTempConfigResp,
-    CreateDevantConnectionResp,
-    CreateDevantConnectionV2Req,
     DeleteDevantTempConfigReq,
-    DevantConnectionFlow,
-    DevantTempConfig,
     GenerateCustomConnectorFromOASReq,
     GenerateCustomConnectorFromOASResp,
-    ImportDevantConnectionReq,
-    ImportDevantConnectionResp,
-    RegisterAndCreateDevantConnectionReq,
+    InitializeDevantOASConnectionReq,
+    InitializeDevantOASConnectionResp,
+    RegisterDevantMarketplaceServiceReq,
     ReplaceDevantTempConfigValuesReq,
 } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import * as toml from "@iarna/toml";
@@ -84,13 +81,15 @@ import { platformExtStore } from "./platform-store";
 import { Messenger } from "vscode-messenger";
 import { VisualizerWebview } from "../../views/visualizer/webview";
 import {
+    addConfigurable,
+    addConnection,
+    addProxyConfigurable,
     findUniqueConnectionName,
     getConfigFileUri,
     getDomain,
     getInjectedEnvVarNames,
     getYamlString,
     hasContextYaml,
-    initializeDevantConnection,
     Templates,
 } from "./platform-utils";
 import { debounce } from "lodash";
@@ -347,6 +346,24 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
+    async createThirdPartyConnection(params: CreateThirdPartyConnectionReq): Promise<ConnectionDetailed> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.createThirdPartyConnection(params);
+        } catch (err) {
+            log(`Failed to create 3rd party connection: ${err}`);
+        }
+    }
+
+    async createInternalConnection(params: CreateComponentConnectionReq): Promise<ConnectionDetailed> {
+        try {
+            const platformExt = await this.getPlatformExt();
+            return await platformExt?.createComponentConnection(params);
+        } catch (err) {
+            log(`Failed to create Devant connection: ${err}`);
+        }
+    }
+
     async stopProxyServer(params: StopProxyServerReq): Promise<void> {
         try {
             const platformExt = await this.getPlatformExt();
@@ -376,16 +393,6 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
 
     setConnectedToDevant(connected: boolean): void {
         platformExtStore.getState().setConnectionState({ connectedToDevant: connected });
-    }
-
-    // remove registerMarketplaceConnection
-    async registerMarketplaceConnection(params: RegisterMarketplaceConnectionReq): Promise<MarketplaceItem> {
-        try {
-            const platformExt = await this.getPlatformExt();
-            return platformExt?.registerMarketplaceConnection(params);
-        } catch (err) {
-            log(`Failed to register create marketplace connection: ${err}`);
-        }
     }
 
     async deployIntegrationInDevant(): Promise<void> {
@@ -661,208 +668,87 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    // todo: delete if not used
-    async importDevantComponentConnection(params: ImportDevantConnectionReq): Promise<ImportDevantConnectionResp> {
+    async initializeDevantOASConnection(params: InitializeDevantOASConnectionReq): Promise<InitializeDevantOASConnectionResp> {
         try {
-            const platformExt = await this.getPlatformExt();
             StateMachine.setEditMode();
-
-            let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
-            if (params.connectionListItem?.schemaName?.toLowerCase()?.includes("organization")) {
-                visibility = ServiceInfoVisibilityEnum.Organization;
-            } else if (params.connectionListItem?.schemaName?.toLowerCase()?.includes("project")) {
-                visibility = ServiceInfoVisibilityEnum.Project;
+            await this.generateCustomConnectorFromOAS({
+                connectionName: params.name,
+                marketplaceItem: params.marketplaceItem
+            });
+            const moduleName = params.name.replace(/[_\-\s]/g, "")?.toLowerCase();
+            const configFileUri = getConfigFileUri();
+        
+            const envIds = Object.keys(params.configurations || {});
+            const firstEnvConfig = envIds.length > 0 ? params.configurations[envIds[0]] : undefined;
+            const connectionKeys = firstEnvConfig?.entries ?? {};
+        
+            interface IkeyVal {
+                keyname: string;
+                envName: string;
             }
-
-            const connectionItem = await this.getConnection({
-                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                connectionGroupId: params.connectionListItem?.groupUuid,
-            });
-
-            const marketplaceItem = await this.getMarketplaceItem({
-                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                serviceId: params?.connectionListItem?.serviceId,
-            });
-
-            let securityType: "" | "oauth" | "apikey";
-            if (marketplaceItem?.isThirdParty) {
-                securityType = "";
-            } else {
-                securityType = params.connectionListItem?.schemaName?.toLowerCase()?.includes("oauth")
-                    ? "oauth"
-                    : "apikey";
+            interface Ikeys {
+                ChoreoAPIKey?: IkeyVal;
+                ServiceURL?: IkeyVal;
+                TokenURL?: IkeyVal;
+                ConsumerKey?: IkeyVal;
+                ConsumerSecret?: IkeyVal;
             }
-
-            const resp = await initializeDevantConnection({
-                platformExt,
-                name: params.connectionListItem.name,
-                marketplaceItem: marketplaceItem,
-                visibility: visibility,
-                configurations: connectionItem?.configurations,
-                // todo: handle third party
-                securityType,
-                devantConfigs: params.configs
+            const keys: Ikeys = {};
+        
+            const deleteTempConfigBalEdits = new WorkspaceEdit();
+            const configBalFileUri = getConfigFileUri();
+        
+            for (const entry of params.devantConfigs) {
+                if(entry.node){
+                    deleteTempConfigBalEdits.delete(
+                        configBalFileUri,
+                        new vscode.Range(
+                            new vscode.Position(entry.node.position.startLine, entry.node.position.startColumn),
+                            new vscode.Position(entry.node.position.endLine, entry.node.position.endColumn),
+                        ),
+                    );
+                }
+        
+                keys[entry.id] = {
+                    keyname: entry.name,
+                    envName: getInjectedEnvVarNames(connectionKeys[entry.id].envVariableName),
+                };
+            }
+            if(deleteTempConfigBalEdits.size > 0){
+                await updateSourceCode({
+                    textEdits: { [configBalFileUri.toString()]: deleteTempConfigBalEdits.get(configBalFileUri) || [] },
+                    skipPayloadCheck: true,
+                });
+            }
+        
+            await addConfigurable(
+                configFileUri,
+                Object.values(keys).map((item) => ({ configName: item.keyname, configEnvName: item.envName }))
+            );
+        
+            const requireProxy = [
+                ServiceInfoVisibilityEnum.Organization.toString(),
+                ServiceInfoVisibilityEnum.Project.toString(),
+            ].includes(params.visibility);
+        
+            if (requireProxy) {
+                await addProxyConfigurable(configFileUri);
+            }
+        
+            const resp = await addConnection(params.name, moduleName, params.securityType, requireProxy, {
+                apiKeyVarName: keys?.ChoreoAPIKey?.keyname,
+                svsUrlVarName: keys?.ServiceURL?.keyname,
+                tokenClientIdVarName: keys?.ConsumerKey?.keyname,
+                tokenClientSecretVarName: keys?.ConsumerSecret?.keyname,
+                tokenUrlVarName: keys?.TokenURL?.keyname,
             });
-
+        
             StateMachine.setReadyMode();
-            this.refreshConnectionList();
-            return resp;
+            return { connectionName: resp.connName };
         } catch (err) {
             StateMachine.setReadyMode();
-            window.showErrorMessage(`Failed to import Devant connection: ${(err as Error).message}`);
-            log(`Failed to invoke importDevantComponentConnection: ${err}`);
-        }
-    }
-
-    async createDevantComponentConnectionV2(params: CreateDevantConnectionV2Req): Promise<CreateDevantConnectionResp> {
-        try {
-            const platformExt = await this.getPlatformExt();
-            StateMachine.setEditMode();
-            const projectPath = StateMachine.context().projectPath;
-
-            // todo: check if this logic is valid
-            let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
-            if(params.importInternalConnectionParams?.connection?.visibilities?.some(item => item.componentUuid)){
-                visibility = ServiceInfoVisibilityEnum.Project;
-            } else if(params.importInternalConnectionParams?.connection?.visibilities?.some(item => item.projectUuid)){
-                visibility = ServiceInfoVisibilityEnum.Organization;
-            }
-
-            if ([ DevantConnectionFlow.IMPORT_INTERNAL_OAS].includes(params.flow)) {
-                await platformExt?.createConnectionConfig({
-                    componentDir: projectPath,
-                    marketplaceItem: params.marketplaceItem,
-                    name: params.importInternalConnectionParams.connection.name,
-                    visibility: visibility,
-                });
-
-                const securityType = params.importInternalConnectionParams?.connection?.schemaName?.toLowerCase()?.includes("oauth")
-                    ? "oauth"
-                    : "apikey";
-                const configurations = params.importInternalConnectionParams?.connection?.configurations;
-
-                const resp = await initializeDevantConnection({
-                    platformExt,
-                    name: params.importInternalConnectionParams.connection.name,
-                    marketplaceItem: params.marketplaceItem,
-                    visibility,
-                    configurations,
-                    securityType,
-                    devantConfigs: params.importInternalConnectionParams.configs
-                });
-
-                return resp;
-            }
-            if (
-                [
-                    DevantConnectionFlow.CREATE_INTERNAL_OAS,
-                    DevantConnectionFlow.CREATE_INTERNAL_OTHER,
-                    DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
-                ].includes(params.flow)
-            ) {
-                const isProjectLevel =
-                    !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
-                    params?.createInternalConnectionParams?.isProjectLevel;
-                const createdConnection = await platformExt?.createComponentConnection({
-                    componentId: isProjectLevel
-                        ? ""
-                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                    name: params.createInternalConnectionParams.name,
-                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
-                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                    serviceSchemaId: params.createInternalConnectionParams.schemaId,
-                    serviceId: params.marketplaceItem.serviceId,
-                    serviceVisibility: params.createInternalConnectionParams.visibility!,
-                    componentType: isProjectLevel
-                        ? "non-component"
-                        : getTypeForDisplayType(platformExtStore.getState().state?.selectedComponent?.spec?.type),
-                    componentPath: projectPath,
-                    generateCreds: true,
-                });
-
-                await platformExt?.createConnectionConfig({
-                    componentDir: projectPath,
-                    marketplaceItem: params.marketplaceItem,
-                    name: params.createInternalConnectionParams.name,
-                    visibility: params.createInternalConnectionParams.visibility,
-                });
-
-                if (params.flow === DevantConnectionFlow.CREATE_INTERNAL_OAS) {
-                    const securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth")
-                        ? "oauth"
-                        : "apikey";
-                    const configurations = createdConnection.configurations;
-
-                    const resp = await initializeDevantConnection({
-                        platformExt,
-                        name: params.createInternalConnectionParams.name,
-                        marketplaceItem: params.marketplaceItem,
-                        visibility: params.createInternalConnectionParams.visibility!,
-                        configurations,
-                        securityType,
-                        devantConfigs: params.createInternalConnectionParams.devantTempConfigs
-                    });
-
-                    return resp;
-                } else {
-                    await this.replaceDevantTempConfigValues({ createdConnection, configs: params.createInternalConnectionParams?.devantTempConfigs, });
-                    return {};
-                }
-            }
-            if (
-                [
-                    DevantConnectionFlow.CREATE_THIRD_PARTY_OAS,
-                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER,
-                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR,
-                ].includes(params.flow)
-            ) {
-                const isProjectLevel =
-                    !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id ||
-                    params?.importThirdPartyConnectionParams?.isProjectLevel;
-                const matchingSchema = params.marketplaceItem.connectionSchemas?.find(
-                    (item) => item.id === params.importThirdPartyConnectionParams?.schemaId,
-                );
-                if (!matchingSchema) {
-                    throw new Error(`No matching schemes found in marketplace item`);
-                }
-                if (
-                    !params?.marketplaceItem?.endpointRefs ||
-                    Object.keys(params?.marketplaceItem?.endpointRefs).length === 0
-                ) {
-                    throw new Error(`No endpoints found in the third party API item`);
-                }
-
-                const createdConnection = await platformExt?.createThirdPartyConnection({
-                    componentId: isProjectLevel
-                        ? ""
-                        : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                    name: params.importThirdPartyConnectionParams?.name,
-                    orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
-                    orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                    projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                    serviceSchemaId: matchingSchema.id,
-                    serviceId: params.marketplaceItem.serviceId,
-                    endpointRefs: params?.marketplaceItem?.endpointRefs,
-                    sensitiveKeys: matchingSchema.entries?.filter((item) => item.isSensitive).map((item) => item.name),
-                });
-                await this.replaceDevantTempConfigValues({ createdConnection, configs: params.importThirdPartyConnectionParams?.devantTempConfigs, });
-
-                await platformExt?.createConnectionConfig({
-                    componentDir: projectPath,
-                    marketplaceItem: params.marketplaceItem,
-                    name: params.createInternalConnectionParams.name,
-                    visibility: params.createInternalConnectionParams.visibility,
-                });
-            }
-
-            StateMachine.setReadyMode();
-            this.refreshConnectionList();
-            return { connectionName: "", connectionNode: null };
-        } catch (err) {
-            StateMachine.setReadyMode();
-            window.showErrorMessage(`Failed to create Devant connection: ${(err as Error).message}`);
-            log(`Failed to invoke createDevantComponentConnectionV2: ${err}`);
+            window.showErrorMessage(`Failed to initialize Devant connection: ${(err as Error).message}`);
+            log(`Failed to initialize Devant connection: ${err}`);
         }
     }
 
@@ -995,14 +881,11 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         }
     }
 
-    // todo: break this down into  separate functions
-    async registerAndCreateDevantComponentConnection(
-        params: RegisterAndCreateDevantConnectionReq,
-    ): Promise<CreateDevantConnectionResp> {
+    async registerDevantMarketplaceService(
+        params: RegisterDevantMarketplaceServiceReq,
+    ): Promise<MarketplaceItem> {
         try {
             const platformExt = await this.getPlatformExt();
-            StateMachine.setEditMode();
-            const projectPath = StateMachine.context().projectPath;
 
             const marketplaceItems = await platformExt.getMarketplaceItems({
                 orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
@@ -1066,38 +949,10 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                 serviceId: registeredMarketplaceItem.serviceId,
             });
 
-            const isProjectLevel = !!!platformExtStore.getState().state?.selectedComponent?.metadata?.id;
-
-            const createdConnection = await platformExt?.createThirdPartyConnection({
-                componentId: isProjectLevel ? "" : platformExtStore.getState().state?.selectedComponent?.metadata?.id,
-                name: params.name,
-                orgId: platformExtStore.getState().state?.selectedContext?.org.id?.toString(),
-                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                projectId: platformExtStore.getState().state?.selectedContext?.project.id,
-                serviceSchemaId: registeredMarketplaceItem.connectionSchemas[0]?.id,
-                serviceId: registeredMarketplaceItem.serviceId,
-                endpointRefs: marketplaceService.endpointRefs,
-                sensitiveKeys: registeredMarketplaceItem.connectionSchemas[0].entries
-                    ?.filter((item) => item.isSensitive)
-                    .map((item) => item.name),
-            });
-
-            await this.replaceDevantTempConfigValues({ createdConnection, configs: params.configs });
-
-            await platformExt?.createConnectionConfig({
-                componentDir: projectPath,
-                marketplaceItem: registeredMarketplaceItem,
-                name: params.name,
-                visibility: "PUBLIC",
-            });
-
-            StateMachine.setReadyMode();
-            this.refreshConnectionList();
-            return { connectionName: "", connectionNode: null };
+            return marketplaceService;
         } catch (err) {
-            StateMachine.setReadyMode();
             window.showErrorMessage(`Failed to create Devant connection: ${(err as Error).message}`);
-            log(`Failed to invoke registerAndCreateDevantComponentConnection: ${err}`);
+            log(`Failed to invoke registerDevantMarketplaceService: ${err}`);
         }
     }
 
@@ -1161,56 +1016,12 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             platformExtStore.getState().setConnectionState({ loading: true });
             const connections = await this.getAllConnections();
             platformExtStore.getState().setConnectionState({ list: connections, loading: false });
-
-            // WIP: in order to improve speed during debugging, we need to bring cache connections secrets in Devant
+            // TODO in order to improve speed during debugging, we need to bring cache connections secrets in Devant
             /*
             1. store connection with secret info in bal ext
             2. start proxy server. need to pass secure host list.
             3. leave the server running
             4. on extension exit, kill the server if its running
-            */
-            /*
-            const envs = await platformExt.getProjectEnvs({
-                orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString(),
-                orgUuid: platformExtStore.getState().state?.selectedContext?.org?.uuid,
-                projectId: platformExtStore.getState().state?.selectedContext?.project?.id
-            })
-
-            const lowestEnv = envs.find(item=>!item.critical)
-            if(!lowestEnv){
-                throw new Error("failed to find env when refreshing devant connection list")
-            }
-
-            const secureHosts = new Set<string>()
-            const envMap = new Map<string, string>()
-
-            for(const connItem of connections){
-                const connectionDetailedItem = await platformExt.getConnection({
-                    connectionGroupId: connItem.groupUuid,
-                    orgId: platformExtStore.getState().state?.selectedContext?.org?.id?.toString()
-                });
-                const matchingConfig = connectionDetailedItem.configurations[lowestEnv.templateId];
-                if(matchingConfig){
-                    for(const entryName in matchingConfig.entries ){
-                        if(matchingConfig.entries[entryName].value){
-                            if(connItem.schemaName?.toLowerCase().includes("organization") && entryName==="ServiceURL" && matchingConfig.entries[entryName].value.startsWith("https://")){
-                                const domain = getDomain(matchingConfig.entries[entryName].value)
-                                secureHosts.add(domain)
-                                envMap.set(entryName, matchingConfig.entries[entryName].value.replace("https://", "http://"))
-                            }else{
-                                envMap.set(entryName, matchingConfig.entries[entryName].value)
-                            }
-                            if((envMap.get(entryName).startsWith("https://") || envMap.get(entryName).startsWith("http://")) && envMap.get(entryName).endsWith("/")){
-                                envMap.set(entryName,  envMap.get(entryName.slice(0, -1)))
-                            }
-                        }else if(matchingConfig.entries[entryName].isSensitive && !matchingConfig.entries[entryName].isFile){
-                            ///////////
-                            // todo: //
-                            ///////////
-                        }
-                    }
-                }
-            }
             */
         } catch (err) {
             platformExtStore.getState().setConnectionState({ loading: false });

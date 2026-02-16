@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ComponentKind, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, Environment, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes, UserInfo } from "@wso2/wso2-platform-core";
+import { ComponentKind, ConnectionConfigurations, ConnectionDetailed, ConnectionListItem, ContextItemEnriched, Environment, MarketplaceIdlTypes, MarketplaceItem, MarketplaceServiceTypes, UserInfo } from "@wso2/wso2-platform-core";
 import { AvailableNode, NodePosition } from "../../interfaces/bi";
 import { ModuleVarDecl } from "@wso2/syntax-tree/lib/syntax-tree-interfaces";
 
@@ -30,39 +30,25 @@ export interface GenerateCustomConnectorFromOASResp {
     connectionNode?: AvailableNode;
 }
 
-export interface CreateDevantConnectionV2Req {
-    flow: DevantConnectionFlow;
-    createInternalConnectionParams?: {
-        name: string;
-	    visibility: string;
-        schemaId: string;
-        isProjectLevel?: boolean;
-        devantTempConfigs?: DevantTempConfig[];
-    }
-    // todo: rename as createThirdPartyConnectionParams
-    importThirdPartyConnectionParams?: {
-        name: string;
-        schemaId: string;
-        isProjectLevel?: boolean;
-        devantTempConfigs?: DevantTempConfig[];
-    }
-    importInternalConnectionParams?: {
-        connection: ConnectionDetailed;
-        configs: DevantTempConfig[];
-    }
+export interface InitializeDevantOASConnectionReq {
+    name: string;
+    visibility: string;
+    securityType: "" | "oauth" | "apikey";
     marketplaceItem: MarketplaceItem;
+    configurations: ConnectionConfigurations;
+    devantConfigs: DevantTempConfig[];
 }
 
-export interface ImportDevantConnectionReq {
-    connectionListItem: ConnectionListItem;
-    configs: DevantTempConfig[];
+export interface InitializeDevantOASConnectionResp {
+    connectionName?: string;
 }
 
-export interface RegisterAndCreateDevantConnectionReq {
+export interface RegisterDevantMarketplaceServiceReq {
     name: string;
     idlType: MarketplaceIdlTypes;
     serviceType: MarketplaceServiceTypes;
     idlFilePath?: string;
+    
     configs: DevantTempConfig[];
 }
 
@@ -82,16 +68,6 @@ export interface DeleteDevantTempConfigReq {
 export interface ReplaceDevantTempConfigValuesReq {
     createdConnection: ConnectionDetailed;
     configs: DevantTempConfig[];
-}
-
-export interface CreateDevantConnectionResp {
-    connectionName?: string;
-    connectionNode?: AvailableNode;
-}
-
-export interface ImportDevantConnectionResp {
-    connectionName?: string;
-    connectionNode?: AvailableNode;
 }
 
 export interface PlatformExtConnectionState {
