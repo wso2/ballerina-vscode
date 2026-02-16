@@ -43,6 +43,7 @@ import { Button, Codicon } from "@wso2/ui-toolkit";
 import { AIChatInputRef } from "../AIChatInput";
 import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
+import ToolCallGroupSegment, { ToolCallItem } from "../ToolCallGroupSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
 import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
@@ -374,19 +375,19 @@ const AIChat: React.FC = () => {
                     : "Searching for libraries...";
 
                 updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}">${displayMessage}</toolcall>`
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">${displayMessage}</toolcall>`
                 );
             } else if (response.toolName === "LibraryGetTool") {
                 const toolCallId = response?.toolCallId;
 
                 updateLastMessage((content) =>
-                    content + `\n\n<toolcall id="${toolCallId}">Fetching library details...</toolcall>`
+                    content + `\n\n<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`
                 );
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Analyzing request & selecting healthcare libraries...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -394,7 +395,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Planning...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Planning...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -408,7 +409,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>${message}</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">${message}</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -416,7 +417,7 @@ const AIChat: React.FC = () => {
                 setMessages((prevMessages) => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
-                        newMessages[newMessages.length - 1].content += `\n\n<toolcall>Checking for errors...</toolcall>`;
+                        newMessages[newMessages.length - 1].content += `\n\n<toolcall tool="${response.toolName}">Checking for errors...</toolcall>`;
                     }
                     return newMessages;
                 });
@@ -439,29 +440,29 @@ const AIChat: React.FC = () => {
 
                 updateLastMessage((content) =>
                     content.replace(
-                        `<toolcall id="${toolCallId}">${originalMessage}</toolcall>`,
-                        `<toolresult id="${toolCallId}">${completionMessage}</toolresult>`
+                        `<toolcall id="${toolCallId}" tool="${response.toolName}">${originalMessage}</toolcall>`,
+                        `<toolresult id="${toolCallId}" tool="${response.toolName}">${completionMessage}</toolresult>`
                     )
                 );
             } else if (response.toolName === "LibraryGetTool") {
                 const toolCallId = response.toolCallId;
                 const libraryNames = response.toolOutput || [];
                 if (toolCallId) {
-                    const searchPattern = `<toolcall id="${toolCallId}">Fetching library details...</toolcall>`;
+                    const searchPattern = `<toolcall id="${toolCallId}" tool="${response.toolName}">Fetching library details...</toolcall>`;
                     const resultMessage = libraryNames.length === 0
                         ? "No relevant libraries found"
                         : `Fetched libraries: [${libraryNames.join(", ")}]`;
-                    const replacement = `<toolresult id="${toolCallId}">${resultMessage}</toolresult>`;
+                    const replacement = `<toolresult id="${toolCallId}" tool="${response.toolName}">${resultMessage}</toolresult>`;
 
                     updateLastMessage((content) => content.replace(searchPattern, replacement));
                 }
             } else if (response.toolName == "HealthcareLibraryProviderTool") {
                 const libraryNames = response.toolOutput;
-                const searchPattern = `<toolcall>Analyzing request & selecting healthcare libraries...</toolcall>`;
+                const searchPattern = `<toolcall tool="${response.toolName}">Analyzing request & selecting healthcare libraries...</toolcall>`;
                 const resultMessage = libraryNames.length === 0
                     ? "No relevant healthcare libraries found."
                     : `Fetched healthcare libraries: [${libraryNames.join(", ")}]`;
-                const replacement = `<toolresult>${resultMessage}</toolresult>`;
+                const replacement = `<toolresult tool="${response.toolName}">${resultMessage}</toolresult>`;
 
                 updateLastMessage((content) => content.replace(searchPattern, replacement));
             } else if (response.toolName == "TaskWrite") {
@@ -474,7 +475,7 @@ const AIChat: React.FC = () => {
                             const isInternalError = taskOutput.message &&
                                 taskOutput.message.includes("ERROR: Missing");
 
-                            const indicatorPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
+                            const indicatorPattern = /<toolcall tool="TaskWrite">Planning\.\.\.<\/toolcall>/;
                             const todoPattern = /<todo>.*?<\/todo>/s;
 
                             if (isInternalError) {
@@ -495,9 +496,10 @@ const AIChat: React.FC = () => {
                                     }
                                 }
 
+                                // Keep tool="TaskWrite" (matching the tool_call tag written by the TaskWrite handler)
                                 newMessages[newMessages.length - 1].content = newMessages[
                                     newMessages.length - 1
-                                ].content.replace(indicatorPattern, `<toolcall>${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
+                                ].content.replace(indicatorPattern, `<toolcall tool="TaskWrite">${simplifiedMessage}</toolcall>`).replace(todoPattern, "");
                             }
                         } else {
                             const todoData = {
@@ -528,8 +530,8 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const creatingPattern = /<toolcall>Creating (.+?)\.\.\.<\/toolcall>/;
-                        const updatingPattern = /<toolcall>Updating (.+?)\.\.\.<\/toolcall>/;
+                        const creatingPattern = /<toolcall tool="([^"]+)">Creating (.+?)\.\.\.<\/toolcall>/;
+                        const updatingPattern = /<toolcall tool="([^"]+)">Updating (.+?)\.\.\.<\/toolcall>/;
 
                         let updatedContent = lastMessageContent;
 
@@ -539,12 +541,12 @@ const AIChat: React.FC = () => {
                             const resultText = action === 'updated' ? 'Updated' : 'Created';
                             updatedContent = lastMessageContent.replace(
                                 creatingPattern,
-                                (_match, fileName) => `<toolresult>${resultText} ${fileName}</toolresult>`
+                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">${resultText} ${fileName}</toolresult>`
                             );
                         } else if (updatingPattern.test(lastMessageContent)) {
                             updatedContent = lastMessageContent.replace(
                                 updatingPattern,
-                                (_match, fileName) => `<toolresult>Updated ${fileName}</toolresult>`
+                                (_match, toolName, fileName) => `<toolresult tool="${toolName}">Updated ${fileName}</toolresult>`
                             );
                         }
 
@@ -562,7 +564,8 @@ const AIChat: React.FC = () => {
                     const newMessages = [...prevMessages];
                     if (newMessages.length > 0) {
                         const lastMessageContent = newMessages[newMessages.length - 1].content;
-                        const checkingPattern = /<toolcall>Checking for errors\.\.\.<\/toolcall>/;
+                        const toolName = response.toolName;
+                        const checkingPattern = new RegExp(`<toolcall tool="${toolName}">Checking for errors\\.\\.\\.<\\/toolcall>`);
 
                         const message = errorCount === 0
                             ? "No errors found"
@@ -570,7 +573,7 @@ const AIChat: React.FC = () => {
 
                         const updatedContent = lastMessageContent.replace(
                             checkingPattern,
-                            `<toolresult>${message}</toolresult>`
+                            `<toolresult tool="${toolName}">${message}</toolresult>`
                         );
 
                         newMessages[newMessages.length - 1].content = updatedContent;
@@ -1566,12 +1569,72 @@ const AIChat: React.FC = () => {
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.ToolCall) {
+                                            const currentToolName = segment.toolName;
+
+                                            // Skip if the next segment with the same tool name follows
+                                            // (skip over whitespace-only Text segments between tool calls)
+                                            let nextIdx = i + 1;
+                                            while (
+                                                nextIdx < segmentedContent.length &&
+                                                segmentedContent[nextIdx].type === SegmentType.Text &&
+                                                segmentedContent[nextIdx].text.trim() === ""
+                                            ) {
+                                                nextIdx++;
+                                            }
+                                            const nextSeg = segmentedContent[nextIdx];
+                                            if (
+                                                nextSeg &&
+                                                nextSeg.type === SegmentType.ToolCall &&
+                                                nextSeg.toolName === currentToolName
+                                            ) {
+                                                return null;
+                                            }
+
+                                            // Collect consecutive same-tool segments backward from this index,
+                                            // skipping over whitespace-only Text segments between them
+                                            const groupItems: ToolCallItem[] = [];
+                                            let j = i;
+                                            while (j >= 0) {
+                                                const seg = segmentedContent[j];
+                                                if (
+                                                    seg.type === SegmentType.ToolCall &&
+                                                    seg.toolName === currentToolName
+                                                ) {
+                                                    groupItems.unshift({
+                                                        text: seg.text,
+                                                        loading: seg.loading,
+                                                        failed: seg.failed,
+                                                        toolName: seg.toolName,
+                                                    });
+                                                } else if (
+                                                    seg.type === SegmentType.Text &&
+                                                    seg.text.trim() === ""
+                                                ) {
+                                                    j--;
+                                                    continue;
+                                                } else {
+                                                    break;
+                                                }
+                                                j--;
+                                            }
+
+                                            // Single tool call or different tool: bare ToolCallSegment
+                                            if (groupItems.length === 1) {
+                                                return (
+                                                    <ToolCallSegment
+                                                        key={`tool-call-${i}`}
+                                                        text={segment.text}
+                                                        loading={segment.loading}
+                                                        failed={segment.failed}
+                                                    />
+                                                );
+                                            }
+
+                                            // 2+ same-tool consecutive calls: use collapsible group
                                             return (
-                                                <ToolCallSegment
-                                                    key={`tool-call-${i}`}
-                                                    text={segment.text}
-                                                    loading={segment.loading}
-                                                    failed={segment.failed}
+                                                <ToolCallGroupSegment
+                                                    key={`tool-call-group-${i}`}
+                                                    segments={groupItems}
                                                 />
                                             );
                                         } else if (segment.type === SegmentType.Todo) {
