@@ -36,8 +36,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { EvalFunctionCall, EvalToolSchema } from '@wso2/ballerina-core';
-import { Icon } from '@wso2/ui-toolkit';
-import { ConfirmationModal } from './ConfirmationModal';
+import { Codicon, Icon } from '@wso2/ui-toolkit';
 
 // --- STYLES ---
 
@@ -48,26 +47,55 @@ const TimelineContainer = styled.div`
     padding-left: 0;
 `;
 
-const TimelineTrack = styled.div`
+const TimelineTrack = styled.div<{ $isVisible: boolean }>`
     position: absolute;
-    left: 15px; 
+    left: 15px;
     top: 24px;
     bottom: -2px;
     width: 2px;
     background-color: var(--vscode-button-background);
-    opacity: 0.3;
+    opacity: ${(props: { $isVisible: any; }) => props.$isVisible ? 0.3 : 0};
     z-index: 0;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+`;
+
+const TimelineHeader = styled.button`
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 0 0 8px 4px;
+    cursor: pointer;
+    margin-bottom: 0;
 `;
 
 const HeaderTitle = styled.div`
     font-size: 11px;
     font-weight: 600;
     color: var(--vscode-descriptionForeground);
-    margin-bottom: 8px;
-    padding-left: 4px;
 `;
 
-const ToolCard = styled.div<{ $isDragging?: boolean }>`
+const ToggleIcon = styled.span<{ $isOpen: boolean }>`
+    color: var(--vscode-descriptionForeground);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: ${(props: { $isOpen: any; }) => props.$isOpen ? "rotate(90deg)" : "rotate(0deg)"};
+`;
+
+const TimelineList = styled.div<{ $isCollapsed: boolean }>`
+    display: flex;
+    flex-direction: column;
+    max-height: ${(props: { $isCollapsed: any; }) => props.$isCollapsed ? '0px' : '2000px'};
+    opacity: ${(props: { $isCollapsed: any; }) => props.$isCollapsed ? 0 : 1};
+    overflow: hidden;
+    transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+`;
+
+const ToolCard = styled.div<{ $isDragging?: boolean; $isEditMode: boolean }>`
     background-color: var(--vscode-textBlockQuote-background);
     border: 1px solid var(--vscode-panel-border);
     border-radius: 6px;
@@ -78,13 +106,13 @@ const ToolCard = styled.div<{ $isDragging?: boolean }>`
     position: relative;
     z-index: 1;
     margin-bottom: 8px;
-    
+
     opacity: ${(props: { $isDragging: any; }) => props.$isDragging ? 0.5 : 1};
     transition: border-color 0.2s, background-color 0.2s;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
-        border-color: var(--vscode-focusBorder);
+        border-color: ${(props: { $isEditMode: any; }) => props.$isEditMode ? 'var(--vscode-focusBorder)' : 'var(--vscode-panel-border)'};
     }
 `;
 
@@ -118,13 +146,14 @@ const DragHandle = styled.div`
     }
 `;
 
-const ToolInfo = styled.div`
+const ToolInfo = styled.div<{ $isClickable: boolean }>`
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding-top: 2px;
+    cursor: ${(props: { $isClickable: any; }) => props.$isClickable ? 'pointer' : 'default'};
 `;
 
 const ToolName = styled.div`
@@ -151,7 +180,6 @@ const Actions = styled.div`
     opacity: 0;
     transition: opacity 0.2s;
 
-    /* Fixed interpolation: Target the parent class name */
     .tool-card-row:hover & {
         opacity: 1;
     }
@@ -180,7 +208,6 @@ const formatArgs = (args: any) => {
     if (!args) return "()";
     if (typeof args === 'string') return args;
     try {
-        // Create a compact representation: { a: 1, b: 2 }
         return JSON.stringify(args).replace(/"/g, '').replace(/:/g, ': ').replace(/,/g, ', ');
     } catch (e) {
         return "Invalid arguments";
@@ -192,13 +219,15 @@ const formatArgs = (args: any) => {
 interface SortableToolCallItemProps {
     toolCall: EvalFunctionCall;
     index: number;
-    onEdit: () => void;
-    onDelete: () => void;
+    isEditMode: boolean;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
 const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
     toolCall,
     index,
+    isEditMode,
     onEdit,
     onDelete,
 }) => {
@@ -210,7 +239,7 @@ const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
         transform,
         transition,
         isDragging,
-    } = useSortable({ id: sortableId });
+    } = useSortable({ id: sortableId, disabled: !isEditMode });
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -219,49 +248,58 @@ const SortableToolCallItem: React.FC<SortableToolCallItemProps> = ({
 
     return (
         <div ref={setNodeRef} style={style}>
-            {/* Added className for the CSS selector in Actions */}
-            <ToolCard $isDragging={isDragging} className="tool-card-row">
-                <DragHandle {...attributes} {...listeners}>
-                    <Icon name="bi-drag" iconSx={{ fontSize: "16px" }} />
-                </DragHandle>
+            <ToolCard $isDragging={isDragging} $isEditMode={isEditMode} className="tool-card-row">
+                {isEditMode && (
+                    <DragHandle {...attributes} {...listeners}>
+                        <Icon name="bi-drag" iconSx={{ fontSize: "16px" }} />
+                    </DragHandle>
+                )}
 
                 <IconBadgeWrapper>
                     <Icon name="bi-wrench" sx={{ display: "flex", justifyContent: "center", alignItems: "center" }} iconSx={{ display: "flex", fontSize: "16px" }} />
                 </IconBadgeWrapper>
 
-                <ToolInfo onClick={onEdit} style={{ cursor: 'pointer' }}>
+                <ToolInfo
+                    $isClickable={isEditMode && !!onEdit}
+                    onClick={isEditMode && onEdit ? onEdit : undefined}
+                >
                     <ToolName>{toolCall.name}</ToolName>
                     <ArgumentsPreview>
                         {formatArgs(toolCall.arguments)}
                     </ArgumentsPreview>
                 </ToolInfo>
 
-                <Actions>
-                    <ActionButton $danger onClick={(e) => { e.stopPropagation(); onDelete(); }} title="Delete">
-                        <Icon name="bi-delete" iconSx={{ fontSize: "16px" }} />
-                    </ActionButton>
-                </Actions>
+                {isEditMode && onDelete && (
+                    <Actions>
+                        <ActionButton $danger onClick={(e) => { e.stopPropagation(); onDelete(); }} title="Delete">
+                            <Icon name="bi-delete" iconSx={{ fontSize: "16px" }} />
+                        </ActionButton>
+                    </Actions>
+                )}
             </ToolCard>
         </div>
     );
 };
 
-interface EditableToolCallsListProps {
-    traceId: string;
+interface ToolCallsListProps {
+    traceId?: string;
     toolCalls: EvalFunctionCall[];
-    availableTools: EvalToolSchema[];
-    onUpdate: (traceId: string, toolCalls: EvalFunctionCall[]) => void;
-    onEditToolCall: (traceId: string, toolCallIndex: number) => void;
+    availableTools?: EvalToolSchema[];
+    isEditMode: boolean;
+    onUpdate?: (traceId: string, toolCalls: EvalFunctionCall[]) => void;
+    onEditToolCall?: (traceId: string, toolCallIndex: number) => void;
+    onDeleteRequest?: (traceId: string, toolCallIndex: number) => void;
 }
 
-export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
-    traceId,
+export const ToolCallsList: React.FC<ToolCallsListProps> = ({
+    traceId = '',
     toolCalls,
-    availableTools,
+    isEditMode,
     onUpdate,
     onEditToolCall,
+    onDeleteRequest,
 }) => {
-    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -271,10 +309,11 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
     );
 
     const handleDragEnd = (event: DragEndEvent) => {
+        if (!isEditMode || !onUpdate) return;
+
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
-            // Extract index from composite ID: "id-index" or "name-index"
             const oldIndex = toolCalls.findIndex(
                 (tc, idx) => `${tc.id ?? tc.name}-${idx}` === active.id
             );
@@ -287,67 +326,59 @@ export const EditableToolCallsList: React.FC<EditableToolCallsListProps> = ({
         }
     };
 
-    const handleDeleteRequest = (index: number) => {
-        setDeleteIndex(index);
-    };
-
-    const handleDeleteConfirm = () => {
-        if (deleteIndex !== null) {
-            const updatedToolCalls = toolCalls.filter((_, i) => i !== deleteIndex);
-            onUpdate(traceId, updatedToolCalls);
-            setDeleteIndex(null);
-        }
-    };
-
-    const handleDeleteCancel = () => {
-        setDeleteIndex(null);
-    };
-
     if (toolCalls.length === 0) {
         return null;
     }
 
+    const headerTitle = isEditMode ? "Tool Execution Chain" : `Tool Executions (${toolCalls.length})`;
+    const showHeader = !isEditMode || toolCalls.length > 0;
+    const isCollapsed = !isEditMode && !isOpen;
+
     return (
         <TimelineContainer>
-            <HeaderTitle>Tool Execution Chain</HeaderTitle>
-
-            {/* Visual Line connecting the tools */}
-            <TimelineTrack />
-
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-            >
-                <SortableContext
-                    items={toolCalls.map((tc, idx) => `${tc.id ?? tc.name}-${idx}`)}
-                    strategy={verticalListSortingStrategy}
-                >
-                    {toolCalls.map((toolCall, index) => {
-                        const sortableId = `${toolCall.id ?? toolCall.name}-${index}`;
-                        return (
-                            <SortableToolCallItem
-                                key={sortableId}
-                                toolCall={toolCall}
-                                index={index}
-                                onEdit={() => onEditToolCall(traceId, index)}
-                                onDelete={() => handleDeleteRequest(index)}
-                            />
-                        );
-                    })}
-                </SortableContext>
-            </DndContext>
-
-            {deleteIndex !== null && (
-                <ConfirmationModal
-                    title="Delete Tool Execution"
-                    message="Are you sure you want to delete this tool call? This action cannot be undone."
-                    confirmLabel="Delete"
-                    cancelLabel="Cancel"
-                    onConfirm={handleDeleteConfirm}
-                    onCancel={handleDeleteCancel}
-                />
+            {showHeader && (
+                <>
+                    {!isEditMode ? (
+                        <TimelineHeader onClick={() => setIsOpen(!isOpen)} aria-expanded={isOpen}>
+                            <HeaderTitle>{headerTitle}</HeaderTitle>
+                            <ToggleIcon $isOpen={isOpen}>
+                                <Codicon name="chevron-right" sx={{ fontSize: "14px", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center" }} iconSx={{ display: "flex" }} />
+                            </ToggleIcon>
+                        </TimelineHeader>
+                    ) : (
+                        <HeaderTitle style={{ paddingBottom: '8px', paddingLeft: '4px' }}>{headerTitle}</HeaderTitle>
+                    )}
+                </>
             )}
+
+            <TimelineTrack $isVisible={isEditMode || isOpen} />
+
+            <TimelineList $isCollapsed={isCollapsed}>
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                >
+                    <SortableContext
+                        items={toolCalls.map((tc, idx) => `${tc.id ?? tc.name}-${idx}`)}
+                        strategy={verticalListSortingStrategy}
+                    >
+                        {toolCalls.map((toolCall, index) => {
+                            const sortableId = `${toolCall.id ?? toolCall.name}-${index}`;
+                            return (
+                                <SortableToolCallItem
+                                    key={sortableId}
+                                    toolCall={toolCall}
+                                    index={index}
+                                    isEditMode={isEditMode}
+                                    onEdit={isEditMode && onEditToolCall ? () => onEditToolCall(traceId, index) : undefined}
+                                    onDelete={isEditMode && onDeleteRequest ? () => onDeleteRequest(traceId, index) : undefined}
+                                />
+                            );
+                        })}
+                    </SortableContext>
+                </DndContext>
+            </TimelineList>
         </TimelineContainer>
     );
 };
