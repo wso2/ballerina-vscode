@@ -137,6 +137,10 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
         if (stack.length <= 1) return;
         setStack((prev) => {
             const newStack = [...prev];
+            //preserve fieldIndex if exists
+            if (newStack[newStack.length - 1].fieldIndex) {
+                item.fieldIndex = newStack[newStack.length - 1].fieldIndex;
+            }
             newStack[newStack.length - 1] = item;
             return newStack;
         });
@@ -362,16 +366,25 @@ export function GraphQLDiagram(props: GraphQLDiagramProps) {
 
     const onSaveType = () => {
         if (stack.length > 0) {
+            if (stack.length > 1) {
+                const newStack = [...stack]
+                const currentTop = newStack[newStack.length - 1];
+                const newTop = newStack[newStack.length - 2];
+                newTop.type.members[newTop.fieldIndex!].type = currentTop!.type.name;
+                newStack[newStack.length - 2] = newTop;
+                newStack.pop();
+                setStack(newStack);
+            }
             setRefetchForCurrentModal(true);
-            popTypeStack();
         }
         setIsTypeEditorOpen(stack.length !== 1);
     }
 
-    const getNewTypeCreateForm = () => {
+    const getNewTypeCreateForm = (fieldIndex?: number, typeName?: string) => {
         pushTypeStack({
             type: createNewType(),
-            isDirty: false
+            isDirty: false,
+            fieldIndex: fieldIndex
         });
         setIsTypeEditorOpen(true);
     }

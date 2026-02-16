@@ -109,6 +109,11 @@ export class EvalsetTreeDataProvider implements vscode.TreeDataProvider<EvalsetN
             item.iconPath = new vscode.ThemeIcon('collection');
             item.contextValue = 'evalsetFile';
             item.resourceUri = element.uri;
+            item.command = {
+                command: 'ballerina.openEvalsetViewer',
+                title: 'Open Evalset',
+                arguments: [element.uri]
+            };
             return item;
         } else {
             const item = new vscode.TreeItem(

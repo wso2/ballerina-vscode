@@ -46,6 +46,7 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
+import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { ArgManagerEditor } from "../ParamManager/ArgManager";
 
 interface FormFieldEditorProps {
@@ -116,8 +117,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <ChoiceForm field={field} recordTypeFields={recordTypeFields} />;
     } else if (field.type === "DROPDOWN_CHOICE") {
         return <DropdownChoiceForm field={field} />;
-    } else if (field.type === "TEXTAREA" || field.type === "STRING") {
-        return <TextAreaEditor field={field} />;
+    } else if (field.type === "TEXTAREA" || field.type === "STRING" || field.type === "DOC_TEXT") {
+        return <TextAreaEditor field={field} inputMode={InputMode.SIMPLE_TEXT} />;
     } else if (field.type === "FLAG" && !showWithExpressionEditor) {
         return <CheckBoxEditor field={field} />;
     } else if (field.type === "EXPRESSION" && field.key === "resourcePath") {

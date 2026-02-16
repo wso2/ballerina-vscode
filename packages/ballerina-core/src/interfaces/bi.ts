@@ -154,6 +154,7 @@ export type FormFieldInputType = "TEXT" |
     "DM_JOIN_CLAUSE_RHS_EXPRESSION" |
     "RECORD_MAP_EXPRESSION" |
     "PROMPT" |
+    "SQL_QUERY" |
     "CLAUSE_EXPRESSION" |
     "SLIDER";
 
