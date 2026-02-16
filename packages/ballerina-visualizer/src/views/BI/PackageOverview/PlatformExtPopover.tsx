@@ -23,10 +23,13 @@ import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import {
     ICmdParamsBase,
+    ICreateDirCtxCmdParams,
     IManageDirContextCmdParams,
+    IOpenInConsoleCmdParams,
     CommandIds as PlatformExtCommandIds,
 } from "@wso2/wso2-platform-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
+import { QuickPickItem } from "vscode";
 
 const PopupContainer = styled.div`
     min-width: 200px;
@@ -93,7 +96,7 @@ export interface DiagnosticsPopUpProps {
 
 export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     const { isVisible, onClose, anchorEl } = props;
-    const { platformExtState, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient, projectPath, workspacePath } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
 
     const handleSignOut = () => {
@@ -130,17 +133,30 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
         });
     };
 
+    const handleLinkWorkspace = () => {
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: [
+                PlatformExtCommandIds.CreateDirectoryContext,
+                {
+                    extName: "Devant",
+                    skipComponentExistCheck: true,
+                    fsPath: workspacePath || projectPath || "",
+                } as ICreateDirCtxCmdParams,
+            ],
+        });
+    };
+
     const nonCriticalEnvs = platformExtState?.envs?.filter((env) => !env.critical) || [];
 
     const handleEnvSelect = () => {
         rpcClient
             .getCommonRpcClient()
             .showQuickPick({
-                items: nonCriticalEnvs.map((env) => env.name) || [],
+                items: nonCriticalEnvs.map((env) => ({ label: env.name })) || [],
                 options: { title: "Select Environment to Connect" },
             })
             .then((resp) => {
-                const selectedEnv = nonCriticalEnvs.find((env) => env.name === resp);
+                const selectedEnv = nonCriticalEnvs.find((env) => env.name === resp?.label);
                 if (selectedEnv) {
                     platformRpcClient.setSelectedEnv(selectedEnv.id);
                 }
@@ -148,14 +164,45 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
     };
 
     const handleIntegrationSelect = () => {
+        const quickPickOptions: QuickPickItem[] = [
+            {
+                label: "View in Console",
+                detail: "Open the integration in Devant Console",
+            },
+        ];
+        if (platformExtState?.components?.length > 1) {
+            quickPickOptions.push({ kind: -1, label: "Associated Integrations" });
+            quickPickOptions.push(
+                ...platformExtState?.components.map((item) => ({
+                    label: item?.metadata?.name,
+                    description: "Selected",
+                })),
+            );
+        }
         rpcClient
             .getCommonRpcClient()
             .showQuickPick({
-                items: platformExtState?.components.map((item) => item?.metadata?.name) || [],
+                items: quickPickOptions,
                 options: { title: "Select Integration" },
             })
             .then((resp) => {
-                const selectedIntegration = platformExtState?.components.find((env) => env.metadata.name === resp);
+                if (resp?.label === "View in Console") {
+                    rpcClient.getCommonRpcClient().executeCommand({
+                        commands: [
+                            PlatformExtCommandIds.OpenInConsole,
+                            {
+                                extName: "Devant",
+                                componentFsPath: projectPath,
+                                component: platformExtState?.selectedComponent,
+                                newComponentParams: { buildPackLang: "ballerina" },
+                            } as IOpenInConsoleCmdParams,
+                        ],
+                    });
+                    return;
+                }
+                const selectedIntegration = platformExtState?.components.find(
+                    (env) => env.metadata.name === resp?.label,
+                );
                 if (selectedIntegration) {
                     platformRpcClient.setSelectedComponent(selectedIntegration.metadata?.id || "");
                 }
@@ -193,84 +240,94 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
                                     </Button>
                                 </ButtonGroup>
                             </PanelItem>
-                            <PanelItem>
-                                <PanelItemContent>
-                                    <PanelItemTitle>Organization</PanelItemTitle>
-                                    <PanelItemVal>{platformExtState?.selectedContext?.org?.name}</PanelItemVal>
-                                </PanelItemContent>
-                            </PanelItem>
-                            <PanelItem>
-                                <PanelItemContent>
-                                    <PanelItemTitle>Project</PanelItemTitle>
-                                    <PanelItemValButton
-                                        onClick={handleSwitchProject}
-                                        title="Link with a different Devant project"
-                                    >
-                                        {platformExtState?.selectedContext?.project?.name}
-                                    </PanelItemValButton>
-                                </PanelItemContent>
-                            </PanelItem>
-                            {platformExtState?.selectedComponent && (
-                                <PanelItem>
-                                    <PanelItemContent>
-                                        <PanelItemTitle>Integration</PanelItemTitle>
-                                        {platformExtState?.components?.length > 1 ? (
+                            {platformExtState?.selectedContext ? (
+                                <>
+                                    <PanelItem>
+                                        <PanelItemContent>
+                                            <PanelItemTitle>Organization</PanelItemTitle>
+                                            <PanelItemVal>{platformExtState?.selectedContext?.org?.name}</PanelItemVal>
+                                        </PanelItemContent>
+                                    </PanelItem>
+                                    <PanelItem>
+                                        <PanelItemContent>
+                                            <PanelItemTitle>Project</PanelItemTitle>
                                             <PanelItemValButton
-                                                onClick={handleIntegrationSelect}
-                                                title="Switch to another Devant integration"
+                                                onClick={handleSwitchProject}
+                                                title="Link with a different Devant project"
                                             >
-                                                {platformExtState?.selectedComponent?.metadata?.name}
+                                                {platformExtState?.selectedContext?.project?.name}
                                             </PanelItemValButton>
-                                        ) : (
-                                            <PanelItemVal>
-                                                {platformExtState?.selectedComponent?.metadata?.name}
-                                            </PanelItemVal>
+                                        </PanelItemContent>
+                                    </PanelItem>
+                                    {platformExtState?.selectedComponent && (
+                                        <PanelItem>
+                                            <PanelItemContent>
+                                                <PanelItemTitle>Integration</PanelItemTitle>
+                                                <PanelItemValButton
+                                                    onClick={handleIntegrationSelect}
+                                                    title="View Integration"
+                                                >
+                                                    {platformExtState?.selectedComponent?.metadata?.name}
+                                                </PanelItemValButton>
+                                            </PanelItemContent>
+                                        </PanelItem>
+                                    )}
+                                    {platformExtState?.devantConns?.list?.length > 0 &&
+                                        platformExtState?.selectedEnv && (
+                                            <PanelItem>
+                                                <PanelItemContent>
+                                                    <PanelItemTitle>Connected Environment</PanelItemTitle>
+                                                    {nonCriticalEnvs?.length > 1 ? (
+                                                        <PanelItemValButton
+                                                            onClick={handleEnvSelect}
+                                                            title="Select a different Devant Environment"
+                                                        >
+                                                            {platformExtState?.selectedEnv?.name}
+                                                        </PanelItemValButton>
+                                                    ) : (
+                                                        <PanelItemVal>
+                                                            {platformExtState?.selectedEnv?.name}
+                                                        </PanelItemVal>
+                                                    )}
+                                                </PanelItemContent>
+                                            </PanelItem>
                                         )}
-                                    </PanelItemContent>
-                                </PanelItem>
-                            )}
-                            {platformExtState?.devantConns?.list?.length > 0 && platformExtState?.selectedEnv && (
-                                <PanelItem>
-                                    <PanelItemContent>
-                                        <PanelItemTitle>Connected Environment</PanelItemTitle>
-                                        {nonCriticalEnvs?.length > 1 ? (
-                                            <PanelItemValButton
-                                                onClick={handleEnvSelect}
-                                                title="Select a different Devant Environment"
-                                            >
-                                                {platformExtState?.selectedEnv?.name}
-                                            </PanelItemValButton>
-                                        ) : (
-                                            <PanelItemVal>{platformExtState?.selectedEnv?.name}</PanelItemVal>
-                                        )}
-                                    </PanelItemContent>
-                                </PanelItem>
-                            )}
-                            {platformExtState?.devantConns?.list?.length > 0 && (
-                                <PanelItem>
-                                    <PanelItemContent>
-                                        <PanelItemTitle style={{ marginBottom: 0 }}>
-                                            Using {platformExtState?.devantConns?.list?.length} Devant{" "}
-                                            {platformExtState?.devantConns?.list?.length < 2
-                                                ? "Connection"
-                                                : "Connections"}
-                                        </PanelItemTitle>
+                                    {platformExtState?.devantConns?.list?.length > 0 && (
+                                        <PanelItem>
+                                            <PanelItemContent>
+                                                <PanelItemTitle style={{ marginBottom: 0 }}>
+                                                    Using {platformExtState?.devantConns?.list?.length} Devant{" "}
+                                                    {platformExtState?.devantConns?.list?.length < 2
+                                                        ? "Connection"
+                                                        : "Connections"}
+                                                </PanelItemTitle>
 
-                                        <PanelItemVal>
-                                            Connect to Devant <br />
-                                            while running or debugging
-                                        </PanelItemVal>
-                                    </PanelItemContent>
-                                    <ButtonGroup>
-                                        <VSCodeCheckbox
-                                            checked={platformExtState?.devantConns?.connectedToDevant}
-                                            onChange={() => {
-                                                platformRpcClient.setConnectedToDevant(
-                                                    !!!platformExtState?.devantConns?.connectedToDevant,
-                                                );
-                                            }}
-                                        />
-                                    </ButtonGroup>
+                                                <PanelItemVal>
+                                                    Connect to Devant <br />
+                                                    while running or debugging
+                                                </PanelItemVal>
+                                            </PanelItemContent>
+                                            <ButtonGroup>
+                                                <VSCodeCheckbox
+                                                    checked={platformExtState?.devantConns?.connectedToDevant}
+                                                    onChange={() => {
+                                                        platformRpcClient.setConnectedToDevant(
+                                                            !!!platformExtState?.devantConns?.connectedToDevant,
+                                                        );
+                                                    }}
+                                                />
+                                            </ButtonGroup>
+                                        </PanelItem>
+                                    )}
+                                </>
+                            ) : (
+                                <PanelItem>
+                                    <PanelItemVal style={{ textAlign: "center", maxWidth: 210 }}>
+                                        <PanelItemVSCodeLink onClick={handleLinkWorkspace}>
+                                            Link workspace
+                                        </PanelItemVSCodeLink>{" "}
+                                        with a Devant project to activate Devant features
+                                    </PanelItemVal>
                                 </PanelItem>
                             )}
                         </>

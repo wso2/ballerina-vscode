@@ -51,7 +51,7 @@ import path from "path";
 import os from "os";
 import fs from "fs";
 import * as unzipper from 'unzipper';
-import { commands, env, MarkdownString, ProgressLocation, Uri, window, workspace } from "vscode";
+import { commands, env, MarkdownString, ProgressLocation, QuickPickItem, Uri, window, workspace } from "vscode";
 import { URI } from "vscode-uri";
 import { extension } from "../../BalExtensionContext";
 import { StateMachine } from "../../stateMachine";
@@ -287,8 +287,8 @@ export class CommonRpcManager implements CommonRPCAPI {
         return window.showInformationMessage(params?.message, {modal: true}, ...(params?.items || []));
     }
 
-    async showQuickPick(params: ShowQuickPickRequest): Promise<string> {
-        return window.showQuickPick(params?.items, params?.options);
+    async showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem> {
+        return window.showQuickPick(params.items, params?.options);
     }
 
     async isNPSupported(): Promise<boolean> {

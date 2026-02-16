@@ -62,6 +62,7 @@ import {
     ShowQuickPickRequest,
     showQuickPick
 } from "@wso2/ballerina-core";
+import { QuickPickItem } from "vscode";
 import { HOST_EXTENSION } from "vscode-messenger-common";
 import { Messenger } from "vscode-messenger-webview";
 
@@ -128,7 +129,7 @@ export class CommonRpcClient implements CommonRPCAPI {
         return this._messenger.sendRequest(showInformationModal, HOST_EXTENSION, params);
     }
 
-    showQuickPick(params: ShowQuickPickRequest): Promise<string> {
+    showQuickPick(params: ShowQuickPickRequest): Promise<QuickPickItem | undefined> {
         return this._messenger.sendRequest(showQuickPick, HOST_EXTENSION, params);
     }
 

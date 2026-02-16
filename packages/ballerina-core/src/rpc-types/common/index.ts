@@ -16,6 +16,7 @@
  * under the License.
  */
 
+import { QuickPickItem } from "vscode";
 import {
     BallerinaDiagnosticsRequest,
     BallerinaDiagnosticsResponse,
@@ -54,7 +55,7 @@ export interface CommonRPCAPI {
     getWorkspaceRoot: () => Promise<WorkspaceRootResponse>;
     showErrorMessage: (params: ShowErrorMessageRequest) => void;
     showInformationModal: (params: ShowInfoModalRequest) => Promise<string>;
-    showQuickPick: (params: ShowQuickPickRequest) => Promise<string>;
+    showQuickPick: (params: ShowQuickPickRequest) => Promise<QuickPickItem | undefined>;
     getCurrentProjectTomlValues: () => Promise<Record<string, any>>;
     getWorkspaceType: () => Promise<WorkspaceTypeResponse>;
     setWebviewCache: (params: SetWebviewCacheRequestParam) => void;
