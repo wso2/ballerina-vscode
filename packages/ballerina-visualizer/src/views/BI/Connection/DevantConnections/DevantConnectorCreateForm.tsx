@@ -157,10 +157,10 @@ interface DevantConnectorCreateFormProps {
 export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     biConnectionNames,
     marketplaceItem,
-    existingDevantConnNames,
+    existingDevantConnNames = [],
     devantFlow,
     onSuccess,
-    devantConfigs,
+    devantConfigs = [],
 }) => {
     const { platformExtState, platformRpcClient, projectPath } = usePlatformExtContext();
     const [showAdvancedSection, setShowAdvancedSection] = useState(false);
