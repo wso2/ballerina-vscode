@@ -659,7 +659,7 @@ export function NodeList(props: NodeListProps) {
                                     )}
                                     {(isSubCategory || isCategoryExpanded || isCategoryFixed(group.title)) && (
                                         <>
-                                            {(!group.items || group.items.length === 0) &&
+                                            {(isSubCategory || (!group.items || group.items.length === 0)) &&
                                                 !searchText &&
                                                 !isSearching &&
                                                 categoryActions.map((action, actionIndex) => {
@@ -680,7 +680,7 @@ export function NodeList(props: NodeListProps) {
                                                     return (
                                                         <S.HighlightedButton 
                                                             key={`empty-${group.title}-${actionIndex}`}
-                                                            style={{padding: '5px 10px'}}
+                                                            style={{padding: '5px 10px', width: isSubCategory ? '160px' : '100%'}}
                                                             onClick={handler}
                                                         >
                                                             <Codicon name="add" iconSx={{ fontSize: 12 }} />

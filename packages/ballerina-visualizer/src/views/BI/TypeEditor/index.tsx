@@ -18,9 +18,9 @@
 
 import { MutableRefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
-import { Imports, LineRange, PayloadContext, Type, Protocol } from '@wso2/ballerina-core';
+import { Imports, LineRange, PayloadContext, Type, Protocol, functionKinds } from '@wso2/ballerina-core';
 import { useRpcContext } from '@wso2/ballerina-rpc-client';
-import { ContextTypeEditor, EditorContext, StackItem, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
+import { ContextTypeEditor, TypeEditor, TypeHelperCategory, TypeHelperItem, TypeHelperOperator } from '@wso2/type-editor';
 import { TYPE_HELPER_OPERATORS } from './constants';
 import { filterOperators, filterTypes, getFilteredTypesByKind, getTypeBrowserTypes, getTypes } from './utils';
 import { useMutation } from '@tanstack/react-query';
@@ -147,8 +147,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 searchKind: 'TYPE'
                             });
 
-                            const importedTypes = getFilteredTypesByKind(searchResponse.categories, "IMPORTED");
-                            const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, "CURRENT");
+                            const importedTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.IMPORTED);
+                            const workspaceTypes = getFilteredTypesByKind(searchResponse.categories, functionKinds.CURRENT);
                             setImportedTypes(importedTypes);
                             setWorkspaceTypes(workspaceTypes);
                         }
@@ -174,8 +174,8 @@ export const FormTypeEditor = (props: FormTypeEditorProps) => {
                                 searchKind: 'TYPE'
                             });
 
-                            const importedTypes = getFilteredTypesByKind(response.categories, "IMPORTED");
-                            const workspaceTypes = getFilteredTypesByKind(response.categories, "CURRENT");
+                            const importedTypes = getFilteredTypesByKind(response.categories, functionKinds.IMPORTED);
+                            const workspaceTypes = getFilteredTypesByKind(response.categories, functionKinds.CURRENT);
                             setImportedTypes(importedTypes);
                             setWorkspaceTypes(workspaceTypes);
                         } catch (error) {
