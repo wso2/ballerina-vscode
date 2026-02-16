@@ -501,7 +501,12 @@ export const Form = forwardRef((props: FormProps) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                        if (field.value && typeof field.value === "boolean") {
+                            defaultValues[field.key] = String(field.value);
+                        }
+                        else {
+                            defaultValues[field.key] = field.value;
+                        }
                     } else if (field.type === "FLAG") {
                         defaultValues[field.key] = field.value || "true";
                     } else if (typeof field.value === "string") {
@@ -565,23 +570,25 @@ export const Form = forwardRef((props: FormProps) => {
         onSubmit && onSubmit(data, dirtyFields);
     };
 
-    const handleFormValidation = async (): Promise<boolean> => {
+    const handleFormValidation = async (formData?: FormValues): Promise<boolean> => {
+        if (!onFormValidation) {
+            return true;
+        }
+
         setIsValidatingForm(true);
-        const data = getValues();
-        const validationResult = await onFormValidation(data, dirtyFields);
-        setIsValidatingForm(false);
-        return validationResult;
+        const data = formData ?? getValues();
+
+        try {
+            const validationResult = await onFormValidation(data, dirtyFields);
+            return validationResult;
+        } finally {
+            setIsValidatingForm(false);
+        }
     }
 
     const handleOnBlur = async () => {
         onBlur?.(getValues(), dirtyFields);
     };
-
-    // Expose a method to trigger the save
-    // useImperativeHandle(ref, () => ({
-    //     triggerSave: () => handleSubmit(handleOnSave)(), // Call handleSubmit with the save function
-    //     resetForm: (values) => reset(values),
-    // }));
 
     const handleOpenRecordEditor = (open: boolean, typeField?: FormField, newType?: string | NodeProperties) => {
         openRecordEditor?.(open, getValues(), typeField, newType);
@@ -925,19 +932,27 @@ export const Form = forwardRef((props: FormProps) => {
         })();
     };
 
-    const handleOnSaveClick = async () => {
+    const handleOnSaveClick = () => {
         setSavingButton('save');
 
-        // Check for existing form errors (including pattern validation errors)
-        if (Object.keys(errors).length > 0) {
-            setSavingButton(null);
-            return;
-        }
-
-        const isValidForm = onFormValidation ? await handleFormValidation() : true;
-        if (isValidForm) {
-            handleSubmit(handleOnSave)();
-        }
+        handleSubmit(
+            async (data) => {
+                try {
+                    const isValidForm = await handleFormValidation(data);
+                    if (!isValidForm) {
+                        setSavingButton(null);
+                        return;
+                    }
+                    handleOnSave(data);
+                } catch (error) {
+                    console.error(">>> Error validating form before save", error);
+                    setSavingButton(null);
+                }
+            },
+            () => {
+                setSavingButton(null);
+            }
+        )();
     };
 
     const formContent = (

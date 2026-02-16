@@ -248,11 +248,14 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
 
         const onCreateFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onCreate');
         const onDeleteFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'onDelete');
+        const deprecatedFunctions = serviceModel.functions.filter(fn => fn.metadata?.label === 'EVENT');
 
         const hasAvailableOnCreate = onCreateFunctions.length > 0 && onCreateFunctions.some(fn => !fn.enabled);
         const hasAvailableOnDelete = onDeleteFunctions.length > 0 && onDeleteFunctions.some(fn => !fn.enabled);
+        const hasDeprecatedFunctions = deprecatedFunctions.length > 0 && deprecatedFunctions.some(fn => fn.enabled);
 
-        return hasAvailableOnCreate || hasAvailableOnDelete;
+        // Remove the add handler option if deprecated APIs present
+        return (hasAvailableOnCreate || hasAvailableOnDelete) && !hasDeprecatedFunctions;
     };
 
     useEffect(() => {
@@ -818,7 +821,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                         /> Configure
                                     </Button>
                                     {
-                                        serviceModel && (isHttpService || isMcpService || isFtpService) && (
+                                        serviceModel && (isHttpService || isMcpService) && (
                                             <>
                                                 <Button appearance="secondary" tooltip="Try Service" onClick={handleServiceTryIt}>
                                                     <Icon name="play" isCodicon={true} sx={{ marginRight: 8, fontSize: 16 }} /> <ButtonText>Try It</ButtonText>
@@ -949,6 +952,7 @@ export function ServiceDesigner(props: ServiceDesignerProps) {
                                                         return nameMatch || iconMatch;
                                                     })
                                                     .filter((resource) => resource.type === DIRECTORY_MAP.RESOURCE)
+                                                    .sort((a, b) => a.position?.startLine - b.position?.startLine)
                                                     .map((resource, index) => (
                                                         <ResourceAccordionV2
                                                             key={`${index}-${resource.name}`}

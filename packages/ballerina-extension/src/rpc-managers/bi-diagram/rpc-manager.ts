@@ -67,6 +67,8 @@ import {
     DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
+    ValidateProjectFormRequest,
+    ValidateProjectFormResponse,
     DeploymentRequest,
     DeploymentResponse,
     DevantMetadata,
@@ -169,7 +171,7 @@ import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode, validateProjectPath } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
@@ -645,6 +647,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             const projectRoot = createBIProjectPure(params);
             openInVSCode(projectRoot);
         }
+    }
+
+    async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
+        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory);
     }
 
     async deleteProject(params: DeleteProjectRequest): Promise<void> {
