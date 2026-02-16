@@ -42,6 +42,7 @@ import {
     experimentalEnabled,
     getBallerinaDiagnostics,
     getCurrentProjectTomlValues,
+    getDefaultOrgName,
     getTypeCompletions,
     getWorkspaceFiles,
     getWorkspaceRoot,
@@ -126,5 +127,9 @@ export class CommonRpcClient implements CommonRPCAPI {
 
     downloadSelectedSampleFromGithub(params: SampleDownloadRequest): Promise<boolean> {
         return this._messenger.sendRequest(downloadSelectedSampleFromGithub, HOST_EXTENSION, params);
+    }
+
+    getDefaultOrgName(): Promise<{ orgName: string }> {
+        return this._messenger.sendRequest(getDefaultOrgName, HOST_EXTENSION);
     }
 }

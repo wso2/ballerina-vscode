@@ -56,6 +56,7 @@ import {
     getProjectTomlValues,
     goToSource
 } from "../../utils";
+import { getUsername } from "../../utils/bi";
 import {
     askFileOrFolderPath,
     askFilePath,
@@ -264,7 +265,7 @@ export class CommonRpcManager implements CommonRPCAPI {
 
     async getCurrentProjectTomlValues(): Promise<Partial<PackageTomlValues>> {
         const tomlValues = await getProjectTomlValues(StateMachine.context().projectPath);
-        return tomlValues ?? {};  
+        return tomlValues ?? {};
     }
 
     async getWorkspaceType(): Promise<WorkspaceTypeResponse> {
@@ -414,5 +415,9 @@ export class CommonRpcManager implements CommonRPCAPI {
             );
         }
         return isSuccess;
+    }
+
+    async getDefaultOrgName(): Promise<{ orgName: string }> {
+        return { orgName: getUsername() };
     }
 }
