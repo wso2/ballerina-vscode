@@ -86,9 +86,7 @@ const FieldError = styled.div`
     color: ${ThemeColors.ERROR};
 `;
 
-const ActionButton = styled(Button)`
-    min-width: 100px;
-`;
+const ActionButton = styled(Button)``;
 
 const LoadingContainer = styled.div`
     display: flex;
@@ -266,7 +264,7 @@ export const ConfigurationCollector: React.FC<ConfigurationCollectorProps> = ({ 
                 </PopupContent>
                 <PopupFooter>
                     <ActionButton appearance="secondary" onClick={handleCancel} disabled={isProcessing}>
-                        Cancel
+                        Skip
                     </ActionButton>
                     <ActionButton
                         appearance="primary"
