@@ -126,7 +126,7 @@ function buildHashMap(content: string): Map<string, string> {
         }
     }
     const map = new Map<string, string>();
-    ordered.forEach((hash, i) => map.set(`css-${hash}`, `css-${i}`));
+    ordered.forEach((hash, i) => { map.set(`css-${hash}`, `css-${i}`); });
     return map;
 }
 
