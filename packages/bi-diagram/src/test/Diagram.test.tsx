@@ -128,7 +128,6 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
     const emotionStyles = getEmotionStyles(dom.container);
 
     const prettyDom = prettyDOM(dom.container, 1000000, {
-        highlight: false,
         filterNode(node) {
             return true;
         },
@@ -136,11 +135,14 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
 
     expect(prettyDom).toBeTruthy();
 
+    // Remove ANSI color codes from prettyDOM output
+    let cleanDom = (prettyDom as string).replace(/\x1b\[\d+m/g, "");
+
     // Build deterministic hash mapping from DOM (order of first appearance)
-    const hashMap = buildHashMap(prettyDom as string);
+    const hashMap = buildHashMap(cleanDom);
 
     // Sanitization: remove dynamic IDs and non-deterministic attributes
-    let sanitizedDom = (prettyDom as string)
+    let sanitizedDom = cleanDom
         .replaceAll(/\s+(marker-end|id|data-linkid|data-nodeid)="[^"]*"/g, "")
         .replaceAll(/\s+(appearance|aria-label|current-value)="[^"]*"/g, "")
         // Normalize vscode-button tag formatting

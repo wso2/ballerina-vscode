@@ -95,9 +95,11 @@ const SEQUENCE_ATTR_PATTERN = /\s+(marker-end|id|data-linkid|data-nodeid|appeara
 
 function buildSnapshot(container: HTMLElement, prettyDom: string, attrPattern: RegExp): string {
     const emotionStyles = getEmotionStyles(container);
-    const hashMap = buildHashMap(prettyDom);
+    // Remove ANSI color codes from prettyDOM output
+    const cleanDom = prettyDom.replace(/\x1b\[\d+m/g, "");
+    const hashMap = buildHashMap(cleanDom);
 
-    let sanitizedDom = prettyDom
+    let sanitizedDom = cleanDom
         .replaceAll(attrPattern, "")
         .replaceAll(/<vscode-button\s+>/g, "<vscode-button>");
 
@@ -128,7 +130,6 @@ async function renderAndCheckSnapshot(model: Flow, testName: string) {
     );
 
     const prettyDom = prettyDOM(dom.container, 1000000, {
-        highlight: false,
         filterNode(node) {
             return true;
         },
@@ -209,7 +210,6 @@ describe("Sequence Diagram - Snapshot Tests", () => {
         );
 
         const prettyDom = prettyDOM(dom.container, 1000000, {
-            highlight: false,
             filterNode(node) {
                 return true;
             },
