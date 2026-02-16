@@ -40,7 +40,7 @@ import { PopupContent, StepperContainer } from "../AddConnectionPopup/styles";
 import { DevantConnectorList } from "./DevantConnectorList";
 import React, { useEffect, useState } from "react";
 import { DevantConnectorMarketplaceInfo } from "./DevantConnectorMarketplaceInfo";
-import { ConnectionListItem, MarketplaceItem } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, MarketplaceItem, ServiceInfoVisibilityEnum } from "@wso2/wso2-platform-core";
 import { DevantConnectorCreateForm } from "./DevantConnectorCreateForm";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
@@ -265,16 +265,38 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                     connectionGroupId: importingConn?.groupUuid,
                     orgId: platformExtState?.selectedContext?.org?.id?.toString()
                 })
-                return platformRpcClient?.createDevantComponentConnectionV2({
-                    flow: selectedFlow,
-                    marketplaceItem: selectedMarketplaceItem!,
-                    importInternalConnectionParams: {
-                        connection: connectionDetailed,
-                        configs: devantConfigs,
-                    },
-                })
+
+                let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
+                if(connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
+                    visibility = ServiceInfoVisibilityEnum.Organization;
+                } else if(connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
+                    visibility = ServiceInfoVisibilityEnum.Project;
+                }
+
+                await platformRpcClient.createConnectionConfig({
+                    marketplaceItem: selectedMarketplaceItem,
+                    name: connectionDetailed.name,
+                    visibility: visibility,
+                    componentDir: projectPath,
+                });
+
+                const securityType = connectionDetailed?.schemaName?.toLowerCase()?.includes("oauth")
+                    ? "oauth"
+                    : "apikey";
+                const configurations = connectionDetailed?.configurations;
+
+                const resp = await platformRpcClient.initializeDevantOASConnection({
+                    name: connectionDetailed.name,
+                    marketplaceItem: selectedMarketplaceItem,
+                    visibility,
+                    configurations,
+                    securityType,
+                    devantConfigs: devantConfigs
+                });
+                return resp;
         },
         onSuccess: (data) => {
+            platformRpcClient.refreshConnectionList();
             if (onClose) {
                 onClose({
                     recentIdentifier: data.connectionName,
@@ -383,25 +405,11 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                     devantFlow={selectedFlow!}
                                                     devantConfigs={devantConfigs}
                                                     onSuccess={(data) => {
-                                                        if (data.connectionNode) {
-                                                            rpcClient
-                                                                .getBIDiagramRpcClient()
-                                                                .getNodeTemplate({
-                                                                    position: target || null,
-                                                                    filePath: fileName,
-                                                                    id: data.connectionNode.codedata,
-                                                                })
-                                                                .then((nodeTemplatePromise) => {
-                                                                    // todo: check this flow
-                                                                    // init connector flow
-                                                                });
-                                                        } else if (data.connectionName) {
-                                                            if (onClose) {
-                                                                onClose({
-                                                                    recentIdentifier: data.connectionName,
-                                                                    artifactType: DIRECTORY_MAP.CONNECTION,
-                                                                });
-                                                            }
+                                                        if (data.connectionName && onClose) {
+                                                            onClose({
+                                                                recentIdentifier: data.connectionName,
+                                                                artifactType: DIRECTORY_MAP.CONNECTION,
+                                                            });
                                                         }
                                                     }}
                                                 />

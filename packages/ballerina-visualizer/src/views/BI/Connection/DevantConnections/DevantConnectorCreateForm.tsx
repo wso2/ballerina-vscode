@@ -22,6 +22,7 @@ import {
     type Project,
     ServiceInfoVisibilityEnum,
     capitalizeFirstLetter,
+    getTypeForDisplayType,
 } from "@wso2/wso2-platform-core";
 import React, { ReactNode, useEffect, useState, type FC } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -62,7 +63,7 @@ const RowTitle = styled.div`
     align-items: center;
 `;
 
-const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
+export const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Project) => {
     const { connectionSchemas = [], visibility: visibilities = [] } = marketplaceItem ?? {};
     const filteredVisibilities = visibilities.filter((item) => {
         if (item === ServiceInfoVisibilityEnum.Project) {
@@ -92,7 +93,7 @@ const getPossibleVisibilities = (marketplaceItem: MarketplaceItem, project: Proj
     return filteredVisibilities;
 };
 
-const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []) => {
+export const getInitialVisibility = (item: MarketplaceItem, visibilities: string[] = []) => {
     if (item?.isThirdParty) {
         return ServiceInfoVisibilityEnum.Public;
     }
@@ -159,7 +160,7 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     onSuccess,
     devantConfigs,
 }) => {
-    const { platformExtState, platformRpcClient } = usePlatformExtContext();
+    const { platformExtState, platformRpcClient, projectPath } = usePlatformExtContext();
     const [showAdvancedSection, setShowAdvancedSection] = useState(false);
 
     const visibilities = getPossibleVisibilities(marketplaceItem, platformExtState?.selectedContext?.project);
@@ -193,19 +194,49 @@ export const DevantConnectorCreateForm: FC<DevantConnectorCreateFormProps> = ({
     }, [marketplaceItem]);
 
     const { mutate: createConnection, isPending: isCreatingConnection } = useMutation({
-        mutationFn: (data: CreateConnectionForm) =>
-            platformRpcClient?.createDevantComponentConnectionV2({
-                flow: devantFlow,
+        mutationFn: async (data: CreateConnectionForm) => {
+             const createdConnection = await platformRpcClient?.createInternalConnection({
+                componentId: isProjectLevel
+                    ? ""
+                    : platformExtState.selectedComponent?.metadata?.id,
+                name: data.name,
+                orgId: platformExtState.selectedContext?.org.id?.toString(),
+                orgUuid: platformExtState.selectedContext?.org?.uuid,
+                projectId: platformExtState.selectedContext?.project.id,
+                serviceSchemaId: marketplaceItem?.connectionSchemas[0]?.id || "",
+                serviceId: marketplaceItem?.serviceId,
+                serviceVisibility: getInitialVisibility(marketplaceItem, visibilities),
+                componentType: isProjectLevel
+                    ? "non-component"
+                    : getTypeForDisplayType(platformExtState.selectedComponent?.spec?.type),
+                componentPath: projectPath,
+                generateCreds: true,
+            });
+
+            const securityType = createdConnection?.schemaName?.toLowerCase()?.includes("oauth")
+                        ? "oauth"
+                        : "apikey";
+
+            const initializeResp = await platformRpcClient?.initializeDevantOASConnection({
+                devantConfigs,
+                marketplaceItem: marketplaceItem!,
+                configurations: createdConnection.configurations,
+                name: data.name,
+                securityType,
+                visibility: data.visibility,
+            })
+
+            await platformRpcClient.createConnectionConfig({
                 marketplaceItem: marketplaceItem,
-                createInternalConnectionParams: {
-                    name: data.name,
-                    schemaId: data.schemaId,
-                    visibility: data.visibility,
-                    isProjectLevel: data.isProjectLevel,
-                    devantTempConfigs: devantConfigs,
-                },
-            }),
+                name: createdConnection.name,
+                visibility: data.visibility,
+                componentDir: projectPath,
+            });
+
+            return initializeResp;
+        },
         onSuccess: (data) => {
+            platformRpcClient.refreshConnectionList();
             if (onSuccess) {
                 onSuccess(data);
             }

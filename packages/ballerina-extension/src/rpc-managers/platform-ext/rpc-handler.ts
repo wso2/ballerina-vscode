@@ -16,11 +16,11 @@
  * under the License.
  */
 
-import { getMarketplaceItems, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, importDevantComponentConnection, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, registerMarketplaceConnection, registerAndCreateDevantComponentConnection, deleteDevantTempConfigs, createDevantComponentConnectionV2, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv, createConnectionConfig, replaceDevantTempConfigValues } from "@wso2/ballerina-core";
+import { getMarketplaceItems, getMarketplaceIdl, getConnections, deleteLocalConnectionsConfig, getDevantConsoleUrl, getMarketplaceItem, getConnection, onPlatformExtStoreStateChange, refreshConnectionList, getPlatformStore, setConnectedToDevant, setSelectedComponent, deployIntegrationInDevant, deleteDevantTempConfigs, generateCustomConnectorFromOAS, addDevantTempConfig, setSelectedEnv, createConnectionConfig, replaceDevantTempConfigValues, registerDevantMarketplaceService, createThirdPartyConnection, initializeDevantOASConnection, createInternalConnection } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { PlatformExtRpcManager } from "./rpc-manager";
-import { CreateLocalConnectionsConfigReq, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, RegisterMarketplaceConnectionReq, } from "@wso2/wso2-platform-core";
-import { AddDevantTempConfigReq, CreateDevantConnectionV2Req, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, ImportDevantConnectionReq, RegisterAndCreateDevantConnectionReq, ReplaceDevantTempConfigValuesReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
+import { CreateComponentConnectionReq, CreateLocalConnectionsConfigReq, CreateThirdPartyConnectionReq, DeleteLocalConnectionsConfigReq, GetConnectionItemReq, GetConnectionsReq, GetMarketplaceIdlReq, GetMarketplaceItemReq, GetMarketplaceListReq, } from "@wso2/wso2-platform-core";
+import { AddDevantTempConfigReq, DeleteDevantTempConfigReq, GenerateCustomConnectorFromOASReq, InitializeDevantOASConnectionReq, RegisterDevantMarketplaceServiceReq, ReplaceDevantTempConfigValuesReq } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { platformExtStore } from "./platform-store";
 import { debug } from "../../utils";
 
@@ -29,27 +29,28 @@ export function registerPlatformExtRpcHandlers(messenger: Messenger) {
     rpcManger.initStateSubscription(messenger).catch((err) => {  
         debug(`Failed to init platform ext state: ${err?.message}`);
     });  
-    
-    messenger.onRequest(getPlatformStore, () => platformExtStore.getState().state);
+    // BI ext handlers
+    messenger.onRequest(generateCustomConnectorFromOAS, (params: GenerateCustomConnectorFromOASReq) => rpcManger.generateCustomConnectorFromOAS(params));
+    messenger.onRequest(initializeDevantOASConnection, (params: InitializeDevantOASConnectionReq) => rpcManger.initializeDevantOASConnection(params));
+    messenger.onRequest(registerDevantMarketplaceService, (params: RegisterDevantMarketplaceServiceReq) => rpcManger.registerDevantMarketplaceService(params));
+    messenger.onRequest(addDevantTempConfig, (params: AddDevantTempConfigReq) => rpcManger.addDevantTempConfig(params));
+    messenger.onRequest(deleteDevantTempConfigs, (params: DeleteDevantTempConfigReq) => rpcManger.deleteDevantTempConfigs(params));
+    messenger.onRequest(replaceDevantTempConfigValues, (params: ReplaceDevantTempConfigValuesReq) => rpcManger.replaceDevantTempConfigValues(params));
+    // Platform ext proxies
+    messenger.onRequest(createThirdPartyConnection, (params: CreateThirdPartyConnectionReq) => rpcManger.createThirdPartyConnection(params));
+    messenger.onRequest(createInternalConnection, (params: CreateComponentConnectionReq) => rpcManger.createInternalConnection(params));
     messenger.onRequest(getMarketplaceItems, (params: GetMarketplaceListReq) => rpcManger.getMarketplaceItems(params));
     messenger.onRequest(getMarketplaceItem, (params: GetMarketplaceItemReq) => rpcManger.getMarketplaceItem(params));
     messenger.onRequest(getMarketplaceIdl, (params: GetMarketplaceIdlReq) => rpcManger.getMarketplaceIdl(params));
-    messenger.onRequest(createDevantComponentConnectionV2, (params: CreateDevantConnectionV2Req) => rpcManger.createDevantComponentConnectionV2(params));
-    messenger.onRequest(generateCustomConnectorFromOAS, (params: GenerateCustomConnectorFromOASReq) => rpcManger.generateCustomConnectorFromOAS(params));
-    messenger.onRequest(importDevantComponentConnection, (params: ImportDevantConnectionReq) => rpcManger.importDevantComponentConnection(params));
-    messenger.onRequest(registerAndCreateDevantComponentConnection, (params: RegisterAndCreateDevantConnectionReq) => rpcManger.registerAndCreateDevantComponentConnection(params));
-    messenger.onRequest(replaceDevantTempConfigValues, (params: ReplaceDevantTempConfigValuesReq) => rpcManger.replaceDevantTempConfigValues(params));
-    messenger.onRequest(addDevantTempConfig, (params: AddDevantTempConfigReq) => rpcManger.addDevantTempConfig(params));
-    messenger.onRequest(deleteDevantTempConfigs, (params: DeleteDevantTempConfigReq) => rpcManger.deleteDevantTempConfigs(params));
-    messenger.onRequest(registerMarketplaceConnection, (params: RegisterMarketplaceConnectionReq) => rpcManger.registerMarketplaceConnection(params));
     messenger.onRequest(getConnections, (params: GetConnectionsReq) => rpcManger.getConnections(params));
     messenger.onRequest(getConnection, (params: GetConnectionItemReq) => rpcManger.getConnection(params));
     messenger.onRequest(deleteLocalConnectionsConfig, (params: DeleteLocalConnectionsConfigReq) => rpcManger.deleteLocalConnectionsConfig(params));
     messenger.onRequest(getDevantConsoleUrl, () => rpcManger.getDevantConsoleUrl());
     messenger.onRequest(refreshConnectionList, () => rpcManger.refreshConnectionList());
     messenger.onRequest(setConnectedToDevant, (params: boolean) => rpcManger.setConnectedToDevant(params));
-    messenger.onRequest(setSelectedComponent, (componentId: string) => rpcManger.setSelectedComponent(componentId));
-    messenger.onRequest(setSelectedEnv, (envId: string) => rpcManger.setSelectedEnv(envId));
+    messenger.onRequest(setSelectedComponent, (params: string) => rpcManger.setSelectedComponent(params));
+    messenger.onRequest(setSelectedEnv, (params: string) => rpcManger.setSelectedEnv(params));
     messenger.onRequest(deployIntegrationInDevant, () => rpcManger.deployIntegrationInDevant());
     messenger.onRequest(createConnectionConfig, (params: CreateLocalConnectionsConfigReq) => rpcManger.createConnectionConfig(params));
+    messenger.onRequest(getPlatformStore, () => platformExtStore.getState().state);   
 }

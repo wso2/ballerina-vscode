@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { ConnectionListItem, type MarketplaceItem } from "@wso2/wso2-platform-core";
+import { ConnectionListItem, getTypeForDisplayType, ServiceInfoVisibilityEnum, type MarketplaceItem } from "@wso2/wso2-platform-core";
 import React, { useEffect, type FC } from "react";
 import { usePlatformExtContext } from "../../../../providers/platform-ext-ctx-provider";
 import { useMutation } from "@tanstack/react-query";
@@ -24,6 +24,7 @@ import { DevantConnectionFlow, DevantTempConfig } from "@wso2/ballerina-core/lib
 import { ConnectionConfigurationForm, ConnectionConfigurationFormProps } from "../ConnectionConfigurationPopup";
 import { DIRECTORY_MAP } from "@wso2/ballerina-core";
 import { generateInitialConnectionName, isValidDevantConnName } from "./utils";
+import { getInitialVisibility, getPossibleVisibilities } from "./DevantConnectorCreateForm";
 
 interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> {
     importedConnection?: ConnectionListItem;
@@ -39,26 +40,44 @@ interface Props extends Omit<ConnectionConfigurationFormProps, "devantConfigs"> 
 }
 
 export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
-    const { selectedMarketplaceItem, selectedFlow, devantConfigs, onAddDevantConfig, IDLFilePath, biConnectionNames, onClose, resetDevantConfigs, onFlowChange, importedConnection, projectPath } = props;
+    const {
+        selectedMarketplaceItem,
+        selectedFlow,
+        devantConfigs,
+        onAddDevantConfig,
+        IDLFilePath,
+        biConnectionNames,
+        onClose,
+        resetDevantConfigs,
+        onFlowChange,
+        importedConnection,
+        projectPath,
+    } = props;
     const { platformExtState, platformRpcClient } = usePlatformExtContext();
 
-    let initialNameCandidate = selectedMarketplaceItem?.name?.replaceAll(" ", "_")?.replaceAll("-","_") || "my_connection";
-    if ([ DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS].includes(selectedFlow) ){
-        initialNameCandidate = `${props.selectedConnector?.codedata?.module}Connection`
+    let initialNameCandidate =
+        selectedMarketplaceItem?.name?.replaceAll(" ", "_")?.replaceAll("-", "_") || "my_connection";
+    if (
+        [
+            DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
+            DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
+        ].includes(selectedFlow)
+    ) {
+        initialNameCandidate = `${props.selectedConnector?.codedata?.module}Connection`;
     }
-    if(importedConnection){
-        initialNameCandidate = importedConnection?.name?.replaceAll(" ", "_")?.replaceAll("-","_") || "my_connection";
+    if (importedConnection) {
+        initialNameCandidate = importedConnection?.name?.replaceAll(" ", "_")?.replaceAll("-", "_") || "my_connection";
     }
 
     useEffect(() => {
         if (selectedMarketplaceItem && !props.selectedConnector) {
-            if(importedConnection){
+            if (importedConnection) {
                 onFlowChange(
                     selectedMarketplaceItem.isThirdParty
                         ? DevantConnectionFlow.IMPORT_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR
                         : DevantConnectionFlow.IMPORT_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
                 );
-            }else{
+            } else {
                 onFlowChange(
                     selectedMarketplaceItem.isThirdParty
                         ? DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR
@@ -70,53 +89,141 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
 
     const { mutate: createDevantInternalConnNonOAS, isPending: isCreating } = useMutation({
         mutationFn: async ({ recentIdentifier }: { recentIdentifier: string }) => {
-            if(importedConnection){
+            if (importedConnection) {
                 const connectionDetailed = await platformRpcClient.getConnection({
                     connectionGroupId: importedConnection.groupUuid,
-                    orgId: platformExtState?.selectedContext?.org?.id?.toString()
-                })
+                    orgId: platformExtState?.selectedContext?.org?.id?.toString(),
+                });
                 await platformRpcClient.replaceDevantTempConfigValues({
                     configs: devantConfigs,
                     createdConnection: connectionDetailed,
-                })
+                });
+                
+                let visibility: ServiceInfoVisibilityEnum = ServiceInfoVisibilityEnum.Public;
+                if(connectionDetailed?.schemaName?.toLowerCase()?.includes("organization")) {
+                    visibility = ServiceInfoVisibilityEnum.Organization;
+                } else if(connectionDetailed?.schemaName?.toLowerCase()?.includes("project")) {
+                    visibility = ServiceInfoVisibilityEnum.Project;
+                }
+
+                await platformRpcClient.createConnectionConfig({
+                    marketplaceItem: selectedMarketplaceItem,
+                    name: importedConnection.name,
+                    visibility,
+                    componentDir: projectPath,
+                });
+            } else if (
+                [
+                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
+                    DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
+                ].includes(selectedFlow) &&
+                devantConfigs?.length > 0
+            ) {
+                const marketplaceService = await platformRpcClient.registerDevantMarketplaceService({
+                    name: recentIdentifier,
+                    configs: devantConfigs?.map((item) => ({ ...item, id: item.name })) || [],
+                    idlFilePath: IDLFilePath || "",
+                    idlType:
+                        selectedFlow === DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS ? "OpenAPI" : "TCP",
+                    serviceType: "REST",
+                });
+
+                const isProjectLevel = !!!platformExtState?.selectedComponent?.metadata?.id;
+
+                const createdConnection = await platformRpcClient?.createThirdPartyConnection({
+                    componentId: isProjectLevel ? "" : platformExtState?.selectedComponent?.metadata?.id,
+                    name: recentIdentifier,
+                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtState?.selectedContext?.org?.uuid,
+                    projectId: platformExtState?.selectedContext?.project.id,
+                    serviceSchemaId: marketplaceService.connectionSchemas[0]?.id,
+                    serviceId: marketplaceService.serviceId,
+                    endpointRefs: marketplaceService.endpointRefs,
+                    sensitiveKeys: marketplaceService.connectionSchemas[0].entries
+                        ?.filter((item) => item.isSensitive)
+                        .map((item) => item.name),
+                });
+
+                await platformRpcClient.replaceDevantTempConfigValues({
+                    configs: devantConfigs,
+                    createdConnection: createdConnection,
+                });
+
                 await platformRpcClient.createConnectionConfig({
                     marketplaceItem: selectedMarketplaceItem,
                     name: importedConnection.name,
                     visibility: "PUBLIC",
-                    componentDir: projectPath
-                })
-            } else if (devantConfigs?.length > 0) {
-                if (
-                    [
-                        DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_BI_CONNECTOR,
-                        DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS,
-                    ].includes(selectedFlow)
-                ) {
-                    return platformRpcClient.registerAndCreateDevantComponentConnection({
-                        name: recentIdentifier,
-                        configs: devantConfigs?.map((item) => ({ ...item, id: item.name })) || [],
-                        idlFilePath: IDLFilePath || "",
-                        idlType:
-                            selectedFlow === DevantConnectionFlow.REGISTER_CREATE_THIRD_PARTY_FROM_OAS
-                                ? "OpenAPI"
-                                : "TCP",
-                        serviceType: "REST",
-                    });
-                }
-                return platformRpcClient.createDevantComponentConnectionV2({
-                    flow: selectedFlow,
+                    componentDir: projectPath,
+                });
+            } else if (
+                [
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OAS,
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER,
+                    DevantConnectionFlow.CREATE_THIRD_PARTY_OTHER_SELECT_BI_CONNECTOR,
+                ].includes(selectedFlow)
+            ) {
+                const isProjectLevel = !!!platformExtState?.selectedComponent?.metadata?.id;
+                const createdConnection = await platformRpcClient?.createThirdPartyConnection({
+                    componentId: isProjectLevel ? "" : platformExtState?.selectedComponent?.metadata?.id,
+                    name: recentIdentifier,
+                    orgId: platformExtState?.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtState?.selectedContext?.org?.uuid,
+                    projectId: platformExtState?.selectedContext?.project.id,
+                    serviceSchemaId: selectedMarketplaceItem.connectionSchemas[0]?.id,
+                    serviceId: selectedMarketplaceItem.serviceId,
+                    endpointRefs: selectedMarketplaceItem.endpointRefs,
+                    sensitiveKeys: selectedMarketplaceItem.connectionSchemas[0].entries
+                        ?.filter((item) => item.isSensitive)
+                        .map((item) => item.name),
+                });
+
+                await platformRpcClient.replaceDevantTempConfigValues({
+                    configs: devantConfigs,
+                    createdConnection: createdConnection,
+                });
+
+                await platformRpcClient.createConnectionConfig({
                     marketplaceItem: selectedMarketplaceItem,
-                    createInternalConnectionParams: {
-                        devantTempConfigs: devantConfigs || [],
-                        name: recentIdentifier,
-                        schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
-                        visibility: "PUBLIC",
-                    },
-                    importThirdPartyConnectionParams: {
-                        devantTempConfigs: devantConfigs || [],
-                        name: recentIdentifier,
-                        schemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
-                    },
+                    name: importedConnection.name,
+                    visibility: "PUBLIC",
+                    componentDir: projectPath,
+                });
+            } else if (
+                [
+                    DevantConnectionFlow.CREATE_INTERNAL_OTHER,
+                    DevantConnectionFlow.CREATE_INTERNAL_OTHER_SELECT_BI_CONNECTOR,
+                ].includes(selectedFlow)
+            ) {
+                const isProjectLevel = !!!platformExtState?.selectedComponent?.metadata?.id;
+                const visibilities = getPossibleVisibilities(selectedMarketplaceItem, platformExtState?.selectedContext?.project);
+                const createdConnection = await platformRpcClient?.createInternalConnection({
+                    componentId: isProjectLevel
+                        ? ""
+                        : platformExtState.selectedComponent?.metadata?.id,
+                    name: recentIdentifier,
+                    orgId: platformExtState.selectedContext?.org.id?.toString(),
+                    orgUuid: platformExtState.selectedContext?.org?.uuid,
+                    projectId: platformExtState.selectedContext?.project.id,
+                    serviceSchemaId: selectedMarketplaceItem.connectionSchemas[0]?.id || "",
+                    serviceId: selectedMarketplaceItem.serviceId,
+                    serviceVisibility: getInitialVisibility(selectedMarketplaceItem, visibilities),
+                    componentType: isProjectLevel
+                        ? "non-component"
+                        : getTypeForDisplayType(platformExtState.selectedComponent?.spec?.type),
+                    componentPath: projectPath,
+                    generateCreds: true,
+                });
+
+                await platformRpcClient.replaceDevantTempConfigValues({
+                    configs: devantConfigs,
+                    createdConnection: createdConnection,
+                });
+
+                await platformRpcClient.createConnectionConfig({
+                    marketplaceItem: selectedMarketplaceItem,
+                    name: importedConnection.name,
+                    visibility: getInitialVisibility(selectedMarketplaceItem, visibilities),
+                    componentDir: projectPath,
                 });
             }
         },
@@ -124,12 +231,13 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             console.error(">>> Error creating Devant connection", error);
         },
         onSuccess: (_, { recentIdentifier }) => {
+            platformRpcClient.refreshConnectionList();
             resetDevantConfigs();
             onClose({ recentIdentifier, artifactType: DIRECTORY_MAP.CONNECTION });
         },
     });
 
-    if(!props.selectedConnector){
+    if (!props.selectedConnector) {
         return null;
     }
 
@@ -156,22 +264,28 @@ export const DevantBIConnectorCreateForm: FC<Props> = (props) => {
             loading={isCreating}
             customValidator={(fieldKey, value) => {
                 if (fieldKey === "variable") {
-                    return isValidDevantConnName(value, devantConfigs?.map((conn) => conn.name) || [], biConnectionNames);
+                    return isValidDevantConnName(
+                        value,
+                        devantConfigs?.map((conn) => conn.name) || [],
+                        biConnectionNames,
+                    );
                 }
                 return undefined;
             }}
             overrideFlowNode={(node) => {
-                if(node.properties.variable){
-                    node.properties.variable.value = importedConnection ? initialNameCandidate : generateInitialConnectionName(
-                        biConnectionNames,
-                        platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
-                        initialNameCandidate
-                    )
-                    if(importedConnection){
+                if (node.properties.variable) {
+                    node.properties.variable.value = importedConnection
+                        ? initialNameCandidate
+                        : generateInitialConnectionName(
+                              biConnectionNames,
+                              platformExtState?.devantConns?.list?.map((conn) => conn.name) || [],
+                              initialNameCandidate,
+                          );
+                    if (importedConnection) {
                         node.properties.variable.editable = false;
                     }
                 }
-                return node
+                return node;
             }}
         />
     );
