@@ -17,7 +17,7 @@
  * 
  * THIS FILE INCLUDES AUTO GENERATED CODE
  */
-import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse } from "./interfaces";
+import { ChatReqMessage, ChatRespMessage, TraceInput, TraceStatus, ChatHistoryResponse, AgentStatusResponse, ClearChatResponse, SessionInput } from "./interfaces";
 import { RequestType, NotificationType } from "vscode-messenger-common";
 
 const _preFix = "agent-chat";
@@ -25,6 +25,7 @@ export const getChatMessage: RequestType<ChatReqMessage, ChatRespMessage> = { me
 export const abortChatRequest: NotificationType<void> = { method: `${_preFix}/abortChatRequest` };
 export const getTracingStatus: RequestType<void, TraceStatus> = { method: `${_preFix}/getTracingStatus` };
 export const showTraceView: NotificationType<TraceInput> = { method: `${_preFix}/showTraceView` };
+export const showSessionOverview: NotificationType<SessionInput> = { method: `${_preFix}/showSessionOverview` };
 export const getChatHistory: RequestType<void, ChatHistoryResponse> = { method: `${_preFix}/getChatHistory` };
 export const clearChatHistory: RequestType<void, ClearChatResponse> = { method: `${_preFix}/clearChatHistory` };
 export const getAgentStatus: RequestType<void, AgentStatusResponse> = { method: `${_preFix}/getAgentStatus` };

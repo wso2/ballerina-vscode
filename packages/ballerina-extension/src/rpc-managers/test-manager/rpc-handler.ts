@@ -15,8 +15,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { addTestFunction, getTestFunction, GetTestFunctionRequest, 
-    AddOrUpdateTestFunctionRequest, updateTestFunction } from "@wso2/ballerina-core";
+import { addTestFunction, getTestFunction, GetTestFunctionRequest,
+    AddOrUpdateTestFunctionRequest, updateTestFunction, getEvalsets, GetEvalsetsRequest } from "@wso2/ballerina-core";
 import { Messenger } from "vscode-messenger";
 import { TestServiceManagerRpcManager } from "./rpc-manager";
 
@@ -25,5 +25,6 @@ export function registerTestManagerRpcHandlers(messenger: Messenger) {
     messenger.onRequest(getTestFunction, (args: GetTestFunctionRequest) => rpcManger.getTestFunction(args));
     messenger.onRequest(addTestFunction, (args: AddOrUpdateTestFunctionRequest) => rpcManger.addTestFunction(args));
     messenger.onRequest(updateTestFunction, (args: AddOrUpdateTestFunctionRequest) => rpcManger.updateTestFunction(args));
+    messenger.onRequest(getEvalsets, (args: GetEvalsetsRequest) => rpcManger.getEvalsets(args));
 }
 
