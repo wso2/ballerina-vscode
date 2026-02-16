@@ -28,11 +28,12 @@ import {
     RequiredFormInput,
     ThemeColors
 } from '@wso2/ui-toolkit';
-import { getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
+import { buildRequiredRule, getPropertyFromFormField, isExpandableMode, sanitizeType, toEditorMode } from './utils';
 import { FormField, FormExpressionEditorProps, HelperpaneOnChangeOptions } from '../Form/types';
 import { useFormContext } from '../../context';
 import {
     ExpressionProperty,
+    FormDiagnostics,
     getPrimaryInputType,
     InputType,
     LineRange,
@@ -329,6 +330,23 @@ export const DataMapperJoinClauseRhsEditor = (props: ContextAwareExpressionEdito
         return await expressionEditor.retrieveCompletions(prefixExpr + value, property, prefixExpr.length + offset, triggerCharacter);
     }
 
+    modifiedExpressionEditor.getExpressionEditorDiagnostics = async (
+        showDiagnostics: boolean,
+        expression: string,
+        key: string,
+        property: ExpressionProperty
+    ) => {
+        const varName = form.watch('name');
+        const joinExpression = form.watch('expression');
+        const prefixExpr = `from var ${varName} in ${joinExpression} select `;
+        return await expressionEditor.getExpressionEditorDiagnostics(
+            showDiagnostics,
+            prefixExpr + expression,
+            key,
+            property
+        );
+    }
+
     return (
         <ExpressionEditor
             fileName={fileName}
@@ -535,9 +553,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
         ? handleOpenExpandedMode
         : undefined;
 
-    const defaultValueText = field.defaultValue ?
-        <S.DefaultValue>Defaults to {field.defaultValue}</S.DefaultValue> : null;
-
     const documentation = field.documentation
         ? field.documentation.endsWith('.')
             ? field.documentation
@@ -563,7 +578,8 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                     <S.HeaderContainer>
                                         <S.LabelContainer>
                                             <S.Label>{field.label}</S.Label>
-                                            {(required ?? !field.optional) && <RequiredFormInput />}
+                                            {field.defaultValue && <S.DefaultValue style={{marginLeft: '8px'}}>{ `(Default: ${field.defaultValue}) `}</S.DefaultValue>}
+                                        {(required ?? !field.optional) && <RequiredFormInput />}
                                             {getPrimaryInputType(field.types)?.ballerinaType && (
                                                 <S.Type style={{ marginLeft: '5px' }} isVisible={focused} title={getPrimaryInputType(field.types)?.ballerinaType}>
                                                     {sanitizeType(getPrimaryInputType(field.types)?.ballerinaType)}
@@ -574,7 +590,6 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
                                 )}
                                 <S.EditorMdContainer>
                                     {documentation && <ReactMarkdown>{documentation}</ReactMarkdown>}
-                                    {defaultValueText}
                                 </S.EditorMdContainer>
                             </div>
                             {modeSwitcherContext?.isModeSwitcherEnabled && isExpressionEditorHovered && (
@@ -601,7 +616,11 @@ export const ExpressionEditor = (props: ExpressionEditorProps) => {
 
                         // Only use 'required' if there's no pattern validation (pattern will handle empty values)
                         if (!patternType?.pattern && !expressionSetType?.pattern) {
-                            rules.required = required ?? (!field.optional && !field.placeholder);
+                            const effectiveRequired = required ?? !field.optional;
+                            rules.required = buildRequiredRule({
+                                isRequired: !!effectiveRequired,
+                                label: field.label
+                            });
                         }
 
                         if (expressionSetType?.pattern) {

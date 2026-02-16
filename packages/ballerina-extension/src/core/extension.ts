@@ -487,6 +487,9 @@ export class BallerinaExtension {
                     debug(`[INIT] Auto-detected Ballerina Home: ${this.ballerinaHome}`);
                     debug(`[INIT] Is old Ballerina distribution: ${isOldBallerinaDist}`);
                     debug(`[INIT] Is Ballerina not found: ${isBallerinaNotFound}`);
+
+                    // Check for multiple Ballerina installations in PATH
+                    this.checkMultipleBallerinaInstallations();
                 } catch (error) {
                     debug(`[INIT] Error auto-detecting Ballerina home: ${error}`);
                     throw error;
@@ -2279,6 +2282,84 @@ export class BallerinaExtension {
         debug(`[AUTO_DETECT] - isOldBallerinaDist: ${result.isOldBallerinaDist}`);
 
         return result;
+    }
+
+    /**
+     * Check if multiple Ballerina installations exist in the system PATH.
+     * Logs a warning if different installations are detected, as this can cause
+     * unpredictable behavior when different versions are used for different actions.
+     */
+    private checkMultipleBallerinaInstallations(): void {
+        debug("[MULTI_BAL_CHECK] Checking for multiple Ballerina installations in PATH...");
+
+        const MULTIPLE_INSTALLATIONS_WARNING = 'Multiple Ballerina installations detected. This may cause unpredictable behavior.';
+        const RESOLUTION_ADVICE = 'Consider removing duplicate installations or adjusting your PATH to avoid version conflicts.';
+
+        try {
+            let ballerinaPathsOutput = '';
+            const execOptions = {
+                encoding: 'utf8' as const,
+                timeout: 10000,
+                env: { ...process.env },
+                shell: isWindows() ? undefined : '/bin/sh'
+            };
+
+            const command = isWindows()
+                ? 'where bal'
+                : 'which -a bal 2>/dev/null || command -v bal 2>/dev/null || type -ap bal 2>/dev/null';
+
+            try {
+                ballerinaPathsOutput = execSync(command, execOptions).toString();
+                debug(`[MULTI_BAL_CHECK] '${command}' output: ${ballerinaPathsOutput}`);
+            } catch (error) {
+                debug(`[MULTI_BAL_CHECK] Command to find bal executables failed: ${error}`);
+                return;
+            }
+
+            // Parse the output to get unique paths
+            const paths = ballerinaPathsOutput
+                .split(/\r?\n/)
+                .map(p => p.trim())
+                .filter(p => p.length > 0);
+
+            debug(`[MULTI_BAL_CHECK] Found ${paths.length} Ballerina path(s): ${JSON.stringify(paths)}`);
+
+            if (paths.length >= 2) {
+                // Get unique parent directories to identify different installations
+                const installationDirs = new Set<string>();
+                for (const balPath of paths) {
+                    installationDirs.add(path.dirname(path.resolve(balPath)));
+                }
+
+                if (installationDirs.size >= 2) {
+                    const pathsList = Array.from(installationDirs).map((p, i) => `${i + 1}. ${p}`);
+
+                    // Log warnings
+                    log(`[WARNING] ${MULTIPLE_INSTALLATIONS_WARNING}`);
+                    log(`[WARNING] Detected Ballerina paths:`);
+                    pathsList.forEach(p => log(`[WARNING] ${p}`));
+                    log(`[WARNING] ${RESOLUTION_ADVICE}`);
+
+                    // Show popup notification to user
+                    const viewDetails = 'View Details';
+                    window.showWarningMessage(MULTIPLE_INSTALLATIONS_WARNING, viewDetails).then((selection) => {
+                        if (selection === viewDetails) {
+                            const detailMessage = `Detected Ballerina installations:\n${pathsList.join('\n')}\n\n${RESOLUTION_ADVICE}`;
+                            window.showWarningMessage(detailMessage, { modal: true });
+                        }
+                    });
+                } else {
+                    debug(`[MULTI_BAL_CHECK] Multiple paths found but they point to the same installation directory`);
+                }
+            } else if (paths.length === 1) {
+                debug(`[MULTI_BAL_CHECK] Single Ballerina installation found: ${paths[0]}`);
+            } else {
+                debug(`[MULTI_BAL_CHECK] No Ballerina paths found in PATH`);
+            }
+        } catch (error) {
+            // No need to throw. This is a non-critical check.
+            debug(`[MULTI_BAL_CHECK] Error checking for multiple installations: ${error}`);
+        }
     }
 
     public overrideBallerinaHome(): boolean {

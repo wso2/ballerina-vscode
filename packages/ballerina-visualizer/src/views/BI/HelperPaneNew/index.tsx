@@ -23,7 +23,7 @@ import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
 import { Documents } from './Views/Documents';
 import { DocumentConfig } from './Views/DocumentConfig';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, EditorConfig, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
@@ -59,7 +59,7 @@ export type HelperPaneNewProps = {
     isAssignIdentifier?: boolean;
     completions: CompletionItem[],
     projectPath?: string,
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;

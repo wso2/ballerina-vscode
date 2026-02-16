@@ -31,6 +31,7 @@ import { LineRange } from "@wso2/ballerina-core/lib/interfaces/common";
 import { DiagnosticMessage } from "@wso2/ballerina-core";
 import { InputMode } from "../MultiModeExpressionEditor/ChipExpressionEditor/types";
 import { FieldError } from "react-hook-form";
+import { SimpleStringMode } from "./modes/SimpleStringMode";
 
 interface ExpandedPromptEditorProps {
     isOpen: boolean;
@@ -150,7 +151,8 @@ const MODE_COMPONENTS: Record<EditorMode, React.ComponentType<any>> = {
     [InputMode.TEXT]: TextMode,
     [InputMode.PROMPT]: PromptMode,
     [InputMode.EXP]: ExpressionMode,
-    [InputMode.TEMPLATE]: TemplateMode
+    [InputMode.TEMPLATE]: TemplateMode,
+    [InputMode.SIMPLE_TEXT]: SimpleStringMode
 };
 
 export const ExpandedEditor: React.FC<ExpandedPromptEditorProps> = ({

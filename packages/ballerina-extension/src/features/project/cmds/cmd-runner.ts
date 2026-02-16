@@ -90,7 +90,8 @@ export enum MESSAGES {
     INVALID_JSON_RESPONSE = "JSON response is invalid.",
     INVALID_XML = "Invalid XML String",
     INVALID_XML_RESPONSE = "XML response is invalid.",
-    NO_PROJECT_FOUND = "No Ballerina project found."
+    NO_PROJECT_FOUND = "No Ballerina project found.",
+    NO_FILE_FOUND = "Unable to locate the file."
 }
 
 export const BAL_CONFIG_FILE = 'Config.toml';

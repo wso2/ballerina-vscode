@@ -20,7 +20,7 @@ import React from "react";
 import { FormField } from "../Form/types";
 import { TextField } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
-import { capitalize } from "./utils";
+import { buildRequiredRule, capitalize } from "./utils";
 
 interface TextEditorProps {
     field: FormField;
@@ -40,7 +40,7 @@ export function TextEditor(props: TextEditorProps) {
 
     // Build validation rules
     const validationRules: any = {
-        required: !field.optional && !field.placeholder,
+        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
         value: field.value
     };
 

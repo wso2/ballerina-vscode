@@ -41,12 +41,15 @@ import { PathEditor } from "./PathEditor";
 import { HeaderSetEditor } from "./HeaderSetEditor";
 import { CompletionItem } from "@wso2/ui-toolkit";
 import { CustomDropdownEditor } from "./CustomDropdownEditor";
+import { SliderEditor } from "./SliderEditor";
 import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
 import { FormArrayEditorWrapper } from "./FormArrayEditorWrapper";
 import { FormMapEditorWrapper } from "./FormMapEditorNewWrapper";
+import { InputMode } from "./MultiModeExpressionEditor/ChipExpressionEditor/types";
+import { ArgManagerEditor } from "../ParamManager/ArgManager";
 
 export interface FormFieldEditorProps {
     field: FormField;
@@ -103,6 +106,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
     if (!field.enabled || field.hidden) {
         return <></>;
+    } else if (field.type === "SLIDER") {
+        return <SliderEditor field={field} />;
     } else if (fieldInputType.fieldType === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
     } else if (fieldInputType.fieldType === "HEADER_SET") {
@@ -111,8 +116,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         return <ChoiceForm field={field} recordTypeFields={recordTypeFields} />;
     } else if (fieldInputType.fieldType === "DROPDOWN_CHOICE") {
         return <DropdownChoiceForm field={field} />;
-    } else if (fieldInputType.fieldType === "TEXTAREA" || fieldInputType.fieldType === "STRING") {
-        return <TextAreaEditor field={field} />;
+    } else if (fieldInputType.fieldType === "TEXTAREA" || fieldInputType.fieldType === "STRING" || field.type === "DOC_TEXT") {
+        return <TextAreaEditor field={field} inputMode={InputMode.SIMPLE_TEXT} />;
     } else if (fieldInputType.fieldType === "FLAG" && !showWithExpressionEditor) {
         return <CheckBoxEditor field={field} />;
     } else if (fieldInputType.fieldType === "EXPRESSION" && field.key === "resourcePath") {
@@ -198,7 +203,9 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
     } else if (fieldInputType.fieldType === "VIEW") {
         // Skip this property
         return <></>;
-    } else if (
+    } else if(field.type === "REPEATABLE_PROPERTY" && (selectedNode === "DATA_MAPPER_CREATION" || selectedNode === "FUNCTION_CREATION")) {
+        return <ArgManagerEditor setSubComponentEnabled={setSubComponentEnabled} field={field} openRecordEditor={openRecordEditor} handleOnFieldFocus={handleOnFieldFocus} selectedNode={selectedNode} />;
+    }else if (
         (fieldInputType.fieldType === "PARAM_MANAGER") ||
         (fieldInputType.fieldType === "REPEATABLE_PROPERTY" && isTemplateType(fieldInputType))
     ) {
@@ -233,9 +240,15 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
         );
     } else if (fieldInputType.fieldType === "DM_JOIN_CLAUSE_RHS_EXPRESSION") {
         // Expression field for Data Mapper join on condition RHS
+        const clauseExpressionField: FormField = {
+            ...field,
+            type: "CLAUSE_EXPRESSION",
+            types: [{ fieldType: "CLAUSE_EXPRESSION", selected: false }]
+        }; // Transforming to CLAUSE_EXPRESSION type to support diagnostics
+
         return (
             <DataMapperJoinClauseRhsEditor
-                field={field}
+                field={clauseExpressionField}
                 fieldInputType={fieldInputType}
                 openSubPanel={openSubPanel}
                 subPanelView={subPanelView}
