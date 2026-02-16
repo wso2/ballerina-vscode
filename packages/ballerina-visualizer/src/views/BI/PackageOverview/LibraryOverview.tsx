@@ -92,6 +92,35 @@ const SectionsContainer = styled.div`
     width: 100%;
 `;
 
+const ColumnsLayout = styled.div`
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+`;
+
+const PrimaryColumn = styled.div`
+    flex: 2;
+    position: relative;
+    min-width: 0;
+`;
+
+const PrimaryColumnInner = styled.div`
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: stretch;
+`;
+
+const SecondaryColumn = styled.div`
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+`;
+
 const NoResults = styled.div`
     padding: 24px 16px;
     text-align: center;
@@ -102,11 +131,12 @@ const NoResults = styled.div`
 
 // ── Section ─────────────────────────────────────────────────────────────
 
-const Section = styled.div`
+const Section = styled.div<{ vertical?: boolean }>`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
     overflow: hidden;
     background: var(--vscode-sideBar-background);
+    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column;" : ""}
 `;
 
 const SectionHeader = styled.div<{ accentColor: string; isExpanded: boolean; clickable: boolean }>`
@@ -155,29 +185,16 @@ const ChevronIcon = styled.div<{ isExpanded: boolean }>`
     opacity: 0.6;
 `;
 
-const SectionContent = styled.div`
+const SectionContent = styled.div<{ vertical?: boolean }>`
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: ${(props: { vertical?: boolean }) => props.vertical ? "nowrap" : "wrap"};
+    flex-direction: ${(props: { vertical?: boolean }) => props.vertical ? "column" : "row"};
     gap: 6px;
     padding: 12px 12px;
+    ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; overflow-y: auto;" : ""}
 `;
 
-// ── Empty section ───────────────────────────────────────────────────────
-
-const EmptySection = styled.div<{ accentColor: string }>`
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 12px;
-    border: 1px dashed color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 40%, transparent);
-    border-radius: 4px;
-`;
-
-const EmptySectionLeft = styled.div`
-    display: flex;
-    align-items: center;
-    gap: 8px;
-`;
+// ── Empty state label ────────────────────────────────────────────────────
 
 const EmptySectionLabel = styled.span`
     font-size: 12px;
@@ -257,43 +274,19 @@ interface SectionConfig {
     icon: string;
     emptyMessage: string;
     accentColor: string;
+    addTooltip: string;
+    column: "primary" | "secondary";
 }
 
 const SECTIONS: SectionConfig[] = [
-    {
-        key: DIRECTORY_MAP.CONNECTION,
-        title: "Connections",
-        icon: "bi-connection",
-        emptyMessage: "No connections yet",
-        accentColor: "var(--vscode-charts-blue)",
-    },
     {
         key: DIRECTORY_MAP.TYPE,
         title: "Types",
         icon: "bi-type",
         emptyMessage: "No types yet",
         accentColor: "var(--vscode-charts-purple)",
-    },
-    {
-        key: DIRECTORY_MAP.FUNCTION,
-        title: "Functions",
-        icon: "bi-function",
-        emptyMessage: "No functions yet",
-        accentColor: "var(--vscode-charts-green)",
-    },
-    {
-        key: DIRECTORY_MAP.NP_FUNCTION,
-        title: "Natural Functions",
-        icon: "bi-ai-function",
-        emptyMessage: "No natural functions yet",
-        accentColor: "var(--vscode-charts-orange)",
-    },
-    {
-        key: DIRECTORY_MAP.DATA_MAPPER,
-        title: "Data Mappers",
-        icon: "dataMapper",
-        emptyMessage: "No data mappers yet",
-        accentColor: "var(--vscode-charts-lines)",
+        addTooltip: "Add New Type",
+        column: "primary",
     },
     {
         key: DIRECTORY_MAP.CONFIGURABLE,
@@ -301,6 +294,44 @@ const SECTIONS: SectionConfig[] = [
         icon: "bi-config",
         emptyMessage: "No configurations yet",
         accentColor: "var(--vscode-charts-yellow)",
+        addTooltip: "Add New Configuration",
+        column: "primary",
+    },
+    {
+        key: DIRECTORY_MAP.CONNECTION,
+        title: "Connections",
+        icon: "bi-connection",
+        emptyMessage: "No connections yet",
+        accentColor: "var(--vscode-charts-blue)",
+        addTooltip: "Add New Connection",
+        column: "secondary",
+    },
+    {
+        key: DIRECTORY_MAP.FUNCTION,
+        title: "Functions",
+        icon: "bi-function",
+        emptyMessage: "No functions yet",
+        accentColor: "var(--vscode-charts-green)",
+        addTooltip: "Add New Function",
+        column: "secondary",
+    },
+    {
+        key: DIRECTORY_MAP.NP_FUNCTION,
+        title: "Natural Functions",
+        icon: "bi-ai-function",
+        emptyMessage: "No natural functions yet",
+        accentColor: "var(--vscode-charts-orange)",
+        addTooltip: "Add New Natural Function",
+        column: "secondary",
+    },
+    {
+        key: DIRECTORY_MAP.DATA_MAPPER,
+        title: "Data Mappers",
+        icon: "dataMapper",
+        emptyMessage: "No data mappers yet",
+        accentColor: "var(--vscode-charts-lines)",
+        addTooltip: "Add New Data Mapper",
+        column: "secondary",
     },
 ];
 
@@ -456,9 +487,91 @@ export function LibraryOverview(props: LibraryOverviewProps) {
         });
     }, [dirMap, query, isSearching]);
 
-    const populatedSections = sectionsWithItems.filter((s) => s.allItems.length > 0);
-    const emptySections = sectionsWithItems.filter((s) => s.allItems.length === 0);
-    const hasAnyResults = isSearching && sectionsWithItems.some((s) => s.filteredItems.length > 0);
+    const hasAnyResults = !isSearching || sectionsWithItems.some((s) => s.filteredItems.length > 0);
+
+    const primarySections = sectionsWithItems.filter((s) => s.section.column === "primary");
+    const secondarySections = sectionsWithItems.filter((s) => s.section.column === "secondary");
+
+    const renderSection = (
+        { section, allItems, filteredItems }: typeof sectionsWithItems[number],
+        vertical?: boolean,
+    ) => {
+        const displayItems = isSearching ? filteredItems : allItems;
+        const hasItems = displayItems.length > 0;
+        const isExpanded = hasItems && (isSearching || !collapsedSections.has(section.key));
+
+        return (
+            <Section key={section.key} id={`section-${section.key}`} vertical={vertical}>
+                <SectionHeader
+                    accentColor={section.accentColor}
+                    isExpanded={isExpanded}
+                    clickable={hasItems}
+                    onClick={hasItems ? () => toggleSection(section.key) : undefined}
+                >
+                    <SectionHeaderLeft>
+                        {hasItems && (
+                            <ChevronIcon isExpanded={isExpanded}>
+                                <Codicon name="chevron-down" iconSx={{ fontSize: 14 }} />
+                            </ChevronIcon>
+                        )}
+                        <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
+                        <SectionTitle>{section.title}</SectionTitle>
+                        {hasItems && (
+                            <ItemCount>
+                                ({isSearching ? `${filteredItems.length}/${allItems.length}` : allItems.length})
+                            </ItemCount>
+                        )}
+                    </SectionHeaderLeft>
+                    <span title={section.addTooltip}>
+                        <Button
+                            appearance="icon"
+                            onClick={(e: React.MouseEvent) => {
+                                e.stopPropagation();
+                                handleAdd(section.key);
+                            }}
+                            buttonSx={{ padding: "2px 8px" }}
+                        >
+                            <Codicon name="add" sx={{ marginRight: 4 }} /> Add
+                        </Button>
+                    </span>
+                </SectionHeader>
+                {isExpanded && (
+                    <SectionContent vertical={vertical}>
+                        {displayItems.map((item) => (
+                            <ConstructItem
+                                key={item.id}
+                                accentColor={section.accentColor}
+                                onClick={() => handleItemClick(section.key, item)}
+                            >
+                                <ConstructItemIcon>
+                                    <Icon name={section.icon} />
+                                </ConstructItemIcon>
+                                <ConstructItemName>
+                                    {highlightName(item.name, query)}
+                                </ConstructItemName>
+                                {item.position && item.path && (
+                                    <DeleteButton
+                                        className="delete-btn"
+                                        onClick={(e: React.MouseEvent) => {
+                                            e.stopPropagation();
+                                            handleDelete(item);
+                                        }}
+                                    >
+                                        <Codicon name="trash" iconSx={{ fontSize: 14 }} />
+                                    </DeleteButton>
+                                )}
+                            </ConstructItem>
+                        ))}
+                    </SectionContent>
+                )}
+                {!hasItems && (
+                    <SectionContent vertical={vertical}>
+                        <EmptySectionLabel>{section.emptyMessage}</EmptySectionLabel>
+                    </SectionContent>
+                )}
+            </Section>
+        );
+    };
 
     return (
         <SectionsContainer>
@@ -482,104 +595,20 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                 </SearchBar>
             </Toolbar>
 
-            {isSearching && !hasAnyResults && (
+            {!hasAnyResults && (
                 <NoResults>No artifacts matching "{searchQuery.trim()}"</NoResults>
             )}
 
-            {/* Populated sections */}
-            {populatedSections.map(({ section, allItems, filteredItems }) => {
-                if (isSearching && filteredItems.length === 0) {
-                    return null;
-                }
-
-                const displayItems = isSearching ? filteredItems : allItems;
-                const isExpanded = isSearching || !collapsedSections.has(section.key);
-
-                return (
-                    <Section key={section.key} id={`section-${section.key}`}>
-                        <SectionHeader
-                            accentColor={section.accentColor}
-                            isExpanded={isExpanded}
-                            clickable={!isSearching}
-                            onClick={!isSearching ? () => toggleSection(section.key) : undefined}
-                        >
-                            <SectionHeaderLeft>
-                                {!isSearching && (
-                                    <ChevronIcon isExpanded={isExpanded}>
-                                        <Codicon name="chevron-down" iconSx={{ fontSize: 14 }} />
-                                    </ChevronIcon>
-                                )}
-                                <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
-                                <SectionTitle>{section.title}</SectionTitle>
-                                <ItemCount>
-                                    ({isSearching ? `${filteredItems.length}/${allItems.length}` : allItems.length})
-                                </ItemCount>
-                            </SectionHeaderLeft>
-                            {!isSearching && (
-                                <Button
-                                    appearance="icon"
-                                    onClick={(e: React.MouseEvent) => {
-                                        e.stopPropagation();
-                                        handleAdd(section.key);
-                                    }}
-                                    buttonSx={{ padding: "2px 8px" }}
-                                >
-                                    <Codicon name="add" sx={{ marginRight: 4 }} /> Add
-                                </Button>
-                            )}
-                        </SectionHeader>
-                        {isExpanded && (
-                            <SectionContent>
-                                {displayItems.map((item) => (
-                                    <ConstructItem
-                                        key={item.id}
-                                        accentColor={section.accentColor}
-                                        onClick={() => handleItemClick(section.key, item)}
-                                    >
-                                        <ConstructItemIcon>
-                                            <Icon name={section.icon} />
-                                        </ConstructItemIcon>
-                                        <ConstructItemName>
-                                            {highlightName(item.name, query)}
-                                        </ConstructItemName>
-                                        {item.position && item.path && (
-                                            <DeleteButton
-                                                className="delete-btn"
-                                                onClick={(e: React.MouseEvent) => {
-                                                    e.stopPropagation();
-                                                    handleDelete(item);
-                                                }}
-                                            >
-                                                <Codicon name="trash" iconSx={{ fontSize: 14 }} />
-                                            </DeleteButton>
-                                        )}
-                                    </ConstructItem>
-                                ))}
-                            </SectionContent>
-                        )}
-                    </Section>
-                );
-            })}
-
-            {/* Empty sections — shown only when not searching */}
-            {!isSearching && emptySections.map(({ section }) => (
-                <EmptySection
-                    key={section.key}
-                    accentColor={section.accentColor}
-                >
-                    <EmptySectionLeft>
-                        <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
-                        <EmptySectionLabel>{section.emptyMessage}</EmptySectionLabel>
-                    </EmptySectionLeft>
-                    <Button
-                        appearance="icon"
-                        onClick={() => handleAdd(section.key)}
-                        buttonSx={{ padding: "2px 8px" }}
-                    >
-                        <Codicon name="add" sx={{ marginRight: 4 }} /> Add
-                    </Button>
-                </EmptySection>
-            ))}
+            <ColumnsLayout>
+                <PrimaryColumn>
+                    <PrimaryColumnInner>
+                        {primarySections.map((s) => renderSection(s, true))}
+                    </PrimaryColumnInner>
+                </PrimaryColumn>
+                <SecondaryColumn>
+                    {secondarySections.map((s) => renderSection(s))}
+                </SecondaryColumn>
+            </ColumnsLayout>
         </SectionsContainer>
     );
 }
