@@ -43,6 +43,23 @@
         "optional": false,
         "advanced": false
       },
+      "listenerType": {
+        "metadata": {
+          "label": "Listener Type",
+          "description": "The type of the listener"
+        },
+        "value": "Listener",
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "enabled": false,
+        "editable": false,
+        "optional": false,
+        "advanced": false
+      },
       "port": {
         "metadata": {
           "label": "Port",
@@ -81,7 +98,7 @@
           "originalName": "host"
         },
         "placeholder": "\"\"",
-        "value": "string `localhost`",
+        "value": "string `\"localhost\"`",
         "types": [
           {
             "fieldType": "TEXT",
@@ -481,7 +498,7 @@
             "character": 53
           }
         },
-        "newText": "listener http:Listener listener1 = new (port = 8080, host = \"localhost\");"
+        "newText": "listener http:Listener listener1 = new (port = 8080, host = \"\\\"localhost\\\"\");"
       }
     ]
   }

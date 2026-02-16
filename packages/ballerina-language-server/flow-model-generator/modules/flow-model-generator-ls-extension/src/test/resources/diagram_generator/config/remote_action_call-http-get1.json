@@ -124,11 +124,6 @@
             },
             "types": [
               {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string|string[]>",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",
                 "selected": false
@@ -303,11 +298,6 @@
               "description": "The entity headers"
             },
             "types": [
-              {
-                "fieldType": "MAPPING_EXPRESSION",
-                "ballerinaType": "map<string|string[]>",
-                "selected": false
-              },
               {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "map<string|string[]>?",

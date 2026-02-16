@@ -1,0 +1,232 @@
+{
+  "start": {
+    "line": 2,
+    "offset": 0
+  },
+  "end": {
+    "line": 9,
+    "offset": 1
+  },
+  "source": "sql_function.bal",
+  "description": "Tests a simple diagram flow",
+  "diagram": {
+    "fileName": "sql_function.bal",
+    "nodes": [
+      {
+        "id": "34876",
+        "metadata": {
+          "label": "Start",
+          "data": {
+            "kind": "Function",
+            "label": "function1",
+            "isServiceFunction": false,
+            "parameters": [
+              "string a1"
+            ]
+          }
+        },
+        "codedata": {
+          "node": "EVENT_START",
+          "lineRange": {
+            "fileName": "sql_function.bal",
+            "startLine": {
+              "line": 2,
+              "offset": 30
+            },
+            "endLine": {
+              "line": 9,
+              "offset": 1
+            }
+          },
+          "sourceCode": "function function1(string a1) {\n    do {\n        stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`select * from users`);\n\n    } on fail {\n\n    }\n}"
+        },
+        "returning": false,
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      },
+      {
+        "id": "35004",
+        "metadata": {
+          "label": "ErrorHandler",
+          "description": "Catch and handle errors"
+        },
+        "codedata": {
+          "node": "ERROR_HANDLER",
+          "lineRange": {
+            "fileName": "sql_function.bal",
+            "startLine": {
+              "line": 3,
+              "offset": 4
+            },
+            "endLine": {
+              "line": 8,
+              "offset": 5
+            }
+          },
+          "sourceCode": "do {\n        stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`select * from users`);\n\n    } on fail {\n\n    }"
+        },
+        "returning": false,
+        "branches": [
+          {
+            "label": "Body",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "BODY",
+              "lineRange": {
+                "fileName": "sql_function.bal",
+                "startLine": {
+                  "line": 3,
+                  "offset": 7
+                },
+                "endLine": {
+                  "line": 6,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n        stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`select * from users`);\n\n    }"
+            },
+            "repeatable": "ONE",
+            "children": [
+              {
+                "id": "36077",
+                "metadata": {
+                  "label": "Declare Variable",
+                  "description": "Create a new variable"
+                },
+                "codedata": {
+                  "node": "VARIABLE",
+                  "lineRange": {
+                    "fileName": "sql_function.bal",
+                    "startLine": {
+                      "line": 4,
+                      "offset": 8
+                    },
+                    "endLine": {
+                      "line": 4,
+                      "offset": 117
+                    }
+                  },
+                  "sourceCode": "stream<record {|anydata...;|}, sql:Error?> streamRowtypeSqlError = mssqlClient->query(`select * from users`);"
+                },
+                "returning": false,
+                "properties": {
+                  "expression": {
+                    "metadata": {
+                      "label": "Expression",
+                      "description": "Initialize with value"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "ACTION_OR_EXPRESSION",
+                        "selected": true
+                      }
+                    ],
+                    "value": "mssqlClient->query(`select * from users`)",
+                    "optional": true,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "diagnostics": {
+                      "hasDiagnostics": true,
+                      "diagnostics": [
+                        {
+                          "severity": "ERROR",
+                          "message": "invalid remote method call: expected a client object, but found 'other'"
+                        },
+                        {
+                          "severity": "ERROR",
+                          "message": "undefined symbol 'mssqlClient'"
+                        }
+                      ]
+                    }
+                  },
+                  "variable": {
+                    "metadata": {
+                      "label": "Name",
+                      "description": "Name of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "IDENTIFIER",
+                        "selected": true
+                      }
+                    ],
+                    "value": "streamRowtypeSqlError",
+                    "optional": false,
+                    "editable": false,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {
+                      "lineRange": {
+                        "fileName": "sql_function.bal",
+                        "startLine": {
+                          "line": 4,
+                          "offset": 51
+                        },
+                        "endLine": {
+                          "line": 4,
+                          "offset": 72
+                        }
+                      }
+                    }
+                  },
+                  "type": {
+                    "metadata": {
+                      "label": "Type",
+                      "description": "Type of the variable"
+                    },
+                    "types": [
+                      {
+                        "fieldType": "TYPE",
+                        "selected": true
+                      }
+                    ],
+                    "value": "stream<record {|anydata...;|}, sql:Error?>",
+                    "placeholder": "var",
+                    "optional": false,
+                    "editable": true,
+                    "advanced": false,
+                    "hidden": false,
+                    "codedata": {}
+                  }
+                },
+                "diagnostics": {
+                  "hasDiagnostics": true
+                },
+                "flags": 0
+              }
+            ]
+          },
+          {
+            "label": "On Failure",
+            "kind": "BLOCK",
+            "codedata": {
+              "node": "ON_FAILURE",
+              "lineRange": {
+                "fileName": "sql_function.bal",
+                "startLine": {
+                  "line": 6,
+                  "offset": 14
+                },
+                "endLine": {
+                  "line": 8,
+                  "offset": 5
+                }
+              },
+              "sourceCode": "{\n\n    }"
+            },
+            "repeatable": "ZERO_OR_ONE",
+            "children": []
+          }
+        ],
+        "diagnostics": {
+          "hasDiagnostics": true
+        },
+        "flags": 0
+      }
+    ],
+    "connections": []
+  }
+}

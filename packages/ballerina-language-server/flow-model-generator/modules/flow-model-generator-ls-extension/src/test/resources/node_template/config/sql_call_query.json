@@ -1,0 +1,168 @@
+{
+  "source": "local_connector/main.bal",
+  "position": {
+    "line": 79,
+    "offset": 8
+  },
+  "description": "Resource function with single path parameter and inferred type - get album by id",
+  "codedata": {
+    "node": "REMOTE_ACTION_CALL",
+    "org": "ballerinax",
+    "module": "mssql",
+    "packageName": "mssql",
+    "object": "Client",
+    "symbol": "call",
+    "version": "1.16.1",
+    "parentSymbol": "dbClient",
+    "resourcePath": "/albums/[albumId]"
+  },
+  "output": {
+    "id": "31",
+    "metadata": {
+      "label": "call",
+      "description": "Calls a stored procedure with the given SQL query.\nOnce the results are processed, invoke the `close` method on the `sql:ProcedureCallResult`.\n",
+      "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mssql_1.16.1.png"
+    },
+    "codedata": {
+      "node": "REMOTE_ACTION_CALL",
+      "org": "ballerinax",
+      "module": "mssql",
+      "packageName": "mssql",
+      "object": "Client",
+      "symbol": "call",
+      "version": "1.16.1",
+      "isNew": true
+    },
+    "returning": false,
+    "properties": {
+      "connection": {
+        "metadata": {
+          "label": "Connection",
+          "description": "Connection to use"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "mssql:Client",
+            "selected": false
+          }
+        ],
+        "value": "dbClient",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": true
+      },
+      "sqlQuery": {
+        "metadata": {
+          "label": "SQL Query",
+          "description": "SQL query to call the procedure (e.g., `` `CALL sp_GetAlbums()` ``)"
+        },
+        "types": [
+          {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedCallQuery",
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "sql:ParameterizedCallQuery",
+            "selected": false
+          }
+        ],
+        "placeholder": "object {}",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {
+          "kind": "REQUIRED",
+          "originalName": "sqlQuery"
+        },
+        "imports": {
+          "sql": "ballerina/sql"
+        }
+      },
+      "rowTypes": {
+        "metadata": {
+          "label": "Row Types",
+          "description": "`typedesc` array of the records to which the results should be mapped"
+        },
+        "types": [
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "typedesc<record {|anydata...;|}>[]",
+            "selected": false
+          }
+        ],
+        "placeholder": "[]",
+        "optional": true,
+        "editable": true,
+        "advanced": true,
+        "hidden": false,
+        "codedata": {
+          "kind": "DEFAULTABLE",
+          "originalName": "rowTypes"
+        },
+        "defaultValue": "[]"
+      },
+      "type": {
+        "metadata": {
+          "label": "Result Type",
+          "description": "Type of the variable"
+        },
+        "types": [
+          {
+            "fieldType": "TYPE",
+            "selected": true
+          }
+        ],
+        "value": "sql:ProcedureCallResult",
+        "placeholder": "var",
+        "optional": false,
+        "editable": false,
+        "advanced": false,
+        "hidden": false,
+        "codedata": {},
+        "imports": {
+          "sql": "ballerina/sql"
+        }
+      },
+      "variable": {
+        "metadata": {
+          "label": "Result",
+          "description": "Name of the result variable"
+        },
+        "types": [
+          {
+            "fieldType": "IDENTIFIER",
+            "selected": true
+          }
+        ],
+        "value": "sqlProcedurecallresult",
+        "optional": false,
+        "editable": true,
+        "advanced": false,
+        "hidden": false
+      },
+      "checkError": {
+        "metadata": {
+          "label": "Check Error",
+          "description": "Trigger error flow"
+        },
+        "types": [
+          {
+            "fieldType": "FLAG",
+            "selected": true
+          }
+        ],
+        "value": true,
+        "optional": false,
+        "editable": true,
+        "advanced": true,
+        "hidden": true
+      }
+    },
+    "flags": 0
+  }
+}

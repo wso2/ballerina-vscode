@@ -385,6 +385,7 @@
                 {
                   "type": "SecureSocket",
                   "packageInfo": "ballerinax:solace:0.3.0",
+                  "packageName": "solace",
                   "kind": "RECORD_TYPE",
                   "selected": true
                 }

@@ -17,7 +17,7 @@
       {
         "fieldName": "code",
         "type": {
-          "memberTypes": [
+          "members": [
             {
               "dependentTypeKeys": [],
               "name": "FINANCE"
@@ -35,7 +35,7 @@
           "hashCode": "-959561237",
           "key": "-1253237511",
           "name": "DepartmentCode",
-          "typeName": "union",
+          "typeName": "enum",
           "moduleInfo": {
             "orgName": "ballerinax",
             "moduleName": "health.ccda.r1",
@@ -57,7 +57,7 @@
     "typeName": "record",
     "dependentTypes": {
       "-1253237511": {
-        "memberTypes": [
+        "members": [
           {
             "dependentTypeKeys": [],
             "name": "FINANCE"
@@ -75,7 +75,7 @@
         "hashCode": "-959561237",
         "key": "-1253237511",
         "name": "DepartmentCode",
-        "typeName": "union",
+        "typeName": "enum",
         "moduleInfo": {
           "orgName": "ballerinax",
           "moduleName": "health.ccda.r1",

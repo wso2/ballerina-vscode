@@ -4,7 +4,8 @@
     "orgName": "ballerinax",
     "packageName": "kafka",
     "moduleName": "kafka",
-    "version": "4.6.0"
+    "version": "4.6.0",
+    "type": "Listener"
   },
   "filePath": "sample1/main.bal",
   "response": {
@@ -40,6 +41,23 @@
           "optional": false,
           "advanced": false
         },
+        "listenerType": {
+          "metadata": {
+            "label": "Listener Type",
+            "description": "The type of the listener"
+          },
+          "value": "Listener",
+          "types": [
+            {
+              "fieldType": "TYPE",
+              "selected": true
+            }
+          ],
+          "enabled": false,
+          "editable": false,
+          "optional": false,
+          "advanced": false
+        },
         "bootstrapServers": {
           "metadata": {
             "label": "Bootstrap Servers",
@@ -56,11 +74,6 @@
               "fieldType": "TEXT",
               "ballerinaType": "string",
               "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]",
-              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
@@ -117,11 +130,6 @@
               "fieldType": "TEXT",
               "ballerinaType": "string",
               "selected": true
-            },
-            {
-              "fieldType": "EXPRESSION_SET",
-              "ballerinaType": "string[]",
-              "selected": false
             },
             {
               "fieldType": "EXPRESSION",
@@ -395,14 +403,9 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION",
-              "ballerinaType": "map<anydata> & readonly",
-              "selected": true
-            },
-            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<anydata> & readonly",
-              "selected": false
+              "selected": true
             }
           ],
           "enabled": true,
@@ -499,14 +502,9 @@
           "value": "",
           "types": [
             {
-              "fieldType": "MAPPING_EXPRESSION",
-              "ballerinaType": "map<string>",
-              "selected": true
-            },
-            {
               "fieldType": "EXPRESSION",
               "ballerinaType": "map<string>",
-              "selected": false
+              "selected": true
             }
           ],
           "enabled": true,
@@ -1345,6 +1343,7 @@
                 {
                   "type": "SecureSocket",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }
@@ -1381,6 +1380,7 @@
                 {
                   "type": "AuthenticationConfiguration",
                   "packageInfo": "ballerinax:kafka:4.6.0",
+                  "packageName": "kafka",
                   "kind": "RECORD_TYPE",
                   "selected": false
                 }

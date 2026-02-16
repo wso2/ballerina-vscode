@@ -62,6 +62,11 @@
         },
         "types": [
           {
+            "fieldType": "SQL_QUERY",
+            "ballerinaType": "sql:ParameterizedQuery",
+            "selected": true
+          },
+          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "sql:ParameterizedQuery",
             "selected": false

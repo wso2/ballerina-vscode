@@ -773,12 +773,20 @@ public final class Utils {
             Value value = property.getValue();
             if (Objects.nonNull(value.getCodedata()) && Objects.nonNull(value.getCodedata().getType()) &&
                     value.getCodedata().getType().equals("ANNOTATION_ATTACHMENT") && value.isEnabledWithValue()) {
-                String ref = getProtocol(service.getModuleName()) + ":" + value.getCodedata().getOriginalName();
+                String ref = getAnnotationModule(value.getCodedata(), service.getModuleName())
+                        + ":" + value.getCodedata().getOriginalName();
                 String annotTemplate = "@%s%s".formatted(ref, value.getValue());
                 annots.add(annotTemplate);
             }
         }
         return annots;
+    }
+
+    private static String getAnnotationModule(Codedata codedata, String module) {
+        if (codedata == null || codedata.getModuleName() == null || codedata.getModuleName().isEmpty()) {
+            return getProtocol(module);
+        }
+        return getProtocol(codedata.getModuleName());
     }
 
     public static List<String> getAnnotationEdits(Function function, Map<String, String> imports) {

@@ -470,7 +470,7 @@ public class ServiceModelUtils {
             typeName = split[1];
         }
         PropertyTypeMemberInfo propertyTypeMemberInfo = new PropertyTypeMemberInfo(typeName, attachment.packageInfo(),
-                "RECORD_TYPE", true);
+                attachment.packageName(), "RECORD_TYPE", true);
         Codedata codedata = new Codedata("ANNOTATION_ATTACHMENT");
         codedata.setOriginalName(attachment.annotName());
 

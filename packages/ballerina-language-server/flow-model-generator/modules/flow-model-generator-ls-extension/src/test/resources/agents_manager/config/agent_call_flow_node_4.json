@@ -174,11 +174,6 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
                 "selected": false
@@ -688,14 +683,9 @@
             },
             "types": [
               {
-                "fieldType": "EXPRESSION_SET",
-                "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": true
-              },
-              {
                 "fieldType": "EXPRESSION",
                 "ballerinaType": "(ai:BaseToolKit|ai:ToolConfig|ai:FunctionTool)[]",
-                "selected": false
+                "selected": true
               }
             ],
             "value": "[set, sum, mutiply]",
