@@ -126,6 +126,7 @@ export function ArrayEditor(props: ArrayEditorProps) {
             <S.Header>
                 <S.Fields>
                     <TypeField
+                        fieldIndex={0}
                         type={member.type}
                         memberName={typeof member.type === 'string' ? member.type : member.name}
                         onChange={(newType) => updateMember(newType)}

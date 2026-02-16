@@ -120,7 +120,7 @@ export const AttributeType: React.FC<any> = styled.span`
     min-width: 60px;
     padding-inline: 6px;
     text-align: center;
-    cursor: pointer;
+    cursor: ${(props: StyleProps) => props.isClickable ? 'pointer' : 'default'};
     white-space: nowrap;
 `;
 

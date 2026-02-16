@@ -19,7 +19,7 @@
 import { ExpandableList } from "../Components/ExpandableList"
 import { TypeIndicator } from "../Components/TypeIndicator"
 import { useRpcContext } from "@wso2/ballerina-rpc-client"
-import { DataMapperDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
+import { EditorConfig, EditorDisplayMode, ExpressionProperty, FlowNode, LineRange, RecordTypeField } from "@wso2/ballerina-core"
 import { Codicon, CompletionItem, Divider, HelperPaneCustom, SearchBox, ThemeColors, Tooltip, Typography } from "@wso2/ui-toolkit"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { getPropertyFromFormField, useFieldContext, InputMode } from "@wso2/ballerina-side-panel"
@@ -32,7 +32,6 @@ import { POPUP_IDS, useModalStack } from "../../../../Context"
 import { HelperPaneIconType, getHelperPaneIcon } from "../utils/iconUtils"
 import { EmptyItemsPlaceHolder } from "../Components/EmptyItemsPlaceHolder"
 import { shouldShowNavigationArrow } from "../utils/types"
-import { wrapInTemplateInterpolation } from "../utils/utils"
 import { HelperPaneListItem } from "../Components/HelperPaneListItem"
 import { useHelperPaneNavigation, BreadCrumbStep } from "../hooks/useHelperPaneNavigation"
 import { BreadcrumbNavigation } from "../Components/BreadcrumbNavigation"
@@ -43,7 +42,7 @@ type VariablesPageProps = {
     onChange: (value: string, isRecordConfigureChange: boolean, shouldKeepHelper?: boolean) => void;
     targetLineRange: LineRange;
     anchorRef: React.RefObject<HTMLDivElement>;
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions, openDMInPopup?: boolean) => void;
     selectedType?: CompletionItem;
     filteredCompletions: CompletionItem[];
     currentValue: string;
@@ -151,7 +150,7 @@ export const Variables = (props: VariablesPageProps) => {
         setProjectPathUri(URI.file(visualizerContext.projectPath).fsPath);
     }
 
-    const handleSubmit = (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode) => {
+    const handleSubmit = (updatedNode?: FlowNode, editorConfig?: EditorConfig) => {
         newNodeNameRef.current = "";
         // Safely extract the variable name as a string, fallback to empty string if not available
         const varName = typeof updatedNode?.properties?.variable?.value === "string"
@@ -160,7 +159,10 @@ export const Variables = (props: VariablesPageProps) => {
         newNodeNameRef.current = varName;
         handleOnFormSubmit?.(
             updatedNode,
-            dataMapperMode === DataMapperDisplayMode.VIEW ? DataMapperDisplayMode.POPUP : DataMapperDisplayMode.NONE,
+            {
+                view: editorConfig?.view,
+                displayMode: editorConfig?.displayMode === EditorDisplayMode.VIEW ? EditorDisplayMode.POPUP : EditorDisplayMode.NONE
+            },
             {
                 closeSidePanel: false, isChangeFromHelperPane: true, postUpdateCallBack: () => {
                     onClose()
@@ -198,9 +200,7 @@ export const Variables = (props: VariablesPageProps) => {
     const handleItemSelect = (value: string, _item?: CompletionItem) => {
         // Build full path from navigation
         const fullPath = navigationPath ? `${navigationPath}.${value}` : value;
-        // Wrap in template interpolation if in template mode
-        const wrappedPath = wrapInTemplateInterpolation(fullPath, inputMode);
-        onChange(wrappedPath, false);
+        onChange(fullPath, false);
     }
 
     const handleAddNewVariable = () => {
@@ -282,7 +282,7 @@ export const Variables = (props: VariablesPageProps) => {
                     label: "Name",
                     description: "Name of the variable",
                 },
-                types: [{fieldType: "IDENTIFIER", selected: false}],
+                types: [{ fieldType: "IDENTIFIER", selected: false }],
                 value: "var1",
                 optional: false,
                 editable: true,
@@ -295,7 +295,7 @@ export const Variables = (props: VariablesPageProps) => {
                     label: "Expression",
                     description: "Expression of the variable",
                 },
-                types: [{fieldType: "ACTION_OR_EXPRESSION", selected: false}],
+                types: [{ fieldType: "ACTION_OR_EXPRESSION", selected: false }],
                 value: "",
                 optional: true,
                 editable: true,

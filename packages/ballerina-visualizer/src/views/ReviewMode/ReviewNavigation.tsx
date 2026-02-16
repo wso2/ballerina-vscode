@@ -53,10 +53,23 @@ const ViewCounter = styled.div`
     color: var(--vscode-foreground);
 `;
 
+const PackageLabel = styled.div`
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--vscode-statusBarItem-prominentForeground);
+    background: var(--vscode-statusBarItem-prominentBackground);
+    padding: 2px 8px;
+    border-radius: 2px;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+`;
+
 const ViewLabel = styled.div`
     font-size: 12px;
     color: var(--vscode-descriptionForeground);
-    max-width: 200px;
+    max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -67,12 +80,40 @@ const NavigationButtons = styled.div`
     gap: 8px;
 `;
 
+const VersionToggle = styled.div`
+    display: flex;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    overflow: hidden;
+`;
+
+const ToggleSegment = styled.button<{ active: boolean; disabled?: boolean }>`
+    background: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-background)" : "transparent"};
+    color: ${(props: { active: boolean }) =>
+        props.active ? "var(--vscode-button-foreground)" : "var(--vscode-foreground)"};
+    border: none;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-family: var(--vscode-font-family);
+    cursor: ${(props: { disabled?: boolean }) => (props.disabled ? "default" : "pointer")};
+    opacity: ${(props: { disabled?: boolean }) => (props.disabled ? 0.5 : 1)};
+    transition: background 0.15s, color 0.15s;
+
+    &:hover:not(:disabled) {
+        background: ${(props: { active: boolean }) =>
+            props.active
+                ? "var(--vscode-button-hoverBackground)"
+                : "var(--vscode-toolbar-hoverBackground)"};
+    }
+`;
+
 const ActionButtons = styled.div`
     display: flex;
     gap: 8px;
     padding-left: 16px;
     border-left: 1px solid var(--vscode-panel-border);
-    min-width: 180px;
+    min-width: 158px;
 `;
 
 interface ReviewNavigationProps {
@@ -85,6 +126,9 @@ interface ReviewNavigationProps {
     onReject: () => void;
     canGoPrevious: boolean;
     canGoNext: boolean;
+    showOldVersion: boolean;
+    onToggleVersion: () => void;
+    canToggleVersion: boolean;
 }
 
 export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
@@ -97,7 +141,10 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
         onAccept,
         onReject,
         canGoPrevious,
-        canGoNext
+        canGoNext,
+        showOldVersion,
+        onToggleVersion,
+        canToggleVersion
     } = props;
 
     const [isProcessing, setIsProcessing] = useState(false);
@@ -163,6 +210,25 @@ export function ReviewNavigation(props: ReviewNavigationProps): JSX.Element {
                 </ViewCounter>
                 {currentLabel && <ViewLabel title={currentLabel}>{currentLabel}</ViewLabel>}
             </ViewInfo>
+
+            <VersionToggle>
+                <ToggleSegment
+                    active={!showOldVersion}
+                    disabled={!canToggleVersion}
+                    onClick={() => { if (canToggleVersion && showOldVersion) { onToggleVersion(); } }}
+                    title="Show new version"
+                >
+                    New
+                </ToggleSegment>
+                <ToggleSegment
+                    active={showOldVersion}
+                    disabled={!canToggleVersion}
+                    onClick={() => { if (canToggleVersion && !showOldVersion) { onToggleVersion(); } }}
+                    title="Show old version"
+                >
+                    Old
+                </ToggleSegment>
+            </VersionToggle>
 
             <ActionButtons>
                 <Button

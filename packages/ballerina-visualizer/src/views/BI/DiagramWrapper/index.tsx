@@ -90,7 +90,7 @@ export interface DiagramWrapperProps {
     projectPath: string;
     filePath?: string;
     view?: FocusFlowDiagramView;
-    breakpointState?: boolean;
+    breakpointState?: number;
     syntaxTree?: STNode;
 }
 
@@ -394,22 +394,21 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
                 )
             }
             {/* This is for editing a http resource */}
-            {functionModel && isResource && functionModel.kind === "RESOURCE" && (
-                <PanelContainer
-                    title={"Resource Configuration"}
-                    show={!!functionModel}
+            <PanelContainer
+                title={"Resource Configuration"}
+                show={!!(isResource && functionModel?.kind === "RESOURCE")}
+                onClose={handleFunctionClose}
+                width={400}
+                overlay={true}
+            >
+                <ResourceForm
+                    model={functionModel}
+                    isSaving={isSaving}
+                    filePath={filePath}
+                    onSave={handleResourceSubmit}
                     onClose={handleFunctionClose}
-                    width={400}
-                >
-                    <ResourceForm
-                        model={functionModel}
-                        isSaving={isSaving}
-                        filePath={filePath}
-                        onSave={handleResourceSubmit}
-                        onClose={handleFunctionClose}
-                    />
-                </PanelContainer>
-            )}
+                />
+            </PanelContainer>
         </View >
     );
 }

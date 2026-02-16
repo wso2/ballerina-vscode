@@ -28,10 +28,13 @@ import {
     approveTask,
     ApproveTaskRequest,
     cancelConnectorSpec,
+    cancelConfiguration,
     clearChat,
     clearInitialPrompt,
     ConnectorSpecCancelRequest,
     ConnectorSpecRequest,
+    ConfigurationCancelRequest,
+    ConfigurationProvideRequest,
     createTestDirecoryIfNotExists,
     declineChanges,
     declinePlan,
@@ -54,6 +57,8 @@ import {
     getGeneratedDocumentation,
     getLoginMethod,
     getSemanticDiff,
+    getAffectedPackages,
+    isWorkspaceProject,
     getServiceNames,
     isCopilotSignedIn,
     isPlanModeFeatureEnabled,
@@ -67,6 +72,7 @@ import {
     ProcessMappingParametersRequest,
     promptGithubAuthorize,
     provideConnectorSpec,
+    provideConfiguration,
     RequirementSpecification,
     restoreCheckpoint,
     RestoreCheckpointRequest,
@@ -111,6 +117,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(openAIPanel, (args: AIPanelPrompt) => rpcManger.openAIPanel(args));
     messenger.onRequest(isPlanModeFeatureEnabled, () => rpcManger.isPlanModeFeatureEnabled());
     messenger.onRequest(getSemanticDiff, (args: SemanticDiffRequest) => rpcManger.getSemanticDiff(args));
+    messenger.onRequest(getAffectedPackages, () => rpcManger.getAffectedPackages());
+    messenger.onRequest(isWorkspaceProject, () => rpcManger.isWorkspaceProject());
     messenger.onRequest(acceptChanges, () => rpcManger.acceptChanges());
     messenger.onRequest(declineChanges, () => rpcManger.declineChanges());
     messenger.onRequest(approvePlan, (args: PlanApprovalRequest) => rpcManger.approvePlan(args));
@@ -119,6 +127,8 @@ export function registerAiPanelRpcHandlers(messenger: Messenger) {
     messenger.onRequest(declineTask, (args: TaskDeclineRequest) => rpcManger.declineTask(args));
     messenger.onRequest(provideConnectorSpec, (args: ConnectorSpecRequest) => rpcManger.provideConnectorSpec(args));
     messenger.onRequest(cancelConnectorSpec, (args: ConnectorSpecCancelRequest) => rpcManger.cancelConnectorSpec(args));
+    messenger.onRequest(provideConfiguration, (args: ConfigurationProvideRequest) => rpcManger.provideConfiguration(args));
+    messenger.onRequest(cancelConfiguration, (args: ConfigurationCancelRequest) => rpcManger.cancelConfiguration(args));
     messenger.onRequest(getChatMessages, () => rpcManger.getChatMessages());
     messenger.onRequest(getCheckpoints, () => rpcManger.getCheckpoints());
     messenger.onRequest(restoreCheckpoint, (args: RestoreCheckpointRequest) => rpcManger.restoreCheckpoint(args));

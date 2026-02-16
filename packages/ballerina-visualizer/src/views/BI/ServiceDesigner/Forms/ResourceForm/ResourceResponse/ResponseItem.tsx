@@ -45,11 +45,7 @@ export function ResponseItem(props: ParamItemProps) {
     };
 
     const getFormattedResponse = (response: StatusCodeResponse, method: HTTP_METHOD) => {
-        if (response.statusCode.value && (Number(response.statusCode.value) === 200 || Number(response.statusCode.value) === 201)) {
-            return getDefaultResponse(method);
-        } else {
-            return response.statusCode.value || getDefaultResponse(method);
-        }
+        return response.statusCode.value || getDefaultResponse(method);
     };
 
     return (

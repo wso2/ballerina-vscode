@@ -27,16 +27,48 @@ interface EnumEditorProps {
     items: OptionProps[];
 }
 
+const DEFAULT_NONE_SELECTED_VALUE = "__none__";
+
 export const EnumEditor = (props: EnumEditorProps) => {
+    // Ensure value is in items, otherwise use first item's value
+    const itemsList = useMemo(() => {
+        const baseItems = props.items.length > 0 ? props.items : props.field.itemOptions;
+        return [
+            ...baseItems,
+            {
+                id: "default-option",
+                content: "No Selection",
+                value: DEFAULT_NONE_SELECTED_VALUE
+            }
+        ];
+    }, [props.items, props.field.itemOptions]);
+
+    const selectedValue = useMemo(() => {
+        if (props.value === undefined || props.value === null || props.value === "") {
+            return DEFAULT_NONE_SELECTED_VALUE;
+        }
+        if (props.value && itemsList.some(item => item.value === props.value)) {
+            return props.value;
+        }
+        return itemsList[0].value;
+    }, [props.value, itemsList]);
 
     const handleChange = (e: ChangeEvent<HTMLSelectElement>) => {
-        props.onChange(e.target.value, e.target.value.length)
+        const value = e.target.value;
+        if (value === DEFAULT_NONE_SELECTED_VALUE) {
+            props.onChange("", 0);
+        } else {
+            props.onChange(value, value.length);
+        }
     }
+
+
     return (
         <Dropdown
             id={props.field.key}
-            value={props.value.trim()}
-            items={props.items}
+            aria-label={props.field.label}
+            value={selectedValue.trim()}
+            items={itemsList}
             onChange={handleChange}
             sx={{ width: "100%" }}
             containerSx={{ width: "100%" }}

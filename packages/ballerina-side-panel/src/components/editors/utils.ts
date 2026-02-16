@@ -57,6 +57,23 @@ export function capitalize(str: string) {
     return startCase(str);
 }
 
+type RequiredRuleOptions = {
+    isRequired: boolean;
+    label?: string;
+    message?: string;
+};
+
+export const buildRequiredRule = ({ isRequired, label, message }: RequiredRuleOptions) => {
+    if (!isRequired) {
+        return false;
+    }
+
+    return {
+        value: true,
+        message: message ?? `${label ?? "This field"} is required`,
+    };
+};
+
 export function sanitizeType(type: string) {
     if (type.includes('{') || type.includes('}') || (type.match(/:/g) || []).length > 1) {
         return type;
@@ -97,7 +114,17 @@ export const getFieldKeyForAdvanceProp = (fieldKey: string, advancePropKey: stri
     return `${fieldKey}.advanceProperties.${advancePropKey}`;
 }
 
-export const getValueForTextModeEditor = (value: string | any[]) => {
+
+export const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value)
+  );
+};
+
+export const getValueForTextModeEditor = (value: string | any[] | Record<string, unknown>) => {
+    if (isRecord(value)) return null;
     if (Array.isArray(value)) return value.at(0);
     if (value) {
         // Only remove starting and ending double quotes, preserve quotes within the string
