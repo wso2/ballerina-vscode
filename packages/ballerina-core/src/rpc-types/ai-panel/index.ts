@@ -39,6 +39,8 @@ import {
     TaskDeclineRequest,
     ConnectorSpecRequest,
     ConnectorSpecCancelRequest,
+    ConfigurationProvideRequest,
+    ConfigurationCancelRequest,
     UIChatMessage,
     CheckpointInfo,
     AbortAIGenerationRequest,
@@ -94,6 +96,8 @@ export interface AIPanelAPI {
     declineTask: (params: TaskDeclineRequest) => Promise<void>;
     provideConnectorSpec: (params: ConnectorSpecRequest) => Promise<void>;
     cancelConnectorSpec: (params: ConnectorSpecCancelRequest) => Promise<void>;
+    provideConfiguration: (params: ConfigurationProvideRequest) => Promise<void>;
+    cancelConfiguration: (params: ConfigurationCancelRequest) => Promise<void>;
     // ==================================
     // Chat State Management
     // ==================================

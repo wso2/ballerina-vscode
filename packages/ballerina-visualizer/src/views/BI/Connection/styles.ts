@@ -81,4 +81,19 @@ export const CloseButton = styled(Button)`
     padding: 4px;
 `;
 
+export const PopupContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+`;
 
+export const PopupFooter = styled.div`
+    padding: 16px 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid ${ThemeColors.OUTLINE_VARIANT};
+`;

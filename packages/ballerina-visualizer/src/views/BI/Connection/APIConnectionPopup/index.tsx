@@ -19,7 +19,7 @@
 import React, { useMemo, useState } from "react";
 import styled from "@emotion/styled";
 import { Button, Codicon, Dropdown, Stepper, TextField, ThemeColors, Typography, Icon } from "@wso2/ui-toolkit";
-import { AvailableNode, Category, DataMapperDisplayMode, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
+import { AvailableNode, Category, EditorConfig, DIRECTORY_MAP, FlowNode, LinePosition, ParentPopupData } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { ExpressionFormField } from "@wso2/ballerina-side-panel";
 import ConnectionConfigView from "../ConnectionConfigView";
@@ -404,7 +404,7 @@ export function APIConnectionPopup(props: APIConnectionPopupProps) {
         );
     };
 
-    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedFlowNode) {
             setIsSavingConnection(true);

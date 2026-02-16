@@ -30,6 +30,7 @@ import {
     sendAbortNotification,
     sendSaveChatNotification,
     sendConnectorGenerationNotification,
+    sendConfigurationCollectionNotification,
     sendReviewActionsNotification,
 } from "./ai-utils";
 
@@ -75,10 +76,10 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 sendMessagesNotification(event.messages);
                 break;
             case "tool_call":
-                sendToolCallNotification(event.toolName, event.toolInput);
+                sendToolCallNotification(event.toolName, event.toolInput, event.toolCallId);
                 break;
             case "tool_result":
-                sendToolResultNotification(event.toolName, event.toolOutput);
+                sendToolResultNotification(event.toolName, event.toolOutput, event.toolCallId);
                 break;
             case "task_approval_request":
                 console.log("[Event Handler] Task approval request received:", event);
@@ -102,6 +103,9 @@ export function createWebviewEventHandler(command: Command): CopilotEventHandler
                 break;
             case "connector_generation_notification":
                 sendConnectorGenerationNotification(event);
+                break;
+            case "configuration_collection_event":
+                sendConfigurationCollectionNotification(event);
                 break;
             default:
                 console.warn(`Unhandled event type: ${event}`);

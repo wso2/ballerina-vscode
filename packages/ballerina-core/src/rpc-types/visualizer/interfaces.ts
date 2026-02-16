@@ -17,7 +17,7 @@
  */
 
 import { CodeData } from "../../interfaces/bi";
-import { EVENT_TYPE, PopupVisualizerLocation, VisualizerLocation } from "../../state-machine-types";
+import { EVENT_TYPE, EvalSet, PopupVisualizerLocation, VisualizerLocation } from "../../state-machine-types";
 
 export interface UpdateUndoRedoMangerRequest {
     filePath: string;
@@ -58,4 +58,22 @@ export interface JoinProjectPathRequest {
 export interface JoinProjectPathResponse {
     filePath: string;
     projectPath: string;
+}
+
+export interface HandleApprovalPopupCloseRequest {
+    requestId: string;
+}
+
+export interface ReopenApprovalViewRequest {
+    requestId: string;
+}
+
+export interface SaveEvalThreadRequest {
+    filePath: string;
+    updatedEvalSet: EvalSet;
+}
+
+export interface SaveEvalThreadResponse {
+    success: boolean;
+    error?: string;
 }

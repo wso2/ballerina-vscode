@@ -38,18 +38,18 @@ import {
     Diagnostic,
     LineRange,
     NodeKind,
-    NodePosition,
     SubPanel,
     SubPanelView,
     FormDiagnostics,
     FlowNode,
     ExpressionProperty,
     RecordTypeField,
-    Type,
     VisualizableField,
     NodeProperties,
     VisualizerLocation,
     getPrimaryInputType,
+    MACHINE_VIEW,
+    EditorDisplayMode,
 } from "@wso2/ballerina-core";
 import { FormContext, Provider } from "../../context";
 import {
@@ -496,60 +496,61 @@ export const Form = forwardRef((props: FormProps) => {
             formFields.forEach((field) => {
                 // Only set field defaults if no existing value is present
                 if (defaultValues[field.key] === undefined) {
-                  if (field.hidden) {
-                      defaultValues[field.key] = field.value;
-                  } else if (isDropdownField(field)) {
-                      defaultValues[field.key] = getValueForDropdown(field) ?? "";
-                  } else if (field.type === "FLAG" && field.types?.length > 1) {
-                      defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
-                  } else if (field.type === "FLAG") {
-                      defaultValues[field.key] = field.value || "true";
-                  } else if (typeof field.value === "string") {
-                      defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
-                  } else {
-                      defaultValues[field.key] = field.value ?? "";
-                }
-                if (field.key === "variable") {
-                    defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
-                }
-                if (field.key === "parameters" && field.value.length === 0) {
-                    defaultValues[field.key] = formValues[field.key] ?? [];
-                }
-
-                if (field.key === "type") {
-                    // Handle the case where the type is changed via 'Add Type'
-                    const existingType = formValues[field.key];
-                    const newType = field.value;
-
-                    if (existingType !== newType) {
-                        setValue(field.key, newType);
-                        getVisualiableFields();
+                    if (field.hidden) {
+                        defaultValues[field.key] = field.value;
+                    } else if (isDropdownField(field)) {
+                        defaultValues[field.key] = getValueForDropdown(field) ?? "";
+                    } else if (field.type === "FLAG" && field.types?.length > 1) {
+                        defaultValues[field.key] = String(field.value === "true") || String((typeof field.value === "boolean" && field.value));
+                    } else if (field.type === "FLAG") {
+                        defaultValues[field.key] = field.value || "true";
+                    } else if (typeof field.value === "string") {
+                        defaultValues[field.key] = formatJSONLikeString(field.value) ?? "";
+                    } else {
+                        defaultValues[field.key] = field.value ?? "";
                     }
-                }
-
-                // Handle choice fields and their properties
-                if (field?.choices && field.choices.length > 0) {
-                    // Get the selected choice index (default to 0 if not set)
-                    const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
-
-                    const selectedChoice = field.choices[selectedChoiceIndex];
-
-                    if (selectedChoice && selectedChoice?.properties) {
-                        Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
-                            // Preserve existing form values if they exist, otherwise use propValue.value
-                            if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
-                                defaultValues[propKey] = formValues[propKey];
-                            } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
-                                defaultValues[propKey] = propValue.value;
-                            }
-
-                            diagnosticsMap.push({ key: propKey, diagnostics: [] });
-                        });
+                    if (field.key === "variable") {
+                        defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                }
+                    if (field.key === "parameters" && field.value.length === 0) {
+                        defaultValues[field.key] = formValues[field.key] ?? [];
+                    }
 
-                diagnosticsMap.push({ key: field.key, diagnostics: [] });
-            }});
+                    if (field.key === "type") {
+                        // Handle the case where the type is changed via 'Add Type'
+                        const existingType = formValues[field.key];
+                        const newType = field.value;
+
+                        if (existingType !== newType) {
+                            setValue(field.key, newType);
+                            getVisualiableFields();
+                        }
+                    }
+
+                    // Handle choice fields and their properties
+                    if (field?.choices && field.choices.length > 0) {
+                        // Get the selected choice index (default to 0 if not set)
+                        const selectedChoiceIndex = formValues[field.key] !== undefined ? Number(formValues[field.key]) : 0;
+
+                        const selectedChoice = field.choices[selectedChoiceIndex];
+
+                        if (selectedChoice && selectedChoice?.properties) {
+                            Object.entries(selectedChoice.properties).forEach(([propKey, propValue]) => {
+                                // Preserve existing form values if they exist, otherwise use propValue.value
+                                if (formValues[propKey] !== undefined && formValues[propKey] !== "") {
+                                    defaultValues[propKey] = formValues[propKey];
+                                } else if (propValue?.value !== undefined && defaultValues[propKey] === undefined) {
+                                    defaultValues[propKey] = propValue.value;
+                                }
+
+                                diagnosticsMap.push({ key: propKey, diagnostics: [] });
+                            });
+                        }
+                    }
+
+                    diagnosticsMap.push({ key: field.key, diagnostics: [] });
+                }
+            });
             setDiagnosticsInfo(diagnosticsMap);
             reset(defaultValues);
 
@@ -721,9 +722,13 @@ export const Form = forwardRef((props: FormProps) => {
     const expressionField = formFields.find((field) => field.key === "expression");
     const targetTypeField = formFields.find((field) => field.codedata?.kind === "PARAM_FOR_TYPE_INFER");
     const hasParameters = hasRequiredParameters(formFields, selectedNode) || hasOptionalParameters(formFields);
-    const canOpenInDataMapper = selectedNode === "VARIABLE" &&
+
+    const canOpenInDataMapper = (selectedNode === "VARIABLE" &&
         expressionField &&
-        visualizableField?.isDataMapped;
+        visualizableField?.isDataMapped) || 
+        selectedNode === "DATA_MAPPER_CREATION";
+
+    const canOpenInFunctionEditor = selectedNode === "FUNCTION_CREATION";
 
     const contextValue: FormContext = {
         form: {
@@ -897,7 +902,26 @@ export const Form = forwardRef((props: FormProps) => {
             if (data.expression === '' && visualizableField?.defaultValue) {
                 data.expression = visualizableField.defaultValue;
             }
-            return handleOnSave({ ...data, openInDataMapper: true });
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: selectedNode === "VARIABLE" ? MACHINE_VIEW.InlineDataMapper : MACHINE_VIEW.DataMapper,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
+        })();
+    };
+
+    const handleOnOpenInFunctionEditor = () => {
+        setSavingButton('functionEditor');
+        handleSubmit((data) => {
+            return handleOnSave({ 
+                ...data, 
+                editorConfig: {
+                    view: MACHINE_VIEW.BIDiagram,
+                    displayMode: EditorDisplayMode.VIEW,
+                },
+            });
         })();
     };
 
@@ -921,105 +945,51 @@ export const Form = forwardRef((props: FormProps) => {
             {actionButton && <S.ActionButtonContainer>{actionButton}</S.ActionButtonContainer>}
             {infoLabel && !compact && (
                 <S.MarkdownWrapper>
-                        <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
-                            <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
-                        </S.MarkdownContainer>
-                        {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
-                            <S.ButtonContainer>
-                                <LinkButton
-                                    onClick={handleShowMoreClick}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={isMarkdownExpanded ? "chevron-up" : "chevron-down"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />
-                                    {isMarkdownExpanded ? "Show Less" : "Show More"}
-                                </LinkButton>
-                            </S.ButtonContainer>
-                        )}
-                    </S.MarkdownWrapper>
-                )}
-                {!preserveOrder && !compact && (
-                    <FormDescription formFields={formFields} selectedNode={selectedNode} />
-                )}
+                    <S.MarkdownContainer ref={markdownRef} isExpanded={isMarkdownExpanded}>
+                        <ReactMarkdown>{stripHtmlTags(infoLabel)}</ReactMarkdown>
+                    </S.MarkdownContainer>
+                    {markdownRef.current && markdownRef.current.scrollHeight > 200 && (
+                        <S.ButtonContainer>
+                            <LinkButton
+                                onClick={handleShowMoreClick}
+                                sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                            >
+                                <Codicon
+                                    name={isMarkdownExpanded ? "chevron-up" : "chevron-down"}
+                                    iconSx={{ fontSize: 12 }}
+                                    sx={{ height: 12 }}
+                                />
+                                {isMarkdownExpanded ? "Show Less" : "Show More"}
+                            </LinkButton>
+                        </S.ButtonContainer>
+                    )}
+                </S.MarkdownWrapper>
+            )}
+            {!preserveOrder && !compact && (
+                <FormDescription formFields={formFields} selectedNode={selectedNode} />
+            )}
 
-                {/*
+            {/*
                  * Two rendering modes based on preserveOrder prop:
                  *
                  * 1. preserveOrder = true: Render all fields in original order from formFields array
                  * 2. preserveOrder = false: Render name and type fields at the bottom, and rest at top
                  */}
-                <S.CategoryRow bottomBorder={false}>
-                    {(() => {
-                        const fieldsToRender = formFields
-                            .sort((a, b) => b.groupNo - a.groupNo)
-                            .filter((field) => field.type !== "VIEW");
+            <S.CategoryRow bottomBorder={false}>
+                {(() => {
+                    const fieldsToRender = formFields
+                        .sort((a, b) => b.groupNo - a.groupNo)
+                        .filter((field) => field.type !== "VIEW");
 
-                        const renderedComponents: React.ReactNode[] = [];
-                        let renderedFieldCount = 0;
-                        const injectedIndices = new Set<number>(); // Track which injections have been added
+                    const renderedComponents: React.ReactNode[] = [];
+                    let renderedFieldCount = 0;
+                    const injectedIndices = new Set<number>(); // Track which injections have been added
 
-                        fieldsToRender.forEach((field) => {
-                            // Check if we need to inject components before this field
-                            if (injectedComponents) {
-                                injectedComponents.forEach((injected) => {
-                                    if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
-                                        renderedComponents.push(
-                                            <React.Fragment key={`injected-${injected.index}`}>
-                                                {injected.component}
-                                            </React.Fragment>
-                                        );
-                                        injectedIndices.add(injected.index);
-                                    }
-                                });
-                            }
-
-                            if (field.advanced || field.hidden) {
-                                return;
-                            }
-                            // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
-                            if (!preserveOrder && isPrioritizedField(field)) {
-                                return;
-                            }
-
-                            const updatedField = updateFormFieldWithImports(field, formImports);
-                            renderedComponents.push(
-                                <S.Row key={updatedField.key}>
-                                    <EditorFactory
-                                        field={updatedField}
-                                        selectedNode={selectedNode}
-                                        openRecordEditor={
-                                            openRecordEditor &&
-                                            ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                        }
-                                        openSubPanel={handleOpenSubPanel}
-                                        subPanelView={subPanelView}
-                                        handleOnFieldFocus={handleOnFieldFocus}
-                                        autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
-                                        recordTypeFields={recordTypeFields}
-                                        onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                        handleOnTypeChange={handleOnTypeChange}
-                                        setSubComponentEnabled={setIsSubComponentEnabled}
-                                        handleNewTypeSelected={handleNewTypeSelected}
-                                        onBlur={handleOnBlur}
-                                        isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
-                                        openFormTypeEditor={
-                                            openFormTypeEditor &&
-                                            ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
-                                        }
-                                    />
-                                    {updatedField.key === "scope" && scopeFieldAddon}
-                                </S.Row>
-                            );
-                            renderedFieldCount++;
-                        });
-
-                        // Check if we need to inject components after all fields
+                    fieldsToRender.forEach((field) => {
+                        // Check if we need to inject components before this field
                         if (injectedComponents) {
                             injectedComponents.forEach((injected) => {
-                                if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                if (injected.index === renderedFieldCount && !injectedIndices.has(injected.index)) {
                                     renderedComponents.push(
                                         <React.Fragment key={`injected-${injected.index}`}>
                                             {injected.component}
@@ -1029,6 +999,60 @@ export const Form = forwardRef((props: FormProps) => {
                                 }
                             });
                         }
+
+                        if (field.advanced || field.hidden) {
+                            return;
+                        }
+                        // When preserveOrder is false, skip prioritized fields (they'll be rendered at bottom)
+                        if (!preserveOrder && isPrioritizedField(field)) {
+                            return;
+                        }
+
+                        const updatedField = updateFormFieldWithImports(field, formImports);
+                        renderedComponents.push(
+                            <S.Row key={updatedField.key}>
+                                <EditorFactory
+                                    field={updatedField}
+                                    selectedNode={selectedNode}
+                                    openRecordEditor={
+                                        openRecordEditor &&
+                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                    }
+                                    openSubPanel={handleOpenSubPanel}
+                                    subPanelView={subPanelView}
+                                    handleOnFieldFocus={handleOnFieldFocus}
+                                    autoFocus={firstEditableFieldIndex === formFields.indexOf(updatedField) && !hideSaveButton}
+                                    recordTypeFields={recordTypeFields}
+                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                    handleOnTypeChange={handleOnTypeChange}
+                                    setSubComponentEnabled={setIsSubComponentEnabled}
+                                    handleNewTypeSelected={handleNewTypeSelected}
+                                    onBlur={handleOnBlur}
+                                    isContextTypeEditorSupported={updatedField?.isContextTypeSupported}
+                                    openFormTypeEditor={
+                                        openFormTypeEditor &&
+                                        ((open: boolean, newType?: string) => openFormTypeEditor(open, newType, updatedField))
+                                    }
+                                />
+                                {updatedField.key === "scope" && scopeFieldAddon}
+                            </S.Row>
+                        );
+                        renderedFieldCount++;
+                    });
+
+                    // Check if we need to inject components after all fields
+                    if (injectedComponents) {
+                        injectedComponents.forEach((injected) => {
+                            if (injected.index >= renderedFieldCount && !injectedIndices.has(injected.index)) {
+                                renderedComponents.push(
+                                    <React.Fragment key={`injected-${injected.index}`}>
+                                        {injected.component}
+                                    </React.Fragment>
+                                );
+                                injectedIndices.add(injected.index);
+                            }
+                        });
+                    }
 
                         return renderedComponents;
                     })()}
@@ -1058,7 +1082,7 @@ export const Form = forwardRef((props: FormProps) => {
                                             name={"chevron-up"}
                                             iconSx={{ fontSize: 12 }}
                                             sx={{ height: 12 }}
-                                        />Collapsed
+                                        />Collapse
                                     </LinkButton>
                                 )}
                             </S.ButtonContainer>
@@ -1113,54 +1137,54 @@ export const Form = forwardRef((props: FormProps) => {
                         })}
                 </S.CategoryRow>
 
-                {!preserveOrder && (variableField || typeField || targetTypeField) && (
-                    <S.CategoryRow topBorder={!compact && hasParameters}>
-                        {variableField && (
+            {!preserveOrder && (variableField || typeField || targetTypeField) && (
+                <S.CategoryRow topBorder={!compact && hasParameters}>
+                    {variableField && (
+                        <EditorFactory
+                            field={variableField}
+                            handleOnFieldFocus={handleOnFieldFocus}
+                            recordTypeFields={recordTypeFields}
+                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                            onBlur={handleOnBlur}
+                        />
+                    )}
+                    {typeField && !isInferredReturnType && (
+                        <EditorFactory
+                            field={typeField}
+                            openRecordEditor={
+                                openRecordEditor &&
+                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
+                            }
+                            handleOnFieldFocus={handleOnFieldFocus}
+                            handleOnTypeChange={handleOnTypeChange}
+                            recordTypeFields={recordTypeFields}
+                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                            handleNewTypeSelected={handleNewTypeSelected}
+                            onBlur={handleOnBlur}
+
+                        />
+                    )}
+                    {targetTypeField && !targetTypeField.advanced && (
+                        <>
                             <EditorFactory
-                                field={variableField}
+                                field={targetTypeField}
                                 handleOnFieldFocus={handleOnFieldFocus}
-                                recordTypeFields={recordTypeFields}
-                                onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                onBlur={handleOnBlur}
-                            />
-                        )}
-                        {typeField && !isInferredReturnType && (
-                            <EditorFactory
-                                field={typeField}
-                                openRecordEditor={
-                                    openRecordEditor &&
-                                    ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, typeField, newType))
-                                }
-                                handleOnFieldFocus={handleOnFieldFocus}
-                                handleOnTypeChange={handleOnTypeChange}
                                 recordTypeFields={recordTypeFields}
                                 onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
                                 handleNewTypeSelected={handleNewTypeSelected}
+                                handleOnTypeChange={handleOnTypeChange}
                                 onBlur={handleOnBlur}
-
                             />
-                        )}
-                        {targetTypeField && !targetTypeField.advanced && (
-                            <>
-                                <EditorFactory
-                                    field={targetTypeField}
-                                    handleOnFieldFocus={handleOnFieldFocus}
-                                    recordTypeFields={recordTypeFields}
-                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleNewTypeSelected={handleNewTypeSelected}
-                                    handleOnTypeChange={handleOnTypeChange}
-                                    onBlur={handleOnBlur}
+                            {typeField && (
+                                <TypeHelperText
+                                    targetTypeField={targetTypeField}
+                                    typeField={typeField}
                                 />
-                                {typeField && (
-                                    <TypeHelperText
-                                        targetTypeField={targetTypeField}
-                                        typeField={typeField}
-                                    />
-                                )}
-                            </>
-                        )}
-                    </S.CategoryRow>
-                )}
+                            )}
+                        </>
+                    )}
+                </S.CategoryRow>
+            )}
 
             {concertMessage && (
                 <S.ConcertContainer>
@@ -1199,6 +1223,17 @@ export const Form = forwardRef((props: FormProps) => {
                                 ) : submitText || "Open in Data Mapper"}
                             </Button>
                         }
+                        {canOpenInFunctionEditor && (
+                            <Button
+                                appearance="secondary"
+                                onClick={handleOnOpenInFunctionEditor}
+                                disabled={isSaving}
+                            >
+                                {isSaving && savingButton === 'functionEditor' ? (
+                                    <Typography variant="progress">{submitText || "Opening in Function Editor..."}</Typography>
+                                ) : submitText || "Open in Function Editor"}
+                            </Button>
+                        )}
                         <Button
                             appearance="primary"
                             onClick={handleOnSaveClick}
