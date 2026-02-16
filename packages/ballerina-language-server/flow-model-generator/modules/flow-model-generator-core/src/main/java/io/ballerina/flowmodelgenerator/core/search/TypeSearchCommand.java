@@ -78,6 +78,7 @@ import java.util.Optional;
  */
 class TypeSearchCommand extends SearchCommand {
 
+    public static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
     private final List<String> moduleNames;
 
     public TypeSearchCommand(Project project, LineRange position, Map<String, String> queryMap) {
@@ -189,16 +190,19 @@ class TypeSearchCommand extends SearchCommand {
             return;
         }
 
+        PackageName currProjPackageName = this.project.currentPackage().packageName();
+
         Category.Builder workspaceBuilder = rootBuilder.stepIn(Category.Name.CURRENT_WORKSPACE);
 
         // Build current integration first to ensure it appears at the top
-        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(
+                currProjPackageName.value() + CURRENT_INTEGRATION_INDICATOR, "", List.of());
         buildProjectNodes(this.project, currIntProjBuilder);
 
         List<BuildProject> projects = workspaceProject.get().projects();
         for (BuildProject project : projects) {
             PackageName packageName = project.currentPackage().packageName();
-            if (packageName.equals(this.project.currentPackage().packageName())) {
+            if (packageName.equals(currProjPackageName)) {
                 continue;
             }
 

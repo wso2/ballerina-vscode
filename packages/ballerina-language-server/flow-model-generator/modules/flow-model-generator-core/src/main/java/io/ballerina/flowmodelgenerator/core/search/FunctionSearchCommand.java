@@ -86,6 +86,7 @@ class FunctionSearchCommand extends SearchCommand {
             "io", List.of("print", "println", "fileWriteString", "fileWriteJson", "fileReadString", "fileReadJson")
     );
     private static final String FETCH_KEY = "functions";
+    public static final String CURRENT_INTEGRATION_INDICATOR = " (current)";
     private final List<String> moduleNames;
     private final Document functionsDoc;
 
@@ -204,17 +205,21 @@ class FunctionSearchCommand extends SearchCommand {
             return;
         }
 
+        PackageName currProjPackageName = this.project.currentPackage().packageName();
+        
         Category.Builder workspaceBuilder = rootBuilder.stepIn(Category.Name.CURRENT_WORKSPACE);
 
         // Build current integration first to ensure it appears at the top
-        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
-        Category.Builder currIntAgtToolsBuilder = agentToolsBuilder.stepIn(Category.Name.CURRENT_INTEGRATION);
+        Category.Builder currIntProjBuilder = workspaceBuilder.stepIn(
+                currProjPackageName.value() + CURRENT_INTEGRATION_INDICATOR, "", List.of());
+        Category.Builder currIntAgtToolsBuilder = agentToolsBuilder.stepIn(
+                currProjPackageName.value() + CURRENT_INTEGRATION_INDICATOR, "", List.of());
         buildProjectNodes(this.project, currIntProjBuilder, currIntAgtToolsBuilder);
 
         List<BuildProject> projects = workspaceProject.get().projects();
         for (BuildProject project : projects) {
             PackageName packageName = project.currentPackage().packageName();
-            if (packageName.equals(this.project.currentPackage().packageName())) {
+            if (packageName.equals(currProjPackageName)) {
                 continue;
             }
 
