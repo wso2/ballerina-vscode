@@ -27,6 +27,7 @@ import { FunctionForm } from "./views/BI";
 import { DataMapper } from "./views/DataMapper";
 import AddConnectionPopup from "./views/BI/Connection/AddConnectionPopup";
 import EditConnectionPopup from "./views/BI/Connection/EditConnectionPopup";
+import { ConfigurationCollector } from "./views/BI/ConfigurationCollector";
 
 const ViewContainer = styled.div<{ isFullScreen?: boolean }>`
     position: fixed;
@@ -66,6 +67,17 @@ const PopupPanel = (props: PopupPanelProps) => {
     useEffect(() => {
         fetchContext();
     }, []);
+
+    const handleApprovalClose = (approvalData: any | undefined) => {
+        const requestId = approvalData?.requestId;
+
+        if (requestId) {
+            console.log('[PopupPanel] Approval view closed, notifying backend:', requestId);
+            rpcClient.getVisualizerRpcClient().handleApprovalPopupClose({ requestId });
+        }
+
+        onClose();
+    };
 
     const fetchContext = () => {
         rpcClient.getPopupVisualizerState().then((machineState: PopupVisualizerLocation) => {
@@ -147,6 +159,14 @@ const PopupPanel = (props: PopupPanelProps) => {
                             codedata={machineState?.dataMapperMetadata?.codeData}
                             name={machineState?.dataMapperMetadata?.name}
                             onClose={onClose}
+                        />
+                    );
+                    break;
+                case MACHINE_VIEW.ConfigurationCollector:
+                    setViewComponent(
+                        <ConfigurationCollector
+                            data={machineState.agentMetadata?.configurationCollector}
+                            onClose={() => handleApprovalClose(machineState.agentMetadata?.configurationCollector)}
                         />
                     );
                     break;

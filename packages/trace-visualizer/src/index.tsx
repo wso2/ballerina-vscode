@@ -18,7 +18,7 @@
 
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { TraceDetails } from "./TraceDetails";
+import { TraceVisualizer } from "./TraceVisualizer";
 
 export interface TraceData {
     traceId: string;
@@ -60,16 +60,32 @@ export interface AttributeData {
 declare global {
     interface Window {
         traceVisualizer: {
-            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement) => void;
+            renderWebview: (traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string) => void;
+        };
+        traceVisualizerAPI?: {
+            requestSessionTraces: (sessionId: string) => void;
+            exportSession: (sessionTraces: TraceData[], sessionId: string) => void;
+            exportTrace: (traceData: TraceData) => void;
+            exportTraceAsEvalset: (traceData: TraceData) => void;
+            exportSessionAsEvalset: (sessionTraces: TraceData[], sessionId: string) => void;
         };
     }
 }
 
-export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement) {
-    const root = createRoot(target);
+// Store root instances by target element to reuse them
+const rootMap = new WeakMap<HTMLElement, ReturnType<typeof createRoot>>();
+
+export function renderWebview(traceData: TraceData, isAgentChat: boolean, target: HTMLElement, focusSpanId?: string, sessionId?: string) {
+    // Get existing root or create a new one
+    let root = rootMap.get(target);
+    if (!root) {
+        root = createRoot(target);
+        rootMap.set(target, root);
+    }
+
     root.render(
         <React.StrictMode>
-            <TraceDetails traceData={traceData} isAgentChat={isAgentChat} />
+            <TraceVisualizer initialTraceData={traceData} isAgentChat={isAgentChat} focusSpanId={focusSpanId} sessionId={sessionId} />
         </React.StrictMode>
     );
 }

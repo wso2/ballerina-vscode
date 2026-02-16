@@ -70,6 +70,14 @@ export type FormField = {
     actionCallback?: () => void;
     onValueChange?: (value: string | boolean) => void;
     isGraphqlId?: boolean;
+    sliderProps?: {
+        min?: number;
+        max?: number;
+        step?: number;
+        showValue?: boolean;
+        showMarkers?: boolean;
+        valueFormatter?: (value: number) => string;
+    };
 };
 
 export type ParameterValue = {
@@ -188,7 +196,7 @@ type FormHelperPaneConditionalProps = {
         anchorRef: RefObject<HTMLDivElement>,
         defaultValue: string,
         value: string,
-        onChange: (value: string,  options?: HelperpaneOnChangeOptions) => void,
+        onChange: (value: string, options?: HelperpaneOnChangeOptions) => void,
         changeHelperPaneState: (isOpen: boolean) => void,
         helperPaneHeight: HelperPaneHeight,
         recordTypeField?: RecordTypeField,
