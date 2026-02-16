@@ -432,6 +432,7 @@ export function DevantConnectorPopup(props: AddConnectionPopupProps) {
                                                 <DevantConnectorCreateForm
                                                     biConnectionNames={biConnectionNames}
                                                     marketplaceItem={selectedMarketplaceItem}
+                                                    existingDevantConnNames={existingDevantConnNames}
                                                     devantFlow={selectedFlow!}
                                                     devantConfigs={devantConfigs}
                                                     onSuccess={(data) => {
