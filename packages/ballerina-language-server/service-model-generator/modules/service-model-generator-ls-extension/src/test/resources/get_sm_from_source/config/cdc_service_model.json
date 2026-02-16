@@ -143,8 +143,8 @@
       },
       "annotServiceConfig": {
         "metadata": {
-          "label": "ServiceConfig",
-          "description": "ServiceConfig"
+          "label": "Service Config",
+          "description": "Advanced CDC configuration"
         },
         "codedata": {
           "type": "ANNOTATION_ATTACHMENT",
@@ -152,8 +152,29 @@
           "moduleName": "cdc"
         },
         "value": "{\n    tables: \"db1.schema1.t1\"\n}",
-        "enabled": false,
-        "editable": false,
+        "types": [
+          {
+            "fieldType": "RECORD_MAP_EXPRESSION",
+            "ballerinaType": "cdc:CdcServiceConfig",
+            "typeMembers": [
+              {
+                "type": "cdc:CdcServiceConfig",
+                "packageInfo": "ballerinax:cdc:1.1.0",
+                "packageName": "cdc",
+                "kind": "RECORD_TYPE",
+                "selected": true
+              }
+            ],
+            "selected": true
+          },
+          {
+            "fieldType": "EXPRESSION",
+            "ballerinaType": "cdc:CdcServiceConfig",
+            "selected": false
+          }
+        ],
+        "enabled": true,
+        "editable": true,
         "optional": false,
         "advanced": false
       }

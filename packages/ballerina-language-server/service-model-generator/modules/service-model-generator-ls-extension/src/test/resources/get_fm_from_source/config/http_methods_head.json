@@ -477,7 +477,7 @@
             "advanced": false
           },
           "enabled": true,
-          "editable": false,
+          "editable": true,
           "advanced": false
         }
       ],
@@ -652,6 +652,7 @@
               {
                 "type": "HttpResourceConfig",
                 "packageInfo": "ballerina:http:2.14.0",
+                "packageName": "http",
                 "kind": "RECORD_TYPE",
                 "selected": false
               }

@@ -43,7 +43,6 @@ import io.ballerina.compiler.syntax.tree.ServiceDeclarationNode;
 import io.ballerina.compiler.syntax.tree.SpecificFieldNode;
 import io.ballerina.compiler.syntax.tree.TypeDefinitionNode;
 import io.ballerina.modelgenerator.commons.CommonUtils;
-import io.ballerina.projects.Document;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
 import io.ballerina.servicemodelgenerator.extension.model.FunctionReturnType;
@@ -61,7 +60,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.CLOSE_BRACE;
@@ -83,7 +81,6 @@ import static io.ballerina.servicemodelgenerator.extension.util.ServiceModelUtil
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getAnnotationEdits;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getFunctionQualifiers;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
-import static io.ballerina.servicemodelgenerator.extension.util.Utils.getVisibleSymbols;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateListenerInfo;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.populateRequiredFuncsDesignApproachAndServiceType;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.updateAnnotationAttachmentProperty;
@@ -432,13 +429,13 @@ public final class HttpUtil {
         TypeSymbol xmlType = typeBuilder.XML_TYPE.build();
 
         anydataResponses.forEach(type -> {
-            HttpResponse.Builder builder = new HttpResponse.Builder()
+            HttpResponse response = new HttpResponse.Builder()
                     .statusCode(String.valueOf(defaultStatusCode), true)
                     .body(getTypeName(type, currentModuleName), true)
-                    .mediaType(deriveMediaType(type, stringType, byteArrayType, xmlType), true);
-            HttpResponse response = builder.build();
-            response.setEnabled(true);
-            response.setEditable(true);
+                    .mediaType(deriveMediaType(type, stringType, byteArrayType, xmlType), true)
+                    .editable(true)
+                    .enabled(true)
+                    .build();
             responses.add(response);
         });
 
@@ -465,8 +462,7 @@ public final class HttpUtil {
         return type.trim().equals(HTTP_RESPONSE_TYPE);
     }
 
-    public static String generateHttpResourceDefinition(Function function, SemanticModel semanticModel,
-                                                        Document document, List<String> newTypeDefinitions,
+    public static String generateHttpResourceDefinition(Function function, List<String> newTypeDefinitions,
                                                         Map<String, String> importsForMainBal,
                                                         Map<String, String> importsForTypesBal) {
         StringBuilder builder = new StringBuilder();
@@ -488,9 +484,8 @@ public final class HttpUtil {
 
         // function identifier
         builder.append(getValueString(function.getName()));
-        Set<String> visibleSymbols = getVisibleSymbols(semanticModel, document);
         String functionSignature = generateHttpResourceSignature(function, newTypeDefinitions, importsForMainBal,
-                importsForTypesBal, visibleSymbols, true);
+                importsForTypesBal, true);
         builder.append(functionSignature);
 
         // function body
@@ -511,7 +506,6 @@ public final class HttpUtil {
     public static String generateHttpResourceSignature(Function function, List<String> newTypeDefinitions,
                                                        Map<String, String> importsForMainBal,
                                                        Map<String, String> importsForTypesBal,
-                                                       Set<String> visibleSymbols,
                                                        boolean isNewResource) {
         StringBuilder builder = new StringBuilder();
         builder.append(OPEN_PAREN)
@@ -527,7 +521,7 @@ public final class HttpUtil {
                 List<String> responses = new ArrayList<>(returnType.getResponses().stream()
                         .filter(HttpResponse::isEnabled)
                         .map(response -> HttpUtil.getStatusCodeResponse(response, newTypeDefinitions, importsForMainBal,
-                                importsForTypesBal, visibleSymbols, defaultStatusCode))
+                                importsForTypesBal, defaultStatusCode))
                         .filter(Objects::nonNull)
                         .toList());
                 if (!responses.isEmpty()) {
@@ -614,33 +608,34 @@ public final class HttpUtil {
         String statusCode = getResponseCode(statusCodeResponseType, defaultStatusCode, semanticModel);
         String signature = statusCodeResponseType.signature().trim();
         if (signature.startsWith("record {") && signature.endsWith("}")) {
-            HttpResponse httpResponse = buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName,
-                    statusCode, null);
-            httpResponse.setEditable(true);
-            return httpResponse;
+            return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode,
+                    null, true);
         }
         String typeName = getTypeName(statusCodeResponseType, currentModuleName);
         if (typeName.startsWith("http:")) {
             String type = HTTP_CODES_DES.get(statusCode);
             if (Objects.nonNull(type) && "http:%s".formatted(type).equals(typeName)) {
-                HttpResponse.Builder builder = new HttpResponse.Builder()
+                return new HttpResponse.Builder()
                         .statusCode(statusCode, true)
                         .type(typeName, true)
                         .body("", true)
                         .name("", true)
                         .headers("", true)
-                        .mediaType("", true);
-                return builder.build();
+                        .mediaType("", true)
+                        .enabled(true)
+                        .editable(true)
+                        .build();
             }
         }
 
-        return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, typeName);
+        return buildHttpResponseFromTypeSymbol(statusCodeResponseType, currentModuleName, statusCode, typeName, false);
     }
 
     private static HttpResponse buildHttpResponseFromTypeSymbol(TypeSymbol statusCodeResponseType,
                                                                 String currentModuleName,
                                                                 String statusCode,
-                                                                String typeName) {
+                                                                String typeName,
+                                                                boolean editable) {
         List<Object> headers = new ArrayList<>();
         String body = "anydata";
         String mediaType = "";
@@ -665,14 +660,16 @@ public final class HttpUtil {
                 }
             }
         }
-        HttpResponse.Builder builder = new HttpResponse.Builder()
-                .statusCode(statusCode, false)
-                .type(typeName, false)
-                .body(body, false)
-                .headers(headers, false)
-                .name("", false)
-                .mediaType(mediaType, false);
-        return builder.build();
+        return new HttpResponse.Builder()
+                .statusCode(statusCode, editable)
+                .type(typeName, editable)
+                .body(body, editable)
+                .headers(headers, editable)
+                .name("", editable)
+                .mediaType(mediaType, editable)
+                .editable(editable)
+                .enabled(true)
+                .build();
     }
 
     public static boolean isSubTypeOfHttpStatusCodeResponse(TypeSymbol typeSymbol, SemanticModel semanticModel) {
@@ -738,7 +735,6 @@ public final class HttpUtil {
     public static String getStatusCodeResponse(HttpResponse response, List<String> newTypeDefinitions,
                                                Map<String, String> importsForMainBal,
                                                Map<String, String> importsForTypesBal,
-                                               Set<String> visibleSymbols,
                                                int defaultStatusCode) {
         Value name = response.getName();
         if (Objects.nonNull(name) && name.isEnabledWithValue() && name.isEditable()) {
@@ -772,7 +768,7 @@ public final class HttpUtil {
             }
         }
         Value headers = response.getHeaders();
-        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValue().isEmpty()) {
+        if (Objects.nonNull(headers) && headers.isEnabledWithValue() && !headers.getValuesAsObjects().isEmpty()) {
             createNewType = true;
         }
 

@@ -38,11 +38,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "array:AnydataType[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "array:AnydataType[]",
             "selected": false

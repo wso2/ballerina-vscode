@@ -41,6 +41,7 @@ public class IntermediateModel {
     protected final Map<String, Listener> listeners;
     protected final Map<String, Connection> connectionMap;
     protected final Map<String, Connection> uuidToConnectionMap;
+    protected final Map<String, ServiceClassModel> serviceClassModelMap;
 
     public IntermediateModel() {
         this.functionModelMap = new HashMap<>();
@@ -48,6 +49,7 @@ public class IntermediateModel {
         this.listeners = new HashMap<>();
         this.connectionMap = new HashMap<>();
         this.uuidToConnectionMap = new HashMap<>();
+        this.serviceClassModelMap = new HashMap<>();
     }
 
     public static class ServiceModel {
@@ -83,6 +85,7 @@ public class IntermediateModel {
         protected String path;
         protected String displayName;
         protected final Set<String> connections = new HashSet<>();
+        protected final Set<String> usedClasses = new HashSet<>();
 
         public FunctionModel(String name) {
             this.name = name;
@@ -90,6 +93,16 @@ public class IntermediateModel {
             this.analyzed = false;
             this.visited = false;
             this.allDependentConnections = new HashSet<>();
+        }
+    }
+
+    public static class ServiceClassModel {
+        protected final String name;
+        protected final Set<FunctionModel> functionModels;
+
+        public ServiceClassModel(String name) {
+            this.name = name;
+            this.functionModels = new HashSet<>();
         }
     }
 }

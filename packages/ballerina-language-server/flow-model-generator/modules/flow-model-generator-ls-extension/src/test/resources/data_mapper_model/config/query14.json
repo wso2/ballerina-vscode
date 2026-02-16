@@ -37,7 +37,7 @@
         "displayName": "myType3",
         "typeName": "MyType[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "focusExpression": "myTypes3",
         "ref": "2079019383"
       },
@@ -54,7 +54,7 @@
         "displayName": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "2079019383"
       },
       {
@@ -70,7 +70,7 @@
         "displayName": "myTypes2",
         "typeName": "MyType[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "2079019383"
       },
       {
@@ -93,7 +93,7 @@
         "displayName": "myTypes3",
         "typeName": "MyType[][]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "2079019383"
       },
       {

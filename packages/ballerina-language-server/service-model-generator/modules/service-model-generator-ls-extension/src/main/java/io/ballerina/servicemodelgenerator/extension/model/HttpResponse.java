@@ -37,13 +37,16 @@ public class HttpResponse {
     private boolean editable = false;
     private boolean advanced = false;
 
-    public HttpResponse(Value statusCode, Value body, Value mediaType, Value name, Value type, Value headers) {
+    public HttpResponse(Value statusCode, Value body, Value mediaType, Value name, Value type, Value headers,
+                        boolean editable, boolean enabled) {
         this.statusCode = statusCode;
         this.body = body;
         this.mediaType = mediaType;
         this.name = name;
         this.type = type;
         this.headers = headers;
+        this.editable = editable;
+        this.enabled = enabled;
     }
 
     public HttpResponse(String type) {
@@ -156,6 +159,8 @@ public class HttpResponse {
         private Value name;
         private Value type;
         private Value headers;
+        private boolean editable = false;
+        private boolean enabled = false;
 
         public Builder statusCode(String statusCode, boolean editable) {
             this.statusCode = createValue(statusCode, Value.FieldType.SINGLE_SELECT, editable);
@@ -188,6 +193,16 @@ public class HttpResponse {
             return this;
         }
 
+        public Builder editable(boolean editable) {
+            this.editable = editable;
+            return this;
+        }
+
+        public Builder enabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
+
         public HttpResponse build() {
             if (mediaType == null) {
                 this.mediaType = createValue("", Value.FieldType.EXPRESSION, true);
@@ -204,7 +219,7 @@ public class HttpResponse {
             if (body == null) {
                 this.body = createOptionalValue("", Value.FieldType.EXPRESSION, true);
             }
-            return new HttpResponse(statusCode, body, mediaType, name, type, headers);
+            return new HttpResponse(statusCode, body, mediaType, name, type, headers, editable, enabled);
         }
     }
 }

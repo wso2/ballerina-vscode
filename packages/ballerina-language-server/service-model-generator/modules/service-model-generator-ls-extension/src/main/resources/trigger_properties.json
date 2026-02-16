@@ -127,5 +127,16 @@
       "cdc",
       "event"
     ]
+  },
+  "13": {
+    "name": "postgresql",
+    "orgName": "ballerinax",
+    "packageName": "postgresql",
+    "keywords": [
+      "postgresql",
+      "postgres",
+      "cdc",
+      "event"
+    ]
   }
 }

@@ -67,6 +67,7 @@ public class Constants {
     public static final String SF = "salesforce";
     public static final String TRIGGER_GITHUB = "trigger.github";
     public static final String MSSQL = "mssql";
+    public static final String POSTGRESQL = "postgresql";
 
     public static final String FTP = "ftp";
     public static final String FILE = "file";
@@ -125,12 +126,14 @@ public class Constants {
     public static final String TYPE_HTTP_SERVICE_CONFIG = "http:ServiceConfig";
 
     public static final String PROP_KEY_VARIABLE_NAME = "variableNameKey";
+    public static final String PROP_KEY_LISTENER_TYPE = "listenerType";
     public static final String PROP_KEY_LISTENER = "listener";
     public static final String PROP_KEY_SERVICE_TYPE = "serviceType";
     public static final String PROP_KEY_BASE_PATH = "basePath";
     public static final String PROP_KEY_STRING_LITERAL = "stringLiteral";
     public static final String PROP_READONLY_METADATA_KEY = "readOnlyMetadata";
     public static final String PROP_KEY_DEFAULT_LISTENER = "defaultListener";
+    public static final String DEFAULT_LISTENER_TYPE = "Listener";
 
     // protocol listeners
     public static final String HTTP_DEFAULT_LISTENER_EXPR = "http:getDefaultListener()";

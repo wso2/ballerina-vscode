@@ -27,6 +27,7 @@ import io.ballerina.openapi.core.generators.common.exception.BallerinaOpenApiExc
 import io.ballerina.servicemodelgenerator.extension.core.OpenApiServiceGenerator;
 import io.ballerina.servicemodelgenerator.extension.model.Codedata;
 import io.ballerina.servicemodelgenerator.extension.model.Function;
+import io.ballerina.servicemodelgenerator.extension.model.MetaData;
 import io.ballerina.servicemodelgenerator.extension.model.Parameter;
 import io.ballerina.servicemodelgenerator.extension.model.Service;
 import io.ballerina.servicemodelgenerator.extension.model.ServiceInitModel;
@@ -47,6 +48,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -83,6 +85,9 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
     private static final String FTP_INIT_JSON = "services/ftp_init.json";
     private static final String FTP_SERVICE_JSON = "services/ftp_service.json";
+    public static final String DATA_BINDING = "DATA_BINDING";
+    public static final String STREAM = "stream";
+    public static final String EVENT = "EVENT";
 
     @Override
     public String kind() {
@@ -124,21 +129,21 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
         // After applyEnabledChoiceProperty, all properties are flattened into the main properties map
         String listenerVarName = properties.get("listenerVarName").getValue();
-        String host = cleanQuotes(getPropertyValue(properties, "host", "127.0.0.1"));
+        String host = getPropertyValueLiteralValue(properties, "host", "127.0.0.1");
         String port = getPropertyValue(properties, "portNumber", "21");
-        String folderPath = cleanQuotes(getPropertyValue(properties, "folderPath", "/"));
+        String folderPath = getPropertyValueLiteralValue(properties, "folderPath", "/");
 
         applyEnabledChoiceProperty(serviceInitModel, "authentication");
         String username = getPropertyValue(properties, "userName", "");
         String password = getPropertyValue(properties, "password", "");
-        String privateKey = cleanQuotes(getPropertyValue(properties, "privateKey", ""));
-        String secureSocket = cleanQuotes(getPropertyValue(properties, "secureSocket", ""));
+        String privateKey = getPropertyValueLiteralValue(properties, "privateKey", "");
+        String secureSocket = getPropertyValueLiteralValue(properties, "secureSocket", "");
 
         // Build the listener declaration
         StringBuilder listenerDeclaration = new StringBuilder();
         listenerDeclaration.append("listener ftp:Listener ").append(listenerVarName).append(" = new(");
         listenerDeclaration.append("protocol= ftp:").append(selectedProtocol).append(", ");
-        listenerDeclaration.append("host= \"").append(host).append("\", ");
+        listenerDeclaration.append("host= ").append(host).append(", ");
 
         // Add authentication configuration if any auth details are provided
         if (!username.isEmpty() || !password.isEmpty() || !privateKey.isEmpty() || !secureSocket.isEmpty()) {
@@ -187,7 +192,7 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
 
 
         listenerDeclaration.append("port= ").append(port).append(", ");
-        listenerDeclaration.append("path= \"").append(folderPath).append("\" ");
+        listenerDeclaration.append("path= ").append(folderPath).append(" ");
         listenerDeclaration.append(");");
 
         if (Objects.nonNull(serviceInitModel.getOpenAPISpec())) {
@@ -216,49 +221,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         return Map.of(context.filePath(), edits);
     }
 
-    /**
-     * Helper method to get property value with default fallback.
-     */
-    private String getPropertyValue(Map<String, Value> properties, String key, String defaultValue) {
-        Value property = properties.get(key);
-        if (property != null && property.getValue() != null && !property.getValue().isEmpty()) {
-            return property.getValue();
-        }
-        return defaultValue;
-    }
-
-    /**
-     * Helper method to clean surrounding quotes from string values.
-     */
-    private String cleanQuotes(String value) {
-        if (value == null) {
-            return "";
-        }
-        // Remove surrounding quotes if present
-        String cleaned = value.trim();
-        if (cleaned.startsWith("\"") && cleaned.endsWith("\"") && cleaned.length() > 1) {
-            cleaned = cleaned.substring(1, cleaned.length() - 1);
-        }
-        return cleaned;
-    }
-
-    /**
-     * Helper method to get the enabled choice value.
-     */
-    private String getEnabledChoiceValue(ServiceInitModel serviceInitModel, String propertyKey) {
-        Value property = serviceInitModel.getProperties().get(propertyKey);
-        if (property == null || property.getChoices() == null) {
-            return "FTP";
-        }
-
-        for (Value choice : property.getChoices()) {
-            if (choice.isEnabled()) {
-                return choice.getValue();
-            }
-        }
-        return "FTP";
-    }
-
     @Override
     public Service getModelFromSource(ModelFromSourceContext context) {
         Optional<Service> service = getModelTemplate(GetModelContext.fromServiceAndFunctionType(BALLERINA, FTP));
@@ -278,80 +240,43 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         serviceModel.setCodedata(codedata);
 
         List<Function> functionsInSource = extractFunctionsFromSource(serviceNode);
+        Map<String, Function> functionMap = new HashMap<>();
+        for (Function function : serviceModel.getFunctions()) {
+            if (function.getName() != null && function.getName().getValue() != null) {
+                functionMap.put(function.getName().getValue(), function);
+            }
+        }
 
-        // Enable specific functions in serviceModel if they match enabled functions in functionsInSource
-        // Also copy codedata from functionsInSource while preserving metadata
         if (serviceModel.getFunctions() != null) {
             for (Function sourceFunc : functionsInSource) {
                 if (sourceFunc.isEnabled() && sourceFunc.getName() != null) {
                     String sourceFuncName = sourceFunc.getName().getValue();
-                    serviceModel.getFunctions().stream()
-                        .filter(modelFunc -> modelFunc.getName() != null &&
-                                sourceFuncName.equals(modelFunc.getName().getValue()))
-                        .forEach(modelFunc -> {
-                            modelFunc.setEnabled(true);
-                            modelFunc.setCodedata(sourceFunc.getCodedata());
-                            modelFunc.getCodedata().setModuleName(FTP);
-                            modelFunc.getParameters().forEach(
-                                    parameter -> parameter.setEnabled(false)
-                            );
-                            for (Parameter sourceParam: sourceFunc.getParameters()) {
+                    Function modelFunc = functionMap.get(sourceFuncName);
+                    if (modelFunc != null) {
+                        modelFunc.setEnabled(true);
+                        modelFunc.setCodedata(sourceFunc.getCodedata());
+                        modelFunc.getCodedata().setModuleName(FTP);
 
-                                modelFunc.getParameters().stream().filter(
-                                        modelParam -> modelParam.getType().getValue()
-                                                .equals(sourceParam.getType().getValue()) ||
-                                                modelParam.getKind().equals("DATA_BINDING")
-                                || modelParam.getName().getValue().equals("content")
-                                ).forEach(
-                                        modelParam -> {
-                                            modelParam.setEnabled(true);
-                                        }
-                                );
-                            }
+                        enableParameters(sourceFunc, modelFunc);
+                        updateDatabindingParameter(sourceFunc, modelFunc);
 
-                            if (sourceFunc.getCodedata() != null) {
-                                modelFunc.setCodedata(sourceFunc.getCodedata());
-                            }
-                            // Filter source function parameters (exclude FTP_CALLER_TYPE and FTP_INFO_TYPE)
-                            if (sourceFunc.getParameters() != null) {
-
-                                Parameter sourceParam = sourceFunc.getParameters().getFirst();
-
-
-                                // Update model function parameters based on filtered source parameters
-                                if (modelFunc.getParameters() != null) {
-                                    Parameter modelParam = modelFunc.getParameters().getFirst();
-                                    if (modelParam.getType() != null &&
-                                        "DATA_BINDING".equals(modelParam.getKind())) {
-
-                                        // Update parameter name while preserving placeholder if it exists
-                                        if (sourceParam.getName() != null && modelParam.getName() != null) {
-                                            String sourceParamName = sourceParam.getName().getValue();
-                                            modelParam.getName().setValue(sourceParam.getName().getValue());
-                                            if (sourceParamName != null) {
-                                                modelParam.getName().setPlaceholder(sourceParamName);
-                                            }
-                                        }
-
-                                        // Update parameter type while preserving placeholder if it exists
-                                        if (sourceParam.getType() != null && modelParam.getType() != null) {
-                                            modelParam.getType().setValue(sourceParam.getType().getValue());
-
-                                        }
-                                    }
-                                }
-                            }
-                            if (modelFunc.getProperties().containsKey("stream")) {
-                                // Set stream property based on first parameter type
-                                setStreamProperty(modelFunc, sourceFunc);
-                            }
+                        if (modelFunc.getProperties().containsKey(STREAM)) {
+                            setStreamProperty(modelFunc, sourceFunc);
                         }
-                    );
+                    } else {
+                        // Handle deprecated file handlers
+                        sourceFunc.setEnabled(true);
+                        sourceFunc.setOptional(true);
+                        sourceFunc.setEditable(false);
+                        MetaData sourceMetadata = sourceFunc.getMetadata();
+                        String description = sourceMetadata != null ? sourceMetadata.description() : null;
+                        sourceFunc.setMetadata(new MetaData(EVENT, description));
+                        serviceModel.addFunction(sourceFunc);
+                    }
                 }
             }
         }
 
-        // Initialize readOnly metadata if not present in template (HttpServiceBuilder uses custom template)
         if (serviceModel.getProperty(PROP_READONLY_METADATA_KEY) == null) {
             String serviceType = serviceModel.getType();
             Value readOnlyMetadata = getReadonlyMetadata(serviceModel.getOrgName(), serviceModel.getPackageName(),
@@ -381,6 +306,45 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
         } catch (IOException e) {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Helper method to get property value with default fallback.
+     */
+    private String getPropertyValue(Map<String, Value> properties, String key, String defaultValue) {
+        Value property = properties.get(key);
+        if (property != null && property.getValue() != null && !property.getValue().isEmpty()) {
+            return property.getValue();
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Helper method to get property literal value with default fallback.
+     */
+    private String getPropertyValueLiteralValue(Map<String, Value> properties, String key, String defaultValue) {
+        Value property = properties.get(key);
+        if (property != null && property.getLiteralValue() != null && !property.getLiteralValue().isEmpty()) {
+            return property.getLiteralValue();
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Helper method to get the enabled choice value.
+     */
+    private String getEnabledChoiceValue(ServiceInitModel serviceInitModel, String propertyKey) {
+        Value property = serviceInitModel.getProperties().get(propertyKey);
+        if (property == null || property.getChoices() == null) {
+            return "FTP";
+        }
+
+        for (Value choice : property.getChoices()) {
+            if (choice.isEnabled()) {
+                return choice.getValue();
+            }
+        }
+        return "FTP";
     }
 
     /**
@@ -414,5 +378,49 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                 .build();
 
         modelFunc.addProperty("stream", streamProperty);
+    }
+
+    private static void enableParameters(Function sourceFunc, Function modelFunc) {
+        modelFunc.getParameters().forEach(
+                parameter -> parameter.setEnabled(false)
+        );
+        for (Parameter sourceParam: sourceFunc.getParameters()) {
+
+            modelFunc.getParameters().stream().filter(
+                    modelParam -> modelParam.getType().getValue()
+                            .equals(sourceParam.getType().getValue()) ||
+                            modelParam.getKind().equals(DATA_BINDING)
+                            || modelParam.getName().getValue().equals("content")
+            ).forEach(
+                    modelParam -> {
+                        modelParam.setEnabled(true);
+                    }
+            );
+        }
+    }
+
+    private static void updateDatabindingParameter(Function sourceFunc, Function modelFunc) {
+        if (sourceFunc.getParameters() != null) {
+
+            // In source always data-binding parameter must be the first one
+            Parameter sourceParam = sourceFunc.getParameters().getFirst();
+            if (modelFunc.getParameters() != null) {
+                Parameter modelParam = modelFunc.getParameters().getFirst();
+
+                if (modelParam.getType() != null &&
+                        DATA_BINDING.equals(modelParam.getKind())) {
+
+                    // Update parameter name
+                    if (sourceParam.getName() != null && modelParam.getName() != null) {
+                        modelParam.getName().setValue(sourceParam.getName().getValue());
+                    }
+
+                    // Update a parameter type while preserving placeholder if it exists
+                    if (sourceParam.getType() != null && modelParam.getType() != null) {
+                        modelParam.getType().setValue(sourceParam.getType().getValue());
+                    }
+                }
+            }
+        }
     }
 }

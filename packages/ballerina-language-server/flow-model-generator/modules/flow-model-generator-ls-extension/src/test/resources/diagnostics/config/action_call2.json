@@ -25,8 +25,14 @@
       },
       "types": [
         {
+          "fieldType": "SQL_QUERY",
           "ballerinaType": "sql:ParameterizedQuery",
-          "fieldType": "EXPRESSION"
+          "selected": true
+        },
+        {
+          "ballerinaType": "sql:ParameterizedQuery",
+          "fieldType": "EXPRESSION",
+          "selected": false
         }
       ],
       "placeholder": "``",

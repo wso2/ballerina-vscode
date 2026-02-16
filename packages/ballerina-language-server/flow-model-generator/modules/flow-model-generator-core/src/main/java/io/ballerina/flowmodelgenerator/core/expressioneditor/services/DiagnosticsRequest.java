@@ -51,11 +51,12 @@ public abstract class DiagnosticsRequest extends DebouncedExpressionEditorReques
 
         Property.ValueType fieldType = property.propertyType().fieldType();
         return switch (fieldType) {
-            case EXPRESSION -> new ExpressionDiagnosticsRequest(context);
+            case EXPRESSION, SQL_QUERY -> new ExpressionDiagnosticsRequest(context);
             case LV_EXPRESSION -> new LvExpressionDiagnosticRequest(context);
             case ACTION_OR_EXPRESSION -> new ActionOrExpressionDiagnosticsRequest(context);
             case IDENTIFIER -> new IdentifierDiagnosticsRequest(context);
             case TYPE, ACTION_TYPE -> new TypeDiagnosticRequest(context);
+            case CLAUSE_EXPRESSION -> new DataMapperClauseDiagnosticsRequest(context);
             default -> throw new IllegalArgumentException("Unsupported property type: " + fieldType);
         };
     }

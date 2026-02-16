@@ -22,8 +22,6 @@
         "description": "The resource accessor"
       },
       "placeholder": "GET",
-      "valueType": "SINGLE_SELECT",
-      "valueTypeConstraint": "http:Method",
       "value": "get",
       "items": [
         "GET",
@@ -46,8 +44,6 @@
         "description": "The resource path"
       },
       "placeholder": "",
-      "valueType": "IDENTIFIER",
-      "valueTypeConstraint": "string",
       "value": "anon",
       "enabled": true,
       "editable": true,
@@ -63,8 +59,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Request",
           "value": "http:Request",
           "enabled": true,
           "editable": false,
@@ -73,8 +67,6 @@
         },
         "name": {
           "placeholder": "request",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -96,8 +88,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Caller",
           "value": "http:Caller",
           "enabled": true,
           "editable": false,
@@ -106,8 +96,6 @@
         },
         "name": {
           "placeholder": "caller",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -129,8 +117,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "http:Headers",
           "value": "http:Headers",
           "enabled": true,
           "editable": false,
@@ -139,8 +125,6 @@
         },
         "name": {
           "placeholder": "headers",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -164,8 +148,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "string",
           "enabled": true,
           "editable": true,
@@ -174,8 +156,6 @@
         },
         "name": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -188,8 +168,6 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": false,
           "editable": true,
@@ -212,8 +190,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "string",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "string",
           "enabled": true,
           "editable": true,
@@ -222,8 +198,6 @@
         },
         "name": {
           "placeholder": "name",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -236,8 +210,6 @@
             "description": "The default value"
           },
           "placeholder": "",
-          "valueType": "EXPRESSION",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": false,
           "editable": true,
@@ -246,8 +218,6 @@
         },
         "headerName": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -270,8 +240,6 @@
         "kind": "REQUIRED",
         "type": {
           "placeholder": "",
-          "valueType": "TYPE",
-          "valueTypeConstraint": "anydata",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -280,8 +248,6 @@
         },
         "name": {
           "placeholder": "",
-          "valueType": "IDENTIFIER",
-          "valueTypeConstraint": "string",
           "value": "",
           "enabled": true,
           "editable": true,
@@ -302,7 +268,6 @@
         {
           "statusCode": {
             "imports": {},
-            "valueType": "SINGLE_SELECT",
             "value": "201",
             "enabled": true,
             "editable": false,
@@ -311,7 +276,6 @@
           },
           "body": {
             "imports": {},
-            "valueType": "TYPE",
             "value": "string",
             "enabled": true,
             "editable": false,
@@ -320,7 +284,6 @@
           },
           "mediaType": {
             "imports": {},
-            "valueType": "EXPRESSION",
             "value": "application/text",
             "enabled": true,
             "editable": false,
@@ -329,7 +292,6 @@
           },
           "name": {
             "imports": {},
-            "valueType": "IDENTIFIER",
             "value": "CustomCreated",
             "enabled": true,
             "editable": false,
@@ -338,7 +300,6 @@
           },
           "type": {
             "imports": {},
-            "valueType": "TYPE",
             "enabled": true,
             "editable": false,
             "optional": true,
@@ -346,7 +307,6 @@
           },
           "headers": {
             "imports": {},
-            "valueType": "HEADER_SET",
             "value": [
               {
                 "type": "string",
@@ -362,6 +322,73 @@
           "enabled": true,
           "editable": false,
           "advanced": false
+        },
+        {
+          "statusCode": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "200",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "body": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "string",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "name": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "type": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "http:Ok",
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "headers": {
+            "metadata": {
+              "label": "",
+              "description": ""
+            },
+            "value": "",
+            "values": [
+              {
+                "name": "usr",
+                "type": "string",
+                "optional": false
+              }
+            ],
+            "enabled": true,
+            "editable": true,
+            "optional": false,
+            "advanced": false
+          },
+          "enabled": true,
+          "editable": false,
+          "advanced": false
         }
       ],
       "schema": {
@@ -372,8 +399,6 @@
               "description": "HTTP status code for the response"
             },
             "placeholder": "",
-            "valueType": "SINGLE_SELECT",
-            "valueTypeConstraint": "",
             "value": "",
             "items": [],
             "enabled": true,
@@ -386,7 +411,6 @@
               "label": "Response Body Schema",
               "description": "The data type or schema of the response body"
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -398,7 +422,6 @@
               "label": "Media Type",
               "description": "Value for the Content-Type header in the response"
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -410,7 +433,6 @@
               "label": "Response Definition Name",
               "description": "Define a name for the response definition"
             },
-            "valueType": "OPTIONAL_IDENTIFIER",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -422,7 +444,6 @@
               "label": "Response Type",
               "description": "Select a response type"
             },
-            "valueType": "TYPE",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -434,7 +455,6 @@
               "label": "Headers",
               "description": "Add mandatory or optional headers to the response"
             },
-            "valueType": "HEADER_SET",
             "value": "",
             "enabled": true,
             "editable": true,
@@ -453,8 +473,6 @@
         "description": "Return type of the function"
       },
       "placeholder": "",
-      "valueType": "TYPE",
-      "valueTypeConstraint": "anydata|http:Response|http:StatusCodeResponse",
       "value": "record {|\n        *http:Created;\n        string body;\n        \"application/text\" mediaType = \"application/text\";\n        record {|string x\\-path;|} headers?;\n    |}",
       "enabled": true,
       "editable": true,
@@ -491,16 +509,6 @@
           "moduleName": "http"
         },
         "placeholder": "{}",
-        "valueType": "EXPRESSION",
-        "valueTypeConstraint": "http:HttpResourceConfig",
-        "typeMembers": [
-          {
-            "type": "HttpResourceConfig",
-            "packageInfo": "ballerina:http:2.14.0",
-            "kind": "RECORD_TYPE",
-            "selected": false
-          }
-        ],
         "enabled": true,
         "editable": true,
         "optional": true,
@@ -521,7 +529,7 @@
             "character": 5
           }
         },
-        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"application/text\";\n\t\trecord {|\n\t\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t\t|} headers?;\n\t|} {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
+        "newText": "\n\tresource function get anon() returns error|record {|\n\t\t*http:Created;\tstring body;\n\t\t\"application/text\" mediaType = \"application/text\";\n\t\trecord {|\n\t\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t\t|} headers?;\n\t|}|record {|\n\t\t*http:Ok;\tstring body;\n\t\trecord {|\n\t\t\tstring usr;\n\t\t\t(string|int|boolean|string[]|int[]|boolean[])...;\n\t\t|} headers?;\n\t|} {\n\t\tdo {\n\t\t} on fail error err {\n\t\t\t// handle error\n\t\t\treturn error(\"unhandled error\", err);\n\t\t}\n\t}\n"
       }
     ]
   }

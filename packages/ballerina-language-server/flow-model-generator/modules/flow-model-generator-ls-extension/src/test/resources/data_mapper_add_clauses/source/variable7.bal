@@ -17,9 +17,13 @@ service OASServiceType on new http:Listener(9090) {
 	resource function get pet() returns int|http:NotFound {
         do {
             UserInfo userInfo = {username: "un", password: "pw"};
-            Student student = let Student s = {username: "U", password: "PWD"}, int x = 2 in {username: userInfo.username};
+            Credentials credentials = let string str = "" in {userInfo: from var item in userInfo select {password: item.password}};
 		} on fail error e {
 			return http:NOT_FOUND;
 		}
 	}
 }
+
+type Credentials record {|
+   UserInfo[] userInfo;
+|};

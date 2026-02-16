@@ -37,7 +37,7 @@
         "displayName": "myTypes1",
         "typeName": "MyType[]",
         "kind": "array",
-        "category": "variable",
+        "category": "local-variable",
         "ref": "2079019383"
       },
       {

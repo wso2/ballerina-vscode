@@ -137,7 +137,8 @@ public class CommonUtils {
             AI_MISTRAL, AI_OLLAMA, AI_AZURE);
 
     private static final String DOUBLE_QUOTE = "\"";
-    private static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
+    public static final Pattern STRING_TEMPLATE_PATTERN = Pattern.compile("string\\s*`.*`", Pattern.DOTALL);
+    private static final String LS = System.lineSeparator();
 
     /**
      * Removes the quotes from the given string.
@@ -1331,7 +1332,7 @@ public class CommonUtils {
             return null;
         }
 
-        if (!STRING_TEMPLATE_PATTERN.matcher(value).matches()) {
+        if (!STRING_TEMPLATE_PATTERN.matcher(value).matches() || value.contains(LS)) {
             return value;
         }
 
@@ -1347,7 +1348,27 @@ public class CommonUtils {
                 ? exprNode.content().get(0).toString().trim()
                 : exprNode.toString().trim();
 
-        return DOUBLE_QUOTE + content + DOUBLE_QUOTE;
+        return DOUBLE_QUOTE + escapeContent(content) + DOUBLE_QUOTE;
+    }
+
+    /**
+     * Escapes backslashes and double quotes in the given content string.
+     *
+     * @param content the content string to escape
+     * @return the escaped content string
+     */
+    private static String escapeContent(String content) {
+        return content.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    /**
+     * Unescapes backslashes and double quotes in the given content string.
+     *
+     * @param content the content string to unescape
+     * @return the unescaped content string
+     */
+    public static String unescapeContent(String content) {
+        return content.replace("\\\"", "\"").replace("\\\\", "\\");
     }
 
     /**

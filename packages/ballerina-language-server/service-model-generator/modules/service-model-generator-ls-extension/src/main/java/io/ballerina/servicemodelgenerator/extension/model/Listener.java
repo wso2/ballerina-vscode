@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_LISTENER_TYPE;
 import static io.ballerina.servicemodelgenerator.extension.util.Constants.PROP_KEY_VARIABLE_NAME;
 import static io.ballerina.servicemodelgenerator.extension.util.Utils.getValueString;
 
@@ -101,7 +102,7 @@ public class Listener {
         StringBuilder declaration = new StringBuilder();
         declaration.append("listener ")
                 .append(listenerProtocol)
-                .append(":Listener ")
+                .append(":").append(getListenerTypeProperty().getValue()).append(" ")
                 .append(getValueString(getVariableNameProperty()))
                 .append(" = new ");
 
@@ -119,7 +120,7 @@ public class Listener {
      */
     public String getInlineListenerExpression() {
         StringBuilder expression = new StringBuilder("new ");
-        expression.append(listenerProtocol).append(":Listener ");
+        expression.append(listenerProtocol).append(":").append(getListenerTypeProperty().getValue()).append(" ");
         appendListenerConstructorCall(expression);
         return expression.toString();
     }
@@ -161,6 +162,10 @@ public class Listener {
 
     public Value getVariableNameProperty() {
         return properties.get(PROP_KEY_VARIABLE_NAME);
+    }
+
+    public Value getListenerTypeProperty() {
+        return properties.get(PROP_KEY_LISTENER_TYPE);
     }
 
     public Map<String, Value> getProperties() {

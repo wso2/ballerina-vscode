@@ -63,7 +63,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -97,7 +97,7 @@
         },
         "types": [
           {
-            "fieldType": "TEXT",
+            "fieldType": "DOC_TEXT",
             "selected": true
           }
         ],
@@ -168,7 +168,7 @@
                   },
                   "types": [
                     {
-                      "fieldType": "TEXT",
+                      "fieldType": "DOC_TEXT",
                       "selected": false
                     }
                   ],
@@ -230,7 +230,7 @@
                 ],
                 "value": "a",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -254,7 +254,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],
@@ -312,7 +312,7 @@
                 ],
                 "value": "b",
                 "optional": false,
-                "editable": true,
+                "editable": false,
                 "advanced": false,
                 "hidden": false,
                 "codedata": {
@@ -336,7 +336,7 @@
                 },
                 "types": [
                   {
-                    "fieldType": "TEXT",
+                    "fieldType": "DOC_TEXT",
                     "selected": false
                   }
                 ],

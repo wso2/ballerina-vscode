@@ -265,7 +265,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .stepOut()
                 .value(value == null ? "" : value)
                 .type()
-                    .fieldType(Property.ValueType.TEXT)
+                    .fieldType(Property.ValueType.DOC_TEXT)
                     .selected(true)
                     .stepOut()
                 .optional(true)
@@ -283,7 +283,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .stepOut()
                 .value(value == null ? "" : value)
                 .type()
-                    .fieldType(Property.ValueType.TEXT)
+                    .fieldType(Property.ValueType.DOC_TEXT)
                     .selected(true)
                     .stepOut()
                 .optional(true)
@@ -317,9 +317,16 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         data(node == null ? null : node.bindingPattern(), variableLabel, variableDoc,
                 NameUtil.generateTypeName("var", names), false);
 
-        String typeName = node == null ? "" : CommonUtils.getTypeSymbol(semanticModel, node)
-                .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
-                .orElse(CommonUtils.getVariableName(node));
+        String typeName;
+        if (node == null) {
+            typeName = "";
+        } else if (node.typeDescriptor().kind() == SyntaxKind.VAR_TYPE_DESC) {
+            typeName = "var";
+        } else {
+            typeName = CommonUtils.getTypeSymbol(semanticModel, node)
+                    .map(typeSymbol -> CommonUtils.getTypeSignature(semanticModel, typeSymbol, true, moduleInfo))
+                    .orElse(CommonUtils.getVariableName(node));
+        }
         return type(typeName, typeDoc, editable, null, node == null ? null : node.typeDescriptor().lineRange(), hidden);
     }
 
@@ -1207,6 +1214,38 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
         return parameter(type, name, token);
     }
 
+    public FormBuilder<T> dataMapperParameter(String type, String name, Property.ValueType valueType,
+                                              String fieldType) {
+        nestedProperty();
+        propertyBuilder
+                .metadata()
+                    .label(Property.IMPLICIT_TYPE_LABEL)
+                    .description(Property.PARAMETER_TYPE_DOC)
+                    .stepOut()
+                .type(valueType, fieldType)
+                .value(type)
+                .hidden()
+                .editable();
+        addProperty(Property.TYPE_KEY);
+
+        // Build the parameter name property
+        propertyBuilder
+                .metadata()
+                    .label(Property.VARIABLE_KEY)
+                    .description(Property.VARIABLE_DOC)
+                    .stepOut()
+                .type()
+                    .fieldType(Property.ValueType.LV_EXPRESSION)
+                    .selected(true)
+                    .stepOut()
+                .editable()
+                .value(name);
+        addProperty(Property.VARIABLE_KEY);
+
+        return endNestedProperty(Property.ValueType.FIXED_PROPERTY, name, Property.PARAMETER_LABEL,
+                Property.PARAMETER_DOC);
+    }
+
     public FormBuilder<T> parameter(String type, String name, Token token, Property.ValueType valueType,
                                     String fieldType) {
         propertyBuilder.type(valueType, fieldType);
@@ -1274,7 +1313,6 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .description(Property.PARAMETER_VARIABLE_DOC)
                 .stepOut()
                 .type(Property.ValueType.IDENTIFIER)
-                .editable()
                 .value(name);
 
         if (token == null) {
@@ -1291,7 +1329,7 @@ public class FormBuilder<T> extends FacetedBuilder<T> {
                 .label(Property.DESCRIPTION_LABEL)
                 .description(Property.PARAMETER_DESCRIPTION_TYPE_DOC)
                 .stepOut()
-                .type(Property.ValueType.TEXT)
+                .type(Property.ValueType.DOC_TEXT)
                 .value(description)
                 .optional(true)
                 .editable();
