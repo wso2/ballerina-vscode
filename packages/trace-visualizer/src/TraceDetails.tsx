@@ -6,7 +6,7 @@
  * in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -16,384 +16,488 @@
  * under the License.
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import styled from "@emotion/styled";
 import { TraceData, SpanData } from "./index";
-import { Codicon } from "@wso2/ui-toolkit";
+import { Codicon, Icon } from "@wso2/ui-toolkit";
+import { SpanDetails } from "./components/SpanDetails";
+import { WaterfallView } from "./components/WaterfallView";
+import { TraceEmptyState } from "./components/TraceEmptyState";
+import { SpanTree, AISpanTreeContainer } from "./components/SpanTree";
+import { SearchInput } from "./components/SearchInput";
+import { ExportDropdown } from "./components/ExportDropdown";
+import {
+    timeContainsSpan,
+    sortSpansByUmbrellaFirst,
+    isAISpan
+} from "./utils";
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+const MIN_SIDEBAR_WIDTH = 260;
+const SNAP_THRESHOLD = 100;
+const MIN_DETAILS_PANEL_WIDTH = 250;
+const MAX_INITIAL_SIDEBAR_WIDTH = 300;
+const MAX_SIDEBAR_PERCENTAGE = 0.6;
 
 interface TraceDetailsProps {
     traceData: TraceData;
     isAgentChat: boolean;
+    focusSpanId?: string;
+    onViewSession?: () => void;
 }
+
+// ============================================================================
+// BASE LAYOUT STYLES
+// ============================================================================
 
 const Container = styled.div`
     margin: 0;
-    padding: 20px;
+    padding: 0;
     font-family: var(--vscode-font-family);
     background-color: var(--vscode-editor-background);
     color: var(--vscode-editor-foreground);
     font-size: 13px;
     line-height: 1.5;
     height: 100vh;
-    overflow-y: auto;
-`;
-
-const Header = styled.div`
-    border-bottom: 2px solid var(--vscode-panel-border);
-    padding-bottom: 10px;
-    margin-bottom: 20px;
-`;
-
-const Title = styled.h1`
-    margin: 0 0 10px 0;
-    font-size: 18px;
-    color: var(--vscode-textLink-foreground);
-`;
-
-const Section = styled.div`
-    margin-bottom: 30px;
-`;
-
-const SectionTitle = styled.div`
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: var(--vscode-textLink-foreground);
-    border-bottom: 1px solid var(--vscode-panel-border);
-    padding-bottom: 5px;
-`;
-
-const InfoGrid = styled.div`
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    gap: 8px 12px;
-    margin-bottom: 15px;
-`;
-
-const InfoLabel = styled.div`
-    font-weight: 600;
-    color: var(--vscode-descriptionForeground);
-`;
-
-const InfoValue = styled.div`
-    font-family: 'Consolas', 'Monaco', monospace;
-    word-break: break-all;
-    color: var(--vscode-editor-foreground);
-`;
-
-const AttributesContainer = styled.div`
-    margin-top: 10px;
-`;
-
-const AttributeItem = styled.div`
-    padding: 4px 0;
-    margin-bottom: 5px;
-`;
-
-const AttributeKey = styled.span`
-    font-weight: 600;
-    color: var(--vscode-textLink-foreground);
-`;
-
-const AttributeValue = styled.span`
-    font-family: 'Consolas', 'Monaco', monospace;
-    margin-left: 10px;
-    color: var(--vscode-editor-foreground);
-`;
-
-const CollapsibleSection = styled.div`
-    cursor: pointer;
-    user-select: none;
-
-    &:hover {
-        opacity: 0.8;
-    }
-`;
-
-const CollapsibleContent = styled.div<{ isOpen: boolean }>`
-    display: ${(props: { isOpen: boolean }) => props.isOpen ? 'block' : 'none'};
-`;
-
-// Span Tree Styles
-const SpanTreeContainer = styled.div`
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 12px;
-    margin-bottom: 20px;
-    max-height: 400px;
-    overflow-y: auto;
-`;
-
-const TreeItem = styled.div<{ level: number; isSelected: boolean }>`
-    display: flex;
-    align-items: center;
-    padding: 4px 6px;
-    padding-left: ${(props: { level: number }) => props.level * 16}px;
-    cursor: pointer;
-    border-radius: 3px;
-    gap: 8px;
-    background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
-
-    &:hover {
-        background-color: ${(props: { isSelected: boolean }) =>
-            props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'var(--vscode-list-hoverBackground)'};
-    }
-`;
-
-const TreeChevron = styled.span`
-    display: inline-flex;
-    width: 16px;
-    height: 16px;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-`;
-
-const SpanNameInTree = styled.span`
-    flex: 1;
-    font-size: 13px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 `;
 
-const SpanKindBadge = styled.span`
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 3px;
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    flex-shrink: 0;
-`;
-
-// Span Details Panel Styles
-const DetailsPanel = styled.div`
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 16px;
-    margin-bottom: 4px;
-`;
-
-const DetailsPanelHeader = styled.div`
+const TraceLogsContainer = styled.div`
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--vscode-panel-border);
+    flex-direction: row;
+    align-items: stretch;
+    height: 100%;
+    overflow: hidden;
 `;
 
-const DetailsPanelTitle = styled.h3`
-    margin: 0;
-    font-size: 16px;
-    color: var(--vscode-textLink-foreground);
+const SpanViewContainer = styled.div<{ width: number; isResizing?: boolean }>`
+    width: ${(props: { width: number }) => props.width}px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    flex-shrink: 0;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: -4px;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 10;
+        background-color: ${(props: { isResizing?: boolean }) =>
+        props.isResizing ? 'var(--vscode-focusBorder, var(--vscode-panel-border))' : 'transparent'};
+        opacity: ${(props: { isResizing?: boolean }) => props.isResizing ? '0.5' : '0'};
+        transition: ${(props: { isResizing?: boolean }) =>
+        props.isResizing ? 'none' : 'opacity 0.2s ease, background-color 0.2s ease'};
+    }
 `;
 
-const DetailsPanelKind = styled.span`
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 3px;
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
+const DetailsPanelContainer = styled.div`
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--vscode-panel-border);
+    overflow: hidden;
 `;
 
-const DetailsGrid = styled.div`
-    display: grid;
-    grid-template-columns: 150px 1fr;
-    gap: 8px 12px;
-    margin-bottom: 20px;
-`;
+// ============================================================================
+// NAVIGATION & CONTROLS
+// ============================================================================
 
-const AttributesSection = styled.div`
-    margin-top: 20px;
-`;
-
-const AttributesSectionTitle = styled.div`
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 12px;
-    color: var(--vscode-descriptionForeground);
-`;
-
-// Navigation button styles
 const NavigationBar = styled.div`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid var(--vscode-panel-border);
+    margin-top: 24px;
+    margin-bottom: 8px;
+    padding: 0 8px;
 `;
 
-const NavButton = styled.button`
+const ModeToggleButton = styled.button<{ isSelected?: boolean; }>`
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 3px;
+    padding: 4px 8px;
+    background: ${(props: { isSelected?: boolean }) => props.isSelected ? 'var(--vscode-list-activeSelectionBackground)' : 'transparent'};
+    border: 1px solid var(--vscode-panel-border);
+    color: var(--vscode-foreground);
+    border-radius: 4px;
     cursor: pointer;
     font-size: 13px;
-    font-family: var(--vscode-font-family);
+    transition: background-color 0.15s ease;
 
     &:hover {
-        background-color: var(--vscode-button-hoverBackground);
+        background-color: var(--vscode-list-hoverBackground);
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 `;
 
-const BackButton = styled.button`
+const ButtonGroup = styled.div`
+    display: flex;
+    gap: 4px;
+    align-items: center;
+`;
+
+// ============================================================================
+// DETAILS PANEL
+// ============================================================================
+
+const DetailsPanel = styled.div`
+    background-color: var(--vscode-editor-background);
+    height: 100%;
+    overflow-y: auto;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+`;
+
+const BreadcrumbContainer = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-editor-background);
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    flex-shrink: 0;
+`;
+
+const BreadcrumbItem = styled.button<{ isClickable?: boolean }>`
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
-    background-color: transparent;
-    color: var(--vscode-textLink-foreground);
+    background: transparent;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     border: none;
-    cursor: pointer;
+    padding: 0;
+    color: ${(props: { isClickable: boolean; }) => props.isClickable ? 'var(--vscode-textLink-foreground)' : 'var(--vscode-foreground)'};
+    cursor: ${(props: { isClickable: boolean; }) => props.isClickable ? 'pointer' : 'default'};
     font-size: 12px;
     font-family: var(--vscode-font-family);
 
     &:hover {
-        text-decoration: underline;
-        color: var(--vscode-textLink-activeForeground);
+        ${(props: { isClickable: boolean; }) => props.isClickable && `
+            text-decoration: underline;
+            color: var(--vscode-textLink-activeForeground);
+        `}
+
+        i::before {
+            text-decoration: none;
+        }
     }
 `;
 
-// Agent Chat Logs Styles
-const AgentChatLogsContainer = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-`;
-
-const AISpanTreeContainer = styled.div`
-    background-color: var(--vscode-editor-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 12px;
-    max-height: 400px;
-    overflow-y: auto;
-`;
-
-const AISpanTreeItem = styled.div<{ level: number; isSelected: boolean }>`
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    padding-left: ${(props: { level: number }) => props.level * 20 + 8}px;
-    cursor: pointer;
-    border-radius: 3px;
-    gap: 8px;
-    position: relative;
-    background-color: ${(props: { isSelected: boolean }) =>
-        props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'transparent'};
-
-    &:hover {
-        background-color: ${(props: { isSelected: boolean }) =>
-            props.isSelected ? 'var(--vscode-list-inactiveSelectionBackground)' : 'var(--vscode-list-hoverBackground)'};
-    }
-
-    /* Vertical line for tree structure */
-    ${(props: { level: number }) => props.level > 0 && `
-        &::before {
-            content: '';
-            position: absolute;
-            left: ${props.level * 20 - 4}px;
-            top: 0;
-            bottom: 50%;
-            width: 1px;
-            background-color: var(--vscode-tree-indentGuidesStroke);
-            opacity: 0.4;
-        }
-
-        /* Horizontal branch line */
-        &::after {
-            content: '';
-            position: absolute;
-            left: ${props.level * 20 - 4}px;
-            top: 50%;
-            width: 8px;
-            height: 1px;
-            background-color: var(--vscode-tree-indentGuidesStroke);
-            opacity: 0.4;
-        }
-    `}
-`;
-
-const AISpanBadge = styled.span<{ type: string }>`
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    font-weight: 500;
-    flex-shrink: 0;
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-`;
-
-const AISpanLabel = styled.span`
-    flex: 1;
-    font-size: 13px;
-`;
-
-const AISpanDuration = styled.span`
-    font-size: 11px;
+const BreadcrumbSeparator = styled.span`
     color: var(--vscode-descriptionForeground);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
+    font-size: 12px;
 `;
 
-const EmptyState = styled.div`
+const DetailsPanelContent = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 16px;
+`;
+
+// ============================================================================
+// SEARCH INPUT
+// ============================================================================
+
+const SearchInputWrapper = styled.div`
+    padding: 8px;
+    background-color: var(--vscode-editor-background);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    box-sizing: border-box;
     display: flex;
-    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+`;
+
+const ActionButton = styled.button`
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
-    text-align: center;
-    padding: 40px;
-    color: var(--vscode-descriptionForeground);
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--vscode-input-border);
+    color: var(--vscode-foreground);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background-color: var(--vscode-list-hoverBackground);
+        border-color: var(--vscode-focusBorder);
+    }
 `;
 
-const EmptyStateIcon = styled.div`
-    font-size: 48px;
-    margin-bottom: 20px;
-    opacity: 0.5;
-`;
+// ============================================================================
+// COMPONENT DEFINITIONS
+// ============================================================================
 
-const EmptyStateText = styled.div`
-    font-size: 16px;
-    margin-bottom: 8px;
-`;
-
-export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
-    const [expandedSections, setExpandedSections] = useState<Set<string>>(
-        new Set(['trace', 'resource', 'scope', 'spans'])
-    );
-    const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
+export function TraceDetails({ traceData, isAgentChat, focusSpanId, onViewSession }: TraceDetailsProps) {
     const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
-    const [showFullTrace, setShowFullTrace] = useState<boolean>(false);
+    const [showFullTrace] = useState<boolean>(false);
 
-    // Update page title when switching views
-    useEffect(() => {
-        if (isAgentChat) {
-            document.title = showFullTrace ? 'Trace Details' : 'Agent Chat Logs';
-        }
-    }, [isAgentChat, showFullTrace]);
+    // Rename state to capture user preference specifically
+    const [userAdvancedModePreference, setUserAdvancedModePreference] = useState<boolean>(false);
 
-    const toggleSection = (section: string) => {
-        const newExpanded = new Set(expandedSections);
-        if (newExpanded.has(section)) {
-            newExpanded.delete(section);
-        } else {
-            newExpanded.add(section);
-        }
-        setExpandedSections(newExpanded);
+    const [viewMode, setViewMode] = useState<'tree' | 'timeline'>('tree');
+    const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(!(isAgentChat && focusSpanId !== undefined));
+
+    const [expandedSpans, setExpandedSpans] = useState<Set<string>>(new Set());
+    const [expandedAdvancedSpanGroups, setExpandedAdvancedSpanGroups] = useState<Set<string>>(new Set());
+    const [waterfallCollapsedSpanIds, setWaterfallCollapsedSpanIds] = useState<Set<string>>(new Set());
+
+    const [containerWidth, setContainerWidth] = useState<number>(window.innerWidth);
+    const [spanViewWidth, setSpanViewWidth] = useState<number>(0);
+    const [isResizing, setIsResizing] = useState<boolean>(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const hasAutoExpandedRef = useRef<boolean>(false);
+    const lastFocusedSpanIdRef = useRef<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Calculate total span counts (memoized for immediate availability)
+    const totalSpanCounts = useMemo(() => {
+        // Fallback to manual check in case isAISpan utility behaves unexpectedly
+        const aiSpans = traceData.spans.filter(span =>
+            isAISpan(span) ||
+            span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
+        );
+        const aiCount = aiSpans.length;
+        const nonAiCount = traceData.spans.length - aiCount;
+        return { aiCount, nonAiCount };
+    }, [traceData.spans]);
+
+    // DERIVED STATE: Determine if we should show advanced mode
+    // - If opened from trace tree view (!isAgentChat), always show all spans (advanced mode)
+    // - If opened from agent chat (isAgentChat):
+    //   - If there are NO AI spans, force Advanced Mode (Show Hidden/Raw Spans)
+    //   - If there ARE AI spans, use the user's preference
+    const hasAISpans = totalSpanCounts.aiCount > 0;
+    const isAdvancedMode = !isAgentChat || !hasAISpans || userAdvancedModePreference;
+
+    // Helper to get immediate AI children of a span (defined early for reuse)
+    const getAIChildSpans = (spanId: string): SpanData[] => {
+        const parentSpan = traceData.spans.find(s => s.spanId === spanId);
+        if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) return [];
+
+        const parentStart = new Date(parentSpan.startTime).getTime();
+        const parentEnd = new Date(parentSpan.endTime).getTime();
+        const aiSpans = traceData.spans.filter(span =>
+            span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
+        );
+
+        const children: SpanData[] = [];
+
+        aiSpans.forEach(potentialChild => {
+            if (potentialChild.spanId === spanId) return;
+            if (!potentialChild.startTime || !potentialChild.endTime) return;
+            const childStart = new Date(potentialChild.startTime).getTime();
+            const childEnd = new Date(potentialChild.endTime).getTime();
+            const parentContainsChild = parentStart <= childStart && parentEnd >= childEnd &&
+                (parentStart < childStart || parentEnd > childEnd);
+
+            if (!parentContainsChild) return;
+
+            let hasIntermediateParent = false;
+            aiSpans.forEach(intermediateSpan => {
+                if (intermediateSpan.spanId === spanId || intermediateSpan.spanId === potentialChild.spanId) return;
+                if (!intermediateSpan.startTime || !intermediateSpan.endTime) return;
+                const intStart = new Date(intermediateSpan.startTime).getTime();
+                const intEnd = new Date(intermediateSpan.endTime).getTime();
+                const intermediateContainsChild = intStart <= childStart && intEnd >= childEnd &&
+                    (intStart < childStart || intEnd > childEnd);
+                const parentContainsIntermediate = parentStart <= intStart && parentEnd >= intEnd &&
+                    (parentStart < intStart || parentEnd > intEnd);
+
+                if (intermediateContainsChild && parentContainsIntermediate) {
+                    hasIntermediateParent = true;
+                }
+            });
+
+            if (!hasIntermediateParent) children.push(potentialChild);
+        });
+
+        return children.sort((a, b) => {
+            const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
+            const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
+            return aTime - bTime;
+        });
     };
+
+    // Auto-expand invoke agent spans and their immediate children (1 level) by default
+    const hasAutoExpandedAIRef = useRef<boolean>(false);
+    useEffect(() => {
+        if (!isAdvancedMode && !hasAutoExpandedAIRef.current && expandedSpans.size === 0) {
+            const spansToExpand = new Set<string>();
+
+            // Find all invoke agent spans
+            const invokeSpans = traceData.spans.filter(span => {
+                const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
+                return operationName.startsWith('invoke_agent');
+            });
+
+            // Expand each invoke span and its immediate children
+            invokeSpans.forEach(span => {
+                spansToExpand.add(span.spanId);
+                // Reuse existing getAIChildSpans logic to find immediate children
+                const children = getAIChildSpans(span.spanId);
+                children.forEach(child => spansToExpand.add(child.spanId));
+            });
+
+            setExpandedSpans(spansToExpand);
+            hasAutoExpandedAIRef.current = true;
+        }
+    }, [isAdvancedMode, traceData.spans, expandedSpans.size]);
+
+    const handleToggleAll = () => {
+        const getParentsForCurrentView = () => {
+            const parentIds = new Set<string>();
+
+            // Standard Trace Parents (always include)
+            const existingIds = new Set(traceData.spans.map(s => s.spanId));
+            traceData.spans.forEach(s => {
+                if (s.parentSpanId && existingIds.has(s.parentSpanId)) {
+                    parentIds.add(s.parentSpanId);
+                }
+            });
+
+            // If in simple tree view, check for AI spans that contain other AI spans
+            if (viewMode === 'tree' && !isAdvancedMode) {
+                const aiSpans = traceData.spans.filter(span =>
+                    span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
+                );
+
+                // Helper to check time containment (re-using logic from getAIChildSpans)
+                const containsTime = (parent: SpanData, child: SpanData) => {
+                    const pStart = new Date(parent.startTime).getTime();
+                    const pEnd = new Date(parent.endTime).getTime();
+                    const cStart = new Date(child.startTime).getTime();
+                    const cEnd = new Date(child.endTime).getTime();
+                    return pStart <= cStart && pEnd >= cEnd;
+                };
+
+                aiSpans.forEach(parent => {
+                    if (parentIds.has(parent.spanId)) return; // Already added
+
+                    const hasChild = aiSpans.some(child =>
+                        child.spanId !== parent.spanId && containsTime(parent, child)
+                    );
+
+                    if (hasChild) parentIds.add(parent.spanId);
+                });
+            }
+
+            return parentIds;
+        };
+
+        if (viewMode === 'tree') {
+            // If any are expanded, collapse all. Otherwise, expand calculated parents.
+            if (expandedSpans.size > 0) {
+                setExpandedSpans(new Set());
+            } else {
+                setExpandedSpans(getParentsForCurrentView());
+            }
+        } else {
+            // Waterfall Logic
+            if (waterfallCollapsedSpanIds.size > 0) {
+                setWaterfallCollapsedSpanIds(new Set());
+            } else {
+                setWaterfallCollapsedSpanIds(getParentsForCurrentView());
+            }
+        }
+    };
+
+    const getToggleState = () => {
+        if (viewMode === 'tree') {
+            const isAnyExpanded = expandedSpans.size > 0;
+            return {
+                icon: isAnyExpanded ? 'bi-collapse-item' : 'bi-expand-item',
+                tooltip: isAnyExpanded ? 'Collapse All' : 'Expand All'
+            };
+        } else {
+            const isAnyCollapsed = waterfallCollapsedSpanIds.size > 0;
+            return {
+                icon: isAnyCollapsed ? 'bi-expand-item' : 'bi-collapse-item',
+                tooltip: isAnyCollapsed ? 'Expand All' : 'Collapse All'
+            };
+        }
+    };
+
+    const toggleState = getToggleState();
+
+    // Initialize span view width intelligently
+    useEffect(() => {
+        if (containerRef.current && spanViewWidth === 0) {
+            const currentContainerWidth = containerRef.current.offsetWidth;
+            let targetWidth = currentContainerWidth * 0.3;
+
+            if (targetWidth > MAX_INITIAL_SIDEBAR_WIDTH) {
+                targetWidth = MAX_INITIAL_SIDEBAR_WIDTH;
+            }
+
+            if (targetWidth < MIN_SIDEBAR_WIDTH) {
+                targetWidth = MIN_SIDEBAR_WIDTH;
+            }
+
+            const maxAllowedWidth = currentContainerWidth - MIN_DETAILS_PANEL_WIDTH;
+
+            if (targetWidth > maxAllowedWidth) {
+                targetWidth = Math.max(150, maxAllowedWidth);
+                if (maxAllowedWidth < 100) {
+                    setIsSidebarVisible(false);
+                }
+            }
+
+            setSpanViewWidth(targetWidth);
+        }
+    }, []);
+
+    // Track container width for responsive behavior
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const newWidth = entry.contentRect.width;
+                setContainerWidth(newWidth);
+
+                // If the sidebar is open, ensure it doesn't violate boundaries on window resize
+                if (isSidebarVisible && spanViewWidth > 0) {
+                    const maxAllowed = newWidth - MIN_DETAILS_PANEL_WIDTH;
+                    if (spanViewWidth > maxAllowed) {
+                        setSpanViewWidth(Math.max(MIN_SIDEBAR_WIDTH, maxAllowed));
+                    }
+                }
+            }
+        });
+
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
+
+        return () => {
+            resizeObserver.disconnect();
+        };
+    }, [spanViewWidth, isSidebarVisible]);
 
     const toggleSpanExpansion = (spanId: string) => {
         const newExpanded = new Set(expandedSpans);
@@ -433,21 +537,6 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
 
     const duration = new Date(traceData.lastSeen).getTime() - new Date(traceData.firstSeen).getTime();
 
-    const getSpanKindLabel = (kind: string | number): string => {
-        if (typeof kind === 'string') {
-            return kind;
-        }
-        const kindMap: { [key: number]: string } = {
-            0: 'UNSPECIFIED',
-            1: 'INTERNAL',
-            2: 'SERVER',
-            3: 'CLIENT',
-            4: 'PRODUCER',
-            5: 'CONSUMER'
-        };
-        return kindMap[kind] || `UNKNOWN(${kind})`;
-    };
-
     // Build span hierarchy
     const spanMap = new Map<string, SpanData>();
     const rootSpans: SpanData[] = [];
@@ -467,121 +556,179 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
     });
 
     // Sort root spans: umbrella spans (those that contain others) come first, then by start time
-    rootSpans.sort((a, b) => {
-        const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
-        const aEnd = a.endTime ? new Date(a.endTime).getTime() : 0;
-        const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
-        const bEnd = b.endTime ? new Date(b.endTime).getTime() : 0;
-
-        // Check if 'a' contains 'b' (a is umbrella over b)
-        const aContainsB = aStart <= bStart && aEnd >= bEnd && (aStart < bStart || aEnd > bEnd);
-        // Check if 'b' contains 'a' (b is umbrella over a)
-        const bContainsA = bStart <= aStart && bEnd >= aEnd && (bStart < aStart || bEnd > aEnd);
-
-        if (aContainsB) return -1; // a comes before b (a is umbrella)
-        if (bContainsA) return 1;  // b comes before a (b is umbrella)
-
-        // Neither contains the other, sort by start time
-        return aStart - bStart;
-    });
-
-    // Select first span on load
-    useEffect(() => {
-        if (!selectedSpanId && rootSpans.length > 0) {
-            setSelectedSpanId(rootSpans[0].spanId);
-        }
-    }, [rootSpans.length]);
-
-    const formatDate = (dateString: string): string => {
-        return new Date(dateString).toLocaleString();
-    };
+    const sortedRootSpans = sortSpansByUmbrellaFirst(rootSpans);
 
     const getChildSpans = (spanId: string): SpanData[] => {
         const children = traceData.spans.filter(s => s.parentSpanId === spanId);
+        return sortSpansByUmbrellaFirst(children);
+    };
 
-        // Sort children: umbrella spans first, then by start time
-        return children.sort((a, b) => {
-            const aStart = a.startTime ? new Date(a.startTime).getTime() : 0;
-            const aEnd = a.endTime ? new Date(a.endTime).getTime() : 0;
-            const bStart = b.startTime ? new Date(b.startTime).getTime() : 0;
-            const bEnd = b.endTime ? new Date(b.endTime).getTime() : 0;
+    // Auto-expand first 3 levels of spans in advanced mode (only once)
+    useEffect(() => {
+        if (!isAdvancedMode || hasAutoExpandedRef.current || sortedRootSpans.length === 0) return;
 
-            // Check if 'a' contains 'b' (a is umbrella over b)
-            const aContainsB = aStart <= bStart && aEnd >= bEnd && (aStart < bStart || aEnd > bEnd);
-            // Check if 'b' contains 'a' (b is umbrella over a)
-            const bContainsA = bStart <= aStart && bEnd >= aEnd && (bStart < aStart || bEnd > aEnd);
+        const spansToExpand = new Set<string>();
 
-            if (aContainsB) return -1; // a comes before b (a is umbrella)
-            if (bContainsA) return 1;  // b comes before a (b is umbrella)
+        const expandRecursively = (spanId: string, currentLevel: number) => {
+            if (currentLevel >= 3) return;
 
-            // Neither contains the other, sort by start time
-            return aStart - bStart;
+            const children = getChildSpans(spanId);
+            if (children.length > 0) {
+                spansToExpand.add(spanId);
+                children.forEach(child => expandRecursively(child.spanId, currentLevel + 1));
+            }
+        };
+
+        // Start from root spans
+        sortedRootSpans.forEach(rootSpan => {
+            expandRecursively(rootSpan.spanId, 0);
         });
-    };
 
-    const renderTreeItem = (span: SpanData, level: number = 0): React.ReactNode => {
-        const childSpans = getChildSpans(span.spanId);
-        const hasChildren = childSpans.length > 0;
-        const isExpanded = expandedSpans.has(span.spanId);
-        const isSelected = selectedSpanId === span.spanId;
-        const spanKind = getSpanKindLabel(span.kind);
+        setExpandedSpans(spansToExpand);
+        hasAutoExpandedRef.current = true;
+    }, [sortedRootSpans, isAdvancedMode]);
 
-        return (
-            <React.Fragment key={span.spanId}>
-                <TreeItem level={level} isSelected={isSelected} onClick={() => selectSpan(span.spanId)}>
-                    <TreeChevron onClick={(e) => {
-                        e.stopPropagation();
-                        if (hasChildren) {
-                            toggleSpanExpansion(span.spanId);
-                        }
-                    }}>
-                        {hasChildren ? (
-                            <Codicon name={isExpanded ? 'chevron-down' : 'chevron-right'} />
-                        ) : (
-                            <span style={{ width: '16px', display: 'inline-block' }} />
-                        )}
-                    </TreeChevron>
-                    <SpanNameInTree>
-                        {span.name}
-                    </SpanNameInTree>
-                    <SpanKindBadge>{spanKind}</SpanKindBadge>
-                </TreeItem>
-                {hasChildren && isExpanded && (
-                    <>
-                        {childSpans.map(child => renderTreeItem(child, level + 1))}
-                    </>
-                )}
-            </React.Fragment>
-        );
-    };
+    // Auto-focus on specific span if focusSpanId is provided
+    useEffect(() => {
+        // If focusSpanId is undefined, clear the last focused ref to allow normal auto-selection
+        if (!focusSpanId) {
+            lastFocusedSpanIdRef.current = null;
+            return;
+        }
+
+        if (traceData.spans.length > 0 && focusSpanId !== lastFocusedSpanIdRef.current) {
+            setExpandedSpans(prev => {
+                // Expand all parent spans to make the focused span visible FIRST
+                const span = traceData.spans.find(s => s.spanId === focusSpanId);
+                if (!span) {
+                    return prev;
+                }
+                const newExpanded = new Set(prev);
+                let currentParentId = span.parentSpanId;
+                while (currentParentId && currentParentId !== '0000000000000000') {
+                    const parentSpan = traceData.spans.find(s => s.spanId === currentParentId);
+                    if (parentSpan) {
+                        newExpanded.add(currentParentId);
+                        currentParentId = parentSpan.parentSpanId;
+                    } else {
+                        break;
+                    }
+                }
+                return newExpanded;
+            });
+            setSelectedSpanId(focusSpanId);
+            const timeoutId = setTimeout(() => {
+                const spanElement = document.querySelector(`[data-span-id="${focusSpanId}"]`);
+                if (spanElement) {
+                    spanElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    console.error('[TraceDetails] Could not find span element to scroll to');
+                }
+            }, 500);
+            lastFocusedSpanIdRef.current = focusSpanId;
+
+            return () => clearTimeout(timeoutId);
+        }
+    }, [focusSpanId, traceData.spans.length]);
 
     const selectedSpan = selectedSpanId ? spanMap.get(selectedSpanId) : null;
-    const selectedSpanKind = selectedSpan ? getSpanKindLabel(selectedSpan.kind) : '';
-    const selectedSpanDuration = selectedSpan && selectedSpan.startTime && selectedSpan.endTime
-        ? new Date(selectedSpan.endTime).getTime() - new Date(selectedSpan.startTime).getTime()
-        : null;
 
-    // Build AI span hierarchy based on time containment
+    // Extract session ID from trace data
+    const sessionId = useMemo(() => {
+        for (const span of traceData.spans) {
+            const conversationId = span.attributes?.find(attr => attr.key === 'gen_ai.conversation.id')?.value;
+            if (conversationId) {
+                return conversationId;
+            }
+        }
+        return null;
+    }, [traceData.spans]);
+
+    // Check if there's an invoke_agent span with gen_ai.conversation.id attribute
+    const hasInvokeAgentWithConversationId = useMemo(() => {
+        return traceData.spans.some(span => {
+            const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
+            const hasConversationId = span.attributes?.some(attr => attr.key === 'gen_ai.conversation.id');
+            return operationName.startsWith('invoke_agent') && hasConversationId;
+        });
+    }, [traceData.spans]);
+
+    // Handle resize drag
+    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = e.currentTarget;
+        const rect = target.getBoundingClientRect();
+        const isInResizeArea = e.clientX >= rect.right - 8;
+
+        if (isInResizeArea) {
+            e.preventDefault();
+            setIsResizing(true);
+        }
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isResizing || !containerRef.current) return;
+
+            const containerRect = containerRef.current.getBoundingClientRect();
+            const rawWidth = e.clientX - containerRect.left;
+
+            if (isSidebarVisible) {
+                if (rawWidth < SNAP_THRESHOLD) {
+                    setIsSidebarVisible(false);
+                } else {
+                    const minWidth = MIN_SIDEBAR_WIDTH;
+                    // Constraint 1: Must leave space for the details panel
+                    const limitByPanel = containerRect.width - MIN_DETAILS_PANEL_WIDTH;
+                    // Constraint 2: Max 70% of the screen
+                    const limitByPercentage = containerRect.width * MAX_SIDEBAR_PERCENTAGE;
+                    // The actual max width is the stricter (smaller) of the two limits
+                    const maxWidth = Math.min(limitByPanel, limitByPercentage);
+
+                    const newWidth = Math.max(minWidth, Math.min(rawWidth, maxWidth));
+                    setSpanViewWidth(newWidth);
+                }
+            } else {
+                // Wake up logic
+                if (rawWidth > SNAP_THRESHOLD) {
+                    setIsSidebarVisible(true);
+                    setSpanViewWidth(MIN_SIDEBAR_WIDTH);
+                }
+            }
+        };
+
+        const handleMouseUp = () => {
+            setIsResizing(false);
+        };
+
+        if (isResizing) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = 'col-resize';
+            document.body.style.userSelect = 'none';
+        }
+
+        return () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        };
+    }, [isResizing, isSidebarVisible]);
+
+    /**
+     * Builds a hierarchy of AI spans based on time containment.
+     * Uses temporal relationships to determine parent-child structure.
+     * For each span, finds the smallest containing span as its parent.
+     * @returns Root AI spans (those with no time-based parent) sorted by start time
+     */
     const buildAISpanHierarchy = () => {
         // First, identify all AI spans
         const aiSpans = traceData.spans.filter(span =>
             span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
         );
 
-        // Helper function to check if span A contains span B based on time
-        const timeContains = (spanA: SpanData, spanB: SpanData): boolean => {
-            if (!spanA.startTime || !spanA.endTime || !spanB.startTime || !spanB.endTime) {
-                return false;
-            }
-            const aStart = new Date(spanA.startTime).getTime();
-            const aEnd = new Date(spanA.endTime).getTime();
-            const bStart = new Date(spanB.startTime).getTime();
-            const bEnd = new Date(spanB.endTime).getTime();
-
-            // A contains B if A starts before or at the same time as B, and ends after or at the same time as B
-            // But they should not be identical
-            return aStart <= bStart && aEnd >= bEnd && (aStart < bStart || aEnd > bEnd);
-        };
+        // Use the helper function to check if span A contains span B based on time
+        const timeContains = timeContainsSpan;
 
         // For each AI span, find its time-based parent (the smallest span that contains it)
         const timeBasedParents = new Map<string, string>();
@@ -623,397 +770,200 @@ export function TraceDetails({ traceData, isAgentChat }: TraceDetailsProps) {
 
     const rootAISpans = buildAISpanHierarchy();
 
-    // Select first AI span when in agent chat view
+    // Select first AI span when in agent chat view, or fallback to first generic span
     useEffect(() => {
+        // Don't auto-select if we have a focusSpanId or are focusing - let the focus effect handle it
+        if (focusSpanId || lastFocusedSpanIdRef.current) {
+            return;
+        }
+
+        // 1. Try to select the first AI span if available
         if (isAgentChat && !showFullTrace && rootAISpans.length > 0) {
             setSelectedSpanId(rootAISpans[0].spanId);
         }
-    }, [isAgentChat, showFullTrace, rootAISpans.length]);
+        // 2. If no AI spans (or in advanced mode), select the first generic span
+        else if ((!isAgentChat || rootAISpans.length === 0) && !selectedSpanId && sortedRootSpans.length > 0) {
+            setSelectedSpanId(sortedRootSpans[0].spanId);
+        }
+    }, [isAgentChat, showFullTrace, rootAISpans.length, sortedRootSpans.length, focusSpanId]);
 
-    // Get span type badge
-    const getSpanTypeBadge = (span: SpanData): string => {
-        const operationName = span.attributes?.find(attr => attr.key === 'gen_ai.operation.name')?.value || '';
-        if (operationName.includes('invoke')) return 'invoke';
-        if (operationName.includes('chat') || span.name.toLowerCase().includes('chat')) return 'chat';
-        if (operationName.includes('tool') || span.name.toLowerCase().includes('tool')) return 'tool';
-        return 'other';
+    // Totals across the trace (input/output separately)
+    const { totalInputTokens, totalOutputTokens } = React.useMemo(() => {
+        let inTotal = 0;
+        let outTotal = 0;
+        traceData.spans.forEach(span => {
+            const inT = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.input_tokens')?.value || '0');
+            const outT = parseInt(span.attributes?.find(attr => attr.key === 'gen_ai.usage.output_tokens')?.value || '0');
+            if (!isNaN(inT)) inTotal += inT;
+            if (!isNaN(outT)) outTotal += outT;
+        });
+        return { totalInputTokens: inTotal, totalOutputTokens: outTotal };
+    }, [traceData.spans]);
+
+    // Render Trace Logs view
+    const handleExportTrace = () => {
+        // Dispatch custom event to communicate with webview script
+        window.dispatchEvent(new CustomEvent('exportTrace', {
+            detail: { traceData }
+        }));
     };
 
-    // Get AI child spans based on time containment
-    const getAIChildSpans = (spanId: string): SpanData[] => {
-        const parentSpan = traceData.spans.find(s => s.spanId === spanId);
-        if (!parentSpan || !parentSpan.startTime || !parentSpan.endTime) {
-            return [];
+    const handleExportAsEvalset = () => {
+        // Use the traceVisualizerAPI if available
+        if (window.traceVisualizerAPI?.exportTraceAsEvalset) {
+            window.traceVisualizerAPI.exportTraceAsEvalset(traceData);
+        }
+    };
+
+    const renderTraceLogs = () => {
+        if (traceData.spans.length === 0) {
+            return (
+                <TraceEmptyState
+                    icon="comment-discussion"
+                    title="No trace data found"
+                    subtitle="Spans will appear here"
+                />
+            );
         }
 
-        const parentStart = new Date(parentSpan.startTime).getTime();
-        const parentEnd = new Date(parentSpan.endTime).getTime();
-
-        // Get all AI spans
-        const aiSpans = traceData.spans.filter(span =>
-            span.attributes?.some(attr => attr.key === 'span.type' && attr.value === 'ai')
-        );
-
-        // Find direct children: spans that are contained by this span but not by any smaller span
-        const children: SpanData[] = [];
-
-        aiSpans.forEach(potentialChild => {
-            if (potentialChild.spanId === spanId) return;
-            if (!potentialChild.startTime || !potentialChild.endTime) return;
-
-            const childStart = new Date(potentialChild.startTime).getTime();
-            const childEnd = new Date(potentialChild.endTime).getTime();
-
-            // Check if parent contains this child
-            const parentContainsChild = parentStart <= childStart && parentEnd >= childEnd &&
-                (parentStart < childStart || parentEnd > childEnd);
-
-            if (!parentContainsChild) return;
-
-            // Check if there's any other span that also contains this child but is smaller than parent
-            let hasIntermediateParent = false;
-            aiSpans.forEach(intermediateSpan => {
-                if (intermediateSpan.spanId === spanId || intermediateSpan.spanId === potentialChild.spanId) return;
-                if (!intermediateSpan.startTime || !intermediateSpan.endTime) return;
-
-                const intStart = new Date(intermediateSpan.startTime).getTime();
-                const intEnd = new Date(intermediateSpan.endTime).getTime();
-
-                // Check if intermediate span contains the child
-                const intermediateContainsChild = intStart <= childStart && intEnd >= childEnd &&
-                    (intStart < childStart || intEnd > childEnd);
-
-                // Check if parent contains the intermediate span
-                const parentContainsIntermediate = parentStart <= intStart && parentEnd >= intEnd &&
-                    (parentStart < intStart || parentEnd > intEnd);
-
-                if (intermediateContainsChild && parentContainsIntermediate) {
-                    hasIntermediateParent = true;
-                }
-            });
-
-            if (!hasIntermediateParent) {
-                children.push(potentialChild);
-            }
-        });
-
-        // Sort children by start time
-        return children.sort((a, b) => {
-            const aTime = a.startTime ? new Date(a.startTime).getTime() : 0;
-            const bTime = b.startTime ? new Date(b.startTime).getTime() : 0;
-            return aTime - bTime;
-        });
-    };
-
-    // Render AI span tree item recursively (always expanded)
-    const renderAISpanTreeItem = (span: SpanData, level: number = 0): React.ReactNode => {
-        const children = getAIChildSpans(span.spanId);
-        const isSelected = selectedSpanId === span.spanId;
-        const duration = span.startTime && span.endTime
-            ? new Date(span.endTime).getTime() - new Date(span.startTime).getTime()
-            : null;
-        const badgeType = getSpanTypeBadge(span);
+        // isAdvancedMode is now a calculated value based on content + user preference
+        const shouldShowAdvancedView = isAdvancedMode;
 
         return (
-            <React.Fragment key={span.spanId}>
-                <AISpanTreeItem
-                    level={level}
-                    isSelected={isSelected}
-                    onClick={() => setSelectedSpanId(span.spanId)}
-                >
-                    <AISpanBadge type={badgeType}>
-                        {badgeType === 'invoke' && 'Invoke Agent'}
-                        {badgeType === 'chat' && 'Chat'}
-                        {badgeType === 'tool' && 'Execute Tool'}
-                        {badgeType === 'other' && 'Operation'}
-                    </AISpanBadge>
-                    <AISpanLabel>{span.name}</AISpanLabel>
-                    {duration !== null && (
-                        <AISpanDuration>
-                            <Codicon name="clock" />
-                            {duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`}
-                        </AISpanDuration>
-                    )}
-                </AISpanTreeItem>
-                {children.length > 0 && (
-                    <>
-                        {children.map(child => renderAISpanTreeItem(child, level + 1))}
-                    </>
-                )}
-            </React.Fragment>
-        );
-    };
-
-    // Render Agent Chat Logs view
-    const renderAgentChatLogs = () => (
-        <>
-            <NavigationBar>
-                <div />
-                <BackButton onClick={() => setShowFullTrace(true)}>
-                    Show Full Trace
-                </BackButton>
-            </NavigationBar>
-            {rootAISpans.length === 0 ? (
-                <EmptyState>
-                    <EmptyStateIcon>
-                        <Codicon name="comment-discussion" />
-                    </EmptyStateIcon>
-                    <EmptyStateText>
-                        No AI agent interactions found in this trace
-                    </EmptyStateText>
-                    <EmptyStateText style={{ fontSize: '14px', opacity: 0.7 }}>
-                        AI spans with span.type='ai' will appear here
-                    </EmptyStateText>
-                </EmptyState>
-            ) : (
-                <AgentChatLogsContainer>
-                    <AISpanTreeContainer>
-                        {rootAISpans.map(span => renderAISpanTreeItem(span, 0))}
-                    </AISpanTreeContainer>
-                    {selectedSpan && (
-                        <DetailsPanel>
-                            <DetailsPanelHeader>
-                                <DetailsPanelTitle>{selectedSpan.name}</DetailsPanelTitle>
-                                <DetailsPanelKind>{selectedSpanKind}</DetailsPanelKind>
-                            </DetailsPanelHeader>
-
-                            <DetailsGrid>
-                                <InfoLabel>Span ID:</InfoLabel>
-                                <InfoValue>{selectedSpan.spanId}</InfoValue>
-                                <InfoLabel>Trace ID:</InfoLabel>
-                                <InfoValue>{selectedSpan.traceId}</InfoValue>
-                                {selectedSpan.parentSpanId && selectedSpan.parentSpanId !== '0000000000000000' ? (
-                                    <>
-                                        <InfoLabel>Parent Span ID:</InfoLabel>
-                                        <InfoValue>{selectedSpan.parentSpanId}</InfoValue>
-                                    </>
-                                ) : (
-                                    <>
-                                        <InfoLabel>Parent:</InfoLabel>
-                                        <InfoValue>Root Span</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpan.startTime && (
-                                    <>
-                                        <InfoLabel>Start Time:</InfoLabel>
-                                        <InfoValue>{formatDate(selectedSpan.startTime)}</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpan.endTime && (
-                                    <>
-                                        <InfoLabel>End Time:</InfoLabel>
-                                        <InfoValue>{formatDate(selectedSpan.endTime)}</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpanDuration !== null && (
-                                    <>
-                                        <InfoLabel>Duration:</InfoLabel>
-                                        <InfoValue>{selectedSpanDuration}ms</InfoValue>
-                                    </>
-                                )}
-                            </DetailsGrid>
-
-                            {selectedSpan.attributes && selectedSpan.attributes.length > 0 && (
-                                <AttributesSection>
-                                    <AttributesSectionTitle>
-                                        Attributes ({selectedSpan.attributes.length})
-                                    </AttributesSectionTitle>
-                                    {selectedSpan.attributes.map((attr, index) => (
-                                        <AttributeItem key={index}>
-                                            <AttributeKey>{attr.key}:</AttributeKey>
-                                            <AttributeValue>{attr.value}</AttributeValue>
-                                        </AttributeItem>
-                                    ))}
-                                </AttributesSection>
-                            )}
-                        </DetailsPanel>
-                    )}
-                </AgentChatLogsContainer>
-            )}
-        </>
-    );
-
-    // Render Full Trace view
-    const renderFullTrace = () => (
-        <>
-            {isAgentChat && (
-                <NavigationBar>
-                    <div />
-                    <BackButton onClick={() => setShowFullTrace(false)}>
-                        Back to Agent Logs
-                    </BackButton>
-                </NavigationBar>
-            )}
-            <Header>
-                <Title>Trace : {traceData.traceId}</Title>
-            </Header>
-
-            <Section>
-                <CollapsibleSection onClick={() => toggleSection('trace')}>
-                    <SectionTitle>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Codicon name={expandedSections.has('trace') ? 'chevron-down' : 'chevron-right'} />
-                            Trace Information
-                        </span>
-                    </SectionTitle>
-                </CollapsibleSection>
-                <CollapsibleContent isOpen={expandedSections.has('trace')}>
-                    <InfoGrid>
-                        <InfoLabel>Trace ID:</InfoLabel>
-                        <InfoValue>{traceData.traceId}</InfoValue>
-                        <InfoLabel>First Seen:</InfoLabel>
-                        <InfoValue>{formatDate(traceData.firstSeen)}</InfoValue>
-                        <InfoLabel>Last Seen:</InfoLabel>
-                        <InfoValue>{formatDate(traceData.lastSeen)}</InfoValue>
-                        <InfoLabel>Duration:</InfoLabel>
-                        <InfoValue>{duration}ms</InfoValue>
-                    </InfoGrid>
-                </CollapsibleContent>
-            </Section>
-
-            <Section>
-                <CollapsibleSection onClick={() => toggleSection('resource')}>
-                    <SectionTitle>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Codicon name={expandedSections.has('resource') ? 'chevron-down' : 'chevron-right'} />
-                            Resource
-                        </span>
-                    </SectionTitle>
-                </CollapsibleSection>
-                <CollapsibleContent isOpen={expandedSections.has('resource')}>
-                    <InfoGrid>
-                        <InfoLabel>Name:</InfoLabel>
-                        <InfoValue>{traceData.resource.name}</InfoValue>
-                    </InfoGrid>
-                    {traceData.resource.attributes && traceData.resource.attributes.length > 0 && (
-                        <AttributesContainer>
-                            <InfoLabel style={{ marginBottom: '8px' }}>Attributes ({traceData.resource.attributes.length}):</InfoLabel>
-                            {traceData.resource.attributes.map((attr, index) => (
-                                <AttributeItem key={index}>
-                                    <AttributeKey>{attr.key}:</AttributeKey>
-                                    <AttributeValue>{attr.value}</AttributeValue>
-                                </AttributeItem>
-                            ))}
-                        </AttributesContainer>
-                    )}
-                </CollapsibleContent>
-            </Section>
-
-            <Section>
-                <CollapsibleSection onClick={() => toggleSection('scope')}>
-                    <SectionTitle>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Codicon name={expandedSections.has('scope') ? 'chevron-down' : 'chevron-right'} />
-                            Instrumentation Scope
-                        </span>
-                    </SectionTitle>
-                </CollapsibleSection>
-                <CollapsibleContent isOpen={expandedSections.has('scope')}>
-                    <InfoGrid>
-                        <InfoLabel>Name:</InfoLabel>
-                        <InfoValue>{traceData.scope.name}</InfoValue>
-                        {traceData.scope.version && (
+            <TraceLogsContainer>
+                <SpanViewContainer width={isSidebarVisible ? spanViewWidth : 48} isResizing={isResizing} onMouseDown={isSidebarVisible ? handleMouseDown : undefined}>
+                    <NavigationBar>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <ModeToggleButton
+                                onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                                title={isSidebarVisible ? "Hide sidebar" : "Show sidebar"}
+                            >
+                                <Icon
+                                    name={isSidebarVisible ? 'bi-left-panel-close' : 'bi-left-panel-open'}
+                                    sx={{ fontSize: '16px', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    iconSx={{ fontSize: "16px", display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+                            </ModeToggleButton>
+                            <span style={{ fontSize: '16px', fontWeight: '600' }}>Trace</span>
+                        </div>
+                        {isSidebarVisible && (
                             <>
-                                <InfoLabel>Version:</InfoLabel>
-                                <InfoValue>{traceData.scope.version}</InfoValue>
+                                <ButtonGroup>
+                                    <ModeToggleButton
+                                        onClick={() => setViewMode(viewMode === 'tree' ? 'timeline' : 'tree')}
+                                        title={viewMode === 'timeline' ? "Switch to Tree View" : "Switch to Timeline View"}
+                                        isSelected={viewMode === 'timeline'}
+                                    >
+                                        Timeline
+                                    </ModeToggleButton>
+                                    <ExportDropdown
+                                        onExportJson={handleExportTrace}
+                                        onExportEvalset={handleExportAsEvalset}
+                                        buttonText=""
+                                        showIcon={true}
+                                        compact={true}
+                                    />
+                                    {isAgentChat && hasAISpans && (
+                                        <ModeToggleButton
+                                            onClick={() => setUserAdvancedModePreference(!userAdvancedModePreference)}
+                                            title={isAdvancedMode ? "Hide internal spans" : "Show all spans"}
+                                        >
+                                            <Codicon name={isAdvancedMode ? 'eye-closed' : 'eye'} />
+                                        </ModeToggleButton>
+                                    )}
+                                </ButtonGroup>
                             </>
                         )}
-                    </InfoGrid>
-                    {traceData.scope.attributes && traceData.scope.attributes.length > 0 && (
-                        <AttributesContainer>
-                            <InfoLabel style={{ marginBottom: '8px' }}>Attributes ({traceData.scope.attributes.length}):</InfoLabel>
-                            {traceData.scope.attributes.map((attr, index) => (
-                                <AttributeItem key={index}>
-                                    <AttributeKey>{attr.key}:</AttributeKey>
-                                    <AttributeValue>{attr.value}</AttributeValue>
-                                </AttributeItem>
-                            ))}
-                        </AttributesContainer>
-                    )}
-                </CollapsibleContent>
-            </Section>
+                    </NavigationBar>
+                    {isSidebarVisible && (
+                        <>
+                            <SearchInputWrapper>
+                                <SearchInput
+                                    value={searchQuery}
+                                    onChange={setSearchQuery}
+                                    placeholder="Filter spans..."
+                                />
+                                <ActionButton
+                                    onClick={handleToggleAll}
+                                    title={toggleState.tooltip}
+                                >
+                                    <Icon
+                                        name={toggleState.icon}
+                                        sx={{ fontSize: "14px", width: "14px", height: "14px" }}
+                                        iconSx={{ display: "flex" }}
+                                    />
+                                </ActionButton>
+                            </SearchInputWrapper>
 
-            <Section>
-                <CollapsibleSection onClick={() => toggleSection('spans')}>
-                    <SectionTitle>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <Codicon name={expandedSections.has('spans') ? 'chevron-down' : 'chevron-right'} />
-                            Spans ({traceData.spans.length} total)
-                        </span>
-                    </SectionTitle>
-                </CollapsibleSection>
-                <CollapsibleContent isOpen={expandedSections.has('spans')}>
-                    <SpanTreeContainer>
-                        {rootSpans.map(span => renderTreeItem(span, 0))}
-                    </SpanTreeContainer>
-
-                    {selectedSpan && (
-                        <DetailsPanel>
-                            <DetailsPanelHeader>
-                                <DetailsPanelTitle>{selectedSpan.name}</DetailsPanelTitle>
-                                <DetailsPanelKind>{selectedSpanKind}</DetailsPanelKind>
-                            </DetailsPanelHeader>
-
-                            <DetailsGrid>
-                                <InfoLabel>Span ID:</InfoLabel>
-                                <InfoValue>{selectedSpan.spanId}</InfoValue>
-                                <InfoLabel>Trace ID:</InfoLabel>
-                                <InfoValue>{selectedSpan.traceId}</InfoValue>
-                                {selectedSpan.parentSpanId && selectedSpan.parentSpanId !== '0000000000000000' ? (
-                                    <>
-                                        <InfoLabel>Parent Span ID:</InfoLabel>
-                                        <InfoValue>{selectedSpan.parentSpanId}</InfoValue>
-                                    </>
-                                ) : (
-                                    <>
-                                        <InfoLabel>Parent:</InfoLabel>
-                                        <InfoValue>Root Span</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpan.startTime && (
-                                    <>
-                                        <InfoLabel>Start Time:</InfoLabel>
-                                        <InfoValue>{formatDate(selectedSpan.startTime)}</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpan.endTime && (
-                                    <>
-                                        <InfoLabel>End Time:</InfoLabel>
-                                        <InfoValue>{formatDate(selectedSpan.endTime)}</InfoValue>
-                                    </>
-                                )}
-                                {selectedSpanDuration !== null && (
-                                    <>
-                                        <InfoLabel>Duration:</InfoLabel>
-                                        <InfoValue>{selectedSpanDuration}ms</InfoValue>
-                                    </>
-                                )}
-                            </DetailsGrid>
-
-                            {selectedSpan.attributes && selectedSpan.attributes.length > 0 && (
-                                <AttributesSection>
-                                    <AttributesSectionTitle>
-                                        Attributes ({selectedSpan.attributes.length})
-                                    </AttributesSectionTitle>
-                                    {selectedSpan.attributes.map((attr, index) => (
-                                        <AttributeItem key={index}>
-                                            <AttributeKey>{attr.key}:</AttributeKey>
-                                            <AttributeValue>{attr.value}</AttributeValue>
-                                        </AttributeItem>
-                                    ))}
-                                </AttributesSection>
+                            {viewMode === 'tree' && (
+                                <AISpanTreeContainer>
+                                    <SpanTree
+                                        traceData={traceData}
+                                        rootAISpans={rootAISpans}
+                                        sortedRootSpans={sortedRootSpans}
+                                        isAdvancedMode={shouldShowAdvancedView}
+                                        expandedSpans={expandedSpans}
+                                        selectedSpanId={selectedSpanId}
+                                        expandedAdvancedSpanGroups={expandedAdvancedSpanGroups}
+                                        onSelectSpan={setSelectedSpanId}
+                                        onToggleSpanExpansion={toggleSpanExpansion}
+                                        setExpandedAdvancedSpanGroups={setExpandedAdvancedSpanGroups}
+                                        getChildSpans={getChildSpans}
+                                        containerWidth={containerWidth}
+                                        searchQuery={searchQuery}
+                                        onClearSearch={() => setSearchQuery('')}
+                                    />
+                                </AISpanTreeContainer>
                             )}
-                        </DetailsPanel>
+                            {viewMode === 'timeline' && (
+                                <WaterfallView
+                                    spans={shouldShowAdvancedView ? traceData.spans : rootAISpans}
+                                    selectedSpanId={selectedSpanId}
+                                    onSpanSelect={selectSpan}
+                                    getChildSpans={shouldShowAdvancedView ? getChildSpans : getAIChildSpans}
+                                    traceStartTime={traceData.firstSeen}
+                                    traceDuration={duration}
+                                    collapsedSpanIds={waterfallCollapsedSpanIds}
+                                    setCollapsedSpanIds={setWaterfallCollapsedSpanIds}
+                                    searchQuery={searchQuery}
+                                    onClearSearch={() => setSearchQuery('')}
+                                />
+                            )}
+                        </>
                     )}
-                </CollapsibleContent>
-            </Section>
-        </>
-    );
+                </SpanViewContainer>
+                {selectedSpan && (
+                    <DetailsPanelContainer>
+                        <DetailsPanel>
+                            {onViewSession && hasInvokeAgentWithConversationId && (
+                                <BreadcrumbContainer>
+                                    <BreadcrumbItem isClickable onClick={onViewSession}>
+                                        <Icon name="bi-back" sx={{ fontSize: '12px', width: '12px', height: '12px' }} iconSx={{ fontSize: "12px" }} />
+                                        Session Traces
+                                    </BreadcrumbItem>
+                                    <BreadcrumbSeparator>/</BreadcrumbSeparator>
+                                    <BreadcrumbItem isClickable={false}>
+                                        Trace: {traceData.traceId}
+                                    </BreadcrumbItem>
+                                </BreadcrumbContainer>
+                            )}
+                            <DetailsPanelContent>
+                                <SpanDetails
+                                    spanData={selectedSpan}
+                                    spanName={selectedSpan.name}
+                                    totalInputTokens={totalInputTokens}
+                                    totalOutputTokens={totalOutputTokens}
+                                />
+                            </DetailsPanelContent>
+                        </DetailsPanel>
+                    </DetailsPanelContainer>
+                )}
+            </TraceLogsContainer>
+        );
+    }
 
-    // Main return - decide which view to show
     return (
-        <Container>
-            {isAgentChat && !showFullTrace ? renderAgentChatLogs() : renderFullTrace()}
+        <Container ref={containerRef}>
+            {renderTraceLogs()}
         </Container>
     );
 }

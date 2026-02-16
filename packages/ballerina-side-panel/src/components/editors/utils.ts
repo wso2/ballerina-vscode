@@ -57,6 +57,23 @@ export function capitalize(str: string) {
     return startCase(str);
 }
 
+type RequiredRuleOptions = {
+    isRequired: boolean;
+    label?: string;
+    message?: string;
+};
+
+export const buildRequiredRule = ({ isRequired, label, message }: RequiredRuleOptions) => {
+    if (!isRequired) {
+        return false;
+    }
+
+    return {
+        value: true,
+        message: message ?? `${label ?? "This field"} is required`,
+    };
+};
+
 export function sanitizeType(type: string) {
     if (type.includes('{') || type.includes('}') || (type.match(/:/g) || []).length > 1) {
         return type;
