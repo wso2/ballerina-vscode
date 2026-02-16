@@ -103,7 +103,8 @@ export enum MACHINE_VIEW {
     ServiceFunctionForm = "Service Function Form",
     BISamplesView = "BI Samples View",
     ReviewMode = "Review Mode SKIP",
-    EvalsetViewer = "Evalset Viewer SKIP"
+    EvalsetViewer = "Evalset Viewer SKIP",
+    ConfigurationCollector = "Configuration Collector"
 }
 
 export interface MachineEvent {
@@ -168,7 +169,20 @@ export interface ArtifactData {
     identifier?: string;
 }
 
+export interface ConfigurationCollectorMetadata {
+    requestId: string;
+    variables: Array<{
+        name: string;
+        description: string;
+        type?: "string" | "int";
+    }>;
+    existingValues?: Record<string, string>;
+    message: string;
+    isTestConfig?: boolean;
+}
+
 export interface AgentMetadata {
+    configurationCollector?: ConfigurationCollectorMetadata;
 }
 
 export interface ApprovalOverlayState {
@@ -326,6 +340,7 @@ export type ChatNotify =
     | TaskApprovalRequest
     | GeneratedSourcesEvent
     | ConnectorGenerationNotification
+    | ConfigurationCollectionEvent
     | CodeReviewActions
     | PlanUpdated;
 
@@ -444,6 +459,24 @@ export interface ConnectorGenerationNotification {
         code: string;
     };
     message: string;
+}
+
+export interface ConfigurationCollectionEvent {
+    type: "configuration_collection_event";
+    requestId: string;
+    stage: "creating_file" | "collecting" | "done" | "skipped" | "error";
+    variables?: Array<{
+        name: string;
+        description: string;
+        type?: "string" | "int";
+    }>;
+    existingValues?: Record<string, string>;
+    message: string;
+    isTestConfig?: boolean;
+    error?: {
+        message: string;
+        code: string;
+    };
 }
 
 export interface CodeReviewActions {

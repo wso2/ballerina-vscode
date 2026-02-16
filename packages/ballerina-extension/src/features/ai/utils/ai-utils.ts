@@ -294,6 +294,10 @@ export function sendConnectorGenerationNotification(event: ChatNotify & { type: 
     sendAIPanelNotification(event);
 }
 
+export function sendConfigurationCollectionNotification(event: ChatNotify & { type: "configuration_collection_event" }): void {
+    sendAIPanelNotification(event);
+}
+
 function sendAIPanelNotification(msg: ChatNotify): void {
     RPCLayer._messenger.sendNotification(onChatNotify, { type: "webview", webviewType: AiPanelWebview.viewType }, msg);
 }
