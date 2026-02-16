@@ -21,6 +21,7 @@ import { tests, workspace, TestRunProfileKind, TestController, Uri, window, comm
 import { BallerinaExtension } from "../../core";
 import { runHandler } from "./runner";
 import { activateEditBiTest } from "./commands";
+import { createNewEvalset, createNewThread, deleteEvalset, deleteThread } from "./evalset-commands";
 import { discoverTestFunctionsInProject, handleFileChange as handleTestFileUpdate, handleFileDelete as handleTestFileDelete } from "./discover";
 import { getCurrentBallerinaProject, getWorkspaceRoot } from "../../utils/project-utils";
 import { checkIsBallerinaPackage, checkIsBallerinaWorkspace } from "../../utils";
@@ -31,6 +32,8 @@ import { EvalSet, EVENT_TYPE, MACHINE_VIEW } from "@wso2/ballerina-core";
 import * as fs from 'fs';
 
 export let testController: TestController;
+
+export const EVALUATION_GROUP = 'evaluations';
 
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
     // Register command to open evalset viewer
@@ -74,6 +77,12 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
         }
     });
 
+    // Register commands for creating evalsets and threads
+    const createEvalsetCommand = commands.registerCommand('ballerina.createNewEvalset', createNewEvalset);
+    const createThreadCommand = commands.registerCommand('ballerina.createNewThread', createNewThread);
+    const deleteEvalsetCommand = commands.registerCommand('ballerina.deleteEvalset', deleteEvalset);
+    const deleteThreadCommand = commands.registerCommand('ballerina.deleteThread', deleteThread);
+
     testController = tests.createTestController('ballerina-integrator-tests', 'WSO2 Integrator: BI Tests');
 
     const workspaceRoot = getWorkspaceRoot();
@@ -114,7 +123,7 @@ export async function activate(ballerinaExtInstance: BallerinaExtension) {
     discoverTestFunctionsInProject(ballerinaExtInstance, testController);
 
     // Register the test controller and file watcher with the extension context
-    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand);
+    ballerinaExtInstance.context?.subscriptions.push(testController, fileWatcher, evalsetTreeView, evalsetTreeDataProvider, openEvalsetCommand, saveEvalThreadCommand, createEvalsetCommand, createThreadCommand, deleteEvalsetCommand, deleteThreadCommand);
 
     activateEditBiTest(ballerinaExtInstance);
 }

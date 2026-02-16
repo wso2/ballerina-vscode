@@ -1069,44 +1069,68 @@ export const Form = forwardRef((props: FormProps) => {
                         });
                     }
 
-                    return renderedComponents;
-                })()}
-                {hasAdvanceFields && (
-                    <S.Row>
-                        {optionalFieldsTitle}
-                        <S.ButtonContainer>
-                            {!showAdvancedOptions && (
-                                <LinkButton
-                                    onClick={handleOnShowAdvancedOptions}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={"chevron-down"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />
-                                    Expand
-                                </LinkButton>
-                            )}
-                            {showAdvancedOptions && (
-                                <LinkButton
-                                    onClick={handleOnHideAdvancedOptions}
-                                    sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
-                                >
-                                    <Codicon
-                                        name={"chevron-up"}
-                                        iconSx={{ fontSize: 12 }}
-                                        sx={{ height: 12 }}
-                                    />Collapsed
-                                </LinkButton>
-                            )}
-                        </S.ButtonContainer>
-                    </S.Row>
-                )}
-                {hasAdvanceFields &&
-                    showAdvancedOptions &&
-                    formFields.map((field) => {
-                        if (field.advanced && !field.hidden) {
+                        return renderedComponents;
+                    })()}
+                    {hasAdvanceFields && (
+                        <S.Row>
+                            {optionalFieldsTitle}
+                            <S.ButtonContainer>
+                                {!showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnShowAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-down"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />
+                                        Expand
+                                    </LinkButton>
+                                )}
+                                {showAdvancedOptions && (
+                                    <LinkButton
+                                        onClick={handleOnHideAdvancedOptions}
+                                        sx={{ fontSize: 12, padding: 8, color: ThemeColors.PRIMARY, gap: 4 }}
+                                    >
+                                        <Codicon
+                                            name={"chevron-up"}
+                                            iconSx={{ fontSize: 12 }}
+                                            sx={{ height: 12 }}
+                                        />Collapse
+                                    </LinkButton>
+                                )}
+                            </S.ButtonContainer>
+                        </S.Row>
+                    )}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        formFields.map((field) => {
+                            if (field.advanced && !field.hidden) {
+                                const updatedField = updateFormFieldWithImports(field, formImports);
+                                return (
+                                    <S.Row key={updatedField.key}>
+                                        <EditorFactory
+                                            field={updatedField}
+                                            openRecordEditor={
+                                                openRecordEditor &&
+                                                ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
+                                            }
+                                            subPanelView={subPanelView}
+                                            handleOnFieldFocus={handleOnFieldFocus}
+                                            recordTypeFields={recordTypeFields}
+                                            onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
+                                            handleOnTypeChange={handleOnTypeChange}
+                                            onBlur={handleOnBlur}
+                                        />
+                                    </S.Row>
+                                );
+                            }
+                            return null;
+                        })}
+                    {hasAdvanceFields &&
+                        showAdvancedOptions &&
+                        advancedChoiceFields.map((field) => {
                             const updatedField = updateFormFieldWithImports(field, formImports);
                             return (
                                 <S.Row key={updatedField.key}>
@@ -1125,32 +1149,8 @@ export const Form = forwardRef((props: FormProps) => {
                                     />
                                 </S.Row>
                             );
-                        }
-                        return null;
-                    })}
-                {hasAdvanceFields &&
-                    showAdvancedOptions &&
-                    advancedChoiceFields.map((field) => {
-                        const updatedField = updateFormFieldWithImports(field, formImports);
-                        return (
-                            <S.Row key={updatedField.key}>
-                                <EditorFactory
-                                    field={updatedField}
-                                    openRecordEditor={
-                                        openRecordEditor &&
-                                        ((open: boolean, newType?: string | NodeProperties) => handleOpenRecordEditor(open, updatedField, newType))
-                                    }
-                                    subPanelView={subPanelView}
-                                    handleOnFieldFocus={handleOnFieldFocus}
-                                    recordTypeFields={recordTypeFields}
-                                    onIdentifierEditingStateChange={handleIdentifierEditingStateChange}
-                                    handleOnTypeChange={handleOnTypeChange}
-                                    onBlur={handleOnBlur}
-                                />
-                            </S.Row>
-                        );
-                    })}
-            </S.CategoryRow>
+                        })}
+                </S.CategoryRow>
 
             {!preserveOrder && (variableField || typeField || targetTypeField) && (
                 <S.CategoryRow topBorder={!compact && hasParameters}>
