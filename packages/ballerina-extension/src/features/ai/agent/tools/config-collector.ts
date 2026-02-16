@@ -478,7 +478,7 @@ async function handleCollectMode(
             type: "configuration_collection_event",
             requestId,
             stage: "skipped",
-            message: `Configuration collection cancelled${userResponse.comment ? ": " + userResponse.comment : ""}`,
+            message: `Configuration collection skipped${userResponse.comment ? ": " + userResponse.comment : ""}`,
             isTestConfig,
         });
 
