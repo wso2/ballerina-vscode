@@ -33,18 +33,20 @@ import { useShallow } from "zustand/react/shallow";
 import { InputCategoryIcon } from "./InputCategoryIcon";
 import { isGroupHeaderPort } from "../../utils/common-utils";
 import ArrowWidget from "../commons/ArrowWidget";
+import { IDataMapperContext } from "../../../../utils/DataMapperContext/DataMapperContext";
 
 export interface InputNodeWidgetProps {
     id: string; // this will be the root ID used to prepend for UUIDs of nested fields
     dmType: IOType;
     engine: DiagramEngine;
     getPort: (portId: string) => InputOutputPortModel;
+	context: IDataMapperContext;
     valueLabel?: string;
     focusedInputs?: string[];
 }
 
 export function InputNodeWidget(props: InputNodeWidgetProps) {
-    const { engine, dmType, id, getPort, valueLabel, focusedInputs } = props;
+    const { engine, dmType, id, getPort, context, valueLabel, focusedInputs } = props;
     
     const [portState, setPortState] = useState<PortState>(PortState.Unselected);
     const [isHovered, setIsHovered] = useState(false);
@@ -135,6 +137,10 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         setIsIOConfigPanelOpen(true);
     };
 
+    const handleCreateConvertedVariable = async () => {
+        context.createConvertedVariable(headerLabel);
+    }
+
     return (
         <>
             <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
@@ -196,6 +202,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                         dmType={dmType.convertedField}
                         engine={engine}
                         getPort={getPort}
+                        context={context}
                     />
                 </>
             }
@@ -204,12 +211,15 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                     <ArrowWidget direction="down" />
                     <Button
                         className={classes.nodeActionButton}
-                        onClick={() => { }}
+                        onClick={handleCreateConvertedVariable}
                     >
                         <Icon name="convert" className="action-icon" />
-                        <p 
-                        style={{ margin: 0 }} 
-                        title={`Create type to access fields in ${headerLabel}`}>Create type for mapping</p>
+                        <p
+                            style={{ margin: 0 }}
+                            title={`Create type defined variable to access fields in ${headerLabel}`}
+                        >
+                            Create type defined variable
+                        </p>
                     </Button>
                 </>
             }
