@@ -1006,13 +1006,16 @@ public class FunctionDataBuilder {
                         pathBuilder.append(pathSegment.getName().orElse(""));
                     }
                 }
-                ((PathSegmentList) resourcePath).pathRestParameter().ifPresent(pathRestParameter ->
+                ((PathSegmentList) resourcePath).pathRestParameter().ifPresent(pathRestParameter -> {
                     pathParams.add(
                             ParameterData.from(REST_RESOURCE_PATH_LABEL, "string",
                                     ParameterData.Kind.PATH_REST_PARAM, REST_PARAM_PATH, REST_RESOURCE_PATH_LABEL,
-                                    false)));
+                                    false));
+                });
             }
-            case PATH_REST_PARAM -> pathBuilder.append(REST_RESOURCE_PATH);
+            case PATH_REST_PARAM -> {
+                pathBuilder.append(REST_RESOURCE_PATH);
+            }
             case DOT_RESOURCE_PATH -> pathBuilder.append("/");
         }
         return new ResourcePathTemplate(pathBuilder.toString(), pathParams);

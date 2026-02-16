@@ -1359,6 +1359,12 @@ public class CommonUtils {
         return DOUBLE_QUOTE + escapeContent(content) + DOUBLE_QUOTE;
     }
 
+    /**
+     * Escapes backslashes and double quotes in the given content string.
+     *
+     * @param content the content string to escape
+     * @return the escaped content string
+     */
     private static String escapeContent(String content) {
         return content.replace("\\", "\\\\").replace("\"", "\\\"");
     }
