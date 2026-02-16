@@ -19,7 +19,7 @@
 
 import { exec } from 'child_process';
 import { CancellationToken, TestRunRequest, TestMessage, TestRun, TestItem, debug, Uri, WorkspaceFolder, DebugConfiguration, workspace, TestRunProfileKind } from 'vscode';
-import { testController } from './activator';
+import { EVALUATION_GROUP, testController } from './activator';
 import { StateMachine } from "../../stateMachine";
 import { isTestFunctionItem, isTestGroupItem, isProjectGroupItem } from './discover';
 import { extension } from '../../BalExtensionContext';
@@ -35,7 +35,7 @@ function getProjectPathFromTestItem(test: TestItem): string | undefined {
     if (isTestFunctionItem(test)) {
         // Extract from test ID: test:${projectPath}:${fileName}:${functionName}
         const parts = test.id.split(':');
-        if (parts.length >= 2  && parts[0] === 'test') {
+        if (parts.length >= 2 && parts[0] === 'test') {
             return parts[1];
         }
     } else if (isProjectGroupItem(test)) {
@@ -82,6 +82,44 @@ function getProjectNameIfWorkspace(projectPath: string): string | undefined {
     }
 
     return undefined;
+}
+
+function isAiEvaluations(test: TestItem): boolean {
+    // Check if the test item itself is the evaluations group
+    if (isTestGroupItem(test) && test.label === EVALUATION_GROUP) {
+        return true;
+    }
+
+    // Check if the test function's parent is the evaluations group
+    if (isTestFunctionItem(test) && test.parent && test.parent.label === EVALUATION_GROUP) {
+        return true;
+    }
+
+    // Check if the project group contains any evaluations group
+    if (isProjectGroupItem(test)) {
+        let hasEvaluationsGroup = false;
+        test.children.forEach((child) => {
+            if (isTestGroupItem(child) && child.label === EVALUATION_GROUP) {
+                hasEvaluationsGroup = true;
+            }
+        });
+        return hasEvaluationsGroup;
+    }
+
+    return false;
+}
+
+function buildTestCommand(test: TestItem, executor: string, projectName: string | undefined, testCaseNames?: string[]): string {
+    if (isAiEvaluations(test)) {
+        // Evaluations tests use group-based execution with test report
+        const projectPart = projectName ? ` ${projectName}` : '';
+        return `${executor} test --groups ${EVALUATION_GROUP} --test-report --test-report-dir=evaluation-reports${projectPart}`;
+    } else {
+        // Standard tests use code coverage and optional test filtering
+        const testsPart = testCaseNames && testCaseNames.length > 0 ? ` --tests ${testCaseNames.join(',')}` : '';
+        const projectPart = projectName ? ` ${projectName}` : '';
+        return `${executor} test --code-coverage${testsPart}${projectPart}`;
+    }
 }
 
 export async function runHandler(request: TestRunRequest, token: CancellationToken) {
@@ -153,17 +191,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 }
             });
 
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = testCaseNames.length > 0
-                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`
-                    : `${executor} test --code-coverage ${projectName}`;
-            } else {
-                // Single project context
-                command = testCaseNames.length > 0
-                    ? `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`
-                    : `${executor} test --code-coverage`;
-            }
+            command = buildTestCommand(test, executor, projectName, testCaseNames.length > 0 ? testCaseNames : undefined);
 
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
@@ -197,13 +225,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 run.started(child);
             });
 
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')} ${projectName}`;
-            } else {
-                // Single project context
-                command = `${executor} test --code-coverage --tests ${testCaseNames.join(',')}`;
-            }
+            command = buildTestCommand(test, executor, projectName, testCaseNames);
 
             const startTime = Date.now();
             // For workspace, run from workspace root; for single project, run from project path
@@ -228,13 +250,7 @@ export async function runHandler(request: TestRunRequest, token: CancellationTok
                 });
             });
         } else if (isTestFunctionItem(test)) {
-            if (projectName) {
-                // Workspace context - include project name in command
-                command = `${executor} test --code-coverage --tests ${test.label} ${projectName}`;
-            } else {
-                // Single project context
-                command = `${executor} test --code-coverage --tests ${test.label}`;
-            }
+            command = buildTestCommand(test, executor, projectName, [test.label]);
 
             const parentGroup = test.parent;
             let testItems: TestItem[] = [];

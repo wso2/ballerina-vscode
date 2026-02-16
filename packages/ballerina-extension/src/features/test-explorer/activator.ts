@@ -33,6 +33,8 @@ import * as fs from 'fs';
 
 export let testController: TestController;
 
+export const EVALUATION_GROUP = '"evaluations"';
+
 export async function activate(ballerinaExtInstance: BallerinaExtension) {
     // Register command to open evalset viewer
     const openEvalsetCommand = commands.registerCommand('ballerina.openEvalsetViewer', async (uri: Uri, threadId?: string) => {

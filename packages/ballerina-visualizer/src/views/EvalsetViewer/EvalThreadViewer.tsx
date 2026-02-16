@@ -106,7 +106,7 @@ const EditModeBanner = styled.div<{ $isVisible: boolean }>`
     opacity: ${(props: { $isVisible: any; }) => (props.$isVisible ? 1 : 0)};
     padding: ${(props: { $isVisible: any; }) => (props.$isVisible ? '12px 24px' : '0px 24px')};
     border-bottom: 1px solid ${(props: { $isVisible: any; }) => (props.$isVisible ? 'var(--vscode-panel-border)' : 'transparent')};
-    margin-bottom: ${(props: { $isVisible: any; }) => (props.$isVisible ? '0px' : '-1px')}; /* Compensate for border */
+    margin-bottom: ${(props: { $isVisible: any; }) => (props.$isVisible ? '0px' : '-1px')};
 `;
 
 const BannerContent = styled.div`
@@ -304,8 +304,8 @@ const HoverAddTurnContainer = styled.div<{ $visible: boolean }>`
     
     /* Animation Logic */
     height: ${(props: { $visible: any; }) => props.$visible ? '32px' : '0px'};
-    margin: ${(props: { $visible: any; }) => props.$visible ? '-16px 0' : '0px'}; /* Overlap traces slightly in edit mode */
-    opacity: ${(props: { $visible: any; }) => props.$visible ? 0 : 0}; /* Default hidden, show on hover */
+    margin: ${(props: { $visible: any; }) => props.$visible ? '-16px 0' : '0px'};
+    opacity: ${(props: { $visible: any; }) => props.$visible ? 0 : 0};
     pointer-events: ${(props: { $visible: any; }) => props.$visible ? 'auto' : 'none'};
     
     transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s ease, opacity 0.2s ease;

@@ -30,6 +30,7 @@ import { findBallerinaPackageRoot } from "../../utils";
 import { MESSAGES } from "../project";
 import { BallerinaExtension } from "../../core";
 import { isSupportedSLVersion, createVersionNumber } from "../../utils/config";
+import { EVALUATION_GROUP } from "./activator";
 
 export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
     // Check if AI Evaluation features are supported
@@ -312,10 +313,8 @@ function hasEvaluationGroup(testFunction: any): boolean {
     if (!Array.isArray(groupsField.value)) { return false; }
 
     // Check if "evaluations" is in the groups array
-    // Note: The values may include quotes, so we need to strip them
     const hasEvaluation = groupsField.value.some((group: string) => {
-        const cleanedGroup = group.replace(/^["']|["']$/g, ''); // Remove leading/trailing quotes
-        return cleanedGroup === 'evaluations';
+        return group === EVALUATION_GROUP;
     });
     return hasEvaluation;
 }
