@@ -34,6 +34,8 @@ export interface PackageInfoSectionProps {
     data: PackageInfoData;
     /** Callback when the package info changes */
     onChange: (data: Partial<PackageInfoData>) => void;
+    /** Error message for org name validation */
+    orgNameError?: string | null;
 }
 
 export function PackageInfoSection({
@@ -41,6 +43,7 @@ export function PackageInfoSection({
     onToggle,
     data,
     onChange,
+    orgNameError,
 }: PackageInfoSectionProps) {
     return (
         <CollapsibleSection
@@ -56,6 +59,7 @@ export function PackageInfoSection({
                     value={data.orgName}
                     label="Organization Name"
                     description="The organization that owns this Ballerina package."
+                    errorMsg={orgNameError || ""}
                 />
             </FieldGroup>
             <FieldGroup>
