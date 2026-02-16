@@ -138,10 +138,6 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
         setIsIOConfigPanelOpen(true);
     };
 
-    const handleCreateConvertedVariable = async () => {
-        context.createConvertedVariable(headerLabel);
-    }
-
     return (
         <>
             <TreeContainer data-testid={`${id}-node`} onContextMenu={onRightClick}>
@@ -211,7 +207,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 <>
                     <ArrowWidget direction="down" />
                     <NodeActionWidget
-                        onClick={handleCreateConvertedVariable}
+                        onClick={async () => await context.createConvertedVariable(headerLabel)}
                         iconName="convert"
                         tooltip={`Create type defined variable to access fields in ${headerLabel}`}
                         label="Create type defined variable"
