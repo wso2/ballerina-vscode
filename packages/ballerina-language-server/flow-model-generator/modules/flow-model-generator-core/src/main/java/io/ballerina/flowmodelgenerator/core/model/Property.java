@@ -287,6 +287,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         DATA_MAPPING_EXPRESSION,
         RECORD_MAP_EXPRESSION,
         PROMPT,
+        CLAUSE_EXPRESSION,
         SQL_QUERY
     }
 
