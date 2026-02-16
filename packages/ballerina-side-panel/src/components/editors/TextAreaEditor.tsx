@@ -22,7 +22,7 @@ import { AutoResizeTextArea } from "@wso2/ui-toolkit";
 import { useFormContext } from "../../context";
 import { S } from "./ExpressionEditor";
 import { Controller } from "react-hook-form";
-import { ExpandedEditor } from "./ExpandedEditor";
+import { EditorMode, ExpandedEditor } from "./ExpandedEditor";
 import styled from "@emotion/styled";
 import { ExpandIcon } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingButtonIcons";
 import { FloatingToggleButton } from "./MultiModeExpressionEditor/ChipExpressionEditor/components/FloatingToggleButton";
@@ -32,6 +32,7 @@ interface TextAreaEditorProps {
     field: FormField;
     handleOnFieldFocus?: (key: string) => void;
     autoFocus?: boolean;
+    inputMode?: EditorMode;
 }
 
 const TextAreaContainer = styled.div`
@@ -49,7 +50,7 @@ const TextAreaContainer = styled.div`
 `;
 
 export function TextAreaEditor(props: TextAreaEditorProps) {
-    const { field, handleOnFieldFocus, autoFocus } = props;
+    const { field, handleOnFieldFocus, autoFocus, inputMode } = props;
     const { form } = useFormContext();
     const { control, setValue, watch } = form;
     const [isExpandedModalOpen, setIsExpandedModalOpen] = useState(false);
@@ -114,6 +115,7 @@ export function TextAreaEditor(props: TextAreaEditorProps) {
                                 onClose={() => setIsExpandedModalOpen(false)}
                                 onSave={handleSaveExpandedMode}
                                 onChange={onChange}
+                                mode={inputMode}
                             />
                         </TextAreaContainer>
                     )}

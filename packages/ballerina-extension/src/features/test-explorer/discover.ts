@@ -119,6 +119,8 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
     // Iterate over the result map (test groups)
     for (const [group, testFunctions] of entries) {
         let groupItem: TestItem | undefined;
+        // Remove leading/trailing quotes from group name for display
+        const cleanedGroupName = group.replace(/^["']|["']$/g, '');
 
         // For workspace context with DEFAULT_GROUP, skip the group level and add tests directly to project
         if (isWorkspaceContext && group === 'DEFAULT_GROUP' && projectGroupItem) {
@@ -128,7 +130,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             const groupId = `group:${path.basename(projectPath)}:${group}`;
             groupItem = projectGroupItem.children.get(groupId);
             if (!groupItem) {
-                groupItem = testController.createTestItem(groupId, group);
+                groupItem = testController.createTestItem(groupId, cleanedGroupName);
                 projectGroupItem.children.add(groupItem);
                 groups.push(groupId);
             }
@@ -137,7 +139,7 @@ function createTests(response: TestsDiscoveryResponse, testController: TestContr
             const groupId = `group:${group}`;
             groupItem = testController.items.get(groupId);
             if (!groupItem) {
-                groupItem = testController.createTestItem(groupId, group);
+                groupItem = testController.createTestItem(groupId, cleanedGroupName);
                 testController.items.add(groupItem);
                 groups.push(groupId);
             }
