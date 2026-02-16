@@ -399,15 +399,6 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                     position: item.position,
                 },
             });
-        } else if (key === DIRECTORY_MAP.DATA_MAPPER) {
-            rpcClient.getVisualizerRpcClient().openView({
-                type: EVENT_TYPE.OPEN_VIEW,
-                location: {
-                    view: MACHINE_VIEW.DataMapper,
-                    documentUri: item.path,
-                    position: item.position,
-                },
-            });
         } else if (key === DIRECTORY_MAP.CONFIGURABLE) {
             rpcClient.getVisualizerRpcClient().openView({
                 type: EVENT_TYPE.OPEN_VIEW,
