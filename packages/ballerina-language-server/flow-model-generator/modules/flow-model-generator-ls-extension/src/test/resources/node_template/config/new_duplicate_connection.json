@@ -1,5 +1,5 @@
 {
-  "source": "duplicate_connector/connections.bal",
+  "source": "local_connector/main.bal",
   "description": "Duplicate connection",
   "codedata": {
     "node": "NEW_CONNECTION",
@@ -808,7 +808,7 @@
             "selected": true
           }
         ],
-        "value": "httpClientResult",
+        "value": "httpClientOut",
         "optional": false,
         "editable": true,
         "advanced": false,
