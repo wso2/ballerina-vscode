@@ -34,7 +34,7 @@ const Toolbar = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
-    margin-bottom: 4px;
+    margin-bottom: 24px;
 `;
 
 const SearchBar = styled.div`
@@ -82,41 +82,12 @@ const ClearButton = styled.div`
     }
 `;
 
-const SummaryBar = styled.div`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-`;
-
-const SummaryBadge = styled.div<{ accentColor: string; active: boolean }>`
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    user-select: none;
-    color: ${ThemeColors.ON_SURFACE};
-    background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} ${(props: { active: boolean }) => props.active ? "20%" : "8%"}, transparent);
-    border: 1px solid color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} ${(props: { active: boolean }) => props.active ? "50%" : "20%"}, transparent);
-    &:hover {
-        background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 25%, transparent);
-        border-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 50%, transparent);
-    }
-`;
-
-const BadgeCount = styled.span`
-    font-weight: 600;
-`;
-
 // ── Layout ──────────────────────────────────────────────────────────────
 
 const SectionsContainer = styled.div`
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     padding: 16px;
     width: 100%;
 `;
@@ -135,13 +106,14 @@ const Section = styled.div`
     border: 1px solid ${ThemeColors.OUTLINE_VARIANT};
     border-radius: 4px;
     overflow: hidden;
+    background: var(--vscode-sideBar-background);
 `;
 
 const SectionHeader = styled.div<{ accentColor: string; isExpanded: boolean; clickable: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 12px;
+    padding: 12px 12px;
     cursor: ${(props: { clickable: boolean }) => props.clickable ? "pointer" : "default"};
     user-select: none;
     background-color: ${(props: { isExpanded: boolean; accentColor: string }) =>
@@ -163,7 +135,7 @@ const SectionHeaderLeft = styled.div`
 `;
 
 const SectionTitle = styled.span`
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     color: ${ThemeColors.ON_SURFACE};
 `;
@@ -187,7 +159,7 @@ const SectionContent = styled.div`
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 12px 12px;
 `;
 
 // ── Empty section ───────────────────────────────────────────────────────
@@ -196,8 +168,8 @@ const EmptySection = styled.div<{ accentColor: string }>`
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 12px;
-    border: 1px dashed color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 30%, ${ThemeColors.OUTLINE_VARIANT});
+    padding: 12px 12px;
+    border: 1px dashed color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 40%, transparent);
     border-radius: 4px;
 `;
 
@@ -210,7 +182,7 @@ const EmptySectionLeft = styled.div`
 const EmptySectionLabel = styled.span`
     font-size: 12px;
     color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.5;
+    opacity: 0.7;
 `;
 
 
@@ -219,17 +191,17 @@ const EmptySectionLabel = styled.span`
 const ConstructItem = styled.div<{ accentColor: string }>`
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px 4px 10px;
-    border: 1px solid color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 30%, transparent);
-    border-radius: 8px;
+    gap: 12px;
+    padding: 8px 10px;
+    border: 1px solid color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 25%, transparent);
+    border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    color: ${ThemeColors.ON_SURFACE};
-    background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 10%, transparent);
+    color: ${(props: { accentColor: string }) => props.accentColor};
+    background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 12%, transparent);
     &:hover {
-        background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 20%, transparent);
-        border-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 50%, transparent);
+        background: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 20%, transparent);
+        border-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 40%, transparent);
     }
     &:hover .delete-btn {
         display: flex;
@@ -270,7 +242,7 @@ const DeleteButton = styled.div`
     border-radius: 50%;
     cursor: pointer;
     color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.6;
+    opacity: 0.7;
     &:hover {
         color: ${ThemeColors.ERROR};
         opacity: 1;
@@ -321,7 +293,7 @@ const SECTIONS: SectionConfig[] = [
         title: "Data Mappers",
         icon: "dataMapper",
         emptyMessage: "No data mappers yet",
-        accentColor: "var(--vscode-charts-red)",
+        accentColor: "var(--vscode-charts-lines)",
     },
     {
         key: DIRECTORY_MAP.CONFIGURABLE,
@@ -376,17 +348,6 @@ export function LibraryOverview(props: LibraryOverviewProps) {
             }
             return next;
         });
-    };
-
-    const scrollToSection = (key: DIRECTORY_MAP) => {
-        setCollapsedSections((prev) => {
-            const next = new Set(prev);
-            next.delete(key);
-            return next;
-        });
-        setTimeout(() => {
-            document.getElementById(`section-${key}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-        }, 50);
     };
 
     const handleAdd = (key: DIRECTORY_MAP) => {
@@ -509,7 +470,7 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                     <SearchInput
                         ref={searchRef}
                         type="text"
-                        placeholder="Search constructs..."
+                        placeholder="Search artifacts..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -519,29 +480,10 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                         </ClearButton>
                     )}
                 </SearchBar>
-                {!isSearching && (
-                    <SummaryBar>
-                        {SECTIONS.map((section) => {
-                            const count = (dirMap[section.key] ?? []).length;
-                            return (
-                                <SummaryBadge
-                                    key={section.key}
-                                    accentColor={section.accentColor}
-                                    active={count > 0}
-                                    onClick={() => count > 0 ? scrollToSection(section.key) : handleAdd(section.key)}
-                                >
-                                    <Icon name={section.icon} sx={{ fontSize: 12, width: 12, height: 12 }} />
-                                    {section.title}
-                                    <BadgeCount>{count}</BadgeCount>
-                                </SummaryBadge>
-                            );
-                        })}
-                    </SummaryBar>
-                )}
             </Toolbar>
 
             {isSearching && !hasAnyResults && (
-                <NoResults>No constructs matching "{searchQuery.trim()}"</NoResults>
+                <NoResults>No artifacts matching "{searchQuery.trim()}"</NoResults>
             )}
 
             {/* Populated sections */}
@@ -567,7 +509,7 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                                         <Codicon name="chevron-down" iconSx={{ fontSize: 14 }} />
                                     </ChevronIcon>
                                 )}
-                                <Icon name={section.icon} />
+                                <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
                                 <SectionTitle>{section.title}</SectionTitle>
                                 <ItemCount>
                                     ({isSearching ? `${filteredItems.length}/${allItems.length}` : allItems.length})
@@ -626,7 +568,7 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                     accentColor={section.accentColor}
                 >
                     <EmptySectionLeft>
-                        <Icon name={section.icon} />
+                        <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
                         <EmptySectionLabel>{section.emptyMessage}</EmptySectionLabel>
                     </EmptySectionLeft>
                     <Button
