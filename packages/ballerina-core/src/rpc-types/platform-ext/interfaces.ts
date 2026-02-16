@@ -24,6 +24,7 @@ import { ModuleVarDecl } from "@wso2/syntax-tree/lib/syntax-tree-interfaces";
 export interface GenerateCustomConnectorFromOASReq {
     connectionName: string;
     marketplaceItem: MarketplaceItem;
+    securityType?: "" | "oauth" | "apikey"
 }
 
 export interface GenerateCustomConnectorFromOASResp {

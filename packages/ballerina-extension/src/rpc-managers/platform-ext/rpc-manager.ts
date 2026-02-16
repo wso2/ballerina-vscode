@@ -88,9 +88,9 @@ import {
     findUniqueConnectionName,
     getConfigFileUri,
     getDomain,
-    getInjectedEnvVarNames,
     getYamlString,
     hasContextYaml,
+    processOpenApiWithApiKeyAuth,
     Templates,
 } from "./platform-utils";
 import { debounce } from "lodash";
@@ -683,7 +683,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             StateMachine.setEditMode();
             await this.generateCustomConnectorFromOAS({
                 connectionName: params.name,
-                marketplaceItem: params.marketplaceItem
+                marketplaceItem: params.marketplaceItem,
+                securityType: params.securityType,
             });
             const moduleName = params.name.replace(/[_\-\s]/g, "")?.toLowerCase();
             const configFileUri = getConfigFileUri();
@@ -721,7 +722,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
         
                 keys[entry.id] = {
                     keyname: entry.name,
-                    envName: getInjectedEnvVarNames(connectionKeys[entry.id].envVariableName),
+                    envName: connectionKeys[entry.id].envVariableName,
                 };
             }
             if(deleteTempConfigBalEdits.size > 0){
@@ -783,7 +784,8 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
             const filePath = path.join(choreoDir, `${moduleName}-spec.yaml`);
 
             if (serviceIdl?.idlType === "OpenAPI" && serviceIdl.content) {
-                fs.writeFileSync(filePath, yaml.dump(yaml.load(getYamlString(serviceIdl.content))), "utf8");
+                const updatedDef = processOpenApiWithApiKeyAuth(serviceIdl.content, params.securityType);
+                fs.writeFileSync(filePath, updatedDef, "utf8");
             }
 
             const diagram = new BiDiagramRpcManager();
@@ -997,7 +999,7 @@ export class PlatformExtRpcManager implements PlatformExtAPI {
                             config.node.initializer.position.endColumn,
                         ),
                     ),
-                    `os:getEnv("${getInjectedEnvVarNames(matchingConfigEntry.envVariableName)}")`,
+                    `os:getEnv("${matchingConfigEntry.envVariableName}")`,
                 );
             }
         }
