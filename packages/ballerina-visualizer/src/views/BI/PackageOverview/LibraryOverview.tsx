@@ -33,6 +33,7 @@ import styled from "@emotion/styled";
 const Toolbar = styled.div`
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 10px;
     margin-bottom: 24px;
 `;
@@ -41,11 +42,14 @@ const SearchBar = styled.div`
     position: relative;
     display: flex;
     align-items: center;
+    width: 80%;
+    max-width: 600px;
+    min-width: 400px;
 `;
 
 const SearchInput = styled.input`
     width: 100%;
-    padding: 6px 28px 6px 32px;
+    padding: 8px 28px 8px 32px;
     background: var(--vscode-input-background);
     border: 1px solid var(--vscode-input-border);
     border-radius: 4px;
@@ -121,14 +125,6 @@ const SecondaryColumn = styled.div`
     min-width: 0;
 `;
 
-const NoResults = styled.div`
-    padding: 24px 16px;
-    text-align: center;
-    color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.5;
-    font-size: 13px;
-`;
-
 // ── Section ─────────────────────────────────────────────────────────────
 
 const Section = styled.div<{ vertical?: boolean }>`
@@ -139,23 +135,13 @@ const Section = styled.div<{ vertical?: boolean }>`
     ${(props: { vertical?: boolean }) => props.vertical ? "flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column;" : ""}
 `;
 
-const SectionHeader = styled.div<{ accentColor: string; isExpanded: boolean; clickable: boolean }>`
+const SectionHeader = styled.div<{ accentColor: string }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 12px 12px;
-    cursor: ${(props: { clickable: boolean }) => props.clickable ? "pointer" : "default"};
     user-select: none;
-    background-color: ${(props: { isExpanded: boolean; accentColor: string }) =>
-        props.isExpanded
-            ? `color-mix(in srgb, ${props.accentColor} 6%, transparent)`
-            : "transparent"};
-    &:hover {
-        background-color: ${(props: { clickable: boolean; accentColor: string }) =>
-            props.clickable
-                ? `color-mix(in srgb, ${props.accentColor} 10%, transparent)`
-                : "transparent"};
-    }
+    background-color: color-mix(in srgb, ${(props: { accentColor: string }) => props.accentColor} 6%, transparent);
 `;
 
 const SectionHeaderLeft = styled.div`
@@ -172,15 +158,6 @@ const SectionTitle = styled.span`
 
 const ItemCount = styled.span`
     font-size: 11px;
-    color: ${ThemeColors.ON_SURFACE};
-    opacity: 0.6;
-`;
-
-const ChevronIcon = styled.div<{ isExpanded: boolean }>`
-    display: flex;
-    align-items: center;
-    transition: transform 0.2s ease;
-    transform: ${(props: { isExpanded: boolean }) => props.isExpanded ? "rotate(0deg)" : "rotate(-90deg)"};
     color: ${ThemeColors.ON_SURFACE};
     opacity: 0.6;
 `;
@@ -205,8 +182,8 @@ const EmptySectionLabel = styled.span`
 
 // ── Construct chip ──────────────────────────────────────────────────────
 
-const ConstructItem = styled.div<{ accentColor: string }>`
-    display: inline-flex;
+const ConstructItem = styled.div<{ accentColor: string; fullWidth?: boolean }>`
+    display: ${(props: { fullWidth?: boolean }) => props.fullWidth ? "flex" : "inline-flex"};
     align-items: center;
     gap: 12px;
     padding: 8px 10px;
@@ -236,11 +213,11 @@ const ConstructItemIcon = styled.div`
     }
 `;
 
-const ConstructItemName = styled.span`
+const ConstructItemName = styled.span<{ flex?: boolean }>`
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: 160px;
+    ${(props: { flex?: boolean }) => props.flex ? "flex: 1; min-width: 0;" : "max-width: 160px;"}
 `;
 
 const HighlightMatch = styled.span`
@@ -363,23 +340,10 @@ interface LibraryOverviewProps {
 export function LibraryOverview(props: LibraryOverviewProps) {
     const { projectStructure } = props;
     const { rpcClient } = useRpcContext();
-    const [collapsedSections, setCollapsedSections] = useState<Set<DIRECTORY_MAP>>(new Set());
     const [searchQuery, setSearchQuery] = useState("");
     const searchRef = useRef<HTMLInputElement>(null);
 
     const isSearching = searchQuery.trim().length > 0;
-
-    const toggleSection = (key: DIRECTORY_MAP) => {
-        setCollapsedSections((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) {
-                next.delete(key);
-            } else {
-                next.add(key);
-            }
-            return next;
-        });
-    };
 
     const handleAdd = (key: DIRECTORY_MAP) => {
         if (key === DIRECTORY_MAP.CONNECTION) {
@@ -487,8 +451,6 @@ export function LibraryOverview(props: LibraryOverviewProps) {
         });
     }, [dirMap, query, isSearching]);
 
-    const hasAnyResults = !isSearching || sectionsWithItems.some((s) => s.filteredItems.length > 0);
-
     const primarySections = sectionsWithItems.filter((s) => s.section.column === "primary");
     const secondarySections = sectionsWithItems.filter((s) => s.section.column === "secondary");
 
@@ -498,22 +460,11 @@ export function LibraryOverview(props: LibraryOverviewProps) {
     ) => {
         const displayItems = isSearching ? filteredItems : allItems;
         const hasItems = displayItems.length > 0;
-        const isExpanded = hasItems && (isSearching || !collapsedSections.has(section.key));
 
         return (
             <Section key={section.key} id={`section-${section.key}`} vertical={vertical}>
-                <SectionHeader
-                    accentColor={section.accentColor}
-                    isExpanded={isExpanded}
-                    clickable={hasItems}
-                    onClick={hasItems ? () => toggleSection(section.key) : undefined}
-                >
+                <SectionHeader accentColor={section.accentColor}>
                     <SectionHeaderLeft>
-                        {hasItems && (
-                            <ChevronIcon isExpanded={isExpanded}>
-                                <Codicon name="chevron-down" iconSx={{ fontSize: 14 }} />
-                            </ChevronIcon>
-                        )}
                         <Icon name={section.icon} sx={{ fontSize: 18, width: 18, height: 18 }} />
                         <SectionTitle>{section.title}</SectionTitle>
                         {hasItems && (
@@ -525,28 +476,26 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                     <span title={section.addTooltip}>
                         <Button
                             appearance="icon"
-                            onClick={(e: React.MouseEvent) => {
-                                e.stopPropagation();
-                                handleAdd(section.key);
-                            }}
+                            onClick={() => handleAdd(section.key)}
                             buttonSx={{ padding: "2px 8px" }}
                         >
                             <Codicon name="add" sx={{ marginRight: 4 }} /> Add
                         </Button>
                     </span>
                 </SectionHeader>
-                {isExpanded && (
+                {hasItems && (
                     <SectionContent vertical={vertical}>
                         {displayItems.map((item) => (
                             <ConstructItem
                                 key={item.id}
                                 accentColor={section.accentColor}
+                                fullWidth={vertical}
                                 onClick={() => handleItemClick(section.key, item)}
                             >
                                 <ConstructItemIcon>
                                     <Icon name={section.icon} />
                                 </ConstructItemIcon>
-                                <ConstructItemName>
+                                <ConstructItemName flex={vertical}>
                                     {highlightName(item.name, query)}
                                 </ConstructItemName>
                                 {item.position && item.path && (
@@ -566,7 +515,9 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                 )}
                 {!hasItems && (
                     <SectionContent vertical={vertical}>
-                        <EmptySectionLabel>{section.emptyMessage}</EmptySectionLabel>
+                        <EmptySectionLabel>
+                            {isSearching ? `No matching ${section.title.toLowerCase()}` : section.emptyMessage}
+                        </EmptySectionLabel>
                     </SectionContent>
                 )}
             </Section>
@@ -594,10 +545,6 @@ export function LibraryOverview(props: LibraryOverviewProps) {
                     )}
                 </SearchBar>
             </Toolbar>
-
-            {!hasAnyResults && (
-                <NoResults>No artifacts matching "{searchQuery.trim()}"</NoResults>
-            )}
 
             <ColumnsLayout>
                 <PrimaryColumn>
