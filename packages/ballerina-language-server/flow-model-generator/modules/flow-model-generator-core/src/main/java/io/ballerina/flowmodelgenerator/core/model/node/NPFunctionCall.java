@@ -92,8 +92,7 @@ public class NPFunctionCall extends FunctionCall {
         Codedata codedata = context.codedata();
 
         // Create and set the resolved package for the function
-        // Skip package resolution for generated packages as they don't exist in Central
-        Optional<Package> resolvedPackage = PackageUtil.getModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
                 codedata.org(), codedata.packageName(), codedata.version());
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

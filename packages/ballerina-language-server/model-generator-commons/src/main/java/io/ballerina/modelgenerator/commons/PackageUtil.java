@@ -116,7 +116,7 @@ public class PackageUtil {
      * @return An Optional containing the semantic model.
      */
     public static Optional<SemanticModel> getSemanticModel(ModuleInfo moduleInfo) {
-        Optional<Package> modulePackage = getModulePackage(getSampleProject(), moduleInfo.org(),
+        Optional<Package> modulePackage = getModulePackage(moduleInfo.org(),
                 moduleInfo.packageName(), moduleInfo.version());
         if (modulePackage.isEmpty()) {
             return Optional.empty();
@@ -131,7 +131,7 @@ public class PackageUtil {
     }
 
     public static Optional<SemanticModel> getSemanticModel(String org, String name) {
-        return getModulePackage(getSampleProject(), org, name).map(
+        return getModulePackage(org, name).map(
                 pkg -> getCompilation(pkg).getSemanticModel(pkg.getDefaultModule().moduleId()));
     }
 
@@ -139,13 +139,12 @@ public class PackageUtil {
      * Retrieves a package matching the specified organization, name, and version. If the package is not found in the
      * local cache, it attempts to fetch it from the remote repository.
      *
-     * @param buildProject The build project context
      * @param org          The organization name of the package
      * @param name         The name of the package
      * @param version      The version of the package
      * @return An Optional containing the matching Package if found, empty Optional otherwise
      */
-    public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name,
+    public static Optional<Package> getModulePackage(String org, String name,
                                                      String version) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name), PackageVersion.from(version)));
@@ -167,7 +166,7 @@ public class PackageUtil {
         return Optional.ofNullable(balaProject.currentPackage());
     }
 
-    public static Optional<Package> getModulePackage(BuildProject buildProject, String org, String name) {
+    public static Optional<Package> getModulePackage(String org, String name) {
         ResolutionRequest resolutionRequest = ResolutionRequest.from(
                 PackageDescriptor.from(PackageOrg.from(org), PackageName.from(name)));
 
@@ -302,7 +301,7 @@ public class PackageUtil {
         if (PackageUtil.isModuleUnresolved(completeModuleInfo.org(), completeModuleInfo.packageName(),
                 completeModuleInfo.version())) {
             notifyClient(lsClientLogger, completeModuleInfo, MessageType.Info, PULLING_THE_MODULE_MESSAGE);
-            modulePackage = getModulePackage(SAMPLE_PROJECT, completeModuleInfo.org(), completeModuleInfo.packageName(),
+            modulePackage = getModulePackage(completeModuleInfo.org(), completeModuleInfo.packageName(),
                     completeModuleInfo.version());
             if (modulePackage.isEmpty()) {
                 notifyClient(lsClientLogger, completeModuleInfo, MessageType.Error, MODULE_PULLING_FAILED_MESSAGE);
@@ -310,7 +309,7 @@ public class PackageUtil {
                 notifyClient(lsClientLogger, completeModuleInfo, MessageType.Info, MODULE_PULLING_SUCCESS_MESSAGE);
             }
         } else {
-            modulePackage = getModulePackage(SAMPLE_PROJECT, completeModuleInfo.org(), completeModuleInfo.packageName(),
+            modulePackage = getModulePackage(completeModuleInfo.org(), completeModuleInfo.packageName(),
                     completeModuleInfo.version());
         }
         return modulePackage;
@@ -355,13 +354,13 @@ public class PackageUtil {
      * @param packageName The name of the package
      * @return An Optional containing the resolved Package if successful, empty Optional if resolution fails
      */
-    public static Optional<Package> getModulePackage(String org, String packageName, String version) {
+    public static Optional<Package> resolveModulePackage(String org, String packageName, String version) {
         // TODO: remove this logic after resolving the package without using the buildProject
         try {
             if (version == null) {
-                return getModulePackage(getSampleProject(), org, packageName);
+                return getModulePackage(org, packageName);
             } else {
-                return getModulePackage(getSampleProject(), org, packageName, version);
+                return getModulePackage(org, packageName, version);
             }
         } catch (Exception e) {
             // If package resolution fails (e.g., package doesn't exist in Central),

@@ -59,7 +59,6 @@ import java.util.TreeSet;
  * @deprecated Use {@link DataMapperDefinitionBuilder} instead. The implementation is kept in case this feature is
  * needed in the future.
  */
-@Deprecated
 public class DataMapperBuilder extends NodeBuilder {
 
     public static final String LABEL = "Data Mapper";

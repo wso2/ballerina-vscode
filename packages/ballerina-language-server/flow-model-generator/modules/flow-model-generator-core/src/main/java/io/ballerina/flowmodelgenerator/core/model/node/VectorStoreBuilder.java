@@ -88,7 +88,7 @@ public class VectorStoreBuilder extends CallBuilder {
                 codedata.module(), codedata.version());
 
         // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.getModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
                 codedata.org(), codedata.packageName(), codedata.version());
 
         FunctionData functionData = new FunctionDataBuilder()

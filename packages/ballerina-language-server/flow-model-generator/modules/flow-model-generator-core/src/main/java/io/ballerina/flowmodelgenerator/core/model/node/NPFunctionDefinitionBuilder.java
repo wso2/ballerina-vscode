@@ -85,7 +85,7 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
         Codedata codedata = context.codedata();
 
         // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.getModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
                 NaturalFunctions.BALLERINA_ORG, NaturalFunctions.AI_PACKAGE, null);
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

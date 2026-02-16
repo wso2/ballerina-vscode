@@ -88,7 +88,7 @@ public abstract class CallBuilder extends NodeBuilder {
             Module defaultModule = resolvedPackage.getDefaultModule();
             document = defaultModule.document(resolvedPackage.project().documentId(context.filePath()));
         } else {
-            resolvedPackage = PackageUtil.getModulePackage(codedata.org(), codedata.packageName(),
+            resolvedPackage = PackageUtil.resolveModulePackage(codedata.org(), codedata.packageName(),
                     codedata.version()).orElse(null);
         }
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()

@@ -65,7 +65,7 @@ public class ResourceActionCallBuilder extends CallBuilder {
             return;
         }
 
-        Optional<Package> resolvedPackage = PackageUtil.getModulePackage(
+        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
                 codedata.org(), codedata.packageName(), codedata.version());
 
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
