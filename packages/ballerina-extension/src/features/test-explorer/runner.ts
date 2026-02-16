@@ -95,15 +95,20 @@ function isAiEvaluations(test: TestItem): boolean {
         return true;
     }
 
-    // Check if the project group contains any evaluations group
+    // Check if the project group contains only evaluations groups
     if (isProjectGroupItem(test)) {
-        let hasEvaluationsGroup = false;
+        // Return true only if all children are evaluation groups
+        let allChildrenAreEvaluations = true;
+        let hasChildren = false;
+
         test.children.forEach((child) => {
-            if (isTestGroupItem(child) && child.label === EVALUATION_GROUP) {
-                hasEvaluationsGroup = true;
+            hasChildren = true;
+            if (!isTestGroupItem(child) || child.label !== EVALUATION_GROUP) {
+                allChildrenAreEvaluations = false;
             }
         });
-        return hasEvaluationsGroup;
+
+        return hasChildren && allChildrenAreEvaluations;
     }
 
     return false;
