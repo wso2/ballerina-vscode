@@ -812,19 +812,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // get next suggestion
                     const copilot_token = await extension.context.secrets.get("GITHUB_COPILOT_TOKEN");
                     if (!copilot_token) {
-                        let token: string;
-                        const loginMethod = await getLoginMethod();
-                        if (loginMethod === LoginMethod.BI_INTEL) {
-                            const credentials = await getAccessToken();
-                            const secrets = credentials.secrets as BIIntelSecrets;
-                            token = secrets.accessToken;
-                        }
-                        if (!token) {
-                            //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
-                            resolve(undefined);
-                            return;
-                        }
-                        suggestedContent = await this.getCompletionsWithHostedAI(token, copilotContext);
+                        resolve(undefined);
+                        return;
                     } else {
                         const resp = await getCompleteSuggestions({
                             prefix: copilotContext.prefix,

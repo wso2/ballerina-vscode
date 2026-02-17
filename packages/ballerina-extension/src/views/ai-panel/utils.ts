@@ -20,13 +20,20 @@ import * as vscode from 'vscode';
 import { AIUserToken, LoginMethod, AuthCredentials } from '@wso2/ballerina-core';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
+import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import { generateText } from 'ai';
-import { getAuthUrl, getLogoutUrl } from './auth';
 import { extension } from '../../BalExtensionContext';
-import { getAccessToken, clearAuthCredentials, storeAuthCredentials, getLoginMethod, exchangeStsToken, getAuthCredentials } from '../../utils/ai/auth';
-import { DEVANT_STS_TOKEN_CONFIG } from '../../features/ai/utils';
+import {
+    getAccessToken,
+    getLoginMethod,
+    clearAuthCredentials,
+    storeAuthCredentials,
+    isPlatformExtensionAvailable,
+    isDevantUserLoggedIn,
+    getPlatformStsToken,
+    exchangeStsToCopilotToken
+} from '../../utils/ai/auth';
 import { getBedrockRegionalPrefix } from '../../features/ai/utils/ai-client';
-import { getDevantStsToken } from '../../features/devant/activator';
 
 const LEGACY_ACCESS_TOKEN_SECRET_KEY = 'BallerinaAIUser';
 const LEGACY_REFRESH_TOKEN_SECRET_KEY = 'BallerinaAIRefreshToken';
@@ -37,12 +44,38 @@ export const checkToken = async (): Promise<AuthCredentials | undefined> => {
             // Clean up any legacy tokens on initialization
             await cleanupLegacyTokens();
 
+            // First check if we have stored credentials
             const credentials = await getAccessToken();
-            if (!credentials) {
-                resolve(undefined);
+            if (credentials) {
+                resolve(credentials);
                 return;
             }
-            resolve(credentials);
+
+            // No stored credentials - check if user is logged into Devant
+            if (isPlatformExtensionAvailable()) {
+                const isLoggedIn = await isDevantUserLoggedIn();
+                if (isLoggedIn) {
+                    // User is logged into Devant but no stored credentials
+                    // Exchange STS token and store credentials
+                    try {
+                        const stsToken = await getPlatformStsToken();
+                        if (stsToken) {
+                            const secrets = await exchangeStsToCopilotToken(stsToken);
+                            const newCredentials: AuthCredentials = {
+                                loginMethod: LoginMethod.BI_INTEL,
+                                secrets
+                            };
+                            await storeAuthCredentials(newCredentials);
+                            resolve(newCredentials);
+                            return;
+                        }
+                    } catch (exchangeError) {
+                        console.error('Failed to exchange STS token during checkToken:', exchangeError);
+                    }
+                }
+            }
+
+            resolve(undefined);
         } catch (error) {
             reject(error);
         }
@@ -63,13 +96,14 @@ const cleanupLegacyTokens = async (): Promise<void> => {
     }
 };
 
-export const logout = async (isUserLogout: boolean = true) => {
-    // For user-initiated logout, check if we need to redirect to SSO logout
-    if (isUserLogout) {
-        const credentials = await checkToken();
-        if (credentials.loginMethod === LoginMethod.BI_INTEL) {
-            const logoutURL = getLogoutUrl();
-            vscode.env.openExternal(vscode.Uri.parse(logoutURL));
+export const logout = async (_isUserLogout: boolean = true) => {
+    // Sign out from the WSO2 Platform extension if logged in via BI_INTEL
+    const loginMethod = await getLoginMethod();
+    if (loginMethod === LoginMethod.BI_INTEL && isPlatformExtensionAvailable()) {
+        try {
+            await vscode.commands.executeCommand('wso2.wso2-platform.sign.out');
+        } catch (error) {
+            console.error('Error signing out from WSO2 Platform extension:', error);
         }
     }
 
@@ -77,12 +111,18 @@ export const logout = async (isUserLogout: boolean = true) => {
     await clearAuthCredentials();
 };
 
-export async function initiateInbuiltAuth() {
-    const callbackUri = await vscode.env.asExternalUri(
-        vscode.Uri.parse(`${vscode.env.uriScheme}://wso2.ballerina/signin`)
-    );
-    const oauthURL = await getAuthUrl(callbackUri.toString());
-    return vscode.env.openExternal(vscode.Uri.parse(oauthURL));
+/**
+ * Initiate Devant authentication via the platform extension.
+ * Returns true if login was triggered, false if platform extension is not available.
+ */
+export async function initiateDevantAuth(): Promise<boolean> {
+    if (!isPlatformExtensionAvailable()) {
+        throw new Error('WSO2 Platform extension is not installed. Please install it to use BI Copilot.');
+    }
+
+    // Trigger platform extension login command
+    await vscode.commands.executeCommand('wso2.wso2-platform.sign.in');
+    return true;
 }
 
 export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): Promise<AIUserToken> => {
@@ -130,53 +170,6 @@ export const validateApiKey = async (apiKey: string, loginMethod: LoginMethod): 
             throw new Error('Connection failed. Please check your internet connection and ensure your API key is valid.');
         }
         throw new Error('Validation failed. Please try again.');
-    }
-};
-
-export const checkDevantEnvironment = async (): Promise<AuthCredentials | undefined> => {
-    // Check if CLOUD_STS_TOKEN environment variable exists (Devant flow identifier)
-    if (!('CLOUD_STS_TOKEN' in process.env)) {
-        return undefined;
-    }
-
-    try {
-        // Check if a valid access token already exists to avoid redundant exchanges
-        const existingCredentials = await getAuthCredentials();
-
-        if (existingCredentials && existingCredentials.loginMethod === LoginMethod.DEVANT_ENV) {
-            // existing session, check expiry
-            const { expiresAt } = existingCredentials.secrets;
-            const now = Date.now();
-
-            // If token is still valid (not expired), return existing credentials
-            if (expiresAt && expiresAt > now) {
-                return existingCredentials;
-            }
-        }
-        if (existingCredentials && existingCredentials.loginMethod !== LoginMethod.DEVANT_ENV) {
-            // not devant
-            return undefined;
-        }
-
-        // Get STS token from config or platform extension
-        const choreoStsToken = await getDevantStsToken() || DEVANT_STS_TOKEN_CONFIG;
-
-        if (!choreoStsToken || choreoStsToken.trim() === '') {
-            console.warn('CLOUD_STS_TOKEN env variable exists but no STS token available');
-            return undefined;
-        }
-
-        // Exchange STS token for Bearer token (if no valid token exists or token expired)
-        const devantSecrets = await exchangeStsToken(choreoStsToken);
-
-        // Return devant credentials without storing (always read from env and exchange on demand)
-        return {
-            loginMethod: LoginMethod.DEVANT_ENV,
-            secrets: devantSecrets
-        };
-    } catch (error) {
-        console.error('Error in checkDevantEnvironment:', error);
-        return undefined;
     }
 };
 
@@ -248,6 +241,64 @@ export const validateAwsCredentials = async (credentials: {
 
     } catch (error) {
         console.error('AWS Bedrock validation failed:', error);
+        throw new Error('Validation failed. Please check the log for more details.');
+    }
+};
+
+export const validateVertexAiCredentials = async (credentials: {
+    projectId: string;
+    location: string;
+    clientEmail: string;
+    privateKey: string;
+}): Promise<AIUserToken> => {
+    const { projectId, location, clientEmail, privateKey } = credentials;
+
+    if (!projectId || !location || !clientEmail || !privateKey) {
+        throw new Error('GCP Project ID, location, client email, and private key are required.');
+    }
+
+    try {
+        const vertexAnthropic = createVertexAnthropic({
+            project: projectId,
+            location: location,
+            googleAuthOptions: {
+                credentials: {
+                    client_email: clientEmail,
+                    private_key: privateKey,
+                },
+            },
+        });
+
+        await generateText({
+            model: vertexAnthropic('claude-3-5-haiku@20241022'),
+            maxOutputTokens: 1,
+            messages: [{ role: 'user', content: 'Hi' }]
+        });
+
+        const authCredentials: AuthCredentials = {
+            loginMethod: LoginMethod.VERTEX_AI,
+            secrets: {
+                projectId,
+                location,
+                clientEmail,
+                privateKey
+            }
+        };
+        await storeAuthCredentials(authCredentials);
+
+        return { credentials: authCredentials };
+
+    } catch (error) {
+        console.error('Vertex AI validation failed:', error);
+        if (error instanceof Error) {
+            if (error.message.includes('401') || error.message.includes('authentication') || error.message.includes('UNAUTHENTICATED')) {
+                throw new Error('Invalid credentials. Please check your service account email and private key.');
+            } else if (error.message.includes('403') || error.message.includes('PERMISSION_DENIED')) {
+                throw new Error('Permission denied. Please ensure your service account has access to Vertex AI.');
+            } else if (error.message.includes('404') || error.message.includes('NOT_FOUND')) {
+                throw new Error('Project or location not found. Please check your GCP Project ID and location.');
+            }
+        }
         throw new Error('Validation failed. Please check the log for more details.');
     }
 };
