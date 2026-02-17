@@ -526,10 +526,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
     }
 
     private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc) {
-        if (modelFunc.getProperties() == null) {
-            return;
-        }
-
         Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
         if (postProcessAction == null || postProcessAction.getProperties() == null) {
             return;
@@ -636,41 +632,6 @@ public class FTPServiceBuilder extends AbstractServiceBuilder {
                     moveTo.setValue(moveProps.get(MOVE_TO));
                 }
             }
-        }
-    }
-
-    private void updateServicePathFromAnnotation(Service serviceModel, ServiceDeclarationNode serviceNode) {
-        if (serviceNode.metadata().isEmpty()) {
-            return;
-        }
-        Optional<AnnotationNode> serviceConfig = findAnnotationBySuffix(
-                serviceNode.metadata().get().annotations(), SERVICE_CONFIG);
-        if (serviceConfig.isEmpty()) {
-            return;
-        }
-        serviceModel.getProperties().remove("annot" + SERVICE_CONFIG);
-        Optional<MappingConstructorExpressionNode> annotValue = serviceConfig.get().annotValue();
-        if (annotValue.isEmpty()) {
-            return;
-        }
-        for (MappingFieldNode field : annotValue.get().fields()) {
-            if (field.kind() != SyntaxKind.SPECIFIC_FIELD) {
-                continue;
-            }
-            SpecificFieldNode specificField = (SpecificFieldNode) field;
-            if (!SERVICE_PATH.equals(specificField.fieldName().toString().trim())) {
-                continue;
-            }
-            Optional<ExpressionNode> valueExpr = specificField.valueExpr();
-            if (valueExpr.isEmpty()) {
-                return;
-            }
-            Value pathProperty = serviceModel.getProperties().get(SERVICE_PATH);
-            if (pathProperty != null) {
-                pathProperty.setValue(valueExpr.get().toSourceCode().trim());
-                pathProperty.setEnabled(true);
-            }
-            return;
         }
     }
 

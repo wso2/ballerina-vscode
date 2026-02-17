@@ -123,7 +123,7 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
         enableParameters(sourceFunction, mergedFunction);
         updateDatabindingParameter(sourceFunction, mergedFunction);
 
-        if (mergedFunction.getProperties() != null && mergedFunction.getProperties().containsKey(STREAM)) {
+        if (mergedFunction.getProperties().containsKey(STREAM)) {
             setStreamProperty(mergedFunction, sourceFunction);
         }
         return mergedFunction;
@@ -211,9 +211,6 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
      */
     private void processPostProcessActions(Function function) {
         Map<String, Value> properties = function.getProperties();
-        if (properties == null) {
-            return;
-        }
 
         // Handle nested postProcessAction property
         Value postProcessAction = properties.get(POST_PROCESS_ACTION);
@@ -348,10 +345,6 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
     }
 
     private void updatePostProcessActionsFromAnnotation(FunctionDefinitionNode functionNode, Function modelFunc) {
-        if (modelFunc.getProperties() == null) {
-            return;
-        }
-
         Value postProcessAction = modelFunc.getProperties().get(POST_PROCESS_ACTION);
         if (postProcessAction == null || postProcessAction.getProperties() == null) {
             return;
