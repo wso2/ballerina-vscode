@@ -31,11 +31,13 @@
     {
       "metadata": {
         "label": "Current Integration",
-        "description": "Functions defined within the current integration",
+        "description": "Components defined within the current integration",
         "keywords": [
           "Project",
           "Local",
-          "Function"
+          "Function",
+          "Types",
+          "Data Mapper"
         ]
       },
       "items": [

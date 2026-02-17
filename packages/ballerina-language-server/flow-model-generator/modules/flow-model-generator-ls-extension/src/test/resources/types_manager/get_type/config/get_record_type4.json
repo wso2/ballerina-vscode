@@ -219,7 +219,7 @@
         "optional": false,
         "readonly": false,
         "isGraphqlId": false,
-        "docs": "Union of of type-refs and a built-in type",
+        "docs": "Union of type-refs and a built-in type",
         "annotationAttachments": []
       },
       {

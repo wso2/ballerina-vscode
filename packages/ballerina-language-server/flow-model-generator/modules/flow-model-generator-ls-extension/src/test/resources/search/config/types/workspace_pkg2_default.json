@@ -9,11 +9,13 @@
     {
       "metadata": {
         "label": "Current Workspace",
-        "description": "Functions available in the current workspace",
+        "description": "Components available in the current workspace",
         "keywords": [
           "Workspace",
           "Local",
-          "Function"
+          "Function",
+          "Types",
+          "Data Mapper"
         ]
       },
       "items": [
