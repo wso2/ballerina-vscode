@@ -16,7 +16,7 @@
  * under the License.
  */
 
-export interface DeleteBiDevantConnectionReq{
+export interface DeleteBiDevantConnectionReq {
     filePath: string;
     startLine: number;
     startColumn: number;
@@ -26,10 +26,10 @@ export interface DeleteBiDevantConnectionReq{
 
 // OpenAPI 3.0 type definitions
 export interface OpenAPISecurityScheme {
-    type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';
+    type: "apiKey" | "http" | "oauth2" | "openIdConnect";
     description?: string;
     name?: string;
-    in?: 'query' | 'header' | 'cookie';
+    in?: "query" | "header" | "cookie";
     scheme?: string;
     bearerFormat?: string;
     flows?: any;

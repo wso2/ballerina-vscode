@@ -35,6 +35,7 @@ import { VSCodeLink } from "@vscode/webview-ui-toolkit/react";
 import ReactMarkdown from "react-markdown";
 import { IOpenInConsoleCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
 import { AlertBoxWithClose } from "../../AIPanel/AlertBoxWithClose";
+import { getIntegrationTypes } from "./utils";
 import { UndoRedoGroup } from "../../../components/UndoRedoGroup";
 import { usePlatformExtContext } from "../../../providers/platform-ext-ctx-provider";
 import { TopNavigationBar } from "../../../components/TopNavigationBar";
@@ -324,6 +325,7 @@ interface DeploymentOptionProps {
     onToggle: () => void;
     onDeploy: () => void;
     learnMoreLink?: string;
+    hasDeployableIntegration?: boolean;
     secondaryAction?: {
         description: string;
         buttonText: string;
@@ -340,9 +342,9 @@ function DeploymentOption({
     onDeploy,
     learnMoreLink,
     secondaryAction,
+    hasDeployableIntegration
 }: DeploymentOptionProps) {
     const { rpcClient } = useRpcContext();
-    const { deployableArtifacts } = usePlatformExtContext();
 
     const openLearnMoreURL = () => {
         rpcClient.getCommonRpcClient().openExternalUrl({
@@ -382,8 +384,8 @@ function DeploymentOption({
                         e.stopPropagation();
                         onDeploy();
                     }}
-                    disabled={!deployableArtifacts?.exists}
-                    tooltip={deployableArtifacts?.exists ? "" : "No deployable integration found"}
+                    disabled={!hasDeployableIntegration}
+                    tooltip={hasDeployableIntegration ? "" : "No deployable integration found"}
                 >
                     {buttonText}
                 </Button>
@@ -408,6 +410,7 @@ interface DeploymentOptionsProps {
     handleJarBuild: () => void;
     handleDeploy: () => Promise<void>;
     goToDevant: () => void;
+    hasDeployableIntegration: boolean;
 }
 
 function DeploymentOptions({
@@ -415,6 +418,7 @@ function DeploymentOptions({
     handleJarBuild,
     handleDeploy,
     goToDevant,
+    hasDeployableIntegration
 }: DeploymentOptionsProps) {
     const [expandedOptions, setExpandedOptions] = useState<Set<string>>(new Set(['cloud', 'devant']));
     const { rpcClient } = useRpcContext();
@@ -470,6 +474,7 @@ function DeploymentOptions({
                     onToggle={() => toggleOption("devant")}
                     onDeploy={isDeployed? () => goToDevant() : handleDeploy}
                     learnMoreLink={"https://wso2.com/devant/docs"}
+                    hasDeployableIntegration={hasDeployableIntegration}
                     secondaryAction={
                         isDeployed && platformExtState?.hasLocalChanges
                             ? {
@@ -492,6 +497,7 @@ function DeploymentOptions({
                     isExpanded={expandedOptions.has('docker')}
                     onToggle={() => toggleOption('docker')}
                     onDeploy={handleDockerBuild}
+                    hasDeployableIntegration={hasDeployableIntegration}
                 />
 
                 <DeploymentOption
@@ -501,6 +507,7 @@ function DeploymentOptions({
                     isExpanded={expandedOptions.has('vm')}
                     onToggle={() => toggleOption('vm')}
                     onDeploy={handleJarBuild}
+                    hasDeployableIntegration={hasDeployableIntegration}
                 />
             </div>
         </>
@@ -632,9 +639,8 @@ interface PackageOverviewProps {
 export function PackageOverview(props: PackageOverviewProps) {
     const { projectPath, isInDevant } = props;
     const { rpcClient } = useRpcContext();
-    const [workspaceName, setWorkspaceName] = React.useState<string>("");
     const [readmeContent, setReadmeContent] = React.useState<string>("");
-    const { platformRpcClient, platformExtState, deployableArtifacts, refetchProjectInfo } = usePlatformExtContext();
+    const { platformRpcClient, platformExtState } = usePlatformExtContext();
     const [enabled, setEnableICP] = useState(false);
     const [showAlert, setShowAlert] = React.useState(false);
     const [projectStructure, setProjectStructure] = useState<ProjectStructure>();
@@ -679,7 +685,6 @@ export function PackageOverview(props: PackageOverviewProps) {
     rpcClient?.onProjectContentUpdated((state: boolean) => {
         if (state) {
             fetchContext();
-            deployableArtifacts?.refetch();
         }
     });
 
@@ -688,8 +693,11 @@ export function PackageOverview(props: PackageOverviewProps) {
         showLoginAlert().then((status) => {
             setShowAlert(status);
         });
-        refetchProjectInfo();
     }, [projectPath]);
+
+    const deployableIntegrationTypes = useMemo(() => {
+        return getIntegrationTypes(projectStructure);
+    }, [projectStructure]);
 
     const projectName = useMemo(() => {
         return projectStructure?.projectTitle || projectStructure?.projectName;
@@ -839,7 +847,6 @@ export function PackageOverview(props: PackageOverviewProps) {
                 />
                 Configure
             </Button>
-
             {!isLibrary && (
                 <>
                     <Button appearance="icon" onClick={handleLocalRun} buttonSx={{ padding: "4px 8px" }}>
@@ -963,15 +970,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                         </FooterPanel>
                     </LeftContent>
                     {!isLibrary && (
-                         <SidePanel>
-                            {/* <DeploymentOptions
-                                handleDockerBuild={handleDockerBuild}
-                                handleJarBuild={handleJarBuild}
-                                handleDeploy={handleDeploy}
-                                goToDevant={goToDevant}
-                            />
-                            <Divider sx={{ margin: "16px 0" }} />
-                            <IntegrationControlPlane enabled={enabled} handleICP={handleICP} /> */}
+                        <SidePanel>
                             {!isInDevant &&
                                 <>
                                     <DeploymentOptions
@@ -979,6 +978,7 @@ export function PackageOverview(props: PackageOverviewProps) {
                                         handleJarBuild={handleJarBuild}
                                         handleDeploy={handleDeploy}
                                         goToDevant={goToDevant}
+                                        hasDeployableIntegration={deployableIntegrationTypes.length > 0}
                                     />
                                     <Divider sx={{ margin: "16px 0" }} />
                                     <IntegrationControlPlane enabled={enabled} handleICP={handleICP} />

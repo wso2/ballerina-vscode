@@ -308,7 +308,7 @@ const HelperPaneNewEl = ({
                                     </ExpandableList.Item>
                                 </SlidingPaneNavContainer>
                                 <SlidingPaneNavContainer
-                                    ref={el => menuItemRefs.current[4] = el}
+                                    ref={el => menuItemRefs.current[5] = el}
                                     to="FUNCTIONS"
                                 >
                                     <ExpandableList.Item>
@@ -320,7 +320,7 @@ const HelperPaneNewEl = ({
                                 </SlidingPaneNavContainer>
                                 {forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) && (
                                     <SlidingPaneNavContainer
-                                        ref={el => menuItemRefs.current[5] = el}
+                                        ref={el => menuItemRefs.current[6] = el}
                                         to="DOCUMENTS"
                                     >
                                         <ExpandableList.Item>

@@ -40,7 +40,7 @@ export interface AddConnectionPopupProps {
 }
 
 export function AddConnectionPopup(props: AddConnectionPopupProps) {
-    const { onClose, onNavigateToOverview, isPopup, target, fileName } = props;
+    const { onClose, onNavigateToOverview, isPopup, target, fileName, projectPath } = props;
     const { platformExtState } = usePlatformExtContext();
 
     if((platformExtState?.hasPossibleComponent && !platformExtState?.isLoggedIn) || platformExtState?.selectedContext?.project){
@@ -51,6 +51,7 @@ export function AddConnectionPopup(props: AddConnectionPopupProps) {
                 onClose={onClose}
                 fileName={fileName}
                 target={target}
+                projectPath={projectPath}
             />
         );
     }

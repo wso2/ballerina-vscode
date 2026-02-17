@@ -229,7 +229,7 @@ export function TopNavigationBar(props: TopNavigationBarProps) {
             <Button tooltip="Manage Devant" appearance="icon" onClick={(e)=>setDevantBtnAnchor(e.currentTarget as HTMLElement)}>
                 <Icon name="Devant" sx={{ fontSize: "18px", width: "18px" }} />
             </Button>
-            <PlatformExtPopover anchorEl={devantBtnAnchor} onClose={() => setDevantBtnAnchor(null)} isVisible={!!devantBtnAnchor} />
+            <PlatformExtPopover anchorEl={devantBtnAnchor} onClose={() => setDevantBtnAnchor(null)} isVisible={!!devantBtnAnchor} projectPath={projectPath} />
         </NavContainer>
     );
 }

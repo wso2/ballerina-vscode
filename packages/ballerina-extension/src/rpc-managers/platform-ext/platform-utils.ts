@@ -16,8 +16,8 @@
  * under the License.
  */
 
-import { SyntaxTree, PackageTomlValues, AvailableNode } from "@wso2/ballerina-core";
-import { ModulePart, STKindChecker, CaptureBindingPattern, TypeDefinition, RecordField } from "@wso2/syntax-tree";
+import { SyntaxTree } from "@wso2/ballerina-core";
+import { ModulePart, STKindChecker, CaptureBindingPattern } from "@wso2/syntax-tree";
 import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
@@ -25,21 +25,11 @@ import { StateMachine } from "../../stateMachine";
 import { Uri, WorkspaceEdit, workspace } from "vscode";
 import { OpenAPIDefinition } from "./types";
 import * as yaml from "js-yaml";
-import {
-    MarketplaceItem,
-    ConnectionConfigurations,
-    ServiceInfoVisibilityEnum,
-    IWso2PlatformExtensionAPI,
-} from "@wso2/wso2-platform-core";
-import { BiDiagramRpcManager } from "../bi-diagram/rpc-manager";
-import { CommonRpcManager } from "../common/rpc-manager";
-import * as toml from "@iarna/toml";
+import { MarketplaceItem } from "@wso2/wso2-platform-core";
 import { extension } from "../../BalExtensionContext";
 import { PersistOptions, createJSONStorage } from "zustand/middleware";
-import { platformExtStore } from "./platform-store";
 import Handlebars from "handlebars";
 import { updateSourceCode } from "../../utils";
-import { DevantTempConfig } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 
 export const getConfigFileUri = () => {
     const configBalFile = path.join(StateMachine.context().projectPath, "config.bal");
@@ -53,7 +43,7 @@ export const getConfigFileUri = () => {
 
 export const addConfigurable = async (
     configBalFileUri: Uri,
-    params: { configName: string; configEnvName: string }[]
+    params: { configName: string; configEnvName: string }[],
 ) => {
     const configBalEdits = new WorkspaceEdit();
 
@@ -103,7 +93,7 @@ export const addProxyConfigurable = async (configBalFileUri: Uri) => {
             (member) =>
                 STKindChecker.isModuleVarDecl(member) &&
                 (member.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value ===
-                    "devantProxyConfig"
+                    "devantProxyConfig",
         )
     ) {
         const proxyConfigTemplate = Templates.proxyConfigurable();
@@ -125,10 +115,10 @@ export const addConnection = async (
         tokenUrlVarName?: string;
         tokenClientIdVarName?: string;
         tokenClientSecretVarName?: string;
-    }
+    },
 ): Promise<{ connName: string; connFileUri: Uri }> => {
     const matchingBalProj = StateMachine.context().projectStructure?.projects?.find(
-        (item) => item.projectPath === StateMachine.context().projectPath
+        (item) => item.projectPath === StateMachine.context().projectPath,
     );
     if (!matchingBalProj) {
         throw new Error(`Failed to find bal project for :${StateMachine.context().projectPath}`);
@@ -150,7 +140,7 @@ export const addConnection = async (
 
     if (
         !(syntaxTree?.syntaxTree as ModulePart)?.imports?.some((item) =>
-            item.source?.includes(`import ${packageName}/${moduleName}`)
+            item.source?.includes(`import ${packageName}/${moduleName}`),
         )
     ) {
         const connImportTemplate = Templates.importConnection({ PACKAGE_NAME: packageName, MODULE_NAME: moduleName });
@@ -165,7 +155,7 @@ export const addConnection = async (
     let counter = 1;
     while (
         (syntaxTree.syntaxTree as ModulePart)?.members?.some(
-            (k) => (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === candidate
+            (k) => (k.typedBindingPattern?.bindingPattern as CaptureBindingPattern)?.variableName?.value === candidate,
         )
     ) {
         candidate = `${baseName}${counter}`;
@@ -237,7 +227,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
             openApiDefinition.components = {};
         }
 
-        if (!openApiDefinition.components.securitySchemes && securityType!=="") {
+        if (!openApiDefinition.components.securitySchemes && securityType !== "") {
             openApiDefinition.components.securitySchemes = {};
         }
 
@@ -251,7 +241,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
                     },
                 },
             };
-        }else if(securityType === "apikey"){
+        } else if (securityType === "apikey") {
             openApiDefinition.components.securitySchemes[apiKeySchemaName] = {
                 type: "apiKey",
                 in: "header",
@@ -265,7 +255,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
         }
         if (securityType === "oauth") {
             openApiDefinition.security.push({ [oAuthSchemaName]: [], [apiKeySchemaName]: [] });
-        } else if(securityType === "apikey"){
+        } else if (securityType === "apikey") {
             openApiDefinition.security.push({ [apiKeySchemaName]: [] });
         }
 
@@ -278,7 +268,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
                                 [oAuthSchemaName]: [],
                                 [apiKeySchemaName]: [],
                             });
-                        }else if(securityType === "apikey"){
+                        } else if (securityType === "apikey") {
                             openApiDefinition.paths[path]?.[method]?.security.push({ [apiKeySchemaName]: [] });
                         }
                     }
@@ -299,7 +289,7 @@ export const processOpenApiWithApiKeyAuth = (yamlString: string, securityType: "
         return yaml.dump(openApiDefinition);
     } catch (error) {
         throw new Error(
-            `Failed to process OpenAPI definition: ${error instanceof Error ? error.message : "Unknown error"}`
+            `Failed to process OpenAPI definition: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
     }
 };
@@ -327,14 +317,12 @@ export const Templates = {
     },
     newEnvConfigurable: (params: { CONFIG_NAME: string; CONFIG_ENV_NAME: string }) => {
         const template = Handlebars.compile(
-            `configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`
+            `configurable string {{CONFIG_NAME}} = os:getEnv("{{CONFIG_ENV_NAME}}");\n`,
         );
         return template(params);
     },
-    newDefaultEnvConfigurable: (params: { CONFIG_NAME: string; }) => {
-        const template = Handlebars.compile(
-            `configurable string {{CONFIG_NAME}} = ?;\n`
-        );
+    newDefaultEnvConfigurable: (params: { CONFIG_NAME: string }) => {
+        const template = Handlebars.compile(`configurable string {{CONFIG_NAME}} = ?;\n`);
         return template(params);
     },
     importBalOs: () => {
@@ -440,10 +428,7 @@ export function getDomain(rawURL: string): string {
  * If the base name exists, appends a numeric counter until a unique name is found.
  * If the initial name is shorter than 3 characters, appends '-connection' to it.
  */
-export const findUniqueConnectionName = (
-    name: string,
-    existingMarketplaceItems: MarketplaceItem[],
-): string => {
+export const findUniqueConnectionName = (name: string, existingMarketplaceItems: MarketplaceItem[]): string => {
     // If name is too short, append '-connection'
     let baseName = name;
     if (baseName.length < 3) {

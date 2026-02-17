@@ -30,6 +30,7 @@ import {
 } from "@wso2/wso2-platform-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { QuickPickItem } from "vscode";
+import { useQuery } from "@tanstack/react-query";
 
 const PopupContainer = styled.div`
     min-width: 200px;
@@ -92,11 +93,12 @@ export interface DiagnosticsPopUpProps {
     isVisible: boolean;
     anchorEl: HTMLElement;
     onClose: () => void;
+    projectPath?: string;
 }
 
 export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
-    const { isVisible, onClose, anchorEl } = props;
-    const { platformExtState, platformRpcClient, projectPath, workspacePath } = usePlatformExtContext();
+    const { isVisible, onClose, anchorEl, projectPath } = props;
+    const { platformExtState, platformRpcClient } = usePlatformExtContext();
     const { rpcClient } = useRpcContext();
 
     const handleSignOut = () => {
@@ -133,14 +135,15 @@ export function PlatformExtPopover(props: DiagnosticsPopUpProps) {
         });
     };
 
-    const handleLinkWorkspace = () => {
+    const handleLinkWorkspace = async () => {
+        const visualizerLocation = await rpcClient.getVisualizerLocation();
         rpcClient.getCommonRpcClient().executeCommand({
             commands: [
                 PlatformExtCommandIds.CreateDirectoryContext,
                 {
                     extName: "Devant",
                     skipComponentExistCheck: true,
-                    fsPath: workspacePath || projectPath || "",
+                    fsPath: visualizerLocation?.workspacePath || visualizerLocation?.projectPath || "",
                 } as ICreateDirCtxCmdParams,
             ],
         });

@@ -16,37 +16,32 @@
  * under the License.
  */
 
-import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { AvailableNode, DIRECTORY_MAP, EVENT_TYPE, findDevantScopeByModule, MACHINE_VIEW, PackageTomlValues } from "@wso2/ballerina-core";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { PlatformExtState } from "@wso2/ballerina-core/lib/rpc-types/platform-ext/interfaces";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { PlatformExtRpcClient } from "@wso2/ballerina-rpc-client/lib/rpc-clients/platform-ext/platform-ext-client";
-import { ConnectionListItem, ICmdParamsBase, ICreateDirCtxCmdParams, CommandIds as PlatformExtCommandIds } from "@wso2/wso2-platform-core";
+import {
+    ConnectionListItem,
+    ICmdParamsBase,
+    ICreateDirCtxCmdParams,
+    CommandIds as PlatformExtCommandIds,
+} from "@wso2/wso2-platform-core";
 import React, { useContext, FC, ReactNode, useEffect, useState } from "react";
 
 const defaultPlatformExtContext: {
     platformExtState: PlatformExtState | null;
-    refetchProjectInfo: () => void;
     devantConsoleUrl: string;
-    projectPath: string;
-    workspacePath: string;
-    // todo: check if we need to refresh project toml?
-    projectToml?: { values: Partial<PackageTomlValues>; refresh: () => void };
     platformRpcClient?: PlatformExtRpcClient;
-    deployableArtifacts?: { exists: boolean; refetch: () => void };
     onLinkDevantProject: () => void;
     importConnection: {
         connection?: ConnectionListItem;
         setConnection: (item?: ConnectionListItem) => void;
-    }
+    };
 } = {
     platformExtState: { components: [], isLoggedIn: false, userInfo: null },
-    refetchProjectInfo: () => {},
     onLinkDevantProject: () => {},
     devantConsoleUrl: "",
-    projectPath: "",
-    workspacePath: "",
-    importConnection:{ setConnection: () => {} }
+    importConnection: { setConnection: () => {} },
 };
 
 const PlatformExtContext = React.createContext(defaultPlatformExtContext);
@@ -60,43 +55,6 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
     const { rpcClient } = useRpcContext();
     const platformRpcClient = rpcClient.getPlatformRpcClient();
     const [importingConn, setImportingConn] = useState<ConnectionListItem>();
-
-    const { data: visualizerLocation = { projectPath: "", workspacePath: "" }, refetch: refetchProjectInfo } = useQuery(
-        {
-            queryKey: ["project-info"],
-            queryFn: () => rpcClient.getVisualizerLocation(),
-            select: (data) => ({ projectPath: data.projectPath, workspacePath: data.workspacePath }),
-            refetchOnWindowFocus: true,
-        }
-    );
-
-    const { data: projectToml, refetch: refetchToml } = useQuery({
-        queryKey: ["project-toml", visualizerLocation.projectPath],
-        queryFn: () => rpcClient.getCommonRpcClient().getCurrentProjectTomlValues(),
-        refetchOnWindowFocus: true,
-    });
-
-    const { data: hasArtifacts, refetch: refetchHasArtifacts } = useQuery({
-        queryKey: ["has-artifacts", visualizerLocation.projectPath],
-        queryFn: () => rpcClient.getBIDiagramRpcClient().getProjectStructure(),
-        select: (projectStructure) => {
-            if (!projectStructure) return false;
-
-            const project = projectStructure.projects.find(
-                (project) => project.projectPath === visualizerLocation.projectPath
-            );
-            if (!project) return false;
-
-            const services = project.directoryMap[DIRECTORY_MAP.SERVICE] ?? [];
-            const automation = project.directoryMap[DIRECTORY_MAP.AUTOMATION] ?? [];
-
-            const hasAutomation = automation.length > 0;
-            const hasServiceScopes = services.map((s) => findDevantScopeByModule(s?.moduleName)).some(Boolean);
-
-            return hasAutomation || hasServiceScopes;
-        },
-        refetchOnWindowFocus: true,
-    });
 
     const { data: platformExtState } = useQuery({
         queryKey: ["platform-ext-state"],
@@ -139,10 +97,11 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                         "To use Devant connections, you can either deploy your source code now or associate this directory with an existing Devant project where you plan to deploy later.",
                     items: ["Deploy Now", "Associate Project"],
                 })
-                .then((resp) => {
+                .then(async (resp) => {
                     if (resp === "Deploy Now") {
                         platformRpcClient.deployIntegrationInDevant();
                     } else if (resp === "Associate Project") {
+                        const visualizerLocation = await rpcClient.getVisualizerLocation();
                         rpcClient.getCommonRpcClient().executeCommand({
                             commands: [
                                 PlatformExtCommandIds.CreateDirectoryContext,
@@ -158,7 +117,6 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
         }
     };
 
-    // todo: avoid passing refetch functions via context
     return (
         <PlatformExtContext.Provider
             value={{
@@ -169,14 +127,9 @@ export const PlatformExtContextProvider: FC<{ children: ReactNode }> = ({ childr
                     components: platformExtState?.isLoggedIn ? platformExtState.components : [],
                     devantConns: platformExtState?.isLoggedIn ? platformExtState.devantConns : {},
                 },
-                deployableArtifacts: { exists: hasArtifacts, refetch: refetchHasArtifacts },
                 devantConsoleUrl,
-                workspacePath: visualizerLocation?.workspacePath,
-                projectPath: visualizerLocation?.projectPath,
-                refetchProjectInfo,
                 platformRpcClient,
                 onLinkDevantProject,
-                projectToml: { values: projectToml, refresh: refetchToml },
                 importConnection: { setConnection: (item) => setImportingConn(item), connection: importingConn },
             }}
         >

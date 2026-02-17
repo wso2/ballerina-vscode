@@ -17,7 +17,6 @@
  */
 
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import styled from "@emotion/styled";
 import { AvailableNode, Category, Item, LinePosition } from "@wso2/ballerina-core";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { Codicon, Icon, ThemeColors, Typography, ProgressRing, Tooltip } from "@wso2/ui-toolkit";

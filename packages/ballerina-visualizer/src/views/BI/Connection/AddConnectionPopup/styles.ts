@@ -77,9 +77,9 @@ export const ConnectorOptionCard = styled.div<{ disabled?: boolean }>`
 
     &:hover {
         background-color: ${(props: { disabled?: boolean }) =>
-        props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
+            props.disabled ? ThemeColors.SURFACE_DIM : ThemeColors.PRIMARY_CONTAINER};
         border-color: ${(props: { disabled?: boolean }) =>
-        props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
+            props.disabled ? ThemeColors.OUTLINE_VARIANT : ThemeColors.PRIMARY};
     }
 `;
 
@@ -188,17 +188,14 @@ export const FilterButton = styled.button<{ active?: boolean }>`
     border: none;
     cursor: pointer;
     font-weight: ${(props: { active?: boolean }) => (props.active ? 600 : 400)};
-    background-color: ${(props: { active?: boolean }) =>
-        props.active ? ThemeColors.PRIMARY : "transparent"};
-    color: ${(props: { active?: boolean }) =>
-        props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT};
+    background-color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.PRIMARY : "transparent")};
+    color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE_VARIANT)};
     transition: all 0.2s ease;
 
     &:hover {
         background-color: ${(props: { active?: boolean }) =>
-        props.active ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
-        color: ${(props: { active?: boolean }) =>
-        props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE};
+            props.active ? ThemeColors.PRIMARY : ThemeColors.SURFACE_CONTAINER};
+        color: ${(props: { active?: boolean }) => (props.active ? ThemeColors.ON_PRIMARY : ThemeColors.ON_SURFACE)};
     }
 `;
 
