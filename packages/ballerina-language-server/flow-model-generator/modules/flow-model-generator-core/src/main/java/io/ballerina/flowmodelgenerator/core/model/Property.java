@@ -103,7 +103,7 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
 
     public static final String IS_PUBLIC_KEY = "isPublic";
     public static final String IS_PUBLIC_LABEL = "public";
-    public static final String IS_PUBLIC_DOC = "Is this public";
+    public static final String IS_PUBLIC_DOC = "Make visible across the workspace";
 
     public static final String IS_PRIVATE_KEY = "isPrivate";
     public static final String IS_PRIVATE_LABEL = "private";

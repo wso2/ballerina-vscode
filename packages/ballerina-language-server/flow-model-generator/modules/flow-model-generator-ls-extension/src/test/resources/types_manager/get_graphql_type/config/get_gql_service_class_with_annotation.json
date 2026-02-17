@@ -150,7 +150,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -218,7 +218,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -297,7 +297,7 @@
           "isPublic": {
             "metadata": {
               "label": "public",
-              "description": "Is this public"
+              "description": "Make visible across the workspace"
             },
             "types": [
               {
@@ -376,7 +376,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -576,7 +576,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
@@ -726,7 +726,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -792,7 +792,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -858,7 +858,7 @@
             "isPublic": {
               "metadata": {
                 "label": "public",
-                "description": "Is this public"
+                "description": "Make visible across the workspace"
               },
               "types": [
                 {
@@ -936,7 +936,7 @@
         "isPublic": {
           "metadata": {
             "label": "public",
-            "description": "Is this public"
+            "description": "Make visible across the workspace"
           },
           "types": [
             {
