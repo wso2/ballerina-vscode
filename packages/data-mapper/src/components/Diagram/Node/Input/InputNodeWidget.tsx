@@ -207,7 +207,7 @@ export function InputNodeWidget(props: InputNodeWidgetProps) {
                 <>
                     <ArrowWidget direction="down" />
                     <NodeActionWidget
-                        onClick={async () => await context.createConvertedVariable(headerLabel)}
+                        onClick={async () => await context.createConvertedVariable(headerLabel, true)}
                         iconName="convert"
                         tooltip={`Create type defined variable to access fields in ${headerLabel}`}
                         label="Create type defined variable"

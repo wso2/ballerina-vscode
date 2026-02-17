@@ -624,7 +624,7 @@ export function DataMapperView(props: DataMapperViewProps) {
         }
     };
 
-    const createConvertedVariable = async (variableName: string) => {
+    const createConvertedVariable = async (variableName: string, isNew: boolean) => {
         const initialTypeName = variableName.charAt(0).toUpperCase() + variableName.slice(1);
         initialTypeNameRef.current = await genUniqueName(initialTypeName, viewState.viewId);
 
@@ -636,7 +636,7 @@ export function DataMapperView(props: DataMapperViewProps) {
                     filePath,
                     codedata: {
                         ...viewState.codedata,
-                        isNew: true
+                        isNew
                     },
                     varName: name,
                     targetField: viewState.viewId,
