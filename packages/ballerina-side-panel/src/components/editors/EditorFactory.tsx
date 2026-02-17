@@ -45,6 +45,7 @@ import { ActionExpressionEditor } from "./ActionExpressionEditor";
 import { CheckBoxConditionalEditor } from "./CheckBoxConditionalEditor";
 import { ActionTypeEditor } from "./ActionTypeEditor";
 import { AutoCompleteEditor } from "./AutoCompleteEditor";
+import { DependantEditor } from "./DependantEditor";
 
 interface FormFieldEditorProps {
     field: FormField;
@@ -103,6 +104,8 @@ export const EditorFactory = (props: FormFieldEditorProps) => {
 
     if (!field.enabled || field.hidden) {
         return <></>;
+    } else if (field.type === "RECORD_FIELD_SELECTOR" && field.codedata?.kind === "PARAM_FOR_TYPE_INFER") {
+        return <DependantEditor field={field} />;
     } else if (field.type === "MULTIPLE_SELECT") {
         return <MultiSelectEditor field={field} label={"Attach Another"} openSubPanel={openSubPanel} />;
     } else if (field.type === "HEADER_SET") {

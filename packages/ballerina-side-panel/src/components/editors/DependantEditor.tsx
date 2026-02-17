@@ -1,0 +1,683 @@
+/**
+ * Copyright (c) 2026, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+ *
+ * WSO2 LLC. licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import styled from "@emotion/styled";
+import { SearchBox, CheckBox, Codicon, ClickAwayListener, RequiredFormInput } from "@wso2/ui-toolkit";
+import { FormField } from "../Form/types";
+import { useFormContext } from "../../context";
+import type { Type, Member } from "@wso2/ballerina-core";
+
+// ─── Types ──────────────────────────────────────────────────────
+
+interface DependantEditorProps {
+    field: FormField;
+}
+
+interface RecordSelectorType {
+    rootType: Type;
+    referencedTypes: Type[];
+}
+
+// ─── Utilities ──────────────────────────────────────────────────
+
+/**
+ * Formats a type for display (handles primitives, arrays, unions, records, etc.)
+ */
+// function formatTypeDisplay(member: Member): string {
+//     if (typeof member.type === "string") {
+//         return member.type;
+//     }
+
+//     const typeObj = member.type as Type;
+//     const node = typeObj.codedata?.node;
+
+//     if (!typeObj.members?.length) {
+//         return typeObj.name || node?.toLowerCase() || "unknown";
+//     }
+
+//     switch (node) {
+//         case "ARRAY": {
+//             const elem = typeObj.members[0];
+//             if (!elem) return "array";
+//             const elemType = typeof elem.type === "string" ? elem.type : formatTypeDisplay(elem);
+//             const isUnion = typeof elem.type !== "string" && (elem.type as Type).codedata?.node === "UNION";
+//             return isUnion ? `(${elemType})[]` : `${elemType}[]`;
+//         }
+//         case "UNION":
+//             return typeObj.members.map(m => typeof m.type === "string" ? m.type : formatTypeDisplay(m)).join("|");
+//         case "MAP": {
+//             const val = typeObj.members[0];
+//             if (!val) return "map";
+//             const valType = typeof val.type === "string" ? val.type : formatTypeDisplay(val);
+//             return `map<${valType}>`;
+//         }
+//         case "RECORD":
+//             return typeObj.name || "record";
+//         case "TUPLE":
+//             return typeObj.name || "tuple";
+//         default:
+//             return typeObj.name || node?.toLowerCase() || "object";
+//     }
+// }
+
+/**
+ * Resolves child FIELD members for a given member by following refs or inline types.
+ */
+function resolveChildren(member: Member, referencedTypes: Type[], visited: Set<string>): Member[] {
+    // Check if this member references a named type
+    if (member.refs?.length) {
+        const refName = member.refs[0];
+        if (visited.has(refName)) return []; // circular guard
+        const refType = referencedTypes.find(t => t.name === refName);
+        if (refType?.members) {
+            return refType.members.filter(m => m.kind === "FIELD");
+        }
+    }
+
+    // Check inline type object
+    if (typeof member.type === "string") return [];
+    const typeObj = member.type as Type;
+    if (!typeObj.members) return [];
+
+    const children: Member[] = [];
+    for (const m of typeObj.members) {
+        if (m.kind === "FIELD") {
+            children.push(m);
+        } else if (m.kind === "TYPE" && m.refs?.length) {
+            const refName = m.refs[0];
+            if (visited.has(refName)) continue; // circular guard
+            const refType = referencedTypes.find(t => t.name === refName);
+            if (refType?.members) {
+                children.push(...refType.members.filter(rm => rm.kind === "FIELD"));
+            }
+        }
+    }
+    return children;
+}
+
+/**
+ * Toggles selection on a member and cascades to all its children.
+ */
+function toggleSelection(member: Member, selected: boolean, referencedTypes: Type[], visited: Set<string> = new Set()): void {
+    member.selected = selected;
+    
+    // Track this member's ref to prevent cycles
+    const newVisited = new Set(visited);
+    if (member.refs?.length) {
+        newVisited.add(member.refs[0]);
+    }
+    
+    const children = resolveChildren(member, referencedTypes, newVisited);
+    for (const child of children) {
+        toggleSelection(child, selected, referencedTypes, newVisited);
+    }
+}
+
+/**
+ * Checks if all FIELD members in the tree are selected.
+ */
+function areAllSelected(members: Member[], referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
+    for (const m of members) {
+        if (m.kind !== "FIELD") continue;
+        if (!m.selected) return false;
+        
+        const newVisited = new Set(visited);
+        if (m.refs?.length) newVisited.add(m.refs[0]);
+        
+        const children = resolveChildren(m, referencedTypes, newVisited);
+        if (children.length && !areAllSelected(children, referencedTypes, newVisited)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Checks if a field has partial selection (some but not all children selected).
+ * Returns true when:
+ * - The field itself is not selected, AND
+ * - At least one descendant is selected
+ */
+function hasPartialSelection(member: Member, referencedTypes: Type[], visited: Set<string> = new Set()): boolean {
+    // If already selected, it's not partial (it's fully selected)
+    if (member.selected) return false;
+    
+    const newVisited = new Set(visited);
+    if (member.refs?.length) newVisited.add(member.refs[0]);
+    
+    const children = resolveChildren(member, referencedTypes, visited);
+    if (!children.length) return false;
+    
+    // Check if any child (or descendant) is selected
+    for (const child of children) {
+        if (child.selected) return true;
+        if (hasPartialSelection(child, referencedTypes, newVisited)) return true;
+    }
+    
+    return false;
+}
+
+/**
+ * Collects explicitly selected FIELD members with their dot-path (e.g., "parent.child").
+ * Does NOT include required fields - this is only for display in the summary.
+ */
+function collectSelected(
+    members: Member[],
+    referencedTypes: Type[],
+    parentPath: string,
+    visited: Set<string> = new Set()
+): Array<{ member: Member; path: string }> {
+    const result: Array<{ member: Member; path: string }> = [];
+    
+    for (const m of members) {
+        if (m.kind !== "FIELD" || !m.name) continue;
+        
+        const path = parentPath ? `${parentPath}.${m.name}` : m.name;
+        // Only include explicitly selected fields (not required fields)
+        if (m.selected) {
+            result.push({ member: m, path });
+        }
+        
+        const newVisited = new Set(visited);
+        if (m.refs?.length) newVisited.add(m.refs[0]);
+        
+        const children = resolveChildren(m, referencedTypes, newVisited);
+        if (children.length) {
+            result.push(...collectSelected(children, referencedTypes, path, newVisited));
+        }
+    }
+    
+    return result;
+}
+
+/**
+ * Collects all fields that should be included in form output:
+ * - Explicitly selected fields (m.selected === true)
+ * - Required fields (m.optional === false)
+ */
+function collectAllForOutput(
+    members: Member[],
+    referencedTypes: Type[],
+    parentPath: string,
+    visited: Set<string> = new Set()
+): Array<{ member: Member; path: string }> {
+    const result: Array<{ member: Member; path: string }> = [];
+    
+    for (const m of members) {
+        if (m.kind !== "FIELD" || !m.name) continue;
+        
+        const path = parentPath ? `${parentPath}.${m.name}` : m.name;
+        // Include if explicitly selected OR if required
+        if (m.selected || m.optional === false) {
+            result.push({ member: m, path });
+        }
+        
+        const newVisited = new Set(visited);
+        if (m.refs?.length) newVisited.add(m.refs[0]);
+        
+        const children = resolveChildren(m, referencedTypes, newVisited);
+        if (children.length) {
+            result.push(...collectAllForOutput(children, referencedTypes, path, newVisited));
+        }
+    }
+    
+    return result;
+}
+
+// ─── Styled Components ──────────────────────────────────────────
+
+const Container = styled.div`
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 16px;
+`;
+
+const LabelContainer = styled.div`
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+`;
+
+const Label = styled.label`
+    color: var(--vscode-editor-foreground);
+    text-transform: capitalize;
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+`;
+
+const Description = styled.div`
+    font-size: 13px;
+    font-family: var(--vscode-font-family);
+    color: var(--vscode-list-deemphasizedForeground);
+    margin-bottom: 8px;
+`;
+
+const Wrapper = styled.div<{ focused: boolean }>`
+    border: 1px solid ${p => p.focused ? "var(--vscode-focusBorder)" : "var(--vscode-dropdown-border)"};
+    border-radius: 4px;
+    background: var(--vscode-input-background);
+    transition: border-color 0.2s;
+`;
+
+const SearchArea = styled.div`
+    padding: 8px;
+`;
+
+const Dropdown = styled.div`
+    border-top: 1px solid var(--vscode-dropdown-border);
+`;
+
+const SelectAllRow = styled.div`
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--vscode-editor-background);
+    border-bottom: 1px solid var(--vscode-dropdown-border);
+`;
+
+const SelectAllText = styled.span`
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    margin-left: 8px;
+`;
+
+const TreeContainer = styled.div`
+    max-height: 400px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+    &::-webkit-scrollbar-track {
+        background: var(--vscode-scrollbarSlider-background);
+    }
+    &::-webkit-scrollbar-thumb {
+        background: var(--vscode-scrollbarSlider-hoverBackground);
+        border-radius: 5px;
+    }
+`;
+
+const TreeItem = styled.div<{ depth: number }>`
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    padding-left: ${p => 12 + p.depth * 20}px;
+    border-bottom: 1px solid var(--vscode-dropdown-border);
+
+    &:hover {
+        background: var(--vscode-list-hoverBackground);
+    }
+    &:last-child {
+        border-bottom: none;
+    }
+`;
+
+const ExpandButton = styled.span<{ expanded: boolean }>`
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    cursor: pointer;
+    transform: ${p => p.expanded ? "rotate(90deg)" : "rotate(0deg)"};
+    transition: transform 0.2s;
+`;
+
+const Spacer = styled.span`
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+`;
+
+const FieldLabel = styled.span`
+    flex: 1;
+    font-size: 13px;
+    color: var(--vscode-foreground);
+    margin-left: 8px;
+    cursor: pointer;
+    user-select: none;
+`;
+
+const TypeTag = styled.span`
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-left: 8px;
+    font-weight: 500;
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+`;
+
+const ChildrenInfo = styled.span`
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-left: 8px;
+`;
+
+const SummaryContainer = styled.div`
+    padding: 12px;
+    background: var(--vscode-editor-background);
+    border-top: 1px solid var(--vscode-dropdown-border);
+`;
+
+const SummaryHeader = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+`;
+
+const SummaryTitle = styled.div`
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--vscode-foreground);
+`;
+
+const ClearButton = styled.button`
+    background: transparent;
+    border: none;
+    color: var(--vscode-textLink-foreground);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+
+    &:hover {
+        text-decoration: underline;
+    }
+`;
+
+const SummaryList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+`;
+
+const SummaryItem = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    background: var(--vscode-input-background);
+    border: 1px solid var(--vscode-dropdown-border);
+    border-radius: 4px;
+`;
+
+const RemoveButton = styled.button`
+    background: transparent;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 2px;
+    display: flex;
+    opacity: 0.7;
+
+    &:hover {
+        opacity: 1;
+    }
+`;
+
+// ─── Component ──────────────────────────────────────────────────
+
+export function DependantEditor(props: DependantEditorProps) {
+    const { field } = props;
+    const { form } = useFormContext();
+    const { setValue, register } = form;
+
+    const [focused, setFocused] = useState(false);
+    const [search, setSearch] = useState("");
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+    // Extract the record selector type from field.types
+    const recordSelectorEntry = field.types?.find(
+        (t: any) => t.fieldType === "RECORD_FIELD_SELECTOR"
+    ) as any;
+
+    const initialData = recordSelectorEntry?.recordSelectorType as RecordSelectorType | undefined;
+
+    // Clone into a mutable ref (immutable props pattern)
+    const dataRef = useRef<RecordSelectorType | undefined>(undefined);
+    if (!dataRef.current && initialData) {
+        dataRef.current = JSON.parse(JSON.stringify(initialData));
+    }
+
+    const data = dataRef.current;
+    const rootType = data?.rootType;
+    const referencedTypes = data?.referencedTypes ?? [];
+
+    // Register field and sync initial value
+    useEffect(() => {
+        register(field.key);
+        syncToForm();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [field.key, register]);
+
+    // Sync current selection state back to form
+    const syncToForm = useCallback(() => {
+        if (!data) return;
+        const updatedTypes = (field.types ?? []).map((t: any) => {
+            if (t.fieldType === "RECORD_FIELD_SELECTOR") {
+                return { ...t, recordSelectorType: JSON.parse(JSON.stringify(data)) };
+            }
+            return t;
+        });
+        field.types = updatedTypes;
+        setValue(field.key, updatedTypes);
+    }, [data, field, setValue]);
+
+    // Force re-render by incrementing a dummy state
+    const [, forceUpdate] = useState(0);
+    const triggerUpdate = () => {
+        forceUpdate(v => v + 1);
+        syncToForm();
+    };
+
+    // Handlers
+    const handleToggleField = (member: Member) => {
+        // Skip if field is required (cannot be unchecked)
+        if (member.optional === false) return;
+        
+        // If partial selection, clicking should select all (complete the selection)
+        // If selected, clicking should deselect all
+        // If unselected (and no partial), clicking should select all
+        const isPartial = hasPartialSelection(member, referencedTypes);
+        const shouldSelect = !member.selected || isPartial;
+        toggleSelection(member, shouldSelect, referencedTypes);
+        triggerUpdate();
+    };
+
+    const handleSelectAll = () => {
+        if (!rootType?.members) return;
+        const allChecked = areAllSelected(rootType.members, referencedTypes);
+        for (const m of rootType.members) {
+            if (m.kind === "FIELD") {
+                toggleSelection(m, !allChecked, referencedTypes);
+            }
+        }
+        triggerUpdate();
+    };
+
+    const handleClearAll = () => {
+        if (!rootType?.members) return;
+        for (const m of rootType.members) {
+            if (m.kind === "FIELD") {
+                toggleSelection(m, false, referencedTypes);
+            }
+        }
+        triggerUpdate();
+    };
+
+    const handleRemove = (member: Member) => {
+        toggleSelection(member, false, referencedTypes);
+        triggerUpdate();
+    };
+
+    const toggleExpanded = (path: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setExpanded(prev => {
+            const next = new Set(prev);
+            next.has(path) ? next.delete(path) : next.add(path);
+            return next;
+        });
+    };
+
+    const handleClickAway = () => {
+        setFocused(false);
+        setSearch("");
+    };
+
+    // Recursive tree renderer
+    const renderTree = (
+        members: Member[],
+        parentPath: string,
+        depth: number,
+        visited: Set<string> = new Set()
+    ): React.ReactNode => {
+        return members
+            .filter(m => m.kind === "FIELD" && m.name)
+            .filter(m => !search || m.name!.toLowerCase().includes(search.toLowerCase()))
+            .map(m => {
+                const path = parentPath ? `${parentPath}.${m.name}` : m.name!;
+                
+                const newVisited = new Set(visited);
+                if (m.refs?.length) newVisited.add(m.refs[0]);
+                
+                const children = resolveChildren(m, referencedTypes, visited);
+                const isExpanded = expanded.has(path);
+                const isPartial = hasPartialSelection(m, referencedTypes, visited);
+                const isRequired = m.optional === false;
+
+                return (
+                    <React.Fragment key={path}>
+                        <TreeItem depth={depth}>
+                            {children.length ? (
+                                <ExpandButton expanded={isExpanded} onClick={e => toggleExpanded(path, e)}>
+                                    <Codicon name="chevron-right" />
+                                </ExpandButton>
+                            ) : (
+                                <Spacer />
+                            )}
+
+                            <CheckBox
+                                label=""
+                                checked={m.selected || isRequired}
+                                indeterminate={isPartial}
+                                disabled={isRequired}
+                                onChange={() => handleToggleField(m)}
+                            />
+
+                            <FieldLabel onClick={() => handleToggleField(m)}>{m.name}</FieldLabel>
+                            <TypeTag>{m?.typeName}</TypeTag>
+                            {/* {children.length > 0 && (
+                                <ChildrenInfo>
+                                    {children.length} field{children.length > 1 ? "s" : ""}
+                                </ChildrenInfo>
+                            )} */}
+                        </TreeItem>
+
+                        {isExpanded && children.length > 0 && renderTree(children, path, depth + 1, newVisited)}
+                    </React.Fragment>
+                );
+            });
+    };
+
+    // Collect selected for summary
+    const selectedItems = rootType?.members ? collectSelected(rootType.members, referencedTypes, "") : [];
+
+    if (!rootType) {
+        return (
+            <Container>
+                <LabelContainer>
+                    <Label>{field.label}</Label>
+                    {!field.optional && <RequiredFormInput />}
+                </LabelContainer>
+                <div style={{ color: "var(--vscode-errorForeground)", fontSize: 13 }}>
+                    No type model available
+                </div>
+            </Container>
+        );
+    }
+
+    return (
+        <ClickAwayListener onClickAway={handleClickAway} sx={{ width: "100%" }}>
+            <Container>
+                <LabelContainer>
+                    <Label>{field.label}</Label>
+                    {!field.optional && <RequiredFormInput />}
+                </LabelContainer>
+                {field.documentation && <Description>{field.documentation}</Description>}
+
+                <Wrapper focused={focused}>
+                    <SearchArea onMouseDown={() => setFocused(true)} onClick={() => setFocused(true)}>
+                        <SearchBox
+                            value={search}
+                            placeholder="Search and select fields..."
+                            onChange={setSearch}
+                            autoFocus={focused}
+                            sx={{ width: "100%" }}
+                        />
+                    </SearchArea>
+
+                    {focused && (
+                        <Dropdown onMouseDown={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+                            <SelectAllRow>
+                                <CheckBox
+                                    label=""
+                                    checked={areAllSelected(rootType.members, referencedTypes)}
+                                    onChange={handleSelectAll}
+                                />
+                                <SelectAllText>Select All Fields</SelectAllText>
+                            </SelectAllRow>
+
+                            <TreeContainer>
+                                {renderTree(rootType.members, "", 0)}
+                            </TreeContainer>
+                        </Dropdown>
+                    )}
+
+                    {!focused && selectedItems.length > 0 && (
+                        <SummaryContainer>
+                            <SummaryHeader>
+                                <SummaryTitle>Selected Fields</SummaryTitle>
+                                <ClearButton onClick={e => { e.stopPropagation(); handleClearAll(); }}>
+                                    Clear all
+                                </ClearButton>
+                            </SummaryHeader>
+                            <SummaryList>
+                                {selectedItems.map(({ member, path }) => (
+                                    <SummaryItem key={path}>
+                                        <div style={{ display: "flex", alignItems: "center", flex: 1 }}>
+                                            <FieldLabel as="span" style={{ cursor: "default" }}>
+                                                {path}
+                                            </FieldLabel>
+                                            <TypeTag>{member?.typeName}</TypeTag>
+                                        </div>
+                                        <RemoveButton onClick={e => { e.stopPropagation(); handleRemove(member); }}>
+                                            <Codicon name="close" />
+                                        </RemoveButton>
+                                    </SummaryItem>
+                                ))}
+                            </SummaryList>
+                        </SummaryContainer>
+                    )}
+                </Wrapper>
+            </Container>
+        </ClickAwayListener>
+    );
+}
