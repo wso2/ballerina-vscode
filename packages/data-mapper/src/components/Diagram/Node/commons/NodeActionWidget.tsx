@@ -36,6 +36,8 @@ export function NodeActionWidget(props: NodeActionWidgetProps) {
         setInProgress(true);
         try {
             await onClick();
+        } catch (error) {
+            console.error(error);
         } finally {
             setInProgress(false);
         }
