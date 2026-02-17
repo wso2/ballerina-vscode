@@ -333,7 +333,8 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                 autocompletion({
                     override: [completionSource],
                     activateOnTyping: true,
-                    closeOnBlur: true
+                    closeOnBlur: true,
+                    compareCompletions: () => 0
                 }),
                 tooltips({ position: "absolute" }),
                 chipPlugin,
@@ -433,9 +434,6 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
         updateEditorState();
     }, [props.value, props.fileName, props.targetLineRange?.startLine, isTokenUpdateScheduled]);
 
-
-    // this keeps completions ref updated
-    // just don't touch this.
     useEffect(() => {
         completionsRef.current = props.completions;
         completionsFetchScheduledRef.current = false;
@@ -476,7 +474,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
 
     return (
         <>
-            {showToggle && (
+            {showToggle && configuration.getIsToggleHelperAvailable() && (
                 <HelperPaneToggleButton
                     ref={helperPaneToggleButtonRef}
                     isOpen={helperPaneState.isOpen}
@@ -512,7 +510,7 @@ export const ChipExpressionEditorComponent = (props: ChipExpressionEditorCompone
                     }
                     {!props.disabled && (
                         <FloatingButtonContainer>
-                            {!props.isExpandedVersion &&
+                            {!props.isExpandedVersion && configuration.getIsToggleHelperAvailable() &&
                                 <FloatingToggleButton
                                     ref={helperPaneToggleButtonRef}
                                     onClick={handleManualToggle}

@@ -197,7 +197,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             <BooleanEditor
                 value={value}
                 field={field}
-                onChange={(val) => onChange(val, val.length)}
+                onChange={(val) => onChange(val, val?.length)}
             />
         );
     }
@@ -206,7 +206,7 @@ export const ExpressionField: React.FC<ExpressionFieldProps> = (props: Expressio
             <EnumEditor
                 value={value}
                 field={field}
-                onChange={(val) => onChange(val, val.length)}
+                onChange={(val) => onChange(val, val?.length)}
                 items={primaryInputType.options.map(option => (
                     {
                         id: option.value,

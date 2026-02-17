@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { LocationSelector, TextField, CheckBox } from "@wso2/ui-toolkit";
+import { LocationSelector, TextField, CheckBox, DirectorySelector } from "@wso2/ui-toolkit";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import {
     FieldGroup,
@@ -36,10 +36,12 @@ export type { ProjectFormData } from "./types";
 export interface ProjectFormFieldsProps {
     formData: ProjectFormData;
     onFormDataChange: (data: Partial<ProjectFormData>) => void;
-    onValidationChange?: (isValid: boolean) => void;
+    integrationNameError?: string;
+    pathError?: string;
+    packageNameValidationError?: string;
 }
 
-export function ProjectFormFields({ formData, onFormDataChange, onValidationChange }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ formData, onFormDataChange, integrationNameError, pathError, packageNameValidationError }: ProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
     const [packageNameTouched, setPackageNameTouched] = useState(false);
     const [packageNameError, setPackageNameError] = useState<string | null>(null);
@@ -60,10 +62,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         const sanitized = sanitizePackageName(value);
         onFormDataChange({ packageName: sanitized });
         setPackageNameTouched(value.length > 0);
-        // Clear error while typing
-        if (packageNameError) {
-            setPackageNameError(null);
-        }
     };
 
     const handleProjectDirSelection = async () => {
@@ -96,13 +94,6 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
         })();
     }, []);
 
-    // Effect to trigger validation when requested by parent
-    useEffect(() => {
-        const error = validatePackageName(formData.packageName, formData.integrationName);
-        setPackageNameError(error);
-        onValidationChange?.(error === null);
-    }, [formData.packageName, onValidationChange]);
-
     return (
         <>
             {/* Primary Fields - Always Visible */}
@@ -114,6 +105,7 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     placeholder="Enter an integration name"
                     autoFocus={true}
                     required={true}
+                    errorMsg={integrationNameError || ""}
                 />
             </FieldGroup>
 
@@ -123,21 +115,25 @@ export function ProjectFormFields({ formData, onFormDataChange, onValidationChan
                     value={formData.packageName}
                     label="Package Name"
                     description="This will be used as the Ballerina package name for the integration."
-                    errorMsg={packageNameError || ""}
+                    errorMsg={packageNameValidationError || ""}
                 />
             </FieldGroup>
 
             <FieldGroup>
-                <LocationSelector
+                <DirectorySelector
+                    id="project-folder-selector"
                     label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
+                    placeholder="Enter path or browse to select a folder..."
+                    selectedPath={formData.path}
+                    required={true}
                     onSelect={handleProjectDirSelection}
+                    onChange={(value) => onFormDataChange({ path: value })}
+                    errorMsg={pathError || undefined}
                 />
 
                 <CheckboxContainer>
                     <CheckBox
-                        label={`Create a new directory using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
+                        label={`Create a new folder using the ${formData.createAsWorkspace ? "workspace name" : "package name"}`}
                         checked={formData.createDirectory}
                         onChange={(checked) => onFormDataChange({ createDirectory: checked })}
                     />

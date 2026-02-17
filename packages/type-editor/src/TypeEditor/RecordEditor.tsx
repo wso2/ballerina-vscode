@@ -120,7 +120,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
         <div className="record-editor">
             {!isAnonymous &&
                 <Header>
-                    <SectionTitle>{isGraphql ?  (newType? 'Input Object Fields' : 'Object Fields'): 'Fields'}</SectionTitle>
+                    <SectionTitle>{isGraphql ? (newType ? 'Input Object Fields' : 'Object Fields') : 'Fields'}</SectionTitle>
                     <div style={{ display: 'flex', gap: '8px' }} data-testid="add-field-button">
                         <Button appearance="icon" onClick={addMember} tooltip='Add Field'><Codicon name="add" /></Button>
                     </div>
@@ -129,6 +129,7 @@ export const RecordEditor = forwardRef<{ addMember: () => void }, RecordEditorPr
             {type.members.map((member, index) => (
                 <>
                     <FieldEditor
+                        index={index}
                         isGraphql={isGraphql}
                         key={index}
                         member={member}
