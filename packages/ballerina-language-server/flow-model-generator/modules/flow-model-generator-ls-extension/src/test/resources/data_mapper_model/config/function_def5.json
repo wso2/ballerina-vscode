@@ -29,7 +29,7 @@
         "displayName": "num",
         "typeName": "string",
         "kind": "string",
-        "category": "variable"
+        "category": "local-variable"
       },
       {
         "fields": [],

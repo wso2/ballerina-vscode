@@ -535,8 +535,8 @@ public class FlowModelGeneratorService implements ExtendedLanguageServerService 
         return CompletableFuture.supplyAsync(() -> {
             EnclosedFuncDefResponse response = new EnclosedFuncDefResponse();
             try {
-                Path path = Path.of(request.filePath());
-                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get();
+                Path path = PathUtil.convertUriStringToPath(request.filePath());
+                WorkspaceManager workspaceManager = this.workspaceManagerProxy.get(request.filePath());
                 Project project = workspaceManager.loadProject(path);
                 Optional<Document> document = workspaceManager.document(path);
                 if (document.isEmpty()) {

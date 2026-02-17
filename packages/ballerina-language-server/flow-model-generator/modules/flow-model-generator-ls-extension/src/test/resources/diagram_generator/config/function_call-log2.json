@@ -219,11 +219,6 @@
                     },
                     "types": [
                       {
-                        "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]",
-                        "selected": false
-                      },
-                      {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",
                         "selected": false
@@ -359,11 +354,6 @@
                       "description": "The error stack trace to be logged"
                     },
                     "types": [
-                      {
-                        "fieldType": "EXPRESSION_SET",
-                        "ballerinaType": "error:StackFrame[]",
-                        "selected": false
-                      },
                       {
                         "fieldType": "EXPRESSION",
                         "ballerinaType": "error:StackFrame[]?",

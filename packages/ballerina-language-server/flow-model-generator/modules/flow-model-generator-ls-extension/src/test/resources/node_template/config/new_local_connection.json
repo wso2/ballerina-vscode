@@ -69,11 +69,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
             "selected": false
@@ -96,11 +91,6 @@
           "description": "The array of allowed methods by the service"
         },
         "types": [
-          {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]",
-            "selected": false
-          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
@@ -125,11 +115,6 @@
         },
         "types": [
           {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]",
-            "selected": false
-          },
-          {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",
             "selected": false
@@ -152,11 +137,6 @@
           "description": "The allowlisted headers, which clients are allowed to access"
         },
         "types": [
-          {
-            "fieldType": "EXPRESSION_SET",
-            "ballerinaType": "string[]",
-            "selected": false
-          },
           {
             "fieldType": "EXPRESSION",
             "ballerinaType": "string[]",

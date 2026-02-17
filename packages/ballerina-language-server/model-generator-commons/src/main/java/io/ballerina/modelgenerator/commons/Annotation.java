@@ -27,6 +27,7 @@ package io.ballerina.modelgenerator.commons;
  * @param typeConstrain The type constrain of the annotation
  * @param packageIdentifier The package identifier of the annotation
  * @param orgName The organization name of the annotation
+ * @param packageName The package name of the annotation
  * @param moduleName The module name of the annotation
  *
  * @since 1.0.0
@@ -38,6 +39,7 @@ public record Annotation(
         String typeConstrain,
         String packageIdentifier,
         String orgName,
+        String packageName,
         String moduleName
 ) {
 }

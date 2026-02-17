@@ -562,6 +562,7 @@ public final class JmsUtil {
                 "solace:SecureSocket",
                 "SecureSocket",
                 orgName + ":" + packageName + ":" + version,
+                packageName,
                 "RECORD_TYPE",
                 "",
                 true
@@ -617,10 +618,10 @@ public final class JmsUtil {
      * @return Value configured with type members
      */
     public static Value buildPropertyWithTypeMembers(String label, String description, String typeConstraint,
-                                                     String typeName, String packageInfo, String kind, String value,
-                                                     boolean optional) {
+                                                     String typeName, String packageInfo, String packageName,
+                                                     String kind, String value, boolean optional) {
         List<PropertyTypeMemberInfo> typeMembers = List.of(
-                new PropertyTypeMemberInfo(typeName, packageInfo, kind, true)
+                new PropertyTypeMemberInfo(typeName, packageInfo, packageName, kind, true)
         );
 
         PropertyType propertyType = new PropertyType.Builder()
