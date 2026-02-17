@@ -871,9 +871,9 @@ const isCategoryType = (item: Item): item is Category => {
 };
 
 export const getFunctionItemKind = (category: string): FunctionKind => {
-    if (category.includes("Current")) {
+    if (category.toLocaleLowerCase().includes("current")) {
         return functionKinds.CURRENT;
-    } else if (category.includes("Imported")) {
+    } else if (category.toLocaleLowerCase().includes("imported")) {
         return functionKinds.IMPORTED;
     } else {
         return functionKinds.AVAILABLE;
