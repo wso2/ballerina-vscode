@@ -28,6 +28,7 @@ export interface ConfigFormProps {
     onClose: () => void;
     title: string;
     filename: string;
+    configTomlPath?: string;
     packageName: string;
     moduleName: string;
     onSubmit: () => void;
@@ -55,6 +56,7 @@ export function AddForm(props: ConfigFormProps) {
         node.properties.defaultValue.modified = true;
         await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: props.filename,
+            configTomlPath: props.configTomlPath,
             configVariable: node,
             packageName: props.packageName,
             moduleName: props.moduleName,

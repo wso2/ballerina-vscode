@@ -95,6 +95,7 @@ interface ConfigurableItemProps {
     moduleName: string;
     index: number;
     fileName: string;
+    configTomlPath?: string;
     onDeleteConfigVariable?: (index: number) => void;
     onFormSubmit: () => void;
     updateErrorMessage?: (message: string) => void;
@@ -153,6 +154,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
 
         const response = await rpcClient.getBIDiagramRpcClient().updateConfigVariablesV2({
             configFilePath: fileName,
+            configTomlPath: props.configTomlPath,
             configVariable: newConfigVarNode,
             packageName: packageName,
             moduleName: moduleName,
@@ -342,6 +344,7 @@ export function ConfigurableItem(props: ConfigurableItemProps) {
                     variable={configVariable}
                     title={`Edit Configurable Variable`}
                     filename={props.fileName}
+                    configTomlPath={props.configTomlPath}
                     packageName={packageName}
                     moduleName={moduleName}
                 />
