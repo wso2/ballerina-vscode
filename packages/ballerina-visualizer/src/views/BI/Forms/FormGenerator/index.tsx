@@ -1514,6 +1514,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                     closeRecordConfigPage();
                                 }
                             }}
+                            closeOnBackdropClick={true}
+                            closeButtonIcon="minimize"
                         >
                             <ConfigureRecordPage
                                 fileName={fileName}
@@ -1640,6 +1642,8 @@ export const FormGenerator = forwardRef<FormExpressionEditorRef, FormProps>(func
                                 closeRecordConfigPage();
                             }
                         }}
+                        closeOnBackdropClick={true}
+                        closeButtonIcon="minimize"
                     >
                         <ConfigureRecordPage
                             fileName={fileName}
