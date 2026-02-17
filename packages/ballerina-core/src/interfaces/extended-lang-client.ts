@@ -507,8 +507,14 @@ export interface ConvertExpressionResponse {
 }
 
 export interface CreateConvertedVariableRequest {
+    // Data Mapper related
     filePath: string;
     codedata: CodeData;
+    varName: string;
+    targetField: string;
+    subMappingName?: string;
+
+    // Converting variable related
     typeName: string;
     variableName: string;
 }

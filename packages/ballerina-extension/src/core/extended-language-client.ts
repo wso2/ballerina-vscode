@@ -284,7 +284,8 @@ import {
     WSDLApiClientGenerationRequest,
     WSDLApiClientGenerationResponse,
     CopilotSearchLibrariesBySearchRequest,
-    CopilotSearchLibrariesBySearchResponse
+    CopilotSearchLibrariesBySearchResponse,
+    CreateConvertedVariableRequest
 } from "@wso2/ballerina-core";
 import { BallerinaExtension } from "./index";
 import { debug, handlePullModuleProgress } from "../utils";
@@ -387,6 +388,7 @@ enum EXTENDED_APIS {
     DATA_MAPPER_CLAUSE_POSITION = 'dataMapper/clausePosition',
     DATA_MAPPER_CLEAR_TYPE_CACHE = 'dataMapper/clearTypeCache',
     DATA_MAPPER_CONVERT_EXPRESSION = 'dataMapper/convertExpression',
+    DATA_MAPPER_CREATE_CONVERTED_VARIABLE = 'dataMapper/convertType',
     VIEW_CONFIG_VARIABLES_V2 = 'configEditorV2/getConfigVariables',
     UPDATE_CONFIG_VARIABLES_V2 = 'configEditorV2/updateConfigVariable',
     DELETE_CONFIG_VARIABLE_V2 = 'configEditorV2/deleteConfigVariable',
@@ -885,6 +887,10 @@ export class ExtendedLangClient extends LanguageClient implements ExtendedLangCl
 
     async getConvertedExpression(params: ConvertExpressionRequest): Promise<ConvertExpressionResponse> {
         return this.sendRequest<ConvertExpressionResponse>(EXTENDED_APIS.DATA_MAPPER_CONVERT_EXPRESSION, params);
+    }
+
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        return this.sendRequest<DataMapperSourceResponse>(EXTENDED_APIS.DATA_MAPPER_CREATE_CONVERTED_VARIABLE, params);
     }
 
     async clearTypeCache(): Promise<ClearTypeCacheResponse> {
