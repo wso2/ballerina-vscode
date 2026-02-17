@@ -43,7 +43,6 @@ import { TopNavigationBar } from "../../../components/TopNavigationBar";
 import { TitleBar } from "../../../components/TitleBar";
 import { PublishToCentralButton } from "./PublishToCentralButton";
 import { LibraryOverview } from "./LibraryOverview";
-import { library } from "webpack";
 
 const SpinnerContainer = styled.div`
     display: flex;
@@ -908,13 +907,13 @@ export function PackageOverview(props: PackageOverviewProps) {
                                     {isEmptyProject() ? (
                                         <EmptyStateContainer>
                                             <Typography variant="h3" sx={{ marginBottom: "16px" }}>
-                                                {isLibrary ? "Your library is empty" : "Your integration is empty"}
+                                                Your integration is empty
                                             </Typography>
                                             <Typography
                                                 variant="body1"
                                                 sx={{ marginBottom: "24px", color: "var(--vscode-descriptionForeground)" }}
                                             >
-                                                Start by adding artifacts or use AI to generate your {isLibrary ? "shared logic and utilities" : "integration structure"}
+                                                Start by adding artifacts or use AI to generate your integration structure
                                             </Typography>
                                             <ButtonContainer>
                                                 <Button appearance="primary" onClick={handleAddConstruct}>
