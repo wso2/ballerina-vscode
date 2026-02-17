@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TextField, Button, TextArea, Typography, Icon, Codicon, LinkButton, ProgressRing } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { BallerinaRpcClient, useRpcContext } from "@wso2/ballerina-rpc-client";
@@ -134,7 +134,9 @@ export function GenericImportTab(props: GenericImportTabProps) {
 
     const { rpcClient } = useRpcContext();
 
-    const supportedFormats = payloadContext ? [DetectedFormat.JSON] : [DetectedFormat.JSON, DetectedFormat.XML];
+    const supportedFormats = useMemo(
+        () => payloadContext ? [DetectedFormat.JSON] : [DetectedFormat.JSON, DetectedFormat.XML],
+        [payloadContext]);
 
     // Check user authentication status on mount
     useEffect(() => {
@@ -153,14 +155,12 @@ export function GenericImportTab(props: GenericImportTabProps) {
     useEffect(() => {
         if (detectedFormat === DetectedFormat.JSON) {
             validateTypeName(importTypeName);
-        } else if (detectedFormat === DetectedFormat.XML) {
-            validateTypeName(importTypeName);
         } else if (detectedFormat === DetectedFormat.EMPTY) {
             setError("");
         } else if (detectedFormat === DetectedFormat.UNKNOWN) {
             setError(`Invalid format. Please ensure the content is valid ${supportedFormats.join(" or ")}.`);
         }
-    }, [type, detectedFormat, importTypeName]);
+    }, [type, detectedFormat, importTypeName, supportedFormats]);
 
     // Auto-detect format based on content
     const detectFormat = (value: string): DetectedFormat => {
