@@ -120,6 +120,8 @@ import {
     UpdateTypesRequest,
     UpdateTypesResponse,
     UpdatedArtifactsResponse,
+    ValidateProjectFormRequest,
+    ValidateProjectFormResponse,
     VerifyTypeDeleteRequest,
     VerifyTypeDeleteResponse,
     VisibleTypesRequest,
@@ -145,6 +147,7 @@ import {
     formDidOpen,
     generateOpenApiClient,
     getAiSuggestions,
+    getAvailableAgents,
     getAvailableChunkers,
     getAvailableDataLoaders,
     getAvailableEmbeddingProviders,
@@ -203,6 +206,7 @@ import {
     updateServiceClass,
     updateType,
     updateTypes,
+    validateProjectPath,
     verifyTypeDelete,
     WorkspaceDevantMetadata
 } from "@wso2/ballerina-core";
@@ -234,6 +238,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     getAvailableNodes(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
         return this._messenger.sendRequest(getAvailableNodes, HOST_EXTENSION, params);
+    }
+
+    getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        return this._messenger.sendRequest(getAvailableAgents, HOST_EXTENSION, params);
     }
 
     getAvailableModelProviders(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
@@ -274,6 +282,10 @@ export class BiDiagramRpcClient implements BIDiagramAPI {
 
     createProject(params: ProjectRequest): void {
         return this._messenger.sendNotification(createProject, HOST_EXTENSION, params);
+    }
+
+    validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
+        return this._messenger.sendRequest(validateProjectPath, HOST_EXTENSION, params);
     }
 
     deleteProject(params: DeleteProjectRequest): void {

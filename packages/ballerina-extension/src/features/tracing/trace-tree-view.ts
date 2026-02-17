@@ -120,6 +120,18 @@ export class TraceTreeDataProvider implements vscode.TreeDataProvider<TraceNode 
             
             item.iconPath = new vscode.ThemeIcon('package');
             item.contextValue = 'span';
+
+            // Add command to open trace details with this span focused when clicked
+            const traces = TraceServer.getTraces();
+            const trace = traces.find(t => t.traceId === element.traceId);
+            if (trace) {
+                item.command = {
+                    command: 'ballerina.showTraceDetails',
+                    title: 'Show Trace Details',
+                    arguments: [trace, element.span.spanId]
+                };
+            }
+
             return item;
         }
     }

@@ -19,3 +19,4 @@
 export { TitleBarSkeleton } from "./TitleBarSkeleton";
 export { SwitchSkeleton } from "./SwitchSkeleton";
 export { DiagramSkeleton } from "./DiagramSkeleton";
+export { ResourceAccordionSkeleton } from "./ResourceAccordionSkeleton";

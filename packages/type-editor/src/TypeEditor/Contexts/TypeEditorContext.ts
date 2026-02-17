@@ -22,6 +22,7 @@ import { createContext } from "react";
 export interface StackItem {
     type: Type;
     isDirty: boolean;
+    fieldIndex?: number;
 }
 
 export interface EditorContextType {

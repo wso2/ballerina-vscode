@@ -161,6 +161,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const updatedNodeRef = useRef<FlowNode>(undefined);
     const [targetLineRange, setTargetLineRange] = useState<LineRange>(targetRef?.current);
 
+    const isCreatingAgent = useRef<boolean>(false);
     const isCreatingNewModelProvider = useRef<boolean>(false);
     const isCreatingNewVectorStore = useRef<boolean>(false);
     const isCreatingNewEmbeddingProvider = useRef<boolean>(false);
@@ -1104,6 +1105,29 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                     });
                 break;
 
+            case "AGENTS":
+                setShowProgressIndicator(true);
+                rpcClient
+                    .getBIDiagramRpcClient()
+                    .getAvailableAgents({
+                        position: targetRef.current.startLine,
+                        filePath: model?.fileName || fileName,
+                    })
+                    .then((response) => {
+                        setCategories(
+                            convertFunctionCategoriesToSidePanelCategories(
+                                response.categories as Category[],
+                                FUNCTION_TYPE.REGULAR
+                            )
+                        );
+                        setSidePanelView(SidePanelView.AGENT_LIST);
+                        setShowSidePanel(true);
+                    })
+                    .finally(() => {
+                        setShowProgressIndicator(false);
+                    });
+                break;
+
             case "MODEL_PROVIDERS":
                 setShowProgressIndicator(true);
                 rpcClient
@@ -1471,16 +1495,6 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
             console.error(">>> Error updating source code", deleteNodeResponse);
         }
 
-        if (node.codedata.node === "AGENT_CALL") {
-            const agentNodeDeleteResponse = await removeAgentNode(node, rpcClient);
-            if (!agentNodeDeleteResponse) {
-                console.error(">>> Error deleting agent node", node);
-                setShowProgressIndicator(false);
-                debouncedGetFlowModel();
-                return;
-            }
-        }
-
         await updateArtifactLocation(deleteNodeResponse);
 
         selectedNodeRef.current = undefined;
@@ -1754,6 +1768,41 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
     const cleanupProgressMessage = (messageTimeout: number) => {
         clearTimeout(messageTimeout);
         setProgressMessage(LOADING_MESSAGE);
+    };
+
+    const handleOnAddNewAgent = () => {
+        isCreatingAgent.current = true;
+        setShowProgressIndicator(true);
+        setShowProgressSpinner(true);
+
+        // Push current state to navigation stack
+        pushToNavigationStack(sidePanelView, categories, selectedNodeRef.current, selectedClientName.current);
+
+        rpcClient
+            .getBIDiagramRpcClient()
+            .getNodeTemplate({
+                position: targetRef.current.startLine,
+                filePath: model?.fileName,
+                id: {
+                    node: "AGENT_CALL",
+                    org: "ballerina",
+                    symbol: "run",
+                    module: "ai",
+                    packageName: "ai",
+                    object: "Agent"
+                },
+            })
+            .then((response) => {
+                selectedNodeRef.current = response.flowNode;
+                nodeTemplateRef.current = response.flowNode;
+                showEditForm.current = false;
+                setSidePanelView(SidePanelView.FORM);
+                setShowSidePanel(true);
+            })
+            .finally(() => {
+                setShowProgressIndicator(false);
+                setShowProgressSpinner(false);
+            });
     };
 
     const handleOnAddNewModelProvider = () => {
@@ -2512,6 +2561,7 @@ export function BIFlowDiagram(props: BIFlowDiagramProps) {
                 onSearchChunker={handleSearchChunker}
                 onUpdateNodeWithConnection={updateNodeWithConnection}
                 // AI Agent specific callbacks
+                onAddAgent={handleOnAddNewAgent}
                 onEditAgent={handleEditAgent}
                 onSelectTool={handleOnSelectTool}
                 onDeleteTool={handleOnDeleteTool}
