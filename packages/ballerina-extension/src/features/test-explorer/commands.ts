@@ -30,6 +30,7 @@ import { findBallerinaPackageRoot } from "../../utils";
 import { MESSAGES } from "../project";
 import { BallerinaExtension } from "../../core";
 import { isSupportedSLVersion, createVersionNumber } from "../../utils/config";
+import { EVALUATION_GROUP } from "./activator";
 
 export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
     // Check if AI Evaluation features are supported
@@ -110,10 +111,10 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
-        const projectPath = await findProjectPath(entry.uri?.fsPath);
+        const fileUri = entry.uri?.fsPath;
 
-        if (!projectPath) {
-            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        if (!fileUri) {
+            window.showErrorMessage(MESSAGES.NO_FILE_FOUND);
             return;
         }
 
@@ -121,8 +122,6 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
 
-        const fileName = entry.id.split(":")[2];
-        const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
 
@@ -312,10 +311,8 @@ function hasEvaluationGroup(testFunction: any): boolean {
     if (!Array.isArray(groupsField.value)) { return false; }
 
     // Check if "evaluations" is in the groups array
-    // Note: The values may include quotes, so we need to strip them
     const hasEvaluation = groupsField.value.some((group: string) => {
-        const cleanedGroup = group.replace(/^["']|["']$/g, ''); // Remove leading/trailing quotes
-        return cleanedGroup === 'evaluations';
+        return group === EVALUATION_GROUP;
     });
     return hasEvaluation;
 }

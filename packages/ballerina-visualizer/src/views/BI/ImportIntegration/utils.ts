@@ -16,24 +16,11 @@
  * under the License.
  */
 
-import { ImportIntegrationResponse, MigrationTool, ProjectMigrationResult } from "@wso2/ballerina-core";
+import { ImportIntegrationResponse, ProjectMigrationResult } from "@wso2/ballerina-core";
 import { CoverageLevel, MigrationDisplayState } from "./types";
 import { BallerinaRpcClient } from "@wso2/ballerina-rpc-client";
 
 export const SELECTION_TEXT = "To begin, choose a source platform from the options above.";
-const IMPORT_DISABLED_TOOLTIP = "Please select a source platform to continue.";
-const PATH_SELECTION_TOOLTIP = "Please select a project folder to continue.";
-const IMPORT_ENABLED_TOOLTIP = "Begin converting your selected project and view the progress.";
-
-export const getImportTooltip = (selectedIntegration: MigrationTool, importSourcePath: string) => {
-    if (!selectedIntegration) {
-        return IMPORT_DISABLED_TOOLTIP;
-    }
-    if (importSourcePath.length < 2) {
-        return PATH_SELECTION_TOOLTIP;
-    }
-    return IMPORT_ENABLED_TOOLTIP;
-};
 
 export const sanitizeProjectName = (name: string): string => {
     return name.replace(/[^a-z0-9]/gi, "_").toLowerCase();

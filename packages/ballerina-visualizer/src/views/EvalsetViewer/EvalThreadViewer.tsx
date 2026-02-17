@@ -18,14 +18,13 @@
 
 import React, { useState } from "react";
 import styled from "@emotion/styled";
-import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace } from "@wso2/ballerina-core";
+import { EvalThread, EvalSet, EvalFunctionCall, EvalsetTrace, EvalToolSchema, AvailableNode } from "@wso2/ballerina-core";
 import { MessageContainer, ProfilePic } from "../AgentChatPanel/Components/ChatInterface";
-import { ToolCallsTimeline } from "./ToolCallsTimeline";
 import { Button, Icon } from "@wso2/ui-toolkit";
 import { TopNavigationBar } from "../../components/TopNavigationBar";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { EditableTraceMessage } from "./EditableTraceMessage";
-import { EditableToolCallsList } from "./EditableToolCallsList";
+import { ToolCallsList } from "./ToolCallsList";
 import { ToolEditorModal } from "./ToolEditorModal";
 import { ConfirmationModal } from "./ConfirmationModal";
 import {
@@ -76,7 +75,7 @@ const Container = styled.div`
     overflow: hidden;
 
     *, *::before, *::after {
-        box-sizing: content-box; /* Fixed: standard box-sizing prevents width math errors */
+        box-sizing: border-box;
     }
 `;
 
@@ -107,7 +106,7 @@ const EditModeBanner = styled.div<{ $isVisible: boolean }>`
     opacity: ${(props: { $isVisible: any; }) => (props.$isVisible ? 1 : 0)};
     padding: ${(props: { $isVisible: any; }) => (props.$isVisible ? '12px 24px' : '0px 24px')};
     border-bottom: 1px solid ${(props: { $isVisible: any; }) => (props.$isVisible ? 'var(--vscode-panel-border)' : 'transparent')};
-    margin-bottom: ${(props: { $isVisible: any; }) => (props.$isVisible ? '0px' : '-1px')}; /* Compensate for border */
+    margin-bottom: ${(props: { $isVisible: any; }) => (props.$isVisible ? '0px' : '-1px')};
 `;
 
 const BannerContent = styled.div`
@@ -123,12 +122,28 @@ const BannerDescription = styled.div`
 
 const HeaderLeft = styled.div`
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 `;
 
 const HeaderRight = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
+`;
+
+const IconButton = styled.div`
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        background-color: var(--vscode-toolbar-hoverBackground);
+    }
 `;
 
 const UnsavedIndicator = styled.div`
@@ -289,8 +304,8 @@ const HoverAddTurnContainer = styled.div<{ $visible: boolean }>`
     
     /* Animation Logic */
     height: ${(props: { $visible: any; }) => props.$visible ? '32px' : '0px'};
-    margin: ${(props: { $visible: any; }) => props.$visible ? '-16px 0' : '0px'}; /* Overlap traces slightly in edit mode */
-    opacity: ${(props: { $visible: any; }) => props.$visible ? 0 : 0}; /* Default hidden, show on hover */
+    margin: ${(props: { $visible: any; }) => props.$visible ? '-16px 0' : '0px'};
+    opacity: ${(props: { $visible: any; }) => props.$visible ? 0 : 0};
     pointer-events: ${(props: { $visible: any; }) => props.$visible ? 'auto' : 'none'};
     
     transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin 0.3s ease, opacity 0.2s ease;
@@ -339,11 +354,13 @@ const StyledMessageContainer = styled(MessageContainer)`
         padding-bottom: 4px;
         margin-bottom: 8px;
         border-width: 1px;
+        transition-delay: 0.2s;
     }
     
     &:hover .edit-button {
         opacity: 1;
         transform: translate(0, 0);
+        transition-delay: 0.2s;
     }
 `;
 
@@ -376,11 +393,16 @@ const AddToolButton = styled.button`
     max-height: 0;
     overflow: hidden;
     transition: all 0.2s ease;
+    pointer-events: none;
 
     &:hover {
         background-color: var(--vscode-list-hoverBackground);
         border-color: var(--vscode-focusBorder);
         color: var(--vscode-foreground);
+    }
+
+    .message-container:hover & {
+        pointer-events: auto;
     }
 `;
 
@@ -409,6 +431,7 @@ const SortableTraceWrapper: React.FC<SortableTraceWrapperProps> = ({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
+        width: '100%',
     };
 
     return (
@@ -452,6 +475,15 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
     } | null>(null);
     const [showDiscardConfirmation, setShowDiscardConfirmation] = useState(false);
     const [deleteTraceIndex, setDeleteTraceIndex] = useState<number | null>(null);
+    const [deleteToolCall, setDeleteToolCall] = useState<{ traceId: string; toolCallIndex: number } | null>(null);
+    const [availableToolsCache, setAvailableToolsCache] = useState<EvalToolSchema[] | null>(null);
+
+    // Handle back navigation to thread list view
+    const handleBack = () => {
+        rpcClient.getCommonRpcClient().executeCommand({
+            commands: ['ballerina.openEvalsetViewer', { fsPath: filePath }]
+        });
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -459,6 +491,50 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+
+    const fetchAvailableTools = async (): Promise<EvalToolSchema[]> => {
+        if (availableToolsCache !== null) {
+            return availableToolsCache;
+        }
+
+        try {
+            const response = await rpcClient.getBIDiagramRpcClient().search({
+                filePath: projectPath,
+                queryMap: { q: "", limit: 50 },
+                searchKind: "AGENT_TOOL"
+            });
+
+            const tools: EvalToolSchema[] = response.categories
+                .flatMap(category => category.items as AvailableNode[])
+                .map(node => {
+                    const metadataData = node.metadata?.data as any;
+                    const inputParameters = metadataData?.inputParameters || [];
+
+                    // Transform inputParameters array to JSON Schema properties format
+                    const properties: { [key: string]: any } = {};
+                    inputParameters.forEach((param: any) => {
+                        if (param.name) {
+                            properties[param.name] = {
+                                type: param.type === 'int' ? 'number' : param.type,
+                                description: param.description || ''
+                            };
+                        }
+                    });
+
+                    return {
+                        name: node.metadata?.label || node.codedata?.symbol || 'unknown',
+                        description: node.metadata?.description || '',
+                        parametersSchema: inputParameters.length > 0 ? { properties } : undefined
+                    };
+                });
+
+            setAvailableToolsCache(tools);
+            return tools;
+        } catch (error) {
+            console.error('Error fetching available tools:', error);
+            return [];
+        }
+    };
 
     const handleEnterEditMode = () => {
         setOriginalEvalThread(cloneEvalThread(evalThread));
@@ -537,6 +613,14 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         }
     };
 
+    const handleDiscardClick = () => {
+        if (hasUnsavedChanges) {
+            setShowDiscardConfirmation(true);
+        } else {
+            handleExitEditMode();
+        }
+    };
+
     const handleDiscard = () => {
         setWorkingEvalThread(cloneEvalThread(originalEvalThread));
         setHasUnsavedChanges(false);
@@ -589,10 +673,11 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         setSelectedToolCall(null);
     };
 
-    const handleAddTurnAtIndex = (index: number) => {
+    const handleAddTurnAtIndex = async (index: number) => {
+        const tools = await fetchAvailableTools();
         setWorkingEvalThread(prev => {
             const newTraces = [...prev.traces];
-            newTraces.splice(index, 0, createNewTrace());
+            newTraces.splice(index, 0, createNewTrace(tools));
             return { ...prev, traces: newTraces };
         });
         setHasUnsavedChanges(true);
@@ -621,6 +706,23 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
         }
     };
 
+    const handleDeleteToolCallRequest = (traceId: string, toolCallIndex: number) => {
+        setDeleteToolCall({ traceId, toolCallIndex });
+    };
+
+    const handleDeleteToolCallConfirm = () => {
+        if (deleteToolCall) {
+            const { traceId, toolCallIndex } = deleteToolCall;
+            const trace = workingEvalThread.traces.find(t => t.id === traceId);
+            if (trace) {
+                const currentToolCalls = getToolCallsFromTrace(trace);
+                const updatedToolCalls = currentToolCalls.filter((_, i) => i !== toolCallIndex);
+                handleUpdateToolCalls(traceId, updatedToolCalls);
+            }
+            setDeleteToolCall(null);
+        }
+    };
+
     const displayCase = isEditMode ? workingEvalThread : evalThread;
 
     return (
@@ -629,8 +731,14 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
             <Container>
                 <Header>
                     <HeaderLeft>
-                        <Title>{evalSet.name}</Title>
-                        <Subtitle>{displayCase.name}</Subtitle>
+                        <IconButton onClick={handleBack} title="Back to thread list">
+                            <Icon name="chevron-left" isCodicon sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                                iconSx={{ display: "flex", fontSize: "20px", color: "var(--vscode-foreground)" }} />
+                        </IconButton>
+                        <div>
+                            <Title>{evalSet.name}</Title>
+                            <Subtitle>{displayCase.name}</Subtitle>
+                        </div>
                     </HeaderLeft>
                     <HeaderRight>
                         {isEditMode ? (
@@ -638,7 +746,7 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                 {hasUnsavedChanges && (
                                     <UnsavedIndicator><Dot /><span>Unsaved changes</span></UnsavedIndicator>
                                 )}
-                                <Button appearance="secondary" onClick={() => setShowDiscardConfirmation(true)} disabled={isSaving}>
+                                <Button appearance="secondary" onClick={handleDiscardClick} disabled={isSaving}>
                                     <Icon name="bi-close" sx={{ marginRight: "4px" }} iconSx={{ fontSize: "16px" }} />
                                     Discard
                                 </Button>
@@ -695,28 +803,38 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                                                         onSave={handleSaveUserMessage}
                                                     />
                                                     <ProfilePic>
-                                                        <Icon name="bi-user" iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)" }} />
+                                                        <Icon name="bi-user" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-foreground)" }} />
                                                     </ProfilePic>
                                                 </StyledMessageContainer>
 
-                                                <StyledMessageContainer isUser={false}>
+                                                <StyledMessageContainer isUser={false} className="message-container">
                                                     <ProfilePic>
-                                                        <Icon name="bi-ai-agent" iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
+                                                        <Icon name="bi-ai-agent" sx={{ width: 18, height: 18 }} iconSx={{ fontSize: "18px", color: "var(--vscode-terminal-ansiBrightCyan)" }} />
                                                     </ProfilePic>
                                                     <AgentContentWrapper>
-                                                        {isEditMode ? (
-                                                            <EditableToolCallsList
-                                                                traceId={trace.id}
-                                                                toolCalls={toolCalls}
-                                                                availableTools={trace.tools}
-                                                                onUpdate={handleUpdateToolCalls}
-                                                                onEditToolCall={handleEditToolCall}
-                                                            />
-                                                        ) : (
-                                                            <ToolCallsTimeline toolCalls={toolCalls} />
-                                                        )}
+                                                        <ToolCallsList
+                                                            traceId={trace.id}
+                                                            toolCalls={toolCalls}
+                                                            availableTools={trace.tools}
+                                                            isEditMode={isEditMode}
+                                                            onUpdate={handleUpdateToolCalls}
+                                                            onEditToolCall={handleEditToolCall}
+                                                            onDeleteRequest={handleDeleteToolCallRequest}
+                                                        />
                                                         {isEditMode && (
-                                                            <AddToolButton className="add-tool-button" onClick={() => handleEditToolCall(trace.id, -1)}>
+                                                            <AddToolButton className="add-tool-button" onClick={async () => {
+                                                                const tools = await fetchAvailableTools();
+                                                                // Update trace with fetched tools if it has an empty tools array
+                                                                if (trace.tools.length === 0 && tools.length > 0) {
+                                                                    setWorkingEvalThread(prev => ({
+                                                                        ...prev,
+                                                                        traces: prev.traces.map(t =>
+                                                                            t.id === trace.id ? { ...t, tools } : t
+                                                                        )
+                                                                    }));
+                                                                }
+                                                                handleEditToolCall(trace.id, -1);
+                                                            }}>
                                                                 <Icon name="bi-plus" iconSx={{ fontSize: "16px" }} />
                                                                 Add Tool Execution
                                                             </AddToolButton>
@@ -782,6 +900,16 @@ export const EvalThreadViewer: React.FC<EvalThreadViewerProps> = ({ projectPath,
                     confirmLabel="Delete"
                     onConfirm={handleDeleteTraceConfirm}
                     onCancel={() => setDeleteTraceIndex(null)}
+                />
+            )}
+
+            {deleteToolCall !== null && (
+                <ConfirmationModal
+                    title="Delete Tool Execution"
+                    message="Are you sure you want to delete this tool call? This action cannot be undone."
+                    confirmLabel="Delete"
+                    onConfirm={handleDeleteToolCallConfirm}
+                    onCancel={() => setDeleteToolCall(null)}
                 />
             )}
         </PageWrapper>

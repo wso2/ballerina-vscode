@@ -836,6 +836,7 @@ export interface BIFlowModelRequest {
     startLine?: LinePosition;
     endLine?: LinePosition;
     forceAssign?: boolean;
+    useFileSchema?: boolean;
 }
 
 export interface BISuggestedFlowModelRequest extends BIFlowModelRequest {
@@ -969,6 +970,7 @@ export type BIGetEnclosedFunctionRequest = {
     filePath: string;
     position: LinePosition;
     findClass?: boolean;
+    useFileSchema?: boolean;
 }
 
 export type BIGetEnclosedFunctionResponse = {
@@ -1059,6 +1061,7 @@ export interface BICopilotContextResponse {
 
 export interface BIDesignModelRequest {
     projectPath?: string;
+    useFileSchema?: boolean;
 }
 
 export type BIDesignModelResponse = {
@@ -1309,6 +1312,7 @@ export interface ListenerModelRequest {
         packageName: string;
         moduleName: string;
         version: string;
+        type?: string;
     };
     filePath: string;
 }
@@ -1509,6 +1513,7 @@ export interface GetGraphqlTypeResponse {
 
 export interface GetTypesRequest {
     filePath: string;
+    useFileSchema?: boolean;
 }
 
 export interface GetTypeRequest {

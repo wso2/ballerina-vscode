@@ -28,6 +28,7 @@ import { getLibraryWebViewContent, getComposerWebViewOptions, WebViewOptions } f
 import { convertTraceToEvalset, convertTracesToEvalset } from './trace-converter';
 import { EvalThread, EvalSet } from '@wso2/ballerina-core';
 import { getCurrentProjectRoot } from '../../utils/project-utils';
+import { ensureEvalsetsDirectory, validateEvalsetName, findExistingEvalsets } from '../test-explorer/evalset-utils';
 
 // TraceData interface matching the trace-visualizer component
 interface TraceData {
@@ -384,73 +385,6 @@ export class TraceDetailsWebview {
     }
 
     /**
-     * Ensures evalsets/ directory exists, returns path
-     */
-    private async ensureEvalsetsDirectory(): Promise<string> {
-        // Check if workspace is open
-        if (!vscode.workspace.workspaceFolders || vscode.workspace.workspaceFolders.length === 0) {
-            throw new Error('Please open a workspace first');
-        }
-
-        let projectRoot: string;
-        try {
-            projectRoot = await getCurrentProjectRoot();
-        } catch (error) {
-            // Fallback to workspace root if project root cannot be determined
-            projectRoot = vscode.workspace.workspaceFolders[0].uri.fsPath;
-        }
-
-        const evalsetsDir = path.join(projectRoot, 'evalsets');
-        const evalsetsDirUri = vscode.Uri.file(evalsetsDir);
-
-        try {
-            await vscode.workspace.fs.createDirectory(evalsetsDirUri);
-        } catch (e) {
-            // Directory might exist, ignore
-        }
-
-        return evalsetsDir;
-    }
-
-    /**
-     * Validates evalset name
-     */
-    private validateEvalsetName(name: string, evalsetsDir: string): string | null {
-        if (!name || name.trim().length === 0) {
-            return 'Evalset name cannot be empty';
-        }
-        if (!/^[a-zA-Z0-9-_]+$/.test(name)) {
-            return 'Name can only contain letters, numbers, hyphens, and underscores';
-        }
-        if (name.length > 100) {
-            return 'Name is too long (max 100 characters)';
-        }
-        const filePath = path.join(evalsetsDir, `${name}.evalset.json`);
-        if (fs.existsSync(filePath)) {
-            return 'An evalset with this name already exists';
-        }
-        return null; // Valid
-    }
-
-    /**
-     * Finds existing evalsets for QuickPick
-     */
-    private async findExistingEvalsets(evalsetsDir: string): Promise<Array<{
-        label: string;
-        description: string;
-        filePath: string;
-    }>> {
-        const pattern = new vscode.RelativePattern(evalsetsDir, '*.evalset.json');
-        const files = await vscode.workspace.findFiles(pattern);
-
-        return files.map(uri => ({
-            label: path.basename(uri.fsPath, '.evalset.json'),
-            description: uri.fsPath,
-            filePath: uri.fsPath
-        }));
-    }
-
-    /**
      * Creates thread from traces
      */
     private createThreadFromTraces(
@@ -508,14 +442,14 @@ export class TraceDetailsWebview {
     ): Promise<void> {
         try {
             // 1. Ensure evalsets directory exists
-            const evalsetsDir = await this.ensureEvalsetsDirectory();
+            const evalsetsDir = await ensureEvalsetsDirectory();
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
                 prompt: 'Enter evalset name',
                 placeHolder: `session-${sessionId.substring(0, 8)}`,
                 value: `session-${sessionId.substring(0, 8)}`,
-                validateInput: (value) => this.validateEvalsetName(value, evalsetsDir)
+                validateInput: (value) => validateEvalsetName(value, evalsetsDir)
             });
 
             if (!name) { return; } // User cancelled
@@ -561,14 +495,14 @@ export class TraceDetailsWebview {
     ): Promise<void> {
         try {
             // 1. Ensure evalsets directory exists
-            const evalsetsDir = await this.ensureEvalsetsDirectory();
+            const evalsetsDir = await ensureEvalsetsDirectory();
 
             // 2. Prompt for name
             const name = await vscode.window.showInputBox({
                 prompt: 'Enter evalset name',
                 placeHolder: `trace-${traceData.traceId.substring(0, 8)}`,
                 value: `trace-${traceData.traceId.substring(0, 8)}`,
-                validateInput: (value) => this.validateEvalsetName(value, evalsetsDir)
+                validateInput: (value) => validateEvalsetName(value, evalsetsDir)
             });
 
             if (!name) { return; } // User cancelled
@@ -614,8 +548,8 @@ export class TraceDetailsWebview {
     ): Promise<void> {
         try {
             // 1. Ensure evalsets directory and find files
-            const evalsetsDir = await this.ensureEvalsetsDirectory();
-            const existingEvalsets = await this.findExistingEvalsets(evalsetsDir);
+            const evalsetsDir = await ensureEvalsetsDirectory();
+            const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {
                 vscode.window.showErrorMessage('No evalsets found. Create a new one first.');
@@ -699,8 +633,8 @@ export class TraceDetailsWebview {
     ): Promise<void> {
         try {
             // 1. Ensure evalsets directory and find files
-            const evalsetsDir = await this.ensureEvalsetsDirectory();
-            const existingEvalsets = await this.findExistingEvalsets(evalsetsDir);
+            const evalsetsDir = await ensureEvalsetsDirectory();
+            const existingEvalsets = await findExistingEvalsets(evalsetsDir);
 
             if (existingEvalsets.length === 0) {
                 vscode.window.showErrorMessage('No evalsets found. Create a new one first.');
