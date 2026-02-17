@@ -22,6 +22,8 @@ package io.ballerina.flowmodelgenerator.extension.request;
  * A request to search libraries by keywords.
  *
  * @param keywords Array of search keywords to match against packages, types, connectors, and functions
+ * @since 1.7.0
  */
 public record GetLibrariesBySearchRequest(String[] keywords) {
+
 }

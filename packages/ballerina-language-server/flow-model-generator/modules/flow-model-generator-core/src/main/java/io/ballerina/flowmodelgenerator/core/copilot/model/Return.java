@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Represents a function return type.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Return {
     private String description;

@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Represents a link to a type definition in the same or different library.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class TypeLink {
     private String category;

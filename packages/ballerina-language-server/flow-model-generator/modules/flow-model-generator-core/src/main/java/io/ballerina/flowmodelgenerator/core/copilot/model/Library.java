@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Represents a library/package with its metadata and symbols.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Library {
     private String name;

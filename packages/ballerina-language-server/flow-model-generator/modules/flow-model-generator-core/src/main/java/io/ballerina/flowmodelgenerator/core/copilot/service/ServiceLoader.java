@@ -32,7 +32,7 @@ import java.nio.charset.StandardCharsets;
  * Service loader for loading library service definitions.
  * Handles loading from inbuilt-triggers and generic-services JSON files.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class ServiceLoader {
 

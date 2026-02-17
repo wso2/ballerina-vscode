@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Marker interface for TypeDef member types (EnumValue or UnionValue).
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public interface TypeDefMember {
 }

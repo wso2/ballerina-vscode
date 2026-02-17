@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Represents a function or method.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class LibraryFunction {
     private String name;

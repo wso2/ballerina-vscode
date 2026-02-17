@@ -54,7 +54,7 @@ import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.REST_RESOU
  * Utility class for converting data model objects to POJO representations.
  * Handles conversion of FunctionData, TypeDefData, FieldData, and ParameterData to model POJOs.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class LibraryModelConverter {
 

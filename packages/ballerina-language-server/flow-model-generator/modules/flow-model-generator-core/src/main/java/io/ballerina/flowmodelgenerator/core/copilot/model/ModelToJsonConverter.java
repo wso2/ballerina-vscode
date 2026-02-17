@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * Utility class to convert model POJOs to JSON at the API boundary.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class ModelToJsonConverter {
 

@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Represents a type reference with optional links.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Type {
     private String name;

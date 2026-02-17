@@ -49,7 +49,7 @@ import static io.ballerina.flowmodelgenerator.core.copilot.util.LibraryModelConv
 /**
  * Processes module symbols and extracts structured data (clients, functions, typedefs).
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class SymbolProcessor {
 

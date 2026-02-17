@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Represents a service definition.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Service {
     private String type;

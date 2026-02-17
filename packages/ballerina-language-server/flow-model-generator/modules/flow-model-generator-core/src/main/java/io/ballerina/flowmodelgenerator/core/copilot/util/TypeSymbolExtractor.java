@@ -33,7 +33,7 @@ import java.util.Optional;
  * Utility class for extracting type information from TypeSymbol instances.
  * Handles type name extraction, import statement generation, and type link creation.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class TypeSymbolExtractor {
 

@@ -28,7 +28,7 @@ import java.io.IOException;
 /**
  * Gson TypeAdapter for StringPath that serializes it as a plain string value.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class StringPathAdapter extends TypeAdapter<StringPath> {
 

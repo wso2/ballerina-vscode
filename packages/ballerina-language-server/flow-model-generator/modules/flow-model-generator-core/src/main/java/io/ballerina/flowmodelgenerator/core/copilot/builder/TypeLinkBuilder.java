@@ -27,7 +27,7 @@ import java.util.List;
  * Builder class for creating TypeLink objects.
  * Handles union types and internal/external categorization.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class TypeLinkBuilder {
 

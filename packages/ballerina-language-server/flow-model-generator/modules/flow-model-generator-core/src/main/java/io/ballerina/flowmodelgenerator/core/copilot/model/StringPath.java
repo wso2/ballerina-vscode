@@ -25,7 +25,7 @@ import io.ballerina.flowmodelgenerator.core.copilot.adapters.StringPathAdapter;
  * Represents a static string path segment in a resource function.
  *
  * @param value the string value of the path segment
- * @since 1.6.0
+ * @since 1.7.0
  */
 @JsonAdapter(StringPathAdapter.class)
 public record StringPath(String value) implements PathElement {

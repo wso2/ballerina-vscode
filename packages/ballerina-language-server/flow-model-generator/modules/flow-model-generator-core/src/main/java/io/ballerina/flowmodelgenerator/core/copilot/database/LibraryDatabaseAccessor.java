@@ -37,7 +37,7 @@ import java.util.Optional;
  * Database accessor for library package information from the search-index database.
  * Handles database connections, queries, and resource management.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class LibraryDatabaseAccessor {
 

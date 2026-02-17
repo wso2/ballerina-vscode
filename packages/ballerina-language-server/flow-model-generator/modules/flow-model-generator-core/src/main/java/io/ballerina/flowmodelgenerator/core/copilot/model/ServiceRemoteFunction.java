@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Represents a service method (remote or resource function).
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class ServiceRemoteFunction {
     private String type;

@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Represents a union member value.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class UnionValue implements TypeDefMember {
     private String name;

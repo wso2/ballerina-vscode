@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Represents a type definition (record, enum, union, class, constant, etc.).
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class TypeDef {
     private String name;

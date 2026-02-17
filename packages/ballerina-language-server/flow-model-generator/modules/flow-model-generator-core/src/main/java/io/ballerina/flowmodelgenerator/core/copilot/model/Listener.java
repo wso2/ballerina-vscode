@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents a listener definition.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Listener {
     private String name;

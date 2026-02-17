@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Represents a path parameter in a resource function.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public final class PathSegment implements PathElement {
     private String name;

@@ -23,7 +23,7 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Represents a function or method parameter.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Parameter {
     private String name;

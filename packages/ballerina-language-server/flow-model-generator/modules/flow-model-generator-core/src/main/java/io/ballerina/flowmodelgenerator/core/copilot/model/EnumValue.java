@@ -21,7 +21,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
 /**
  * Represents an enum member value.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class EnumValue implements TypeDefMember {
     private String name;

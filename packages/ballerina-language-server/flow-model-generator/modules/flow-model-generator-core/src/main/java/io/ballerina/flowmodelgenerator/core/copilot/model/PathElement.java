@@ -22,7 +22,7 @@ package io.ballerina.flowmodelgenerator.core.copilot.model;
  * Sealed interface representing a path element in a resource function.
  * A path element can be either a static string path or a parameterized path segment.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public sealed interface PathElement permits StringPath, PathSegment {
 }

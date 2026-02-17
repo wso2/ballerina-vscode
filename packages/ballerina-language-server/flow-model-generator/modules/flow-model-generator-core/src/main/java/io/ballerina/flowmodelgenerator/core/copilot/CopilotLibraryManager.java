@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  * Core orchestrator for Copilot library operations.
  * Coordinates between database access, symbol processing, and service loading.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class CopilotLibraryManager {
 

@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * Represents a client class or connector with its methods.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class Client {
     private String name;

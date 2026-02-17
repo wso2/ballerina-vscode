@@ -46,7 +46,7 @@ import static io.ballerina.modelgenerator.commons.CommonUtils.getRawType;
  * Builder class for constructing TypeDefData instances from various symbol types.
  * Handles extraction of fields from records, unions, maps, tables, streams, enums, and constants.
  *
- * @since 1.6.0
+ * @since 1.7.0
  */
 public class TypeDefDataBuilder {
 
