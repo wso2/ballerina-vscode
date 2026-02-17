@@ -74,7 +74,8 @@ export const LabelContainer = styled.div({
 export const TwoColumnLayout = styled.div({
     display: 'flex',
     gap: '16px',
-    height: '500px'
+    height: '100%',
+    overflow: 'hidden'
 });
 
 export const LeftColumn = styled.div({
@@ -111,7 +112,9 @@ export const ExpressionEditorContainer = styled.div({
     flex: '1',
     display: 'flex',
     flexDirection: 'column',
-    gap: '8px'
+    gap: '8px',
+    minHeight: 0,
+    overflow: 'hidden'
 });
 
 export const ExpressionEditorLabel = styled.div({
@@ -689,7 +692,13 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                     }}
                                     triggerCharacters={triggerCharacters}
                                 >
-                                    <div ref={anchorRef}>
+                                    <div ref={anchorRef} style={{ 
+                                        flex: 1, 
+                                        display: 'flex', 
+                                        flexDirection: 'column',
+                                        minHeight: 0,
+                                        gap: '8px'
+                                    }}>
                                         <ChipExpressionEditorComponent
                                             completions={formContext.expressionEditor.completions}
                                             onChange={handleExpressionChange}
@@ -698,9 +707,14 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
                                             targetLineRange={targetLineRange}
                                             extractArgsFromFunction={wrappedExtractArgsFromFunction}
                                             getHelperPane={wrappedGetHelperPane}
-                                            sx={{ height: "350px" }}
+                                            sx={{ 
+                                                height: "100%",
+                                                minHeight: 0,
+                                                flex: 1
+                                            }}
                                             configuration={new RecordConfigExpressionEditorConfig()}
                                             isExpandedVersion={false}
+                                            hideFxButton={true}
                                         />
                                         {formDiagnostics && formDiagnostics.length > 0 && (
                                             <ErrorBanner errorMsg={formDiagnostics.map((d: any) => d.message).join(', ')} />
