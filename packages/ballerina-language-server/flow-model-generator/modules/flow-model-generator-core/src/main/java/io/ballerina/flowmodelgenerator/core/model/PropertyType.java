@@ -34,9 +34,16 @@ public class PropertyType {
     private final Property template;
     private final List<PropertyTypeMemberInfo> typeMembers;
     private boolean selected;
+    private final TypeData typeModel;
 
     public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<Option> options,
                         Property template, List<PropertyTypeMemberInfo> typeMembers, boolean selected) {
+        this(fieldType, ballerinaType, scope, options, template, typeMembers, selected, null);
+    }
+
+    public PropertyType(Property.ValueType fieldType, String ballerinaType, String scope, List<Option> options,
+                        Property template, List<PropertyTypeMemberInfo> typeMembers, boolean selected,
+                        TypeData typeModel) {
         this.fieldType = fieldType;
         this.ballerinaType = ballerinaType;
         this.scope = scope;
@@ -44,6 +51,7 @@ public class PropertyType {
         this.template = template;
         this.typeMembers = typeMembers;
         this.selected = selected;
+        this.typeModel = typeModel;
     }
 
     public Property.ValueType fieldType() {
@@ -76,5 +84,9 @@ public class PropertyType {
 
     public void selected(boolean selected) {
         this.selected = selected;
+    }
+
+    public TypeData typeModel() {
+        return typeModel;
     }
 }

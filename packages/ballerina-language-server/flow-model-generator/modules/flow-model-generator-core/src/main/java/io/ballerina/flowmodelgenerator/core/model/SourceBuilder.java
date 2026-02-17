@@ -19,8 +19,11 @@
 package io.ballerina.flowmodelgenerator.core.model;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Qualifier;
+import io.ballerina.compiler.api.symbols.RecordFieldSymbol;
 import io.ballerina.compiler.api.symbols.RecordTypeSymbol;
 import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.api.symbols.SymbolKind;
 import io.ballerina.compiler.api.symbols.TypeDefinitionSymbol;
 import io.ballerina.compiler.api.symbols.TypeDescKind;
 import io.ballerina.compiler.api.symbols.TypeReferenceTypeSymbol;
@@ -33,6 +36,7 @@ import io.ballerina.compiler.syntax.tree.NodeParser;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.compiler.syntax.tree.SyntaxTree;
 import io.ballerina.flowmodelgenerator.core.utils.FileSystemUtils;
+import io.ballerina.flowmodelgenerator.core.utils.SourceCodeGenerator;
 import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.DefaultValueGeneratorUtil;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
@@ -77,6 +81,7 @@ public class SourceBuilder {
     public final WorkspaceManager workspaceManager;
     private final Map<Path, List<TextEdit>> textEditsMap;
     private final Set<String> imports;
+    private final List<TypeData> typesToGenerate;
     private final LSClientLogger lsClientLogger;
     private Range defaultRange;
 
@@ -95,6 +100,7 @@ public class SourceBuilder {
         this.flowNode = flowNode;
         this.workspaceManager = workspaceManager;
         this.imports = new HashSet<>();
+        this.typesToGenerate = new ArrayList<>();
         this.lsClientLogger = lsClientLogger;
 
         Codedata codedata = flowNode.codedata();
@@ -276,6 +282,135 @@ public class SourceBuilder {
         }
         imports.add(importSignature);
         return this;
+    }
+
+    /**
+     * Accepts a type model for generation. Checks if a type with the same name already exists:
+     * - If no symbol found: generate type with typeModel.name
+     * - If symbol found and is a record type with same fields (including readonly): skip generation
+     * - If symbol found but fields differ (e.g., readonly mismatch): generate with a new name prefixed with
+     *   typeModel.name
+     *
+     * @param typeModel The TypeData to generate
+     * @return The actual type name to use (original or generated)
+     */
+    public String acceptTypeGeneration(TypeData typeModel) {
+        if (typeModel == null || typeModel.name() == null || typeModel.name().isEmpty()) {
+            return null;
+        }
+
+        try {
+            this.workspaceManager.loadProject(filePath);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            // If loading fails, still add the type to generate
+            typesToGenerate.add(typeModel);
+            return typeModel.name();
+        }
+
+        SemanticModel semanticModel = FileSystemUtils.getSemanticModel(workspaceManager, filePath);
+        String typeName = typeModel.name();
+
+        // Check if a symbol with the same name already exists
+        Optional<Symbol> existingSymbol = semanticModel.moduleSymbols().stream()
+                .filter(symbol -> symbol.nameEquals(typeName))
+                .findFirst();
+
+        if (existingSymbol.isEmpty()) {
+            // No symbol found, generate the type with the original name
+            typesToGenerate.add(typeModel);
+            return typeName;
+        }
+
+        Symbol symbol = existingSymbol.get();
+        if (symbol.kind() == SymbolKind.TYPE_DEFINITION) {
+            TypeDefinitionSymbol typeDefSymbol = (TypeDefinitionSymbol) symbol;
+            TypeSymbol typeDescriptor = typeDefSymbol.typeDescriptor();
+
+            if (typeDescriptor.typeKind() == TypeDescKind.TYPE_REFERENCE) {
+                typeDescriptor = ((TypeReferenceTypeSymbol) typeDescriptor).typeDescriptor();
+            }
+
+            if (typeDescriptor.typeKind() == TypeDescKind.RECORD) {
+                // Compare fields
+                RecordTypeSymbol existingRecord = (RecordTypeSymbol) typeDescriptor;
+                if (areFieldsCompatible(existingRecord, typeModel)) {
+                    // Fields are compatible, no need to generate
+                    return typeName;
+                }
+
+                // Fields are different, generate with a new name
+                String newName = generateUniqueTypeName(typeName, semanticModel);
+                TypeData modifiedTypeModel = createTypeDataWithNewName(typeModel, newName);
+                typesToGenerate.add(modifiedTypeModel);
+                return newName;
+            }
+        }
+        return  null;
+    }
+
+    private String generateUniqueTypeName(String baseName, SemanticModel semanticModel) {
+        Set<String> existingNames = semanticModel.moduleSymbols().stream()
+                .flatMap(symbol -> symbol.getName().stream())
+                .collect(Collectors.toSet());
+
+        int counter = 1;
+        String newName = baseName + counter;
+        while (existingNames.contains(newName)) {
+            counter++;
+            newName = baseName + counter;
+        }
+        return newName;
+    }
+
+    private TypeData createTypeDataWithNewName(TypeData original, String newName) {
+        return new TypeData(
+                newName,
+                original.editable(),
+                original.metadata(),
+                original.codedata(),
+                original.properties(),
+                original.members(),
+                original.restMember(),
+                original.includes(),
+                original.functions(),
+                original.annotationAttachments(),
+                original.allowAdditionalFields()
+        );
+    }
+
+    private boolean areFieldsCompatible(RecordTypeSymbol existingRecord, TypeData typeModel) {
+        Map<String, RecordFieldSymbol> existingFields = existingRecord.fieldDescriptors();
+        List<Member> typeModelMembers = typeModel.members();
+
+        if (typeModelMembers == null) {
+            return existingFields.isEmpty();
+        }
+
+        if (existingFields.size() != typeModelMembers.size()) {
+            return false;
+        }
+
+        for (Member member : typeModelMembers) {
+            RecordFieldSymbol existingField = existingFields.get(member.name());
+            if (existingField == null) {
+                return false;
+            }
+
+            // Check readonly compatibility
+            if (existingField.qualifiers().contains(Qualifier.READONLY) != member.readonly()) {
+                return false;
+            }
+
+            // Check type compatibility (basic check - just compare type names)
+            String existingTypeName = existingField.typeDescriptor().signature();
+            String memberTypeName = member.type() instanceof String ? (String) member.type() :
+                    member.type() instanceof TypeData ? ((TypeData) member.type()).name() : null;
+            if (memberTypeName != null && !existingTypeName.contains(memberTypeName)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public Optional<String> getExpressionBodyText(String typeName, Map<String, String> imports) {
@@ -643,6 +778,8 @@ public class SourceBuilder {
     public Map<Path, List<TextEdit>> build() {
         // Add the imports if exists
         addImports();
+        // Add the types if exists
+        addTypes();
         return textEditsMap;
     }
 
@@ -719,6 +856,53 @@ public class SourceBuilder {
                     .name(moduleImport)
                     .endOfStatement();
             textEdit(SourceKind.IMPORT, filePath, startLineRange);
+        }
+    }
+
+    private void addTypes() {
+        if (typesToGenerate.isEmpty()) {
+            return;
+        }
+
+        try {
+            this.workspaceManager.loadProject(filePath);
+        } catch (WorkspaceDocumentException | EventSyncException e) {
+            return;
+        }
+
+        Document document = FileSystemUtils.getDocument(workspaceManager, filePath);
+        SyntaxTree syntaxTree = document.syntaxTree();
+        ModulePartNode rootNode = syntaxTree.rootNode();
+
+        // Generate text edits for each type at the end of the file
+        Range endOfFileRange = CommonUtils.toRange(rootNode.lineRange().endLine());
+
+        for (TypeData typeData : typesToGenerate) {
+            SourceCodeGenerator sourceCodeGenerator = new SourceCodeGenerator();
+            String codeSnippet = sourceCodeGenerator.generateCodeSnippetForType(typeData);
+
+            if (codeSnippet != null && !codeSnippet.isEmpty()) {
+                // Add a newline before the type definition
+                String typeDefinition = System.lineSeparator() + codeSnippet;
+
+                List<TextEdit> textEdits = textEditsMap.get(filePath);
+                if (textEdits == null) {
+                    textEdits = new ArrayList<>();
+                }
+                textEdits.add(new TextEdit(endOfFileRange, typeDefinition));
+                textEditsMap.put(filePath, textEdits);
+
+                // Add imports from the type generation
+                Map<String, String> typeImports = sourceCodeGenerator.getImports();
+                if (typeImports != null) {
+                    typeImports.forEach((key, value) -> {
+                        String[] parts = value.split("/");
+                        if (parts.length > 1) {
+                            acceptImport(parts[0], parts[1].split(":")[0]);
+                        }
+                    });
+                }
+            }
         }
     }
 

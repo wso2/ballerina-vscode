@@ -21,7 +21,9 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.compiler.syntax.tree.SyntaxKind;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 import io.ballerina.flowmodelgenerator.core.model.Property;
+import io.ballerina.flowmodelgenerator.core.model.PropertyType;
 import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
+import io.ballerina.flowmodelgenerator.core.model.TypeData;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -114,9 +116,21 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
 
         // Build additional parameters from inputType property (only contains the type)
         Optional<Property> inputProperty = sourceBuilder.getProperty(INPUT_KEY);
-        if (inputProperty.isPresent() && inputProperty.get().value() != null
-                && !inputProperty.get().value().toString().isEmpty()) {
-            String inputType = inputProperty.get().value().toString();
+        if (inputProperty.isPresent()) {
+            String inputType = "";
+            // Check if there's a typeModel in the types array that needs to be generated
+            List<PropertyType> types = inputProperty.get().types();
+            if (types != null && !types.isEmpty()) {
+                    TypeData typeModel = types.getFirst().typeModel();
+                    if (typeModel != null) {
+                        // Accept type generation and get the actual type name to use
+                        String actualTypeName = sourceBuilder.acceptTypeGeneration(typeModel);
+                        if (actualTypeName != null) {
+                            inputType = actualTypeName;
+                        }
+                    }
+            }
+
             paramsBuilder.append(", ").append(inputType).append(" input");
         }
 
@@ -133,7 +147,7 @@ public class WorkflowBuilder extends FunctionDefinitionBuilder {
         }
 
         // Generate text edits based on the line range. If a line range exists, update the signature of the existing
-        // function. Otherwise, create a new function definition in "functions.bal".
+        // workflow function. Otherwise, create a new function definition in "functions.bal".
         LineRange lineRange = sourceBuilder.flowNode.codedata().lineRange();
         if (lineRange == null) {
             sourceBuilder

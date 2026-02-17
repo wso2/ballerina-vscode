@@ -44,7 +44,7 @@ import io.ballerina.flowmodelgenerator.core.model.node.DataMapperCreationBuilder
 import io.ballerina.flowmodelgenerator.core.model.node.DataMapperDefinitionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EmbeddingProviderBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ErrorHandlerBuilder;
-import io.ballerina.flowmodelgenerator.core.model.node.EventBuilder;
+import io.ballerina.flowmodelgenerator.core.model.node.SendEventBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.EventStartBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.ExpressionBuilder;
 import io.ballerina.flowmodelgenerator.core.model.node.FailBuilder;
@@ -180,7 +180,7 @@ public abstract class NodeBuilder implements DiagnosticHandler.DiagnosticCapable
         put(NodeKind.MCP_TOOL_KIT, McpToolKitBuilder::new);
         put(NodeKind.WORKFLOW, WorkflowBuilder::new);
         put(NodeKind.ACTIVITY, ActivityBuilder::new);
-        put(NodeKind.EVENT, EventBuilder::new);
+        put(NodeKind.SEND_EVENT, SendEventBuilder::new);
         put(NodeKind.WAIT_EVENT, WaitEventBuilder::new);
         put(NodeKind.WORKFLOW_START, WorkflowStartBuilder::new);
         put(NodeKind.ACTIVITY_CALL, ActivityCallBuilder::new);

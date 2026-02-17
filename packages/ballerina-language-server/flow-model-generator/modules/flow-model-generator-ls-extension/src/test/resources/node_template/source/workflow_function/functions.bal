@@ -34,4 +34,3 @@ function myActivity() returns int {
 public function main() {
     io:println("Workflow function project");
 }
-

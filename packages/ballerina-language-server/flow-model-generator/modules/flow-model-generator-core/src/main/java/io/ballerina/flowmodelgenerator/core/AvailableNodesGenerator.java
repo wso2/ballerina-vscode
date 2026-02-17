@@ -359,7 +359,7 @@ public class AvailableNodesGenerator {
                         .description(Workflow.CREATE_INSTANCE_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.WORKFLOW)
+                        .node(NodeKind.WORKFLOW_START)
                         .build(),
                 true
         );
@@ -370,7 +370,7 @@ public class AvailableNodesGenerator {
                         .description(Workflow.SEND_EVENT_DESCRIPTION)
                         .build(),
                 new Codedata.Builder<>(null)
-                        .node(NodeKind.EVENT)
+                        .node(NodeKind.SEND_EVENT)
                         .build(),
                 true
         );
@@ -386,7 +386,7 @@ public class AvailableNodesGenerator {
                             .description(Workflow.CALL_ACTIVITY_DESCRIPTION)
                             .build(),
                     new Codedata.Builder<>(null)
-                            .node(NodeKind.ACTIVITY)
+                            .node(NodeKind.ACTIVITY_CALL)
                             .build(),
                     true
             );

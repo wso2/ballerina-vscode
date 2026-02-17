@@ -21,12 +21,12 @@ package io.ballerina.flowmodelgenerator.core.model.node;
 import io.ballerina.flowmodelgenerator.core.model.NodeKind;
 
 /**
- * Represents a workflow event operation node (sendEvent).
+ * Represents a workflow send event operation node (sendEvent).
  * This is a specialized function call for workflow event operations.
  *
  * @since 2.0.0
  */
-public class EventBuilder extends FunctionCall {
+public class SendEventBuilder extends FunctionCall {
 
     public static final String LABEL = "Send Event";
     public static final String DESCRIPTION = "Send an event to an existing workflow instance";
@@ -34,7 +34,7 @@ public class EventBuilder extends FunctionCall {
     @Override
     public void setConcreteConstData() {
         metadata().label(LABEL).description(DESCRIPTION);
-        codedata().node(NodeKind.EVENT);
+        codedata().node(NodeKind.SEND_EVENT);
     }
 }
 
