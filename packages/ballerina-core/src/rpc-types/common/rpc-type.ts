@@ -64,3 +64,4 @@ export const SetWebviewCache: RequestType<SetWebviewCacheRequestParam, void> = {
 export const RestoreWebviewCache: RequestType<IDBValidKey, unknown> = { method: `${_preFix}/restoreWebviewCache` };
 export const ClearWebviewCache: RequestType<IDBValidKey, void> = { method: `${_preFix}/clearWebviewCache` };
 export const downloadSelectedSampleFromGithub: RequestType<SampleDownloadRequest, boolean> = { method: `${_preFix}/downloadSelectedSampleFromGithub` };
+export const getDefaultOrgName: RequestType<void, { orgName: string }> = { method: `${_preFix}/getDefaultOrgName` };
