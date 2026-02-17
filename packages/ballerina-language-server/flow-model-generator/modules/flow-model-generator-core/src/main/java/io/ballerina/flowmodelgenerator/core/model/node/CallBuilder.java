@@ -44,8 +44,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Module;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.ProjectException;
 import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
@@ -78,44 +76,21 @@ public abstract class CallBuilder extends NodeBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
-        Document document = null;
-        Package resolvedPackage;
-        boolean isLocalFunction = PackageUtil.isLocalFunction(context.workspaceManager(), context.filePath(),
-                codedata.org(), codedata.module());
-         // TODO: Remove this resolvePackage logic
-        if (isLocalFunction) {
-            resolvedPackage = context.workspaceManager().project(context.filePath()).get().currentPackage();
-            Module defaultModule = resolvedPackage.getDefaultModule();
-            document = defaultModule.document(resolvedPackage.project().documentId(context.filePath()));
-        } else {
-            resolvedPackage = PackageUtil.resolveModulePackage(codedata.org(), codedata.packageName(),
-                    codedata.version()).orElse(null);
-        }
+        ModuleInfo targetModuleInfo = new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
+                codedata.version());
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .name(codedata.symbol())
-                .moduleInfo(new ModuleInfo(codedata.org(), codedata.packageName(), codedata.module(),
-                        codedata.version()))
+                .moduleInfo(targetModuleInfo)
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(getFunctionResultKind())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
                 .userModuleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage)
-                .document(document);
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         NodeKind functionNodeKind = getFunctionNodeKind();
         if (functionNodeKind != NodeKind.FUNCTION_CALL) {
             functionDataBuilder.parentSymbolType(codedata.object());
-        }
-
-        // Set the semantic model if the function is local
-        if (isLocalFunction) {
-            WorkspaceManager workspaceManager = context.workspaceManager();
-            PackageUtil.loadProject(context.workspaceManager(), context.filePath());
-            context.workspaceManager().module(context.filePath())
-                    .map(module -> ModuleInfo.from(module.descriptor()))
-                    .ifPresent(functionDataBuilder::userModuleInfo);
-            SemanticModel semanticModel = workspaceManager.semanticModel(context.filePath()).orElseThrow();
-            functionDataBuilder.semanticModel(semanticModel);
         }
         FunctionData functionData = functionDataBuilder.build();
 
@@ -143,7 +118,8 @@ public abstract class CallBuilder extends NodeBuilder {
                     .label(Property.CONNECTION_LABEL)
                     .description(Property.CONNECTION_DOC)
                     .stepOut()
-                    .type(Property.ValueType.EXPRESSION, isLocalFunction ? codedata.object() :
+                    .type(Property.ValueType.EXPRESSION, PackageUtil.isLocalFunction(context.workspaceManager(),
+                            context.filePath(), codedata.org(), codedata.module()) ? codedata.object() :
                             CommonUtils.getClassType(codedata.module(), codedata.object()))
                     .value(codedata.parentSymbol())
                     .hidden()

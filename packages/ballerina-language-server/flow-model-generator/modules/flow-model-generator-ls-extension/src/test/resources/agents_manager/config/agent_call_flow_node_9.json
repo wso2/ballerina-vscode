@@ -515,7 +515,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "sessionId"
             },
-            "defaultValue": "\"\""
+            "defaultValue": "DEFAULT_SESSION_ID"
           },
           "context": {
             "metadata": {
@@ -538,7 +538,7 @@
               "kind": "DEFAULTABLE",
               "originalName": "context"
             },
-            "defaultValue": "new ()"
+            "defaultValue": "new"
           },
           "td": {
             "metadata": {

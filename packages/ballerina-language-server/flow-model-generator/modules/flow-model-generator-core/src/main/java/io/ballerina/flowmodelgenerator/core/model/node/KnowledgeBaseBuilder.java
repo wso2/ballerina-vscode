@@ -87,6 +87,8 @@ public class KnowledgeBaseBuilder extends CallBuilder {
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(codedata.object())
                 .name(codedata.symbol()).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.KNOWLEDGE_BASE)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

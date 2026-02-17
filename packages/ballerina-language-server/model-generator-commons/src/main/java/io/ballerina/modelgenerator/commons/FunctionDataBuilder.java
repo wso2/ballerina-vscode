@@ -71,11 +71,13 @@ import io.ballerina.tools.text.LinePosition;
 import org.ballerinalang.langserver.LSClientLogger;
 import org.ballerinalang.langserver.common.utils.CommonUtil;
 import org.ballerinalang.langserver.commons.BallerinaCompilerApi;
+import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.MessageType;
 
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -124,6 +126,8 @@ public class FunctionDataBuilder {
     private Project project;
     private boolean isCurrentModule;
     private boolean enableIndex;
+    private WorkspaceManager workspaceManager;
+    private Path filePath;
 
     public static final String REST_RESOURCE_PATH = "/path/to/subdirectory";
     public static final String REST_PARAM_PATH = "/path/to/resource";
@@ -254,6 +258,17 @@ public class FunctionDataBuilder {
         return this;
     }
 
+    public FunctionDataBuilder workspaceManager(WorkspaceManager workspaceManager) {
+        this.workspaceManager = workspaceManager;
+        return this;
+    }
+
+    public FunctionDataBuilder filePath(Path filePath) {
+        this.filePath = filePath;
+        return this;
+    }
+
+
     private void setParentSymbol(Stream<Symbol> symbolStream, String parentSymbolName) {
         this.parentSymbol = symbolStream
                 .filter(symbol -> symbol.kind() == SymbolKind.VARIABLE && symbol.nameEquals(parentSymbolName))
@@ -261,6 +276,37 @@ public class FunctionDataBuilder {
                 .filter(typeSymbol -> typeSymbol instanceof ObjectTypeSymbol)
                 .map(typeSymbol -> (ObjectTypeSymbol) typeSymbol).findFirst()
                 .orElse(null);
+    }
+
+    private void performAutomaticResolution() {
+        if (workspaceManager != null && filePath != null) {
+            boolean isLocal = PackageUtil.isLocalFunction(workspaceManager, filePath,
+                    moduleInfo.org(), moduleInfo.moduleName());
+            if (isLocal) {
+                // For local functions: use current workspace package + document + semantic model
+                Optional<Project> optProject = workspaceManager.project(filePath);
+                if (optProject.isEmpty()) {
+                    return;
+                }
+                Package currentPackage = optProject.get().currentPackage();
+                Module defaultModule = currentPackage.getDefaultModule();
+                Document document = defaultModule.document(currentPackage.project().documentId(filePath));
+
+                this.resolvedPackage(currentPackage)
+                        .document(document)
+                        .project(currentPackage.project());
+
+                // Set semantic model automatically for local functions
+                SemanticModel semanticModel = workspaceManager.semanticModel(filePath).orElseThrow();
+                this.semanticModel(semanticModel);
+                return;
+            }
+        }
+
+        // For external functions: resolve from central repository
+        Package resolvedPackage = PackageUtil.resolveModulePackage(
+                moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()).orElse(null);
+        this.resolvedPackage(resolvedPackage);
     }
 
     private void updateModuleInfo() {
@@ -291,6 +337,10 @@ public class FunctionDataBuilder {
         if (moduleInfo == null) {
             throw new IllegalStateException("Module information not found");
         }
+
+        // Perform automatic package resolution if workspaceManager and filePath are provided
+        performAutomaticResolution();
+
 
         // Ensure moduleInfo is updated with resolved package version before any usage
         updateModuleInfo();

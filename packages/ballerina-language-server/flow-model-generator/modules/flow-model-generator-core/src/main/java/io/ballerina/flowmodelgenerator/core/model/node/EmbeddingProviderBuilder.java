@@ -28,14 +28,11 @@ import io.ballerina.modelgenerator.commons.CommonUtils;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.projects.Package;
 import org.eclipse.lsp4j.TextEdit;
 
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static io.ballerina.modelgenerator.commons.FunctionDataBuilder.GET_DEFAULT_EMBEDDING_PROVIDER_FUNCTION_NAME;
@@ -98,14 +95,11 @@ public class EmbeddingProviderBuilder extends CallBuilder {
         ModuleInfo codedataModuleInfo = new ModuleInfo(codedata.org(), codedata.packageName(),
                 codedata.module(), codedata.version());
 
-        // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
-                codedata.org(), codedata.packageName(), codedata.version());
-
         FunctionData functionData = new FunctionDataBuilder().moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .parentSymbolType(codedata.object()).name(codedata.symbol())
-                .resolvedPackage(resolvedPackage.orElse(null))
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.EMBEDDING_PROVIDER)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

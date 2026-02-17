@@ -36,7 +36,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Module;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
@@ -128,10 +127,6 @@ public class NewConnectionBuilder extends CallBuilder {
         Codedata codedata = context.codedata();
         FunctionData functionData;
 
-        // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
-                codedata.org(), codedata.packageName(), codedata.version());
-
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
                 .name(codedata.symbol())
@@ -140,7 +135,8 @@ public class NewConnectionBuilder extends CallBuilder {
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.CONNECTOR)
                 .userModuleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage.orElse(null));
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         // TODO: If we set the module info properly this logic can be removed.
         if (Boolean.TRUE.equals(codedata.isGenerated())) {

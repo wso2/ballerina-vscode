@@ -65,7 +65,6 @@ import io.ballerina.modelgenerator.commons.ModuleInfo;
 import io.ballerina.modelgenerator.commons.PackageUtil;
 import io.ballerina.modelgenerator.commons.ParameterData;
 import io.ballerina.projects.Document;
-import io.ballerina.projects.Package;
 import io.ballerina.projects.Project;
 import io.ballerina.tools.diagnostics.Location;
 import io.ballerina.tools.text.LinePosition;
@@ -739,16 +738,12 @@ public class AgentsGenerator {
                 .map(moduleSymbol -> ModuleInfo.from(moduleSymbol.id()))
                 .orElse(null);
 
-        // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = moduleInfo != null ?
-                PackageUtil.resolveModulePackage(moduleInfo.org(), moduleInfo.packageName(), moduleInfo.version()) :
-                Optional.empty();
-
         // Obtain methods of the connector
         List<FunctionData> methodFunctionsData = new FunctionDataBuilder()
                 .parentSymbol(classSymbol)
                 .moduleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage.orElse(null))
+                .workspaceManager(workspaceManager)
+                .filePath(filePath)
                 .buildChildNodes();
 
         for (FunctionData methodFunction : methodFunctionsData) {

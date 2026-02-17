@@ -31,8 +31,6 @@ import io.ballerina.flowmodelgenerator.core.model.SourceBuilder;
 import io.ballerina.modelgenerator.commons.FunctionData;
 import io.ballerina.modelgenerator.commons.FunctionDataBuilder;
 import io.ballerina.modelgenerator.commons.ModuleInfo;
-import io.ballerina.modelgenerator.commons.PackageUtil;
-import io.ballerina.projects.Package;
 import io.ballerina.tools.text.LineRange;
 import org.eclipse.lsp4j.TextEdit;
 
@@ -84,10 +82,6 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
     public void setConcreteTemplateData(TemplateContext context) {
         Codedata codedata = context.codedata();
 
-        // Create and set the resolved package for the function
-        Optional<Package> resolvedPackage = PackageUtil.resolveModulePackage(
-                NaturalFunctions.BALLERINA_ORG, NaturalFunctions.AI_PACKAGE, null);
-
         FunctionDataBuilder functionDataBuilder = new FunctionDataBuilder()
                 .parentSymbolType(codedata.object())
                 .name(GET_DEFAULT_MODEL_PROVIDER_FUNCTION)
@@ -99,7 +93,8 @@ public class NPFunctionDefinitionBuilder extends FunctionDefinitionBuilder {
                 .lsClientLogger(context.lsClientLogger())
                 .functionResultKind(FunctionData.Kind.FUNCTION)
                 .userModuleInfo(moduleInfo)
-                .resolvedPackage(resolvedPackage.orElse(null));
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         functionDataBuilder.build();
 

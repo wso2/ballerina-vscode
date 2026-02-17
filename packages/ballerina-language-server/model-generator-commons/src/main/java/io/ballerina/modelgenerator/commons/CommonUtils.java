@@ -1463,6 +1463,7 @@ public class CommonUtils {
             return defaultValue;
         }
         if (document == null) {
+            // TODO: Remove the document passing logic to separate imported and local packages
             document = findDocument(resolvedPackage, symbolLocation.get().lineRange().fileName());
             if (document == null) {
                 return defaultValue;
