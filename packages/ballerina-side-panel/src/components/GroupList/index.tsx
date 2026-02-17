@@ -163,20 +163,28 @@ interface GroupListProps {
     category: Category;
     expand?: boolean;
     onSelect: (node: Node, category: string) => void;
+    enableSingleNodeDirectNav?: boolean;
     onImportDevantConn?: (devantConn: ConnectionListItem) => void;
 }
 
 export function GroupList(props: GroupListProps) {
-    const { category, expand, onSelect, onImportDevantConn } = props;
+    const { category, expand, onSelect, enableSingleNodeDirectNav, onImportDevantConn } = props;
 
     const [showList, setShowList] = useState(expand ?? false);
     const [expandedTitleIndex, setExpandedTitleIndex] = useState<number | null>(null);
 
     const nodes = category.items as Node[];
     const openList = expand || showList;
+    const enabledNodes = nodes.filter((node) => node.enabled);
+    const isSingleNode = enabledNodes.length === 1 && enableSingleNodeDirectNav;
 
     const handleToggleList = () => {
-        setShowList(!showList);
+        if (isSingleNode) {
+            // Navigate directly to the single node
+            onSelect(enabledNodes[0], category.title);
+        } else {
+            setShowList(!showList);
+        }
     };
 
     const handleComponentMouseEnter = (index: number) => {
@@ -214,37 +222,41 @@ export function GroupList(props: GroupListProps) {
                     />
                 )}
                 <S.CardAction>
-                    {openList ? <Codicon name={"chevron-up"} /> : <Codicon name={"chevron-down"} />}
+                    {isSingleNode ? (
+                        <Codicon name={"chevron-right"} />
+                    ) : openList ? (
+                        <Codicon name={"chevron-up"} />
+                    ) : (
+                        <Codicon name={"chevron-down"} />
+                    )}
                 </S.CardAction>
             </S.TitleRow>
-            {openList && (
+            {openList && !isSingleNode && (
                 <>
                     <S.BodyText>{category.description}</S.BodyText>
                     <S.Grid columns={1}>
-                        {nodes
-                            .filter((node) => node.enabled)
-                            .map((node, index) => (
-                                <S.Component
-                                    key={node.id + index}
-                                    enabled={node.enabled}
-                                    expanded={expandedTitleIndex === index}
-                                    onClick={() => onSelect(node, category.title)}
-                                    onMouseEnter={() => handleComponentMouseEnter(index)}
-                                    onMouseLeave={handleComponentMouseLeave}
-                                >
-                                    <S.ComponentIcon expanded={expandedTitleIndex === index}>
-                                        {node.icon || <CallIcon />}
-                                    </S.ComponentIcon>
-                                    <S.ComponentContent expanded={expandedTitleIndex === index}>
-                                        <S.ComponentTitle>{getComponentTitle(node)}</S.ComponentTitle>
-                                        {expandedTitleIndex === index && (
-                                            <S.ComponentDescription>
-                                                {getComponentDescription(node)}
-                                            </S.ComponentDescription>
-                                        )}
-                                    </S.ComponentContent>
-                                </S.Component>
-                            ))}
+                        {enabledNodes.map((node, index) => (
+                            <S.Component
+                                key={node.id + index}
+                                enabled={node.enabled}
+                                expanded={expandedTitleIndex === index}
+                                onClick={() => onSelect(node, category.title)}
+                                onMouseEnter={() => handleComponentMouseEnter(index)}
+                                onMouseLeave={handleComponentMouseLeave}
+                            >
+                                <S.ComponentIcon expanded={expandedTitleIndex === index}>
+                                    {node.icon || <CallIcon />}
+                                </S.ComponentIcon>
+                                <S.ComponentContent expanded={expandedTitleIndex === index}>
+                                    <S.ComponentTitle>{getComponentTitle(node)}</S.ComponentTitle>
+                                    {expandedTitleIndex === index && (
+                                        <S.ComponentDescription>
+                                            {getComponentDescription(node)}
+                                        </S.ComponentDescription>
+                                    )}
+                                </S.ComponentContent>
+                            </S.Component>
+                        ))}
                     </S.Grid>
                 </>
             )}

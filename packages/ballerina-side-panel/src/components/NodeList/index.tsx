@@ -543,7 +543,7 @@ export function NodeList(props: NodeListProps) {
         );
     };
 
-    const getConnectionContainer = (categories: Category[]) => (
+    const getConnectionContainer = (categories: Category[], enableSingleNodeDirectNav?: boolean) => (
         <S.Grid columns={1}>
             {categories.map((category, index) =>
                 category.isLoading ? (
@@ -555,6 +555,7 @@ export function NodeList(props: NodeListProps) {
                         expand={searchText?.length > 0}
                         onSelect={handleAddNode}
                         onImportDevantConn={onImportDevantConn}
+                        enableSingleNodeDirectNav={enableSingleNodeDirectNav}
                     />
                 ))
             }
@@ -716,7 +717,7 @@ export function NodeList(props: NodeListProps) {
                                             // 1. If parent group uses connection container and ALL items don't have id, use getConnectionContainer
                                             shouldUseConnectionContainer(group.title) &&
                                             group.items.filter((item) => item != null).every((item) => !("id" in item))
-                                                ? getConnectionContainer(group.items as Category[])
+                                                ? getConnectionContainer(group.items as Category[], group.title === "Agent")
                                                 : // 2. If ALL items don't have id (all are categories), use getCategoryContainer
                                                 group.items.filter((item) => item != null).every((item) => !("id" in item))
                                                 ? getCategoryContainer(

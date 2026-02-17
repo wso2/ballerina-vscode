@@ -57,7 +57,7 @@ interface TypeEditorProps {
         onSearchTypeBrowser: (searchText: string) => void;
         onTypeItemClick: (item: TypeHelperItem) => Promise<AddImportItemResponse>;
         onCloseCompletions?: () => void;
-        onTypeCreate?: (typeName?: string) => void;
+        onTypeCreate?: (fieldIndex: number, typeName?: string) => void;
     }
 }
 

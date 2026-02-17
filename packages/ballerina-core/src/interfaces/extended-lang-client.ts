@@ -29,7 +29,7 @@ import { SqFlow } from "../rpc-types/sequence-diagram/interfaces";
 import { FieldType, FunctionModel, ListenerModel, ServiceClassModel, ServiceInitModel, ServiceModel } from "./service";
 import { CDModel } from "./component-diagram";
 import { DMModel, ExpandedDMModel, IntermediateClause, Mapping, VisualizableField, FnMetadata, ResultClauseType, IOType } from "./data-mapper";
-import { DataMapperMetadata, SCOPE } from "../state-machine-types";
+import { ArtifactData, DataMapperMetadata, SCOPE } from "../state-machine-types";
 import { ToolParameters } from "../rpc-types/ai-agent/interfaces";
 
 export interface DidOpenParams {
@@ -836,6 +836,7 @@ export interface BIFlowModelRequest {
     startLine?: LinePosition;
     endLine?: LinePosition;
     forceAssign?: boolean;
+    useFileSchema?: boolean;
 }
 
 export interface BISuggestedFlowModelRequest extends BIFlowModelRequest {
@@ -855,6 +856,7 @@ export interface BISourceCodeRequest {
     isConnector?: boolean;
     isFunctionNodeUpdate?: boolean;
     isHelperPaneChange?: boolean;
+    artifactData?: ArtifactData;
 }
 
 export type BISourceCodeResponse = {
@@ -969,6 +971,7 @@ export type BIGetEnclosedFunctionRequest = {
     filePath: string;
     position: LinePosition;
     findClass?: boolean;
+    useFileSchema?: boolean;
 }
 
 export type BIGetEnclosedFunctionResponse = {
@@ -1059,6 +1062,7 @@ export interface BICopilotContextResponse {
 
 export interface BIDesignModelRequest {
     projectPath?: string;
+    useFileSchema?: boolean;
 }
 
 export type BIDesignModelResponse = {
@@ -1309,6 +1313,7 @@ export interface ListenerModelRequest {
         packageName: string;
         moduleName: string;
         version: string;
+        type?: string;
     };
     filePath: string;
 }
@@ -1509,6 +1514,7 @@ export interface GetGraphqlTypeResponse {
 
 export interface GetTypesRequest {
     filePath: string;
+    useFileSchema?: boolean;
 }
 
 export interface GetTypeRequest {

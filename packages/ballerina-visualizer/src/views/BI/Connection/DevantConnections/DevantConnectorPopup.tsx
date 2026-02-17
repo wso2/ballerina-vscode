@@ -19,7 +19,6 @@
 import {
     AvailableNode,
     ConfigVariable,
-    DataMapperDisplayMode,
     DIRECTORY_MAP,
     FlowNode,
     LinePosition,

@@ -25,6 +25,7 @@ export * from "./ArrayEditor";
 export * from "./FileSelect";
 export * from "./FormMapEditor";
 export * from "./FieldContext";
+export * from "./SliderEditor";
 export * from "./MultiModeExpressionEditor/ChipExpressionEditor/components/ChipExpressionEditor";
 export * from "./MultiModeExpressionEditor/Configurations";
 export { getPropertyFromFormField } from "./utils";

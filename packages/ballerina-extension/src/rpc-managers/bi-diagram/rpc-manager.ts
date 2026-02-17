@@ -67,6 +67,8 @@ import {
     DeleteProjectRequest,
     DeleteTypeRequest,
     DeleteTypeResponse,
+    ValidateProjectFormRequest,
+    ValidateProjectFormResponse,
     Diagnostics,
     EndOfFileRequest,
     ExpressionCompletionsRequest,
@@ -166,7 +168,7 @@ import { BreakpointManager } from "../../features/debugger/breakpoint-manager";
 import { StateMachine, updateView } from "../../stateMachine";
 import { getAccessToken, getLoginMethod } from "../../utils/ai/auth";
 import { getCompleteSuggestions } from '../../utils/ai/completions';
-import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode } from "../../utils/bi";
+import { README_FILE, addProjectToExistingWorkspace, convertProjectToWorkspace, createBIAutomation, createBIFunction, createBIProjectPure, createBIWorkspace, deleteProjectFromWorkspace, openInVSCode, validateProjectPath } from "../../utils/bi";
 import { writeBallerinaFileDidOpen } from "../../utils/modification";
 import { updateSourceCode } from "../../utils/source-utils";
 import { getView } from "../../utils/state-machine-utils";
@@ -181,6 +183,31 @@ import * as toml from "@iarna/toml";
 export class BiDiagramRpcManager implements BIDiagramAPI {
     OpenConfigTomlRequest: (params: OpenConfigTomlRequest) => Promise<void>;
 
+    private toRawPath(input: string): string {
+        if (input.includes('://')) {
+            return Uri.parse(input).fsPath;
+        }
+        return input;
+    }
+
+    private mapTempPathToOriginal(tempFilePath: string): string {
+        const rawPath = this.toRawPath(tempFilePath);
+        const context = StateMachine.context();
+        const originalRoot = context.workspacePath || context.projectPath;
+        const workspaceId = context.projectPath;
+        const threadId = 'default';
+        const pendingReview = chatStateStorage.getPendingReviewGeneration(workspaceId, threadId);
+        if (pendingReview?.reviewState?.tempProjectPath && originalRoot) {
+            const normalizedTempRoot = pendingReview.reviewState.tempProjectPath.replace(/\\/g, '/');
+            const normalizedFilePath = rawPath.replace(/\\/g, '/');
+            if (normalizedFilePath.startsWith(normalizedTempRoot)) {
+                const relativePath = normalizedFilePath.substring(normalizedTempRoot.length);
+                return originalRoot + relativePath;
+            }
+        }
+        return rawPath;
+    }
+
     async getFlowModel(params: BIFlowModelRequest): Promise<BIFlowModelResponse> {
         console.log(">>> requesting bi flow model from ls", params);
         return new Promise((resolve) => {
@@ -189,8 +216,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             // If params has all required fields, use them directly
             if (params?.filePath && params?.startLine && params?.endLine) {
                 console.log(">>> using params to create request");
+                let filePath = params.filePath;
+                // When useFileSchema is set, map temp path to original project path
+                if (params.useFileSchema) {
+                    filePath = this.mapTempPathToOriginal(filePath);
+                }
                 request = {
-                    filePath: params.filePath,
+                    filePath,
                     startLine: params.startLine,
                     endLine: params.endLine,
                     forceAssign: params.forceAssign ?? true,
@@ -199,7 +231,7 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                 // Fall back to context if params are not complete
                 console.log(">>> params incomplete, falling back to context");
                 const context = StateMachine.context();
-                
+
                 if (!context.position) {
                     // TODO: check why this hits when we are in review mode
                     console.log(">>> position not found in context, cannot create request");
@@ -247,7 +279,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                         const artifacts = await updateSourceCode({ textEdits: model.textEdits, description: this.getSourceDescription(params) });
                         resolve({ artifacts });
                     } else {
-                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData: this.getArtifactDataFromNodeKind(params.flowNode.codedata.node), description: this.getSourceDescription(params)}, params.isHelperPaneChange);
+                        const nodeKind = params.flowNode.codedata.node;
+                        const skipFormatting = nodeKind === 'DATA_MAPPER_CREATION' || nodeKind === 'FUNCTION_CREATION';
+                        const artifactData = params.artifactData || this.getArtifactDataFromNodeKind(nodeKind);
+                        const artifacts = await updateSourceCode({ textEdits: model.textEdits, artifactData, description: this.getSourceDescription(params)}, params.isHelperPaneChange, skipFormatting);
                         resolve({ artifacts });
                     }
                 })
@@ -614,6 +649,10 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         }
     }
 
+    async validateProjectPath(params: ValidateProjectFormRequest): Promise<ValidateProjectFormResponse> {
+        return validateProjectPath(params.projectPath, params.projectName, params.createDirectory);
+    }
+
     async deleteProject(params: DeleteProjectRequest): Promise<void> {
         const projectInfo = StateMachine.context().projectInfo;
         const targetProject = projectInfo?.children.find((child) => child.projectPath === params.projectPath);
@@ -773,19 +812,8 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
                     // get next suggestion
                     const copilot_token = await extension.context.secrets.get("GITHUB_COPILOT_TOKEN");
                     if (!copilot_token) {
-                        let token: string;
-                        const loginMethod = await getLoginMethod();
-                        if (loginMethod === LoginMethod.BI_INTEL) {
-                            const credentials = await getAccessToken();
-                            const secrets = credentials.secrets as BIIntelSecrets;
-                            token = secrets.accessToken;
-                        }
-                        if (!token) {
-                            //TODO: Do we need to prompt to login here? If so what? Copilot or Ballerina AI?
-                            resolve(undefined);
-                            return;
-                        }
-                        suggestedContent = await this.getCompletionsWithHostedAI(token, copilotContext);
+                        resolve(undefined);
+                        return;
                     } else {
                         const resp = await getCompleteSuggestions({
                             prefix: copilotContext.prefix,
@@ -1414,9 +1442,15 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
 
     async getEnclosedFunction(params: BIGetEnclosedFunctionRequest): Promise<BIGetEnclosedFunctionResponse> {
         console.log(">>> requesting parent functin definition", params);
+        // When useFileSchema is set, map temp path to original project path
+        let filePath = params.filePath;
+        if (params.useFileSchema) {
+            filePath = this.mapTempPathToOriginal(filePath);
+        }
+        const request = { filePath, position: params.position, findClass: params.findClass };
         return new Promise((resolve) => {
             StateMachine.langClient()
-                .getEnclosedFunctionDef(params)
+                .getEnclosedFunctionDef(request)
                 .then((response) => {
                     if (response?.filePath && response?.startLine && response?.endLine) {
                         console.log(">>> parent function position ", response);
@@ -1490,8 +1524,13 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         return new Promise((resolve) => {
             let projectPath: string;
             if (params?.projectPath) {
-                const uri = Uri.file(params.projectPath);
-                projectPath = uri.with({ scheme: 'ai' }).toString();
+                if (params.useFileSchema) {
+                    // Map temp project path to original project raw path
+                    projectPath = this.mapTempPathToOriginal(params.projectPath);
+                } else {
+                    const uri = Uri.file(params.projectPath);
+                    projectPath = uri.with({ scheme: 'ai' }).toString();
+                }
             } else {
                 projectPath = StateMachine.context().projectPath;
             }
@@ -1526,6 +1565,11 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
             return new Promise((resolve, reject) => {
                 reject(new Error("No file path provided"));
             });
+        }
+
+        // When useFileSchema is set, map temp path to original project path
+        if (params.useFileSchema) {
+            filePath = this.mapTempPathToOriginal(filePath);
         }
 
         return new Promise((resolve, reject) => {
@@ -2066,6 +2110,21 @@ export class BiDiagramRpcManager implements BIDiagramAPI {
         });
     }
 
+    async getAvailableAgents(params: BIAvailableNodesRequest): Promise<BIAvailableNodesResponse> {
+        console.log(">>> requesting bi available agents from ls", params);
+        return new Promise((resolve) => {
+            StateMachine.langClient()
+                .getAvailableAgents(params)
+                .then((model) => {
+                    console.log(">>> bi available agents from ls", model);
+                    resolve(model);
+                })
+                .catch((error) => {
+                    console.log(">>> error fetching available agents from ls", error);
+                    resolve(undefined);
+                });
+        });
+    }
 }
 
 export async function getBallerinaFiles(dir: string): Promise<string[]> {

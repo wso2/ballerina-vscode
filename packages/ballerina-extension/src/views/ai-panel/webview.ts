@@ -24,6 +24,7 @@ import { RPCLayer } from '../../RPCLayer';
 import { extension } from '../../BalExtensionContext';
 import { AIStateMachine } from './aiMachine';
 import { AIMachineEventType } from '@wso2/ballerina-core';
+import { approvalManager } from '../../features/ai/state/ApprovalManager';
 
 export class AiPanelWebview {
     public static currentPanel: AiPanelWebview | undefined;
@@ -126,6 +127,9 @@ export class AiPanelWebview {
     }
 
     public dispose() {
+
+        approvalManager.cancelAllPending("AI Panel closed");
+
         AiPanelWebview.currentPanel = undefined;
         AIStateMachine.sendEvent(AIMachineEventType.DISPOSE);
         this._panel?.dispose();

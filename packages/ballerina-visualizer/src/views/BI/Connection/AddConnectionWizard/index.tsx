@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import {
     AvailableNode,
-    DataMapperDisplayMode,
+    EditorConfig,
     DIRECTORY_MAP,
     EVENT_TYPE,
     FlowNode,
@@ -235,7 +235,7 @@ export function AddConnectionWizard(props: AddConnectionWizardProps) {
         setCurrentStep(WizardStep.GENERATE_CONNECTOR);
     };
 
-    const handleOnFormSubmit = async (node: FlowNode, _dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => {
+    const handleOnFormSubmit = async (node: FlowNode, _editorConfig?: EditorConfig, options?: FormSubmitOptions) => {
         console.log(">>> on form submit", node);
         if (selectedNodeRef.current) {
             setSavingFormStatus(SavingFormStatus.SAVING);

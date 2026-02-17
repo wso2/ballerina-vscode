@@ -23,7 +23,7 @@ import { Variables } from './Views/Variables';
 import { Inputs } from './Views/Inputs';
 import { Documents } from './Views/Documents';
 import { DocumentConfig } from './Views/DocumentConfig';
-import { CompletionInsertText, DataMapperDisplayMode, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
+import { CompletionInsertText, EditorConfig, ExpressionProperty, FlowNode, getPrimaryInputType, InputType, LineRange, RecordTypeField } from '@wso2/ballerina-core';
 import { CompletionItem, HelperPaneCustom, HelperPaneHeight, Typography } from '@wso2/ui-toolkit';
 import { SlidingPane, SlidingPaneHeader, SlidingPaneNavContainer, SlidingWindow } from '@wso2/ui-toolkit';
 import { CreateValue } from './Views/CreateValue';
@@ -60,7 +60,7 @@ export type HelperPaneNewProps = {
     isAssignIdentifier?: boolean;
     completions: CompletionItem[],
     projectPath?: string,
-    handleOnFormSubmit?: (updatedNode?: FlowNode, dataMapperMode?: DataMapperDisplayMode, options?: FormSubmitOptions) => void
+    handleOnFormSubmit?: (updatedNode?: FlowNode, editorConfig?: EditorConfig, options?: FormSubmitOptions) => void
     selectedType?: CompletionItem;
     filteredCompletions?: CompletionItem[];
     isInModal?: boolean;
@@ -103,8 +103,6 @@ const HelperPaneNewEl = ({
     const currentMenuItemCount = types ?
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 6 : 5) :
         (forcedValueTypeConstraint?.includes(AI_PROMPT_TYPE) ? 5 : 4)
-
-    const { addModal } = useModalStack()
 
     // Create refs array for all menu items
     const menuItemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -170,13 +168,6 @@ const HelperPaneNewEl = ({
             return insertText;
         }
         return insertText.value;
-    };
-
-    const getCursorOffset = (insertText: string | CompletionInsertText): number => {
-        if (typeof insertText === 'string') {
-            return 0;
-        }
-        return insertText.cursorOffset ?? 0;
     };
 
     const handleChange = (insertText: string | CompletionInsertText, isRecordConfigureChange?: boolean, shouldKeepHelper?: boolean) => {
@@ -268,7 +259,6 @@ const HelperPaneNewEl = ({
                     <SlidingPane name="PAGE1" paneWidth={300} paneHeight='170px'>
                         <div style={{ padding: '8px 0px' }}>
                             <ExpandableList >
-
                                 {devantExpressionEditor && (
                                     <SlidingPaneNavContainer
                                         ref={el => menuItemRefs.current[0] = el}
@@ -281,23 +271,6 @@ const HelperPaneNewEl = ({
                                             </Typography>
                                         </ExpandableList.Item>
                                     </SlidingPaneNavContainer>
-                                )}
-                                {((forcedValueTypeConstraint && forcedValueTypeConstraint.length > 0)) && (
-                                        <>
-                                            {valueCreationOptions.length > 0 && (
-                                                <SlidingPaneNavContainer
-                                                    ref={el => menuItemRefs.current[1] = el}
-                                                    to="CREATE_VALUE"
-                                                    data={recordTypeField}
-                                                >
-                                                    <ExpandableList.Item>
-                                                        {getHelperPaneIcon(HelperPaneIconType.VALUE)}
-                                                        <Typography variant="body3" sx={{ fontWeight: 600 }}>
-                                                            Create Value
-                                                        </Typography>
-                                                    </ExpandableList.Item>
-                                                </SlidingPaneNavContainer>
-                                            )}</>
                                 )}
                                 <SlidingPaneNavContainer
                                     ref={el => menuItemRefs.current[3] = el}
