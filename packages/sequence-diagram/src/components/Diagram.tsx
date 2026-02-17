@@ -118,12 +118,14 @@ export function Diagram(props: DiagramProps) {
                 diagramEngine.getModel().removeLayer(overlayLayer);
             }
             // change canvas position to first node
-            diagramEngine.zoomToFitNodes({
-                maxZoom: 1,
-            });
-            // Set zoom level to 100%
-            diagramEngine.getModel().setZoomLevel(100);
-            diagramEngine.repaintCanvas();
+            if (diagramEngine?.getCanvas()?.getBoundingClientRect) {
+                diagramEngine.zoomToFitNodes({
+                    maxZoom: 1,
+                });
+                // Set zoom level to 100%
+                diagramEngine.getModel().setZoomLevel(100);
+                diagramEngine.repaintCanvas();
+            }
             // update the diagram model state
             setDiagramModel(newDiagramModel);
             onReady();
