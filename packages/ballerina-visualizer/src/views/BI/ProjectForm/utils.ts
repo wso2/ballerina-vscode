@@ -67,7 +67,8 @@ export const isFormValidAddProject = (formData: AddProjectFormData, isInWorkspac
         formData.integrationName.length >= 2 &&
         formData.packageName.length >= 2 &&
         (isInWorkspace || (formData.workspaceName?.length ?? 0) >= 1) &&
-        validatePackageName(formData.packageName, formData.integrationName) === null
+        validatePackageName(formData.packageName, formData.integrationName) === null &&
+        validateOrgName(formData.orgName) === null
     );
 };
 
@@ -81,7 +82,7 @@ export const sanitizePackageName = (name: string): string => {
 };
 
 // Reserved organization names
-const RESERVED_ORG_NAMES = ["ballerina", "ballerinax"];
+const RESERVED_ORG_NAMES = ["ballerina", "ballerinax", "wso2"];
 
 // Org name pattern (based on Ballerina language specification for RestrictedIdentifier)
 // RestrictedIdentifier := AsciiLetter RestrictedFollowingChar* RestrictedIdentifierWord*

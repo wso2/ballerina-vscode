@@ -109,9 +109,7 @@ export function ProjectFormFields({ formData, onFormDataChange, integrationNameE
     useEffect(() => {
         const orgError = validateOrgName(formData.orgName);
         setOrgNameError(orgError);
-
-        onValidationChange?.(orgError === null);
-    }, [formData.packageName, formData.integrationName, formData.orgName, onValidationChange]);
+    }, [formData.orgName]);
 
     return (
         <>
