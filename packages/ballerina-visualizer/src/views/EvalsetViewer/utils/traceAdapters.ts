@@ -16,7 +16,7 @@
  * under the License.
  */
 
-import { EvalThread, EvalsetTrace, EvalFunctionCall } from "@wso2/ballerina-core";
+import { EvalThread, EvalsetTrace, EvalFunctionCall, EvalToolSchema } from "@wso2/ballerina-core";
 
 /**
  * Deep clone an EvalThread for editing
@@ -68,10 +68,13 @@ export const updateToolCallsInTrace = (
     trace: EvalsetTrace,
     toolCalls: EvalFunctionCall[]
 ): EvalsetTrace => {
-    return {
-        ...trace,
-        toolCalls: toolCalls || [],
-    };
+    const updated = { ...trace };
+    if (toolCalls && toolCalls.length > 0) {
+        updated.toolCalls = toolCalls;
+    } else {
+        delete updated.toolCalls;
+    }
+    return updated;
 };
 
 /**
@@ -127,21 +130,20 @@ export const generateTraceId = (): string => {
 /**
  * Create a new empty trace
  */
-export const createNewTrace = (): EvalsetTrace => {
+export const createNewTrace = (tools: EvalToolSchema[] = []): EvalsetTrace => {
     const timestamp = new Date().toISOString();
 
     return {
         id: generateTraceId(),
         userMessage: {
             role: 'user',
-            content: 'User Query',
+            content: 'User message',
         },
         output: {
             role: 'assistant',
-            content: 'Agent Response',
+            content: 'Agent response',
         },
-        tools: [],
-        toolCalls: [],
+        tools: tools,
         iterations: [],
         startTime: timestamp,
         endTime: timestamp,

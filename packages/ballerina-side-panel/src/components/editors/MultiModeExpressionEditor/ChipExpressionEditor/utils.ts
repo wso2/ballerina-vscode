@@ -41,8 +41,12 @@ const getTokenTypeFromIndex = (index: number): TokenType => {
     return TOKEN_TYPE_INDEX_MAP[index] || TokenType.VARIABLE;
 };
 
-export const getInputModeFromTypes = (inputType: InputType): InputMode => {
+export const getInputModeFromTypes = (inputType: InputType): InputMode | undefined => {
     if (!inputType) return;
+
+    if (inputType.fieldType === "SQL_QUERY") {
+        return InputMode.SQL;
+    }
 
     if (inputType.fieldType === "TEXT") {
         return InputMode.TEXT;
@@ -169,8 +173,12 @@ export const getWordBeforeCursorPosition = (textBeforeCursor: string): string =>
 export const filterCompletionsByPrefixAndType = (completions: CompletionItem[], prefix: string): CompletionItem[] => {
     if (!prefix) {
         return completions.filter(completion =>
-            completion.kind === 'field'
-        );
+            completion.kind === 'field' || completion.kind === 'function'
+        ).sort((a, b) => {
+            if (a.kind === 'field' && b.kind === 'function') return -1;
+            if (a.kind === 'function' && b.kind === 'field') return 1;
+            return 0;
+        });
     }
 
     return completions.filter(completion =>
@@ -311,7 +319,7 @@ export const detectTokenPatterns = (
     return compounds;
 };
 
-// Calculates helper pane position with viewport overflow correction
+// Calculates helper pane position with editor right boundary overflow correction
 export const calculateHelperPanePosition = (
     targetCoords: { bottom: number; left: number },
     editorRect: DOMRect,
@@ -322,10 +330,10 @@ export const calculateHelperPanePosition = (
     let top = targetCoords.bottom - editorRect.top + scrollTop;
     let left = targetCoords.left - editorRect.left;
 
-    // Add overflow correction for window boundaries
-    const viewportWidth = window.innerWidth;
-    const absoluteLeft = targetCoords.left;
-    const overflow = absoluteLeft + helperPaneWidth - viewportWidth;
+    // Add overflow correction for editor right boundary
+    const editorRight = editorRect.left + editorRect.width;
+    const paneRight = targetCoords.left + helperPaneWidth;
+    const overflow = paneRight - editorRight;
 
     if (overflow > 0) {
         left -= overflow;

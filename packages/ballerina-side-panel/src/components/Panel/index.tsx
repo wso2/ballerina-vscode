@@ -30,6 +30,7 @@ export interface PanelContainerProps {
     subPanelWidth?: number;
     onClose: () => void;
     onBack?: () => void;
+    overlay?: boolean;
 }
 
 namespace S {
@@ -45,13 +46,13 @@ namespace S {
 }
 
 export function PanelContainer(props: PanelContainerProps) {
-    const { children, title, show, onClose, onBack, width, subPanel, subPanelWidth } = props;
+    const { children, title, show, onClose, onBack, width, subPanel, subPanelWidth, overlay = false } = props;
 
     return (
         <SidePanel
             isOpen={show}
             alignment="right"
-            overlay={false}
+            overlay={overlay}
             width={width || 400}
             sx={{
                 fontFamily: "GilmerRegular",
@@ -69,7 +70,7 @@ export function PanelContainer(props: PanelContainerProps) {
                                 <BackIcon />
                             </S.StyledButton>
                         )}
-                    {title}
+                        {title}
                     </S.TitleContainer>
                     <S.StyledButton data-testid="close-panel-btn" appearance="icon" onClick={onClose}>
                         <CloseIcon />

@@ -20,6 +20,7 @@ import { LIBRARY_SEARCH_TOOL } from "./tools/library-search";
 import { TASK_WRITE_TOOL_NAME } from "./tools/task-writer";
 import { FILE_BATCH_EDIT_TOOL_NAME, FILE_SINGLE_EDIT_TOOL_NAME, FILE_WRITE_TOOL_NAME } from "./tools/text-editor";
 import { CONNECTOR_GENERATOR_TOOL } from "./tools/connector-generator";
+import { CONFIG_COLLECTOR_TOOL } from "./tools/config-collector";
 import { getLanglibInstructions } from "../utils/libs/langlibs";
 import { formatCodebaseStructure, formatCodeContext } from "./utils";
 import { GenerateAgentCodeRequest, OperationType, ProjectSource } from "@wso2/ballerina-core";
@@ -152,6 +153,11 @@ ${getLanglibInstructions()}
 
 ## Code Structure
 - Define required configurables for the query. Use only string, int, decimal, boolean types in configurable variables.
+- For sensitive configuration values (API keys, tokens, passwords), use ${CONFIG_COLLECTOR_TOOL} in COLLECT mode. Variable names are converted to lowercase without underscores in Config.toml. You MUST use the exact Config.toml names in your Ballerina configurables to avoid runtime errors.
+- When generating tests that need configuration values:
+  - Use COLLECT mode with isTestConfig: true
+  - The tool will automatically read existing values from Config.toml (if exists), ask user to reuse or modify for testing, and save to tests/Config.toml
+  - Example: { mode: "collect", variables: [...], isTestConfig: true }
 - Initialize any necessary clients with the correct configuration based on the retrieved libraries at the module level (before any function or service declarations).
 - Implement the main function OR service to address the query requirements.
 
@@ -181,7 +187,7 @@ ${getLanglibInstructions()}
     )} tools. The complete existing source code will be provided in the <existing_code> section of the user prompt.
 - When making replacements inside an existing file, provide the **exact old string** and the **exact new string** with all newlines, spaces, and indentation, being mindful to replace nearby occurrences together to minimize the number of tool calls.
 - Do NOT create a new markdown file to document each change or summarize your work unless specifically requested by the user.
-- Do not add/modify toml files (Config.toml/Ballerina.toml/Dependencies.toml) as you don't have access to those files.
+- Do not manually add/modify toml files (Ballerina.toml/Dependencies.toml). For Config.toml configuration management, use ${CONFIG_COLLECTOR_TOOL}.
 - Prefer modifying existing bal files over creating new files unless explicitly asked to create a new file in the query.
 
 ${getNPSuffix(projects, op)}

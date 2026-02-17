@@ -21,7 +21,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { debounce } from "lodash";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 import { useFormContext } from "../../context";
-import { capitalize, getPropertyFromFormField } from "./utils";
+import { buildRequiredRule, capitalize, getPropertyFromFormField } from "./utils";
 import { FormField } from "../Form/types";
 export interface IdentifierFieldProps {
     field: FormField;
@@ -62,7 +62,10 @@ export function IdentifierField(props: IdentifierFieldProps) {
         handleOnFieldFocus?.(field.key);
     }
 
-    const registerField = register(field.key, { required: !field.optional && !field.placeholder, value: field.value })
+    const registerField = register(field.key, {
+        required: buildRequiredRule({ isRequired: !field.optional, label: field.label }),
+        value: field.value
+    })
     const { onChange } = registerField;
 
 

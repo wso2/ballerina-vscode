@@ -45,6 +45,7 @@ import ProgressTextSegment from "../ProgressTextSegment";
 import ToolCallSegment from "../ToolCallSegment";
 import TodoSection from "../TodoSection";
 import { ConnectorGeneratorSegment } from "../ConnectorGeneratorSegment";
+import { ConfigurationCollectorSegment, ConfigurationCollectionData } from "../ConfigurationCollectorSegment";
 import RoleContainer from "../RoleContainter";
 import CheckpointSeparator from "../CheckpointSeparator";
 import { Attachment, AttachmentStatus, TaskApprovalRequest } from "@wso2/ballerina-core";
@@ -671,6 +672,46 @@ const AIChat: React.FC = () => {
                         );
                     } else {
                         newMessages[newMessages.length - 1].content += `\n\n<connectorgenerator>${connectorJson}</connectorgenerator>`;
+                    }
+                }
+                return newMessages;
+            });
+        } else if (type === "configuration_collection_event") {
+            const configurationNotification = response as any;
+            const configurationData: ConfigurationCollectionData = {
+                requestId: configurationNotification.requestId,
+                stage: configurationNotification.stage,
+                variables: configurationNotification.variables,
+                existingValues: configurationNotification.existingValues,
+                message: configurationNotification.message,
+                isTestConfig: configurationNotification.isTestConfig,
+                error: configurationNotification.error
+            };
+
+            const configurationJson = JSON.stringify(configurationData);
+
+            setMessages((prevMessages) => {
+                const newMessages = [...prevMessages];
+                if (newMessages.length > 0) {
+                    const lastMessageContent = newMessages[newMessages.length - 1].content;
+
+                    const escapeRegex = (str: string): string => {
+                        return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    };
+
+                    const searchPattern = `<configurationcollector>{"requestId":"${configurationNotification.requestId}"`;
+
+                    if (lastMessageContent.includes(searchPattern)) {
+                        const replacePattern = new RegExp(
+                            `<configurationcollector>[^<]*${escapeRegex(configurationNotification.requestId)}[^<]*</configurationcollector>`,
+                            's'
+                        );
+                        newMessages[newMessages.length - 1].content = lastMessageContent.replace(
+                            replacePattern,
+                            `<configurationcollector>${configurationJson}</configurationcollector>`
+                        );
+                    } else {
+                        newMessages[newMessages.length - 1].content += `\n\n<configurationcollector>${configurationJson}</configurationcollector>`;
                     }
                 }
                 return newMessages;
@@ -1560,6 +1601,14 @@ const AIChat: React.FC = () => {
                                                 <ConnectorGeneratorSegment
                                                     key={`connector-generator-${i}`}
                                                     data={segment.specData}
+                                                    rpcClient={rpcClient}
+                                                />
+                                            );
+                                        } else if (segment.type === SegmentType.ConfigurationCollector) {
+                                            return (
+                                                <ConfigurationCollectorSegment
+                                                    key={`configuration-collector-${i}`}
+                                                    data={segment.configurationData}
                                                     rpcClient={rpcClient}
                                                 />
                                             );
