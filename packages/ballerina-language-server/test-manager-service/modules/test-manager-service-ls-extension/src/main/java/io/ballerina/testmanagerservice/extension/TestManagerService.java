@@ -19,13 +19,26 @@
 package io.ballerina.testmanagerservice.extension;
 
 import io.ballerina.compiler.api.SemanticModel;
+import io.ballerina.compiler.api.symbols.Symbol;
+import io.ballerina.compiler.syntax.tree.AnnotationNode;
+import io.ballerina.compiler.syntax.tree.ExpressionFunctionBodyNode;
+import io.ballerina.compiler.syntax.tree.ExpressionNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyBlockNode;
+import io.ballerina.compiler.syntax.tree.FunctionBodyNode;
 import io.ballerina.compiler.syntax.tree.FunctionDefinitionNode;
+import io.ballerina.compiler.syntax.tree.MetadataNode;
 import io.ballerina.compiler.syntax.tree.ModulePartNode;
+import io.ballerina.compiler.syntax.tree.NodeList;
 import io.ballerina.compiler.syntax.tree.NonTerminalNode;
+import io.ballerina.compiler.syntax.tree.StatementNode;
 import io.ballerina.projects.Document;
 import io.ballerina.projects.DocumentId;
 import io.ballerina.projects.Module;
 import io.ballerina.projects.Project;
+import io.ballerina.testmanagerservice.extension.model.Annotation;
+import io.ballerina.testmanagerservice.extension.model.FunctionParameter;
+import io.ballerina.testmanagerservice.extension.model.Property;
+import io.ballerina.testmanagerservice.extension.model.TestFunction;
 import io.ballerina.testmanagerservice.extension.request.AddTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.GetTestFunctionRequest;
 import io.ballerina.testmanagerservice.extension.request.TestsDiscoveryRequest;
@@ -37,6 +50,7 @@ import io.ballerina.tools.text.LineRange;
 import io.ballerina.tools.text.TextDocument;
 import io.ballerina.tools.text.TextRange;
 import org.ballerinalang.annotation.JavaSPIService;
+import org.ballerinalang.langserver.common.utils.NameUtil;
 import org.ballerinalang.langserver.commons.service.spi.ExtendedLanguageServerService;
 import org.ballerinalang.langserver.commons.workspace.WorkspaceManager;
 import org.eclipse.lsp4j.TextEdit;
@@ -49,7 +63,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 /**
  * Represents the extended language server service for the test manager service.
@@ -137,7 +153,7 @@ public class TestManagerService implements ExtendedLanguageServerService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Path filePath = Path.of(request.filePath());
-                Project project = this.workspaceManager.loadProject(filePath);
+                this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
                 Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
                 if (document.isEmpty() || semanticModel.isEmpty()) {
@@ -151,7 +167,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
                         .findFirst();
 
                 return matchingFunc.map(functionDefinitionNode -> GetTestFunctionResponse.from(
-                                Utils.getTestFunctionModel(functionDefinitionNode, semanticModel.get())))
+                                Utils.getTestFunctionModel(functionDefinitionNode, semanticModel.get(),
+                                        modulePartNode)))
                         .orElseGet(GetTestFunctionResponse::get);
             } catch (Throwable e) {
                 return GetTestFunctionResponse.from(e);
@@ -172,22 +189,118 @@ public class TestManagerService implements ExtendedLanguageServerService {
                 Path filePath = Path.of(request.filePath());
                 this.workspaceManager.loadProject(filePath);
                 Optional<Document> document = this.workspaceManager.document(filePath);
-                if (document.isEmpty()) {
+                Optional<SemanticModel> semanticModel = this.workspaceManager.semanticModel(filePath);
+                if (document.isEmpty() || semanticModel.isEmpty()) {
                     return new CommonSourceResponse();
                 }
                 ModulePartNode modulePartNode = document.get().syntaxTree().rootNode();
                 LineRange lineRange = modulePartNode.lineRange();
                 List<TextEdit> edits = new ArrayList<>();
+
+                // Check if test import is needed
                 if (!Utils.isTestModuleImportExists(modulePartNode)) {
                     edits.add(new TextEdit(Utils.toRange(lineRange.startLine()), Constants.IMPORT_TEST_STMT));
                 }
+
+                // Check if dataProviderMode is evalSet
+                String dataProviderMode = getDataProviderMode(request.function());
+                String dataProviderFunctionName;
+
+                if (Constants.DATA_PROVIDER_MODE_EVALSET.equals(dataProviderMode)) {
+                    // Add AI import if needed
+                    if (!Utils.isAiModuleImportExists(modulePartNode)) {
+                        edits.add(new TextEdit(Utils.toRange(lineRange.startLine()), Constants.IMPORT_AI_STMT));
+                    }
+
+                    // Generate unique function name for evalSet data provider
+                    List<Symbol> visibleSymbols = semanticModel.get().visibleSymbols(
+                            document.get(),
+                            lineRange.endLine()
+                    );
+                    Set<String> visibleSymbolNames = visibleSymbols.stream()
+                            .map(Symbol::getName)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toSet());
+                    dataProviderFunctionName = NameUtil.getValidatedSymbolName(
+                            visibleSymbolNames,
+                            Constants.DEFAULT_EVALSET_FUNCTION_NAME
+                    );
+
+                    // Generate the evalSet data provider function
+                    String evalSetFile = getEvalSetFile(request.function());
+                    if (evalSetFile == null || evalSetFile.isEmpty()) {
+                        evalSetFile = "session.json"; // Default fallback
+                    }
+                    String dataProviderFunction = Utils.getEvalSetDataProviderFunctionTemplate(
+                            dataProviderFunctionName,
+                            evalSetFile
+                    );
+                    edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), dataProviderFunction));
+
+                    // Add ai:ConversationThread parameter to the test function
+                    addAiConversationThreadParameter(request.function());
+
+                    // Update the dataProvider field with the generated function name
+                    updateDataProviderField(request.function(), dataProviderFunctionName);
+                }
+
+                // Generate the test function
                 String function = Utils.getTestFunctionTemplate(request.function());
                 edits.add(new TextEdit(Utils.toRange(lineRange.endLine()), function));
+
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
         });
+    }
+
+    private String getDataProviderMode(TestFunction function) {
+        return Utils.getConfigFieldValue(function, "dataProviderMode");
+    }
+
+    private String getEvalSetFile(TestFunction function) {
+        return Utils.getConfigFieldValue(function, "evalSetFile");
+    }
+
+    private void addAiConversationThreadParameter(TestFunction function) {
+        if (function.parameters() == null) {
+            return;
+        }
+        FunctionParameter.FunctionParameterBuilder paramBuilder = new FunctionParameter.FunctionParameterBuilder();
+        paramBuilder.type(Constants.AI_CONVERSATION_THREAD_TYPE);
+        paramBuilder.variable("thread");
+        function.parameters().add(paramBuilder.build());
+    }
+
+    private void updateDataProviderField(TestFunction function, String functionName) {
+        if (function.annotations() == null) {
+            return;
+        }
+        for (Annotation annotation : function.annotations()) {
+            if ("Config".equals(annotation.name())) {
+                for (int i = 0; i < annotation.fields().size(); i++) {
+                    Property field = annotation.fields().get(i);
+                    if ("dataProvider".equals(field.originalName())) {
+                        // Update the dataProvider value with the generated function name
+                        Property.PropertyBuilder builder = new Property.PropertyBuilder();
+                        builder.metadata(field.metadata());
+                        builder.codedata(field.codedata());
+                        builder.valueType(field.valueType());
+                        builder.valueTypeConstraint(field.valueTypeConstraint());
+                        builder.value(functionName);
+                        builder.originalName(field.originalName());
+                        builder.placeholder(field.placeholder());
+                        builder.optional(field.optional());
+                        builder.editable(field.editable());
+                        builder.advanced(field.advanced());
+                        annotation.fields().set(i, builder.build());
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -218,6 +331,8 @@ public class TestManagerService implements ExtendedLanguageServerService {
                 }
 
                 List<TextEdit> edits = new ArrayList<>();
+
+                // Update function name if changed
                 String functionName = functionDefinitionNode.functionName().text().trim();
                 LineRange nameRange = functionDefinitionNode.functionName().lineRange();
                 if (!functionName.equals(request.function().functionName().value())) {
@@ -225,13 +340,180 @@ public class TestManagerService implements ExtendedLanguageServerService {
                             request.function().functionName().value().toString()));
                 }
 
+                // Update function signature
                 LineRange signatureRange = functionDefinitionNode.functionSignature().lineRange();
                 String functionSignature = Utils.buildFunctionSignature(request.function());
                 edits.add(new TextEdit(Utils.toRange(signatureRange), functionSignature));
+
+                // Update annotations if present
+                if (functionDefinitionNode.metadata().isPresent() &&
+                        request.function().annotations() != null &&
+                        !request.function().annotations().isEmpty()) {
+                    updateAnnotations(functionDefinitionNode, request.function(), edits);
+                }
+
+                // Update evalSetFile in data provider if present
+                updateEvalSetFile(textDocument, modulePartNode, request.function(), edits);
+
                 return new CommonSourceResponse(Map.of(request.filePath(), edits));
             } catch (Throwable e) {
                 return new CommonSourceResponse(e);
             }
         });
+    }
+
+    /**
+     * Update the annotations of the function.
+     *
+     * @param functionDefinitionNode the function definition node
+     * @param function               the test function model
+     * @param edits                  list of text edits to add to
+     */
+    private void updateAnnotations(FunctionDefinitionNode functionDefinitionNode, TestFunction function,
+                                   List<TextEdit> edits) {
+        if (functionDefinitionNode.metadata().isEmpty()) {
+            return;
+        }
+
+        MetadataNode metadataNode = functionDefinitionNode.metadata().get();
+        NodeList<AnnotationNode> annotations = metadataNode.annotations();
+
+        if (annotations.isEmpty()) {
+            return;
+        }
+
+        // Get the range of all annotations
+        LineRange annotationsRange = getAnnotationsRange(annotations);
+        if (annotationsRange == null) {
+            return;
+        }
+
+        // Build new annotation string
+        String newAnnotations = Utils.buildAnnotation(function.annotations());
+        if (!newAnnotations.isEmpty()) {
+            edits.add(new TextEdit(Utils.toRange(annotationsRange), newAnnotations));
+        }
+    }
+
+    /**
+     * Update the evalSetFile in the data provider function.
+     *
+     * @param textDocument   the text document
+     * @param modulePartNode the module part node
+     * @param function       the test function model
+     * @param edits          list of text edits to add to
+     */
+    private void updateEvalSetFile(TextDocument textDocument, ModulePartNode modulePartNode, TestFunction function,
+                                   List<TextEdit> edits) {
+        String newEvalSetFile = getEvalSetFile(function);
+        String dataProviderName = getDataProviderName(function);
+
+        if (newEvalSetFile == null || newEvalSetFile.isEmpty() ||
+                dataProviderName == null || dataProviderName.isEmpty()) {
+            return;
+        }
+
+        // Find the data provider function
+        Optional<FunctionDefinitionNode> dataProviderFunc = findDataProviderFunction(modulePartNode, dataProviderName);
+        if (dataProviderFunc.isEmpty()) {
+            return;
+        }
+
+        // Find the evalSetFile path location in the data provider function
+        Optional<LineRange> filePathRange = findEvalSetFilePathLocation(dataProviderFunc.get());
+        if (filePathRange.isEmpty()) {
+            return;
+        }
+
+        // Extract current file path from the source
+        String currentFilePath = extractCurrentFilePath(textDocument, filePathRange.get());
+
+        // If changed, add edit to update it
+        if (!currentFilePath.equals(newEvalSetFile)) {
+            edits.add(new TextEdit(Utils.toRange(filePathRange.get()), "\"" + newEvalSetFile + "\""));
+        }
+    }
+
+    /**
+     * Get the line range covering all annotations.
+     *
+     * @param annotations the list of annotation nodes
+     * @return the line range covering all annotations, or null if empty
+     */
+    private LineRange getAnnotationsRange(NodeList<AnnotationNode> annotations) {
+        return Utils.getAnnotationsRange(annotations);
+    }
+
+    /**
+     * Extract the dataProvider field value from annotations.
+     *
+     * @param function the test function model
+     * @return the data provider name, or null if not found
+     */
+    private String getDataProviderName(TestFunction function) {
+        return Utils.getConfigFieldValue(function, "dataProvider");
+    }
+
+    /**
+     * Find the data provider function by name in the module.
+     *
+     * @param modulePartNode   the module part node
+     * @param dataProviderName the data provider function name
+     * @return the function definition node, or empty if not found
+     */
+    private Optional<FunctionDefinitionNode> findDataProviderFunction(ModulePartNode modulePartNode,
+                                                                      String dataProviderName) {
+        return Utils.findFunctionByName(modulePartNode, dataProviderName);
+    }
+
+    /**
+     * Find the location of the evalSetFile path in the data provider function.
+     *
+     * @param dataProviderFunc the data provider function
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findEvalSetFilePathLocation(FunctionDefinitionNode dataProviderFunc) {
+        FunctionBodyNode functionBody = dataProviderFunc.functionBody();
+
+        if (functionBody instanceof FunctionBodyBlockNode blockBody) {
+            return findFilePathInStatements(blockBody.statements());
+        } else if (functionBody instanceof ExpressionFunctionBodyNode exprBody) {
+            return findFilePathInExpression(exprBody.expression());
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Find the file path location in statements.
+     *
+     * @param statements the list of statements
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findFilePathInStatements(NodeList<StatementNode> statements) {
+        return Utils.findLoadConversationThreadsArgumentInStatements(statements)
+                .map(ExpressionNode::lineRange);
+    }
+
+    /**
+     * Find the file path location in an expression.
+     *
+     * @param expression the expression node
+     * @return the line range of the file path string, or empty if not found
+     */
+    private Optional<LineRange> findFilePathInExpression(ExpressionNode expression) {
+        return Utils.findLoadConversationThreadsArgument(expression)
+                .map(ExpressionNode::lineRange);
+    }
+
+    /**
+     * Extract the current file path from the source at the given range.
+     *
+     * @param textDocument the text document
+     * @param range        the line range of the file path
+     * @return the file path without quotes
+     */
+    private String extractCurrentFilePath(TextDocument textDocument, LineRange range) {
+        return Utils.extractTextFromRange(textDocument, range);
     }
 }
