@@ -106,7 +106,7 @@
             "selected": true
           }
         ],
-        "value": "stringResult",
+        "value": "string1",
         "optional": false,
         "editable": true,
         "advanced": false,

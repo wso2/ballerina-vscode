@@ -85,7 +85,7 @@
             "selected": true
           }
         ],
-        "value": "intResult",
+        "value": "int1",
         "optional": false,
         "editable": true,
         "advanced": false,
