@@ -17,7 +17,7 @@
  */
 
 import { useEffect } from "react";
-import { LocationSelector, TextField, CheckBox } from "@wso2/ui-toolkit";
+import { DirectorySelector, TextField, CheckBox } from "@wso2/ui-toolkit";
 import styled from "@emotion/styled";
 import { useRpcContext } from "@wso2/ballerina-rpc-client";
 
@@ -44,9 +44,11 @@ export interface MultiProjectFormData {
 export interface MultiProjectFormFieldsProps {
     formData: MultiProjectFormData;
     onFormDataChange: (data: Partial<MultiProjectFormData>) => void;
+    pathError?: string;
+    folderNameError?: string;
 }
 
-export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProjectFormFieldsProps) {
+export function MultiProjectFormFields({ formData, onFormDataChange, pathError, folderNameError }: MultiProjectFormFieldsProps) {
     const { rpcClient } = useRpcContext();
 
     const handleIntegrationName = (value: string) => {
@@ -70,11 +72,14 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
     return (
         <>
             <FieldGroup>
-                <LocationSelector
+                <DirectorySelector
+                    id="multi-project-folder-selector"
                     label="Select Path"
-                    selectedFile={formData.path}
-                    btnText="Select Path"
+                    placeholder="Enter path or browse to select a folder..."
+                    selectedPath={formData.path}
                     onSelect={handleProjectDirSelection}
+                    onChange={(value) => onFormDataChange({ path: value })}
+                    errorMsg={pathError}
                 />
             </FieldGroup>
 
@@ -97,6 +102,7 @@ export function MultiProjectFormFields({ formData, onFormDataChange }: MultiProj
                         placeholder="Enter folder name"
                         autoFocus={true}
                         required={true}
+                        errorMsg={folderNameError || ""}
                     />
                     <Description>
                         This folder will contain all migrated packages from this integration.

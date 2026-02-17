@@ -31,7 +31,8 @@ import {
     ProjectRequest,
     STModification,
     SyntaxTreeResponse,
-    WorkspaceTomlValues
+    WorkspaceTomlValues,
+    ValidateProjectFormErrorField
 } from "@wso2/ballerina-core";
 import { StateMachine, history, openView } from "../stateMachine";
 import { applyModifications, modifyFileContent, writeBallerinaFileDidOpen } from "./modification";
@@ -40,6 +41,7 @@ import { URI } from "vscode-uri";
 import { debug } from "./logger";
 import { parse } from "@iarna/toml";
 import { getProjectTomlValues } from "./config";
+import { extension } from "../BalExtensionContext";
 
 export const README_FILE = "README.md";
 export const FUNCTIONS_FILE = "functions.bal";
@@ -126,6 +128,59 @@ export function getUsername(): string {
 }
 
 /**
+ * Validates the project path before creating a new project
+ * @param projectPath - The directory path where the project will be created
+ * @param projectName - The name of the project (used if createDirectory is true)
+ * @param createDirectory - Whether a new directory will be created
+ * @returns Validation result with error message and field information if invalid
+ */
+export function validateProjectPath(projectPath: string, projectName: string, createDirectory: boolean): { isValid: boolean; errorMessage?: string; errorField?: ValidateProjectFormErrorField } {
+    try {
+        // Check if projectPath is provided and not empty
+        if (!projectPath || projectPath.trim() === '') {
+            return { isValid: false, errorMessage: 'Project path is required', errorField: ValidateProjectFormErrorField.PATH };
+        }
+
+        // Check if the base directory exists
+        if (!fs.existsSync(projectPath)) {
+            // Check if parent directory exists and we can create the path
+            const parentDir = path.dirname(projectPath);
+            if (!fs.existsSync(parentDir)) {
+                return { isValid: false, errorMessage: 'Directory path does not exist', errorField: ValidateProjectFormErrorField.PATH };
+            }
+        }
+
+        // Determine the final project path
+        const finalPath = createDirectory ? path.join(projectPath, sanitizeName(projectName)) : projectPath;
+
+        // If not creating a new directory, check if the target directory already has a Ballerina project
+        if (!createDirectory) {
+            const ballerinaTomlPath = path.join(finalPath, 'Ballerina.toml');
+            if (fs.existsSync(ballerinaTomlPath)) {
+                return { isValid: false, errorMessage: 'Existing Ballerina project detected in the selected directory', errorField: ValidateProjectFormErrorField.PATH };
+            }
+        } else {
+            // If creating a new directory, check if it already exists
+            if (fs.existsSync(finalPath)) {
+                return { isValid: false, errorMessage: `A directory with this name already exists at the selected location`, errorField: ValidateProjectFormErrorField.NAME};
+            }
+        }
+
+        // Validate if we have write permissions
+        try {
+            // Try to access the directory with write permissions
+            fs.accessSync(projectPath, fs.constants.W_OK);
+        } catch (error) {
+            return { isValid: false, errorMessage: 'No write permission for the selected directory', errorField: ValidateProjectFormErrorField.PATH };
+        }
+
+        return { isValid: true };
+    } catch (error) {
+        return { isValid: false, errorMessage: `Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`, errorField: ValidateProjectFormErrorField.PATH };
+    }
+}
+
+/**
  * Generic function to resolve directory paths and create directories if needed
  * Can be used for both project and workspace directory creation
  * @param basePath - Base directory path
@@ -197,6 +252,27 @@ function resolveWorkspacePath(basePath: string, workspaceName: string): string {
 }
 
 /**
+ * Extracts the Ballerina version number from the ballerinaVersion string
+ * @returns The version number (e.g., "2201.13.0") or undefined if not available
+ */
+function getBallerinaDistribution(): string | undefined {
+    try {
+        const ballerinaVersion = extension.ballerinaExtInstance?.ballerinaVersion;
+        if (!ballerinaVersion) {
+            return undefined;
+        }
+        
+        // Extract version number from strings like "Ballerina 2201.13.0" or "2201.13.0"
+        // Match pattern: <numbers>.<numbers>.<numbers>
+        const versionMatch = ballerinaVersion.match(/(\d+\.\d+\.\d+)/);
+        return versionMatch ? versionMatch[1] : undefined;
+    } catch (error) {
+        debug(`Failed to extract Ballerina distribution version: ${error}`);
+        return undefined;
+    }
+}
+
+/**
  * Orchestrates the setup of project information
  * @param projectRequest - The project request containing all necessary information
  * @returns Processed project information ready for use
@@ -251,13 +327,19 @@ export function createBIProjectPure(projectRequest: ProjectRequest): string {
 
     const EMPTY = "\n";
 
+    // Get the Ballerina distribution version
+    const distribution = getBallerinaDistribution();
+    
+    // Build the distribution line if version is available
+    const distributionLine = distribution ? `distribution = "${distribution}"\n` : '';
+
     const libraryLine = projectRequest.isLibrary ? '\nlibrary = true' : '';
     const ballerinaTomlContent = `
 [package]
 org = "${finalOrgName}"
 name = "${finalPackageName}"
 version = "${finalVersion}"
-title = "${integrationName}"${libraryLine}
+${distributionLine}title = "${integrationName}"
 
 [build-options]
 sticky = true
@@ -486,7 +568,12 @@ export async function createBIProjectFromMigration(params: MigrateRequest) {
         if (fileName === "Ballerina.toml") {
             content = content.replace(/name = ".*?"/, `name = "${sanitizedPackageName}"`);
             content = content.replace(/org = ".*?"/, `org = "${projectInfo.finalOrgName}"`);
-            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"\ntitle = "${projectInfo.integrationName}"`);
+            
+            // Get the Ballerina distribution version
+            const distribution = getBallerinaDistribution();
+            const distributionLine = distribution ? `\ndistribution = "${distribution}"` : '';
+            
+            content = content.replace(/version = ".*?"/, `version = "${projectInfo.finalVersion}"${distributionLine}\ntitle = "${projectInfo.integrationName}"`);
         }
 
         writeBallerinaFileDidOpen(filePath, content || EMPTY);
