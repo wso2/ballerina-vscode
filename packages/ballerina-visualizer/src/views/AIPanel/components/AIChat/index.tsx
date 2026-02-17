@@ -582,11 +582,27 @@ const AIChat: React.FC = () => {
                 });
             }
         } else if (type === "task_approval_request") {
-            // Auto-approve task completions if enabled
-            if (isAutoApproveEnabled && response.approvalType === "completion") {
-                await rpcClient.getAiPanelRpcClient().approveTask({
-                    requestId: response.requestId,
+            if (response.approvalType === "plan") {
+                const todoJson = JSON.stringify({ tasks: response.tasks, message: response.message });
+                updateLastMessage((content) => {
+                    const cleaned = content
+                        .replace(/<toolcall>Planning\.\.\.<\/toolcall>/, '')
+                        .replace(/<todo>.*?<\/todo>/s, '');
+                    return cleaned + `\n\n<todo>${todoJson}</todo>`;
                 });
+            } else if (response.approvalType === "completion") {
+                const tasks = isAutoApproveEnabled
+                    ? response.tasks.map((t: { status: string }) =>
+                        t.status === "review" ? { ...t, status: "completed" } : t)
+                    : response.tasks;
+                const todoJson = JSON.stringify({ tasks, message: response.message });
+                updateLastMessage((content) =>
+                    content.replace(/<todo>.*?<\/todo>/s, `<todo>${todoJson}</todo>`)
+                );
+            }
+
+            if (isAutoApproveEnabled && response.approvalType === "completion") {
+                await rpcClient.getAiPanelRpcClient().approveTask({ requestId: response.requestId });
                 return;
             }
 
@@ -598,46 +614,6 @@ const AIChat: React.FC = () => {
                 taskDescription: response.taskDescription,
                 message: response.message,
             });
-            if (response.approvalType === "plan") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const todoData = {
-                            tasks: response.tasks,
-                            message: response.message
-                        };
-                        const todoJson = JSON.stringify(todoData);
-                        let lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                        const planningPattern = /<toolcall>Planning\.\.\.<\/toolcall>/;
-                        const todoPattern = /<todo>.*?<\/todo>/s;
-
-                        lastMessageContent = lastMessageContent.replace(planningPattern, '');
-                        lastMessageContent = lastMessageContent.replace(todoPattern, '');
-
-                        newMessages[newMessages.length - 1].content = lastMessageContent + `\n\n<todo>${todoJson}</todo>`;
-                    }
-                    return newMessages;
-                });
-            } else if (response.approvalType === "completion") {
-                setMessages((prevMessages) => {
-                    const newMessages = [...prevMessages];
-                    if (newMessages.length > 0) {
-                        const todoData = {
-                            tasks: response.tasks,
-                            message: response.message
-                        };
-                        const todoJson = JSON.stringify(todoData);
-                        let lastMessageContent = newMessages[newMessages.length - 1].content;
-
-                        const todoPattern = /<todo>.*?<\/todo>/s;
-                        lastMessageContent = lastMessageContent.replace(todoPattern, `<todo>${todoJson}</todo>`);
-
-                        newMessages[newMessages.length - 1].content = lastMessageContent;
-                    }
-                    return newMessages;
-                });
-            }
         } else if (type === "intermediary_state") {
             const state = response.state;
             // Check if it's a documentation state by looking for specific properties
