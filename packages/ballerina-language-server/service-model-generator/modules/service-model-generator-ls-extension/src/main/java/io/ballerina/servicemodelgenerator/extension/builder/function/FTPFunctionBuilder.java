@@ -141,7 +141,8 @@ public final class FTPFunctionBuilder extends AbstractFunctionBuilder {
                 return Optional.empty();
             }
             return service.getFunctions().stream()
-                    .filter(function -> function.getName() != null && functionName.equals(function.getName().getValue()))
+                    .filter(function -> 
+                        function.getName() != null && functionName.equals(function.getName().getValue()))
                     .findFirst();
         } catch (IOException ignored) {
             return Optional.empty();
