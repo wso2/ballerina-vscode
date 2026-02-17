@@ -29,8 +29,15 @@ public class Constants {
 
     public static final String ORG_BALLERINA = "ballerina";
     public static final String MODULE_TEST = "test";
+    public static final String MODULE_AI = "ai";
     public static final String IMPORT_TEST_STMT = "import ballerina/test;";
+    public static final String IMPORT_AI_STMT = "import ballerina/ai;";
     public static final String FILED_TEMPLATE = "%s: %s";
+
+    public static final String DATA_PROVIDER_MODE_FUNCTION = "function";
+    public static final String DATA_PROVIDER_MODE_EVALSET = "evalSet";
+    public static final String DEFAULT_EVALSET_FUNCTION_NAME = "loadEvalsetData";
+    public static final String LOAD_CONVERSATION_THREADS = "loadConversationThreads";
 
     public static final String TEST_ANNOTATION = "@test:";
     public static final String CONFIG_GROUPS = "groups";
@@ -46,7 +53,9 @@ public class Constants {
     public static final String SPACE = " ";
     public static final String EQUAL = "=";
     public static final String COLON = ":";
+    public static final String DOUBLE_QUOTE = "\"";
 
+    public static final String KEYWORD_ISOLATED = "isolated";
     public static final String KEYWORD_FUNCTION = "function";
     public static final String KEYWORD_RETURNS = "returns";
     public static final String KEYWORD_DO = "do";
@@ -57,6 +66,8 @@ public class Constants {
     public static final String TAB_SEPARATOR = "\t";
 
     public static final String ON_FAIL_ERROR_STMT = "on fail error err";
+
+    public static final String AI_CONVERSATION_THREAD_TYPE = "ai:ConversationThread";
 
     private Constants() {
     }

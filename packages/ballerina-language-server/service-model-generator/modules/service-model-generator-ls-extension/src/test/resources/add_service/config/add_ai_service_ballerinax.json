@@ -13,6 +13,7 @@
     "icon": "http://localhost:8080/icons/ai.png",
     "properties": {
       "listener": {
+        "imports": {},
         "metadata": {
           "label": "Listeners",
           "description": "The Listeners to be bound with the service"
@@ -21,8 +22,6 @@
           "type": "LISTENER"
         },
         "placeholder": "",
-        "valueType": "SINGLE_SELECT",
-        "valueTypeConstraint": "ai:Listener",
         "value": "aiListener",
         "values": [
           "aiListener"
@@ -30,13 +29,13 @@
         "items": [
           "aiListener"
         ],
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": false,
         "advanced": false
       },
       "agentName": {
+        "imports": {},
         "metadata": {
           "label": "Agent Name",
           "description": "The name of the agent variable"
@@ -45,10 +44,7 @@
           "type": "PROPERTY"
         },
         "placeholder": "",
-        "valueType": "IDENTIFIER",
-        "valueTypeConstraint": "string",
         "value": "",
-        "imports": {},
         "enabled": true,
         "editable": true,
         "optional": false,
@@ -83,7 +79,7 @@
             "character": 0
           }
         },
-        "newText": "\nservice on aiListener {\n    private final ai:Agent chatAgent;\n\n    function init() returns error? { \n        self.chatAgent = check new (\n            systemPrompt = {role: string ``, instructions: string ``}, model = chatModel, tools = []\n        );\n    }\n\n    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n        string stringResult = check self.chatAgent->run(request.message, request.sessionId);\n        return {message: stringResult};\n    }\n}"
+        "newText": "\nservice on aiListener {\n    resource function post chat(@http:Payload ai:ChatReqMessage request) returns ai:ChatRespMessage|error {\n        string stringResult = check chatAgent->run(request.message, request.sessionId);\n        return {message: stringResult};\n    }\n}"
       }
     ]
   }

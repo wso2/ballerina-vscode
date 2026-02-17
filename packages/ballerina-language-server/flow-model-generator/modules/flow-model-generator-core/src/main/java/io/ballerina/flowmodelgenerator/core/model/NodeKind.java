@@ -80,7 +80,9 @@ public enum NodeKind {
 
     AGENT,
     AGENT_CALL,
+    AGENT_RUN,
     CLASS_INIT,
+    AGENTS,
 
     MODEL_PROVIDER,
     MODEL_PROVIDERS,
