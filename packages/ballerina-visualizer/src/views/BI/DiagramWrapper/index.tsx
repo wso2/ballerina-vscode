@@ -264,6 +264,35 @@ export function DiagramWrapper(param: DiagramWrapperProps) {
     };
 
     const handleEdit = (fileUri?: string, position?: NodePosition) => {
+        const isTestFunction = parentCodedata?.sourceCode.includes("@test:Config");
+        const isAIEvaluation = isTestFunction && parentCodedata?.sourceCode.includes('"evaluations"');
+
+        if (isAIEvaluation) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BIAIEvaluationForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
+        if (isTestFunction) {
+            rpcClient.getVisualizerRpcClient().openView({
+                type: EVENT_TYPE.OPEN_VIEW,
+                location: {
+                    view: MACHINE_VIEW.BITestFunctionForm,
+                    identifier: parentMetadata?.label || "",
+                    documentUri: fileUri,
+                    serviceType: 'UPDATE_TEST',
+                }
+            });
+            return;
+        }
+
         const context: VisualizerLocation = {
             view:
                 view === FOCUS_FLOW_DIAGRAM_VIEW.NP_FUNCTION
