@@ -143,6 +143,8 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
     const recordModelRef = useRef<TypeField[]>([]);
     const [selectedMemberName, setSelectedMemberName] = useState<string>("");
     const firstRender = useRef<boolean>(true);
+    const initialMountRef = useRef<boolean>(true);
+    const onChangeRef = useRef(onChange);
     const sourceCode = useRef<string>(currentValue);
     const [isLoading, setIsLoading] = useState<boolean>(false);
     // Local state for expression value - only update form on save/close
@@ -219,13 +221,20 @@ export function ConfigureRecordPage(props: ConfigureRecordPageProps) {
         }
     }, [currentValue]);
 
+    useEffect(() => {
+        onChangeRef.current = onChange;
+    }, [onChange]);
+
     // Auto-propagate localExpressionValue changes to parent form (remove need for Save button)
     useEffect(() => {
         // Skip the first render to avoid calling onChange with initial value
-        if (!firstRender.current) {
-            onChange(localExpressionValue, true);
+        if (initialMountRef.current) {
+            initialMountRef.current = false;
+            return;
         }
-    }, [localExpressionValue, onChange]);
+
+        onChangeRef.current(localExpressionValue, true);
+    }, [localExpressionValue]);
 
     const fetchRecordModelFromSource = async (currentValue: string) => {
         setIsLoading(true);
