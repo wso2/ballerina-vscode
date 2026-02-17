@@ -68,13 +68,14 @@ interface ServiceConfigFormProps {
     onBack?: () => void;
     formSubmitText?: string;
     onChange?: (data: ServiceModel) => void;
+    onValidityChange?: (isValid: boolean) => void;
 }
 
 export function ServiceConfigForm(props: ServiceConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [serviceFields, setServiceFields] = useState<FormField[]>([]);
-    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange } = props;
+    const { serviceModel, onSubmit, onBack, openListenerForm, formSubmitText = "Next", isSaving, onChange, onValidityChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -240,6 +241,7 @@ export function ServiceConfigForm(props: ServiceConfigFormProps) {
                                     preserveFieldOrder={true}
                                     onChange={handleServiceChange}
                                     hideSaveButton={onChange ? true : false}
+                                    onValidityChange={onValidityChange}
                                 />
                             }
                         </FormContainer>

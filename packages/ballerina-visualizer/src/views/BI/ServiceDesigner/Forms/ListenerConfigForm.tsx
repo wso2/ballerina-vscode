@@ -56,13 +56,14 @@ interface ListenerConfigFormProps {
     onBack?: () => void;
     formSubmitText?: string;
     onChange?: (data: ListenerModel) => void;
+    onValidityChange?: (isValid: boolean) => void;
 }
 
 export function ListenerConfigForm(props: ListenerConfigFormProps) {
     const { rpcClient } = useRpcContext();
 
     const [listenerFields, setListenerFields] = useState<FormField[]>([]);
-    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange } = props;
+    const { listenerModel, onSubmit, onBack, formSubmitText = "Next", isSaving, onChange, onValidityChange } = props;
     const [filePath, setFilePath] = useState<string>('');
     const [targetLineRange, setTargetLineRange] = useState<LineRange>();
     const [recordTypeFields, setRecordTypeFields] = useState<RecordTypeField[]>([]);
@@ -173,6 +174,7 @@ export function ListenerConfigForm(props: ListenerConfigFormProps) {
                                     recordTypeFields={recordTypeFields}
                                     onChange={handleListenerChange}
                                     hideSaveButton={onChange ? true : false}
+                                    onValidityChange={onValidityChange}
                                 />
                             }
                         </FormContainer>
