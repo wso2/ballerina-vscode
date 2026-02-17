@@ -10,7 +10,7 @@
       "metadata": {
         "label": "SQS Caller",
         "description": "Provides control over message deletion from the queue after processing.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.0.0.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_aws.sqs_4.0.1.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "aws.sqs",
         "object": "Caller",
         "symbol": "init",
-        "version": "4.0.0",
+        "version": "4.0.1",
         "isGenerated": false
       },
       "enabled": true
@@ -31,7 +31,7 @@
       "metadata": {
         "label": "Ibmmq Caller",
         "description": "Represents a IBM MQ caller, which can be used to mark IBM MQ message as received.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.1.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_ibm.ibmmq_1.4.2.png",
         "data": {
           "isAgentSupport": false
         }
@@ -43,7 +43,28 @@
         "packageName": "ibm.ibmmq",
         "object": "Caller",
         "symbol": "init",
-        "version": "1.4.1",
+        "version": "1.4.2",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Pubsub Caller",
+        "description": "Provides functionality to acknowledge or reject messages received by the listener service.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_gcloud.pubsub_0.1.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "gcloud.pubsub",
+        "packageName": "gcloud.pubsub",
+        "object": "Caller",
+        "symbol": "init",
+        "version": "0.1.0",
         "isGenerated": false
       },
       "enabled": true
