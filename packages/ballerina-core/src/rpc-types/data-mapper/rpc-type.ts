@@ -49,7 +49,8 @@ import {
     ClausePositionRequest,
     ClausePositionResponse,
     ConvertExpressionRequest,
-    ConvertExpressionResponse
+    ConvertExpressionResponse,
+    CreateConvertedVariableRequest
 } from "../../interfaces/extended-lang-client";
 import { RequestType } from "vscode-messenger-common";
 
@@ -75,4 +76,5 @@ export const getClausePosition: RequestType<ClausePositionRequest, ClausePositio
 export const getExpandedDMFromDMModel: RequestType<DMModelRequest, ExpandedDMModelResponse> = { method: `${_preFix}/getExpandedDMFromDMModel` };
 export const getProcessTypeReference: RequestType<ProcessTypeReferenceRequest, ProcessTypeReferenceResponse> = { method: `${_preFix}/getProcessTypeReference` };
 export const getConvertedExpression: RequestType<ConvertExpressionRequest, ConvertExpressionResponse> = { method: `${_preFix}/getConvertedExpression` };
+export const createConvertedVariable: RequestType<CreateConvertedVariableRequest, DataMapperSourceResponse> = { method: `${_preFix}/createConvertedVariable` };
 export const clearTypeCache: RequestType<void, ClearTypeCacheResponse> = { method: `${_preFix}/clearTypeCache` };

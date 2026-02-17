@@ -27,6 +27,7 @@ import {
     ConvertExpressionRequest,
     ConvertExpressionResponse,
     ConvertToQueryRequest,
+    CreateConvertedVariableRequest,
     DataMapperAPI,
     DataMapperModelRequest,
     DataMapperModelResponse,
@@ -427,5 +428,10 @@ export class DataMapperRpcManager implements DataMapperAPI {
                     resolve(resp);
                 });
         });
+    }
+
+    async createConvertedVariable(params: CreateConvertedVariableRequest): Promise<DataMapperSourceResponse> {
+        // ADD YOUR IMPLEMENTATION HERE
+        throw new Error('Not implemented');
     }
 }
