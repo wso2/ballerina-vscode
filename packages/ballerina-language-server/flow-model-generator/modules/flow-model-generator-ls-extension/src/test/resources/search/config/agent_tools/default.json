@@ -31,7 +31,18 @@
             "description": "Agent tool function",
             "data": {
               "isAgentTool": true,
-              "isIsolatedFunction": true
+              "isIsolatedFunction": true,
+              "inputParameters": [
+                {
+                  "name": "a",
+                  "type": "int"
+                },
+                {
+                  "name": "b",
+                  "type": "int"
+                }
+              ],
+              "outputType": "int"
             }
           },
           "codedata": {
@@ -49,7 +60,14 @@
             "description": "Agent tool function",
             "data": {
               "isAgentTool": true,
-              "isIsolatedFunction": true
+              "isIsolatedFunction": true,
+              "inputParameters": [
+                {
+                  "name": "location",
+                  "type": "string"
+                }
+              ],
+              "outputType": "json"
             }
           },
           "codedata": {
@@ -67,7 +85,14 @@
             "description": "Agent tool function",
             "data": {
               "isAgentTool": true,
-              "isIsolatedFunction": true
+              "isIsolatedFunction": true,
+              "inputParameters": [
+                {
+                  "name": "data",
+                  "type": "json"
+                }
+              ],
+              "outputType": "json"
             }
           },
           "codedata": {
