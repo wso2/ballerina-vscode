@@ -10,7 +10,7 @@
       "metadata": {
         "label": "HTTP",
         "description": "The HTTP client provides functionality to connect to remote HTTP services and perform requests using standard HTTP methods like GET, POST, PUT, DELETE, etc.\n",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.14.7.png",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerina_http_2.15.0.png",
         "data": {
           "isAgentSupport": false
         }
@@ -22,7 +22,7 @@
         "packageName": "http",
         "object": "Client",
         "symbol": "init",
-        "version": "2.14.7",
+        "version": "2.15.0",
         "isGenerated": false
       },
       "enabled": true
@@ -197,27 +197,6 @@
     },
     {
       "metadata": {
-        "label": "Mistral",
-        "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "mistral",
-        "packageName": "mistral",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.0.0",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Asana",
         "description": "This is the interface for interacting with the [Asana Platform](https://developers.asana.com). Our API reference is generated from our [OpenAPI spec] (https://raw.githubusercontent.com/Asana/openapi/master/defs/asana_oas.yaml).",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_asana_2.0.0.png",
@@ -233,6 +212,27 @@
         "object": "Client",
         "symbol": "init",
         "version": "2.0.0",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Mistral",
+        "description": "Our Chat Completion and Embeddings APIs specification. Create your account on [La Plateforme](https://console.mistral.ai) to get access and read the [docs](https://docs.mistral.ai) to learn how to use it.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_mistral_1.0.0.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "mistral",
+        "packageName": "mistral",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.0.0",
         "isGenerated": false
       },
       "enabled": true
@@ -344,27 +344,6 @@
     },
     {
       "metadata": {
-        "label": "Cartsordershoppinglists",
-        "description": "This is a generated connector for [Commercetools API v1](https://docs.commercetools.com/api/) OpenAPI specification. \nThe commercetools Platform HTTP API offers an interface for programmatic access to operations related to carts, orders and shopping lists.",
-        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_commercetools.cartsordershoppinglists_1.4.1.png",
-        "data": {
-          "isAgentSupport": false
-        }
-      },
-      "codedata": {
-        "node": "NEW_CONNECTION",
-        "org": "ballerinax",
-        "module": "commercetools.cartsordershoppinglists",
-        "packageName": "commercetools.cartsordershoppinglists",
-        "object": "Client",
-        "symbol": "init",
-        "version": "1.4.1",
-        "isGenerated": false
-      },
-      "enabled": true
-    },
-    {
-      "metadata": {
         "label": "Customer",
         "description": "This is a generated connector for [Commercetools API v1](https://docs.commercetools.com/api/) OpenAPI specification. \nThe commercetools Platform HTTP API(Customer) offers an interface for programmatic access to retrieve certain information on customer related operations.",
         "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_commercetools.customer_1.4.1.png",
@@ -377,6 +356,27 @@
         "org": "ballerinax",
         "module": "commercetools.customer",
         "packageName": "commercetools.customer",
+        "object": "Client",
+        "symbol": "init",
+        "version": "1.4.1",
+        "isGenerated": false
+      },
+      "enabled": true
+    },
+    {
+      "metadata": {
+        "label": "Cartsordershoppinglists",
+        "description": "This is a generated connector for [Commercetools API v1](https://docs.commercetools.com/api/) OpenAPI specification. \nThe commercetools Platform HTTP API offers an interface for programmatic access to operations related to carts, orders and shopping lists.",
+        "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_commercetools.cartsordershoppinglists_1.4.1.png",
+        "data": {
+          "isAgentSupport": false
+        }
+      },
+      "codedata": {
+        "node": "NEW_CONNECTION",
+        "org": "ballerinax",
+        "module": "commercetools.cartsordershoppinglists",
+        "packageName": "commercetools.cartsordershoppinglists",
         "object": "Client",
         "symbol": "init",
         "version": "1.4.1",

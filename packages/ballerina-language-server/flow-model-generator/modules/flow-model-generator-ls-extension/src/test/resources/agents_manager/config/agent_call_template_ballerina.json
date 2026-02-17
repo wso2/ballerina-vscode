@@ -139,7 +139,7 @@
         "codedata": {
           "kind": "INCLUDED_FIELD"
         },
-        "defaultValue": "\"INFER_TOOL_COUNT\""
+        "defaultValue": "INFER_TOOL_COUNT"
       },
       "verbose": {
         "metadata": {
@@ -188,7 +188,7 @@
         "codedata": {
           "kind": "INCLUDED_FIELD"
         },
-        "defaultValue": "()"
+        "defaultValue": "new MessageWindowChatMemory()"
       },
       "type": {
         "metadata": {
@@ -390,7 +390,7 @@
           "kind": "DEFAULTABLE",
           "originalName": "sessionId"
         },
-        "defaultValue": "\"\""
+        "defaultValue": "sessionId"
       }
     },
     "flags": 0

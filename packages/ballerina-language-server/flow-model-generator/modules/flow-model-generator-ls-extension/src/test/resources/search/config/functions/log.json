@@ -260,7 +260,7 @@
         },
         {
           "metadata": {
-            "label": "edifact.d03a.logistics.mCHACCO",
+            "label": "edifact.d03a.logistics.mSSRECH",
             "description": "",
             "keywords": []
           },
@@ -274,7 +274,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
@@ -290,7 +290,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiString",
                 "version": "0.9.0"
@@ -306,7 +306,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "getSchema",
                 "version": "0.9.0"
@@ -322,7 +322,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiStringWithSchema",
                 "version": "0.9.0"
@@ -338,7 +338,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiStringWithSchema",
                 "version": "0.9.0"
@@ -354,7 +354,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "transformFromEdiString",
                 "version": "0.9.0"
@@ -370,7 +370,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCHACCO",
+                "module": "edifact.d03a.logistics.mSSRECH",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "transformToEdiString",
                 "version": "0.9.0"
@@ -381,7 +381,7 @@
         },
         {
           "metadata": {
-            "label": "edifact.d03a.logistics.mCALINF",
+            "label": "edifact.d03a.logistics.mIFTMBC",
             "description": "",
             "keywords": []
           },
@@ -395,7 +395,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCALINF",
+                "module": "edifact.d03a.logistics.mIFTMBC",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "fromEdiString",
                 "version": "0.9.0"
@@ -411,7 +411,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCALINF",
+                "module": "edifact.d03a.logistics.mIFTMBC",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "toEdiString",
                 "version": "0.9.0"
@@ -427,7 +427,7 @@
               "codedata": {
                 "node": "FUNCTION_CALL",
                 "org": "ballerinax",
-                "module": "edifact.d03a.logistics.mCALINF",
+                "module": "edifact.d03a.logistics.mIFTMBC",
                 "packageName": "edifact.d03a.logistics",
                 "symbol": "getSchema",
                 "version": "0.9.0"

@@ -72,7 +72,9 @@ public class ResourceActionCallBuilder extends CallBuilder {
                 .parentSymbolType(codedata.object())
                 .resourcePath(codedata.resourcePath())
                 .project(PackageUtil.loadProject(context.workspaceManager(), context.filePath()))
-                .functionResultKind(FunctionData.Kind.RESOURCE);
+                .functionResultKind(FunctionData.Kind.RESOURCE)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath());
 
         FunctionData functionData = functionDataBuilder.build();
 

@@ -82,6 +82,8 @@ public class DataLoaderBuilder extends CallBuilder {
         FunctionData functionData = new FunctionDataBuilder().parentSymbolType(codedata.object())
                 .name(codedata.symbol()).moduleInfo(codedataModuleInfo).userModuleInfo(moduleInfo)
                 .lsClientLogger(context.lsClientLogger()).functionResultKind(FunctionData.Kind.DATA_LOADER)
+                .workspaceManager(context.workspaceManager())
+                .filePath(context.filePath())
                 .build();
 
         metadata().label(functionData.packageName()).description(functionData.description())

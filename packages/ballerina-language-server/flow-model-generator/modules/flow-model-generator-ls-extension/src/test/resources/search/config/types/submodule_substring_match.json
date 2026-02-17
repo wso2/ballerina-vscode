@@ -455,31 +455,6 @@
         },
         {
           "metadata": {
-            "label": "beezup.merchant",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigureAutomaticTransitionRequest",
-                "description": "",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "beezup.merchant",
-                "packageName": "beezup.merchant",
-                "symbol": "ConfigureAutomaticTransitionRequest",
-                "version": "1.6.0"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "paypal.invoices",
             "description": "",
             "keywords": []
@@ -498,6 +473,31 @@
                 "packageName": "paypal.invoices",
                 "symbol": "ConfigurationAllOf2",
                 "version": "1.0.0"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "beezup.merchant",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigureAutomaticTransitionRequest",
+                "description": "",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_beezup.merchant_1.6.0.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "beezup.merchant",
+                "packageName": "beezup.merchant",
+                "symbol": "ConfigureAutomaticTransitionRequest",
+                "version": "1.6.0"
               },
               "enabled": true
             }
@@ -562,31 +562,6 @@
         },
         {
           "metadata": {
-            "label": "atspoke",
-            "description": "",
-            "keywords": []
-          },
-          "items": [
-            {
-              "metadata": {
-                "label": "ConfigList",
-                "description": "Configuration Item List",
-                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_atspoke_1.5.1.png"
-              },
-              "codedata": {
-                "node": "TYPEDESC",
-                "org": "ballerinax",
-                "module": "atspoke",
-                "packageName": "atspoke",
-                "symbol": "ConfigList",
-                "version": "1.5.1"
-              },
-              "enabled": true
-            }
-          ]
-        },
-        {
-          "metadata": {
             "label": "magento.cart",
             "description": "",
             "keywords": []
@@ -605,6 +580,31 @@
                 "packageName": "magento.cart",
                 "symbol": "ConfigurableProductDataConfigurableItemOptionValueInterface",
                 "version": "1.3.1"
+              },
+              "enabled": true
+            }
+          ]
+        },
+        {
+          "metadata": {
+            "label": "atspoke",
+            "description": "",
+            "keywords": []
+          },
+          "items": [
+            {
+              "metadata": {
+                "label": "ConfigList",
+                "description": "Configuration Item List",
+                "icon": "https://bcentral-packageicons.azureedge.net/images/ballerinax_atspoke_1.5.1.png"
+              },
+              "codedata": {
+                "node": "TYPEDESC",
+                "org": "ballerinax",
+                "module": "atspoke",
+                "packageName": "atspoke",
+                "symbol": "ConfigList",
+                "version": "1.5.1"
               },
               "enabled": true
             }
