@@ -48,7 +48,7 @@ export type TypeHelperContext = {
     // Callback function to close the completions
     onCloseCompletions?: () => void;
     // Callback function to be executed when a new type is created
-    onTypeCreate?: (typeName?: string) => void;
+    onTypeCreate?: (fieldIndex: number,typeName?: string) => void;
 };
 
 const defaultTypeHelperContext: TypeHelperContext = {

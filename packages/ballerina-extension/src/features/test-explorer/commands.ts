@@ -111,10 +111,10 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
     });
 
     commands.registerCommand(BI_COMMANDS.BI_EDIT_TEST_FUNCTION_DEF, async (entry: TestItem) => {
-        const projectPath = await findProjectPath(entry.uri?.fsPath);
+        const fileUri = entry.uri?.fsPath;
 
-        if (!projectPath) {
-            window.showErrorMessage(MESSAGES.NO_PROJECT_FOUND);
+        if (!fileUri) {
+            window.showErrorMessage(MESSAGES.NO_FILE_FOUND);
             return;
         }
 
@@ -122,8 +122,6 @@ export function activateEditBiTest(ballerinaExtInstance: BallerinaExtension) {
             return;
         }
 
-        const fileName = entry.id.split(":")[2];
-        const fileUri = path.resolve(projectPath, `tests`, fileName);
         if (fileUri) {
             const range = entry.range;
 

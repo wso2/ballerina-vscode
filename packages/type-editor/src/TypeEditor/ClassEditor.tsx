@@ -380,6 +380,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                             placeholder="Name"
                         />
                         <TypeField
+                            fieldIndex={index}
                             type={func.returnType}
                             memberName={typeof func.returnType === 'string' ? func.returnType : func.returnType?.name}
                             onChange={(newType) => updateFunction(index, { returnType: newType })}
@@ -450,6 +451,7 @@ export function ClassEditor({ type, onChange, isGraphql, onValidationError }: Cl
                                         placeholder={isGraphql ? "Argument Name" : "Parameter Name"}
                                     />
                                     <TypeField
+                                        fieldIndex={index}
                                         type={parameterForm.type}
                                         memberName={parameterForm.type}
                                         onChange={(newType) => setParameterForm(prev => ({ ...prev, type: newType }))}
