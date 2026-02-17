@@ -391,7 +391,7 @@ export function ForkForm(props: ForkFormProps) {
                 {branches.map((branch, index) => {
                     if (branch.properties?.variable) {
                         const variableField = convertNodePropertyToFormField(`branch-${index}`, branch.properties.variable);
-                        variableField.types = [{ fieldType: "EXPRESSION", selected: false }]
+                        variableField.types = [{ fieldType: "IDENTIFIER", selected: false }]
                         const typeField = convertNodePropertyToFormField(`branch-${index}-type`, branch.properties.type);
                         typeField.types = [{ fieldType: "TYPE", selected: false }]
                         variableField.label = "Worker " + (index + 1);
