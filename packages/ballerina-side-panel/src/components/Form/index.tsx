@@ -501,7 +501,7 @@ export const Form = forwardRef((props: FormProps) => {
                     } else if (isDropdownField(field)) {
                         defaultValues[field.key] = getValueForDropdown(field) ?? "";
                     } else if (field.type === "FLAG" && field.types?.length > 1) {
-                        if (field.value && typeof field.value === "boolean") {
+                        if (typeof field.value === "boolean") {
                             defaultValues[field.key] = String(field.value);
                         }
                         else {
@@ -517,7 +517,7 @@ export const Form = forwardRef((props: FormProps) => {
                     if (field.key === "variable") {
                         defaultValues[field.key] = formValues[field.key] ?? defaultValues[field.key] ?? "";
                     }
-                    if (field.key === "parameters" && field.value.length === 0) {
+                    if (field.key === "parameters" && field.value?.length && field.value.length === 0) {
                         defaultValues[field.key] = formValues[field.key] ?? [];
                     }
 
