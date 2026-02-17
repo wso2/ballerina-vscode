@@ -109,9 +109,12 @@ public class SourceCodeGenerator {
             }
         }
 
-        String template = "%senum %s {%s%n}%n";
+        // Check for public property to add `public` qualifier to the enum
+        String publicQualifier = isPublicFlagOn(typeData.properties()) ? "public " : "";
 
-        return template.formatted(docs, typeData.name(), enumValues.toString());
+        String template = "%s%senum %s {%s%n}%n";
+
+        return template.formatted(docs, publicQualifier, typeData.name(), enumValues.toString());
     }
 
     private String generateTypeDefCodeSnippet(TypeData typeData) {

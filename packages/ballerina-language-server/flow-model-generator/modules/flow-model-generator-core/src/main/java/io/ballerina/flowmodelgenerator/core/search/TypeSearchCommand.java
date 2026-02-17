@@ -25,7 +25,6 @@ import io.ballerina.compiler.api.SemanticModel;
 import io.ballerina.compiler.api.symbols.ClassSymbol;
 import io.ballerina.compiler.api.symbols.Documentable;
 import io.ballerina.compiler.api.symbols.Documentation;
-import io.ballerina.compiler.api.symbols.EnumSymbol;
 import io.ballerina.compiler.api.symbols.Qualifiable;
 import io.ballerina.compiler.api.symbols.Qualifier;
 import io.ballerina.compiler.api.symbols.Symbol;
@@ -338,9 +337,10 @@ class TypeSearchCommand extends SearchCommand {
                     }
                     String typeName = symbol.getName().get();
                     String description = "";
-                    Documentable documentable = (Documentable) symbol;
-                    Documentation documentation = documentable.documentation().orElse(null);
-                    description = documentation != null ? documentation.description().orElse("") : "";
+                    if (symbol instanceof Documentable documentable) {
+                        Documentation documentation = documentable.documentation().orElse(null);
+                        description = documentation != null ? documentation.description().orElse("") : "";
+                    }
 
                     // Calculate the relevance score, and filter out types with score 0 (no match)
                     int score = RelevanceCalculator.calculateFuzzyRelevanceScore(typeName, description, query);
@@ -376,6 +376,11 @@ class TypeSearchCommand extends SearchCommand {
 
         /**
          * Helper record to store type definition and class symbols along with their relevance scores for ranking.
+         *
+         * @param symbol the symbol representing the type
+         * @param typeName the name of the type
+         * @param description the description of the type
+         * @param score the relevance score for ranking
          */
         private record ScoredType(Symbol symbol, String typeName, String description, int score) {
     }
