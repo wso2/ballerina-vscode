@@ -26,6 +26,7 @@ import { commandTemplates, suggestedCommandTemplates } from "../../../commandTem
 import { AttachmentOptions } from "../../AIChatInput/hooks/useAttachments";
 import { getTemplateTextById } from "../../../commandTemplates/utils/utils";
 import CodeContextCard from "../../CodeContextCard";
+import { AgentMode } from "../../AIChatInput/ModeToggle";
 
 export const FooterContainer = styled.footer({
     padding: "20px",
@@ -129,8 +130,8 @@ type FooterProps = {
     showSuggestedCommands: boolean;
     codeContext?: CodeContext;
     onRemoveCodeContext?: () => void;
-    isPlanModeEnabled?: boolean;
-    onTogglePlanMode?: (value: boolean) => void;
+    agentMode?: AgentMode;
+    onChangeAgentMode?: (mode: AgentMode) => void;
     isAutoApproveEnabled?: boolean;
     onDisableAutoApprove?: () => void;
 };
@@ -146,8 +147,8 @@ const Footer: React.FC<FooterProps> = ({
     showSuggestedCommands,
     codeContext,
     onRemoveCodeContext,
-    isPlanModeEnabled,
-    onTogglePlanMode,
+    agentMode,
+    onChangeAgentMode,
     isAutoApproveEnabled,
     onDisableAutoApprove,
 }) => {
@@ -195,8 +196,8 @@ const Footer: React.FC<FooterProps> = ({
                 onSend={onSend}
                 onStop={onStop}
                 isLoading={isLoading}
-                isPlanModeEnabled={isPlanModeEnabled}
-                onTogglePlanMode={onTogglePlanMode}
+                agentMode={agentMode}
+                onChangeAgentMode={onChangeAgentMode}
                 isAutoApproveEnabled={isAutoApproveEnabled}
                 onDisableAutoApprove={onDisableAutoApprove}
             />
