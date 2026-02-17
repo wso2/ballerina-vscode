@@ -30,6 +30,7 @@ import model3 from "../stories/3-suggestions.json";
 import model4 from "../stories/4-with-diagnostics.json";
 import model5 from "../stories/5-complex-1.json";
 import model6 from "../stories/6-ai-agent.json";
+import model7 from "../stories/7-all-nodes.json";
 
 // --- Emotion Style Snapshot Helpers ---
 
@@ -183,5 +184,9 @@ describe("BI Diagram - Snapshot Tests", () => {
 
     test("renders AI agent flow correctly", async () => {
         await renderAndCheckSnapshot(model6 as unknown as Flow, "ai-agent-flow");
+    }, 15000);
+
+    test("renders all nodes flow correctly", async () => {
+        await renderAndCheckSnapshot(model7 as unknown as Flow, "all-nodes-flow");
     }, 15000);
 });
