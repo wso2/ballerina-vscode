@@ -599,19 +599,16 @@ public class Type {
                                           String packageName) {
         TypeSymbol typeDescriptor = fieldSymbol.typeDescriptor();
         Package resolvedPackage = null;
-        try {
-            // Try to resolve the package using the field symbol's module information and provided packageName
-            if (fieldSymbol.getModule().isPresent()) {
-                ModuleID moduleID = fieldSymbol.getModule().get().id();
-                String org = moduleID.orgName();
-                String pkgName = packageName != null ? packageName : moduleID.packageName();
-                String version = moduleID.version();
 
-                Optional<Package> packageOpt = PackageUtil.getModulePackage(org, pkgName, version);
-                resolvedPackage = packageOpt.orElse(null);
-            }
-        } catch (Exception e) {
-            return e.getMessage();
+        // Try to resolve the package using the field symbol's module information and provided packageName
+        if (fieldSymbol.getModule().isPresent()) {
+            ModuleID moduleID = fieldSymbol.getModule().get().id();
+            String org = moduleID.orgName();
+            String pkgName = packageName != null ? packageName : moduleID.packageName();
+            String version = moduleID.version();
+
+            Optional<Package> packageOpt = PackageUtil.getModulePackage(org, pkgName, version);
+            resolvedPackage = packageOpt.orElse(null);
         }
 
         // Use CommonUtils API to extract default values from syntax tree
@@ -696,27 +693,16 @@ public class Type {
             return;
         }
 
-        // Find the member that matches the default value
-        Type defaultMember = null;
-        int defaultMemberIndex = -1;
-
+        // Find and move matching member to front
         for (int i = 0; i < members.size(); i++) {
             Type member = members.get(i);
-            String memberTypeName = member.getTypeName();
-
-            // Try exact match first, then case-insensitive match
-            if (defaultValue.equals(memberTypeName) ||
-                defaultValue.equalsIgnoreCase(memberTypeName)) {
-                defaultMember = member;
-                defaultMemberIndex = i;
+            if (defaultValue.equalsIgnoreCase(member.getTypeName())) {
+                if (i > 0) {
+                    members.remove(i);
+                    members.addFirst(member);
+                }
                 break;
             }
-        }
-
-        // If we found a matching member and it's not already first, move it to the front
-        if (defaultMember != null && defaultMemberIndex > 0) {
-            members.remove(defaultMemberIndex);
-            members.add(0, defaultMember);
         }
     }
 }

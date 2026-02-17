@@ -1501,14 +1501,14 @@ public class CommonUtils {
     /**
      * Helper method to find a document in a package by file path.
      */
-    private static Document findDocument(Package pkg, String path) {
+    public static Document findDocument(Package pkg, String path) {
         if (pkg == null) {
             return null;
         }
         Project project = pkg.project();
         Module defaultModule = pkg.getDefaultModule();
         String module = pkg.packageName().value();
-        // TODO: only supported for the submodules
+        // TODO: Unify the supported for the submodules
         Path docPath = project.sourceRoot().resolve("modules").resolve(module).resolve(path);
         try {
             DocumentId documentId = project.documentId(docPath);
@@ -1537,8 +1537,10 @@ public class CommonUtils {
             if (symbol instanceof ConstantSymbol constantSymbol) {
                 return String.valueOf(constantSymbol.constValue());
             }
+            // Handle case where kind is CONSTANT but not instanceof ConstantSymbol
             return null;
         }
+
         if (symbol.kind() != SymbolKind.ENUM_MEMBER) {
             return null;
         }

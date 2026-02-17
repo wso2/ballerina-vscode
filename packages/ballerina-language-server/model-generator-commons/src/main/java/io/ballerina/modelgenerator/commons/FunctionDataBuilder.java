@@ -278,7 +278,7 @@ public class FunctionDataBuilder {
                 .orElse(null);
     }
 
-    private void performAutomaticResolution() {
+    private void resolvePackageAndSemanticModel() {
         if (workspaceManager != null && filePath != null) {
             boolean isLocal = PackageUtil.isLocalFunction(workspaceManager, filePath,
                     moduleInfo.org(), moduleInfo.moduleName());
@@ -339,10 +339,9 @@ public class FunctionDataBuilder {
         }
 
         // Perform automatic package resolution if workspaceManager and filePath are provided
-        performAutomaticResolution();
+        resolvePackageAndSemanticModel();
 
-
-        // Ensure moduleInfo is updated with resolved package version before any usage
+        // Ensure moduleInfo is updated with resolvedPackage version before any usage
         updateModuleInfo();
 
         // Check if this is a local symbol
@@ -968,7 +967,7 @@ public class FunctionDataBuilder {
 
             String placeholder = DefaultValueGeneratorUtil.getDefaultValueForType(fieldType);
             String defaultValue = CommonUtils.resolveDefaultValue(recordFieldSymbol, fieldType, semanticModel,
-                    resolvedPackage);
+                    resolvedPackage, document);
             String paramType = getTypeSignature(typeSymbol);
             boolean optional = recordFieldSymbol.isOptional() || recordFieldSymbol.hasDefaultValue();
             ParameterData parameterData = ParameterData.from(paramName, documentationMap.get(paramName),

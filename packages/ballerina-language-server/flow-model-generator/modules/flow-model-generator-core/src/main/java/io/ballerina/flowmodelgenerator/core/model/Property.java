@@ -781,19 +781,6 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
         }
 
         /**
-         * Strips surrounding quotes from a string value if present.
-         *
-         * @param value The string to strip quotes from
-         * @return The string with quotes removed, or the original string if no quotes
-         */
-        private static String stripQuotes(String value) {
-            if (value != null && value.startsWith("\"") && value.endsWith("\"") && value.length() > 1) {
-                return value.substring(1, value.length() - 1);
-            }
-            return value;
-        }
-
-        /**
          * Reorders enum options so that the option matching the defaultValue appears first in the list.
          * This improves user experience by showing the default option at the top of dropdown lists.
          * Returns a new list without modifying the input list.
@@ -807,39 +794,21 @@ public record Property(Metadata metadata, List<PropertyType> types, Object value
                 return new ArrayList<>(options != null ? options : List.of());
             }
 
-            // Clean the default value by removing quotes if present
-            String cleanedDefaultValue = stripQuotes(defaultValue);
-
-            // Find the option that matches the default value
-            Option defaultOption = null;
-            int defaultOptionIndex = -1;
-
-            for (int i = 0; i < options.size(); i++) {
-                Option option = options.get(i);
-
-                // Match against both label and value (try exact match first, then case-insensitive)
-                if (cleanedDefaultValue.equalsIgnoreCase(option.label()) ||
-                    cleanedDefaultValue.equalsIgnoreCase(option.value())) {
-                    defaultOption = option;
-                    defaultOptionIndex = i;
-                    break;
-                }
-
-                // Also try matching against value with quotes removed
-                String cleanedOptionValue = stripQuotes(option.value());
-                if (cleanedDefaultValue.equals(cleanedOptionValue) ||
-                    cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue)) {
-                    defaultOption = option;
-                    defaultOptionIndex = i;
-                    break;
-                }
-            }
-
-            // Create a new list and move the matching option to the front if found
+            String cleanedDefaultValue = CommonUtils.removeQuotes(defaultValue);
             List<Option> reorderedOptions = new ArrayList<>(options);
-            if (defaultOption != null && defaultOptionIndex > 0) {
-                reorderedOptions.remove(defaultOptionIndex);
-                reorderedOptions.addFirst(defaultOption);
+
+            // Find and move matching option to front
+            for (int i = 0; i < reorderedOptions.size(); i++) {
+                Option option = reorderedOptions.get(i);
+                String cleanedOptionValue = CommonUtils.removeQuotes(option.value());
+                if (cleanedDefaultValue.equalsIgnoreCase(cleanedOptionValue) ||
+                        cleanedDefaultValue.equalsIgnoreCase(option.value())) {
+                    if (i > 0) {
+                        reorderedOptions.remove(i);
+                        reorderedOptions.addFirst(option);
+                    }
+                    break;
+                }
             }
             return reorderedOptions;
         }
